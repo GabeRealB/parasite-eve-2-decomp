@@ -436,7 +436,7 @@ AreaRecord  D_8010CBE4[21]   = {
 u32        D_8010CC8C[2]  = { 0xFFFF, 0 };
 AreaRecord D_8010CC94[39] = {
     { NULL, NULL },
-    { D_dryfield_gas_station_80184A38, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
+    { gDryfieldGasStationPlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
     { D_dryfield_main_street_80184F20, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
     { D_dryfield_general_store_80185654, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
     { NULL, NULL },

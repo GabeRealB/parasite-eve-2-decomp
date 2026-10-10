@@ -151,15 +151,15 @@ static s32 _dryfieldGasStationHandleRoomCommand(Task* unusedTask, s32 unusedMess
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == command) {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = DRYFIELD_GAS_STATION_RETURN_WARP;
         }
-        D_dryfield_gas_station_80184BD8.view            = DRYFIELD_GAS_STATION_CUTSCENE_VIEW;
-        D_dryfield_gas_station_80184BD8.capSlot         = command;
-        D_dryfield_gas_station_80184BD8.capFile         = command;
-        D_dryfield_gas_station_80184BD8.skipScene       = 0;
-        D_dryfield_gas_station_80184BD8.startSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x05);
-        D_dryfield_gas_station_80184BD8.endSound        = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x07);
-        D_dryfield_gas_station_80184BD8.sceneSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x08);
-        D_dryfield_gas_station_80184BD8.afterSceneSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x10);
-        return (s32)taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, DRYFIELD_GAS_STATION_CUTSCENE_FOLLOW_UP_COMMAND, &D_dryfield_gas_station_80184BD8);
+        gDryfieldGasStationRoomCutscene.view            = DRYFIELD_GAS_STATION_CUTSCENE_VIEW;
+        gDryfieldGasStationRoomCutscene.capSlot         = command;
+        gDryfieldGasStationRoomCutscene.capFile         = command;
+        gDryfieldGasStationRoomCutscene.skipScene       = 0;
+        gDryfieldGasStationRoomCutscene.startSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x05);
+        gDryfieldGasStationRoomCutscene.endSound        = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x07);
+        gDryfieldGasStationRoomCutscene.sceneSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x08);
+        gDryfieldGasStationRoomCutscene.afterSceneSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x10);
+        return (s32)taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, DRYFIELD_GAS_STATION_CUTSCENE_FOLLOW_UP_COMMAND, &gDryfieldGasStationRoomCutscene);
     }
     return 1;
 }
@@ -180,11 +180,11 @@ static void _dryfieldGasStationArrivalSupervisorTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_GAS_STATION_ARRIVAL_SPAWN:
-            D_dryfield_gas_station_80184BCC = taskSpawnFromTable(D_dryfield_gas_station_80181E7C, 0, 0, 0);
+            gDryfieldGasStationArrivalTask = taskSpawnFromTable(gDryfieldGasStationArrivalTaskDescs, 0, 0, 0);
             task->state++;
             break;
         case DRYFIELD_GAS_STATION_ARRIVAL_WAIT:
-            if (taskPollKill(D_dryfield_gas_station_80184BCC, &arrivalResult) != 0) {
+            if (taskPollKill(gDryfieldGasStationArrivalTask, &arrivalResult) != 0) {
                 task->state++;
             }
             break;

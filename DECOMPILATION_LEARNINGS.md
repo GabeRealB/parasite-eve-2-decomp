@@ -78388,13 +78388,12 @@ reader: `_actor548100SetLegComplete`, `_actor548100ResetWireStates`, `_actor5481
 is what tells you a "field that is always zero" is written by code you have not
 read yet.
 
-The mirror case is a symbol the code touches only at its *head*. Every room's
-shaft drawer — `Room_Draw37` and its per-room twins — takes `&D_<room>_<addr>` as
-an `SVECTOR*` and reads exactly 8 bytes of it (`gte_ldv0`), while splat's
-`dlabel` for that address spans 0x98: the vertex is the first field of a larger
-room record that no interior reference lets the splitter name, so the extent is
-the chunk map's, not the code's. Declare the point as an `SVECTOR`, as at
-`D_dryfield_gas_station_80183144` and `_gDryfieldTrailerCoachGlowLocalPoint` —
+The mirror case is a symbol the code touches only at its *head*. A room's
+local-point glow drawer borrows an `SVECTOR*` and reads exactly 8 bytes of it
+(`gte_ldv0`). A splat `dlabel` spanning 0x98 describes the chunk map's extent,
+not the code's: the point may stand alone or start a larger record, and no
+interior reference establishes which. Declare the point as an `SVECTOR`, as at
+`_gDryfieldGasStationGlowLocalPoint` and `_gDryfieldTrailerCoachGlowLocalPoint` —
 the type is used for nothing but its address, so the `dlabel` size is not
 evidence about it in either direction.
 
@@ -95291,7 +95290,7 @@ s32 sp18;
 s32 sp1C;
 s32 sp20;
 ...
-sp10 = &D_dryfield_gas_station_80182E30;
+sp10 = &_gDryfieldGasStationArrivalAnimationSets;
 sp14 = 0;
 sp18 = 0;
 sp1C = 0;
@@ -95320,7 +95319,7 @@ surely had -- here the room's `AnimationPlayRequest`, the same record the siblin
 ```c
 AnimationPlayRequest animationRequest;
 ...
-animationRequest.source.sets = D_dryfield_gas_station_80182E30;
+animationRequest.source.sets = _gDryfieldGasStationArrivalAnimationSets;
 animationRequest.animationId = 0;
 animationRequest.blend = ANIMATION_BLEND_RESET;
 animationRequest.blendFrames = 0;

@@ -10,9 +10,11 @@
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 Task* gRoomCutsceneSoundTask;
 
-/// The cutscene task `_dryfieldGasStationArrivalCutsceneTask` publishes once its
-/// `_DryfieldGasStationCutsceneWork` block is set up, so the room's script helpers can reach it.
-Task* D_dryfield_gas_station_80184BD4;
+/// Borrowed arrival-cutscene controller used by this overlay's script callbacks.
+///
+/// Published only after its work and player reference are initialized. Callbacks
+/// require the task and work to stay live; teardown leaves this pointer uncleared.
+static Task* _gDryfieldGasStationArrivalCutsceneTask;
 
 #include "rooms/dryfield_gas_station.h"
 
@@ -32,6 +34,7 @@ Task* D_dryfield_gas_station_80184BD4;
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
+#include "gameplay/captions.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/actor_presentation.h"
@@ -79,10 +82,10 @@ Task* D_dryfield_gas_station_80184BD4;
 enum {
     /// Nothing pending.
     DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_NONE = 0,
-    /// Places the player at the first entry of `D_dryfield_gas_station_80182E44`
+    /// Places the player at the first entry of `_gDryfieldGasStationArrivalPlayerPlacements`
     /// and starts the cutscene loop plus area sound 0x12.
     DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO = 1,
-    /// Plays animation 1 of `D_dryfield_gas_station_80182E30` from its start
+    /// Plays animation 1 of `_gDryfieldGasStationArrivalAnimationSets` from its start
     /// and sets the playback rate to 8.
     DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLAY_ANIMATION = 2,
     /// Plays area sound 0x13, places the player at the second entry, and
@@ -115,19 +118,12 @@ typedef struct {
 } _DryfieldGasStationCutsceneWork;
 STATIC_ASSERT_SIZEOF(_DryfieldGasStationCutsceneWork, 0x10);
 
-extern AnimationSet* D_dryfield_gas_station_80182E30[5];
-extern EvsCommand    D_dryfield_gas_station_80182E8C[];
-extern EvsCommand    D_dryfield_gas_station_8018303C[];
-
-extern SVECTOR D_dryfield_gas_station_80183144;
-
-// Indexed views below share one contiguous table.
 static void _dryfieldGasStationSuppressPlayerEquipment(void);
 static void _dryfieldGasStationSetCutsceneCommand(s16 command);
 
 static WorldCollisionGrid    _gDryfieldGasStationCollisionGrid;
-extern WorldCollisionTrigger D_dryfield_gas_station_80184350[11];
-extern WorldCollisionTrigger D_dryfield_gas_station_80184694[10];
+static WorldCollisionTrigger _gDryfieldGasStationViewBoundaryTriggers[11];
+static WorldCollisionTrigger _gDryfieldGasStationActionTriggers[10];
 static WorldCoordRoomLights  _gDryfieldGasStationRoomLights;
 static void                  _dryfieldGasStationArrivalCutsceneTask(Task* task);
 static void                  _screenFadeInTask(Task* task);
@@ -136,10 +132,13 @@ static void                  _dryfieldGasStationRestorePlayerAndShow(void);
 /// Fade-in callback slot in the cutscene task descriptor table.
 enum { DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN = 1 };
 
-TaskDesc D_dryfield_gas_station_80181E7C[3] = {
-    { { { TASK_BODY_NONE, 192 } }, dryfieldGasStationArrivalTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, dryfieldGasStationArrivalMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
+/// Execution priority shared by the arrival, movie, cutscene and fade recipes.
+enum { DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY = 192 };
+
+TaskDesc gDryfieldGasStationArrivalTaskDescs[3] = {
+    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, dryfieldGasStationArrivalTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, dryfieldGasStationArrivalMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, screenFadeInTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gDryfieldGasStationAnimation04A70Bank1[2] = {
@@ -230,7 +229,12 @@ static AnimationSet _gDryfieldGasStationAnimation05848 = {
     { NULL, _gDryfieldGasStationAnimation05848Bank1, NULL, NULL, _gDryfieldGasStationAnimation05848Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_dryfield_gas_station_80182E30[5] = {
+/// Player animation-set directory borrowed by the warp-1 arrival cutscene.
+///
+/// Indices 0..3 select the initial pose, first cue, second cue and walk;
+/// entry 4 is NULL and is not a playable clip. Playback retains this table
+/// and its sets, so this overlay must stay loaded until the player changes banks.
+static AnimationSet* _gDryfieldGasStationArrivalAnimationSets[5] = {
     &_gDryfieldGasStationAnimation04A70,
     &_gDryfieldGasStationAnimation055A4,
     &_gDryfieldGasStationAnimation05848,
@@ -238,14 +242,34 @@ AnimationSet* D_dryfield_gas_station_80182E30[5] = {
     NULL,
 };
 
-ActorTransform D_dryfield_gas_station_80182E44[3] = {
-    { { 14408, 0, -2630, 0 }, { 0, 3584, 0, 0 } },
-    { { 14158, 0, -2380, 0 }, { 0, 2560, 0, 0 } },
-    { { 14158, 0, -2380, 0 }, { 0, 3072, 0, 0 } },
+/// Player start, blend and final transforms of the warp-1 arrival cutscene.
+///
+/// Positions use room-coordinate units; rotations use 4096 angle units per turn.
+/// Placement messages borrow a record synchronously. The walk uses the X/Z
+/// delta from start to final; blend and final share a position but differ in yaw.
+static ActorTransform _gDryfieldGasStationArrivalPlayerPlacements[3] = {
+    { .pos = { 14408, 0, -2630, 0 }, .rot = { 0, 3584, 0, 0 } },
+    { .pos = { 14158, 0, -2380, 0 }, .rot = { 0, 2560, 0, 0 } },
+    { .pos = { 14158, 0, -2380, 0 }, .rot = { 0, 3072, 0, 0 } },
 };
 
-EvsCommand D_dryfield_gas_station_80182E8C[18] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
+/// Frame waits, view selection and default-duration sentinel for arrival scripts.
+enum {
+    DRYFIELD_GAS_STATION_ARRIVAL_CAP_COMMAND        = 12,
+    DRYFIELD_GAS_STATION_ARRIVAL_FINISH_WAIT_FRAMES = 3,
+    DRYFIELD_GAS_STATION_SKIP_FADE_WAIT_FRAMES      = 8,
+    DRYFIELD_GAS_STATION_SKIP_VIEW_WAIT_FRAMES      = 2,
+    DRYFIELD_GAS_STATION_ARRIVAL_END_VIEW           = 2,
+    DRYFIELD_GAS_STATION_SCRIPT_DEFAULT_FADE_FRAMES = 0, // Interpreter selects a seven-frame ramp
+};
+
+/// CAP-cue-driven event script for the in-room warp-1 arrival sequence.
+///
+/// Suppresses equipment, queues scene commands between CAP cues, restores the
+/// player and ends scripted control after three countdown updates. Includes END;
+/// the interpreter borrows these instructions and the published controller.
+static EvsCommand _gDryfieldGasStationArrivalScript[18] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_GAS_STATION_ARRIVAL_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldGasStationSuppressPlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldGasStationSetCutsceneCommand }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -260,33 +284,45 @@ EvsCommand D_dryfield_gas_station_80182E8C[18] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldGasStationSetCutsceneCommand }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_GAS_STATION_ARRIVAL_FINISH_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_gas_station_8018303C[10] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip branch that fades the arrival scene out, restores the player and returns to view 2.
+///
+/// Uses the interpreter's default seven-frame black ramp, eight countdown
+/// updates after starting and returning the fade and two before scene cleanup. Includes
+/// END and borrows the live published controller through its restore callback.
+static EvsCommand _gDryfieldGasStationArrivalSkipScript[10] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = DRYFIELD_GAS_STATION_SCRIPT_DEFAULT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_GAS_STATION_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_GAS_STATION_ARRIVAL_END_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldGasStationRestorePlayerAndShow }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_GAS_STATION_SKIP_VIEW_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_GAS_STATION_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_dryfield_gas_station_8018312C[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldGasStationArrivalCutsceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
+TaskDesc gDryfieldGasStationArrivalCutsceneTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, _dryfieldGasStationArrivalCutsceneTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_GAS_STATION_ARRIVAL_TASK_PRIORITY } }, _screenFadeInTask, { .value = 0 } },
 };
 
-SVECTOR D_dryfield_gas_station_80183144 = { 4378, -1383, -215, 0 };
+/// Fixed cyan-glow centre in the effect coordinate's local game units.
+///
+/// Both glow drawers borrow this signed-halfword point for the call; its overlay
+/// storage lasts for the room stay and is not changed by projection.
+static SVECTOR _gDryfieldGasStationGlowLocalPoint = { 4378, -1383, -215, 0 };
 
-WorldCollisionRoomResources D_dryfield_gas_station_8018314C[1] = {
-    { &_gDryfieldGasStationCollisionGrid, D_dryfield_gas_station_80184350, D_dryfield_gas_station_80184694, NULL },
+WorldCollisionRoomResources gDryfieldGasStationRoomCollisionResources[1] = {
+    { .grid                 = &_gDryfieldGasStationCollisionGrid,
+      .viewBoundaryTriggers = _gDryfieldGasStationViewBoundaryTriggers,
+      .actionTriggers       = _gDryfieldGasStationActionTriggers,
+      .occluders            = NULL },
 };
 
 u8* gDryfieldGasStationRoomViewMaps[1] = {
@@ -297,12 +333,41 @@ WorldCoordRoomLighting gDryfieldGasStationRoomLighting[1] = {
     { &_gDryfieldGasStationRoomLights, NULL },
 };
 
-ViewCount D_dryfield_gas_station_80183168[1] = { 14 };
+ViewCount gDryfieldGasStationRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldGasStationViewCameras) };
 
-DirectionWarpEntry D_dryfield_gas_station_8018316C[3] = {
-    { { { .word = 2816 }, 0x3848, 0, -2630 }, { 0, 0, 0, 0 }, { { .word = 2816 }, 0x3848, 0, -1440 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, 294, -5, -3482 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 294, -5, -4466 }, { 0, 0, 0, 0 }, 0x52010002, 0x52010001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 488 },
-    { { { .word = 2048 }, 3039, 0, -433 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4316, 0, -535 }, { 0, 0, 0, 0 }, 0x52010004, 0x52010003, 0x5201000F, 6, DIRECTION_WARP_FLAG_NONE, 489 },
+/// Departure endpoint slots and their optional map-marker nibble indices.
+enum {
+    DRYFIELD_GAS_STATION_WARP_MAIN_STREET            = 2,
+    DRYFIELD_GAS_STATION_WARP_GENERAL_STORE          = 3,
+    DRYFIELD_GAS_STATION_MAIN_STREET_WARP_MAP_FLAG   = 488,
+    DRYFIELD_GAS_STATION_GENERAL_STORE_WARP_MAP_FLAG = 489,
+};
+
+DirectionWarpEntry gDryfieldGasStationWarpEntries[3] = {
+    { .player         = { { .word = 2816 }, 14408, 0, -2630 },
+      .companion      = { { .word = 2816 }, 14408, 0, -1440 },
+      .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+      .departureSound = DIRECTION_WARP_SOUND_NONE,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 3,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player         = { { .word = 1024 }, 294, -5, -3482 },
+      .companion      = { { .word = 1024 }, 294, -5, -4466 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 2),
+      .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 1),
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 4,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DRYFIELD_GAS_STATION_MAIN_STREET_WARP_MAP_FLAG },
+    { .player         = { { .word = 2048 }, 3039, 0, -433 },
+      .companion      = { { .word = 2048 }, 4316, 0, -535 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 4),
+      .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 3),
+      .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x0F),
+      .initialView    = 6,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DRYFIELD_GAS_STATION_GENERAL_STORE_WARP_MAP_FLAG },
 };
 
 /// Dimensions of the collision grid's X-major cell directory.
@@ -360,7 +425,7 @@ static WorldCollisionGrid _gDryfieldGasStationCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldGasStationCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_gas_station_80183EC8[14] = {
+ViewCamera gDryfieldGasStationViewCameras[14] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2710, 0x7530, 1000 } }, 380 },
     { { { { 1609, 0, -3766 }, { -1268, 3856, -541 }, { 3546, 1379, 1515 } }, { -7536, 2780, 4972 } }, 230 },
     { { { { 1495, 0, -3813 }, { -23, 4095, -9 }, { 3813, 25, 1495 } }, { -1316, 1337, 5204 } }, 230 },
@@ -490,17 +555,19 @@ static SpriteBatch _gDryfieldGasStationView12SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184288[2] = {
+/// View 13's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView13SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_gas_station_80184298[2] = {
+/// View 14's decoded backdrop selection and end record, with no source sprites.
+static SpriteBatch _gDryfieldGasStationView14SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_gas_station_801842A8[14] = {
+SpriteView gDryfieldGasStationSpriteViews[14] = {
     { { .empty = _gDryfieldGasStationView1SpriteBatches }, _gDryfieldGasStationView1SpriteBatches, NULL },
     { { .elements = _gDryfieldGasStationView2SpriteSources }, _gDryfieldGasStationView2SpriteBatches, NULL },
     { { .elements = _gDryfieldGasStationView3SpriteSources }, _gDryfieldGasStationView3SpriteBatches, NULL },
@@ -513,11 +580,16 @@ SpriteView D_dryfield_gas_station_801842A8[14] = {
     { { .empty = _gDryfieldGasStationView10SpriteBatches }, _gDryfieldGasStationView10SpriteBatches, NULL },
     { { .empty = _gDryfieldGasStationView11SpriteBatches }, _gDryfieldGasStationView11SpriteBatches, NULL },
     { { .empty = _gDryfieldGasStationView12SpriteBatches }, _gDryfieldGasStationView12SpriteBatches, NULL },
-    { { .empty = D_dryfield_gas_station_80184288 }, D_dryfield_gas_station_80184288, NULL },
-    { { .empty = D_dryfield_gas_station_80184298 }, D_dryfield_gas_station_80184298, NULL },
+    { { .empty = _gDryfieldGasStationView13SpriteBatches }, _gDryfieldGasStationView13SpriteBatches, NULL },
+    { { .empty = _gDryfieldGasStationView14SpriteBatches }, _gDryfieldGasStationView14SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_gas_station_80184350[11] = {
+/// Eleven directed view-boundary quads linking room views 2, 3, 4, 5 and 6.
+///
+/// The final live record carries LAST. Setup mutates list links, view coordinate
+/// and enable/hit state; keep this overlay loaded until the list is unlinked.
+/// Origins, relative corners and radii use game units; normals use 4096 per unit.
+static WorldCollisionTrigger _gDryfieldGasStationViewBoundaryTriggers[11] = {
     { NULL, NULL, NULL, { 5791, -2544, -3505, 0 }, { { 147, -3568, 2869, 0 }, { -146, -3568, -2868, 0 }, { 147, 3568, 2869, 0 }, { -146, 3568, -2868, 0 } }, { -4101, 0, 209, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 5503, -2544, -3521, 0 }, { { -146, -3568, -2868, 0 }, { 147, -3568, 2869, 0 }, { -146, 3568, -2868, 0 }, { 147, 3568, 2869, 0 } }, { 4100, 0, -210, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 4319, -2544, -1009, 0 }, { { -210, -3568, -804, 0 }, { 211, -3568, 805, 0 }, { -210, 3568, -804, 0 }, { 211, 3568, 805, 0 } }, { 3963, 0, -1038, 0 }, { 0, 0, 4096, 0 }, 3656, 0, 4, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -531,9 +603,17 @@ WorldCollisionTrigger D_dryfield_gas_station_80184350[11] = {
     { NULL, NULL, NULL, { 0x28AD, -2688, -5043, 0 }, { { 899, -3616, -888, 0 }, { -899, -3616, 888, 0 }, { 899, 3616, -888, 0 }, { -899, 3616, 888, 0 } }, { 2895, 0, 2931, 0 }, { 0, 0, 4096, 0 }, 3822, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_gas_station_80184694[10] = {
-    { NULL, NULL, NULL, { 2657, -108, -331, 0 }, { { -1024, 0, -384, 0 }, { 1024, 0, -384, 0 }, { -1024, 0, 384, 0 }, { 1024, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 192, -80, -3328, 0 }, { { 384, 0, -1440, 0 }, { 384, 0, 1024, 0 }, { -384, 0, -1440, 0 }, { -384, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1487, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Two exits and eight CAP/room interactions tested against room-local quads.
+///
+/// The exits use departure warp 3 for General Store and warp 2 for Main Street,
+/// both requesting destination arrival warp 1. Other entries select CAP commands
+/// 5, 6, 9, 10, 15 and 26, or send room command 1 through the room-message sentinel.
+/// Requires those loaded CAP entries; the list includes its LAST-marked record.
+/// Setup mutates links, the view coordinate and enable/hit state. Geometry uses
+/// game units and normals use 4096 per unit; storage lives until room unlinking.
+static WorldCollisionTrigger _gDryfieldGasStationActionTriggers[10] = {
+    { NULL, NULL, NULL, { 2657, -108, -331, 0 }, { { -1024, 0, -384, 0 }, { 1024, 0, -384, 0 }, { -1024, 0, 384, 0 }, { 1024, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_GENERAL_STORE, (DRYFIELD_GAS_STATION_WARP_GENERAL_STORE << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 192, -80, -3328, 0 }, { { 384, 0, -1440, 0 }, { 384, 0, 1024, 0 }, { -384, 0, -1440, 0 }, { -384, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1487, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MAIN_STREET, (DRYFIELD_GAS_STATION_WARP_MAIN_STREET << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 0x3430, -96, -224, 0 }, { { -1776, 0, -384, 0 }, { 1776, 0, -384, 0 }, { -1776, 0, 384, 0 }, { 1776, 0, 384, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 1814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 0x36EF, -96, -4817, 0 }, { { -1877, 0, -131, 0 }, { -397, 0, -2069, 0 }, { -1650, 0, 1270, 0 }, { 694, 0, -764, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, -4096, 0 }, 2095, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 6960, -64, -1104, 0 }, { { -1407, 0, -624, 0 }, { 1408, 0, -624, 0 }, { -1407, 0, 624, 0 }, { 1408, 0, 624, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -544,46 +624,73 @@ WorldCollisionTrigger D_dryfield_gas_station_80184694[10] = {
     { NULL, NULL, NULL, { 4384, -64, -528, 0 }, { { -544, 0, -576, 0 }, { 544, 0, -576, 0 }, { -544, 0, 576, 0 }, { 544, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_dryfield_gas_station_8018498C[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-resource keys, file numbers and Mad Chaser spawn modes of these layouts.
+enum {
+    DRYFIELD_GAS_STATION_MAD_CHASER_ENTRY_ID       = 44,
+    DRYFIELD_GAS_STATION_MAD_CHASER_FILE_NUMBER    = 44,
+    DRYFIELD_GAS_STATION_MAD_CHASER_SPAWN_LURK     = 0,
+    DRYFIELD_GAS_STATION_MAD_CHASER_SPAWN_DANGLE   = 1,
+    DRYFIELD_GAS_STATION_DESERT_CHASER_ENTRY_ID    = 1,
+    DRYFIELD_GAS_STATION_DESERT_CHASER_FILE_NUMBER = 1,
 };
 
-AreaResource D_dryfield_gas_station_80184998[2] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Empty resource list paired with the map-owned empty placement list in variant 1.
+static AreaResource _gDryfieldGasStationVariant1Resources[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_dryfield_gas_station_801849B0[5] = {
-    { 44, 0, 0, 4226, 0, -4480, 0, 0, 0, 2, 0 },
-    { 44, 0, 1, 472, -4624, -2512, 1024, 0, 0, 2, 0 },
-    { 44, 0, 0, 7277, 0, -3553, 512, 0, 0, 2, 0 },
-    { 44, 0, 0, 6255, 0, -5322, -1024, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 9's resource key 44: file 104400 and the ordinary Mad Chaser recipe.
+///
+/// Includes END and borrows the loaded actor package's descriptor table.
+static AreaResource _gDryfieldGasStationVariant9MadChaserResources[2] = {
+    { .entryId        = DRYFIELD_GAS_STATION_MAD_CHASER_ENTRY_ID,
+      .fileNumber     = DRYFIELD_GAS_STATION_MAD_CHASER_FILE_NUMBER,
+      .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+      .taskIndex      = ACTOR_04400_MAD_CHASER_TASK_ORDINARY,
+      .taskTable      = gActor04400MadChaserTaskDescs },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_gas_station_80184A00[2] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 9's three lurking Mad Chasers and one dangling Mad Chaser, followed by END.
+///
+/// Uses resource key 44, base images with no page offset and a two-row CLUT offset.
+/// Positions are world game units and yaw is 4096 units per turn. Spawned enemies
+/// retain these placement pointers, so this overlay must outlive them.
+static AreaPlacement _gDryfieldGasStationVariant9MadChaserPlacements[5] = {
+    { .entryId = DRYFIELD_GAS_STATION_MAD_CHASER_ENTRY_ID, .mode = DRYFIELD_GAS_STATION_MAD_CHASER_SPAWN_LURK, .x = 4226, .y = 0, .z = -4480, .yaw = 0, .clutRowOffset = 2 },
+    { .entryId = DRYFIELD_GAS_STATION_MAD_CHASER_ENTRY_ID, .mode = DRYFIELD_GAS_STATION_MAD_CHASER_SPAWN_DANGLE, .x = 472, .y = -4624, .z = -2512, .yaw = 1024, .clutRowOffset = 2 },
+    { .entryId = DRYFIELD_GAS_STATION_MAD_CHASER_ENTRY_ID, .mode = DRYFIELD_GAS_STATION_MAD_CHASER_SPAWN_LURK, .x = 7277, .y = 0, .z = -3553, .yaw = 512, .clutRowOffset = 2 },
+    { .entryId = DRYFIELD_GAS_STATION_MAD_CHASER_ENTRY_ID, .mode = DRYFIELD_GAS_STATION_MAD_CHASER_SPAWN_LURK, .x = 6255, .y = 0, .z = -5322, .yaw = -1024, .clutRowOffset = 2 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_dryfield_gas_station_80184A18[2] = {
-    { 1, 0, 0, 6255, 0, -5322, -1024, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 10's resource key 1: file 400100 and the Desert Chaser's single recipe.
+///
+/// Task index 0 addresses the scalar descriptor; includes END. The actor package
+/// owns the borrowed descriptor and must be loaded before spawning.
+static AreaResource _gDryfieldGasStationVariant10DesertChaserResources[2] = {
+    { .entryId        = DRYFIELD_GAS_STATION_DESERT_CHASER_ENTRY_ID,
+      .fileNumber     = DRYFIELD_GAS_STATION_DESERT_CHASER_FILE_NUMBER,
+      .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+      .taskIndex      = 0,
+      .taskTable      = &gActor00100DesertChaserTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_gas_station_80184A38[12] = {
-    { NULL, NULL },
-    { gMapDryfieldGasStationVariant1Placements, D_dryfield_gas_station_8018498C },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_dryfield_gas_station_801849B0, D_dryfield_gas_station_80184998 },
-    { D_dryfield_gas_station_80184A18, D_dryfield_gas_station_80184A00 },
-    { NULL, NULL },
+/// Variant 10's approaching Desert Chaser with default tuning, followed by END.
+///
+/// Uses resource key 1, base images with no page offset and a two-row CLUT offset.
+/// Positions are world game units and yaw is 4096 units per turn. The enemy retains
+/// the placement pointer, so this overlay must outlive it.
+static AreaPlacement _gDryfieldGasStationVariant10DesertChaserPlacements[2] = {
+    { .entryId = DRYFIELD_GAS_STATION_DESERT_CHASER_ENTRY_ID, .variant = 0, .mode = 0, .x = 6255, .y = 0, .z = -5322, .yaw = -1024, .clutRowOffset = 2 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+AreaVariant gDryfieldGasStationPlacementVariants[12] = {
+    [1]  = { .placements = gMapDryfieldGasStationVariant1Placements, .resources = _gDryfieldGasStationVariant1Resources },
+    [9]  = { .placements = _gDryfieldGasStationVariant9MadChaserPlacements, .resources = _gDryfieldGasStationVariant9MadChaserResources },
+    [10] = { .placements = _gDryfieldGasStationVariant10DesertChaserPlacements, .resources = _gDryfieldGasStationVariant10DesertChaserResources },
 };
 
 /// The gas station's two directional model lights, contributing in every room view.
@@ -748,9 +855,9 @@ WorldCollisionSurfaceProperties* gDryfieldGasStationSurfacePropertiesByClass[8] 
     &_gDryfieldGasStationBlockingSilentSurface,
 };
 
-Task* D_dryfield_gas_station_80184BCC = NULL;
+Task* gDryfieldGasStationArrivalTask = NULL;
 
-RoomCutsceneRec D_dryfield_gas_station_80184BD8;
+RoomCutsceneRec gDryfieldGasStationRoomCutscene;
 
 /// Executes a pending gas-station scene command, retaining multi-update commands until completion.
 ///
@@ -803,7 +910,7 @@ static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
 #define DRYFIELD_GAS_STATION_INSTALL_COMMAND_ANIMATION(sourceTask, clip, blendMode, duration)                            \
     animationWork = (sourceTask)->work;                                                                                  \
     if (animationWork->player != NULL) {                                                                                 \
-        payload.animation.source.sets          = D_dryfield_gas_station_80182E30;                                        \
+        payload.animation.source.sets          = _gDryfieldGasStationArrivalAnimationSets;                               \
         payload.animation.animationId          = (clip);                                                                 \
         payload.animation.blend                = (blendMode);                                                            \
         payload.animation.blendFrames          = (duration);                                                             \
@@ -816,7 +923,7 @@ static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_NONE:
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO:
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_START], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldGasStationArrivalPlayerPlacements[DRYFIELD_GAS_STATION_PLACEMENT_START], 0);
             sndEvtRequestScriptStart(SOUND_GAS_STATION_CUTSCENE_LOOP, 0, 0);
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x12), 0, 0);
             break;
@@ -826,7 +933,7 @@ static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_BLEND:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x13), 0, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_BLEND], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldGasStationArrivalPlayerPlacements[DRYFIELD_GAS_STATION_PLACEMENT_BLEND], 0);
             DRYFIELD_GAS_STATION_INSTALL_COMMAND_ANIMATION(task, DRYFIELD_GAS_STATION_CLIP_SECOND_CUE, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_GAS_STATION_PLACEMENT_BLEND_FRAMES);
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_WALK_PLACEMENTS:
@@ -842,9 +949,9 @@ static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
                     return;
                 case DRYFIELD_GAS_STATION_COMMAND_STEP_WALK:
                     // The original leaves move.keepControl unwritten in this reused payload.
-                    payload.move.displacement.vx   = (D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_END].pos.vx - D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_START].pos.vx) / DRYFIELD_GAS_STATION_WALK_DELTA_DIVISOR;
+                    payload.move.displacement.vx   = (_gDryfieldGasStationArrivalPlayerPlacements[DRYFIELD_GAS_STATION_PLACEMENT_END].pos.vx - _gDryfieldGasStationArrivalPlayerPlacements[DRYFIELD_GAS_STATION_PLACEMENT_START].pos.vx) / DRYFIELD_GAS_STATION_WALK_DELTA_DIVISOR;
                     payload.move.displacement.vy   = 0;
-                    payload.move.displacement.vz   = (D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_END].pos.vz - D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_START].pos.vz) / DRYFIELD_GAS_STATION_WALK_DELTA_DIVISOR;
+                    payload.move.displacement.vz   = (_gDryfieldGasStationArrivalPlayerPlacements[DRYFIELD_GAS_STATION_PLACEMENT_END].pos.vz - _gDryfieldGasStationArrivalPlayerPlacements[DRYFIELD_GAS_STATION_PLACEMENT_START].pos.vz) / DRYFIELD_GAS_STATION_WALK_DELTA_DIVISOR;
                     payload.move.collisionRequests = 0;
                     TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_MOVE_BY, &payload.move, 0);
                     work->walkFrames++;
@@ -855,7 +962,7 @@ static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
                     blendRequest  = &blendAnimation;
                     animationWork = task->work;
                     if (animationWork->player != NULL) {
-                        blendAnimation.source.sets          = D_dryfield_gas_station_80182E30;
+                        blendAnimation.source.sets          = _gDryfieldGasStationArrivalAnimationSets;
                         blendAnimation.animationId          = DRYFIELD_GAS_STATION_CLIP_INITIAL;
                         blendRequest->blend                 = commandStep;
                         blendRequest->blendFrames           = DRYFIELD_GAS_STATION_WALK_END_BLEND_FRAMES;
@@ -868,14 +975,14 @@ static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
             }
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW:
-            publishedTask = D_dryfield_gas_station_80184BD4;
+            publishedTask = _gDryfieldGasStationArrivalCutsceneTask;
             publishedWork = publishedTask->work;
             if (publishedWork->playerEffectsSuppressed != 0) {
                 playerActorRestoreEquipment();
                 publishedWork->playerEffectsSuppressed = 0;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
-            TASK_MESSAGE_DISPATCH_POINTER(publishedWork->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_END], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(publishedWork->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldGasStationArrivalPlayerPlacements[DRYFIELD_GAS_STATION_PLACEMENT_END], 0);
             DRYFIELD_GAS_STATION_INSTALL_COMMAND_ANIMATION(publishedTask, DRYFIELD_GAS_STATION_CLIP_INITIAL, ANIMATION_BLEND_RESET, 0);
             sndEvtRequestScriptStop(SOUND_GAS_STATION_CUTSCENE_LOOP, DRYFIELD_GAS_STATION_LOOP_FADE_TICKS);
             SetDispMask(1);
@@ -883,7 +990,7 @@ static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN:
             switch (work->commandStep) {
                 case DRYFIELD_GAS_STATION_COMMAND_STEP_BEGIN:
-                    taskSpawnFromTable(D_dryfield_gas_station_8018312C, DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN, DRYFIELD_GAS_STATION_FADE_IN_FRAMES, 0);
+                    taskSpawnFromTable(gDryfieldGasStationArrivalCutsceneTaskDescs, DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN, DRYFIELD_GAS_STATION_FADE_IN_FRAMES, 0);
                     // The spawn and the one-frame wait share this update.
                 case DRYFIELD_GAS_STATION_FADE_STEP_WAIT:
                     work->commandStep++;
@@ -911,7 +1018,7 @@ static inline void _dryfieldGasStationInstallInitialPlayerAnimation(Task* task)
     AnimationPlayRequest             animationRequest;
 
     if (currentWork->player != NULL) {
-        animationRequest.source.sets          = D_dryfield_gas_station_80182E30;
+        animationRequest.source.sets          = _gDryfieldGasStationArrivalAnimationSets;
         animationRequest.animationId          = INITIAL_PLAYER_CLIP;
         animationRequest.blend                = ANIMATION_BLEND_RESET;
         animationRequest.blendFrames          = 0;
@@ -947,13 +1054,13 @@ static void _dryfieldGasStationArrivalCutsceneTask(Task* task)
                     taskKill(task);
                 } else {
                     memFillBytes(work, 0, sizeof(*work));
-                    work->player                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                    D_dryfield_gas_station_80184BD4 = task;
+                    work->player                            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                    _gDryfieldGasStationArrivalCutsceneTask = task;
                 }
                 _dryfieldGasStationInstallInitialPlayerAnimation(task);
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_GAS_STATION_ARRIVAL_OBJECTIVE);
-                evsStartScriptWithSkip(D_dryfield_gas_station_80182E8C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                       D_dryfield_gas_station_8018303C);
+                evsStartScriptWithSkip(_gDryfieldGasStationArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       _gDryfieldGasStationArrivalSkipScript);
                 task->state = task->state + 1;
                 return;
             }
@@ -981,7 +1088,7 @@ static void _dryfieldGasStationSuppressPlayerEquipment(void)
         DRYFIELD_GAS_STATION_EQUIPMENT_RESTORE_PENDING     = 1,
     };
 
-    _DryfieldGasStationCutsceneWork* work = D_dryfield_gas_station_80184BD4->work;
+    _DryfieldGasStationCutsceneWork* work = _gDryfieldGasStationArrivalCutsceneTask->work;
     if (work->playerEffectsSuppressed == DRYFIELD_GAS_STATION_EQUIPMENT_RESTORE_NOT_PENDING) {
         work->playerEffectsSuppressed = DRYFIELD_GAS_STATION_EQUIPMENT_RESTORE_PENDING;
         playerActorRemoveEquipment();
@@ -1008,14 +1115,14 @@ static void _dryfieldGasStationRestorePlayerAndShow(void)
     Task*                            task;
     _DryfieldGasStationCutsceneWork* work;
 
-    task = D_dryfield_gas_station_80184BD4;
+    task = _gDryfieldGasStationArrivalCutsceneTask;
     work = task->work;
     if (work->playerEffectsSuppressed != 0) {
         playerActorRestoreEquipment();
         work->playerEffectsSuppressed = 0;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }
-    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[END_PLACEMENT], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldGasStationArrivalPlayerPlacements[END_PLACEMENT], 0);
     _dryfieldGasStationInstallInitialPlayerAnimation(task);
     sndEvtRequestScriptStop(SOUND_GAS_STATION_CUTSCENE_LOOP, LOOP_FADE_TICKS);
     SetDispMask(1);
@@ -1030,7 +1137,7 @@ static void _dryfieldGasStationRestorePlayerAndShow(void)
 /// unfinished one. Other counters and the captured player stay unchanged.
 static void _dryfieldGasStationSetCutsceneCommand(s16 command)
 {
-    _DryfieldGasStationCutsceneWork* work = D_dryfield_gas_station_80184BD4->work;
+    _DryfieldGasStationCutsceneWork* work = _gDryfieldGasStationArrivalCutsceneTask->work;
 
     work->command     = command;
     work->commandStep = 0;
@@ -1059,10 +1166,10 @@ void dryfieldGasStationCyanGlowTask(Task* task)
     glowCoord = task->extra.coordBody->coord;
     // The diamond and disc scales give the same nominal screen radius.
     if (viewBit & DRYFIELD_GAS_STATION_GLOW_DIAMOND_VIEWS) {
-        _glowDrawStarLocal(glowCoord, &D_dryfield_gas_station_80183144,
+        _glowDrawStarLocal(glowCoord, &_gDryfieldGasStationGlowLocalPoint,
                            DRYFIELD_GAS_STATION_GLOW_PULSE_RATE, DRYFIELD_GAS_STATION_GLOW_DIAMOND_RADIUS_SCALE);
     } else if (viewBit != 0) {
-        _glowDrawRayStar(glowCoord, &D_dryfield_gas_station_80183144,
+        _glowDrawRayStar(glowCoord, &_gDryfieldGasStationGlowLocalPoint,
                          DRYFIELD_GAS_STATION_GLOW_PULSE_RATE, DRYFIELD_GAS_STATION_GLOW_DISC_RADIUS_SCALE);
     }
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;

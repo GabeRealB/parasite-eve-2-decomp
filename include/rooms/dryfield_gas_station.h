@@ -11,10 +11,21 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_gas_station_80184A38[12];
+/// Saved-variant actor layouts for the daytime gas station.
+///
+/// Index directly by the saved placement variant (0..11). Slot 1 has empty
+/// placement/resource lists; slot 9 places four ordinary Mad Chasers and slot
+/// 10 one Desert Chaser. All other slots have two NULL pointers. Live lists
+/// include an `AREA_PLACEMENT_END` record and borrow their task descriptors;
+/// keep this room, the stage map and selected actor package loaded during use.
+extern AreaVariant gDryfieldGasStationPlacementVariants[12];
 
-// dryfield_gas_station
-extern WorldCollisionRoomResources D_dryfield_gas_station_8018314C[];
+/// Room 1's collision mesh, eleven view boundaries and ten action triggers.
+///
+/// Index by room minus one. There are no sight occluders. Trigger lists include
+/// a final live record marked LAST; activation binds coordinates and links them.
+/// Keep this overlay loaded until the grid is replaced and triggers are unlinked.
+extern WorldCollisionRoomResources gDryfieldGasStationRoomCollisionResources[1];
 
 /// The gas station's one-room directory of logical-to-resource view maps.
 ///
@@ -31,13 +42,35 @@ extern u8* gDryfieldGasStationRoomViewMaps[1];
 /// coordinates stay valid only while this room overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldGasStationRoomLighting[1];
 
-extern ViewCount D_dryfield_gas_station_80183168[];
+/// Room 1's signed count of fourteen logical views, indexed by room minus one.
+///
+/// Limits reverse searches through the identity map independently of that map's
+/// fifty-byte capacity. Contains no terminator; storage belongs to this overlay.
+extern ViewCount gDryfieldGasStationRoomViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_gas_station_8018316C[];
+/// The gas station's arrival, Main Street and General Store warp endpoints.
+///
+/// Index by warp minus one (warp 1..3); there is no terminator. All belong to
+/// room 1 and select initial views 3, 4 and 6. Warp 1 has no sounds or marker;
+/// warps 2 and 3 provide arrival/departure sounds and markers 488 and 489,
+/// with a refusal sound only for warp 3. Positions use game units and yaw uses
+/// 4096 units per turn. Full-entry copies borrow this overlay during lookup.
+extern DirectionWarpEntry gDryfieldGasStationWarpEntries[3];
 
-extern ViewCamera D_dryfield_gas_station_80183EC8[];
+/// Fourteen mapped-view cameras for the gas station, indexed by mapped view minus one.
+///
+/// Uses world-to-camera Q12 rotations, negated camera origins in game units and
+/// projection distances in pixels. There is no terminator. Queued camera tasks
+/// borrow their selected record; keep this overlay loaded until application.
+extern ViewCamera gDryfieldGasStationViewCameras[14];
 
-extern SpriteView D_dryfield_gas_station_801842A8[];
+/// Fourteen sprite/backdrop selections, indexed by mapped view minus one.
+///
+/// Views 2 and 3 provide six source sprites each; the others retain batch-list
+/// addresses in `sources.empty` and select only decoded backdrops. Every batch
+/// list includes END and every clipping list is NULL. The array has no terminator;
+/// keep the room-owned directory and mutable lists loaded during allocation/drawing.
+extern SpriteView gDryfieldGasStationSpriteViews[14];
 
 /// The gas station's eight collision and footstep policies, indexed by surface class.
 ///

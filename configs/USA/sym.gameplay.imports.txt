@@ -1435,7 +1435,7 @@ D_dryfield_g_r_kitchen_8017F4B8 = 0x8017F4B8; // absolute:True owner=dryfield_g_
 
 D_dryfield_garage_801800E0 = 0x801800E0; // absolute:True owner=dryfield_garage
 
-D_dryfield_gas_station_80184A38 = 0x80184A38; // absolute:True owner=dryfield_gas_station shared=rooms
+gDryfieldGasStationPlacementVariants = 0x80184A38; // absolute:True owner=dryfield_gas_station shared=rooms
 
 D_dryfield_general_store_80185654 = 0x80185654; // absolute:True owner=dryfield_general_store
 

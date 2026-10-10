@@ -574,7 +574,7 @@ WorldCoordRoomLighting* gMapDryfieldRoomLightingTables[38] = {
 };
 
 DirectionWarpEntry* D_map_dryfield_8017A8F8[38] = {
-    D_dryfield_gas_station_8018316C,
+    gDryfieldGasStationWarpEntries,
     gDryfieldMainStreetWarpEntries,
     D_dryfield_general_store_8017E690,
     gDryfieldR04WarpEntries,
@@ -615,7 +615,7 @@ DirectionWarpEntry* D_map_dryfield_8017A8F8[38] = {
 };
 
 static ViewCount* D_map_dryfield_8017A990[38] = {
-    D_dryfield_gas_station_80183168,
+    gDryfieldGasStationRoomViewCounts,
     gDryfieldMainStreetRoomViewCounts,
     D_dryfield_general_store_8017E684,
     gDryfieldR04RoomViewCounts,
@@ -658,7 +658,7 @@ static ViewCount* D_map_dryfield_8017A990[38] = {
 ViewCountTable D_map_dryfield_8017AA28 = { D_map_dryfield_8017A990 };
 
 static WorldCollisionRoomResources* D_map_dryfield_8017AA2C[38] = {
-    D_dryfield_gas_station_8018314C,
+    gDryfieldGasStationRoomCollisionResources,
     gDryfieldMainStreetRoomCollisionResources,
     D_dryfield_general_store_8017E670,
     gDryfieldR04RoomCollisionResources,
@@ -701,7 +701,7 @@ static WorldCollisionRoomResources* D_map_dryfield_8017AA2C[38] = {
 WorldCollisionStageResources D_map_dryfield_8017AAC4 = { D_map_dryfield_8017AA2C };
 
 static ViewCamera* D_map_dryfield_8017AAC8[38] = {
-    D_dryfield_gas_station_80183EC8,
+    gDryfieldGasStationViewCameras,
     gDryfieldMainStreetViewCameras,
     D_dryfield_general_store_8017F25C,
     gDryfieldR04ViewCameras,
@@ -795,7 +795,7 @@ ViewIndexTable gMapDryfieldViewIndexTable = { _gMapDryfieldAreaViewMaps };
 /// Indexed by area minus one, then the mapped view minus one. Room pointers
 /// must stay loaded; an area entry supplies no sprite-view count or sentinel.
 static SpriteView* _gMapDryfieldAreaSpriteViews[38] = {
-    D_dryfield_gas_station_801842A8,
+    gDryfieldGasStationSpriteViews,
     gDryfieldMainStreetSpriteViews,
     D_dryfield_general_store_8018402C,
     gDryfieldR04SpriteViews,

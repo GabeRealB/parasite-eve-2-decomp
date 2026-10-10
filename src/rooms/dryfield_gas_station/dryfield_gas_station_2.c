@@ -117,7 +117,7 @@ void dryfieldGasStationArrivalMovieTask(Task* task)
             }
             memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
             taskKill(task);
-            taskSpawnFromTableOnDefaultList(D_dryfield_gas_station_80181E7C, DRYFIELD_GAS_STATION_MOVIE_FADE_TASK, DRYFIELD_GAS_STATION_MOVIE_FADE_FRAMES, 0);
+            taskSpawnFromTableOnDefaultList(gDryfieldGasStationArrivalTaskDescs, DRYFIELD_GAS_STATION_MOVIE_FADE_TASK, DRYFIELD_GAS_STATION_MOVIE_FADE_FRAMES, 0);
             displayResumeGameLoop();
             break;
     }
@@ -134,7 +134,7 @@ void dryfieldGasStationArrivalMovieTask(Task* task)
 static inline void _dryfieldGasStationStartArrivalMovieDisplay(void)
 {
     enum { ARRIVAL_MOVIE_DESCRIPTOR = 1 };
-    displaySpawnTaskFromTable(D_dryfield_gas_station_80181E7C, ARRIVAL_MOVIE_DESCRIPTOR, 0, 0);
+    displaySpawnTaskFromTable(gDryfieldGasStationArrivalTaskDescs, ARRIVAL_MOVIE_DESCRIPTOR, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
 }
@@ -172,7 +172,7 @@ void dryfieldGasStationArrivalTask(Task* task)
             task->state = task->state + 1;
             break;
         case DRYFIELD_GAS_STATION_ARRIVAL_SPAWN_CUTSCENE:
-            cutscene       = taskSpawnFromTable(D_dryfield_gas_station_8018312C, DRYFIELD_GAS_STATION_ARRIVAL_CUTSCENE_DESCRIPTOR, 0, 0);
+            cutscene       = taskSpawnFromTable(gDryfieldGasStationArrivalCutsceneTaskDescs, DRYFIELD_GAS_STATION_ARRIVAL_CUTSCENE_DESCRIPTOR, 0, 0);
             work->cutscene = cutscene;
             if (cutscene == NULL) {
                 taskRequestKill(task, 0);
