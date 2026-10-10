@@ -10,8 +10,12 @@
 
 #include "main/task_types.h"
 
-// acropolis_west_elevator_hall
-extern WorldCollisionRoomResources D_acropolis_west_elevator_hall_80185024[];
+/// Collision resources for the west elevator hall's single room in Acropolis area 17.
+///
+/// Room 1 borrows one grid, four view boundaries and five action triggers,
+/// with no sight occluders. Indexed by room minus one. Keep this overlay and
+/// its mutable resources loaded while bound; trigger lists stay live until unlinked.
+extern WorldCollisionRoomResources gAcropolisWestElevatorHallCollisionRoomResources[1];
 
 /// Logical-view map directory for the hall's single room.
 ///
@@ -28,7 +32,14 @@ extern ViewCount gAcropolisWestElevatorHallViewCounts[1];
 /// room overlay is loaded. Indexed by the 1-based room minus one.
 extern WorldCoordRoomLighting gAcropolisWestElevatorHallRoomLightingTable[1];
 
-extern DirectionWarpEntry D_acropolis_west_elevator_hall_80185044[];
+/// Hall warp endpoints 1 (elevator arrival) and 2 (Acropolis Square doorway).
+///
+/// Indexed by the 1-based warp minus one, without a terminator. Player and
+/// companion placements use whole room units and yaw in 1/4096 turns; the
+/// initial views are 5 and 4. Endpoint 2 supplies arrival/departure sounds and
+/// map-marker nibble 503. The stage map borrows these records while this room
+/// overlay is loaded; transition code copies a selected entry before using it.
+extern DirectionWarpEntry gAcropolisWestElevatorHallWarpEntries[2];
 
 /// Foreground sprite resources for mapped views 1..5, indexed by view minus one.
 ///
