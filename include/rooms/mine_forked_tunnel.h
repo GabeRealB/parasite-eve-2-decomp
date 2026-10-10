@@ -16,12 +16,21 @@ extern AreaVariant D_mine_forked_tunnel_80185504[12];
 
 extern TmdSource gMineForkedTunnelModel01B48;
 
-// mine_forked_tunnel
-extern WorldCoordRoomLighting D_mine_forked_tunnel_80183634[];
+/// Lighting resources for the tunnel's single room, indexed by room ID minus one.
+///
+/// Borrows four mutable point lights and a counted ambient-colour table for
+/// logical views 1..7. The map directory and gameplay queries may borrow the
+/// descriptor and its resources only while this room overlay remains loaded.
+extern WorldCoordRoomLighting gMineForkedTunnelRoomLighting[1];
 
 extern WorldCollisionRoomResources D_mine_forked_tunnel_8018363C[];
 
-extern u8* D_mine_forked_tunnel_8018364C[];
+/// Logical-view map directory for the tunnel's single room, indexed by room ID minus one.
+///
+/// Borrows gameplay's identity map: logical views 1..7 select the same 1-based
+/// camera, image and sprite indices. The separate room view count limits the
+/// valid domain; the shared map has a larger capacity and no terminator.
+extern u8* gMineForkedTunnelRoomViewMaps[1];
 
 extern ViewCount D_mine_forked_tunnel_80183650[];
 
@@ -29,9 +38,22 @@ extern DirectionWarpEntry D_mine_forked_tunnel_80183654[];
 
 extern ViewCamera D_mine_forked_tunnel_80183D94[];
 
-extern SpriteView D_mine_forked_tunnel_80184D64[];
+/// Sprite resources for the tunnel's seven mapped views, indexed by mapped view minus one.
+///
+/// Views 2..5 have source sprites; views 1, 6 and 7 retain only empty batch
+/// lists. Every view requests decoded background strips and has no draw-area
+/// clips. View 4 batch 5 and view 5 batch 3 show the oak board until collection.
+/// Gameplay borrows these records and their mutable batches while this overlay
+/// remains loaded. Empty source slots retain batch-list addresses, not sprites.
+extern SpriteView gMineForkedTunnelSpriteViews[7];
 
-extern WorldCollisionSurfaceProperties* D_mine_forked_tunnel_801855C0[];
+/// Collision policy directory indexed by the tunnel's surface class, in 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Only
+/// class 1 supplies footstep cue pairs; classes 0 and 2..7 share a silent record.
+/// The map directory borrows these pointers while the room overlay is loaded.
+/// There is no count header or terminator.
+extern WorldCollisionSurfaceProperties* gMineForkedTunnelSurfacePropertiesByClass[8];
 
 /// Draws the tunnel's flickering light flares for the current mapped view.
 ///

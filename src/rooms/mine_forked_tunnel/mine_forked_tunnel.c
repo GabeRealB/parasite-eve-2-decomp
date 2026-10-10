@@ -56,17 +56,6 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/actor_messages.h"
 
-/// The area object's position / rotation path, one `SVECTOR` per step: `pos` and
-/// `rot` are the halves `_mineForkedTunnelInitAreaObject` and
-/// `_mineForkedTunnelApplyAreaObjectCommand` compose into the `ActorTransform` they
-/// use for model placement (entry 0 of each) and that
-/// `_mineForkedTunnelTickAreaObject` walks one entry per step of
-/// `Task::killCountdown`, which holds at 110. Both are 240 entries - the
-/// position table starts where the rotation table ends, and the pitch table
-/// below starts where the position table ends.
-extern SVECTOR D_mine_forked_tunnel_80181244[240];
-extern SVECTOR D_mine_forked_tunnel_80180AC4[240];
-
 /// The placement `_mineForkedTunnelInitAreaObject` uses instead when the
 /// `0x75` game flag is set: a complete `ActorTransform` sitting in the room's
 /// `.data`, offset (0x8CD, 0x3C4, 0x46B) with a half-turn about Y.
@@ -107,15 +96,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_MineForkedTunnelAreaObjectWork, 0x48);
 
 extern WorldCollisionGrid D_mine_forked_tunnel_80181C5C;
-extern WorldCollisionGrid D_mine_forked_tunnel_80183D70;
-
-/// The tunnel's per-view effect anchors, projected by
-/// `mineForkedTunnelDrawViewFlaresTask` with `_glowDrawFlare`
-/// (radius scale 0x300). Views 2 and 3 share the first anchor, view 4 draws the
-/// second and third together and view 5 the fourth.
-extern SVECTOR D_mine_forked_tunnel_80183614[];
-extern SVECTOR D_mine_forked_tunnel_8018361C[];
-extern SVECTOR D_mine_forked_tunnel_8018362C[];
 
 extern TaskDesc         D_mine_forked_tunnel_80183104[];
 extern TaskMessageEntry D_mine_forked_tunnel_80181C80[];
@@ -222,11 +202,11 @@ static void _mineForkedTunnelSwitchInteractionTask(Task* task);
 static void _mineForkedTunnelOakBoardPromptTask(Task* task);
 
 extern AnimationBankCopyRequest   D_mine_forked_tunnel_8018312C;
-extern WorldCollisionGrid         D_mine_forked_tunnel_80183D70;
+static WorldCollisionGrid         _gMineForkedTunnelCollisionGrid;
 extern WorldCollisionTrigger      D_mine_forked_tunnel_80184F50[6];
 extern WorldCollisionTrigger      D_mine_forked_tunnel_80185118[6];
-extern WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8];
-extern WorldCoordRoomLights       D_mine_forked_tunnel_80184F38[1];
+static WorldCoordRoomAmbientEntry _gMineForkedTunnelViewAmbientTable[8];
+static WorldCoordRoomLights       _gMineForkedTunnelRoomLights;
 
 static TmdBone _gMineForkedTunnelModel01B48Skeleton[1] = {
 #include "assets/mine_forked_tunnel_model_01B48_skeleton.inc"
@@ -292,11 +272,21 @@ static TmdSource _gMineForkedTunnelModel03340 = {
     _gMineForkedTunnelModel03340Stream,
 };
 
-SVECTOR D_mine_forked_tunnel_80180AC4[240] = {
+/// Authored Euler rotations paired with the switch-controlled area object's position path.
+///
+/// Angles use 4096 units per turn and ZYX placement order. Playback samples
+/// entries 0..109, one per updating frame; setup and reset use entry zero.
+/// The full 240-entry track is retained. Fourth components are unused.
+static SVECTOR _gMineForkedTunnelAreaObjectRotationPath[240] = {
 #include "assets/mine_forked_tunnel_motion_03504.inc"
 };
 
-SVECTOR D_mine_forked_tunnel_80181244[240] = {
+/// Authored translations paired with the switch-controlled area object's rotation path.
+///
+/// XYZ uses integer game units in the model root's parent frame. Playback
+/// samples entries 0..109, one per updating frame; setup and reset use entry
+/// zero. The full 240-entry track is retained. Fourth components are unused.
+static SVECTOR _gMineForkedTunnelAreaObjectPositionPath[240] = {
 #include "assets/mine_forked_tunnel_motion_03C84.inc"
 };
 
@@ -502,28 +492,27 @@ EvsCommand D_mine_forked_tunnel_801834F4[12] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_mine_forked_tunnel_80183614[1] = {
-    { 2250, -1870, 9120, 0 },
-};
+/// Shared flare centre for mapped views 2 and 3, in integer world-coordinate units.
+static SVECTOR _gMineForkedTunnelView2And3FlarePoint = { 2250, -1870, 9120, 0 };
 
-SVECTOR D_mine_forked_tunnel_8018361C[2] = {
+/// Two flare centres drawn together in mapped view 4, in integer world-coordinate units.
+static SVECTOR _gMineForkedTunnelView4FlarePoints[2] = {
     { 2250, -1260, 6010, 0 },
     { 2250, -1060, 3200, 0 },
 };
 
-SVECTOR D_mine_forked_tunnel_8018362C[1] = {
-    { 430, -950, 2530, 0 },
-};
+/// Flare centre for mapped view 5, in integer world-coordinate units.
+static SVECTOR _gMineForkedTunnelView5FlarePoint = { 430, -950, 2530, 0 };
 
-WorldCoordRoomLighting D_mine_forked_tunnel_80183634[1] = {
-    { D_mine_forked_tunnel_80184F38, D_mine_forked_tunnel_80185564 },
+WorldCoordRoomLighting gMineForkedTunnelRoomLighting[1] = {
+    { &_gMineForkedTunnelRoomLights, _gMineForkedTunnelViewAmbientTable },
 };
 
 WorldCollisionRoomResources D_mine_forked_tunnel_8018363C[1] = {
-    { &D_mine_forked_tunnel_80183D70, D_mine_forked_tunnel_80184F50, D_mine_forked_tunnel_80185118, NULL },
+    { &_gMineForkedTunnelCollisionGrid, D_mine_forked_tunnel_80184F50, D_mine_forked_tunnel_80185118, NULL },
 };
 
-u8* D_mine_forked_tunnel_8018364C[1] = {
+u8* gMineForkedTunnelRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -533,29 +522,65 @@ DirectionWarpEntry D_mine_forked_tunnel_80183654[1] = {
     { { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2350, 0, 0x2904 }, { 0, 0, 0, 0 }, 0x54070002, 0x54070001, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gMineForkedTunnelCollision067B0Normals[33] = {
+/// Room-space collision normals; the first three are reserved for the area-object box.
+///
+/// Unit length is 4096. The box rebuild replaces only XYZ in the reserved prefix.
+static SVECTOR _gMineForkedTunnelCollisionGridNormals[33] = {
 #include "assets/mine_forked_tunnel_collision_067B0_normals.inc"
 };
 
-static SVECTOR _gMineForkedTunnelCollision067B0Verts[88] = {
+/// Room-space collision vertices in integer game units; the first eight form the movable box.
+static SVECTOR _gMineForkedTunnelCollisionGridVerts[88] = {
 #include "assets/mine_forked_tunnel_collision_067B0_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineForkedTunnelCollision067B0Faces[37] = {
+/// Indexed collision faces; the first three are replaced by the area-object box faces.
+///
+/// Remaining faces use surface classes 0 and 1 and index this grid's vertex
+/// and normal pools. The zeroed box prefix is populated during object setup.
+static WorldCollisionGridFace _gMineForkedTunnelCollisionGridFaces[37] = {
 #include "assets/mine_forked_tunnel_collision_067B0_faces.inc"
 };
 
-static s16 _gMineForkedTunnelCollision067B0Cells[160] = {
+/// Packed face-index lists for the collision grid's eight cells, each terminated by -1.
+static s16 _gMineForkedTunnelCollisionGridCells[160] = {
 #include "assets/mine_forked_tunnel_collision_067B0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineForkedTunnelCollision067B0Cells[i])
-static s16* _gMineForkedTunnelCollision067B0Table[8] = {
+/// Collision-grid dimensions; cells are square and measured in integer game units.
+enum {
+    MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_COUNT_X = 2,
+    MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_COUNT_Z = 4,
+    MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_SIZE    = 4000,
+};
+
+// The generated table supplies halfword offsets into the packed cell lists.
+#define GRID_CELL(i) (&_gMineForkedTunnelCollisionGridCells[i])
+/// X-major cell directory, indexed by x * cellCountZ + z.
+static s16* _gMineForkedTunnelCollisionGridTable[MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_COUNT_X * MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/mine_forked_tunnel_collision_067B0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_forked_tunnel_80183D70 = { NULL, _gMineForkedTunnelCollision067B0Normals, _gMineForkedTunnelCollision067B0Verts, _gMineForkedTunnelCollision067B0Faces, _gMineForkedTunnelCollision067B0Table, 650, 520, 2, 4, 4000, 37 };
+/// Active tunnel collision grid with reserved storage for the switch-controlled prop box.
+///
+/// The room-resource descriptor borrows this grid; activation binds its view
+/// coordinate. Object setup and parking replace three normals/faces and eight
+/// vertices, lifting the box out of the passage after the switch is used.
+/// All pools and the fixed cell directory stay live with the room overlay.
+static WorldCollisionGrid _gMineForkedTunnelCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gMineForkedTunnelCollisionGridNormals,
+    .vertices    = _gMineForkedTunnelCollisionGridVerts,
+    .faces       = _gMineForkedTunnelCollisionGridFaces,
+    .cellFaceIds = _gMineForkedTunnelCollisionGridTable,
+    .xBias       = 650,
+    .zBias       = 520,
+    .cellCountX  = MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_COUNT_X,
+    .cellCountZ  = MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_COUNT_Z,
+    .cellSize    = MINE_FORKED_TUNNEL_COLLISION_GRID_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gMineForkedTunnelCollisionGridFaces),
+};
 
 ViewCamera D_mine_forked_tunnel_80183D94[7] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -1500, 0x40CA, -5500 } }, 289 },
@@ -567,264 +592,317 @@ ViewCamera D_mine_forked_tunnel_80183D94[7] = {
     { { { { -3711, 0, -1732 }, { -1330, 2622, 2850 }, { 1109, 3145, -2376 } }, { -1662, 2731, -0x2A11 } }, 269 },
 };
 
-SpriteBatch D_mine_forked_tunnel_80183E90[2] = {
+/// Neutral channel modulation for the authored sprite sources; 128 preserves texture intensity.
+enum { MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR = 128 };
+
+/// Empty sprite list for mapped view 1; the zero-count first record requests image strips.
+static SpriteBatch _gMineForkedTunnelView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_forked_tunnel_80183EA0[35] = {
-    { 142, 0x3FC0, { .fields = { 40, 64 } }, -136, -120, 517, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, -144, -56, 483, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 72 } }, -160, 24, 444, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -160, 96, 429, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -160, -56, 434, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -160, -120, 469, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 88, -120, 433, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, 96, -96, 389, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, 104, -16, 364, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, 112, 64, 364, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, 128, 64, 314, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 80 } }, 128, -16, 331, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, 120, -96, 356, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -120, 374, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -56, 1246, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, -80, 1575, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -24, -112, 1338, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 16, -112, 1320, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 48, -112, 1149, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 56, -72, 1110, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, 64, -56, 1096, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -24, -72, 1269, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -24, 0, 1186, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, 64, 16, 1034, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -120, 48, 571, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -120, 88, 492, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 104, 478, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -112, 16, 629, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -104, 48, 594, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -104, 80, 569, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -88, -8, 683, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -96, 0, 634, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -88, 32, 655, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -88, 80, 613, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -72, 0, 702, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+/// Source rectangles and sorting depths for mapped view 2's 35 room sprites.
+///
+/// Positions and dimensions are screen pixels; UV selects texels within each
+/// encoded texture page. The view's batches partition the complete array.
+static SpriteSource _gMineForkedTunnelView2SpriteSources[35] = {
+    { 142, 0x3FC0, { .fields = { 40, 64 } }, -136, -120, 517, { .fields = { 104, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 80 } }, -144, -56, 483, { .fields = { 88, 160 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 72 } }, -160, 24, 444, { .fields = { 16, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, -160, 96, 429, { .fields = { 48, 232 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, -160, -56, 434, { .fields = { 112, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, -160, -120, 469, { .fields = { 8, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 88, -120, 433, { .fields = { 112, 232 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 80 } }, 96, -96, 389, { .fields = { 64, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 80 } }, 104, -16, 364, { .fields = { 88, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, 112, 64, 364, { .fields = { 120, 120 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 56 } }, 128, 64, 314, { .fields = { 104, 176 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 80 } }, 128, -16, 331, { .fields = { 88, 80 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 80 } }, 120, -96, 356, { .fields = { 48, 80 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, -120, 374, { .fields = { 40, 184 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -56, 1246, { .fields = { 32, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, -80, 1575, { .fields = { 40, 232 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, -24, -112, 1338, { .fields = { 64, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 32 } }, 16, -112, 1320, { .fields = { 64, 40 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 40 } }, 48, -112, 1149, { .fields = { 64, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 56, -72, 1110, { .fields = { 96, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, 64, -56, 1096, { .fields = { 64, 160 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, -24, -72, 1269, { .fields = { 32, 160 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, -24, 0, 1186, { .fields = { 16, 72 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 56 } }, 64, 16, 1034, { .fields = { 112, 64 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -120, 48, 571, { .fields = { 88, 104 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -120, 88, 492, { .fields = { 72, 104 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 104, 478, { .fields = { 88, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -112, 16, 629, { .fields = { 80, 72 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -104, 48, 594, { .fields = { 88, 224 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -104, 80, 569, { .fields = { 88, 184 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -88, -8, 683, { .fields = { 104, 120 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, -96, 0, 634, { .fields = { 24, 208 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -88, 32, 655, { .fields = { 8, 208 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -88, 80, 613, { .fields = { 96, 64 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -72, 0, 702, { .fields = { 120, 80 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_forked_tunnel_8018415C[5] = {
+/// Three source ranges for mapped view 2, between the background selector and list terminator.
+///
+/// Ranges cover source entries 0..13, 14..23 and 24..34. Authored trailing
+/// metadata bytes are retained; their role is unproven.
+static SpriteBatch _gMineForkedTunnelView2SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 1, 0 } },
     { 14, 10, 0, 0, { 2, 0 } },
-    { 24, 11, 0, 0, { 0, 0 } },
+    { 24, ARRAY_SIZE(_gMineForkedTunnelView2SpriteSources) - 24, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_forked_tunnel_80184184[36] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 40, 350, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, 48, 96, 213, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 112, 72, 224, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 72, 72, 219, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, 88, 48, 224, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 112, 16, 235, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -8, 250, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, 16, 528, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, 16, 850, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 24, 591, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, 32, 671, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 32, 777, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 40, 819, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -88, 24, 844, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, 40, 737, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 32, 641, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -152, 24, 568, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -160, 16, 518, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -48, 436, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, -32, 486, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -16, 549, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -8, 647, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 8, 705, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 24, 703, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 16, 616, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, 8, 548, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 0, 493, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, 56, 117, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -160, 96, 101, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -120, 112, 119, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 112, 150, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 104, 195, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 104, 246, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, 96, 362, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, 96, 588, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -8, 104, 747, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+/// Source rectangles and sorting depths for mapped view 3's 36 room sprites.
+///
+/// Positions and dimensions are screen pixels; UV selects texels within each
+/// encoded texture page. The view's batches partition the complete array.
+static SpriteSource _gMineForkedTunnelView3SpriteSources[36] = {
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 40, 350, { .fields = { 80, 48 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 24 } }, 48, 96, 213, { .fields = { 24, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, 112, 72, 224, { .fields = { 80, 176 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 72, 72, 219, { .fields = { 40, 48 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 24 } }, 88, 48, 224, { .fields = { 40, 216 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 32 } }, 112, 16, 235, { .fields = { 64, 136 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -8, 250, { .fields = { 72, 24 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, 16, 528, { .fields = { 96, 168 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, 16, 850, { .fields = { 120, 248 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 24, 591, { .fields = { 112, 248 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, 32, 671, { .fields = { 104, 168 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 32, 777, { .fields = { 88, 168 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 40, 819, { .fields = { 56, 24 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -88, 24, 844, { .fields = { 64, 72 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, 40, 737, { .fields = { 64, 168 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 32, 641, { .fields = { 80, 120 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -152, 24, 568, { .fields = { 72, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -160, 16, 518, { .fields = { 72, 120 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -48, 436, { .fields = { 112, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, -32, 486, { .fields = { 112, 136 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -16, 549, { .fields = { 96, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -8, 647, { .fields = { 112, 216 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 8, 705, { .fields = { 88, 24 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 24, 703, { .fields = { 64, 200 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 16, 616, { .fields = { 64, 184 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, 8, 548, { .fields = { 56, 120 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 0, 493, { .fields = { 56, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, 56, 117, { .fields = { 96, 96 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, -160, 96, 101, { .fields = { 56, 96 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -120, 112, 119, { .fields = { 48, 40 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -96, 112, 150, { .fields = { 40, 72 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 104, 195, { .fields = { 96, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 104, 246, { .fields = { 96, 32 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, 96, 362, { .fields = { 96, 216 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, 96, 588, { .fields = { 80, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -8, 104, 747, { .fields = { 88, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_forked_tunnel_80184454[4] = {
+/// Two source ranges for mapped view 3, between the background selector and list terminator.
+///
+/// Ranges cover source entries 0..6 and 7..35. Authored trailing metadata
+/// bytes are retained; their role is unproven.
+static SpriteBatch _gMineForkedTunnelView3SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
-    { 7, 29, 0, 0, { 0, 0 } },
+    { 7, ARRAY_SIZE(_gMineForkedTunnelView3SpriteSources) - 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_forked_tunnel_80184474[82] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 80, 857, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -24, -120, 604, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 32 } }, -144, -120, 542, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -120, 40, 630, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -104, 72, 656, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 40 } }, -128, 0, 607, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 40 } }, -136, -40, 584, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 48 } }, -136, -88, 561, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -80, 736, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 64, -120, 706, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 56, -32, 756, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 88, -120, 683, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, -80, 710, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 88, -32, 738, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 0, 753, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, 16, 793, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 56, 822, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 80, 64, 798, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 80, 16, 791, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, -120, 576, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, -96, 1286, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -88, 1982, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, -120, 1926, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -88, -120, 1182, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, -96, 1208, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -88, -64, 1246, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -88, -32, 1282, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -80, 0, 1335, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -32, -120, 1276, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -96, 1309, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -16, -8, 1427, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -16, -56, 1363, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, 64, 432, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 326, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -160, 48, 351, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 24, 374, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 8, 406, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -144, 16, 425, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -120, 48, 480, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -112, 64, 452, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -104, 88, 436, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 104, 425, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 104, 400, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -128, 104, 377, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -128, 88, 401, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 72, 409, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -136, 48, 408, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -128, 24, 441, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -160, -120, 484, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, -120, 1083, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 56, 900, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 16, 1375, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 8, -8, 1337, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 0, -120, 1260, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 8, -112, 1211, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 16, -104, 1298, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 24, -96, 1437, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, -40, 1321, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 16, -120, 1044, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 24, -120, 1014, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, 0, 1175, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 24, -32, 1190, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -120, 934, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, -120, 805, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -104, 997, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, -104, 866, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -88, 1120, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, -88, 1021, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, -72, 1176, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -72, 1068, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -32, 1114, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, -32, 980, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -16, 1110, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, 0, 1112, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, 16, 1092, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 32, 32, 969, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 48, -16, 918, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 8, 964, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, 32, 892, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 64, -120, 877, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, 8, -88, 1984, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, 0, -40, 2019, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+/// Source rectangles for mapped view 4: 80 room sprites followed by two oak-board sprites.
+///
+/// Positions and dimensions are screen pixels; depth is the unscaled OT
+/// sorting value. The final two sources use the board's separate palette and
+/// share the batch whose visibility follows the saved pickup state.
+static SpriteSource _gMineForkedTunnelView4SpriteSources[82] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 80, 857, { .fields = { 16, 112 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -24, -120, 604, { .fields = { 64, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 32 } }, -144, -120, 542, { .fields = { 64, 64 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 32 } }, -120, 40, 630, { .fields = { 72, 160 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, -104, 72, 656, { .fields = { 32, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 40 } }, -128, 0, 607, { .fields = { 104, 120 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 64, 40 } }, -136, -40, 584, { .fields = { 104, 216 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 48 } }, -136, -88, 561, { .fields = { 64, 96 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -80, 736, { .fields = { 96, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 64, -120, 706, { .fields = { 40, 96 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 56, -32, 756, { .fields = { 72, 192 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, 88, -120, 683, { .fields = { 40, 192 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, -80, 710, { .fields = { 104, 208 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 88, -32, 738, { .fields = { 0, 80 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 0, 753, { .fields = { 104, 192 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, 16, 793, { .fields = { 32, 136 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, 56, 822, { .fields = { 80, 120 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 80, 64, 798, { .fields = { 80, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 80, 16, 791, { .fields = { 72, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, -120, 576, { .fields = { 48, 40 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, -96, 1286, { .fields = { 56, 136 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -88, 1982, { .fields = { 72, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, -120, 1926, { .fields = { 0, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 32, 24 } }, -88, -120, 1182, { .fields = { 72, 96 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, -96, 1208, { .fields = { 8, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, -88, -64, 1246, { .fields = { 120, 32 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, -88, -32, 1282, { .fields = { 96, 32 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -80, 0, 1335, { .fields = { 56, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 40, 24 } }, -32, -120, 1276, { .fields = { 104, 192 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -96, 1309, { .fields = { 16, 176 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -16, -8, 1427, { .fields = { 96, 48 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -16, -56, 1363, { .fields = { 96, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, 64, 432, { .fields = { 56, 40 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 326, { .fields = { 40, 48 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 24 } }, -160, 48, 351, { .fields = { 104, 96 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 24, 374, { .fields = { 56, 232 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 8, 406, { .fields = { 88, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -144, 16, 425, { .fields = { 112, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -120, 48, 480, { .fields = { 64, 136 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -112, 64, 452, { .fields = { 96, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -104, 88, 436, { .fields = { 56, 200 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 104, 425, { .fields = { 16, 160 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 104, 400, { .fields = { 40, 176 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -128, 104, 377, { .fields = { 80, 48 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, -128, 88, 401, { .fields = { 80, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 72, 409, { .fields = { 0, 64 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -136, 48, 408, { .fields = { 80, 24 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -128, 24, 441, { .fields = { 72, 216 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 32 } }, -160, -120, 484, { .fields = { 120, 160 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, -120, 1083, { .fields = { 16, 32 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 56, 900, { .fields = { 40, 40 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 16, 1375, { .fields = { 32, 120 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 8, -8, 1337, { .fields = { 64, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 0, -120, 1260, { .fields = { 72, 48 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 8, -112, 1211, { .fields = { 88, 216 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 16, -104, 1298, { .fields = { 72, 24 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 24, -96, 1437, { .fields = { 120, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, -40, 1321, { .fields = { 24, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, 16, -120, 1044, { .fields = { 72, 120 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 8, 24 } }, 24, -120, 1014, { .fields = { 96, 216 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, 0, 1175, { .fields = { 32, 40 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 24, -32, 1190, { .fields = { 120, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -120, 934, { .fields = { 56, 96 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, -120, 805, { .fields = { 48, 56 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -104, 997, { .fields = { 48, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, -104, 866, { .fields = { 56, 184 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -88, 1120, { .fields = { 64, 240 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, -88, 1021, { .fields = { 56, 152 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, -72, 1176, { .fields = { 24, 80 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, -72, 1068, { .fields = { 16, 40 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -32, 1114, { .fields = { 56, 24 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 48, -32, 980, { .fields = { 56, 40 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, -16, 1110, { .fields = { 56, 216 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, 0, 1112, { .fields = { 56, 168 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 32, 16, 1092, { .fields = { 56, 112 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 32, 32, 969, { .fields = { 72, 192 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, 48, -16, 918, { .fields = { 88, 192 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 8, 964, { .fields = { 40, 232 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, 32, 892, { .fields = { 0, 160 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 64, -120, 877, { .fields = { 120, 72 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x4000, { .fields = { 24, 48 } }, 8, -88, 1984, { .fields = { 72, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x4000, { .fields = { 24, 48 } }, 0, -40, 2019, { .fields = { 72, 48 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_forked_tunnel_80184ADC[7] = {
+/// Five source ranges for mapped view 4, with the final range controlling the oak board.
+///
+/// Ranges partition source entries 0..81. Batch 5 selects entries 80..81 and
+/// is hidden after the board is collected. The first zero-count record selects
+/// image strips; the terminal record ends the list. Trailing metadata is unproven.
+static SpriteBatch _gMineForkedTunnelView4SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 0, 0 } },
     { 19, 13, 0, 0, { 3, 0 } },
     { 32, 17, 0, 0, { 2, 0 } },
     { 49, 31, 0, 0, { 4, 0 } },
-    { 80, 2, 0, 0, { 1, 0 } },
+    { 80, ARRAY_SIZE(_gMineForkedTunnelView4SpriteSources) - 80, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_forked_tunnel_80184B14[26] = {
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 96, -72, 696, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 112, -88, 672, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 24, -120, 685, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 72, -120, 642, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 96, -120, 611, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, -88, 358, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 144, -72, 381, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 136, -56, 404, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, 16, 272, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 144, 24, 285, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 136, 32, 300, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 128, 40, 317, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 104, -16, 437, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 112, -88, 564, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 112, -64, 513, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 112, -40, 473, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 104, 8, 410, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 104, 32, 383, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 56, 357, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 88, 330, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 48 } }, -8, -120, 919, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, -32, -120, 961, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, -8, -72, 1039, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 48 } }, -32, -72, 1087, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 40 } }, -8, -24, 1213, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 32 } }, -32, -24, 1271, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+/// Source rectangles for mapped view 5: 20 room sprites followed by six oak-board sprites.
+///
+/// Positions and dimensions are screen pixels; depth is the unscaled OT
+/// sorting value. The final six sources use the board's separate palette and
+/// share the batch whose visibility follows the saved pickup state.
+static SpriteSource _gMineForkedTunnelView5SpriteSources[26] = {
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 96, -72, 696, { .fields = { 80, 112 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 112, -88, 672, { .fields = { 64, 160 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, 24, -120, 685, { .fields = { 24, 176 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 72, -120, 642, { .fields = { 88, 232 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 32 } }, 96, -120, 611, { .fields = { 64, 48 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, -88, 358, { .fields = { 88, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 144, -72, 381, { .fields = { 112, 232 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 136, -56, 404, { .fields = { 120, 232 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, 16, 272, { .fields = { 64, 24 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 144, 24, 285, { .fields = { 72, 128 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 136, 32, 300, { .fields = { 64, 128 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 128, 40, 317, { .fields = { 64, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, 104, -16, 437, { .fields = { 72, 208 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 112, -88, 564, { .fields = { 56, 80 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 112, -64, 513, { .fields = { 72, 24 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 112, -40, 473, { .fields = { 64, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 104, 8, 410, { .fields = { 56, 104 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 104, 32, 383, { .fields = { 64, 232 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 56, 357, { .fields = { 72, 176 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 88, 330, { .fields = { 72, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x4000, { .fields = { 32, 48 } }, -8, -120, 919, { .fields = { 96, 0 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x4000, { .fields = { 24, 48 } }, -32, -120, 961, { .fields = { 104, 144 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x4000, { .fields = { 24, 48 } }, -8, -72, 1039, { .fields = { 104, 96 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x4000, { .fields = { 24, 48 } }, -32, -72, 1087, { .fields = { 104, 48 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x4000, { .fields = { 24, 40 } }, -8, -24, 1213, { .fields = { 104, 192 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x4000, { .fields = { 24, 32 } }, -32, -24, 1271, { .fields = { 80, 80 } }, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_FORKED_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_forked_tunnel_80184D1C[5] = {
+/// Three source ranges for mapped view 5, with the final range controlling the oak board.
+///
+/// Ranges cover source entries 0..1, 2..19 and 20..25. Batch 3 selects the
+/// board and is hidden after collection. The first zero-count record selects
+/// image strips; the terminal record ends the list. Trailing metadata is unproven.
+static SpriteBatch _gMineForkedTunnelView5SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 1, 0 } },
     { 2, 18, 0, 0, { 2, 0 } },
-    { 20, 6, 0, 0, { 0, 0 } },
+    { 20, ARRAY_SIZE(_gMineForkedTunnelView5SpriteSources) - 20, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_forked_tunnel_80184D44[2] = {
+/// Empty sprite list for mapped view 6; the zero-count first record requests image strips.
+static SpriteBatch _gMineForkedTunnelView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_forked_tunnel_80184D54[2] = {
+/// Empty sprite list for mapped view 7; the zero-count first record requests image strips.
+static SpriteBatch _gMineForkedTunnelView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mine_forked_tunnel_80184D64[7] = {
-    { { .empty = D_mine_forked_tunnel_80183E90 }, D_mine_forked_tunnel_80183E90, NULL },
-    { { .elements = D_mine_forked_tunnel_80183EA0 }, D_mine_forked_tunnel_8018415C, NULL },
-    { { .elements = D_mine_forked_tunnel_80184184 }, D_mine_forked_tunnel_80184454, NULL },
-    { { .elements = D_mine_forked_tunnel_80184474 }, D_mine_forked_tunnel_80184ADC, NULL },
-    { { .elements = D_mine_forked_tunnel_80184B14 }, D_mine_forked_tunnel_80184D1C, NULL },
-    { { .empty = D_mine_forked_tunnel_80184D44 }, D_mine_forked_tunnel_80184D44, NULL },
-    { { .empty = D_mine_forked_tunnel_80184D54 }, D_mine_forked_tunnel_80184D54, NULL },
+SpriteView gMineForkedTunnelSpriteViews[7] = {
+    { { .empty = _gMineForkedTunnelView1SpriteBatches }, _gMineForkedTunnelView1SpriteBatches, NULL },
+    { { .elements = _gMineForkedTunnelView2SpriteSources }, _gMineForkedTunnelView2SpriteBatches, NULL },
+    { { .elements = _gMineForkedTunnelView3SpriteSources }, _gMineForkedTunnelView3SpriteBatches, NULL },
+    { { .elements = _gMineForkedTunnelView4SpriteSources }, _gMineForkedTunnelView4SpriteBatches, NULL },
+    { { .elements = _gMineForkedTunnelView5SpriteSources }, _gMineForkedTunnelView5SpriteBatches, NULL },
+    { { .empty = _gMineForkedTunnelView6SpriteBatches }, _gMineForkedTunnelView6SpriteBatches, NULL },
+    { { .empty = _gMineForkedTunnelView7SpriteBatches }, _gMineForkedTunnelView7SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_mine_forked_tunnel_80184DB8[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2240, -1639, 9120 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3316, 2385 }, { 0, 0 } }, 259, 2501 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2310, -657, 6485 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3211, 2810, 1964 }, { 0, 0 } }, 201, 3004 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2240, -900, 3700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3397, 2467 }, { 0, 0 } }, 259, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1421, -769, 2480 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3316, 2385 }, { 0, 0 } }, 280, 2961 },
+/// Four mutable point lights shading models throughout the tunnel.
+///
+/// Positions and falloff radii use integer world units; RGB uses 4096 for full
+/// intensity. All admit every logical view. Room-light updates bind the view
+/// parent and compose coordinates; queries overwrite attenuation.
+static WorldCoordPointLight _gMineForkedTunnelPointLights[4] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2240, -1639, 9120 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3316, 2385 }, { 0, 0 } }, 259, 2501 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2310, -657, 6485 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3211, 2810, 1964 }, { 0, 0 } }, 201, 3004 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2240, -900, 3700 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3397, 2467 }, { 0, 0 } }, 259, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1421, -769, 2480 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3316, 2385 }, { 0, 0 } }, 280, 2961 },
 };
 
-WorldCoordRoomLights D_mine_forked_tunnel_80184F38[1] = {
-    { 0, NULL, ARRAY_SIZE(D_mine_forked_tunnel_80184DB8), D_mine_forked_tunnel_80184DB8, 0, NULL },
+/// The tunnel's light collection: four point lights, with no directional or cone lights.
+static WorldCoordRoomLights _gMineForkedTunnelRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gMineForkedTunnelPointLights),
+    .pointLights           = _gMineForkedTunnelPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_mine_forked_tunnel_80184F50[6] = {
@@ -927,8 +1005,13 @@ AreaVariant D_mine_forked_tunnel_80185504[12] = {
     { D_mine_forked_tunnel_801854D4, D_mine_forked_tunnel_8018534C },
 };
 
-WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8] = {
-    { .viewCount = ARRAY_SIZE(D_mine_forked_tunnel_80185564) - 1 },
+/// Minimum ambient colours for the tunnel's seven logical views, preceded by their count.
+///
+/// Entries 1..7 are RGB and stored weighted brightness, at 16 units per colour
+/// level. Lighting clamps model ambient RGB to these minima; it does not use
+/// the brightness component. The table stays live with the room overlay.
+static WorldCoordRoomAmbientEntry _gMineForkedTunnelViewAmbientTable[8] = {
+    { .viewCount = ARRAY_SIZE(_gMineForkedTunnelViewAmbientTable) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 480, 480, 360, 465 } },
     { .color = { 16, 16, 16, 16 } },
@@ -938,29 +1021,55 @@ WorldCoordRoomAmbientEntry D_mine_forked_tunnel_80185564[8] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_mine_forked_tunnel_801855A4 = {
-    0x1000001D,
-    0x1000001F,
-    0x1000001D,
+// Cue 2 selects each base; cue 1 selects the next entry in the loaded type-1 bank.
+enum {
+    MINE_FORKED_TUNNEL_FOOTSTEP_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1D,
+    MINE_FORKED_TUNNEL_FOOTSTEP_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1F,
 };
 
-WorldCollisionSurfaceProperties D_mine_forked_tunnel_801855B0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Paired type-1 footstep requests for tunnel surface class 1.
+///
+/// Walking and scripted jumps share a cue base; running uses another pair.
+/// The surface record borrows these requests while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gMineForkedTunnelSurfaceClass1FootstepSounds = {
+    .walk         = MINE_FORKED_TUNNEL_FOOTSTEP_WALK_SOUND,
+    .run          = MINE_FORKED_TUNNEL_FOOTSTEP_RUN_SOUND,
+    .scriptedJump = MINE_FORKED_TUNNEL_FOOTSTEP_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_mine_forked_tunnel_801855B8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_forked_tunnel_801855A4 },
+/// Shared blocking collision policy for tunnel surface classes 0 and 2..7, without footstep cues.
+///
+/// Allows weapon impacts and applies pushback. The class directory borrows this
+/// scalar record while the room is loaded; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gMineForkedTunnelBlockingSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_mine_forked_tunnel_801855C0[8] = {
-    D_mine_forked_tunnel_801855B0,
-    D_mine_forked_tunnel_801855B8,
-    D_mine_forked_tunnel_801855B0,
-    D_mine_forked_tunnel_801855B0,
-    D_mine_forked_tunnel_801855B0,
-    D_mine_forked_tunnel_801855B0,
-    D_mine_forked_tunnel_801855B0,
-    D_mine_forked_tunnel_801855B0,
+/// Blocking collision policy and paired footstep cues for tunnel surface class 1.
+///
+/// Allows weapon impacts and applies pushback. The class directory borrows this
+/// scalar record while the room is loaded; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gMineForkedTunnelSurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gMineForkedTunnelSurfaceClass1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gMineForkedTunnelSurfacePropertiesByClass[8] = {
+    &_gMineForkedTunnelBlockingSilentSurfaceProperties,
+    &_gMineForkedTunnelSurfaceClass1Properties,
+    &_gMineForkedTunnelBlockingSilentSurfaceProperties,
+    &_gMineForkedTunnelBlockingSilentSurfaceProperties,
+    &_gMineForkedTunnelBlockingSilentSurfaceProperties,
+    &_gMineForkedTunnelBlockingSilentSurfaceProperties,
+    &_gMineForkedTunnelBlockingSilentSurfaceProperties,
+    &_gMineForkedTunnelBlockingSilentSurfaceProperties,
 };
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -990,12 +1099,12 @@ static void _mineForkedTunnelInitAreaObject(Task* task)
     work->freeCountdown = MINE_FORKED_TUNNEL_AREA_OBJECT_BUFFER_RELEASE_IDLE;
 
     if (gameFlagGetNibble(GAME_FLAG_MINE_FORKED_TUNNEL_SWITCH_USED) == 0) {
-        placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
-        placement.pos.vy = D_mine_forked_tunnel_80181244[0].vy;
-        placement.pos.vz = D_mine_forked_tunnel_80181244[0].vz;
-        placement.rot.vx = D_mine_forked_tunnel_80180AC4[0].vx;
-        placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
-        placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
+        placement.pos.vx = _gMineForkedTunnelAreaObjectPositionPath[0].vx;
+        placement.pos.vy = _gMineForkedTunnelAreaObjectPositionPath[0].vy;
+        placement.pos.vz = _gMineForkedTunnelAreaObjectPositionPath[0].vz;
+        placement.rot.vx = _gMineForkedTunnelAreaObjectRotationPath[0].vx;
+        placement.rot.vy = _gMineForkedTunnelAreaObjectRotationPath[0].vy;
+        placement.rot.vz = _gMineForkedTunnelAreaObjectRotationPath[0].vz;
         actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &placement, 0);
     } else {
         actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &D_mine_forked_tunnel_80181BBC, 0);
@@ -1033,12 +1142,12 @@ static void _mineForkedTunnelTickAreaObject(Task* task)
 
     // The signed task counter is a path cursor until task teardown takes it over.
     if (task->spawnArg1.value == MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_RUNNING && task->killCountdown < MINE_FORKED_TUNNEL_AREA_OBJECT_PATH_STEPS) {
-        placement.pos.vx = D_mine_forked_tunnel_80181244[task->killCountdown].vx;
-        placement.pos.vy = D_mine_forked_tunnel_80181244[task->killCountdown].vy;
-        placement.pos.vz = D_mine_forked_tunnel_80181244[task->killCountdown].vz;
-        placement.rot.vx = D_mine_forked_tunnel_80180AC4[task->killCountdown].vx;
-        placement.rot.vy = D_mine_forked_tunnel_80180AC4[task->killCountdown].vy;
-        placement.rot.vz = D_mine_forked_tunnel_80180AC4[task->killCountdown].vz;
+        placement.pos.vx = _gMineForkedTunnelAreaObjectPositionPath[task->killCountdown].vx;
+        placement.pos.vy = _gMineForkedTunnelAreaObjectPositionPath[task->killCountdown].vy;
+        placement.pos.vz = _gMineForkedTunnelAreaObjectPositionPath[task->killCountdown].vz;
+        placement.rot.vx = _gMineForkedTunnelAreaObjectRotationPath[task->killCountdown].vx;
+        placement.rot.vy = _gMineForkedTunnelAreaObjectRotationPath[task->killCountdown].vy;
+        placement.rot.vz = _gMineForkedTunnelAreaObjectRotationPath[task->killCountdown].vz;
 
         actorMsgPlaceEulerZyx(task, ACTOR_MESSAGE_PLACE, &placement, 0);
         task->killCountdown++;
@@ -1105,12 +1214,12 @@ static s32 _mineForkedTunnelApplyAreaObjectCommand(Task* task, s32 messageId, co
                 work->child->spawnArg1.value = MINE_FORKED_TUNNEL_AREA_OBJECT_MOTION_IDLE;
                 work->child->killCountdown   = 0;
             }
-            placement.pos.vx = D_mine_forked_tunnel_80181244[0].vx;
-            placement.pos.vy = D_mine_forked_tunnel_80181244[0].vy;
-            placement.pos.vz = D_mine_forked_tunnel_80181244[0].vz;
-            placement.rot.vx = D_mine_forked_tunnel_80180AC4[0].vx;
-            placement.rot.vy = D_mine_forked_tunnel_80180AC4[0].vy;
-            placement.rot.vz = D_mine_forked_tunnel_80180AC4[0].vz;
+            placement.pos.vx = _gMineForkedTunnelAreaObjectPositionPath[0].vx;
+            placement.pos.vy = _gMineForkedTunnelAreaObjectPositionPath[0].vy;
+            placement.pos.vz = _gMineForkedTunnelAreaObjectPositionPath[0].vz;
+            placement.rot.vx = _gMineForkedTunnelAreaObjectRotationPath[0].vx;
+            placement.rot.vy = _gMineForkedTunnelAreaObjectRotationPath[0].vy;
+            placement.rot.vz = _gMineForkedTunnelAreaObjectRotationPath[0].vz;
 
             coord = task->extra.tmd->coords;
             _mineForkedTunnelApplyAreaObjectPlacement(coord, &placement);
@@ -1315,7 +1424,7 @@ static void _mineForkedTunnelUpdateAreaObjectCollision(s32 switchUsed)
     SVECTOR                   offset;
     s32                       entryIndex;
 
-    roomGrid     = &D_mine_forked_tunnel_80183D70;
+    roomGrid     = &_gMineForkedTunnelCollisionGrid;
     templateGrid = &D_mine_forked_tunnel_80181C5C;
 
     // The room's cell lists already reserve these entries for the movable box.
@@ -1583,14 +1692,14 @@ void mineForkedTunnelDrawViewFlaresTask(Task* unusedTask)
     switch (mappedViewIndex) {
         case 2:
         case 3:
-            _glowDrawFlare(D_mine_forked_tunnel_80183614, MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineForkedTunnelView2And3FlarePoint, MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 4:
-            _glowDrawFlare(&D_mine_forked_tunnel_8018361C[0], MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_mine_forked_tunnel_8018361C[1], MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineForkedTunnelView4FlarePoints[0], MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineForkedTunnelView4FlarePoints[1], MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 5:
-            _glowDrawFlare(D_mine_forked_tunnel_8018362C, MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineForkedTunnelView5FlarePoint, MINE_FORKED_TUNNEL_FLARE_TEXTURE_INDEX, MINE_FORKED_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         default:
             return;
