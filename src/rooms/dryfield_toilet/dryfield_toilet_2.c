@@ -24,6 +24,7 @@
 #include "gameplay/evs.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -39,6 +40,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -49,19 +51,40 @@
 #include "overlay.h"
 #include "../../shared/room_visual_effects.h"
 
-extern WorldCollisionOccluder D_dryfield_toilet_801826F0[1];
-extern WorldCollisionTrigger  D_dryfield_toilet_8018227C[6];
-extern WorldCollisionTrigger  D_dryfield_toilet_80182444[9];
+static WorldCollisionOccluder _gDryfieldToiletSightOccluders[1];
+static WorldCollisionTrigger  _gDryfieldToiletViewBoundaryTriggers[6];
+static WorldCollisionTrigger  _gDryfieldToiletActionTriggers[9];
 static WorldCoordRoomLights   _gDryfieldToiletRoomLights;
 
-static WorldCollisionGridFace _gDryfieldToiletCollision03E44Faces[17];
-static SVECTOR                _gDryfieldToiletCollision03E44Normals[7];
-static SVECTOR                _gDryfieldToiletCollision03E44Verts[38];
-static s16*                   _gDryfieldToiletCollision03E44Table[2];
+/// Player clip ids and the serialized word count used by this encounter.
+enum {
+    DRYFIELD_TOILET_PLAYER_IDLE_CLIP                 = 1,
+    DRYFIELD_TOILET_PLAYER_EVENT_CLIP48              = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    DRYFIELD_TOILET_PLAYER_EVENT_CLIP49              = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    DRYFIELD_TOILET_PLAYER_SKIP_CLIP                 = 9,
+    DRYFIELD_TOILET_PLAYER_ANIMATION_COPY_WORD_COUNT = 4,
+};
 
-extern AreaResource D_dryfield_toilet_801828C4[3];
-extern AreaResource D_dryfield_toilet_801828E8[2];
-extern AreaResource D_dryfield_toilet_80182900[2];
+/// Commands in the stage-2/area-16 actor namespace and placed actor selectors.
+enum {
+    DRYFIELD_TOILET_WOMAN_PLACEMENT_INDEX          = 0,
+    DRYFIELD_TOILET_ODD_STRANGER_PLACEMENT_INDEX   = 1,
+    DRYFIELD_TOILET_ODD_STRANGER_COMMAND1          = 1,
+    DRYFIELD_TOILET_ODD_STRANGER_COMMAND_AMBUSH    = 2,
+    DRYFIELD_TOILET_WOMAN_COMMAND_SPAWN_STRANGER   = 10,
+    DRYFIELD_TOILET_WOMAN_COMMAND_RELEASE_STRANGER = 11,
+    DRYFIELD_TOILET_WOMAN_COMMAND_TURN             = 12,
+    DRYFIELD_TOILET_WOMAN_COMMAND_SPRAY            = 13,
+    DRYFIELD_TOILET_WOMAN_DRAW_SHOW                = 1,
+    DRYFIELD_TOILET_WOMAN_DRAW_HIDE_RELEASE        = 2,
+};
+
+/// The door's one-based warp slots and saved map-marker nibble.
+enum {
+    DRYFIELD_TOILET_DOOR_WARP_SLOT                = 1,
+    DRYFIELD_TOILET_PARKING_LOT_ARRIVAL_WARP_SLOT = 3,
+    DRYFIELD_TOILET_DOOR_MAP_FLAG                 = 480,
+};
 
 /// Number of model normals blended, excluding the unconsumed serialized vector.
 enum { DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT = 1604 };
@@ -69,152 +92,234 @@ enum { DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT = 1604 };
 static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedVertices[326];
 static SVECTOR _gDryfieldToiletLesserStrangerMorphSavedNormals[DRYFIELD_TOILET_LESSER_STRANGER_MORPH_NORMAL_COUNT];
 
-/// Player clips for extended ids 47-49; NULL at id 47, which nothing plays.
+/// Typed encounter clips and their request, also read as a contiguous raw-word source.
 ///
-/// Both of the room's event scripts send the player the copy request.
-/// `D_dryfield_toilet_80180B98` copies four words starting here into the
-/// player's bank, which is one word past the end of this array: the read runs
-/// on through the first word of `D_dryfield_toilet_80180B98`, that request's
-/// own source pointer. That overrun is the original's and is kept as it is: the
-/// request carries a literal count larger than the table, while the table was
-/// stored with only its own entries. One script then plays ids 48 and 49; the
-/// other plays a base-bank clip. Id 50, which receives the source pointer, is
-/// never played.
-AnimationSet* D_dryfield_toilet_80180B8C[3] = { NULL, &gDryfieldToiletAnimation03054, &gDryfieldToiletAnimation035A4 };
+/// The four-word transfer includes the three clip pointers and the request's
+/// own source pointer. The fifth word is the request count and is not copied.
+typedef union {
+    struct {
+        AnimationSet*            sets[3]; // Player extension slots 47..49; slot 47 is empty
+        AnimationBankCopyRequest copy;    // Borrowed four-word copy request sent by both scripts
+    } data;                               // Typed payloads occupying the same serialized word span
+    s32 words[5];                         // Raw source view; only words 0..3 are copied
+} _DryfieldToiletPlayerAnimationBankExtensionStorage;
+STATIC_ASSERT_SIZEOF(_DryfieldToiletPlayerAnimationBankExtensionStorage, 0x14);
 
-// Installs the player's clips; the count is four, not the three entries of its source.
-AnimationBankCopyRequest D_dryfield_toilet_80180B98 = { { .sets = D_dryfield_toilet_80180B8C }, 4 };
+static _DryfieldToiletPlayerAnimationBankExtensionStorage _gDryfieldToiletPlayerAnimationBankExtension;
 
-AnimationPlayRequest D_dryfield_toilet_80180BA0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_dryfield_toilet_80180BB4 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_dryfield_toilet_80180BC8 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_dryfield_toilet_80180BDC = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
-
-ActorTransform D_dryfield_toilet_80180BF0 = { { -1664, 0, 135, 0 }, { 0, -2047, 0, 0 } };
-
-ActorCommand D_dryfield_toilet_80180C08 = { { .loc = { 2, 16 } }, 1 };
-
-ActorCommand D_dryfield_toilet_80180C0C = { { .loc = { 2, 16 } }, 2 };
-
-ActorCommand D_dryfield_toilet_80180C10 = { { .loc = { 2, 16 } }, 10 };
-
-ActorCommand D_dryfield_toilet_80180C14 = { { .loc = { 2, 16 } }, 11 };
-
-ActorCommand D_dryfield_toilet_80180C18[2] = {
-    { { .loc = { 2, 16 } }, 12 },
-    { { .loc = { 2, 16 } }, 13 },
+/// Player encounter-bank extension and its self-referencing copy request.
+///
+/// Both script paths copy words 0..3 into equipped-bank slots 47..50. Slot 50
+/// receives this storage's address, not a clip, and is never played here.
+/// Slots 48 and 49 borrow the room's clips while the encounter plays. The raw
+/// view covers the complete transfer without indexing beyond the clip array.
+static _DryfieldToiletPlayerAnimationBankExtensionStorage _gDryfieldToiletPlayerAnimationBankExtension = {
+    .data = {
+        { NULL, &gDryfieldToiletAnimation03054, &gDryfieldToiletAnimation035A4 },
+        { { .words = _gDryfieldToiletPlayerAnimationBankExtension.words }, DRYFIELD_TOILET_PLAYER_ANIMATION_COPY_WORD_COUNT },
+    },
 };
 
-ActorTransform D_dryfield_toilet_80180C20[2] = {
-    { { -1664, 0, -1222, 0 }, { 0, -1024, 0, 0 } },
+/// Unreferenced bank-1 idle request, resetting clip 1 with world collision disabled.
+static AnimationPlayRequest _gDryfieldToiletUnusedPlayerIdleAnimation = { { .index = 1 }, DRYFIELD_TOILET_PLAYER_IDLE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// First player encounter clip, with a twenty-frame blend and world collision disabled.
+///
+/// The script replaces source.index in a copy with the equipped weapon bank.
+/// Clip 48 uses the installed extension; its physical motion is unproven.
+static AnimationPlayRequest _gDryfieldToiletPlayerEventAnimation48 = { { .index = 1 }, DRYFIELD_TOILET_PLAYER_EVENT_CLIP48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// Second player encounter clip, with a twenty-frame blend and world collision disabled.
+///
+/// The script replaces source.index in a copy with the equipped weapon bank.
+/// Clip 49 uses the installed extension; its physical motion is unproven.
+static AnimationPlayRequest _gDryfieldToiletPlayerEventAnimation49 = { { .index = 1 }, DRYFIELD_TOILET_PLAYER_EVENT_CLIP49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// Skip-path player clip 9, with a ten-frame blend and world collision disabled.
+///
+/// The script resolves the equipped weapon bank in a copy of this request.
+/// Clip 9 belongs to that bank's base clips; its physical motion is unproven.
+static AnimationPlayRequest _gDryfieldToiletPlayerSkipAnimation9 = { { .index = 1 }, DRYFIELD_TOILET_PLAYER_SKIP_CLIP, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// Player's encounter-end placement in room coordinates, with 4096 angle units per turn.
+static ActorTransform _gDryfieldToiletPlayerBattlePlacement = { { -1664, 0, 135, 0 }, { 0, -2047, 0, 0 } };
+
+/// Initial Odd Stranger command 1, which only caches its bytes in the toilet namespace.
+///
+/// The receiver handles toilet commands 0 and 2; command 1 leaves its state intact.
+static ActorCommand _gDryfieldToiletOddStrangerCommand1 = { { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET } }, DRYFIELD_TOILET_ODD_STRANGER_COMMAND1 };
+
+/// Places the Odd Stranger at its ambush position and enters its ambush state.
+static ActorCommand _gDryfieldToiletOddStrangerAmbushCommand = { { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET } }, DRYFIELD_TOILET_ODD_STRANGER_COMMAND_AMBUSH };
+
+/// Spawns the woman's temporary Lesser Stranger and disables her sound retriggers.
+static ActorCommand _gDryfieldToiletSpawnLesserStrangerCommand = { { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET } }, DRYFIELD_TOILET_WOMAN_COMMAND_SPAWN_STRANGER };
+
+/// Releases the woman's temporary Lesser Stranger and stops her looping toilet sound.
+static ActorCommand _gDryfieldToiletReleaseLesserStrangerCommand = { { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET } }, DRYFIELD_TOILET_WOMAN_COMMAND_RELEASE_STRANGER };
+
+/// Unreferenced woman command presets: turn to a supplied placement or emit spray.
+///
+/// These are stored presets, not a terminated command list. No script sends
+/// either record; a turn would also require a placement in its second payload.
+static ActorCommand _gDryfieldToiletUnusedWomanCommands[2] = {
+    { { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET } }, DRYFIELD_TOILET_WOMAN_COMMAND_TURN },
+    { { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET } }, DRYFIELD_TOILET_WOMAN_COMMAND_SPRAY },
+};
+
+/// Unreferenced placements sharing a room position and differing by a quarter-turn yaw.
+///
+/// Coordinates use room units and angles use 4096 units per turn. Their
+/// intended actor and association with the unused commands are unproven.
+static ActorTransform _gDryfieldToiletUnusedActorPlacements[2] = {
+    { { -1664, 0, -1222, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
     { { -1664, 0, -1222, 0 }, { 0, 0, 0, 0 } },
 };
 
-EvsSceneKey D_dryfield_toilet_80180C50 = { 2, 33, 11 };
+/// Encounter stream key: group 2, stream 33, qualifier 11 (second qualifier zero).
+static EvsSceneKey _gDryfieldToiletEncounterSceneKey = { .group = 2, .streamId = 33, .subId = 11 };
 
-EvsCommand D_dryfield_toilet_80180C58[31] = {
+EvsCommand gDryfieldToiletEncounterScript[31] = {
+    // Stage the stream and replace the equipped bank's encounter clips.
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_dryfield_toilet_80180C50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gDryfieldToiletEncounterSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldToiletStageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_toilet_80180B98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_toilet_80180BB4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C08 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldToiletPlayerAnimationBankExtension.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldToiletPlayerEventAnimation48 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_ODD_STRANGER_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldToiletOddStrangerCommand1 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_WOMAN_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_TOILET_WOMAN_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_toilet_80180BC8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldToiletPlayerEventAnimation49 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C10 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x52100006 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Substitute the transforming actor and play the timed encounter views.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_WOMAN_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldToiletSpawnLesserStrangerCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_WOMAN_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_TOILET_WOMAN_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 6) }, { .value = SOUND_SCRIPT_STOP_KEEP_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldToiletStartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 132 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 64 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Commit the battle setup before returning player control.
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldToiletEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C14 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_toilet_80180BF0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C0C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_WOMAN_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldToiletReleaseLesserStrangerCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldToiletPlayerBattlePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_ODD_STRANGER_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldToiletOddStrangerAmbushCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldToiletMoveEventCollision }, { .value = DRYFIELD_TOILET_EVENT_COLLISION_MOVE_ASIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldToiletFinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_toilet_80180F40[20] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gDryfieldToiletEncounterSkipScript[20] = {
+    // Cancel playback behind the fade and apply the encounter's final placements.
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldToiletCancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C14 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_toilet_80180BF0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_toilet_80180B98 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_toilet_80180BDC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_toilet_80180C0C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_WOMAN_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_TOILET_WOMAN_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_WOMAN_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldToiletReleaseLesserStrangerCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldToiletPlayerBattlePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldToiletPlayerAnimationBankExtension.data.copy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldToiletPlayerSkipAnimation9 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_TOILET_ODD_STRANGER_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldToiletOddStrangerAmbushCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldToiletMoveEventCollision }, { .value = DRYFIELD_TOILET_EVENT_COLLISION_MOVE_ASIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Reload view 3 and finish the fade before engaging the battle.
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldToiletEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-WorldCollisionRoomResources D_dryfield_toilet_8018112C[1] = {
-    { &D_dryfield_toilet_80181404, D_dryfield_toilet_8018227C, D_dryfield_toilet_80182444, D_dryfield_toilet_801826F0 },
+WorldCollisionRoomResources gDryfieldToiletRoomCollisionResources[1] = {
+    {
+        .grid                 = &gDryfieldToiletRoomCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldToiletViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldToiletActionTriggers,
+        .occluders            = _gDryfieldToiletSightOccluders,
+    },
 };
 
 u8* gDryfieldToiletRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_toilet_80181140[1] = { 11 };
+ViewCount gDryfieldToiletRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldToiletViewCameras) };
 
 WorldCoordRoomLighting gDryfieldToiletRoomLighting[1] = {
     { &_gDryfieldToiletRoomLights, NULL },
 };
 
-DirectionWarpEntry D_dryfield_toilet_8018114C[1] = {
-    { { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, 0x52100002, 0x52100001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 480 },
+DirectionWarpEntry gDryfieldToiletWarpEntries[1] = {
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 2 }, -1660, 0, 1653 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 2 }, -1660, 0, 1653 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TOILET, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_TOILET_DOOR_MAP_FLAG,
+    },
 };
 
-static SVECTOR _gDryfieldToiletCollision03E44Normals[7] = {
+/// Seven room-grid normals in Q12 units; normal zero belongs to the event obstacle.
+static SVECTOR _gDryfieldToiletRoomCollisionGridNormals[7] = {
 #include "assets/dryfield_toilet_collision_03E44_normals.inc"
 };
 
-static SVECTOR _gDryfieldToiletCollision03E44Verts[38] = {
+/// Thirty-eight room-grid vertices; the event obstacle occupies vertices 0..3.
+static SVECTOR _gDryfieldToiletRoomCollisionGridVerts[38] = {
 #include "assets/dryfield_toilet_collision_03E44_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldToiletCollision03E44Faces[17] = {
+/// Seventeen indexed room faces; the initially empty first face is restored for the event.
+static WorldCollisionGridFace _gDryfieldToiletRoomCollisionGridFaces[17] = {
 #include "assets/dryfield_toilet_collision_03E44_faces.inc"
 };
 
-static s16 _gDryfieldToiletCollision03E44Cells[34] = {
+/// Serialized signed face-index lists for both cells, terminated by -1.
+///
+/// The final stored zero follows both terminated lists and is not traversed.
+static s16 _gDryfieldToiletRoomCollisionGridCells[34] = {
 #include "assets/dryfield_toilet_collision_03E44_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldToiletCollision03E44Cells[i])
-static s16* _gDryfieldToiletCollision03E44Table[2] = {
+// The generated initializer supplies a constant index into the signed cell lists.
+#define GRID_CELL(i) (&_gDryfieldToiletRoomCollisionGridCells[i])
+/// X-major cell-list pointers for the grid's one-by-two XZ partition.
+static s16* _gDryfieldToiletRoomCollisionGridTable[2] = {
 #include "assets/dryfield_toilet_collision_03E44_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_toilet_80181404 = { NULL, _gDryfieldToiletCollision03E44Normals, _gDryfieldToiletCollision03E44Verts, _gDryfieldToiletCollision03E44Faces, _gDryfieldToiletCollision03E44Table, 2970, 2300, 1, 2, 4000, 17 };
+WorldCollisionGrid gDryfieldToiletRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldToiletRoomCollisionGridNormals,
+    .vertices    = _gDryfieldToiletRoomCollisionGridVerts,
+    .faces       = _gDryfieldToiletRoomCollisionGridFaces,
+    .cellFaceIds = _gDryfieldToiletRoomCollisionGridTable,
+    .xBias       = 2970,
+    .zBias       = 2300,
+    .cellCountX  = 1,
+    .cellCountZ  = ARRAY_SIZE(_gDryfieldToiletRoomCollisionGridTable),
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldToiletRoomCollisionGridFaces),
+};
 
 ViewCamera gDryfieldToiletViewCameras[11] = {
     { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x7530, 0 } }, 1524 },
@@ -484,7 +589,11 @@ SpriteView gDryfieldToiletSpriteViews[11] = {
     { { .empty = _gDryfieldToiletView11SpriteBatches }, _gDryfieldToiletView11SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_toilet_8018227C[6] = {
+/// Directed view boundaries joining 2/3, 3/4 and 4/5, including the final marked record.
+///
+/// Room setup binds and links these mutable quads; positions/radii use room
+/// units and normals use Q12. Source and destination are 1-based view slots.
+static WorldCollisionTrigger _gDryfieldToiletViewBoundaryTriggers[6] = {
     { NULL, NULL, NULL, { 127, -992, 6, 0 }, { { -1024, -2016, 0, 0 }, { 1025, -2016, 0, 0 }, { -1024, 2016, 0, 0 }, { 1025, 2016, 0, 0 } }, { 0, 0, -4098, 0 }, { 0, 0, 4096, 0 }, 2260, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 128, -1056, -96, 0 }, { { 1024, -2080, 0, 0 }, { -1024, -2080, 0, 0 }, { 1024, 2080, 0, 0 }, { -1024, 2080, 0, 0 } }, { 0, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -1184, -1088, -1568, 0 }, { { -157, -2112, -1018, 0 }, { 145, -2112, 1008, 0 }, { -157, 2112, -1018, 0 }, { 145, 2112, 1008, 0 } }, { 4052, 0, -606, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -493,8 +602,13 @@ WorldCollisionTrigger D_dryfield_toilet_8018227C[6] = {
     { NULL, NULL, NULL, { -1857, -1072, 638, 0 }, { { 1016, -2096, -53, 0 }, { -1027, -2096, 45, 0 }, { 1016, 2096, -53, 0 }, { -1027, 2096, 45, 0 } }, { 196, 0, 4115, 0 }, { 0, 0, 4096, 0 }, 2332, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_toilet_80182444[9] = {
-    { NULL, NULL, NULL, { -1808, -48, 1728, 0 }, { { -656, 0, -256, 0 }, { 656, 0, -256, 0 }, { -656, 0, 256, 0 }, { 656, 0, 256, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 704, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Door warp, CAP interactions and the once-only encounter region for this room.
+///
+/// Nine mutable room-unit quads end with LAST on the final included record.
+/// The door requests area 15 through local warp 1 and destination warp 3;
+/// the encounter region sends room action 1. Other records select CAP commands.
+static WorldCollisionTrigger _gDryfieldToiletActionTriggers[9] = {
+    { NULL, NULL, NULL, { -1808, -48, 1728, 0 }, { { -656, 0, -256, 0 }, { 656, 0, -256, 0 }, { -656, 0, 256, 0 }, { 656, 0, 256, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 704, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_PARKING_LOT, (DRYFIELD_TOILET_DOOR_WARP_SLOT << 4) | DRYFIELD_TOILET_PARKING_LOT_ARRIVAL_WARP_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 729, -64, -1472, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 765, -64, -480, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 764, -64, 448, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -505,7 +619,11 @@ WorldCollisionTrigger D_dryfield_toilet_80182444[9] = {
     { NULL, NULL, NULL, { -1856, -64, -1344, 0 }, { { -320, 0, -704, 0 }, { 320, 0, -704, 0 }, { -320, 0, 704, 0 }, { 320, 0, 704, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 773, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_toilet_801826F0[1] = {
+/// One mutable room-space quad blocking actor line of sight, with the final-record flag.
+///
+/// Geometry uses room units and a Q12 normal. Low flag bit 0 is preserved;
+/// its role is unproven. The quad must remain loaded until it is unlinked.
+static WorldCollisionOccluder _gDryfieldToiletSightOccluders[1] = {
     { NULL, NULL, { -864, -1488, 624, 0 }, { { 0, 1904, -1520, 0 }, { 0, -1904, -1520, 0 }, { 0, 1904, 1520, 0 }, { 0, -1904, 1520, 0 } }, { 4109, 0, 0, 0 }, 2428, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
@@ -527,31 +645,43 @@ static WorldCoordRoomLights _gDryfieldToiletRoomLights = {
     NULL,
 };
 
-AreaResource D_dryfield_toilet_801828C4[3] = {
+/// Variant-1 resources for placed woman entry 9 and Odd Stranger entry 10.
+///
+/// Loads actor_323300 and actor_401000 and borrows their spawn descriptors.
+/// The woman descriptor also exposes its temporary Lesser Stranger in slot 1.
+/// AREA_PLACEMENT_END terminates the table; keep resources live through actor use.
+static AreaResource _gDryfieldToiletEncounterResources[3] = {
     { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401000StrangerTaskDesc },
     { 9, 233, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor323300WomanStrangerTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_toilet_801828E8[2] = {
+/// Variant-2 resource for entry 12, shared by seven Bone Suckler placements.
+///
+/// Loads actor_101200 and uses its body descriptor. Includes AREA_PLACEMENT_END.
+static AreaResource _gDryfieldToiletBoneSucklerResources[2] = {
     { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101200BoneSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_toilet_80182900[2] = {
+/// Variant-7 resource for entry 24, shared by three Amoeba placements.
+///
+/// Loads actor_102400 and uses descriptor 0, the body rather than its fireball.
+/// Includes AREA_PLACEMENT_END; keep the borrowed descriptor table loaded.
+static AreaResource _gDryfieldToiletAmoebaResources[2] = {
     { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_dryfield_toilet_80182918[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B2A4, D_dryfield_toilet_801828C4 },
-    { D_map_dryfield_8017B2D4, D_dryfield_toilet_801828E8 },
+    { D_map_dryfield_8017B2A4, _gDryfieldToiletEncounterResources },
+    { D_map_dryfield_8017B2D4, _gDryfieldToiletBoneSucklerResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017B354, D_dryfield_toilet_80182900 },
+    { D_map_dryfield_8017B354, _gDryfieldToiletAmoebaResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

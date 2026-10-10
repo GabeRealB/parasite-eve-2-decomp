@@ -153845,8 +153845,8 @@ holds a placement.
 Follows the plain-batch entry above. The seven storages left - the
 `actor_160600` companion storage and those of `actor_143000`, `actor_260400`,
 `actor_260500`, `actor_451100`, `dryfield_trailer_coach` and
-`neo_ark_observatory` - are now their real objects too; no
-`...AnimationBankExtensionStorage` type remains.
+`neo_ark_observatory` - became their real objects too; after that batch, no
+`...AnimationBankExtensionStorage` type remained.
 
 - **A member a function names is split by looking at how the target forms the
   address.** Every code site here loads the member with its own `lui`/`addiu`

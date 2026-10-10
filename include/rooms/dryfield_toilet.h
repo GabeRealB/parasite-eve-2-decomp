@@ -26,8 +26,12 @@ extern ModelMorph gDryfieldToiletLesserStrangerMorph;
 
 extern AreaVariant D_dryfield_toilet_80182918[13];
 
-// dryfield_toilet
-extern WorldCollisionRoomResources D_dryfield_toilet_8018112C[];
+/// Collision resources for the toilet's single room, indexed by room minus one.
+///
+/// Borrows the mutable room grid, six view boundaries, nine action triggers
+/// and one sight occluder. The room overlay must stay loaded while the grid
+/// is active and until all linked triggers and occluders have been removed.
+extern WorldCollisionRoomResources gDryfieldToiletRoomCollisionResources[1];
 
 /// Logical-view map for the toilet's single room, indexed by room - 1.
 ///
@@ -36,7 +40,11 @@ extern WorldCollisionRoomResources D_dryfield_toilet_8018112C[];
 /// gameplay map loaded while using the stage map's borrowed pointer.
 extern u8* gDryfieldToiletRoomViewMaps[1];
 
-extern ViewCount D_dryfield_toilet_80181140[];
+/// Logical-view count for the toilet's single room, indexed by room minus one.
+///
+/// Eleven entries of the borrowed identity map cover logical views 1..11.
+/// The count and its map remain valid only while their overlays are loaded.
+extern ViewCount gDryfieldToiletRoomViewCounts[1];
 
 /// Lighting for the toilet's single room, indexed by room - 1.
 ///
@@ -44,7 +52,13 @@ extern ViewCount D_dryfield_toilet_80181140[];
 /// owns the collection and mutable light coordinates for its loaded lifetime.
 extern WorldCoordRoomLighting gDryfieldToiletRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_toilet_8018114C[];
+/// The toilet door's sole departure and arrival descriptor, warp slot 1.
+///
+/// Both actors arrive at (-1660, 0, 1653), facing yaw 2048, in room view 2.
+/// Uses toilet-bank arrival/departure sounds and map flag 480, with no blocked
+/// sound or special warp flags. Keep the room overlay loaded through lookup;
+/// the transition copies the complete descriptor before using its placements.
+extern DirectionWarpEntry gDryfieldToiletWarpEntries[1];
 
 /// Cameras for the toilet's mapped views 1..11, stored at index minus one.
 ///

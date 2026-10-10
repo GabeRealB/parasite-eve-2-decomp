@@ -152,7 +152,7 @@ static void _dryfieldToiletInitEventCollision(void)
         (destination).vz = (source).vz;                                 \
     }
 
-    WorldCollisionGrid*       liveGrid          = &D_dryfield_toilet_80181404;
+    WorldCollisionGrid*       liveGrid          = &gDryfieldToiletRoomCollisionGrid;
     const WorldCollisionGrid* collisionTemplate = &D_dryfield_toilet_80180314;
     s32                       index;
 
@@ -199,7 +199,7 @@ static s32 _dryfieldToiletHandleRoomAction(Task* unusedTask, s32 unusedMessageId
     u8 actionId = request->actionId;
 
     if (actionId == DRYFIELD_TOILET_ACTION_START_EVENT && gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
-        evsStartScriptWithSkip(D_dryfield_toilet_80180C58, EVENT_SCRIPT_HUD_KEEP, D_dryfield_toilet_80180F40);
+        evsStartScriptWithSkip(gDryfieldToiletEncounterScript, EVENT_SCRIPT_HUD_KEEP, gDryfieldToiletEncounterSkipScript);
         gameFlagSetNibble(GAME_FLAG_TOILET_EVENT_SEEN, 1);
     }
     return 0;
@@ -248,7 +248,7 @@ void dryfieldToiletMoveEventCollision(s32 moveAside)
         (destination).vz = (source).vz;                                \
     }
 
-    WorldCollisionGrid*       liveGrid          = &D_dryfield_toilet_80181404;
+    WorldCollisionGrid*       liveGrid          = &gDryfieldToiletRoomCollisionGrid;
     const WorldCollisionGrid* collisionTemplate = &D_dryfield_toilet_80180314;
     s32                       index;
 

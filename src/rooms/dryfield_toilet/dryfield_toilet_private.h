@@ -11,11 +11,34 @@ extern AnimationSet gDryfieldToiletAnimation03054;
 
 extern AnimationSet gDryfieldToiletAnimation035A4;
 
-extern EvsCommand D_dryfield_toilet_80180C58[31];
+/// Runs the once-only woman-to-Stranger encounter and enters the room's battle.
+///
+/// Selects the encounter stream, stages audio, plays player clips 48/49 and
+/// replaces the woman with her temporary Lesser Stranger. Timed views and
+/// playback precede release of that actor, player placement, the Odd Stranger
+/// ambush and removal of the event collision face. Ends in view 3.
+/// Commands include END; keep this overlay, its payloads and its callbacks
+/// loaded until the script finishes. Start with the paired skip script.
+extern EvsCommand gDryfieldToiletEncounterScript[31];
 
-extern EvsCommand D_dryfield_toilet_80180F40[20];
+/// Cancels encounter playback under a fade and establishes its final battle setup.
+///
+/// Hides/releases the woman, releases her temporary Stranger if present,
+/// restores player placement with equipped-bank clip 9, arms the Odd Stranger
+/// ambush, shifts event collision and reloads view 3. Cleans up the scene and
+/// returns the fade before engaging battle and resuming player control.
+/// Includes END; requires the normal script's selected scene and the room's
+/// actors, payloads and callbacks to remain loaded through completion.
+extern EvsCommand gDryfieldToiletEncounterSkipScript[20];
 
-extern WorldCollisionGrid D_dryfield_toilet_80181404;
+/// Mutable collision grid for the toilet room, with seventeen faces in two XZ cells.
+///
+/// Room-coordinate vertices and Q12 normals remain borrowed while active.
+/// Face 0, normal 0 and vertices 0..3 are reserved for the encounter obstacle;
+/// room callbacks restore them from the one-face template or shift them aside.
+/// The remaining mesh and both cell lists remain intact. Keep the overlay and
+/// its pools loaded while the grid is active; room setup binds the view coordinate.
+extern WorldCollisionGrid gDryfieldToiletRoomCollisionGrid;
 
 /// Event-script choices for the room grid's reserved collision face.
 enum {
