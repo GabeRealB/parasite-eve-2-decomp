@@ -80,7 +80,7 @@ gAcropolisFountainRoomCollisionResources = 0x8017E814; // absolute:True owner=ac
 gAcropolisFountainViewMaps = 0x8017E84C; // absolute:True owner=acropolis_fountain shared=rooms
 gAcropolisFountainViewCounts = 0x8017E854; // absolute:True owner=acropolis_fountain
 gAcropolisFountainRoomLightingTable = 0x8017E858; // absolute:True owner=acropolis_fountain shared=rooms
-gAcropolisFountainWarpEntries = 0x8017E868; // absolute:True owner=acropolis_fountain shared=rooms
+gAcropolisFountainWarpEntries = 0x8017E868; // absolute:True owner=acropolis_fountain
 gAcropolisFountainSpriteViews = 0x8018375C; // absolute:True owner=acropolis_fountain
 gAcropolisFountainViewCameras = 0x80183864; // absolute:True owner=acropolis_fountain shared=rooms
 gAcropolisFountainSurfacePropertiesByClass = 0x80183B90; // absolute:True owner=acropolis_fountain

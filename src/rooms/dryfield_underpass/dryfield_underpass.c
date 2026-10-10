@@ -22,6 +22,7 @@
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
@@ -53,26 +54,17 @@ static s32  _underpassSwitchMsg(Task* unusedTask, s32 unusedMessageId, s32 switc
 
 static s32 _underpassSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-extern TaskDesc         gUnderpassSwitchTaskDesc[];
-extern TaskMessageEntry D_dryfield_underpass_8017E830[];
-extern s32              D_dryfield_underpass_8017E89C;
-extern EvsCommand       D_dryfield_underpass_8017E8D8[];
+extern TaskDesc gUnderpassSwitchTaskDesc[];
 
 static WorldCollisionGrid     _gDryfieldUnderpassCollisionGrid;
-extern WorldCollisionOccluder D_dryfield_underpass_80180AA8[3];
-extern WorldCollisionTrigger  D_dryfield_underpass_80180388[16];
-extern WorldCollisionTrigger  D_dryfield_underpass_80180848[2];
-extern WorldCollisionTrigger  D_dryfield_underpass_801808E0[6];
+static WorldCollisionOccluder _gDryfieldUnderpassOccluders[3];
+static WorldCollisionTrigger  _gDryfieldUnderpassPostEventViewBoundaries[16];
+static WorldCollisionTrigger  _gDryfieldUnderpassPreEventViewBoundaries[2];
+static WorldCollisionTrigger  _gDryfieldUnderpassActionTriggers[6];
 static WorldCoordRoomLights   _gDryfieldUnderpassDefaultRoomLights;
 static WorldCoordRoomLights   _gDryfieldUnderpassAlternateRoomLights;
 
-extern AnimationPlayRequest     D_dryfield_underpass_8017E870;
-extern AnimationPlayRequest     D_dryfield_underpass_8017E884;
-extern ActorCommand             D_dryfield_underpass_8017E8A0;
-extern ActorCommand             D_dryfield_underpass_8017E8A4;
-extern ActorCommand             D_dryfield_underpass_8017E8A8;
-extern AnimationBankCopyRequest D_dryfield_underpass_8017E868;
-static void                     _dryfieldUnderpassRefreshRoomVariant(void);
+static void _dryfieldUnderpassRefreshRoomVariant(void);
 
 static s32  _dryfieldUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static void _dryfieldUnderpassIdleTask(Task* unusedTask);
@@ -130,61 +122,194 @@ TaskDesc gUnderpassSwitchTaskDesc[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_dryfield_underpass_8017E830[6] = {
+/// Room receiver's five message bindings, followed by the lookup terminator.
+///
+/// Resolves room transitions, refuses key items, starts the Gray Stalker event
+/// and handles switch and sound commands. The live room task borrows this table;
+/// unsupported IDs return zero at `TASK_MESSAGE_TABLE_END`. Callback payloads
+/// follow their individual message contracts and are consumed synchronously.
+static TaskMessageEntry _gDryfieldUnderpassRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantUnderpassMsg },
-    { DRYFIELD_UNDERPASS_MESSAGE_USE_KEY_ITEM, _dryfieldUnderpassRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldUnderpassRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldUnderpassHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _underpassSwitchMsg },
     { ROOM_MESSAGE_SOUND, _underpassSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* D_dryfield_underpass_8017E860[2] = {
+/// Two room-owned clips installed in the player's equipped-bank extension.
+///
+/// Entries become animation IDs 47 and 48, in that order; there is no terminator.
+/// The copy request transfers only these two pointer words. Descriptors and
+/// pose data remain borrowed from this room through scripted playback.
+static AnimationSet* _gDryfieldUnderpassEventPlayerAnimationSets[] = {
     &_gDryfieldUnderpassAnimation00E64,
     &_gDryfieldUnderpassAnimation01230,
 };
 
-AnimationBankCopyRequest D_dryfield_underpass_8017E868 = { { .sets = D_dryfield_underpass_8017E860 }, ARRAY_SIZE(D_dryfield_underpass_8017E860) };
+/// Installs both event clips without starting playback or changing the player's bank.
+///
+/// The loaded character/equipped-weapon bank must have a writable extension.
+/// Dispatch borrows the request and source; the copied set pointers remain
+/// borrowed from this room until playback no longer uses them.
+static AnimationBankCopyRequest _gDryfieldUnderpassEventPlayerAnimationBankCopy = {
+    .source    = { .sets = _gDryfieldUnderpassEventPlayerAnimationSets },
+    .wordCount = ARRAY_SIZE(_gDryfieldUnderpassEventPlayerAnimationSets),
+};
 
-AnimationPlayRequest D_dryfield_underpass_8017E870 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player animation slots and blend duration used by the Gray Stalker event.
+enum {
+    DRYFIELD_UNDERPASS_EVENT_PLAYER_ANIMATION_47 = ANIMATION_BANK_BASE_SET_COUNT,
+    DRYFIELD_UNDERPASS_EVENT_PLAYER_ANIMATION_48 = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    DRYFIELD_UNDERPASS_EVENT_PLAYER_BLEND_FRAMES = 8,
+};
 
-AnimationPlayRequest D_dryfield_underpass_8017E884 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Plays the first installed event clip after the event's half-rate request.
+///
+/// The event interpreter resolves `source.index` to the equipped weapon in a
+/// temporary copy. Blends for eight normal-rate frames, keeps grid collision
+/// enabled and takes scripted control. Playback restores the normal rate after
+/// capturing the preceding pose. The room's clip data must remain loaded.
+static AnimationPlayRequest _gDryfieldUnderpassEventPlayerAnimation47 = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_UNDERPASS_EVENT_PLAYER_ANIMATION_47,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_UNDERPASS_EVENT_PLAYER_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-ActorCommand D_dryfield_underpass_8017E898 = { { .loc = { 5, 11 } }, 0 };
+/// Plays the second installed event clip at the start of the Gray Stalker event.
+///
+/// The event interpreter resolves `source.index` to the equipped weapon in a
+/// temporary copy. Blends for eight normal-rate frames, keeps grid collision
+/// enabled and takes scripted control. The room's clip data must remain loaded.
+static AnimationPlayRequest _gDryfieldUnderpassEventPlayerAnimation48 = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_UNDERPASS_EVENT_PLAYER_ANIMATION_48,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_UNDERPASS_EVENT_PLAYER_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-s32 D_dryfield_underpass_8017E89C = 0x10B05;
+/// Retained command-context tags and Gray Stalker sequence actions.
+///
+/// The Stalker's receiver ignores both tags; they are not the room's location.
+enum {
+    DRYFIELD_UNDERPASS_COMMAND_STAGE           = 5,
+    DRYFIELD_UNDERPASS_COMMAND_AREA            = 11,
+    DRYFIELD_UNDERPASS_STALKER_COMMAND_IGNORED = 0,
+    DRYFIELD_UNDERPASS_STALKER_COMMAND_PREPARE = 1,
+    DRYFIELD_UNDERPASS_STALKER_COMMAND_CRAWL   = 2,
+    DRYFIELD_UNDERPASS_STALKER_COMMAND_REVEAL  = 3,
+    DRYFIELD_UNDERPASS_STALKER_COMMAND_RELEASE = 4,
+};
 
-ActorCommand D_dryfield_underpass_8017E8A0 = { { .loc = { 5, 11 } }, 2 };
+/// Unreferenced actor-command record with action zero and the event's context tags.
+///
+/// Action zero is ignored by the Gray Stalker receiver. No delivery or intended
+/// use of this retained record is established.
+static ActorCommand _gDryfieldUnderpassUnusedActorCommand0 = {
+    .context = { .loc = { DRYFIELD_UNDERPASS_COMMAND_STAGE, DRYFIELD_UNDERPASS_COMMAND_AREA } },
+    .command = DRYFIELD_UNDERPASS_STALKER_COMMAND_IGNORED,
+};
 
-ActorCommand D_dryfield_underpass_8017E8A4 = { { .loc = { 5, 11 } }, 3 };
+/// Prepares the placed Gray Stalker for its ceiling sequence before the event.
+///
+/// Broadcast synchronously on entry to unseen placement variant 1. Command 1
+/// restarts the sequence with a thirty-tick hide hold; the next actor tick places
+/// it at the ceiling start and waits for the crawl command. Context tags are
+/// ignored by this receiver, and no payload pointer is retained.
+static ActorCommand _gDryfieldUnderpassPrepareGrayStalkerCommand = {
+    .context = { .loc = { DRYFIELD_UNDERPASS_COMMAND_STAGE, DRYFIELD_UNDERPASS_COMMAND_AREA } },
+    .command = DRYFIELD_UNDERPASS_STALKER_COMMAND_PREPARE,
+};
 
-ActorCommand D_dryfield_underpass_8017E8A8 = { { .loc = { 5, 11 } }, 4 };
+/// Releases the Gray Stalker's first sequence wait to reveal it and start crawling.
+///
+/// The event sends command 2 to placement index zero after its first CAP cue.
+/// The receiver copies the action word and ignores the context tags.
+static ActorCommand _gDryfieldUnderpassCrawlGrayStalkerCommand = {
+    .context = { .loc = { DRYFIELD_UNDERPASS_COMMAND_STAGE, DRYFIELD_UNDERPASS_COMMAND_AREA } },
+    .command = DRYFIELD_UNDERPASS_STALKER_COMMAND_CRAWL,
+};
 
-AnimationPlayRequest D_dryfield_underpass_8017E8AC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Reveals the Gray Stalker at the ceiling crawl's stop point for its final wait.
+///
+/// The event sends command 3 to placement index zero after its third CAP cue.
+/// The receiver copies the action word and ignores the context tags.
+static ActorCommand _gDryfieldUnderpassRevealGrayStalkerCommand = {
+    .context = { .loc = { DRYFIELD_UNDERPASS_COMMAND_STAGE, DRYFIELD_UNDERPASS_COMMAND_AREA } },
+    .command = DRYFIELD_UNDERPASS_STALKER_COMMAND_REVEAL,
+};
 
-ActorTransform D_dryfield_underpass_8017E8C0 = { { 0x3EE0, -1000, -3624, 0 }, { 0, -2048, 0, 0 } };
+/// Releases the Gray Stalker's scripted sequence into its normal crawling behavior.
+///
+/// The event sends command 4 to placement index zero after positioning the
+/// player. The receiver copies the action word and ignores the context tags.
+static ActorCommand _gDryfieldUnderpassReleaseGrayStalkerCommand = {
+    .context = { .loc = { DRYFIELD_UNDERPASS_COMMAND_STAGE, DRYFIELD_UNDERPASS_COMMAND_AREA } },
+    .command = DRYFIELD_UNDERPASS_STALKER_COMMAND_RELEASE,
+};
 
-EvsCommand D_dryfield_underpass_8017E8D8[21] = {
-    { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_underpass_8017E868 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_underpass_8017E884 }, { .value = 0 } },
+/// Unreferenced reset request for animation 1 in bank 1, with grid collision enabled.
+///
+/// No recipient or intended use of this retained request is established.
+static AnimationPlayRequest _gDryfieldUnderpassUnusedAnimation1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
+
+/// Player's world placement immediately before the event releases the Stalker.
+///
+/// Position is (16096, -1000, -3624) game units; yaw is a negative half turn
+/// in the 4096-unit angle scale, with zero pitch and roll. The placement message
+/// consumes both vectors synchronously and retains no pointer.
+static ActorTransform _gDryfieldUnderpassEventPlayerBattleTransform = {
+    .pos = { 16096, -1000, -3624, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
+};
+
+/// CAP slot, actor placement and final view selected by the Gray Stalker event.
+enum {
+    DRYFIELD_UNDERPASS_EVENT_CAP_DIRECT_VIEW_IDS     = 1,
+    DRYFIELD_UNDERPASS_EVENT_CAP_COMMAND             = 4,
+    DRYFIELD_UNDERPASS_EVENT_STALKER_PLACEMENT_INDEX = 0,
+    DRYFIELD_UNDERPASS_EVENT_BATTLE_VIEW             = 2,
+    DRYFIELD_UNDERPASS_EVENT_FINAL_WAIT_TICKS        = 3,
+};
+
+/// One-shot Gray Stalker introduction, synchronized to four CAP cues.
+///
+/// Installs player clips 47/48, starts CAP command 4, releases the Stalker's
+/// crawl and reveal waits, places the player, releases the Stalker and engages
+/// battle. Then refreshes the progress-selected room, yields, selects view 2
+/// and restores player control while preserving its root offset. The 21 records
+/// include `EVENT_SCRIPT_OPCODE_END`. The room, CAP resources, player bank and
+/// placement-index-zero Stalker must remain loaded throughout execution.
+static EvsCommand _gDryfieldUnderpassGrayStalkerEventScript[] = {
+    { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = DRYFIELD_UNDERPASS_EVENT_CAP_DIRECT_VIEW_IDS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldUnderpassEventPlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_UNDERPASS_EVENT_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldUnderpassEventPlayerAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_underpass_8017E8A0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_UNDERPASS_EVENT_STALKER_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldUnderpassCrawlGrayStalkerCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_underpass_8017E870 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_SET_RATE }, { .value = ANIMATION_RATE_ONE / 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldUnderpassEventPlayerAnimation47 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_underpass_8017E8A4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_UNDERPASS_EVENT_STALKER_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldUnderpassRevealGrayStalkerCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_underpass_8017E8C0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_underpass_8017E8A8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldUnderpassEventPlayerBattleTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_UNDERPASS_EVENT_STALKER_PLACEMENT_INDEX }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldUnderpassReleaseGrayStalkerCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldUnderpassRefreshRoomVariant }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_UNDERPASS_EVENT_BATTLE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_UNDERPASS_EVENT_FINAL_WAIT_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -219,13 +344,13 @@ static s16 _gDryfieldUnderpassFlareViewMasks[ARRAY_SIZE(_gDryfieldUnderpassFlare
     (1 << 5) | (1 << 7),
 };
 
-WorldCollisionRoomResources D_dryfield_underpass_8017EB20[6] = {
-    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180848, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180848, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
+WorldCollisionRoomResources gDryfieldUnderpassRoomCollisionResources[DRYFIELD_UNDERPASS_ROOM_COUNT] = {
+    { &_gDryfieldUnderpassCollisionGrid, _gDryfieldUnderpassPostEventViewBoundaries, _gDryfieldUnderpassActionTriggers, _gDryfieldUnderpassOccluders },
+    { &_gDryfieldUnderpassCollisionGrid, _gDryfieldUnderpassPostEventViewBoundaries, _gDryfieldUnderpassActionTriggers, _gDryfieldUnderpassOccluders },
+    { &_gDryfieldUnderpassCollisionGrid, _gDryfieldUnderpassPostEventViewBoundaries, _gDryfieldUnderpassActionTriggers, _gDryfieldUnderpassOccluders },
+    { &_gDryfieldUnderpassCollisionGrid, _gDryfieldUnderpassPostEventViewBoundaries, _gDryfieldUnderpassActionTriggers, _gDryfieldUnderpassOccluders },
+    { &_gDryfieldUnderpassCollisionGrid, _gDryfieldUnderpassPreEventViewBoundaries, _gDryfieldUnderpassActionTriggers, _gDryfieldUnderpassOccluders },
+    { &_gDryfieldUnderpassCollisionGrid, _gDryfieldUnderpassPreEventViewBoundaries, _gDryfieldUnderpassActionTriggers, _gDryfieldUnderpassOccluders },
 };
 
 /// Room 2's eleven logical-view resource indices, followed by a retained zero byte.
@@ -335,10 +460,55 @@ WorldCoordRoomLighting gDryfieldUnderpassRoomLighting[DRYFIELD_UNDERPASS_ROOM_CO
     { &_gDryfieldUnderpassDefaultRoomLights, NULL },
 };
 
-DirectionWarpEntry D_dryfield_underpass_8017EC10[3] = {
-    { { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, { { .word = 0 }, 5303, -997, -0x2C94 }, { 0, 0, 0, 0 }, 0x52260008, 0x52260007, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 463 },
-    { { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0x3D31, -1000, -4216 }, { 0, 0, 0, 0 }, 0x52260006, 0x52260005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 462 },
-    { { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, 0x52260001, 0x52260001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Warp slots and map-marker nibbles for the underpass's three exits.
+enum {
+    DRYFIELD_UNDERPASS_CELLAR_WARP                = 1,
+    DRYFIELD_UNDERPASS_WATER_HOLE_WARP            = 2,
+    DRYFIELD_UNDERPASS_GENERAL_STORE_WARP         = 3,
+    DRYFIELD_UNDERPASS_CELLAR_MAP_FLAG            = 463,
+    DRYFIELD_UNDERPASS_WATER_HOLE_MAP_FLAG        = 462,
+    DRYFIELD_UNDERPASS_CELLAR_INITIAL_VIEW        = 6,
+    DRYFIELD_UNDERPASS_WATER_HOLE_INITIAL_VIEW    = 2,
+    DRYFIELD_UNDERPASS_GENERAL_STORE_INITIAL_VIEW = 7,
+};
+
+DirectionWarpEntry gDryfieldUnderpassWarpEntries[DRYFIELD_UNDERPASS_WARP_COUNT] = {
+    {
+        .player         = { { .word = 0 }, 5303, -997, -11412 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 5303, -997, -11412 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_UNDERPASS, 8),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_UNDERPASS, 7),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = DRYFIELD_UNDERPASS_CELLAR_INITIAL_VIEW,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_UNDERPASS_CELLAR_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 15665, -1000, -4216 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 15665, -1000, -4216 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_UNDERPASS, 6),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_UNDERPASS, 5),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = DRYFIELD_UNDERPASS_WATER_HOLE_INITIAL_VIEW,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_UNDERPASS_WATER_HOLE_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 1212, -1000, -7543 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 1212, -1000, -7543 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_UNDERPASS, 1),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_UNDERPASS, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = DRYFIELD_UNDERPASS_GENERAL_STORE_INITIAL_VIEW,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Collision-grid face normals in room axes, with `ONE` units per unit length.
@@ -427,7 +597,7 @@ static AreaResource _gDryfieldUnderpassGrayStalkerResources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_underpass_8017F868[13] = {
+AreaVariant gDryfieldUnderpassAreaVariants[DRYFIELD_UNDERPASS_VARIANT_SLOT_COUNT] = {
     { NULL, NULL },
     { gMapDryfieldUnderpassGrayStalkerPlacements, _gDryfieldUnderpassGrayStalkerResources },
     { NULL, NULL },
@@ -806,7 +976,12 @@ SpriteView gDryfieldUnderpassSpriteViews[DRYFIELD_UNDERPASS_MAPPED_VIEW_COUNT] =
     { { .empty = _gDryfieldUnderpassView26SpriteBatches }, _gDryfieldUnderpassView26SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_underpass_80180388[16] = {
+/// Sixteen directed view boundaries shared by post-event rooms 1..4.
+///
+/// Source/destination IDs use logical views 2..10. Positions and radii are
+/// room game units and normals use 4096 per unit. Gameplay binds their view
+/// coordinate and mutable links; the final live boundary carries LAST.
+static WorldCollisionTrigger _gDryfieldUnderpassPostEventViewBoundaries[16] = {
     { NULL, NULL, NULL, { 0x4070, -2560, -5280, 0 }, { { -1616, -1888, 0, 0 }, { 1616, -1888, 0, 0 }, { -1616, 1888, 0, 0 }, { 1616, 1888, 0, 0 } }, { 0, 0, -4104, 0 }, { 0, 0, 4096, 0 }, 2482, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x40C0, -2544, -5408, 0 }, { { 1616, -1840, 0, 0 }, { -1616, -1840, 0, 0 }, { 1616, 1840, 0, 0 }, { -1616, 1840, 0, 0 } }, { 0, 0, 4105, 0 }, { 0, 0, 4096, 0 }, 2442, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x3A3F, -2720, -8402, 0 }, { { 65, -1824, -1727, 0 }, { -64, -1824, 1728, 0 }, { 65, 1824, -1727, 0 }, { -64, 1824, 1728, 0 } }, { 4101, 0, 151, 0 }, { 0, 0, 4096, 0 }, 2508, 0, 3, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -825,21 +1000,49 @@ WorldCollisionTrigger D_dryfield_underpass_80180388[16] = {
     { NULL, NULL, NULL, { 0x40F1, -2624, -962, 0 }, { { -1854, -1840, -209, 0 }, { 1834, -1840, 184, 0 }, { -1854, 1840, -209, 0 }, { 1834, 1840, 184, 0 } }, { 434, 0, -4078, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 2, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_underpass_80180848[2] = {
+/// Opposing view-2/view-3 boundaries shared by pre-event rooms 5 and 6.
+///
+/// Positions and radii are room game units and normals use 4096 per unit.
+/// Gameplay binds their view coordinate and mutable links; the second live
+/// boundary carries LAST and is included in setup and traversal.
+static WorldCollisionTrigger _gDryfieldUnderpassPreEventViewBoundaries[2] = {
     { NULL, NULL, NULL, { 0x4090, -2560, -2752, 0 }, { { 2096, -1888, 0, 0 }, { -2096, -1888, 0, 0 }, { 2096, 1888, 0, 0 }, { -2096, 1888, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x4090, -2544, -2656, 0 }, { { -2144, -1840, 0, 0 }, { 2144, -1840, 0, 0 }, { -2144, 1840, 0, 0 }, { 2144, 1840, 0, 0 } }, { 0, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_underpass_801808E0[6] = {
-    { NULL, NULL, NULL, { 5184, -1088, -0x2C70, 0 }, { { -1024, 0, -432, 0 }, { 1024, 0, -432, 0 }, { -1024, 0, 432, 0 }, { 1024, 0, 432, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, 34, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1280, -1056, -7456, 0 }, { { -896, 0, -432, 0 }, { 896, 0, -432, 0 }, { -896, 0, 432, 0 }, { 896, 0, 432, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 993, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 51, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3C00, -1088, -4096, 0 }, { { 368, 0, -928, 0 }, { 368, 0, 928, 0 }, { -368, 0, -928, 0 }, { -368, 0, 928, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 997, WORLD_COLLISION_TRIGGER_ACTION_WARP, 32, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1522, -1056, -8433, 0 }, { { -431, 0, -831, 0 }, { 433, 0, -832, 0 }, { -431, 0, 832, 0 }, { 432, 0, 832, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 936, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x40E0, -1056, -576, 0 }, { { -1024, 0, -304, 0 }, { 1024, 0, -304, 0 }, { -1024, 0, 304, 0 }, { 1024, 0, 304, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x40C0, -1056, -6240, 0 }, { { 1808, 0, -384, 0 }, { 1808, 0, 384, 0 }, { -1808, 0, -384, 0 }, { -1808, 0, 384, 0 } }, { 0, 4099, 0, 0 }, { 3166, 0, -2598, 0 }, 1846, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Destination warp slots and room commands encoded by the action quads.
+enum {
+    DRYFIELD_UNDERPASS_CELLAR_ARRIVAL_WARP        = 1,
+    DRYFIELD_UNDERPASS_WATER_HOLE_ARRIVAL_WARP    = 2,
+    DRYFIELD_UNDERPASS_GENERAL_STORE_ARRIVAL_WARP = 3,
+    DRYFIELD_UNDERPASS_SWITCH_COMMAND_FIRST       = 1,
+    DRYFIELD_UNDERPASS_SWITCH_COMMAND_SECOND      = 2,
+    DRYFIELD_UNDERPASS_ACTION_START_STALKER_EVENT = 1,
 };
 
-WorldCollisionOccluder D_dryfield_underpass_80180AA8[3] = {
+/// Six action quads shared by all underpass rooms, including the final automatic event quad.
+///
+/// The first three warp to the cellar, general store and water hole, using
+/// departure slots 1, 3 and 2 respectively. The next two send room commands 2
+/// and 1 for the switches. The final quad automatically sends room action 1;
+/// its handler gates the one-shot Stalker event by variant and seen flag.
+/// Positions/radii use room game units and normals use 4096 per unit. Gameplay
+/// binds and mutates the records; LAST belongs to the final live quad.
+static WorldCollisionTrigger _gDryfieldUnderpassActionTriggers[6] = {
+    { NULL, NULL, NULL, { 5184, -1088, -0x2C70, 0 }, { { -1024, 0, -432, 0 }, { 1024, 0, -432, 0 }, { -1024, 0, 432, 0 }, { 1024, 0, 432, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, ONE, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_CELLAR, (DRYFIELD_UNDERPASS_CELLAR_WARP << 4) | DRYFIELD_UNDERPASS_CELLAR_ARRIVAL_WARP, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1280, -1056, -7456, 0 }, { { -896, 0, -432, 0 }, { 896, 0, -432, 0 }, { -896, 0, 432, 0 }, { 896, 0, 432, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -ONE, 0 }, 993, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_GENERAL_STORE, (DRYFIELD_UNDERPASS_GENERAL_STORE_WARP << 4) | DRYFIELD_UNDERPASS_GENERAL_STORE_ARRIVAL_WARP, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3C00, -1088, -4096, 0 }, { { 368, 0, -928, 0 }, { 368, 0, 928, 0 }, { -368, 0, -928, 0 }, { -368, 0, 928, 0 } }, { 0, 4101, 0, 0 }, { ONE, 0, 0, 0 }, 997, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_WATER_HOLE, (DRYFIELD_UNDERPASS_WATER_HOLE_WARP << 4) | DRYFIELD_UNDERPASS_WATER_HOLE_ARRIVAL_WARP, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1522, -1056, -8433, 0 }, { { -431, 0, -831, 0 }, { 433, 0, -832, 0 }, { -431, 0, 832, 0 }, { 432, 0, 832, 0 } }, { 0, 4105, 0, 0 }, { ONE, 0, 0, 0 }, 936, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_UNDERPASS_SWITCH_COMMAND_SECOND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x40E0, -1056, -576, 0 }, { { -1024, 0, -304, 0 }, { 1024, 0, -304, 0 }, { -1024, 0, 304, 0 }, { 1024, 0, 304, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -ONE, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_UNDERPASS_SWITCH_COMMAND_FIRST, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x40C0, -1056, -6240, 0 }, { { 1808, 0, -384, 0 }, { 1808, 0, 384, 0 }, { -1808, 0, -384, 0 }, { -1808, 0, 384, 0 } }, { 0, 4099, 0, 0 }, { 3166, 0, -2598, 0 }, 1846, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_UNDERPASS_ACTION_START_STALKER_EVENT, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Three line-of-sight blocking quads shared by all six underpass rooms.
+///
+/// Origins and corner offsets use room game units and normals use 4096 per unit.
+/// Gameplay mutates their links and enable state while the room remains loaded;
+/// LAST marks the third live quad. Retained low flag bit 0 has no proven meaning.
+static WorldCollisionOccluder _gDryfieldUnderpassOccluders[3] = {
     { NULL, NULL, { 1184, -2304, -0x2840, 0 }, { { -2912, -3328, 0, 0 }, { 2912, -3328, 0, 0 }, { -2912, 3328, 0, 0 }, { 2912, 3328, 0, 0 } }, { 0, 0, -4106, 0 }, 4404, 1, 0 },
     { NULL, NULL, { 0x2FB0, -2240, -0x2820, 0 }, { { -5840, -3264, 0, 0 }, { 5840, -3264, 0, 0 }, { -5840, 3264, 0, 0 }, { 5840, 3264, 0, 0 } }, { 0, 0, -4111, 0 }, 6675, 1, 0 },
     { NULL, NULL, { 8992, -3328, -4416, 0 }, { { -5840, -2848, 2496, 0 }, { 5840, -2848, -2496, 0 }, { -5840, 2848, 2496, 0 }, { 5840, 2848, -2496, 0 } }, { -1614, 0, -3777, 0 }, 6945, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
@@ -1004,7 +1207,7 @@ static s32 _dryfieldUnderpassHandleRoomAction(Task* task, s32 messageId, const D
     actionId = request->actionId;
     if ((actionId == UNDERPASS_EVENT_ACTION) && (gGameSession->location.loc.variant == actionId) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN, 1);
-        evsStartScript(D_dryfield_underpass_8017E8D8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(_gDryfieldUnderpassGrayStalkerEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
@@ -1013,16 +1216,16 @@ static s32 _dryfieldUnderpassHandleRoomAction(Task* task, s32 messageId, const D
 ///
 /// Installs the room message table, claims `GAME_TASK_SLOT_ROOM` and advances to
 /// state 1. Before the event has been seen, placement variant 1 broadcasts the
-/// room's actor-command key through the scene task. Both room and scene resources
-/// must remain loaded for message delivery; no work allocation is acquired.
+/// Gray Stalker preparation command through the scene task. Both room and scene
+/// resources must remain loaded for message delivery; no work allocation is acquired.
 static void _dryfieldUnderpassInitializeRoomTask(Task* task)
 {
     enum { UNDERPASS_EVENT_VARIANT = 1 };
 
-    task->msgTable = D_dryfield_underpass_8017E830;
+    task->msgTable = _gDryfieldUnderpassRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == UNDERPASS_EVENT_VARIANT) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_underpass_8017E89C, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldUnderpassPrepareGrayStalkerCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     task->state = task->state + 1;
 }
@@ -1096,9 +1299,12 @@ static void _dryfieldUnderpassRefreshRoomVariant(void)
     gGameSession->roomObjsDirty                                = true;
 }
 
-/// State handlers of the room task `dryfieldUnderpassRoomTask`, indexed
-/// by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-static const TaskFuncTable3 D_dryfield_underpass_8017D5C4 = {
+/// Room-task lifecycle callbacks indexed by `Task::state` in 0..2.
+///
+/// Entry registers the receiver and prepares the unseen event, state 1 idles
+/// and state 2 releases the task. The dispatcher copies all three pointers
+/// to the stack before calling the selected handler; there is no terminator.
+static const TaskFuncTable3 _gDryfieldUnderpassRoomTaskStates = {
     { _dryfieldUnderpassInitializeRoomTask, _dryfieldUnderpassIdleTask, taskKill },
 };
 
@@ -1106,7 +1312,7 @@ void dryfieldUnderpassRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_underpass_8017D5C4;
+    stateHandlers = _gDryfieldUnderpassRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

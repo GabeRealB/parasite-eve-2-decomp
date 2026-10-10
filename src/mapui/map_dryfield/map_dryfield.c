@@ -695,7 +695,7 @@ DirectionWarpEntry* D_map_dryfield_8017A8F8[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_underpass_8017EC10,
+    gDryfieldUnderpassWarpEntries,
 };
 
 static ViewCount* D_map_dryfield_8017A990[38] = {
@@ -779,7 +779,7 @@ static WorldCollisionRoomResources* D_map_dryfield_8017AA2C[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_underpass_8017EB20,
+    gDryfieldUnderpassRoomCollisionResources,
 };
 
 WorldCollisionStageResources D_map_dryfield_8017AAC4 = { D_map_dryfield_8017AA2C };

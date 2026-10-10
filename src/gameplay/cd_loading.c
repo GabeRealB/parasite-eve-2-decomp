@@ -473,7 +473,7 @@ AreaRecord D_8010CC94[39] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_dryfield_underpass_8017F868, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
+    { gDryfieldUnderpassAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
 };
 /// End marker following the stage 2 room table.
 u32        D_8010CDCC[2]  = { 0xFFFF, 0 };

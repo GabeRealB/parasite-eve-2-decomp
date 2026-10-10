@@ -292,11 +292,11 @@ gDryfieldCellarViewCameras = 0x8017DF78; // absolute:True owner=dryfield_cellar
 gDryfieldCellarSpriteViews = 0x8017FE40; // absolute:True owner=dryfield_cellar
 gDryfieldCellarSurfacePropertiesByClass = 0x80180B40; // absolute:True owner=dryfield_cellar
 dryfieldUnderpassRoomTask = 0x8017DAC8; // type:func absolute:True owner=dryfield_underpass shared=rooms
-D_dryfield_underpass_8017EB20 = 0x8017EB20; // absolute:True owner=dryfield_underpass
+gDryfieldUnderpassRoomCollisionResources = 0x8017EB20; // absolute:True owner=dryfield_underpass
 gDryfieldUnderpassRoomViewMaps = 0x8017EBBC; // absolute:True owner=dryfield_underpass
 gDryfieldUnderpassRoomViewCounts = 0x8017EBD4; // absolute:True owner=dryfield_underpass
 gDryfieldUnderpassRoomLighting = 0x8017EBE0; // absolute:True owner=dryfield_underpass
-D_dryfield_underpass_8017EC10 = 0x8017EC10; // absolute:True owner=dryfield_underpass
+gDryfieldUnderpassWarpEntries = 0x8017EC10; // absolute:True owner=dryfield_underpass
 gDryfieldUnderpassViewCameras = 0x8017F4A8; // absolute:True owner=dryfield_underpass shared=rooms
 gDryfieldUnderpassSpriteViews = 0x80180250; // absolute:True owner=dryfield_underpass
 gDryfieldUnderpassSurfacePropertiesByClass = 0x80181164; // absolute:True owner=dryfield_underpass

@@ -20,10 +20,28 @@ enum {
 /// Number of camera/image/sprite resource slots selected by the room view maps.
 enum { DRYFIELD_UNDERPASS_MAPPED_VIEW_COUNT = 26 };
 
-extern AreaVariant D_dryfield_underpass_8017F868[13];
+/// Stored extents of the underpass's placement-variant and warp directories.
+enum {
+    DRYFIELD_UNDERPASS_VARIANT_SLOT_COUNT = 13,
+    DRYFIELD_UNDERPASS_WARP_COUNT         = 3,
+};
 
-// dryfield_underpass
-extern WorldCollisionRoomResources D_dryfield_underpass_8017EB20[];
+/// Placement layouts indexed directly by the underpass's saved variant byte.
+///
+/// Slot 1 pairs the Gray Stalker placements with their actor resource table;
+/// slots 0 and 2..12 are absent and contain two NULL pointers. The thirteen
+/// slots have no terminator. Selectors must be in 0..12; spawning requires
+/// occupied slot 1. Gameplay borrows both tables while this room is loaded.
+extern AreaVariant gDryfieldUnderpassAreaVariants[DRYFIELD_UNDERPASS_VARIANT_SLOT_COUNT];
+
+/// Collision resources for underpass rooms 1..6, indexed by room minus one.
+///
+/// All rooms borrow one grid, six action triggers and three sight occluders.
+/// Rooms 1..4 use sixteen post-event view boundaries; rooms 5..6 use two
+/// pre-event boundaries. The directory has no terminator; each trigger and
+/// occluder array includes its LAST-marked final record. Gameplay binds and
+/// mutates those resources, which must stay loaded until their lists are cleared.
+extern WorldCollisionRoomResources gDryfieldUnderpassRoomCollisionResources[DRYFIELD_UNDERPASS_ROOM_COUNT];
 
 /// Logical-view maps for underpass rooms 1..6, indexed by room minus one.
 ///
@@ -51,7 +69,16 @@ extern ViewCount gDryfieldUnderpassRoomViewCounts[DRYFIELD_UNDERPASS_ROOM_COUNT]
 /// is loaded; no pointers may survive unloading it.
 extern WorldCoordRoomLighting gDryfieldUnderpassRoomLighting[DRYFIELD_UNDERPASS_ROOM_COUNT];
 
-extern DirectionWarpEntry D_dryfield_underpass_8017EC10[];
+/// Arrival and departure endpoints for underpass warp IDs 1..3, indexed by ID minus one.
+///
+/// Endpoints 1, 2 and 3 connect to the cellar, water hole and general store,
+/// selecting initial views 6, 2 and 7. Player and companion share each endpoint's
+/// world position and yaw (4096 units per turn). Endpoints 1 and 2 play distinct
+/// arrival/departure sounds and update map flags 463 and 462; endpoint 3 uses
+/// one sound in both directions and requests a departure fade. Blocked sounds
+/// are absent. There is no terminator; gameplay borrows the three records while
+/// this room overlay is loaded and copies each selected record by value.
+extern DirectionWarpEntry gDryfieldUnderpassWarpEntries[DRYFIELD_UNDERPASS_WARP_COUNT];
 
 /// Cameras for mapped underpass resource views 1..26, indexed by view minus one.
 ///

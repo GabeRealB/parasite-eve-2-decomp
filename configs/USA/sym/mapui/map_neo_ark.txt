@@ -249,7 +249,7 @@ gNeoArkR26ViewMaps = 0x8017E0E4; // absolute:True owner=neo_ark_r26 shared=rooms
 gNeoArkR26ViewCounts = 0x8017E0E8; // absolute:True owner=neo_ark_r26
 gNeoArkR26Warps = 0x8017E0EC; // absolute:True owner=neo_ark_r26 shared=rooms
 gNeoArkR26ViewCameras = 0x8017E1C0; // absolute:True owner=neo_ark_r26
-gNeoArkR26SpriteViews = 0x8017E898; // absolute:True owner=neo_ark_r26 shared=rooms
+gNeoArkR26SpriteViews = 0x8017E898; // absolute:True owner=neo_ark_r26
 gNeoArkR26SurfaceProperties = 0x8017EA30; // absolute:True owner=neo_ark_r26
 neoArkBridgeRoomTask = 0x8017E8FC; // type:func absolute:True owner=neo_ark_bridge
 gNeoArkBridgeViewMaps = 0x80181F80; // absolute:True owner=neo_ark_bridge
