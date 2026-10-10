@@ -14,6 +14,8 @@
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
+#include "gameplay/captions.h"
+#include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/hud_sprites.h"
@@ -83,37 +85,6 @@ typedef struct {
 } _DryfieldWaterTankEventWork;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterTankEventWork, 0xC);
 
-/// Main-executable globals with no module header yet: the cutscene task
-/// refuses to start while `gAttachmentState.mode` is 1 or `gDisplayState.pendingMode` is non-zero.
-/// `gPlayerStatus.weapon` is the equipped-weapon index the slot-3 msg 0x3E8 animation
-/// record is keyed on, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases
-/// that record uses.
-
-/// Main-executable flag set to 1 before the view tasks are respawned.
-
-/// Spawn table for the task that takes over once the intro stream is done.
-extern TaskDesc D_dryfield_water_tank_80180764[];
-
-/// Script record the player is handed with msg 0x3F4.
-extern AnimationSet* D_dryfield_water_tank_801804EC[2];
-
-/// The placement the room sends the player task with message 0x3E9.
-extern ActorTransform D_dryfield_water_tank_801804F4;
-
-/// The two event scripts `evsStartScriptWithSkip` is handed.
-extern EvsCommand D_dryfield_water_tank_8018050C[];
-extern EvsCommand D_dryfield_water_tank_8018068C[];
-
-/// The water tank's run: one `SVECTOR` position per frame, `y` fixed at -12000
-/// and `z` stepping up the room, 52 entries of movement before the tail clamps.
-extern SVECTOR D_dryfield_water_tank_80184530[];
-
-/// The second leg of the tank's run, same `SVECTOR` shape and one entry per
-/// frame: the seam repeats the first table's last entry (`x` 2532, `y` -12000,
-/// `z` 972), after which `x` steps down while `z` holds. Exactly the 52 entries
-/// its walk consumes, so unlike the first table it has no clamp tail.
-extern SVECTOR D_dryfield_water_tank_801847C0[];
-
 static void _dryfieldWaterTankMovieEventTask(Task* task);
 
 static TmdSource _gDryfieldWaterTankModel020D4;
@@ -122,41 +93,61 @@ static void      _dryfieldWaterTankMovieTask(Task* task);
 static void      _dryfieldWaterTankSetEventCommand(s16 command);
 static void      _dryfieldWaterTankRestorePlayerAfterSkip(void);
 
-ActorTransform D_dryfield_water_tank_8017F0D0 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
+/// Timing, CAP slots and execution priorities of the room's placement and scene tables.
+enum {
+    DRYFIELD_WATER_TANK_PLACEMENT_STANCE_CLIP   = 1,
+    DRYFIELD_WATER_TANK_PLACEMENT_FADE_FRAMES   = 32,
+    DRYFIELD_WATER_TANK_PLACEMENT_HOLD_FRAMES   = 30,
+    DRYFIELD_WATER_TANK_PLACEMENT_SOUND         = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 1),
+    DRYFIELD_WATER_TANK_ROOM_ACTION_PRIORITY    = 32,
+    DRYFIELD_WATER_TANK_SCENE_PRIORITY          = 192,
+    DRYFIELD_WATER_TANK_PROP_SCENE_CAP_COMMAND  = 15,
+    DRYFIELD_WATER_TANK_MOVIE_EVENT_CAP_COMMAND = 3,
+    DRYFIELD_WATER_TANK_SKIP_FADE_WAIT_FRAMES   = 8,
+};
 
-ActorTransform D_dryfield_water_tank_8017F0E8 = { { 1868, -0x2EE0, 1740, 0 }, { 0, 512, 0, 0 } };
+/// Player placement selected by the view-4 transition, in world units and 4096-angle units.
+static ActorTransform _gDryfieldWaterTankView4PlayerPlacement = { { 820, -16400, 884, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN * 5 / 8, 0, 0 } };
 
-AnimationPlayRequest D_dryfield_water_tank_8017F100 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player placement selected by the view-3 transition, in world units and 4096-angle units.
+static ActorTransform _gDryfieldWaterTankView3PlayerPlacement = { { 1868, -12000, 1740, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 } };
 
-EvsCommand D_dryfield_water_tank_8017F114[11] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_8017F100 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Resets the player's weapon standing clip while holding grid collision disabled.
+///
+/// Both placement scripts borrow this request. The interpreter copies it and
+/// replaces source.index with the equipped weapon's bank before dispatch;
+/// the stored bank value is unused. Clip data must remain loaded through playback.
+static AnimationPlayRequest _gDryfieldWaterTankPlacementStanceRequest = { { .index = 1 }, DRYFIELD_WATER_TANK_PLACEMENT_STANCE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+EvsCommand gDryfieldWaterTankPlacePlayerInView4Script[11] = {
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlacementStanceRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = DRYFIELD_WATER_TANK_PLACEMENT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_PLACEMENT_FADE_FRAMES + 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_water_tank_8017F0D0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_STAGE_SOUND, { .value = 0x52150001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldWaterTankView4PlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_STAGE_SOUND, { .value = DRYFIELD_WATER_TANK_PLACEMENT_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_PLACEMENT_HOLD_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_PLACEMENT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_water_tank_8017F21C[11] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_8017F100 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gDryfieldWaterTankPlacePlayerInView3Script[11] = {
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldWaterTankPlacementStanceRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = DRYFIELD_WATER_TANK_PLACEMENT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_PLACEMENT_FADE_FRAMES + 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_water_tank_8017F0E8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_STAGE_SOUND, { .value = 0x52150001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldWaterTankView3PlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_STAGE_SOUND, { .value = DRYFIELD_WATER_TANK_PLACEMENT_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_PLACEMENT_HOLD_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_PLACEMENT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskMessageEntry D_dryfield_water_tank_8017F324[5] = {
+TaskMessageEntry gDryfieldWaterTankRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldWaterTankResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldWaterTankRefuseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldWaterTankHandleRoomAction },
@@ -164,9 +155,9 @@ TaskMessageEntry D_dryfield_water_tank_8017F324[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_water_tank_8017F34C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, dryfieldWaterTankWaitMovieEventTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, dryfieldWaterTankMechanismPromptTask, { .value = 0 } },
+TaskDesc gDryfieldWaterTankRoomActionTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_ROOM_ACTION_PRIORITY } }, dryfieldWaterTankWaitMovieEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_ROOM_ACTION_PRIORITY } }, dryfieldWaterTankMechanismPromptTask, { .value = 0 } },
 };
 
 static TmdBone _gDryfieldWaterTankModel020D4Skeleton[1] = {
@@ -197,34 +188,34 @@ static TmdSource _gDryfieldWaterTankModel020D4 = {
     _gDryfieldWaterTankModel020D4Stream,
 };
 
-ActorTransform D_dryfield_water_tank_8017FD60[2] = {
-    { { 3100, 0, 0, 0 }, { 0, 1024, 0, 0 } },
-    { { 3100, 0, 1800, 0 }, { 0, 1024, 0, 0 } },
+ActorTransform gDryfieldWaterTankPropSlidePlacements[2] = {
+    { { 3100, 0, 0, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
+    { { 3100, 0, 1800, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
 };
 
-TaskMessageEntry D_dryfield_water_tank_8017FD90[3] = {
+TaskMessageEntry gDryfieldWaterTankPropMessages[3] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
     { ACTOR_COMMAND_MESSAGE_APPLY, dryfieldWaterTankRestartPropSlide },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, dryfieldWaterTankSetPropModelDraw },
 };
 
-u16 D_dryfield_water_tank_8017FDA8[12] = {
+s16 gDryfieldWaterTankPropDustLocalXOffsets[12] = {
     400,
     1000,
-    0xFE70,
-    0xFF38,
+    -400,
+    -200,
     0,
-    0xFDA8,
+    -600,
     200,
     800,
-    0xFC18,
-    0xFCE0,
+    -1000,
+    -800,
     600,
     0,
 };
 
-EvsCommand D_dryfield_water_tank_8017FDC0[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 15 }, { .value = 0 } },
+EvsCommand gDryfieldWaterTankPropSceneScript[11] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_WATER_TANK_PROP_SCENE_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = dryfieldWaterTankPostPropSceneRequest }, { .value = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_START_SLIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -232,25 +223,25 @@ EvsCommand D_dryfield_water_tank_8017FDC0[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = dryfieldWaterTankPostPropSceneRequest }, { .value = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_SHOW_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_water_tank_8017FEC8[8] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gDryfieldWaterTankPropSceneSkipScript[8] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldWaterTankSkipPropScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_dryfield_water_tank_8017FF88[2] = {
-    { { { TASK_BODY_NONE, 192 } }, dryfieldWaterTankPropSceneTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, dryfieldWaterTankPropTask, { .model = &_gDryfieldWaterTankModel020D4 } },
+TaskDesc gDryfieldWaterTankPropSceneTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, dryfieldWaterTankPropSceneTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, dryfieldWaterTankPropTask, { .model = &_gDryfieldWaterTankModel020D4 } },
 };
 
 static AnimationPackedPose _gDryfieldWaterTankAnimation02B70Bank1[2] = {
@@ -297,15 +288,28 @@ static AnimationSet _gDryfieldWaterTankAnimation02F04 = {
     { NULL, _gDryfieldWaterTankAnimation02F04Bank1, NULL, NULL, _gDryfieldWaterTankAnimation02F04Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_dryfield_water_tank_801804EC[2] = {
+/// Player animation banks for the movie event's reset-then-blend sequence.
+///
+/// Indices 0 and 1 select the two room clips. Player installation retains this
+/// table and its clip data through playback; both remain borrowed from the room.
+static AnimationSet* _gDryfieldWaterTankMovieEventAnimationSets[2] = {
     &_gDryfieldWaterTankAnimation02B70,
     &_gDryfieldWaterTankAnimation02F04,
 };
 
-ActorTransform D_dryfield_water_tank_801804F4 = { { 2600, -0x2EE0, -450, 0 }, { 0, 512, 0, 0 } };
+/// Player's movie-event exit placement, shared by normal completion and skipping.
+///
+/// Position uses world units; yaw is one eighth of a turn. Dispatch borrows the
+/// complete placement synchronously before the equipped weapon stance is restored.
+static ActorTransform _gDryfieldWaterTankMovieEventExitPlacement = { { 2600, -12000, -450, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 } };
 
-EvsCommand D_dryfield_water_tank_8018050C[16] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+/// CAP-cued player turn, two-clip animation, fade and movie sequence.
+///
+/// Starts CAP command 3, posting commands to the live movie-event task between
+/// CAP cues. Ends scripted player control after movie startup. The event task,
+/// player, room and CAP resources must remain live until the script ends.
+static EvsCommand _gDryfieldWaterTankMovieEventScript[16] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_WATER_TANK_MOVIE_EVENT_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -319,30 +323,42 @@ EvsCommand D_dryfield_water_tank_8018050C[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_water_tank_8018068C[9] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Fade-covered exit placement and cleanup when the movie event is skipped.
+///
+/// Restores the player's placement and weapon stance through the live event
+/// task, waits three interpreter ticks, then cleans up the scene and releases
+/// scripted control. The event task and its player must outlive the callback.
+static EvsCommand _gDryfieldWaterTankMovieEventSkipScript[9] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldWaterTankRestorePlayerAfterSkip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_WATER_TANK_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_dryfield_water_tank_80180764[4] = {
-    { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTankMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, screenFadeInTileTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTankFadeOutTileTask, { .value = 0 } },
+/// Bodyless priority-192 movie and full-screen fade spawn recipes.
+///
+/// Index 0 retains a null callback and must not be spawned; 1 plays the movie,
+/// 2 fades in after resource restoration, and 3 fades out before playback.
+/// Fade tasks take colour units per update in spawnArg1's low halfword;
+/// current callers pass eight. Movie arguments and all spawnArg2 values are zero.
+/// This indexed table has no TASK_DESC_END entry.
+static TaskDesc _gDryfieldWaterTankMovieFadeTaskDescs[4] = {
+    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, NULL, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, _dryfieldWaterTankMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, screenFadeInTileTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, _dryfieldWaterTankFadeOutTileTask, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_water_tank_80180794 = { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTankMovieEventTask, { .value = 0 } };
+TaskDesc gDryfieldWaterTankMovieEventTaskDesc = { { { TASK_BODY_NONE, DRYFIELD_WATER_TANK_SCENE_PRIORITY } }, _dryfieldWaterTankMovieEventTask, { .value = 0 } };
 
 static AnimationPackedPose _gDryfieldWaterTankAnimation034BCBank1[6] = {
 #include "assets/dryfield_water_tank_animation_034BC_bank1.inc"
@@ -740,11 +756,21 @@ AnimationSet gDryfieldWaterTankAnimation06F48 = {
     { NULL, _gDryfieldWaterTankAnimation06F48Bank1, NULL, NULL, _gDryfieldWaterTankAnimation06F48Bank4, NULL, NULL, NULL },
 };
 
-SVECTOR D_dryfield_water_tank_80184530[82] = {
+/// World-space player positions for the first leg of the scripted path.
+///
+/// One signed XYZ sample per task tick, Y fixed at -12000. The task consumes
+/// indices 0..51; all 82 stored samples are retained. Vector fourth halfwords
+/// are unused. The last stored sample matches the second leg's first sample,
+/// but the last consumed sample is a different position.
+static SVECTOR _gDryfieldWaterTankPlayerFirstLegPositions[82] = {
 #include "assets/dryfield_water_tank_motion_06F70.inc"
 };
 
-SVECTOR D_dryfield_water_tank_801847C0[52] = {
+/// World-space player positions for the second leg of the scripted path.
+///
+/// All 52 signed XYZ samples are consumed, one per task tick. X moves toward 2170 while
+/// Y stays -12000 and Z stays 972; vector fourth halfwords are unused.
+static SVECTOR _gDryfieldWaterTankPlayerSecondLegPositions[52] = {
 #include "assets/dryfield_water_tank_motion_07200.inc"
 };
 
@@ -767,7 +793,7 @@ static inline void _dryfieldWaterTankResumeAfterMovie(Task* task)
     memFillBytes(gFsImageWorkspacePtr, 0, sizeof(*gFsImageWorkspacePtr));
     SetDispMask(1);
     taskKill(task);
-    taskSpawnFromTableOnDefaultList(D_dryfield_water_tank_80180764, DRYFIELD_WATER_TANK_FADE_IN_TASK_INDEX, DRYFIELD_WATER_TANK_FADE_IN_RATE, 0);
+    taskSpawnFromTableOnDefaultList(_gDryfieldWaterTankMovieFadeTaskDescs, DRYFIELD_WATER_TANK_FADE_IN_TASK_INDEX, DRYFIELD_WATER_TANK_FADE_IN_RATE, 0);
     displayResumeGameLoop();
 }
 
@@ -995,7 +1021,7 @@ static void _dryfieldWaterTankMovieTask(Task* task)
     {                                                                                                                       \
         _DryfieldWaterTankEventWork* currentWork = (taskArg)->work;                                                         \
         if (currentWork->player != NULL) {                                                                                  \
-            (animationRequest).source.sets          = D_dryfield_water_tank_801804EC;                                       \
+            (animationRequest).source.sets          = _gDryfieldWaterTankMovieEventAnimationSets;                           \
             (animationRequest).animationId          = (clipId);                                                             \
             (animationRequest).blend                = (blendMode);                                                          \
             (animationRequest).blendFrames          = (blendFrameCount);                                                    \
@@ -1054,7 +1080,7 @@ static void _dryfieldWaterTankExecuteEventCommand(Task* task)
             }
             break;
         case DRYFIELD_WATER_TANK_EVENT_COMMAND_FADE_OUT:
-            taskSpawnFromTable(D_dryfield_water_tank_80180764, DRYFIELD_WATER_TANK_EVENT_FADE_OUT_TASK_INDEX, DRYFIELD_WATER_TANK_EVENT_FADE_RATE, 0);
+            taskSpawnFromTable(_gDryfieldWaterTankMovieFadeTaskDescs, DRYFIELD_WATER_TANK_EVENT_FADE_OUT_TASK_INDEX, DRYFIELD_WATER_TANK_EVENT_FADE_RATE, 0);
             break;
         case DRYFIELD_WATER_TANK_EVENT_COMMAND_TURN_PLAYER:
             commandMessage.turn.rot.vy = ACTOR_TRANSFORM_ANGLE_HALF_TURN;
@@ -1065,7 +1091,7 @@ static void _dryfieldWaterTankExecuteEventCommand(Task* task)
             switch (movieStep) {
                 case DRYFIELD_WATER_TANK_EVENT_MOVIE_START:
                     // Hand frame presentation to the movie task and retain the view packets.
-                    displaySpawnTaskFromTable(D_dryfield_water_tank_80180764, DRYFIELD_WATER_TANK_EVENT_MOVIE_TASK_INDEX, 0, 0);
+                    displaySpawnTaskFromTable(_gDryfieldWaterTankMovieFadeTaskDescs, DRYFIELD_WATER_TANK_EVENT_MOVIE_TASK_INDEX, 0, 0);
                     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
                     viewQueueCurrentCameraAndPackets();
                     work->commandStep++;
@@ -1075,7 +1101,7 @@ static void _dryfieldWaterTankExecuteEventCommand(Task* task)
                     work->commandStep = movieStep + 1;
                     return;
                 case DRYFIELD_WATER_TANK_EVENT_MOVIE_RESTORE_PLAYER:
-                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_801804F4, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTankMovieEventExitPlacement, 0);
                     _dryfieldWaterTankRestoreWeaponStance();
                     gGameSession->viewDirty = 1;
                     break;
@@ -1155,8 +1181,8 @@ static void _dryfieldWaterTankMovieEventTask(Task* task)
                     D_dryfield_water_tank_80188D50 = task;
                 }
                 _dryfieldWaterTankBlendPlayerWeaponStance();
-                evsStartScriptWithSkip(D_dryfield_water_tank_8018050C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                       D_dryfield_water_tank_8018068C);
+                evsStartScriptWithSkip(_gDryfieldWaterTankMovieEventScript, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                                       _gDryfieldWaterTankMovieEventSkipScript);
                 task->state = task->state + 1;
             }
             break;
@@ -1206,7 +1232,7 @@ static void _dryfieldWaterTankRestorePlayerAfterSkip(void)
     _DryfieldWaterTankEventWork* work;
 
     work = D_dryfield_water_tank_80188D50->work;
-    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_801804F4, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldWaterTankMovieEventExitPlacement, 0);
     _dryfieldWaterTankRestoreWeaponStance();
     SetDispMask(1);
 }
@@ -1232,9 +1258,9 @@ void dryfieldWaterTankMovePlayerFirstLegTask(Task* task)
         taskKill(task);
         return;
     }
-    placement.pos.vx = D_dryfield_water_tank_80184530[task->killCountdown].vx;
-    placement.pos.vy = D_dryfield_water_tank_80184530[task->killCountdown].vy;
-    placement.pos.vz = D_dryfield_water_tank_80184530[task->killCountdown].vz;
+    placement.pos.vx = _gDryfieldWaterTankPlayerFirstLegPositions[task->killCountdown].vx;
+    placement.pos.vy = _gDryfieldWaterTankPlayerFirstLegPositions[task->killCountdown].vy;
+    placement.pos.vz = _gDryfieldWaterTankPlayerFirstLegPositions[task->killCountdown].vz;
     placement.rot.vx = 0;
     placement.rot.vy = 1 - ACTOR_TRANSFORM_ANGLE_HALF_TURN;
     placement.rot.vz = 0;
@@ -1244,7 +1270,7 @@ void dryfieldWaterTankMovePlayerFirstLegTask(Task* task)
 
 void dryfieldWaterTankMovePlayerSecondLegTask(Task* task)
 {
-    enum { DRYFIELD_WATER_TANK_SECOND_LEG_FRAMES = ARRAY_SIZE(D_dryfield_water_tank_801847C0) };
+    enum { DRYFIELD_WATER_TANK_SECOND_LEG_FRAMES = ARRAY_SIZE(_gDryfieldWaterTankPlayerSecondLegPositions) };
 
     ActorTransform placement;
 
@@ -1252,9 +1278,9 @@ void dryfieldWaterTankMovePlayerSecondLegTask(Task* task)
         taskKill(task);
         return;
     }
-    placement.pos.vx = D_dryfield_water_tank_801847C0[task->killCountdown].vx;
-    placement.pos.vy = D_dryfield_water_tank_801847C0[task->killCountdown].vy;
-    placement.pos.vz = D_dryfield_water_tank_801847C0[task->killCountdown].vz;
+    placement.pos.vx = _gDryfieldWaterTankPlayerSecondLegPositions[task->killCountdown].vx;
+    placement.pos.vy = _gDryfieldWaterTankPlayerSecondLegPositions[task->killCountdown].vy;
+    placement.pos.vz = _gDryfieldWaterTankPlayerSecondLegPositions[task->killCountdown].vz;
     placement.rot.vx = 0;
     placement.rot.vy = ACTOR_TRANSFORM_ANGLE_TURN / 4;
     placement.rot.vz = 0;

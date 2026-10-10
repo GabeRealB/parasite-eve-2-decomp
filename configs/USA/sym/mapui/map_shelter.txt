@@ -130,7 +130,7 @@ D_shelter_b1_armory_80184E0C = 0x80184E0C; // absolute:True owner=shelter_b1_arm
 gShelterB1ArmorySurfacePropertiesByClass = 0x80185554; // absolute:True owner=shelter_b1_armory
 shelterB1SleepingQuartersAreaObjectTask = 0x8017D608; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 shelterB1SleepingQuartersRoomTask = 0x8017D888; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
-gShelterB1SleepingQuartersModel02DFC = 0x801804F4; // absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
+gShelterB1SleepingQuartersModel02DFC = 0x801804F4; // absolute:True owner=shelter_b1_sleeping_quarters
 gShelterB1SleepingQuartersRoomViewMaps = 0x80180658; // absolute:True owner=shelter_b1_sleeping_quarters
 D_shelter_b1_sleeping_quarters_8018065C = 0x8018065C; // absolute:True owner=shelter_b1_sleeping_quarters
 D_shelter_b1_sleeping_quarters_80180660 = 0x80180660; // absolute:True owner=shelter_b1_sleeping_quarters shared=rooms

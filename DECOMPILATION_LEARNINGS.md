@@ -89663,9 +89663,9 @@ target loads `0x2A($a1)` four times - once for the `slti 0x34` guard, then once
 per table field, with the payload stores in between:
 
 ```c
-placement.pos.vx = D_dryfield_water_tank_80184530[task->killCountdown].vx;
-placement.pos.vy = D_dryfield_water_tank_80184530[task->killCountdown].vy;
-placement.pos.vz = D_dryfield_water_tank_80184530[task->killCountdown].vz;
+placement.pos.vx = _gDryfieldWaterTankPlayerFirstLegPositions[task->killCountdown].vx;
+placement.pos.vy = _gDryfieldWaterTankPlayerFirstLegPositions[task->killCountdown].vy;
+placement.pos.vz = _gDryfieldWaterTankPlayerFirstLegPositions[task->killCountdown].vz;
 ```
 
 Only the first lookup reuses the guard's value (`sll $v0, $a0, 3` off the `$a0`

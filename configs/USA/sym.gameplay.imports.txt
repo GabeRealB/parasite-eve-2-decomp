@@ -1507,7 +1507,7 @@ D_dryfield_night_warehouse_8017FB98 = 0x8017FB98; // absolute:True owner=dryfiel
 
 D_dryfield_night_water_hole_80183418 = 0x80183418; // absolute:True owner=dryfield_night_water_hole
 
-D_dryfield_night_water_tank_80180764 = 0x80180764; // absolute:True owner=dryfield_night_water_tank shared=rooms
+D_dryfield_night_water_tank_80180764 = 0x80180764; // absolute:True owner=dryfield_night_water_tank
 
 D_dryfield_night_water_tower_80182B5C = 0x80182B5C; // absolute:True owner=dryfield_night_water_tower shared=rooms
 
