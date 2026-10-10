@@ -71,11 +71,11 @@ gMineForkedTunnelSpriteViews = 0x80184D64; // absolute:True owner=mine_forked_tu
 gMineForkedTunnelSurfacePropertiesByClass = 0x801855C0; // absolute:True owner=mine_forked_tunnel
 mineSecretPassageRoomTask = 0x8017D970; // type:func absolute:True owner=mine_secret_passage shared=rooms
 gMineSecretPassageRoomLighting = 0x80180F9C; // absolute:True owner=mine_secret_passage
-D_mine_secret_passage_80180FA4 = 0x80180FA4; // absolute:True owner=mine_secret_passage
+gMineSecretPassageRoomCollisionResources = 0x80180FA4; // absolute:True owner=mine_secret_passage
 gMineSecretPassageRoomViewMaps = 0x80180FB4; // absolute:True owner=mine_secret_passage
-D_mine_secret_passage_80180FB8 = 0x80180FB8; // absolute:True owner=mine_secret_passage
-D_mine_secret_passage_80180FBC = 0x80180FBC; // absolute:True owner=mine_secret_passage
-D_mine_secret_passage_80181604 = 0x80181604; // absolute:True owner=mine_secret_passage
+gMineSecretPassageRoomViewCounts = 0x80180FB8; // absolute:True owner=mine_secret_passage
+gMineSecretPassageWarpEntries = 0x80180FBC; // absolute:True owner=mine_secret_passage
+gMineSecretPassageViewCameras = 0x80181604; // absolute:True owner=mine_secret_passage
 gMineSecretPassageSpriteViews = 0x80182994; // absolute:True owner=mine_secret_passage
 gMineSecretPassageSurfacePropertiesByClass = 0x80183420; // absolute:True owner=mine_secret_passage shared=rooms
 shelterB1ElevatorHallRoomTask = 0x8017DC28; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms

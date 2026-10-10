@@ -99,7 +99,7 @@ gAcropolisObservatoryViewMaps = 0x8017FEF0; // absolute:True owner=acropolis_obs
 D_acropolis_observatory_8017FEF8 = 0x8017FEF8; // absolute:True owner=acropolis_observatory
 gAcropolisObservatoryRoomLightingTable = 0x8017FEFC; // absolute:True owner=acropolis_observatory
 D_acropolis_observatory_8017FF0C = 0x8017FF0C; // absolute:True owner=acropolis_observatory
-gAcropolisObservatorySpriteViews = 0x80183300; // absolute:True owner=acropolis_observatory shared=rooms
+gAcropolisObservatorySpriteViews = 0x80183300; // absolute:True owner=acropolis_observatory
 gAcropolisObservatoryViewCameras = 0x80183360; // absolute:True owner=acropolis_observatory
 gAcropolisObservatorySurfacePropertiesByClass = 0x801834DC; // absolute:True owner=acropolis_observatory shared=rooms
 acropolisPromenadeRoomTask = 0x8017DA4C; // type:func absolute:True owner=acropolis_promenade shared=rooms

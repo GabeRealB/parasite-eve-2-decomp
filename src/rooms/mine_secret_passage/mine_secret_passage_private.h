@@ -10,11 +10,26 @@
 
 #include "rooms/room_common.h"
 
-extern TaskMessageEntry D_mine_secret_passage_80180E8C[6];
+/// Room-controller handlers for transition, key-item, action, command and sound messages.
+///
+/// Five synchronous callbacks followed by `TASK_MESSAGE_TABLE_END`. Unsupported
+/// messages return zero. The controller borrows this table and its callbacks
+/// for its lifetime; the passage overlay must remain loaded during dispatch.
+extern TaskMessageEntry gMineSecretPassageRoomMessages[6];
 
-extern TaskDesc D_mine_secret_passage_80180EBC;
+/// Bodyless priority-32 recipe for the passage's departure-confirmation task.
+///
+/// Direct spawning reads this single descriptor synchronously; there is no
+/// terminator. Both spawn arguments are unused. Player control and the resolved
+/// destination must already be held/staged; the passage stays loaded until reload.
+extern TaskDesc gMineSecretPassageDepartureTaskDesc;
 
-extern RoomFadeStorage D_mine_secret_passage_80183440;
+/// Persistent fade storage for the passage's confirmed elevator-hall departure.
+///
+/// The fade task borrows its `ScreenFade` member for a thirty-frame subtractive
+/// ramp and black hold until reload. Only one departure may use it at a time.
+/// The trailing word is untouched and its role remains unproven.
+extern RoomFadeStorage gMineSecretPassageDepartureFade;
 
 /// Confirms a passage departure and reloads after the exit-transit sound.
 ///

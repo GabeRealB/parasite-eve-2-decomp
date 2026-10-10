@@ -1543,7 +1543,7 @@ gMineMesaAreaVariants = 0x801898F4; // absolute:True owner=mine_mesa
 
 D_mine_refuge_80182A00 = 0x80182A00; // absolute:True owner=mine_refuge
 
-D_mine_secret_passage_80183340 = 0x80183340; // absolute:True owner=mine_secret_passage
+gMineSecretPassageAreaVariants = 0x80183340; // absolute:True owner=mine_secret_passage
 
 D_mine_tunnel_801801CC = 0x801801CC; // absolute:True owner=mine_tunnel shared=rooms
 

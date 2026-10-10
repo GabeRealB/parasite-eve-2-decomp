@@ -64,10 +64,10 @@ static inline void _mineSecretPassageStartDepartureFade(void)
         MINE_SECRET_PASSAGE_FADE_TASK_SLOT        = 0x31
     };
 
-    D_mine_secret_passage_80183440.fade.blend      = SCREEN_FADE_SUBTRACT;
-    D_mine_secret_passage_80183440.fade.phase      = SCREEN_FADE_RUNNING;
-    D_mine_secret_passage_80183440.fade.rampFrames = MINE_SECRET_PASSAGE_DEPARTURE_FADE_FRAMES;
-    taskSpawn(MINE_SECRET_PASSAGE_FADE_TASK_BANK, MINE_SECRET_PASSAGE_FADE_TASK_SLOT, 0, &D_mine_secret_passage_80183440.fade);
+    gMineSecretPassageDepartureFade.fade.blend      = SCREEN_FADE_SUBTRACT;
+    gMineSecretPassageDepartureFade.fade.phase      = SCREEN_FADE_RUNNING;
+    gMineSecretPassageDepartureFade.fade.rampFrames = MINE_SECRET_PASSAGE_DEPARTURE_FADE_FRAMES;
+    taskSpawn(MINE_SECRET_PASSAGE_FADE_TASK_BANK, MINE_SECRET_PASSAGE_FADE_TASK_SLOT, 0, &gMineSecretPassageDepartureFade.fade);
     sndEvtRequestScriptStart(SOUND_MINE_SECRET_PASSAGE_EXIT_TRANSIT, 0, 0);
 }
 
@@ -162,7 +162,7 @@ s32 mineSecretPassageResolveRoomTransition(Task* task, s32 messageId, RoomEventM
             D_mine_secret_passage_80183448.field_4                                              = reply->warp;
             ((u8*)&D_mine_secret_passage_80183448.areaId)[MINE_SECRET_PASSAGE_STAGED_ROOM_BYTE] = reply->room;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&D_mine_secret_passage_80180EBC, 0, 0, 0);
+            taskSpawnFromTable(&gMineSecretPassageDepartureTaskDesc, 0, 0, 0);
         }
         return ROOM_VARIANT_TRANSITION_HANDLED;
     }
@@ -198,7 +198,7 @@ static void _mineSecretPassageInitRoomTask(Task* task)
 {
     enum { MINE_SECRET_PASSAGE_COUNTDOWN_MUSIC_ENTRY = 1 };
 
-    task->msgTable = D_mine_secret_passage_80180E8C;
+    task->msgTable = gMineSecretPassageRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
     gStageSceneMusicEntry = MINE_SECRET_PASSAGE_COUNTDOWN_MUSIC_ENTRY;

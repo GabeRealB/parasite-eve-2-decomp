@@ -39,6 +39,7 @@
 #include "main/gfx.h"
 #include "main/gfx_types.h"
 #include "main/scratch.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -52,23 +53,14 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 
-/// The passage's per-view emitter placements, one `SVECTOR` per position, 8
-/// bytes apart. All four names address the same 24-entry run: `ED8` is `EC8[2]`,
-/// `EE8` is `EC8[4]` and `F08` is `EC8[8]`, so view 2's last two positions are
-/// `F08[8]` / `F08[9]` and view 4's last is `F08[15]`.
-extern SVECTOR D_mine_secret_passage_80180EC8[];
-extern SVECTOR D_mine_secret_passage_80180ED8[];
-extern SVECTOR D_mine_secret_passage_80180EE8[];
-extern SVECTOR D_mine_secret_passage_80180F08[];
-
 static WorldCollisionGrid         _gMineSecretPassageCollisionGrid;
-extern WorldCollisionOccluder     D_mine_secret_passage_801831A8[2];
-extern WorldCollisionTrigger      D_mine_secret_passage_80182DCC[10];
-extern WorldCollisionTrigger      D_mine_secret_passage_801830C4[3];
+static WorldCollisionOccluder     _gMineSecretPassageSightOccluders[2];
+static WorldCollisionTrigger      _gMineSecretPassageViewBoundaryTriggers[10];
+static WorldCollisionTrigger      _gMineSecretPassageActionTriggers[3];
 static WorldCoordRoomAmbientEntry _gMineSecretPassageAmbientByView[9];
 static WorldCoordRoomLights       _gMineSecretPassageRoomLights;
 
-TaskMessageEntry D_mine_secret_passage_80180E8C[6] = {
+TaskMessageEntry gMineSecretPassageRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, mineSecretPassageResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, mineSecretPassageRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, mineSecretPassageIgnoreAction },
@@ -77,26 +69,29 @@ TaskMessageEntry D_mine_secret_passage_80180E8C[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_mine_secret_passage_80180EBC = { { { TASK_BODY_NONE, 32 } }, mineSecretPassageDepartureTask, { .value = 0 } };
+enum { MINE_SECRET_PASSAGE_DEPARTURE_TASK_PRIORITY = 32 };
 
-SVECTOR D_mine_secret_passage_80180EC8[2] = {
+TaskDesc gMineSecretPassageDepartureTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, MINE_SECRET_PASSAGE_DEPARTURE_TASK_PRIORITY } },
+    .callback = mineSecretPassageDepartureTask,
+    .data     = { .value = 0 },
+};
+
+/// World-space positions of the passage's capsule endpoints and disc glows.
+///
+/// The first ten entries form five endpoint pairs; the remaining fourteen
+/// are disc centres. Views share positions, starting their selections at
+/// entries 0, 2, 4 or 8. Coordinates use signed game units; drawers borrow them
+/// synchronously and never modify them.
+static SVECTOR _gMineSecretPassageGlowPoints[24] = {
     { 80, -3140, 0x3692, 0 },
     { 80, -3140, 0x33FE, 0 },
-};
-
-SVECTOR D_mine_secret_passage_80180ED8[2] = {
     { 670, -1780, 1870, 0 },
     { 1010, -1780, 1870, 0 },
-};
-
-SVECTOR D_mine_secret_passage_80180EE8[4] = {
     { 0x4916, -2390, 4270, 0 },
     { 0x4AE2, -2390, 4270, 0 },
     { 0x4E5C, -2390, 4270, 0 },
     { 0x501E, -2390, 4270, 0 },
-};
-
-SVECTOR D_mine_secret_passage_80180F08[16] = {
     { 0x4F10, -990, 4690, 0 },
     { 0x5000, -990, 4690, 0 },
     { 0x3A48, -2570, 4090, 0 },
@@ -135,19 +130,50 @@ WorldCoordRoomLighting gMineSecretPassageRoomLighting[1] = {
     { .lights = &_gMineSecretPassageRoomLights, .ambientTable = _gMineSecretPassageAmbientByView },
 };
 
-WorldCollisionRoomResources D_mine_secret_passage_80180FA4[1] = {
-    { &_gMineSecretPassageCollisionGrid, D_mine_secret_passage_80182DCC, D_mine_secret_passage_801830C4, D_mine_secret_passage_801831A8 },
+WorldCollisionRoomResources gMineSecretPassageRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gMineSecretPassageCollisionGrid,
+        .viewBoundaryTriggers = _gMineSecretPassageViewBoundaryTriggers,
+        .actionTriggers       = _gMineSecretPassageActionTriggers,
+        .occluders            = _gMineSecretPassageSightOccluders,
+    },
 };
 
 u8* gMineSecretPassageRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_mine_secret_passage_80180FB8[1] = { 8 };
+enum { MINE_SECRET_PASSAGE_LOGICAL_VIEW_COUNT = 8 };
 
-DirectionWarpEntry D_mine_secret_passage_80180FBC[2] = {
-    { { { .word = 2048 }, 1400, 0, 0x36B0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1400, 0, 0x36B0 }, { 0, 0, 0, 0 }, 0x54080002, 0x54080001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_MINE_CAVERN },
-    { { { .word = 3072 }, 0x5014, 0, 3900 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x5014, 0, 3900 }, { 0, 0, 0, 0 }, 0x54080004, 0x54080003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+ViewCount gMineSecretPassageRoomViewCounts[1] = { MINE_SECRET_PASSAGE_LOGICAL_VIEW_COUNT };
+
+enum {
+    MINE_SECRET_PASSAGE_CAVERN_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 2),
+    MINE_SECRET_PASSAGE_CAVERN_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 1),
+    MINE_SECRET_PASSAGE_HALL_ARRIVAL_SOUND     = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 4)
+};
+
+DirectionWarpEntry gMineSecretPassageWarpEntries[2] = {
+    {
+        .player         = { { .word = 2048 }, 1400, 0, 0x36B0 },
+        .companion      = { { .word = 2048 }, 1400, 0, 0x36B0 },
+        .arrivalSound   = MINE_SECRET_PASSAGE_CAVERN_ARRIVAL_SOUND,
+        .departureSound = MINE_SECRET_PASSAGE_CAVERN_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_MINE_CAVERN,
+    },
+    {
+        .player         = { { .word = 3072 }, 0x5014, 0, 3900 },
+        .companion      = { { .word = 3072 }, 0x5014, 0, 3900 },
+        .arrivalSound   = MINE_SECRET_PASSAGE_HALL_ARRIVAL_SOUND,
+        .departureSound = SOUND_MINE_SECRET_PASSAGE_EXIT_TRANSIT,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 enum {
@@ -200,7 +226,7 @@ static WorldCollisionGrid _gMineSecretPassageCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gMineSecretPassageCollisionGridFaces),
 };
 
-ViewCamera D_mine_secret_passage_80181604[9] = {
+ViewCamera gMineSecretPassageViewCameras[9] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2710, 0x5910, -7500 } }, 269 },
     { { { { 4008, 0, -844 }, { -11, 4095, -55 }, { 844, 57, 4007 } }, { -599, 1432, -5060 } }, 282 },
     { { { { -3964, 0, -1029 }, { -49, 4091, 188 }, { 1028, 195, -3960 } }, { -800, 1568, -0x31FF } }, 282 },
@@ -587,7 +613,12 @@ static WorldCoordRoomLights _gMineSecretPassageRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_mine_secret_passage_80182DCC[10] = {
+/// Ten directed boundaries connecting views 2/3, 4/7, 4/5, 5/6 and 7/3.
+///
+/// Origins, corner offsets and radii use room units; normals use Q12.
+/// Room setup binds and links these mutable records through the final LAST
+/// marker. The storage must outlive the active collision list.
+static WorldCollisionTrigger _gMineSecretPassageViewBoundaryTriggers[10] = {
     { NULL, NULL, NULL, { 1488, -1504, 9344, 0 }, { { 2032, -1904, 0, 0 }, { -2032, -1904, 0, 0 }, { 2032, 1904, 0, 0 }, { -2032, 1904, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 4096, 0 }, 2780, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1520, -1505, 9552, 0 }, { { -2000, -1904, 16, 0 }, { 2000, -1904, -16, 0 }, { -2000, 1904, 16, 0 }, { 2000, 1904, -16, 0 } }, { -34, 0, -4095, 0 }, { 0, 0, 4096, 0 }, 2757, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 5101, -1568, 3435, 0 }, { { -467, -1904, -2668, 0 }, { 464, -1904, 2665, 0 }, { -467, 1904, -2668, 0 }, { 464, 1904, 2665, 0 } }, { 4047, 0, -708, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -600,74 +631,149 @@ WorldCollisionTrigger D_mine_secret_passage_80182DCC[10] = {
     { NULL, NULL, NULL, { 1312, -1440, 4671, 0 }, { { 2719, -1904, 430, 0 }, { -2721, -1904, -431, 0 }, { 2719, 1904, 430, 0 }, { -2721, 1904, -431, 0 } }, { -641, 0, 4044, 0 }, { 0, 0, 4096, 0 }, 3347, 0, 3, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mine_secret_passage_801830C4[3] = {
-    { NULL, NULL, NULL, { 1440, -48, 0x33F0, 0 }, { { -1472, 0, -496, 0 }, { 1472, 0, -496, 0 }, { -1472, 0, 496, 0 }, { 1472, 0, 496, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1551, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x50F0, -48, 4272, 0 }, { { -720, 0, -544, 0 }, { 720, 0, -544, 0 }, { -720, 0, 544, 0 }, { 720, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 900, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x42A0, -64, 800, 0 }, { { -672, 0, -560, 0 }, { 672, 0, -560, 0 }, { -672, 0, 560, 0 }, { 672, 0, 560, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+enum {
+    MINE_SECRET_PASSAGE_CAVERN_WARP_SLOTS  = (1 << 4) | 2,
+    MINE_SECRET_PASSAGE_HALL_WARP_SLOTS    = (2 << 4) | 1,
+    MINE_SECRET_PASSAGE_WEAPON_CAP_COMMAND = 1
 };
 
-WorldCollisionOccluder D_mine_secret_passage_801831A8[2] = {
+/// Facing-gated warps to the cavern and elevator hall, followed by weapon CAP command 1.
+///
+/// Warp bytes pack the departure descriptor in the high nibble and destination
+/// arrival descriptor in the low nibble. Geometry uses room units and Q12
+/// normals. Setup links and enables all three records through the LAST marker;
+/// the mutable storage remains borrowed until the action list is cleared.
+static WorldCollisionTrigger _gMineSecretPassageActionTriggers[3] = {
+    { NULL, NULL, NULL, { 1440, -48, 0x33F0, 0 }, { { -1472, 0, -496, 0 }, { 1472, 0, -496, 0 }, { -1472, 0, 496, 0 }, { 1472, 0, 496, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, -ONE, 0 }, 1551, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_CAVERN, MINE_SECRET_PASSAGE_CAVERN_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x50F0, -48, 4272, 0 }, { { -720, 0, -544, 0 }, { 720, 0, -544, 0 }, { -720, 0, 544, 0 }, { 720, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 900, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, MINE_SECRET_PASSAGE_HALL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x42A0, -64, 800, 0 }, { { -672, 0, -560, 0 }, { 672, 0, -560, 0 }, { -672, 0, 560, 0 }, { 672, 0, 560, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, ONE, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, MINE_SECRET_PASSAGE_WEAPON_CAP_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Two room-space quads blocking line of sight, ending on the second record's LAST bit.
+///
+/// Positions and corner offsets use room units; normals use Q12. Setup links
+/// and enables both records. Low flag bit 0 is retained with its role unproven;
+/// list links and enabled flags are writable while the overlay is loaded.
+static WorldCollisionOccluder _gMineSecretPassageSightOccluders[2] = {
     { NULL, NULL, { 0x2990, -1584, 8864, 0 }, { { -7408, -2608, -3648, 0 }, { 7408, -2608, 3648, 0 }, { -7408, 2608, -3648, 0 }, { 7408, 2608, 3648, 0 } }, { 1812, 0, -3682, 0 }, 8628, 1, 0 },
     { NULL, NULL, { 0x398E, -1520, 623, 0 }, { { -1546, -2544, -1372, 0 }, { 1547, -2544, 1373, 0 }, { -1546, 2544, -1372, 0 }, { 1547, 2544, 1373, 0 } }, { 2726, 0, -3074, 0 }, 3278, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_mine_secret_passage_80183220[2] = {
-    { 58, 58, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor405800IvoryStalkerTaskDesc },
+enum {
+    MINE_SECRET_PASSAGE_IVORY_STALKER_ENTRY = 58,
+    MINE_SECRET_PASSAGE_ZEBRA_STALKER_ENTRY = 6,
+    MINE_SECRET_PASSAGE_BRAIN_STINGER_ENTRY = 3
+};
+
+/// Variant 1's base-40 file 58 and Ivory Stalker body recipe, keyed by entry 58.
+///
+/// Ends with `AREA_PLACEMENT_END`. Loading and spawning borrow this list;
+/// the Ivory Stalker descriptor and code remain loaded for spawned actors.
+static AreaResource _gMineSecretPassageVariant1Resources[2] = {
+    {
+        .entryId        = MINE_SECRET_PASSAGE_IVORY_STALKER_ENTRY,
+        .fileNumber     = 58,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .taskTable      = &gActor405800IvoryStalkerTaskDesc,
+    },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_secret_passage_80183238[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
+/// Variant 2's base-40 file 6 and Zebra Stalker body recipe, keyed by entry 6.
+///
+/// Ends with `AREA_PLACEMENT_END`. The room list and Zebra Stalker descriptor
+/// remain borrowed during loading and spawning; actor code outlives its tasks.
+static AreaResource _gMineSecretPassageVariant2Resources[2] = {
+    {
+        .entryId        = MINE_SECRET_PASSAGE_ZEBRA_STALKER_ENTRY,
+        .fileNumber     = 6,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .taskTable      = &gActor400600ZebraStalkerTaskDesc,
+    },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_secret_passage_80183250[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
+/// Variant 3's base-10 file 3 and Brain Stinger body recipe, keyed by entry 3.
+///
+/// Selects the Brain Stinger body descriptor and ends with `AREA_PLACEMENT_END`.
+/// The list is borrowed during loading/spawning; actor resources outlive tasks.
+static AreaResource _gMineSecretPassageVariant3Resources[2] = {
+    {
+        .entryId        = MINE_SECRET_PASSAGE_BRAIN_STINGER_ENTRY,
+        .fileNumber     = 3,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = 0,
+        .taskTable      = gActor100300Tasks,
+    },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_secret_passage_80183268[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
+/// Variant 11's base-40 file 6 and Zebra Stalker body recipe, keyed by entry 6.
+///
+/// Ends with `AREA_PLACEMENT_END`. This is variant 11's own loading list;
+/// the room storage and Zebra Stalker descriptor remain borrowed while in use.
+static AreaResource _gMineSecretPassageVariant11Resources[2] = {
+    {
+        .entryId        = MINE_SECRET_PASSAGE_ZEBRA_STALKER_ENTRY,
+        .fileNumber     = 6,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .taskTable      = &gActor400600ZebraStalkerTaskDesc,
+    },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_mine_secret_passage_80183280[2] = {
-    { 58, 0, 0, 960, 0, 4500, 0, 0, 0, 2, 0 },
+/// Variant 1's one Ivory Stalker placement, followed by `AREA_PLACEMENT_END`.
+///
+/// Entry 58 selects its resource; spawn variant/mode and parameter row are zero.
+/// Position uses world units, yaw uses 4096 per turn, and CLUT row offset is +2.
+/// Live actors borrow this room-overlay storage until teardown.
+static AreaPlacement _gMineSecretPassageVariant1Placements[2] = {
+    { MINE_SECRET_PASSAGE_IVORY_STALKER_ENTRY, 0, 0, 960, 0, 4500, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_secret_passage_801832A0[3] = {
-    { 6, 0, 0, 960, 0, 7600, 0, 0, 0, 2, 0 },
-    { 6, 0, 0, 2304, 0, 9400, 0, 0, 0, 2, 0 },
+/// Variant 2's two Zebra Stalker placements, followed by `AREA_PLACEMENT_END`.
+///
+/// Both select entry 6 with spawn variant/mode and parameter row zero.
+/// Positions use world units, yaw uses 4096 per turn, and CLUT row offset is +2.
+/// Live actors borrow this room-overlay storage until teardown.
+static AreaPlacement _gMineSecretPassageVariant2Placements[3] = {
+    { MINE_SECRET_PASSAGE_ZEBRA_STALKER_ENTRY, 0, 0, 960, 0, 7600, 0, 0, 0, 2, 0 },
+    { MINE_SECRET_PASSAGE_ZEBRA_STALKER_ENTRY, 0, 0, 2304, 0, 9400, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_secret_passage_801832D0[3] = {
-    { 3, 0, 0, 1500, 0, 0x2710, 2048, 0, 0, 2, 0 },
-    { 3, 0, 1, 0x2904, 0, 3500, 3072, 0, 0, 2, 0 },
+/// Variant 3's two Brain Stingers using passage patrol modes 0 and 1.
+///
+/// Both select resource entry 3, spawn variant/parameter row zero and CLUT row
+/// offset +2. Positions use world units and yaw uses 4096 per turn. The list
+/// ends with `AREA_PLACEMENT_END` and stays borrowed by actors until teardown.
+static AreaPlacement _gMineSecretPassageVariant3Placements[3] = {
+    { MINE_SECRET_PASSAGE_BRAIN_STINGER_ENTRY, 0, 0, 1500, 0, 0x2710, 2048, 0, 0, 2, 0 },
+    { MINE_SECRET_PASSAGE_BRAIN_STINGER_ENTRY, 0, 1, 0x2904, 0, 3500, 3072, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_mine_secret_passage_80183300[4] = {
-    { 6, 0, 0, 0x4074, 0, 4700, 1500, 0, 0, 2, 0 },
-    { 6, 0, 0, 0x41A0, 0, 2200, 800, 0, 0, 2, 0 },
-    { 6, 0, 0, 1500, 0, 0x2904, 1900, 0, 0, 2, 0 },
+/// Variant 11's three Zebra Stalker placements, followed by `AREA_PLACEMENT_END`.
+///
+/// All select entry 6 with spawn variant/mode and parameter row zero.
+/// Positions use world units, yaw uses 4096 per turn, and CLUT row offset is +2.
+/// Live actors borrow this room-overlay storage until teardown.
+static AreaPlacement _gMineSecretPassageVariant11Placements[4] = {
+    { MINE_SECRET_PASSAGE_ZEBRA_STALKER_ENTRY, 0, 0, 0x4074, 0, 4700, 1500, 0, 0, 2, 0 },
+    { MINE_SECRET_PASSAGE_ZEBRA_STALKER_ENTRY, 0, 0, 0x41A0, 0, 2200, 800, 0, 0, 2, 0 },
+    { MINE_SECRET_PASSAGE_ZEBRA_STALKER_ENTRY, 0, 0, 1500, 0, 0x2904, 1900, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_mine_secret_passage_80183340[12] = {
-    { NULL, NULL },
-    { D_mine_secret_passage_80183280, D_mine_secret_passage_80183220 },
-    { D_mine_secret_passage_801832A0, D_mine_secret_passage_80183238 },
-    { D_mine_secret_passage_801832D0, D_mine_secret_passage_80183250 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_mine_secret_passage_80183300, D_mine_secret_passage_80183268 },
+AreaVariant gMineSecretPassageAreaVariants[12] = {
+    [1]  = { _gMineSecretPassageVariant1Placements, _gMineSecretPassageVariant1Resources },
+    [2]  = { _gMineSecretPassageVariant2Placements, _gMineSecretPassageVariant2Resources },
+    [3]  = { _gMineSecretPassageVariant3Placements, _gMineSecretPassageVariant3Resources },
+    [11] = { _gMineSecretPassageVariant11Placements, _gMineSecretPassageVariant11Resources },
 };
 
 /// Minimum ambient colours for passage views 1..8, preceded by their count.
@@ -760,7 +866,7 @@ WorldCollisionSurfaceProperties* gMineSecretPassageSurfacePropertiesByClass[8] =
     &_gMineSecretPassageSolidSurface,
 };
 
-RoomFadeStorage D_mine_secret_passage_80183440;
+RoomFadeStorage gMineSecretPassageDepartureFade;
 
 /// Selects the passage's mote, halo, orange burst and spark emitter for actor spawns.
 ///
@@ -796,17 +902,17 @@ void mineSecretPassageDrawLightGlowsTask(Task* task)
     }
 
     // Radius scales are world units; packed RGB nibbles are expanded by the drawers.
-    // The placement declarations split one contiguous run; indices still cross them.
+    // Each view selects endpoint pairs and disc centres from the shared position table.
     switch (viewGetMappedIndex() & GLOWS_VIEW_INDEX_MASK) {
         case 2: {
-            const SVECTOR* glowPoints = D_mine_secret_passage_80180EC8;
+            const SVECTOR* glowPoints = _gMineSecretPassageGlowPoints;
             _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
             glowDrawDisc(&glowPoints[16], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             glowDrawDisc(&glowPoints[17], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             break;
         }
         case 3: {
-            const SVECTOR* glowPoints = D_mine_secret_passage_80180ED8;
+            const SVECTOR* glowPoints = &_gMineSecretPassageGlowPoints[2];
             _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
             glowDrawDisc(&glowPoints[14], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             glowDrawDisc(&glowPoints[15], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
@@ -816,7 +922,7 @@ void mineSecretPassageDrawLightGlowsTask(Task* task)
             break;
         }
         case 4: {
-            const SVECTOR* glowPoints = D_mine_secret_passage_80180ED8;
+            const SVECTOR* glowPoints = &_gMineSecretPassageGlowPoints[2];
             _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
             glowDrawDisc(&glowPoints[16], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             glowDrawDisc(&glowPoints[18], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
@@ -826,7 +932,7 @@ void mineSecretPassageDrawLightGlowsTask(Task* task)
             break;
         }
         case 5: {
-            const SVECTOR* glowPoints = D_mine_secret_passage_80180EE8;
+            const SVECTOR* glowPoints = &_gMineSecretPassageGlowPoints[4];
             _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
             glowDrawDisc(&glowPoints[6], GLOWS_LARGE_RADIUS, GLOWS_GREY_RGB);
             glowDrawDisc(&glowPoints[7], GLOWS_LARGE_RADIUS, GLOWS_GREY_RGB);
@@ -836,7 +942,7 @@ void mineSecretPassageDrawLightGlowsTask(Task* task)
             break;
         }
         case 6: {
-            const SVECTOR* glowPoints = D_mine_secret_passage_80180EE8;
+            const SVECTOR* glowPoints = &_gMineSecretPassageGlowPoints[4];
             _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[2], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
             _glowDrawCapsule(&glowPoints[4], GLOWS_WIDE_RADIUS, GLOWS_CYAN_RGB);
@@ -846,7 +952,7 @@ void mineSecretPassageDrawLightGlowsTask(Task* task)
             break;
         }
         case 7: {
-            const SVECTOR* glowPoints = D_mine_secret_passage_80180ED8;
+            const SVECTOR* glowPoints = &_gMineSecretPassageGlowPoints[2];
             _glowDrawCapsule(&glowPoints[0], GLOWS_SMALL_RADIUS, GLOWS_GREY_RGB);
             glowDrawDisc(&glowPoints[16], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
             glowDrawDisc(&glowPoints[18], GLOWS_SMALL_RADIUS, GLOWS_ORANGE_RGB);
@@ -854,7 +960,7 @@ void mineSecretPassageDrawLightGlowsTask(Task* task)
             break;
         }
         case 8: {
-            const SVECTOR* glowPoints = D_mine_secret_passage_80180F08;
+            const SVECTOR* glowPoints = &_gMineSecretPassageGlowPoints[8];
             _glowDrawCapsule(&glowPoints[0], GLOWS_WIDE_RADIUS, GLOWS_CYAN_RGB);
             break;
         }

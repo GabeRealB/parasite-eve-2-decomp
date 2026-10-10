@@ -11,7 +11,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_mine_secret_passage_80183340[12];
+/// Passage actor layouts indexed directly by placement variant 0..11.
+///
+/// Variants 1, 2, 3 and 11 contain one Ivory Stalker, two Zebra Stalkers,
+/// two Brain Stingers and three Zebra Stalkers respectively; other slots are
+/// absent. Lists end with `AREA_PLACEMENT_END`. Gameplay's stage-4 area-8 directory
+/// borrows this table; placements stay loaded until their actors are released.
+extern AreaVariant gMineSecretPassageAreaVariants[12];
 
 /// Lighting for passage room 1, indexed by room minus one.
 ///
@@ -19,7 +25,12 @@ extern AreaVariant D_mine_secret_passage_80183340[12];
 /// The Shelter map borrows this directory while the passage overlay is loaded.
 extern WorldCoordRoomLighting gMineSecretPassageRoomLighting[1];
 
-extern WorldCollisionRoomResources D_mine_secret_passage_80180FA4[];
+/// Collision resources for passage room 1, indexed by room minus one.
+///
+/// Borrows the grid, ten directed view boundaries, three facing-gated actions
+/// and two sight occluders. Setup mutates coordinates, links and enabled bits;
+/// the room overlay must stay loaded until those resources are unlinked.
+extern WorldCollisionRoomResources gMineSecretPassageRoomCollisionResources[1];
 
 /// Logical-view mapping for passage room 1, indexed by room minus one.
 ///
@@ -28,11 +39,27 @@ extern WorldCollisionRoomResources D_mine_secret_passage_80180FA4[];
 /// the passage loaded; the shared byte map requires gameplay loaded.
 extern u8* gMineSecretPassageRoomViewMaps[1];
 
-extern ViewCount D_mine_secret_passage_80180FB8[];
+/// Reverse-lookup search count for passage room 1, indexed by room minus one.
+///
+/// Searches eight logical-view bytes in `gViewIdentityMap`. This signed halfword
+/// count is independent of that map's capacity and the nine camera records.
+/// The Shelter map borrows this directory while the passage overlay is loaded.
+extern ViewCount gMineSecretPassageRoomViewCounts[1];
 
-extern DirectionWarpEntry D_mine_secret_passage_80180FBC[];
+/// Passage warp endpoints 1 (cavern) and 2 (elevator hall), indexed by warp minus one.
+///
+/// Supplies player/companion placements in world units and yaw in 4096 per turn,
+/// arrival views 2/6, and area-bank arrival/departure sounds. Endpoint 1 marks
+/// the cavern map flag; endpoint 2 requests a departure fade. There is no
+/// terminator. The Shelter map borrows both records while the passage is loaded.
+extern DirectionWarpEntry gMineSecretPassageWarpEntries[2];
 
-extern ViewCamera D_mine_secret_passage_80181604[];
+/// Nine passage camera records, indexed by mapped camera minus one.
+///
+/// Normal logical views 1..8 select the first eight; record 9 repeats camera 2.
+/// Transforms store Q12 rotations and negated world origins; projection distance
+/// is in pixels. The Shelter map borrows this unterminated table while loaded.
+extern ViewCamera gMineSecretPassageViewCameras[9];
 
 /// Sprite resources for passage mapped views 1..8, indexed by view minus one.
 ///
