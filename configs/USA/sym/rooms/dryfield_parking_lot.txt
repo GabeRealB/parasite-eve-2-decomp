@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_parking_lot.
-gRoomEventMsg = 0x8017FB50; // size:0x8 defined:True
+_gRoomEventMsg = 0x8017FB50; // size:0x8 defined:True
 gRoomEventTaskDesc = 0x8017DBF8; // size:0xC defined:True
 D_dryfield_parking_lot_8017DC04 = 0x8017DC04; // size:0x30 defined:True
 _gDryfieldParkingLotViewEffectGates = 0x8017DC34; // size:0x10 defined:True

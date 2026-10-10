@@ -55,9 +55,8 @@
 
 extern RoomEventActiveBytes gRoomEventActive;
 
-/// The event message and request the gate latched for the event task, and the
+/// The event request the gate latched for the event task, and the
 /// flag saying one was latched this call.
-extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 
 /// Descriptor of the event task `roomEventTask`.
@@ -797,7 +796,12 @@ WorldCollisionSurfaceProperties* gDryfieldSaloonGRSurfacePropertiesByClass[8] = 
     &_gDryfieldSaloonGRDefaultSurfaceProperties,
 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventActiveBytes gRoomEventActive = { 0, { 32, 1, 0 } };
 

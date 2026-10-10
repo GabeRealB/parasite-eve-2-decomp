@@ -32,7 +32,7 @@ static inline void _roomEventLatchAndSpawn(const RoomEventReq* request, const Ro
     s32 flagId;
     s32 flagValue;
 
-    gRoomEventMsg  = *message;
+    ROOM_EVENT_MSG = *message;
     ROOM_EVENT_REQ = *request;
     flagId         = request->flagId;
     flagValue      = ROOM_EVENT_GATE_FLAG_SET;

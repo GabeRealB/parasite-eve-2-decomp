@@ -81,7 +81,6 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// Copy of the message that fired a gated event, kept for the task
 /// `roomEventTask` to warp from.
-extern RoomEventMsg gRoomEventMsg;
 
 /// Set by `_roomEventGate` when the event it gates has
 /// just fired, clear otherwise.
@@ -575,7 +574,12 @@ AreaApplyRec D_shelter_b1_access_tunnel_8017FF44[2] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventStartStorage gRoomEventActive = { 0 };
 

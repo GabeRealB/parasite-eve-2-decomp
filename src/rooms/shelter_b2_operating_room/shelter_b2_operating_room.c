@@ -85,9 +85,8 @@ extern TaskMessageEntry D_shelter_b2_operating_room_8018091C[];
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
 
-/// The message and request of the exit the gate last accepted, latched for
+/// The request of the exit the gate last accepted, latched for
 /// the transition task, and the flag saying the gate spawned it.
-extern RoomEventMsg          gRoomEventMsg;
 extern RoomEventStartStorage gRoomEventActive;
 extern RoomEventReqStorage   gRoomEventReq;
 
@@ -878,7 +877,12 @@ WorldCollisionSurfaceProperties* D_shelter_b2_operating_room_801841F4[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventStartStorage gRoomEventActive = { 0 };
 

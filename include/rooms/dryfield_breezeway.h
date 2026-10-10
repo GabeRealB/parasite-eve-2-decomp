@@ -11,24 +11,50 @@
 
 #include "main/task_types.h"
 
+/// Number of logical and mapped camera/sprite views in the breezeway.
+enum { DRYFIELD_BREEZEWAY_VIEW_COUNT = 6 };
+
 extern AreaVariant D_dryfield_breezeway_801842F8[13];
 
 // dryfield_breezeway
 extern WorldCollisionRoomResources D_dryfield_breezeway_8018316C[];
 
-extern u8* D_dryfield_breezeway_8018317C[];
+/// Room 1's logical-view map, borrowing gameplay's identity entries for views 1..6.
+///
+/// The map directory has one room slot; mapped cameras, images and sprites
+/// use the same 1-based index. The room and gameplay must remain loaded.
+extern u8* gDryfieldBreezewayViewMaps[1];
 
-extern WorldCoordRoomLighting D_dryfield_breezeway_80183180[];
+/// Room 1's authored light collection, using the default ambient minima.
+///
+/// Light transforms and attenuation remain writable while this overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldBreezewayRoomLighting[1];
 
-extern ViewCount D_dryfield_breezeway_80183188[];
+/// Logical-view count storage: six views for room 1, then an unused zero halfword.
+///
+/// The trailing halfword's role is unproven; it is not a list terminator.
+extern ViewCount gDryfieldBreezewayViewCounts[2];
 
 extern DirectionWarpEntry D_dryfield_breezeway_8018318C[];
 
-extern ViewCamera D_dryfield_breezeway_8018364C[];
+/// Cameras for mapped views 1..6, indexed by mapped view minus one.
+///
+/// Matrices use 4096 per unit rotation and world-unit translations; projection
+/// distances are pixels. Borrow these records only while the room is loaded.
+extern ViewCamera gDryfieldBreezewayViewCameras[DRYFIELD_BREEZEWAY_VIEW_COUNT];
 
-extern SpriteView D_dryfield_breezeway_80183D9C[];
+/// Sprite descriptors for mapped views 1..6, indexed by mapped view minus one.
+///
+/// Views 2, 3 and 6 have source sprites; views 1, 4 and 5 have empty batch lists.
+/// All six keep the decoded background and have no clipping list. The mutable
+/// descriptors and their arrays remain borrowed only while this room is loaded.
+extern SpriteView gDryfieldBreezewaySpriteViews[DRYFIELD_BREEZEWAY_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_breezeway_8018437C[];
+/// Collision properties for surface classes 0..7 while the breezeway is loaded.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Class 1 supplies footstep cues; the other classes share a silent record.
+extern WorldCollisionSurfaceProperties* gDryfieldBreezewaySurfacePropertiesByClass[8];
 
 /// Animates a spinning particle with gravity, damped grid bounces and a sixty-tick lifetime.
 ///

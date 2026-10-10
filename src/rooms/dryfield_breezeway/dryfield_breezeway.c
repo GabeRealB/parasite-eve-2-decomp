@@ -47,9 +47,8 @@
 /* The room calls the dispatcher with only the task, leaving a1-a3 holding
    whatever the caller had, so the declaration must stay unprototyped. */
 
-/// The message and request the event gate latched, and the descriptor of the
-/// event task it spawns to act on them.
-extern RoomEventMsg gRoomEventMsg;
+/// The request the event gate latched, and the descriptor of the
+/// event task it spawns to act on it.
 extern RoomEventReq gRoomEventReq;
 
 /// Handle of the room's key-item event task, which
@@ -64,14 +63,10 @@ extern Task* D_dryfield_breezeway_801843A8;
 /// latched a request and spawned the event task, cleared on every other call.
 extern u8 gRoomEventActive;
 
-extern AreaResource D_dryfield_breezeway_80184268[3];
-extern AreaResource D_dryfield_breezeway_8018428C[2];
-extern AreaResource D_dryfield_breezeway_801842A4[3];
-
-extern WorldCollisionGrid    D_dryfield_breezeway_80183628[1];
+static WorldCollisionGrid    _gDryfieldBreezewayCollisionGrid;
 extern WorldCollisionTrigger D_dryfield_breezeway_80183DE4[4];
 extern WorldCollisionTrigger D_dryfield_breezeway_80183F14[5];
-extern WorldCoordRoomLights  D_dryfield_breezeway_80184250[1];
+static WorldCoordRoomLights  _gDryfieldBreezewayRoomLights;
 u_long                       D_dryfield_breezeway_80182F44[128] = {
 #include "assets/dryfield_breezeway_clut_05984.inc"
 };
@@ -84,186 +79,221 @@ GpuImageUpload D_dryfield_breezeway_80183144[2] = {
 SVECTOR D_dryfield_breezeway_80183164 = { 17990, -1365, 2825, 0 };
 
 WorldCollisionRoomResources D_dryfield_breezeway_8018316C[1] = {
-    { D_dryfield_breezeway_80183628, D_dryfield_breezeway_80183DE4, D_dryfield_breezeway_80183F14, NULL },
+    { &_gDryfieldBreezewayCollisionGrid, D_dryfield_breezeway_80183DE4, D_dryfield_breezeway_80183F14, NULL },
 };
 
-u8* D_dryfield_breezeway_8018317C[1] = {
+u8* gDryfieldBreezewayViewMaps[1] = {
     gViewIdentityMap,
 };
 
-WorldCoordRoomLighting D_dryfield_breezeway_80183180[1] = {
-    { D_dryfield_breezeway_80184250, NULL },
+WorldCoordRoomLighting gDryfieldBreezewayRoomLighting[1] = {
+    { &_gDryfieldBreezewayRoomLights, NULL },
 };
 
-ViewCount D_dryfield_breezeway_80183188[2] = { 6, 0 };
+ViewCount gDryfieldBreezewayViewCounts[2] = { DRYFIELD_BREEZEWAY_VIEW_COUNT, 0 };
 
 DirectionWarpEntry D_dryfield_breezeway_8018318C[2] = {
     { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, 0x52160002, 0x52160001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 476 },
     { { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, 0x52160004, 0x52160003, 0x52160005, 4, DIRECTION_WARP_FLAG_NONE, 475 },
 };
 
-static SVECTOR _gDryfieldBreezewayCollision06068Normals[16] = {
+/// Sixteen room-space face normals, with ONE for unit length.
+static SVECTOR _gDryfieldBreezewayCollisionGridNormals[16] = {
 #include "assets/dryfield_breezeway_collision_06068_normals.inc"
 };
 
-static SVECTOR _gDryfieldBreezewayCollision06068Verts[46] = {
+/// Forty-six collision-mesh vertices in signed room-coordinate game units.
+static SVECTOR _gDryfieldBreezewayCollisionGridVerts[46] = {
 #include "assets/dryfield_breezeway_collision_06068_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldBreezewayCollision06068Faces[24] = {
+/// Twenty-four indexed quads; face 21 uses footstep class 1 and the others class 0.
+static WorldCollisionGridFace _gDryfieldBreezewayCollisionGridFaces[24] = {
 #include "assets/dryfield_breezeway_collision_06068_faces.inc"
 };
 
-static s16 _gDryfieldBreezewayCollision06068Cells[126] = {
+/// Eight concatenated signed face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gDryfieldBreezewayCollisionGridCells[126] = {
 #include "assets/dryfield_breezeway_collision_06068_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldBreezewayCollision06068Cells[i])
-static s16* _gDryfieldBreezewayCollision06068Table[8] = {
+#define GRID_CELL(i) (&_gDryfieldBreezewayCollisionGridCells[i])
+/// X-major 4-by-2 directory into the borrowed collision face-index lists.
+static s16* _gDryfieldBreezewayCollisionGridTable[8] = {
 #include "assets/dryfield_breezeway_collision_06068_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_breezeway_80183628[1] = {
-    { NULL, _gDryfieldBreezewayCollision06068Normals, _gDryfieldBreezewayCollision06068Verts, _gDryfieldBreezewayCollision06068Faces, _gDryfieldBreezewayCollision06068Table, -5000, 1000, 4, 2, 4000, 24 },
+/// The breezeway's room collision mesh and 4-by-2 XZ cell index.
+///
+/// Activation binds the view coordinate; mesh pools remain writable and live
+/// with the room. Cells are 4000 game units wide, with additive biases -5000
+/// on X and 1000 on Z. Cell lists index all 24 faces and terminate with -1.
+static WorldCollisionGrid _gDryfieldBreezewayCollisionGrid = {
+    NULL,
+    _gDryfieldBreezewayCollisionGridNormals,
+    _gDryfieldBreezewayCollisionGridVerts,
+    _gDryfieldBreezewayCollisionGridFaces,
+    _gDryfieldBreezewayCollisionGridTable,
+    -5000,
+    1000,
+    4,
+    2,
+    4000,
+    ARRAY_SIZE(_gDryfieldBreezewayCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_breezeway_8018364C[6] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2EE0, 0x5DC0, 0 } }, 322 },
-    { { { { 0, 0, 4096 }, { -1081, 3950, 0 }, { -3950, -1081, 0 } }, { -0x38A4, 200, -1600 } }, 257 },
+ViewCamera gDryfieldBreezewayViewCameras[DRYFIELD_BREEZEWAY_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -0x2EE0, 0x5DC0, 0 } }, 322 },
+    { { { { 0, 0, ONE }, { -1081, 3950, 0 }, { -3950, -1081, 0 } }, { -0x38A4, 200, -1600 } }, 257 },
     { { { { 0, 0, -4095 }, { 831, 4010, 0 }, { 4010, -831, 0 } }, { -9800, 300, -1600 } }, 257 },
     { { { { 1090, 0, -3948 }, { 702, 4030, 194 }, { 3885, -729, 1072 } }, { -0x35CA, 500, -1150 } }, 257 },
     { { { { 1589, 0, -3775 }, { -1365, 3818, -575 }, { 3519, 1481, 1481 } }, { -0x459C, 1450, -2780 } }, 257 },
-    { { { { 0, 0, -4096 }, { 0, 4096, 0 }, { 4096, 0, 0 } }, { -0x41AC, 295, -3354 } }, 680 },
+    { { { { 0, 0, -ONE }, { 0, ONE, 0 }, { ONE, 0, 0 } }, { -0x41AC, 295, -3354 } }, 680 },
 };
 
-SpriteBatch D_dryfield_breezeway_80183724[2] = {
+/// Empty sprite list for mapped view 1; the zero first count keeps the decoded background.
+static SpriteBatch _gDryfieldBreezewayView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_breezeway_80183734[7] = {
-    { 141, 0x3FC0, { .fields = { 8, 40 } }, 32, 16, 1000, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 40, 16, 1000, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 48, 16, 1000, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 40 } }, 32, 56, 750, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, 40, 56, 750, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 56 } }, 48, 56, 750, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 16 } }, 16, 64, 750, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+/// Sprite modulation and GPU code choices shared by this room's source arrays.
+enum {
+    DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION = 128,
+    DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED   = 0,
 };
 
-SpriteBatch D_dryfield_breezeway_801837C0[4] = {
+/// Seven depth-sorted sprite rectangles for mapped view 2, in view-centred pixels.
+static SpriteSource _gDryfieldBreezewayView2SpriteSources[7] = {
+    { 141, 0x3FC0, { .fields = { 8, 40 } }, 32, 16, 1000, { .fields = { 120, 136 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, 40, 16, 1000, { .fields = { 0, 136 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 8, 40 } }, 48, 16, 1000, { .fields = { 8, 136 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 141, 0x3FC0, { .fields = { 8, 40 } }, 32, 56, 750, { .fields = { 120, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 8, 48 } }, 40, 56, 750, { .fields = { 0, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 8, 56 } }, 48, 56, 750, { .fields = { 8, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 141, 0x3FC0, { .fields = { 24, 16 } }, 16, 64, 750, { .fields = { 0, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+};
+
+/// Two view-2 ranges cover all seven sprites after the decoded background.
+static SpriteBatch _gDryfieldBreezewayView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 1, 0 } },
-    { 6, 1, 0, 0, { 0, 0 } },
+    { 6, ARRAY_SIZE(_gDryfieldBreezewayView2SpriteSources) - 6, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_breezeway_801837E0[31] = {
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -160, -120, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -160, 0, 750, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -144, -120, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -144, 0, 750, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -128, -120, 750, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -128, 0, 750, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -112, -120, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -112, 0, 750, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -96, -120, 750, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -96, 0, 750, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -80, -120, 750, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -80, 0, 750, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -64, -120, 750, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -64, -56, 750, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, -120, 750, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -64, 24, 750, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, 48, 750, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -32, 56, 750, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 250, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, 64, 250, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -128, 64, 250, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -112, 32, 250, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -112, 80, 250, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -96, 48, 250, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -96, 80, 250, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, -80, 24, 250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -80, 80, 250, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -64, 32, 250, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -64, 80, 250, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, 56, 250, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -32, 80, 404, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+/// Thirty-one depth-sorted sprite rectangles for mapped view 3, in view-centred pixels.
+static SpriteSource _gDryfieldBreezewayView3SpriteSources[31] = {
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -160, -120, 750, { .fields = { 112, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -160, 0, 750, { .fields = { 112, 120 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -144, -120, 750, { .fields = { 96, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -144, 0, 750, { .fields = { 96, 120 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -128, -120, 750, { .fields = { 80, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -128, 0, 750, { .fields = { 80, 120 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -112, -120, 750, { .fields = { 64, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -112, 0, 750, { .fields = { 64, 120 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -96, -120, 750, { .fields = { 48, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -96, 0, 750, { .fields = { 48, 120 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -80, -120, 750, { .fields = { 32, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 120 } }, -80, 0, 750, { .fields = { 32, 120 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 64 } }, -64, -120, 750, { .fields = { 16, 88 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -64, -56, 750, { .fields = { 16, 152 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, -120, 750, { .fields = { 16, 208 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -64, 24, 750, { .fields = { 16, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, 48, 750, { .fields = { 0, 56 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -32, 56, 750, { .fields = { 0, 224 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 250, { .fields = { 112, 192 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, 64, 250, { .fields = { 0, 168 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -128, 64, 250, { .fields = { 0, 112 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, -112, 32, 250, { .fields = { 112, 56 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -112, 80, 250, { .fields = { 112, 152 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -96, 48, 250, { .fields = { 96, 120 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -96, 80, 250, { .fields = { 96, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, -80, 24, 250, { .fields = { 112, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -80, 80, 250, { .fields = { 96, 40 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 48 } }, -64, 32, 250, { .fields = { 112, 104 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 40 } }, -64, 80, 250, { .fields = { 96, 80 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 56 } }, -48, 56, 250, { .fields = { 0, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -32, 80, 404, { .fields = { 112, 232 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_breezeway_80183A4C[4] = {
+/// Mapped view 3 ranges: eighteen sprites at depth 750, then thirteen nearer sprites.
+static SpriteBatch _gDryfieldBreezewayView3SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 18, 0, 0, { 1, 0 } },
-    { 18, 13, 0, 0, { 0, 0 } },
+    { 18, ARRAY_SIZE(_gDryfieldBreezewayView3SpriteSources) - 18, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_breezeway_80183A6C[2] = {
+/// Empty sprite list for mapped view 4; the zero first count keeps the decoded background.
+static SpriteBatch _gDryfieldBreezewayView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_breezeway_80183A7C[2] = {
+/// Empty sprite list for mapped view 5; the zero first count keeps the decoded background.
+static SpriteBatch _gDryfieldBreezewayView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_breezeway_80183A8C[38] = {
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -144, -88, 296, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -144, 0, 293, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -128, 0, 259, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -128, -88, 298, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -112, -88, 298, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, -112, 0, 298, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -96, -88, 298, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, -96, 0, 298, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -80, -88, 298, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, -80, 0, 298, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -64, 0, 298, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -64, -88, 298, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -48, -88, 298, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, -48, 0, 297, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, -32, 0, 297, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -32, -88, 298, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -16, -88, 298, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, -16, 0, 298, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 0, -88, 298, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, 0, 0, 298, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 16, -88, 298, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, 16, 0, 298, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 32, -88, 298, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, 32, 0, 298, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 48, -88, 298, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 48, 0, 298, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 64, -88, 298, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 64, 0, 298, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 80, -88, 297, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 80, 0, 298, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 96, -88, 301, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, 96, -56, 298, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 96, 0, 298, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 112, -32, 292, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 112, -88, 301, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 80 } }, 112, 0, 298, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 128, -88, 298, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 128, 0, 298, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
+/// Thirty-eight depth-sorted sprite rectangles for mapped view 6, used by the key-item interaction.
+static SpriteSource _gDryfieldBreezewayView6SpriteSources[38] = {
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -144, -88, 296, { .fields = { 16, 88 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, -144, 0, 293, { .fields = { 96, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, -128, 0, 259, { .fields = { 64, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -128, -88, 298, { .fields = { 0, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -112, -88, 298, { .fields = { 32, 88 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, -112, 0, 298, { .fields = { 96, 160 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -96, -88, 298, { .fields = { 16, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, -96, 0, 298, { .fields = { 112, 160 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -80, -88, 298, { .fields = { 0, 88 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, -80, 0, 298, { .fields = { 80, 80 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, -64, 0, 298, { .fields = { 32, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -64, -88, 298, { .fields = { 96, 88 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -48, -88, 298, { .fields = { 80, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, -48, 0, 297, { .fields = { 64, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, -32, 0, 297, { .fields = { 96, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -32, -88, 298, { .fields = { 96, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, -16, -88, 298, { .fields = { 112, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, -16, 0, 298, { .fields = { 112, 80 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 0, -88, 298, { .fields = { 112, 88 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, 0, 0, 298, { .fields = { 96, 80 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 16, -88, 298, { .fields = { 80, 88 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, 16, 0, 298, { .fields = { 80, 160 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 32, -88, 298, { .fields = { 48, 88 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, 32, 0, 298, { .fields = { 80, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 48, -88, 298, { .fields = { 32, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 48, 0, 298, { .fields = { 80, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 64, -88, 298, { .fields = { 48, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 64, 0, 298, { .fields = { 112, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 80, -88, 297, { .fields = { 64, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 80, 0, 298, { .fields = { 48, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 96, -88, 301, { .fields = { 112, 240 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 56 } }, 96, -56, 298, { .fields = { 64, 80 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 96, 0, 298, { .fields = { 0, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, 112, -32, 292, { .fields = { 64, 136 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, 112, -88, 301, { .fields = { 96, 240 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 142, 0x3FC0, { .fields = { 16, 80 } }, 112, 0, 298, { .fields = { 112, 0 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 88 } }, 128, -88, 298, { .fields = { 64, 88 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
+    { 143, 0x3FC0, { .fields = { 16, 80 } }, 128, 0, 298, { .fields = { 16, 176 } }, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_NEUTRAL_MODULATION, DRYFIELD_BREEZEWAY_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_dryfield_breezeway_80183D84[3] = {
+/// Mapped view 6 range covering all key-item-view sprites, after the decoded background.
+static SpriteBatch _gDryfieldBreezewayView6SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 38, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldBreezewayView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_breezeway_80183D9C[6] = {
-    { { .empty = D_dryfield_breezeway_80183724 }, D_dryfield_breezeway_80183724, NULL },
-    { { .elements = D_dryfield_breezeway_80183734 }, D_dryfield_breezeway_801837C0, NULL },
-    { { .elements = D_dryfield_breezeway_801837E0 }, D_dryfield_breezeway_80183A4C, NULL },
-    { { .empty = D_dryfield_breezeway_80183A6C }, D_dryfield_breezeway_80183A6C, NULL },
-    { { .empty = D_dryfield_breezeway_80183A7C }, D_dryfield_breezeway_80183A7C, NULL },
-    { { .elements = D_dryfield_breezeway_80183A8C }, D_dryfield_breezeway_80183D84, NULL },
+SpriteView gDryfieldBreezewaySpriteViews[DRYFIELD_BREEZEWAY_VIEW_COUNT] = {
+    { { .empty = _gDryfieldBreezewayView1SpriteBatches }, _gDryfieldBreezewayView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldBreezewayView2SpriteSources }, _gDryfieldBreezewayView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldBreezewayView3SpriteSources }, _gDryfieldBreezewayView3SpriteBatches, NULL },
+    { { .empty = _gDryfieldBreezewayView4SpriteBatches }, _gDryfieldBreezewayView4SpriteBatches, NULL },
+    { { .empty = _gDryfieldBreezewayView5SpriteBatches }, _gDryfieldBreezewayView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldBreezewayView6SpriteSources }, _gDryfieldBreezewayView6SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_breezeway_80183DE4[4] = {
@@ -281,39 +311,51 @@ WorldCollisionTrigger D_dryfield_breezeway_80183F14[5] = {
     { NULL, NULL, NULL, { 0x3C5B, -64, 1807, 0 }, { { 32, 0, -1792, 0 }, { 608, 0, -1792, 0 }, { -608, 0, 1792, 0 }, { -32, 0, 1792, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1889, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordLight D_dryfield_breezeway_80184090[4] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2500, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -2500, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 208, 208, 208 }, { 0, 0 } },
+/// Four all-view directional lights; translation vectors and RGB intensities use the room-light contract.
+static WorldCoordLight _gDryfieldBreezewayDirectionalLights[4] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2500, 5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -2500, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5000, -2500, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2500, -5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 208, 208, 208 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_dryfield_breezeway_801841F0[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4049, -1500, 3608 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1536, 4096 },
+/// All-view point light at (16457, -1500, 3608), fading between radii 1536 and 4096 game units.
+static WorldCoordPointLight _gDryfieldBreezewayPointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4049, -1500, 3608 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1536, 4096 },
 };
 
-WorldCoordRoomLights D_dryfield_breezeway_80184250[1] = {
-    { ARRAY_SIZE(D_dryfield_breezeway_80184090), D_dryfield_breezeway_80184090, ARRAY_SIZE(D_dryfield_breezeway_801841F0), D_dryfield_breezeway_801841F0, 0, NULL },
+/// Mutable room light collection: four directional lights, one point light, no cones.
+static WorldCoordRoomLights _gDryfieldBreezewayRoomLights = {
+    ARRAY_SIZE(_gDryfieldBreezewayDirectionalLights),
+    _gDryfieldBreezewayDirectionalLights,
+    ARRAY_SIZE(_gDryfieldBreezewayPointLights),
+    _gDryfieldBreezewayPointLights,
+    0,
+    NULL,
 };
 
-AreaResource D_dryfield_breezeway_80184268[3] = {
+/// Default variant resources: the cutscene and combat Desert Chasers, followed by the end marker.
+static AreaResource _gDryfieldBreezewayVariant1Resources[3] = {
     { 101, 234, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor323400DesertChaserTaskDesc },
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_breezeway_8018428C[2] = {
+/// Variant 3 resource: the scorpion actor package, followed by the end marker.
+static AreaResource _gDryfieldBreezewayVariant3Resources[2] = {
     { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_breezeway_801842A4[3] = {
+/// Variant 10 resources: the cutscene and combat Desert Chasers, followed by the end marker.
+static AreaResource _gDryfieldBreezewayVariant10Resources[3] = {
     { 101, 234, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor323400DesertChaserTaskDesc },
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_dryfield_breezeway_801842C8[3] = {
+/// Variant 10 Desert Chaser placements at (16853, 0, 2735), yaw -1400, with CLUT row offset 2.
+static AreaPlacement _gDryfieldBreezewayVariant10Placements[3] = {
     { 101, 0, 0, 0x41D5, 0, 2735, -1400, 0, 0, 2, 0 },
     { 1, 0, 0, 0x41D5, 0, 2735, -1400, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -321,46 +363,70 @@ AreaPlacement D_dryfield_breezeway_801842C8[3] = {
 
 AreaVariant D_dryfield_breezeway_801842F8[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B674, D_dryfield_breezeway_80184268 },
+    { D_map_dryfield_8017B674, _gDryfieldBreezewayVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_8017B6A4, D_dryfield_breezeway_8018428C },
-    { NULL, NULL },
-    { NULL, NULL },
+    { D_map_dryfield_8017B6A4, _gDryfieldBreezewayVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_dryfield_breezeway_801842C8, D_dryfield_breezeway_801842A4 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { _gDryfieldBreezewayVariant10Placements, _gDryfieldBreezewayVariant10Resources },
     { NULL, NULL },
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_dryfield_breezeway_80184360 = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Type-1 bank cue-2 bases; playback adds one for cue 1.
+enum {
+    DRYFIELD_BREEZEWAY_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x49,
+    DRYFIELD_BREEZEWAY_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x4B,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_breezeway_8018436C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class-1 footstep cue bases; scripted jumps use the walking pair.
+///
+/// Read-only cues retain their authored position in the room data section.
+static const WorldCollisionFootstepSounds _gDryfieldBreezewayFootstepSounds __attribute__((section(".data"))) = {
+    DRYFIELD_BREEZEWAY_FOOTSTEP_WALK,
+    DRYFIELD_BREEZEWAY_FOOTSTEP_RUN,
+    DRYFIELD_BREEZEWAY_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_breezeway_80184374[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_breezeway_80184360 },
+/// Blocking collision properties without footstep cues, used by classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gDryfieldBreezewaySilentSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_breezeway_8018437C[8] = {
-    D_dryfield_breezeway_8018436C,
-    D_dryfield_breezeway_80184374,
-    D_dryfield_breezeway_8018436C,
-    D_dryfield_breezeway_8018436C,
-    D_dryfield_breezeway_8018436C,
-    D_dryfield_breezeway_8018436C,
-    D_dryfield_breezeway_8018436C,
-    D_dryfield_breezeway_8018436C,
+/// Blocking collision properties with footstep cues, used by class 1.
+static WorldCollisionSurfaceProperties _gDryfieldBreezewayFootstepSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gDryfieldBreezewayFootstepSounds,
 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+WorldCollisionSurfaceProperties* gDryfieldBreezewaySurfacePropertiesByClass[8] = {
+    &_gDryfieldBreezewaySilentSurface,
+    &_gDryfieldBreezewayFootstepSurface,
+    &_gDryfieldBreezewaySilentSurface,
+    &_gDryfieldBreezewaySilentSurface,
+    &_gDryfieldBreezewaySilentSurface,
+    &_gDryfieldBreezewaySilentSurface,
+    &_gDryfieldBreezewaySilentSurface,
+    &_gDryfieldBreezewaySilentSurface,
+};
+
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 

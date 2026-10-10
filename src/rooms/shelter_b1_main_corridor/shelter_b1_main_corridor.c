@@ -76,7 +76,6 @@ extern u8 D_shelter_b1_main_corridor_80185D44[4];
 /// The event the gate last accepted: the message that triggered it, whose
 /// `msgId`, `field_2` and `field_3` name the area, warp and room the event
 /// task finally loads, and the request whose CAP command and sounds it runs.
-extern RoomEventMsg        gRoomEventMsg;
 extern RoomEventReqStorage gRoomEventReq;
 /// Set once the gate has latched an event and spawned its task.
 extern RoomEventStartStorage gRoomEventActive;
@@ -679,7 +678,12 @@ WorldCollisionSurfaceProperties* D_shelter_b1_main_corridor_80185D04[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventStartStorage gRoomEventActive = { 0 };
 

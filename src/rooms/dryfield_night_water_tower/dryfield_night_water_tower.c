@@ -36,10 +36,14 @@ extern RoomEventActiveBytes gRoomEventActive;
 /// latched: the incoming message and the request, kept for the event task it
 /// spawns from `gRoomEventTaskDesc`, and the flag the gate
 /// sets once it has done so.
-extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventActiveBytes gRoomEventActive = { 0, { 1, 238, 253 } };
 

@@ -51,7 +51,7 @@ _gDryfieldSaloonGRClass1SurfaceProperties = 0x80181BA4; // size:0x8 defined:True
 _gDryfieldSaloonGRClass2SurfaceProperties = 0x80181BAC; // size:0x8 defined:True
 _gDryfieldSaloonGRClass3SurfaceProperties = 0x80181BB4; // size:0x8 defined:True
 gDryfieldSaloonGRSurfacePropertiesByClass = 0x80181BBC; // size:0x20 defined:True
-gRoomEventMsg = 0x80181BDC; // size:0x8 defined:True
+_gRoomEventMsg = 0x80181BDC; // size:0x8 defined:True
 gActor01500MindSucklerTaskDesc = 0x8013BE28; // absolute:True owner=actor_101500
 gActor201200BoneSucklerTaskDesc = 0x80150E98; // absolute:True owner=actor_201200 shared=actors
 D_map_dryfield_8017B394 = 0x8017B394; // absolute:True owner=map_dryfield

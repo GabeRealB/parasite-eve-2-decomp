@@ -7,7 +7,7 @@ dryfieldNightFactorySetView11SpriteVisible = 0x80181B38; // type:func absolute:T
 // Past this room's image. What occupies this address when the code runs is not established.
 gFactoryDayJoltCmds = 0x8018A39C; // size:0xC defined:True
 gFactoryDayJoltRecs = 0x8018A3A8; // size:0xC defined:True
-gRoomEventMsg = 0x8018A3B4; // size:0x8 defined:True
+_gRoomEventMsg = 0x8018A3B4; // size:0x8 defined:True
 gRoomEventActive = 0x8018A3BC; // size:0x1 defined:True
 gFactoryPanelDesc = 0x8018A3C0; // size:0x4 defined:True
 gFactorySpawnTable = 0x8018A3C4; // size:0x4 defined:True

@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_night_parking_lot.
 gParkingLotAreaRecs = 0x8018155C; // size:0x8 defined:True
-gRoomEventMsg = 0x80181564; // size:0x8 defined:True
+_gRoomEventMsg = 0x80181564; // size:0x8 defined:True
 D_dryfield_night_parking_lot_8017EDBC = 0x8017EDBC; // size:0x10 defined:True
 D_dryfield_night_parking_lot_8017EDCC = 0x8017EDCC; // size:0x10 defined:True
 D_dryfield_night_parking_lot_8017EDDC = 0x8017EDDC; // size:0x8 defined:True

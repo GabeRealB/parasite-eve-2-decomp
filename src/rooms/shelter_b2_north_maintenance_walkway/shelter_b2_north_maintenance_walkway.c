@@ -70,8 +70,7 @@ extern RoomEventMsg            gRoomEventStagedMsg;
 extern RoomEventStartStorage   D_shelter_b2_north_maintenance_walkway_801863B0;
 extern RoomLatchedEventStorage gRoomEventLatched;
 
-/// The message and request the event gate latched for the event task.
-extern RoomEventMsg gRoomEventMsg;
+/// The request the event gate latched for the event task.
 extern RoomEventReq gRoomEventReq;
 
 /// Set by the walkway's event gate when its last call latched a request and
@@ -686,7 +685,12 @@ RoomEventMsg gRoomEventStagedMsg = { 0 };
 
 RoomEventStartStorage D_shelter_b2_north_maintenance_walkway_801863B0 = { 0 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 

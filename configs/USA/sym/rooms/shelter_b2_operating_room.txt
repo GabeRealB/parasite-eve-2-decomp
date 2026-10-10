@@ -54,7 +54,7 @@ gActor107000SlouchTaskDescs = 0x8013F5F0; // absolute:True owner=actor_107000
 gActor207200SkullStalkerTaskDesc = 0x8014E7A4; // absolute:True owner=actor_207200
 gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_207200
 gActor207000SlouchTaskDescs = 0x801575F0; // absolute:True owner=actor_207000
-gRoomEventMsg = 0x8018421C; // size:0x8 defined:True
+_gRoomEventMsg = 0x8018421C; // size:0x8 defined:True
 gRoomEventActive = 0x80184224; // size:0x8 defined:True
 gRoomEventStagedMsg = 0x8018422C; // size:0x8 defined:True
 D_shelter_b2_operating_room_80184234 = 0x80184234; // size:0x4 defined:True

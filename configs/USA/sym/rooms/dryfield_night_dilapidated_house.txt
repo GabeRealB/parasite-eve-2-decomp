@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_night_dilapidated_house.
-gRoomEventMsg = 0x8018A104; // size:0x8 defined:True
+_gRoomEventMsg = 0x8018A104; // size:0x8 defined:True
 _gDryfieldNightDilapidatedHouseLightPrismCorners = 0x801872CC; // size:0xC0 defined:True
 D_dryfield_night_dilapidated_house_8018738C = 0x8018738C; // size:0x8 defined:True
 D_dryfield_night_dilapidated_house_80187394 = 0x80187394; // size:0x10 defined:True

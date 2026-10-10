@@ -128,9 +128,8 @@ extern SVECTOR D_shelter_b2_laboratory_80182AA0[45];
 /// This room's cutscene sound-task slot. The runner uses `task`.
 extern RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask;
 
-/// Copies of the message and request that started the pending exit
+/// Copy of the request that started the pending exit
 /// transition, read back by `roomEventTask`.
-extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 
 /// Set when `_roomEventGate` started a transition,
@@ -1007,7 +1006,12 @@ AreaApplyRec D_shelter_b2_laboratory_8018649C[2] = {
 
 RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask = { NULL, { 0 } };
 
-RoomEventMsg gRoomEventMsg = { 0, 0, 0, 0, 0, 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0, 0, 0, 0, 0, 0 };
 
 u8 gRoomEventActive = 0;
 

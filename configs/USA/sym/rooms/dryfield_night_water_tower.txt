@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_night_water_tower.
-gRoomEventMsg = 0x80182C50; // size:0x8 defined:True
+_gRoomEventMsg = 0x80182C50; // size:0x8 defined:True
 _gDryfieldNightWaterTowerDoubleFlarePoint = 0x8017E744; // size:0x8 defined:True
 gDryfieldNightWaterTowerRoomLighting = 0x8017E74C; // size:0x8 defined:True
 gDryfieldNightWaterTowerCollisionRooms = 0x8017E754; // size:0x10 defined:True

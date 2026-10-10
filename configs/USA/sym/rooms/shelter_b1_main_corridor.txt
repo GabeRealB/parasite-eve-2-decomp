@@ -67,7 +67,7 @@ gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_4006
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
 gActor201100Tasks = 0x8015F400; // absolute:True owner=actor_201100
 gActor05700RookGolemTasks = 0x801611F8; // absolute:True owner=actor_205700
-gRoomEventMsg = 0x80185D2C; // size:0x8 defined:True
+_gRoomEventMsg = 0x80185D2C; // size:0x8 defined:True
 gRoomEventActive = 0x80185D34; // size:0x8 defined:True
 gRoomEventStagedMsg = 0x80185D3C; // size:0x8 defined:True
 D_shelter_b1_main_corridor_80185D44 = 0x80185D44; // size:0x4 defined:True

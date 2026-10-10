@@ -78,8 +78,7 @@ extern TaskDesc gRoomEventTaskDesc;
 /// The beam's two anchor offsets, relative to the effect's parent. The second
 /// is also reached by its own name.
 
-/// The message and request the event gate latched for the event task.
-extern RoomEventMsg gRoomEventMsg;
+/// The request the event gate latched for the event task.
 extern RoomEventReq gRoomEventReq;
 
 /// Set by the event gate when its last call latched a request and spawned the
@@ -1470,7 +1469,12 @@ WorldCollisionSurfaceProperties* gDryfieldMotelBalconySurfaceClasses[8] = {
     &_gDryfieldMotelBalconyDefaultSurface,
 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventActiveBytes gRoomEventActive = { 0, { 238, 254, 37 } };
 

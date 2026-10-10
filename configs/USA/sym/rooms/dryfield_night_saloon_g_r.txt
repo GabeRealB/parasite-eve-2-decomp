@@ -240,7 +240,7 @@ _gDryfieldNightSaloonGRAnimation0631C = 0x801838DC; // size:0x28 defined:True
 _gDryfieldNightSaloonGRPlayerDialogueAnimationSets = 0x80183904; // size:0x48 defined:True
 _gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest = 0x8018394C; // size:0x8 defined:True
 D_dryfield_night_saloon_g_r_80183954 = 0x80183954; // size:0x14 defined:True
-gRoomEventMsg = 0x80188FAC; // size:0x8 defined:True
+_gRoomEventMsg = 0x80188FAC; // size:0x8 defined:True
 gRoomEventActive = 0x80188FB4; // size:0x4 defined:True
 gRoomEventReq = 0x80188FB8; // size:0x14 defined:True
 

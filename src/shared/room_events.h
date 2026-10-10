@@ -15,7 +15,8 @@
  * own positions under these names - declaring it here would move it, since bss
  * is laid out in first-declaration order:
  *
- *   RoomEventMsg      gRoomEventMsg       the latched message
+ *   RoomEventMsg      _gRoomEventMsg      the TU-local latched message
+ *                     gRoomEventMsg       the cross-TU latched message
  *   RoomEventReq      gRoomEventReq       the latched request (gate and task)
  *   u8                gRoomEventActive    raised while an event runs
  *   TaskDesc          gRoomEventTaskDesc  the event task the gate spawns
@@ -24,12 +25,21 @@
  *   RoomFadeStorage   gRoomEventFade      the staged task's fade record (`fade`)
  *   RoomDeparture     gRoomDeparture      the departure the handler staged
  *
+ * The message is private to each carrier unless another room translation unit
+ * defines its storage. Those overlays declare `gRoomEventMsg` in their
+ * private headers and bind `ROOM_EVENT_MSG` there; local carriers define
+ * `static RoomEventMsg _gRoomEventMsg` before including the fragments.
+ *
  * Some rooms' copies of the flag, the request, the latched event or the
  * departure occupy more bytes than that record, and two rooms keep the fade
- * as a bare `ScreenFade`. The shared code reaches the five records through
+ * as a bare `ScreenFade`. The shared code reaches these records through
  * the bindings below. A room whose symbol is the wider object, or whose fade
  * is the bare record, defines the binding before including this header.
  *
+ *   ROOM_EVENT_MSG      lvalue `RoomEventMsg`. Default `_gRoomEventMsg`.
+ *                       Cross-TU storage binds `gRoomEventMsg`; the gate copies
+ *                       the entire eight-byte record and the task reads it
+ *                       through reload.
  *   ROOM_EVENT_ACTIVE   lvalue `u8`. Default `gRoomEventActive`, the byte
  *                       itself. `RoomEventActiveBytes` rooms bind
  *                       `.eventStarted`; `RoomEventStartStorage` rooms
@@ -58,6 +68,17 @@
 #include "rooms/room.h"
 #include "rooms/room_common.h"
 
+#ifndef ROOM_EVENT_MSG
+/// Complete room-owned transition snapshot copied by the gate and read through reload.
+///
+/// Requires an initialized, writable `RoomEventMsg` lvalue defined before the
+/// event fragments. The default is the carrier's static `_gRoomEventMsg`;
+/// an overlay-private header may bind externally linked `gRoomEventMsg` instead.
+/// Another accepted start replaces the snapshot; keep its eight bytes stable
+/// and loaded until the task finishes. The binding evaluates its lvalue once
+/// per copy or field access and allocates no storage.
+#define ROOM_EVENT_MSG _gRoomEventMsg
+#endif
 #ifndef ROOM_EVENT_ACTIVE
 /// Raised while the gate's event runs. The room's `gRoomEventActive` when that symbol is the byte.
 #define ROOM_EVENT_ACTIVE gRoomEventActive
@@ -82,7 +103,7 @@
 static s32 _roomEventGate(const RoomEventReq* request, const RoomEventMsg* message);
 /// Plays the latched door-event command and sounds, then reloads its destination.
 ///
-/// Requires live room-owned `ROOM_EVENT_REQ` and `gRoomEventMsg` snapshots that
+/// Requires live room-owned `ROOM_EVENT_REQ` and `ROOM_EVENT_MSG` snapshots that
 /// remain unchanged until state 5. State must be 0..5; spawn arguments are unused.
 /// Pauses actors and holds the player; each zero sound ID skips that voice wait.
 /// The command is started with a display transition, without a separate CAP wait.

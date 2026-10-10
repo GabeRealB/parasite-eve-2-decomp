@@ -45,8 +45,7 @@ extern EvsCommand D_actor_335800_80165060[];
 extern EvsCommand D_actor_335800_80165798[];
 extern EvsCommand D_actor_335800_80165720[];
 
-/// The message and request the event gate latched for the event task.
-extern RoomEventMsg gRoomEventMsg;
+/// The request the event gate latched for the event task.
 extern RoomEventReq gRoomEventReq;
 
 /// Set by the event gate when its last call latched a request and spawned the
@@ -57,7 +56,12 @@ AreaApplyRec D_dryfield_night_motel_balcony_8018F2CC[2] = {
     { 255, 0, 0, 0 },
 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventActiveBytes gRoomEventActive = { 0, { 115, 55, 136 } };
 

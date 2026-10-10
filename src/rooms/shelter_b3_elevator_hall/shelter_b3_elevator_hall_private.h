@@ -7,7 +7,14 @@
 
 #include "rooms/room_common.h"
 
+/// Snapshot of the accepted transition, copied by the gate for the deferred event.
+///
+/// All eight bytes are replaced on another accepted start. Keep this room's
+/// snapshot unchanged and loaded until the task commits its destination.
 extern RoomEventMsg gRoomEventMsg;
+
+/// Selects this overlay's externally linked transition snapshot for the shared event code.
+#define ROOM_EVENT_MSG gRoomEventMsg
 
 extern RoomEventActiveBytes gRoomEventActive;
 extern RoomEventReq         gRoomEventReq;

@@ -32,7 +32,7 @@ D_dryfield_night_g_r_kitchen_8017EBE8 = 0x8017EBE8; // size:0xC defined:True
 D_dryfield_night_g_r_kitchen_8017EBF4 = 0x8017EBF4; // size:0x8 defined:True
 D_dryfield_night_g_r_kitchen_8017EBFC = 0x8017EBFC; // size:0x8 defined:True
 D_dryfield_night_g_r_kitchen_8017EC04 = 0x8017EC04; // size:0x20 defined:True
-gRoomEventMsg = 0x8017EC24; // size:0x8 defined:True
+_gRoomEventMsg = 0x8017EC24; // size:0x8 defined:True
 gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_104000
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor200700RatTaskDesc = 0x80150C80; // absolute:True owner=actor_200700

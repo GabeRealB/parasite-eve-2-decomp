@@ -78,7 +78,6 @@ extern TaskMessageEntry D_shelter_b2_elevator_hall_801837A8[];
 
 /// Copy of the message that fired a gated event, kept for the task
 /// `roomEventTask` to warp from.
-extern RoomEventMsg gRoomEventMsg;
 
 /// Copy of the request that fired a gated event, whose cap command and voice
 /// lines the task `roomEventTask` plays.
@@ -486,7 +485,12 @@ WorldCollisionSurfaceProperties* D_shelter_b2_elevator_hall_80184D5C[8] = {
     D_shelter_b2_elevator_hall_80184D44,
 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventActiveBytes gRoomEventActive = { 0, { 253, 152, 217 } };
 

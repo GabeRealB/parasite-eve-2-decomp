@@ -45,7 +45,7 @@ gRoomEventFade = 0x8017FF4C; // size:0x8 defined:True
 gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
 gActor403900GolemTaskDesc = 0x801540E0; // absolute:True owner=actor_403900
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
-gRoomEventMsg = 0x8017FF54; // size:0x8 defined:True
+_gRoomEventMsg = 0x8017FF54; // size:0x8 defined:True
 gRoomEventActive = 0x8017FF5C; // size:0x8 defined:True
 gRoomEventStagedMsg = 0x8017FF64; // size:0x8 defined:True
 D_shelter_b1_access_tunnel_8017FF6C = 0x8017FF6C; // size:0x4 defined:True

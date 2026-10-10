@@ -1,5 +1,5 @@
 // Overlay-local symbols for dryfield_garage.
-gRoomEventMsg = 0x80180224; // size:0x8 defined:True
+_gRoomEventMsg = 0x80180224; // size:0x8 defined:True
 gRoomEventActive = 0x8018022C; // size:0x4 defined:True
 gRoomEventReq = 0x80180230; // size:0x14 defined:True
 D_dryfield_garage_8018021C = 0x8018021C; // size:0x8 defined:True

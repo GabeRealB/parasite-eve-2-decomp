@@ -79,9 +79,8 @@ static void _factoryLiftNotifyPanel(Task* panelTask);
 
 #include "../../shared/factory_lift_motion.inc.c"
 
-/// The pending event message and request the gate latched, the flag saying
+/// The pending event request the gate latched, the flag saying
 /// one was latched, and the descriptor of the task the gate spawns to play it.
-extern RoomEventMsg gRoomEventMsg;
 extern u8           gRoomEventActive;
 extern RoomEventReq gRoomEventReq;
 
@@ -797,7 +796,12 @@ PadScriptCmd gFactoryDayJoltCmds[3] = { { 0x201, 1 }, { 0, 0x101 }, { 0, 0 } };
 
 PadScriptVibrationSegment gFactoryDayJoltRecs[3] = { { 255, 255, 8, 1 }, { 150, 80, 20, 1 }, { 0, 0, 5, 0 } };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 u8 gRoomEventActive = 0;
 

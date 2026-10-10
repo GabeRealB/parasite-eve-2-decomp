@@ -36,8 +36,7 @@
 
 extern RoomEventActiveBytes gRoomEventActive;
 
-/// The message and request the event gate latched for its event task.
-extern RoomEventMsg gRoomEventMsg;
+/// The request the event gate latched for its event task.
 extern RoomEventReq gRoomEventReq;
 
 AreaApplyRec gParkingLotAreaRecs[2] = {
@@ -45,7 +44,12 @@ AreaApplyRec gParkingLotAreaRecs[2] = {
     { 255, 0, 0, 0 },
 };
 
-RoomEventMsg gRoomEventMsg = { 0 };
+/// Snapshot of the accepted transition for the deferred room event.
+///
+/// The gate copies all eight bytes before spawning; another accepted start
+/// replaces them. The task commits area, arrival and the room byte on reload.
+/// Keep this room loaded and the snapshot unchanged until that task finishes.
+static RoomEventMsg _gRoomEventMsg = { 0 };
 
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
