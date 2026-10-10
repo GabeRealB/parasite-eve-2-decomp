@@ -13,8 +13,19 @@
 
 extern AreaVariant D_dryfield_saloon_g_r_80181B1C[13];
 
-// dryfield_saloon_g_r
-extern WorldCollisionRoomResources D_dryfield_saloon_g_r_8017EDA0[];
+/// Logical-view search length and independent camera-table extent for the daytime saloon.
+enum {
+    DRYFIELD_SALOON_G_R_LOGICAL_VIEW_COUNT = 13,
+    DRYFIELD_SALOON_G_R_CAMERA_COUNT       = 13,
+};
+
+/// Collision resources shared by daytime saloon room selectors 1 and 2.
+///
+/// Indexed by room minus one, with no terminator. Both entries borrow one
+/// grid, 16 view boundaries, 14 action triggers and two sight occluders.
+/// Setup binds the grid/trigger coordinates and links the mutable records
+/// through their LAST flags. Keep this overlay loaded until they are retired.
+extern WorldCollisionRoomResources gDryfieldSaloonGRRoomCollisionResources[2];
 
 /// Logical-view maps for daytime saloon room selectors 1 and 2.
 ///
@@ -24,7 +35,12 @@ extern WorldCollisionRoomResources D_dryfield_saloon_g_r_8017EDA0[];
 /// The saloon overlay must remain loaded while its directory or map is used.
 extern u8* gDryfieldSaloonGRRoomViewMaps[2];
 
-extern ViewCount D_dryfield_saloon_g_r_8017EDD8[];
+/// Thirteen logical views in each of the daytime saloon's two room selectors.
+///
+/// Indexed by room minus one, with no terminator. These signed halfword counts
+/// limit reverse searches of the room's logical-view map; they do not measure
+/// the camera table's extent. The loaded saloon overlay owns the count array.
+extern ViewCount gDryfieldSaloonGRRoomViewCounts[2];
 
 /// Lighting for daytime saloon room selectors 1 and 2.
 ///
@@ -33,9 +49,24 @@ extern ViewCount D_dryfield_saloon_g_r_8017EDD8[];
 /// default view minima. Descriptors and light storage borrow the loaded overlay.
 extern WorldCoordRoomLighting gDryfieldSaloonGRRoomLighting[2];
 
-extern DirectionWarpEntry D_dryfield_saloon_g_r_8017EDEC[];
+/// Parking-lot and kitchen warp endpoints in the daytime saloon.
+///
+/// Indexed by warp slot minus one: slot 1 is the parking-lot door and slot 2
+/// the kitchen door, with no terminator. Player and companion share each
+/// arrival pose in room-coordinate units; yaw uses 4096 units per turn. Arrivals
+/// select logical views 2 and 7 respectively; neither endpoint has a blocked
+/// sound or special transition flags. Keep this overlay loaded during lookups.
+extern DirectionWarpEntry gDryfieldSaloonGRWarpEntries[2];
 
-extern ViewCamera D_dryfield_saloon_g_r_8017F7A4[];
+/// Thirteen mapped-view camera records for the daytime saloon.
+///
+/// Indexed by mapped resource view minus one, with no terminator. Logical
+/// views 9..12 all select slot 9; camera slots 10..12 remain unselected by the
+/// current map. Rotation uses `ONE` per unit, translation is the negated camera
+/// origin in world units, and projection distance is in pixels. A queued
+/// camera application borrows its record until dispatch, so keep this overlay
+/// loaded through that dispatch.
+extern ViewCamera gDryfieldSaloonGRViewCameras[DRYFIELD_SALOON_G_R_CAMERA_COUNT];
 
 /// Thirteen mapped-view sprite descriptors for the daytime saloon.
 ///

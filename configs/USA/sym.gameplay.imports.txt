@@ -1569,7 +1569,7 @@ D_neo_ark_observatory_8018786C = 0x8018786C; // absolute:True owner=neo_ark_obse
 
 D_neo_ark_pavilion_801876C4 = 0x801876C4; // absolute:True owner=neo_ark_pavilion shared=rooms
 
-D_neo_ark_power_plant_1_80181AF8 = 0x80181AF8; // absolute:True owner=neo_ark_power_plant_1 shared=rooms
+D_neo_ark_power_plant_1_80181AF8 = 0x80181AF8; // absolute:True owner=neo_ark_power_plant_1
 
 D_neo_ark_power_plant_2_80182DE0 = 0x80182DE0; // absolute:True owner=neo_ark_power_plant_2 shared=rooms
 

@@ -62,13 +62,6 @@ extern RoomEventReq gRoomEventReq;
 /// Descriptor of the event task `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// The room's message table, installed on the room task by its entry state.
-extern TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[];
-
-/// One view bitmask per effect, tested against `1 << view`: entries 0-10 gate
-/// the sprites, 11 the beam and 12 the light shafts.
-extern s16 D_dryfield_saloon_g_r_8017ED84[];
-
 static void _dryfieldSaloonGRInitializeRoom(Task* task);
 static void _dryfieldSaloonGRIdleTask(Task* task);
 
@@ -80,15 +73,20 @@ static s32 _dryfieldSaloonGRRejectKeyItemMessage(Task* task, s32 messageId, s32 
 static s32 _dryfieldSaloonGRCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 static s32 _dryfieldSaloonGRIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
-extern WorldCollisionGrid     D_dryfield_saloon_g_r_8017F780[1];
-extern WorldCollisionOccluder D_dryfield_saloon_g_r_801817B0[2];
-extern WorldCollisionTrigger  D_dryfield_saloon_g_r_80180EC8[16];
-extern WorldCollisionTrigger  D_dryfield_saloon_g_r_80181388[14];
+static WorldCollisionGrid     _gDryfieldSaloonGRCollisionGrid;
+static WorldCollisionOccluder _gDryfieldSaloonGRSightOccluders[2];
+static WorldCollisionTrigger  _gDryfieldSaloonGRViewBoundaryTriggers[16];
+static WorldCollisionTrigger  _gDryfieldSaloonGRActionTriggers[14];
 static WorldCoordRoomLights   _gDryfieldSaloonGRRoomLights;
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[5] = {
+/// Four synchronous room-message handlers followed by the unsupported-ID sentinel.
+///
+/// Resolves exits, rejects key-item use, ignores room actions and handles CAP
+/// commands. The room task borrows this table and its callbacks for its entire
+/// registered lifetime. Payload types belong to each message's handler.
+static const TaskMessageEntry _gDryfieldSaloonGRRoomMessages[5] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantSaloonMsg },
     { DRYFIELD_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldSaloonGRRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldSaloonGRIgnoreRoomActionMessage },
@@ -127,26 +125,33 @@ static SVECTOR _gDryfieldSaloonGREffectPoints[20] = {
     { -750, -1520, 1840, 0 },
 };
 
-s16 D_dryfield_saloon_g_r_8017ED84[14] = {
-    128,
-    12,
-    4,
-    8,
-    48,
-    48,
-    144,
-    144,
-    128,
-    128,
-    128,
-    144,
-    48,
+/// Logical-view visibility masks for eleven flares, the beam and the twin shafts.
+///
+/// Bit N enables logical view N, without applying the resource-view map.
+/// Entries 0..10 match flare points 0..10; entry 11 gates the beam in views
+/// 4/7 and entry 12 gates both shafts in views 4/5. The signed halfword storage
+/// is retained; active masks use only bits 2..7. Entry 13 is unread and its
+/// role is unproven. Drawing reads the table without changing it.
+static s16 _gDryfieldSaloonGREffectViewMasks[14] = {
+    1 << 7,
+    (1 << 2) | (1 << 3),
+    1 << 2,
+    1 << 3,
+    (1 << 4) | (1 << 5),
+    (1 << 4) | (1 << 5),
+    (1 << 4) | (1 << 7),
+    (1 << 4) | (1 << 7),
+    1 << 7,
+    1 << 7,
+    1 << 7,
+    (1 << 4) | (1 << 7),
+    (1 << 4) | (1 << 5),
     1,
 };
 
-WorldCollisionRoomResources D_dryfield_saloon_g_r_8017EDA0[2] = {
-    { D_dryfield_saloon_g_r_8017F780, D_dryfield_saloon_g_r_80180EC8, D_dryfield_saloon_g_r_80181388, D_dryfield_saloon_g_r_801817B0 },
-    { D_dryfield_saloon_g_r_8017F780, D_dryfield_saloon_g_r_80180EC8, D_dryfield_saloon_g_r_80181388, D_dryfield_saloon_g_r_801817B0 },
+WorldCollisionRoomResources gDryfieldSaloonGRRoomCollisionResources[2] = {
+    { &_gDryfieldSaloonGRCollisionGrid, _gDryfieldSaloonGRViewBoundaryTriggers, _gDryfieldSaloonGRActionTriggers, _gDryfieldSaloonGRSightOccluders },
+    { &_gDryfieldSaloonGRCollisionGrid, _gDryfieldSaloonGRViewBoundaryTriggers, _gDryfieldSaloonGRActionTriggers, _gDryfieldSaloonGRSightOccluders },
 };
 
 /// Logical views 1..13 mapped to the saloon's camera, image and sprite slots.
@@ -179,53 +184,88 @@ u8* gDryfieldSaloonGRRoomViewMaps[2] = {
     _gDryfieldSaloonGRLogicalViewMap,
 };
 
-ViewCount D_dryfield_saloon_g_r_8017EDD8[2] = { 13, 13 };
+ViewCount gDryfieldSaloonGRRoomViewCounts[2] = {
+    DRYFIELD_SALOON_G_R_LOGICAL_VIEW_COUNT,
+    DRYFIELD_SALOON_G_R_LOGICAL_VIEW_COUNT,
+};
 
 WorldCoordRoomLighting gDryfieldSaloonGRRoomLighting[2] = {
     { &_gDryfieldSaloonGRRoomLights, NULL },
     { &_gDryfieldSaloonGRRoomLights, NULL },
 };
 
-DirectionWarpEntry D_dryfield_saloon_g_r_8017EDEC[2] = {
-    { { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, 0x52120002, 0x52120001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 479 },
-    { { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, 0x52120004, 0x52120003, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, 478 },
+/// Each door's arrival/departure cues and map-marker nibble.
+enum {
+    DRYFIELD_SALOON_G_R_PARKING_LOT_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_SALOON_G_R, 2),
+    DRYFIELD_SALOON_G_R_PARKING_LOT_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_SALOON_G_R, 1),
+    DRYFIELD_SALOON_G_R_KITCHEN_ARRIVAL_SOUND       = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_SALOON_G_R, 4),
+    DRYFIELD_SALOON_G_R_PARKING_LOT_MAP_FLAG        = 479,
+    DRYFIELD_SALOON_G_R_KITCHEN_MAP_FLAG            = 478,
 };
 
-static SVECTOR _gDryfieldSaloonGRCollision021C0Normals[9] = {
+DirectionWarpEntry gDryfieldSaloonGRWarpEntries[2] = {
+    { { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, DRYFIELD_SALOON_G_R_PARKING_LOT_ARRIVAL_SOUND, DRYFIELD_SALOON_G_R_PARKING_LOT_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DRYFIELD_SALOON_G_R_PARKING_LOT_MAP_FLAG },
+    { { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, DRYFIELD_SALOON_G_R_KITCHEN_ARRIVAL_SOUND, SOUND_SALOON_G_R_DOOR_OPEN, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DRYFIELD_SALOON_G_R_KITCHEN_MAP_FLAG },
+};
+
+/// Nine grid-local normals, with ONE (4096) per unit.
+static SVECTOR _gDryfieldSaloonGRCollisionGridNormals[9] = {
 #include "assets/dryfield_saloon_g_r_collision_021C0_normals.inc"
 };
 
-static SVECTOR _gDryfieldSaloonGRCollision021C0Verts[116] = {
+/// 116 signed-halfword vertex positions in room-local game units.
+static SVECTOR _gDryfieldSaloonGRCollisionGridVerts[116] = {
 #include "assets/dryfield_saloon_g_r_collision_021C0_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldSaloonGRCollision021C0Faces[61] = {
+/// 61 collision quads indexing the vertex/normal pools and surface classes 0..3.
+static WorldCollisionGridFace _gDryfieldSaloonGRCollisionGridFaces[61] = {
 #include "assets/dryfield_saloon_g_r_collision_021C0_faces.inc"
 };
 
-static s16 _gDryfieldSaloonGRCollision021C0Cells[280] = {
+/// Twelve END-terminated face-index lists in 280 retained signed halfwords.
+///
+/// Unreferenced authored zeros at indices 17, 75 and 161 are retained.
+/// Every live list index is in 0..60; WORLD_COLLISION_GRID_CELL_END ends a list.
+static s16 _gDryfieldSaloonGRCollisionGridCells[280] = {
 #include "assets/dryfield_saloon_g_r_collision_021C0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldSaloonGRCollision021C0Cells[i])
-static s16* _gDryfieldSaloonGRCollision021C0Table[12] = {
+#define GRID_CELL(i) (&_gDryfieldSaloonGRCollisionGridCells[i])
+/// X-major pointers to three rows of four Z-cell face lists.
+static s16* _gDryfieldSaloonGRCollisionGridTable[12] = {
 #include "assets/dryfield_saloon_g_r_collision_021C0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_saloon_g_r_8017F780[1] = {
-    { NULL, _gDryfieldSaloonGRCollision021C0Normals, _gDryfieldSaloonGRCollision021C0Verts, _gDryfieldSaloonGRCollision021C0Faces, _gDryfieldSaloonGRCollision021C0Table, 4500, 5400, 3, 4, 4000, 61 },
+/// Saloon floor/wall collision mesh shared by both daytime room selectors.
+///
+/// Three X cells and four Z cells start at (-4500, -5400), with square sides
+/// of 4000 game units. Activation binds the mutable descriptor to the current
+/// view. The descriptor and its mesh/cell storage stay live with this overlay.
+static WorldCollisionGrid _gDryfieldSaloonGRCollisionGrid = {
+    NULL,
+    _gDryfieldSaloonGRCollisionGridNormals,
+    _gDryfieldSaloonGRCollisionGridVerts,
+    _gDryfieldSaloonGRCollisionGridFaces,
+    _gDryfieldSaloonGRCollisionGridTable,
+    4500,
+    5400,
+    3,
+    ARRAY_SIZE(_gDryfieldSaloonGRCollisionGridTable) / 3,
+    4000,
+    ARRAY_SIZE(_gDryfieldSaloonGRCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_saloon_g_r_8017F7A4[13] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, -680 } }, 519 },
+ViewCamera gDryfieldSaloonGRViewCameras[DRYFIELD_SALOON_G_R_CAMERA_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 30000, -680 } }, 519 },
     { { { { -3183, 0, -2576 }, { -1148, 3666, 1418 }, { 2306, 1824, -2850 } }, { 315, 2637, 16 } }, 257 },
     { { { { -4045, 0, -638 }, { -348, 3430, 2210 }, { 534, 2237, -3388 } }, { 724, 3602, -2788 } }, 230 },
     { { { { 4063, 0, -511 }, { -261, 3522, -2074 }, { 439, 2090, 3494 } }, { 628, 3274, 3211 } }, 230 },
     { { { { 3790, 0, -1551 }, { -715, 3635, -1746 }, { 1377, 1887, 3364 } }, { 1033, 2561, -668 } }, 230 },
     { { { { -171, 0, 4092 }, { 3010, 2774, 126 }, { -2771, 3013, -116 } }, { -1881, 2483, -5950 } }, 188 },
     { { { { 3128, 0, -2643 }, { -887, 3858, -1050 }, { 2490, 1375, 2946 } }, { -1421, 2204, 1801 } }, 230 },
-    { { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -620, 1520, -5560 } }, 230 },
+    { { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -620, 1520, -5560 } }, 230 },
     { { { { 702, 0, 4035 }, { 1935, 3594, -337 }, { -3540, 1964, 616 } }, { 2150, 1500, -3200 } }, 289 },
     { { { { 2919, 0, 2873 }, { 1386, 3587, -1408 }, { -2516, 1976, 2557 } }, { 1395, 2355, -2735 } }, 257 },
     { { { { 2919, 0, 2873 }, { 1386, 3587, -1408 }, { -2516, 1976, 2557 } }, { 1395, 2355, -2735 } }, 257 },
@@ -627,43 +667,82 @@ SpriteView gDryfieldSaloonGRSpriteViews[13] = {
     { { .empty = _gDryfieldSaloonGRView13SpriteBatches }, _gDryfieldSaloonGRView13SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_saloon_g_r_80180EC8[16] = {
-    { NULL, NULL, NULL, { 2633, -1376, -1224, 0 }, { { -2531, -2400, -372, 0 }, { 2524, -2400, 366, 0 }, { -2531, 2400, -372, 0 }, { 2524, 2400, 366, 0 } }, { 592, 0, -4063, 0 }, { 0, 0, 4096, 0 }, 3500, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2782, -1248, -1346, 0 }, { { 2519, -2272, 364, 0 }, { -2534, -2272, -375, 0 }, { 2519, 2272, 364, 0 }, { -2534, 2272, -375, 0 } }, { -594, 0, 4058, 0 }, { 0, 0, 4096, 0 }, 3415, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2005, -1152, 53, 0 }, { { 1454, -2176, 297, 0 }, { -1453, -2176, -297, 0 }, { 1454, 2176, 297, 0 }, { -1453, 2176, -297, 0 } }, { -823, 0, 4019, 0 }, { 0, 0, 4096, 0 }, 2623, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1995, -1280, 172, 0 }, { { -1438, -2304, -264, 0 }, { 1439, -2304, 264, 0 }, { -1438, 2304, -264, 0 }, { 1439, 2304, 264, 0 } }, { 739, 0, -4031, 0 }, { 0, 0, 4096, 0 }, 2721, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1801, -1520, 3012, 0 }, { { -878, -2544, -837, 0 }, { 878, -2544, 837, 0 }, { -878, 2544, -837, 0 }, { 878, 2544, 837, 0 } }, { 2831, 0, -2972, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1185, -1632, 3294, 0 }, { { -299, -2656, 1167, 0 }, { 295, -2656, -1172, 0 }, { -299, 2656, 1167, 0 }, { 295, 2656, -1172, 0 } }, { -3977, 0, -1011, 0 }, { 0, 0, 4096, 0 }, 2907, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1913, -1456, 2983, 0 }, { { 801, -2480, 790, 0 }, { -800, -2480, -790, 0 }, { 801, 2480, 790, 0 }, { -800, 2480, -790, 0 } }, { -2881, 0, 2916, 0 }, { 0, 0, 4096, 0 }, 2721, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1377, -1344, 3391, 0 }, { { 300, -2368, -1106, 0 }, { -309, -2368, 1096, 0 }, { 300, 2368, -1106, 0 }, { -309, 2368, 1096, 0 } }, { 3955, 0, 1093, 0 }, { 0, 0, 4096, 0 }, 2623, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 431, -1552, 5183, 0 }, { { -1068, -2576, -9, 0 }, { 1069, -2576, 10, 0 }, { -1068, 2576, -9, 0 }, { 1069, 2576, 10, 0 } }, { 35, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 2780, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 383, -1376, 5055, 0 }, { { 1069, -2400, 0, 0 }, { -1069, -2400, 0, 0 }, { 1069, 2400, 0, 0 }, { -1069, 2400, 0, 0 } }, { 0, 0, 4110, 0 }, { 0, 0, 4096, 0 }, 2623, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2906, -1200, 4312, 0 }, { { 1, -2224, -1068, 0 }, { -1, -2224, 1068, 0 }, { 1, 2224, -1068, 0 }, { -1, 2224, 1068, 0 } }, { 4096, 0, 3, 0 }, { 0, 0, 4096, 0 }, 2455, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3066, -1216, 4376, 0 }, { { -1, -2240, 1068, 0 }, { 1, -2240, -1068, 0 }, { -1, 2240, 1068, 0 }, { 1, 2240, -1068, 0 } }, { -4104, 0, -6, 0 }, { 0, 0, 4096, 0 }, 2468, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 158, -1216, -3715, 0 }, { { 4, -2272, -2047, 0 }, { -13, -2272, 2033, 0 }, { 4, 2272, -2047, 0 }, { -13, 2272, 2033, 0 } }, { 4099, 0, 16, 0 }, { 0, 0, 4096, 0 }, 3050, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 303, -1216, -3729, 0 }, { { 11, -2272, 1935, 0 }, { -21, -2272, -1950, 0 }, { 11, 2272, 1935, 0 }, { -21, 2272, -1950, 0 } }, { -4121, 0, 33, 0 }, { 0, 0, 4096, 0 }, 2985, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2096, -1248, -193, 0 }, { { -1157, -2304, -193, 0 }, { 1157, -2304, 194, 0 }, { -1157, 2304, -193, 0 }, { 1157, 2304, 194, 0 } }, { 675, 0, -4046, 0 }, { 0, 0, 4096, 0 }, 2585, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2016, -1280, -289, 0 }, { { 1157, -2304, 194, 0 }, { -1157, -2304, -193, 0 }, { 1157, 2304, 194, 0 }, { -1157, 2304, -193, 0 } }, { -678, 0, 4044, 0 }, { 0, 0, 4096, 0 }, 2585, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Sixteen directed view boundaries shared by both daytime saloon room selectors.
+///
+/// Source/destination logical views are 2..7, independent of camera mapping.
+/// Room setup binds coordinates and links/enables records through the final
+/// LAST-marked boundary. Positions/radii use room game units; normals use ONE.
+/// Runtime links and hit latches require writable storage until unlinked.
+static WorldCollisionTrigger _gDryfieldSaloonGRViewBoundaryTriggers[16] = {
+    { NULL, NULL, NULL, { 2633, -1376, -1224, 0 }, { { -2531, -2400, -372, 0 }, { 2524, -2400, 366, 0 }, { -2531, 2400, -372, 0 }, { 2524, 2400, 366, 0 } }, { 592, 0, -4063, 0 }, { 0, 0, ONE, 0 }, 3500, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2782, -1248, -1346, 0 }, { { 2519, -2272, 364, 0 }, { -2534, -2272, -375, 0 }, { 2519, 2272, 364, 0 }, { -2534, 2272, -375, 0 } }, { -594, 0, 4058, 0 }, { 0, 0, ONE, 0 }, 3415, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2005, -1152, 53, 0 }, { { 1454, -2176, 297, 0 }, { -1453, -2176, -297, 0 }, { 1454, 2176, 297, 0 }, { -1453, 2176, -297, 0 } }, { -823, 0, 4019, 0 }, { 0, 0, ONE, 0 }, 2623, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1995, -1280, 172, 0 }, { { -1438, -2304, -264, 0 }, { 1439, -2304, 264, 0 }, { -1438, 2304, -264, 0 }, { 1439, 2304, 264, 0 } }, { 739, 0, -4031, 0 }, { 0, 0, ONE, 0 }, 2721, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1801, -1520, 3012, 0 }, { { -878, -2544, -837, 0 }, { 878, -2544, 837, 0 }, { -878, 2544, -837, 0 }, { 878, 2544, 837, 0 } }, { 2831, 0, -2972, 0 }, { 0, 0, ONE, 0 }, 2816, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1185, -1632, 3294, 0 }, { { -299, -2656, 1167, 0 }, { 295, -2656, -1172, 0 }, { -299, 2656, 1167, 0 }, { 295, 2656, -1172, 0 } }, { -3977, 0, -1011, 0 }, { 0, 0, ONE, 0 }, 2907, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1913, -1456, 2983, 0 }, { { 801, -2480, 790, 0 }, { -800, -2480, -790, 0 }, { 801, 2480, 790, 0 }, { -800, 2480, -790, 0 } }, { -2881, 0, 2916, 0 }, { 0, 0, ONE, 0 }, 2721, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1377, -1344, 3391, 0 }, { { 300, -2368, -1106, 0 }, { -309, -2368, 1096, 0 }, { 300, 2368, -1106, 0 }, { -309, 2368, 1096, 0 } }, { 3955, 0, 1093, 0 }, { 0, 0, ONE, 0 }, 2623, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 431, -1552, 5183, 0 }, { { -1068, -2576, -9, 0 }, { 1069, -2576, 10, 0 }, { -1068, 2576, -9, 0 }, { 1069, 2576, 10, 0 } }, { 35, 0, -4101, 0 }, { 0, 0, ONE, 0 }, 2780, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 383, -1376, 5055, 0 }, { { 1069, -2400, 0, 0 }, { -1069, -2400, 0, 0 }, { 1069, 2400, 0, 0 }, { -1069, 2400, 0, 0 } }, { 0, 0, 4110, 0 }, { 0, 0, ONE, 0 }, 2623, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2906, -1200, 4312, 0 }, { { 1, -2224, -1068, 0 }, { -1, -2224, 1068, 0 }, { 1, 2224, -1068, 0 }, { -1, 2224, 1068, 0 } }, { ONE, 0, 3, 0 }, { 0, 0, ONE, 0 }, 2455, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3066, -1216, 4376, 0 }, { { -1, -2240, 1068, 0 }, { 1, -2240, -1068, 0 }, { -1, 2240, 1068, 0 }, { 1, 2240, -1068, 0 } }, { -4104, 0, -6, 0 }, { 0, 0, ONE, 0 }, 2468, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 158, -1216, -3715, 0 }, { { 4, -2272, -2047, 0 }, { -13, -2272, 2033, 0 }, { 4, 2272, -2047, 0 }, { -13, 2272, 2033, 0 } }, { 4099, 0, 16, 0 }, { 0, 0, ONE, 0 }, 3050, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 303, -1216, -3729, 0 }, { { 11, -2272, 1935, 0 }, { -21, -2272, -1950, 0 }, { 11, 2272, 1935, 0 }, { -21, 2272, -1950, 0 } }, { -4121, 0, 33, 0 }, { 0, 0, ONE, 0 }, 2985, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2096, -1248, -193, 0 }, { { -1157, -2304, -193, 0 }, { 1157, -2304, 194, 0 }, { -1157, 2304, -193, 0 }, { 1157, 2304, 194, 0 } }, { 675, 0, -4046, 0 }, { 0, 0, ONE, 0 }, 2585, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2016, -1280, -289, 0 }, { { 1157, -2304, 194, 0 }, { -1157, -2304, -193, 0 }, { 1157, 2304, 194, 0 }, { -1157, 2304, -193, 0 } }, { -678, 0, 4044, 0 }, { 0, 0, ONE, 0 }, 2585, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_saloon_g_r_80181388[14] = {
-    { NULL, NULL, NULL, { 2464, -48, -4720, 0 }, { { 624, 0, -272, 0 }, { 624, 0, 272, 0 }, { -624, 0, -272, 0 }, { -624, 0, 272, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 680, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4480, -48, 4368, 0 }, { { -448, 0, -624, 0 }, { 448, 0, -624, 0 }, { -448, 0, 624, 0 }, { 448, 0, 624, 0 } }, { 0, 4117, 0, 0 }, { -4096, 0, 0, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3232, -64, 3392, 0 }, { { 624, 0, -880, 0 }, { 624, 0, 880, 0 }, { -624, 0, -880, 0 }, { -624, 0, 880, 0 } }, { 0, 4099, 0, 0 }, { 4076, 0, 401, 0 }, 1078, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -32, -64, 1728, 0 }, { { 2032, 0, -1392, 0 }, { 2032, 0, 1392, 0 }, { -2032, 0, -1392, 0 }, { -2032, 0, 1392, 0 } }, { 0, 4102, 0, 0 }, { 4076, 0, 401, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4048, -64, -4672, 0 }, { { 896, 0, -848, 0 }, { 896, 0, 848, 0 }, { -896, 0, -848, 0 }, { -896, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { -1380, 0, 3856, 0 }, 1227, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 544, -64, 6432, 0 }, { { 464, 0, -272, 0 }, { 464, 0, 272, 0 }, { -464, 0, -272, 0 }, { -464, 0, 272, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 535, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4416, -64, -1840, 0 }, { { 768, 0, -640, 0 }, { 768, 0, 640, 0 }, { -768, 0, -640, 0 }, { -768, 0, 640, 0 } }, { 0, 4095, 0, 0 }, { -4076, 0, -402, 0 }, 999, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2432, -64, -1120, 0 }, { { 768, 0, -1312, 0 }, { 768, 0, 1312, 0 }, { -768, 0, -1312, 0 }, { -768, 0, 1312, 0 } }, { 0, 4099, 0, 0 }, { 4095, 0, 0, 0 }, 1519, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4448, -64, 672, 0 }, { { 768, 0, -1088, 0 }, { 768, 0, 1088, 0 }, { -768, 0, -1088, 0 }, { -768, 0, 1088, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1330, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3680, -64, 1616, 0 }, { { 480, 0, -2016, 0 }, { 480, 0, 2016, 0 }, { -480, 0, -2016, 0 }, { -480, 0, 2016, 0 } }, { 0, 4095, 0, 0 }, { 4095, 0, 0, 0 }, 2063, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2544, -64, 4928, 0 }, { { 1296, 0, -560, 0 }, { 1296, 0, 560, 0 }, { -1296, 0, -560, 0 }, { -1296, 0, 560, 0 } }, { 0, 4101, 0, 0 }, { -201, 0, -4091, 0 }, 1408, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1184, -64, 4320, 0 }, { { 752, 0, -560, 0 }, { 752, 0, 560, 0 }, { -752, 0, -560, 0 }, { -752, 0, 560, 0 } }, { 0, 4106, 0, 0 }, { -201, 0, -4091, 0 }, 936, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2784, -64, 3680, 0 }, { { 976, 0, -560, 0 }, { 976, 0, 560, 0 }, { -976, 0, -560, 0 }, { -976, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { -201, 0, -4091, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4416, -64, 2624, 0 }, { { 768, 0, -1088, 0 }, { 768, 0, 1088, 0 }, { -768, 0, -1088, 0 }, { -768, 0, 1088, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1330, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// CAP command indices, room command ID and packed warp slots used by action triggers.
+///
+/// Warp slots pack departure in the high nibble and arrival in the low nibble.
+enum {
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_1          = 1,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_5          = 5,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_6          = 6,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_11         = 11,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_12         = 12,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_13         = 13,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_14         = 14,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_15         = 15,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_16         = 16,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_17         = 17,
+    DRYFIELD_SALOON_G_R_CAP_COMMAND_18         = 18,
+    DRYFIELD_SALOON_G_R_ROOM_COMMAND_CAP_4     = 4,
+    DRYFIELD_SALOON_G_R_PARKING_LOT_WARP_SLOTS = (1 << 4) | 4,
+    DRYFIELD_SALOON_G_R_KITCHEN_WARP_SLOTS     = (2 << 4) | 1,
 };
 
-WorldCollisionOccluder D_dryfield_saloon_g_r_801817B0[2] = {
+/// Fourteen player-action quads shared by both daytime saloon room selectors.
+///
+/// The first two request the parking lot and kitchen through warp slots 1/2.
+/// The third sends room command 4 only outside battle; the rest play CAP
+/// commands 5, 11, 1, 12, 13, 6, 14, 16, 17, 18 and 15 with zero flags.
+/// Room setup binds and links writable records through the final LAST flag.
+/// Positions/radii use room game units; normals use ONE (4096) per unit.
+static WorldCollisionTrigger _gDryfieldSaloonGRActionTriggers[14] = {
+    { NULL, NULL, NULL, { 2464, -48, -4720, 0 }, { { 624, 0, -272, 0 }, { 624, 0, 272, 0 }, { -624, 0, -272, 0 }, { -624, 0, 272, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, ONE, 0 }, 680, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_PARKING_LOT, DRYFIELD_SALOON_G_R_PARKING_LOT_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4480, -48, 4368, 0 }, { { -448, 0, -624, 0 }, { 448, 0, -624, 0 }, { -448, 0, 624, 0 }, { 448, 0, 624, 0 } }, { 0, 4117, 0, 0 }, { -ONE, 0, 0, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_G_R_KITCHEN, DRYFIELD_SALOON_G_R_KITCHEN_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3232, -64, 3392, 0 }, { { 624, 0, -880, 0 }, { 624, 0, 880, 0 }, { -624, 0, -880, 0 }, { -624, 0, 880, 0 } }, { 0, 4099, 0, 0 }, { 4076, 0, 401, 0 }, 1078, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, DRYFIELD_SALOON_G_R_ROOM_COMMAND_CAP_4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -32, -64, 1728, 0 }, { { 2032, 0, -1392, 0 }, { 2032, 0, 1392, 0 }, { -2032, 0, -1392, 0 }, { -2032, 0, 1392, 0 } }, { 0, 4102, 0, 0 }, { 4076, 0, 401, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4048, -64, -4672, 0 }, { { 896, 0, -848, 0 }, { 896, 0, 848, 0 }, { -896, 0, -848, 0 }, { -896, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { -1380, 0, 3856, 0 }, 1227, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 544, -64, 6432, 0 }, { { 464, 0, -272, 0 }, { 464, 0, 272, 0 }, { -464, 0, -272, 0 }, { -464, 0, 272, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -ONE, 0 }, 535, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4416, -64, -1840, 0 }, { { 768, 0, -640, 0 }, { 768, 0, 640, 0 }, { -768, 0, -640, 0 }, { -768, 0, 640, 0 } }, { 0, 4095, 0, 0 }, { -4076, 0, -402, 0 }, 999, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2432, -64, -1120, 0 }, { { 768, 0, -1312, 0 }, { 768, 0, 1312, 0 }, { -768, 0, -1312, 0 }, { -768, 0, 1312, 0 } }, { 0, 4099, 0, 0 }, { 4095, 0, 0, 0 }, 1519, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4448, -64, 672, 0 }, { { 768, 0, -1088, 0 }, { 768, 0, 1088, 0 }, { -768, 0, -1088, 0 }, { -768, 0, 1088, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1330, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3680, -64, 1616, 0 }, { { 480, 0, -2016, 0 }, { 480, 0, 2016, 0 }, { -480, 0, -2016, 0 }, { -480, 0, 2016, 0 } }, { 0, 4095, 0, 0 }, { 4095, 0, 0, 0 }, 2063, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2544, -64, 4928, 0 }, { { 1296, 0, -560, 0 }, { 1296, 0, 560, 0 }, { -1296, 0, -560, 0 }, { -1296, 0, 560, 0 } }, { 0, 4101, 0, 0 }, { -201, 0, -4091, 0 }, 1408, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_16, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1184, -64, 4320, 0 }, { { 752, 0, -560, 0 }, { 752, 0, 560, 0 }, { -752, 0, -560, 0 }, { -752, 0, 560, 0 } }, { 0, 4106, 0, 0 }, { -201, 0, -4091, 0 }, 936, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2784, -64, 3680, 0 }, { { 976, 0, -560, 0 }, { 976, 0, 560, 0 }, { -976, 0, -560, 0 }, { -976, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { -201, 0, -4091, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4416, -64, 2624, 0 }, { { 768, 0, -1088, 0 }, { 768, 0, 1088, 0 }, { -768, 0, -1088, 0 }, { -768, 0, 1088, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1330, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_SALOON_G_R_CAP_COMMAND_15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Two room-space sight-blocking quads shared by both daytime saloon selectors.
+///
+/// Origins/corners and radii use game units; normals use ONE per unit. Setup
+/// links and enables both records, including the LAST-marked second quad.
+/// Low flag bit 0 is authored but has no established interpretation; preserve it.
+/// Runtime list links require writable storage until the occluders are retired.
+static WorldCollisionOccluder _gDryfieldSaloonGRSightOccluders[2] = {
     { NULL, NULL, { -1056, -1392, 5216, 0 }, { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } }, { 0, 0, -4109, 0 }, 2442, 1, 0 },
     { NULL, NULL, { 2048, -1376, 5215, 0 }, { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } }, { 0, 0, -4109, 0 }, 2442, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -694,21 +773,39 @@ static WorldCoordRoomLights _gDryfieldSaloonGRRoomLights = {
     NULL,
 };
 
-AreaResource D_dryfield_saloon_g_r_80181AE0[2] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+/// Placement keys and decimal file numbers used by the two saloon enemy kinds.
+enum {
+    DRYFIELD_SALOON_G_R_MIND_SUCKLER_PLACEMENT_ENTRY = 15,
+    DRYFIELD_SALOON_G_R_MIND_SUCKLER_FILE_NUMBER     = 15,
+    DRYFIELD_SALOON_G_R_BONE_SUCKLER_PLACEMENT_ENTRY = 12,
+    DRYFIELD_SALOON_G_R_BONE_SUCKLER_FILE_NUMBER     = 12,
+};
+
+/// Variant 1's Mind Suckler loading/spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Placement entry 15 selects global file 101500 and descriptor 0. The five
+/// matching map placements use this overlay's resource recipe during loading
+/// and spawning; keep it loaded through those operations.
+static AreaResource _gDryfieldSaloonGRVariant1Resources[2] = {
+    { DRYFIELD_SALOON_G_R_MIND_SUCKLER_PLACEMENT_ENTRY, DRYFIELD_SALOON_G_R_MIND_SUCKLER_FILE_NUMBER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_saloon_g_r_80181AF8[3] = {
-    { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
-    { 12, 12, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor201200BoneSucklerTaskDesc },
+/// Variant 2's Mind Suckler and Bone Suckler recipes, followed by AREA_PLACEMENT_END.
+///
+/// Entry 15 selects file 101500; entry 12 selects file 201200. Both use
+/// descriptor 0. The two Mind Suckler and five Bone Suckler map placements
+/// borrow these overlay-owned recipes during loading and spawning.
+static AreaResource _gDryfieldSaloonGRVariant2Resources[3] = {
+    { DRYFIELD_SALOON_G_R_MIND_SUCKLER_PLACEMENT_ENTRY, DRYFIELD_SALOON_G_R_MIND_SUCKLER_FILE_NUMBER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+    { DRYFIELD_SALOON_G_R_BONE_SUCKLER_PLACEMENT_ENTRY, DRYFIELD_SALOON_G_R_BONE_SUCKLER_FILE_NUMBER, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor201200BoneSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_dryfield_saloon_g_r_80181B1C[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B394, D_dryfield_saloon_g_r_80181AE0 },
-    { D_map_dryfield_8017B3F4, D_dryfield_saloon_g_r_80181AF8 },
+    { D_map_dryfield_8017B394, _gDryfieldSaloonGRVariant1Resources },
+    { D_map_dryfield_8017B3F4, _gDryfieldSaloonGRVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -811,11 +908,11 @@ RoomEventReq gRoomEventReq;
 
 #include "../../shared/room_event_task.inc.c"
 
-/// The room task's three-state table, run from a stack copy by
-/// `dryfieldSaloonGRRoomTask`: the entry tick
-/// `_dryfieldSaloonGRInitializeRoom`, the idle state
-/// `_dryfieldSaloonGRIdleTask`, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_saloon_g_r_8017D5DC = {
+/// Daytime saloon room-task states: initialize, idle and teardown.
+///
+/// Indexed by `Task::state` in 0..2, with no terminator. Dispatch copies all
+/// three callbacks by value; the overlay's callbacks must remain loaded.
+static const TaskFuncTable3 _gDryfieldSaloonGRRoomTaskStates = {
     { _dryfieldSaloonGRInitializeRoom, _dryfieldSaloonGRIdleTask, taskKill },
 };
 
@@ -867,7 +964,7 @@ static s32 _dryfieldSaloonGRIgnoreRoomActionMessage(Task* task, s32 messageId, c
 /// borrow the loaded overlay and task for subsequent synchronous dispatch.
 static void _dryfieldSaloonGRInitializeRoom(Task* task)
 {
-    task->msgTable = D_dryfield_saloon_g_r_8017ECBC;
+    task->msgTable = _gDryfieldSaloonGRRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -883,7 +980,7 @@ void dryfieldSaloonGRRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_saloon_g_r_8017D5DC;
+    stateHandlers = _gDryfieldSaloonGRRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -916,7 +1013,7 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
     /// point. Expands to one for statement; invoke inside a braced block.
 #define DRYFIELD_SALOON_G_R_DRAW_FLARE_RANGE(firstPoint, pointLimit, textureColumn)       \
     for (flareIndex = (firstPoint); flareIndex < (pointLimit); flareIndex++) {            \
-        if (viewMask & D_dryfield_saloon_g_r_8017ED84[flareIndex]) {                      \
+        if (viewMask & _gDryfieldSaloonGREffectViewMasks[flareIndex]) {                   \
             _glowDrawFlareLocal(roomCoord, &_gDryfieldSaloonGREffectPoints[flareIndex],   \
                                 (textureColumn), DRYFIELD_SALOON_G_R_FLARE_RADIUS_SCALE); \
         }                                                                                 \
@@ -933,10 +1030,10 @@ void dryfieldSaloonGRDrawLightEffectsTask(Task* task)
 #undef DRYFIELD_SALOON_G_R_DRAW_FLARE_RANGE
 
     // Shafts share a visibility mask; endpoint order fixes the beam's orientation.
-    if (viewMask & D_dryfield_saloon_g_r_8017ED84[DRYFIELD_SALOON_G_R_SHAFT_VIEW_MASK_INDEX]) {
+    if (viewMask & _gDryfieldSaloonGREffectViewMasks[DRYFIELD_SALOON_G_R_SHAFT_VIEW_MASK_INDEX]) {
         _glowDrawTwinShafts(roomCoord);
     }
-    if (viewMask & D_dryfield_saloon_g_r_8017ED84[DRYFIELD_SALOON_G_R_BEAM_VIEW_MASK_INDEX]) {
+    if (viewMask & _gDryfieldSaloonGREffectViewMasks[DRYFIELD_SALOON_G_R_BEAM_VIEW_MASK_INDEX]) {
         _glowDrawTaperedBeam(roomCoord, &_gDryfieldSaloonGREffectPoints[DRYFIELD_SALOON_G_R_BEAM_START_POINT],
                              &_gDryfieldSaloonGREffectPoints[DRYFIELD_SALOON_G_R_BEAM_END_POINT], DRYFIELD_SALOON_G_R_BEAM_RADIUS_SCALE);
     }

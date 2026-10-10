@@ -145,12 +145,12 @@ D_dryfield_motel_lobby_8017FC08 = 0x8017FC08; // absolute:True owner=dryfield_mo
 D_dryfield_motel_lobby_80180AB0 = 0x80180AB0; // absolute:True owner=dryfield_motel_lobby
 D_dryfield_motel_lobby_80181044 = 0x80181044; // absolute:True owner=dryfield_motel_lobby
 dryfieldSaloonGRRoomTask = 0x8017DA18; // type:func absolute:True owner=dryfield_saloon_g_r shared=rooms
-D_dryfield_saloon_g_r_8017EDA0 = 0x8017EDA0; // absolute:True owner=dryfield_saloon_g_r
+gDryfieldSaloonGRRoomCollisionResources = 0x8017EDA0; // absolute:True owner=dryfield_saloon_g_r
 gDryfieldSaloonGRRoomViewMaps = 0x8017EDD0; // absolute:True owner=dryfield_saloon_g_r
-D_dryfield_saloon_g_r_8017EDD8 = 0x8017EDD8; // absolute:True owner=dryfield_saloon_g_r
+gDryfieldSaloonGRRoomViewCounts = 0x8017EDD8; // absolute:True owner=dryfield_saloon_g_r
 gDryfieldSaloonGRRoomLighting = 0x8017EDDC; // absolute:True owner=dryfield_saloon_g_r shared=rooms
-D_dryfield_saloon_g_r_8017EDEC = 0x8017EDEC; // absolute:True owner=dryfield_saloon_g_r shared=rooms
-D_dryfield_saloon_g_r_8017F7A4 = 0x8017F7A4; // absolute:True owner=dryfield_saloon_g_r shared=rooms
+gDryfieldSaloonGRWarpEntries = 0x8017EDEC; // absolute:True owner=dryfield_saloon_g_r shared=rooms
+gDryfieldSaloonGRViewCameras = 0x8017F7A4; // absolute:True owner=dryfield_saloon_g_r shared=rooms
 gDryfieldSaloonGRSpriteViews = 0x80180E2C; // absolute:True owner=dryfield_saloon_g_r
 gDryfieldSaloonGRSurfacePropertiesByClass = 0x80181BBC; // absolute:True owner=dryfield_saloon_g_r shared=rooms
 dryfieldGRKitchenRoomTask = 0x8017D9A4; // type:func absolute:True owner=dryfield_g_r_kitchen shared=rooms
