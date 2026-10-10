@@ -107,6 +107,47 @@ def moved(rect: tuple, page: int, row: int, mode: str = "") -> tuple[int, int]:
     return x, y
 
 
+PLACEMENT_FIELDS = ("entryId", "variant", "mode", "x", "y", "z", "yaw", "fileIdLow", "texturePageOffset", "clutRowOffset", "rowIndex")
+RESOURCE_FIELDS = ("entryId", "fileNumber", "fileGroupIndex", "taskIndex", "unknown_6", "taskTable")
+
+
+def split_top(text: str, opener: str = "{", closer: str = "}") -> list[str]:
+    """The comma-separated parts of an initializer at its own nesting level."""
+    parts, depth, start = [], 0, 0
+    for i, ch in enumerate(text):
+        if ch in "{(":
+            depth += 1
+        elif ch in "})":
+            depth -= 1
+        elif ch == "," and depth == 0:
+            parts.append(text[start:i])
+            start = i + 1
+    parts.append(text[start:])
+    return [part.strip() for part in parts if part.strip()]
+
+
+def table_rows(body: str, fields: tuple[str, ...]) -> list[dict[str, str]]:
+    """The records of a table's initializer, each as field -> expression text.
+
+    A row is written positionally (`{ 41, 41, GROUP, 0, { 0, 0 }, &desc }`) or with
+    designators (`{ .entryId = NAME, .fileNumber = ... }`), on one line or several;
+    a naming pass rewrites the first form into the second.
+    """
+    rows = []
+    for row in split_top(body):
+        if not (row.startswith("{") and row.endswith("}")):
+            continue
+        cells, record = split_top(row[1:-1]), {}
+        for n, cell in enumerate(cells):
+            match = re.match(r"\.(\w+)\s*=\s*(.*)", cell, re.S)
+            if match:
+                record[match[1]] = match[2].strip()
+            elif n < len(fields):
+                record[fields[n]] = cell
+        rows.append(record)
+    return rows
+
+
 def area_tables(files: list[Path], known: dict[str, int]):
     """The placement, resource and variant tables of the sources, by symbol."""
     placements, resources, variants = {}, {}, {}
@@ -117,22 +158,40 @@ def area_tables(files: list[Path], known: dict[str, int]):
         if "Area" not in text:
             continue
         rel = path.relative_to(ROOT).as_posix()
+        # A cell can be a constant the file itself names (an entry id, a file number), beside the journal's.
+        local = dict(known)
+        local.update({name: value for _scope, name, _line, _kind, _expr, value in asset_journal.constants(path) if value is not None})
+        value = lambda record, field: asset_journal.evaluate(record.get(field, "0"), local)  # noqa: E731
         for table in PLACEMENT_TABLE.finditer(text):
             rows = []
-            for row in re.findall(r"\{([^{}]*)\}", table[2]):
-                cells = [asset_journal.evaluate(c, known) for c in row.split(",")]
-                if len(cells) >= 11 and None not in (cells[0], cells[7], cells[8], cells[9]):
-                    rows.append((cells[0], cells[7], cells[8], cells[9]))      # entry, fileIdLow, page, row
+            for record in table_rows(table[2], PLACEMENT_FIELDS):
+                cells = [value(record, f) for f in ("entryId", "fileIdLow", "texturePageOffset", "clutRowOffset")]
+                if "entryId" in record and None not in cells:
+                    rows.append(tuple(cells))                                   # entry, fileIdLow, page, row
             placements[table[1]] = rows
         for table in RESOURCE_TABLE.finditer(text):
             entries = {}
-            for row in RESOURCE_ROW.finditer(table[2]):
-                entry, number, group = (asset_journal.evaluate(c, known) for c in (row[1], row[2], row[3]))
-                if None not in (entry, number, group) and 0 <= group < len(GROUP_BASE) and "END" not in row[1]:
-                    entries[entry] = ((GROUP_BASE[group] + number // 100) * 10000 + (number % 100) * 100, row[4])
+            for record in table_rows(table[2], RESOURCE_FIELDS):
+                entry, number, group = (value(record, f) for f in ("entryId", "fileNumber", "fileGroupIndex"))
+                if None not in (entry, number, group) and 0 <= group < len(GROUP_BASE) and "END" not in record.get("entryId", ""):
+                    entries[entry] = ((GROUP_BASE[group] + number // 100) * 10000 + (number % 100) * 100, record.get("taskTable", "NULL"))
             resources[table[1]] = entries
         for table in VARIANT_TABLE.finditer(text):
-            variants[table[1]] = (rel, re.findall(r"\{\s*(\w+)\s*,\s*(\w+)\s*\}", table[2]))
+            # One row per variant number, written in order or by index (`[7] = { .placements = ..., .resources = ... }`),
+            # in which case the numbers left out are empty.
+            slots: dict[int, tuple[str, str]] = {}
+            at = 0
+            for item in split_top(table[2]):
+                index = re.match(r"\[([^\]]+)\]\s*=\s*(.*)", item, re.S)
+                if index:
+                    number = asset_journal.evaluate(index[1], local)
+                    if number is None:
+                        continue
+                    at, item = number, index[2].strip()
+                record = (table_rows(item, ("placements", "resources")) or [{}])[0]
+                slots[at] = (record.get("placements", "NULL"), record.get("resources", "NULL"))
+                at += 1
+            variants[table[1]] = (rel, [slots.get(n, ("NULL", "NULL")) for n in range(max(slots, default=-1) + 1)])
     return placements, resources, variants
 
 
@@ -228,10 +287,13 @@ def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]
         if "ViewCount" not in text:
             continue
         room = next((part for part in reversed(path.relative_to(ROOT).parts[:-1]) if part in packages), None)
-        tables = {m[1]: [asset_journal.evaluate(c, {}) for c in m[2].split(",") if c.strip()] for m in BYTE_TABLE.finditer(text)}
+        # A count or a map entry can be a named constant of the file (a naming pass gives the view count a name,
+        # and declares it between the directory and the counts).
+        named = {name: value for _scope, name, _line, _kind, _expr, value in asset_journal.constants(path) if value is not None}
+        tables = {m[1]: [asset_journal.evaluate(c, named) for c in m[2].split(",") if c.strip()] for m in BYTE_TABLE.finditer(text)}
         for directory in VIEW_DIRECTORY.finditer(text):
             names = [c.strip() for c in directory[2].split(",") if c.strip()]
-            counts = [asset_journal.evaluate(c, {}) or 0 for c in directory[3].split(",") if c.strip()]
+            counts = [asset_journal.evaluate(c, named) or 0 for c in directory[3].split(",") if c.strip()]
             # A count table can be shorter than its directory (neo_ark_altar: two counts, three room indices);
             # a byte map without a count is taken at its own length.
             counts += [0] * (len(names) - len(counts))
@@ -250,7 +312,7 @@ def view_maps(files: list[Path], packages: set[str]) -> dict[str, list[list[int]
             # The directory and the counts are not always declared together:
             # then it is the pointer table whose entries are all byte maps,
             # as long as the view counts.
-            counted = [[asset_journal.evaluate(c, {}) or 0 for c in m[1].split(",") if c.strip()] for m in VIEW_COUNTS.finditer(text)]
+            counted = [[asset_journal.evaluate(c, named) or 0 for c in m[1].split(",") if c.strip()] for m in VIEW_COUNTS.finditer(text)]
             for directory in POINTER_TABLE.finditer(text):
                 names = [c.strip() for c in directory[2].split(",") if c.strip()]
                 if not names or any(n != IDENTITY_MAP and n not in tables for n in names):
