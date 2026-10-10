@@ -87,7 +87,7 @@ enum {
 
 /// Encoding of `_AcropolisSecurityRoomMonitorWork::screenLevel`.
 ///
-/// The five detents in `D_acropolis_security_room_801826B4` are the darkest
+/// The five detents in `_gAcropolisSecurityRoomMonitorWashDetents` are the darkest
 /// level plus a multiple of the step. The panel drawer subtracts the bias; a
 /// negative result is a subtractive blend and a non-negative one an additive
 /// blend. A step brighter is taken only when the prospective level is below
@@ -280,11 +280,9 @@ typedef struct {
 } _AcropolisSecurityRoomSweepLineScratch;
 STATIC_ASSERT_SIZEOF(_AcropolisSecurityRoomSweepLineScratch, 0x14);
 
-/// The tasks `_acropolisSecurityRoomOpenMonitorTask` and
-/// `_acropolisSecurityRoomOpenPowerSupplyTask` spawn and poll until they end;
-/// message 0x13F1 is forwarded to the second while it is alive.
+/// The task `_acropolisSecurityRoomOpenMonitorTask` spawns and polls until it ends.
 extern Task* D_acropolis_security_room_801855A8;
-extern Task* D_acropolis_security_room_801855AC;
+static Task* _gAcropolisSecurityRoomPowerSupplyTask;
 
 /// The whole-unit world displacement the last `_actorContactApplyGridPushback`
 /// call produced.
@@ -302,69 +300,12 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-/// The room task's message table, installed in `Task::msgTable`.
-extern TaskMessageEntry D_acropolis_security_room_801825DC[];
-extern TaskDesc         D_acropolis_security_room_80182618[];
-extern TaskDesc         D_acropolis_security_room_8018263C;
-
-/// The security monitor's own hotspot table, hit-tested by
-/// `_actionPromptHitTestDefault`.
-extern ActionPromptHotspot D_acropolis_security_room_80182648[];
-
-/// The monitor's grey-wash detents, darkest first. The first five are the
-/// levels `GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA` indexes. The sixth value
-/// is part of this symbol and is never read; its role is unproven.
-extern s16 D_acropolis_security_room_801826B4[];
-
-/// The single-entry `TaskDesc` table the script spawns its child task from:
-/// `_acropolisSecurityRoomPowerSupplyCursorTask`.
-extern TaskDesc D_acropolis_security_room_801826C0[];
-/// The script's message table, parked in `Task::msgTable`.
-extern TaskMessageEntry D_acropolis_security_room_801826CC[];
-
-/// The script's hotspot table, terminated by `ACTION_PROMPT_HOTSPOT_END`.
-extern ActionPromptHotspot D_acropolis_security_room_801826DC[];
-
-/// The two `TaskDesc`s this room's script spawns from: index 0 is
-/// `_acropolisSecurityRoomRightUnlockSoundTask`, index 1 is
-/// `_acropolisSecurityRoomLeftUnlockMovieTask`.
-extern TaskDesc D_acropolis_security_room_80182700[];
-
-/// The 0x100-entry RGB555 palette every monitor-screen CLUT is blended
-/// towards: the "off" colours of the four security-camera feeds.
-extern u16 D_acropolis_security_room_80182718[];
-/// The four lit palettes, one per camera feed, blended against
-/// `D_acropolis_security_room_80182718` by the feed's own brightness.
-extern u16 D_acropolis_security_room_80182918[];
-extern u16 D_acropolis_security_room_80182B18[];
-extern u16 D_acropolis_security_room_80182D18[];
-extern u16 D_acropolis_security_room_80182F18[];
-/// The four blend results, one 256-colour RGB555 CLUT row per camera feed.
-///
-/// Each is written only as colours; `D_acropolis_security_room_80183918`
-/// borrows it as packed words because that is the form the GPU upload takes.
-extern u16 D_acropolis_security_room_80183118[256];
-extern u16 D_acropolis_security_room_80183318[256];
-extern u16 D_acropolis_security_room_80183518[256];
-extern u16 D_acropolis_security_room_80183718[256];
-/// The upload records for the four blended CLUTs above.
-extern GpuImageUpload D_acropolis_security_room_80183918[];
-/// Camera-lit bitmask for each value of `gameFlagGetNibble(9)`; bit N is set
-/// while feed N is showing something.
-extern u16 D_acropolis_security_room_80183968[];
-
 /// Spawn position and effect id of the flash each newly lit feed plays,
 /// indexed by feed.
 extern SVECTOR D_acropolis_security_room_80183998[];
 extern s16     D_acropolis_security_room_801839B8[];
 
 static EffectUnitQuadCorner _gAcropolisSecurityRoomFallingQuadUnitCorners[4];
-
-/// 0xFF-terminated area-record lists applied as the script ends.
-extern AreaApplyRec D_acropolis_security_room_80184F50[];
-extern AreaApplyRec D_acropolis_security_room_80184F78[];
-extern AreaApplyRec D_acropolis_security_room_80184F7C[];
-extern AreaApplyRec D_acropolis_security_room_80184F80[];
 
 /// Initializes one reserved prompt edge from signed screen coordinates and RGB bytes.
 ///
@@ -421,9 +362,9 @@ extern AreaApplyRec D_acropolis_security_room_80184F80[];
 /// Palette arguments must be side-effect-free pointers to distinct 256-colour
 /// arrays; brightness is a side-effect-free 1/4096 weight, normally 0..ONE.
 /// Arguments are evaluated for each span. Invoke as a statement in a braced block.
-#define ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, brightness, blendedPalette)                   \
-    for ((colorIndex) = 0; (colorIndex) < ARRAY_SIZE(D_acropolis_security_room_80182718); (colorIndex) += GPU_RGB555_CLUT_ROW_COLORS) { \
-        gpuBlendRgb555ClutRow(&(litPalette)[colorIndex], &(offPalette)[colorIndex], (brightness), &(blendedPalette)[colorIndex]);       \
+#define ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, brightness, blendedPalette)                               \
+    for ((colorIndex) = 0; (colorIndex) < ARRAY_SIZE(_gAcropolisSecurityRoomLockIndicatorOffPalette); (colorIndex) += GPU_RGB555_CLUT_ROW_COLORS) { \
+        gpuBlendRgb555ClutRow(&(litPalette)[colorIndex], &(offPalette)[colorIndex], (brightness), &(blendedPalette)[colorIndex]);                   \
     }
 
 /// Seeds the falling quad's tumble rates and parent-space displacement per frame.
@@ -564,7 +505,7 @@ static void _acropolisSecurityRoomPowerSupplyUseRightLock(Task* task);
 
 static WorldCollisionGrid    _gAcropolisSecurityRoomCollisionGrid;
 static WorldCollisionTrigger _gAcropolisSecurityRoomViewBoundaryTriggers[4];
-extern WorldCollisionTrigger D_acropolis_security_room_80183EE8[5];
+static WorldCollisionTrigger _gAcropolisSecurityRoomActionTriggers[5];
 static WorldCoordRoomLights  _gAcropolisSecurityRoomLights;
 
 static s32 _acropolisSecurityRoomResolveTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
@@ -572,7 +513,13 @@ static s32 _acropolisSecurityRoomForwardKeyItemUse(Task* task, s32 messageId, s3
 static s32 _acropolisSecurityRoomHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedPayload);
 static s32 _acropolisSecurityRoomHandleAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedPayload);
 
-TaskMessageEntry D_acropolis_security_room_801825DC[5] = {
+/// Synchronous transition, monitor-action, power-supply-command and key-item messages.
+///
+/// Transition resolution borrows a request and reply; monitor actions borrow
+/// a DirectionActionRequest. Commands and key items carry integer IDs.
+/// The room receiver borrows the table and callbacks while this overlay is
+/// loaded. The fifth entry ends lookup, making unsupported messages return zero.
+static TaskMessageEntry _gAcropolisSecurityRoomRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisSecurityRoomResolveTransition },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisSecurityRoomHandleAction },
     { ROOM_MESSAGE_COMMAND, _acropolisSecurityRoomHandleCommand },
@@ -582,94 +529,189 @@ TaskMessageEntry D_acropolis_security_room_801825DC[5] = {
 
 AnimationPlayRequest D_acropolis_security_room_80182604 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-TaskDesc D_acropolis_security_room_80182618[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _acropolisSecurityRoomOpenMonitorTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _acropolisSecurityRoomOpenPowerSupplyTask, { .value = 0 } },
+/// Ascending execution priorities of the panel openers and their cursor/scene children.
+enum {
+    ACROPOLIS_SECURITY_ROOM_PANEL_OPENER_PRIORITY = 32,
+    ACROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY  = 192,
+};
+
+/// Bodyless opener recipes: index 0 monitor, index 1 power supply, index 2 end.
+///
+/// Only the first two entries may be spawned. The descriptor is read
+/// synchronously; each opener owns its panel's completion and requires this
+/// overlay's callback code to stay loaded until then.
+static TaskDesc _gAcropolisSecurityRoomPanelOpenerTaskDescs[3] = {
+    { { { TASK_BODY_NONE, ACROPOLIS_SECURITY_ROOM_PANEL_OPENER_PRIORITY } }, _acropolisSecurityRoomOpenMonitorTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_SECURITY_ROOM_PANEL_OPENER_PRIORITY } }, _acropolisSecurityRoomOpenPowerSupplyTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskDesc D_acropolis_security_room_8018263C = { { { TASK_BODY_NONE, 192 } }, _acropolisSecurityRoomMonitorCursorTask, { .value = 0 } };
+/// Bodyless cursor recipe spawned at index zero and owned by the monitor panel.
+///
+/// Spawning borrows the descriptor synchronously. The panel kills the cursor
+/// on close; this overlay's callback code must remain loaded until then.
+static TaskDesc _gAcropolisSecurityRoomMonitorCursorTaskDesc = { { { TASK_BODY_NONE, ACROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY } }, _acropolisSecurityRoomMonitorCursorTask, { .value = 0 } };
 
-ActionPromptHotspot D_acropolis_security_room_80182648[9] = {
-    { -30, 81, 12, 11, 8, 1, 0 },
-    { -7, 81, 12, 11, 9, 1, 0 },
-    { 16, 81, 12, 11, ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY, 1, 0 },
-    { 39, 81, 12, 11, 11, 1, 0 },
-    { 61, 81, 12, 11, 12, 1, 0 },
-    { 82, 81, 12, 11, 13, 1, 0 },
-    { -141, -76, 12, 11, (s16)ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_BRIGHTER, 1, 0 },
-    { -141, -58, 12, 11, (s16)ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_DARKER, 1, 0 },
+/// Camera-button view base and first command rows of the panel hotspot prompts.
+enum {
+    ACROPOLIS_SECURITY_ROOM_MONITOR_CAMERA_FIRST_VIEW = 8,
+    ACROPOLIS_SECURITY_ROOM_PROMPT_EXAMINE            = 0,
+    ACROPOLIS_SECURITY_ROOM_PROMPT_PUSH               = 1,
+};
+
+/// Monitor camera-selection and grey-wash hit rectangles, followed by an end marker.
+///
+/// Coordinates are center-origin pixels, with inclusive far edges. Six
+/// camera buttons select views 8..13; the two negative IDs step the wash.
+/// Every choice opens a Push prompt. Initialization and hit testing mutate
+/// the hit bytes, so the table must stay writable while the panel is active.
+static ActionPromptHotspot _gAcropolisSecurityRoomMonitorHotspots[9] = {
+    { -30, 81, 12, 11, ACROPOLIS_SECURITY_ROOM_MONITOR_CAMERA_FIRST_VIEW, ACROPOLIS_SECURITY_ROOM_PROMPT_PUSH, 0 },
+    { -7, 81, 12, 11, ACROPOLIS_SECURITY_ROOM_MONITOR_CAMERA_FIRST_VIEW + 1, ACROPOLIS_SECURITY_ROOM_PROMPT_PUSH, 0 },
+    { 16, 81, 12, 11, ACROPOLIS_SECURITY_ROOM_MONITOR_VIEW_ENEMY, ACROPOLIS_SECURITY_ROOM_PROMPT_PUSH, 0 },
+    { 39, 81, 12, 11, ACROPOLIS_SECURITY_ROOM_MONITOR_CAMERA_FIRST_VIEW + 3, ACROPOLIS_SECURITY_ROOM_PROMPT_PUSH, 0 },
+    { 61, 81, 12, 11, ACROPOLIS_SECURITY_ROOM_MONITOR_CAMERA_FIRST_VIEW + 4, ACROPOLIS_SECURITY_ROOM_PROMPT_PUSH, 0 },
+    { 82, 81, 12, 11, ACROPOLIS_SECURITY_ROOM_MONITOR_CAMERA_FIRST_VIEW + 5, ACROPOLIS_SECURITY_ROOM_PROMPT_PUSH, 0 },
+    { -141, -76, 12, 11, (s16)ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_BRIGHTER, ACROPOLIS_SECURITY_ROOM_PROMPT_PUSH, 0 },
+    { -141, -58, 12, 11, (s16)ACROPOLIS_SECURITY_ROOM_MONITOR_HOTSPOT_DARKER, ACROPOLIS_SECURITY_ROOM_PROMPT_PUSH, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-s16 D_acropolis_security_room_801826B4[6] = {
-    4,
-    66,
-    128,
-    190,
-    252,
+/// Five saved grey-wash levels, darkest first, with one unread stored halfword.
+///
+/// Valid detent indices are 0..4; the drawer subtracts the screen bias to
+/// obtain a signed subtractive/additive grey level. The sixth halfword's
+/// role and relationship to the five levels are unproven; it is retained.
+static s16 _gAcropolisSecurityRoomMonitorWashDetents[6] = {
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST,
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST + ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP,
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST + 2 * ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP,
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST + 3 * ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP,
+    ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_DARKEST + 4 * ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_STEP,
     8481,
 };
 
-TaskDesc D_acropolis_security_room_801826C0[1] = {
-    { { { TASK_BODY_NONE, 192 } }, _acropolisSecurityRoomPowerSupplyCursorTask, { .value = 0 } },
-};
+/// Bodyless cursor recipe spawned at index zero and owned by the power-supply panel.
+///
+/// The descriptor is borrowed synchronously. Panel close or lock release
+/// kills the child; this overlay's callback code must remain loaded until then.
+static TaskDesc _gAcropolisSecurityRoomPowerSupplyCursorTaskDesc = { { { TASK_BODY_NONE, ACROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY } }, _acropolisSecurityRoomPowerSupplyCursorTask, { .value = 0 } };
 
-TaskMessageEntry D_acropolis_security_room_801826CC[2] = {
+/// Key-item messages borrowed by the live power-supply panel, followed by an end marker.
+///
+/// The first payload is a collection item ID and the second is unused.
+/// The callback returns the item-menu notice/refusal result. Unsupported IDs
+/// return zero; table and callback code must stay loaded while the panel lives.
+static TaskMessageEntry _gAcropolisSecurityRoomPowerSupplyMessages[2] = {
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisSecurityRoomPowerSupplyUseKeyItem },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActionPromptHotspot D_acropolis_security_room_801826DC[3] = {
-    { -68, 20, 24, 24, 1, 0, 0 },
-    { 54, 20, 24, 24, 2, 0, 0 },
+/// Left- and right-lock Examine hit rectangles, followed by an end marker.
+///
+/// Coordinates are center-origin pixels with inclusive far edges. IDs select
+/// the blue-key left lock and red-key right lock. Initialization and hit
+/// testing mutate the hit bytes while the power-supply panel is active.
+static ActionPromptHotspot _gAcropolisSecurityRoomPowerSupplyHotspots[3] = {
+    { -68, 20, 24, 24, ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_HOTSPOT_LEFT, ACROPOLIS_SECURITY_ROOM_PROMPT_EXAMINE, 0 },
+    { 54, 20, 24, 24, ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_HOTSPOT_RIGHT, ACROPOLIS_SECURITY_ROOM_PROMPT_EXAMINE, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-TaskDesc D_acropolis_security_room_80182700[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _acropolisSecurityRoomRightUnlockSoundTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisSecurityRoomLeftUnlockMovieTask, { .value = 0 } },
+/// Independent unlock-scene recipes: index 0 right-lock sound, index 1 left-lock movie.
+///
+/// Each bodyless child is spawned on its own lock-release path and polled by
+/// the panel. Descriptors are borrowed synchronously; callback code must
+/// remain loaded until completion. This indexed table has no terminator.
+static TaskDesc _gAcropolisSecurityRoomUnlockSceneTaskDescs[2] = {
+    { { { TASK_BODY_NONE, ACROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY } }, _acropolisSecurityRoomRightUnlockSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_SECURITY_ROOM_PANEL_CHILD_PRIORITY } }, _acropolisSecurityRoomLeftUnlockMovieTask, { .value = 0 } },
 };
 
-u16 D_acropolis_security_room_80182718[256] = { 0 };
+/// All-black 256-colour RGB555 source shared by the four lock-indicator blends.
+///
+/// Read in sixteen-colour spans. The lit source supplies retained bit 15
+/// even when its RGB weight is zero. Storage lives with the loaded room.
+static u16 _gAcropolisSecurityRoomLockIndicatorOffPalette[256] = { 0 };
 
-u16 D_acropolis_security_room_80182918[256] = {
+/// Lit 256-colour RGB555 source for the left locked indicator (lamp bit 0).
+///
+/// Blended against the black source with a 1/4096 brightness weight.
+static u16 _gAcropolisSecurityRoomLeftLockedPalette[256] = {
 #include "assets/acropolis_security_room_clut_05358.inc"
 };
 
-u16 D_acropolis_security_room_80182B18[256] = {
+/// Lit 256-colour RGB555 source for the left released indicator (lamp bit 1).
+///
+/// Blended against the black source with a 1/4096 brightness weight.
+static u16 _gAcropolisSecurityRoomLeftReleasedPalette[256] = {
 #include "assets/acropolis_security_room_clut_05558.inc"
 };
 
-u16 D_acropolis_security_room_80182D18[256] = {
+/// Lit 256-colour RGB555 source for the right locked indicator (lamp bit 2).
+///
+/// Blended against the black source with a 1/4096 brightness weight.
+static u16 _gAcropolisSecurityRoomRightLockedPalette[256] = {
 #include "assets/acropolis_security_room_clut_05758.inc"
 };
 
-u16 D_acropolis_security_room_80182F18[256] = {
+/// Lit 256-colour RGB555 source for the right released indicator (lamp bit 3).
+///
+/// Blended against the black source with a 1/4096 brightness weight.
+static u16 _gAcropolisSecurityRoomRightReleasedPalette[256] = {
 #include "assets/acropolis_security_room_clut_05958.inc"
 };
 
-u16 D_acropolis_security_room_80183118[256] = { 0 };
+/// Writable 256-colour RGB555 blend for the left locked lamp, uploaded to VRAM row 270.
+///
+/// The GPU borrows this word-aligned row as packed words until transfer finishes.
+static u16 _gAcropolisSecurityRoomLeftLockedClut[256] = { 0 };
 
-u16 D_acropolis_security_room_80183318[256] = { 0 };
+/// Writable 256-colour RGB555 blend for the left released lamp, uploaded to VRAM row 271.
+///
+/// The GPU borrows this word-aligned row as packed words until transfer finishes.
+static u16 _gAcropolisSecurityRoomLeftReleasedClut[256] = { 0 };
 
-u16 D_acropolis_security_room_80183518[256] = { 0 };
+/// Writable 256-colour RGB555 blend for the right locked lamp, uploaded to VRAM row 263.
+///
+/// The GPU borrows this word-aligned row as packed words until transfer finishes.
+static u16 _gAcropolisSecurityRoomRightLockedClut[256] = { 0 };
 
-u16 D_acropolis_security_room_80183718[256] = { 0 };
+/// Writable 256-colour RGB555 blend for the right released lamp, uploaded to VRAM row 264.
+///
+/// The GPU borrows this word-aligned row as packed words until transfer finishes.
+static u16 _gAcropolisSecurityRoomRightReleasedClut[256] = { 0 };
 
-GpuImageUpload D_acropolis_security_room_80183918[5] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 270, 256, 1 }, (u_long*)D_acropolis_security_room_80183118 },
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 271, 256, 1 }, (u_long*)D_acropolis_security_room_80183318 },
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 263, 256, 1 }, (u_long*)D_acropolis_security_room_80183518 },
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, 256, 1 }, (u_long*)D_acropolis_security_room_80183718 },
+/// Uploads the left locked/released and right locked/released CLUTs, then ends the list.
+///
+/// Widths count 16-bit VRAM words; each destination is one complete palette
+/// row at X zero. Pixel casts provide two colours per packed GPU word. The
+/// buffers must remain loaded and unchanged until queued transfers finish.
+static GpuImageUpload _gAcropolisSecurityRoomLockIndicatorClutUploads[5] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 270, ARRAY_SIZE(_gAcropolisSecurityRoomLeftLockedClut), 1 }, (u_long*)_gAcropolisSecurityRoomLeftLockedClut },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 271, ARRAY_SIZE(_gAcropolisSecurityRoomLeftReleasedClut), 1 }, (u_long*)_gAcropolisSecurityRoomLeftReleasedClut },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 263, ARRAY_SIZE(_gAcropolisSecurityRoomRightLockedClut), 1 }, (u_long*)_gAcropolisSecurityRoomRightLockedClut },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, ARRAY_SIZE(_gAcropolisSecurityRoomRightReleasedClut), 1 }, (u_long*)_gAcropolisSecurityRoomRightReleasedClut },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u16 D_acropolis_security_room_80183968[4] = {
-    5,
-    6,
-    9,
-    10,
+/// Lamp bits in palette/quad/glow order: left locked/released, right locked/released.
+enum {
+    ACROPOLIS_SECURITY_ROOM_INDICATOR_LEFT_LOCKED    = 1 << 0,
+    ACROPOLIS_SECURITY_ROOM_INDICATOR_LEFT_RELEASED  = 1 << 1,
+    ACROPOLIS_SECURITY_ROOM_INDICATOR_RIGHT_LOCKED   = 1 << 2,
+    ACROPOLIS_SECURITY_ROOM_INDICATOR_RIGHT_RELEASED = 1 << 3,
+};
+
+/// Lamp-enable masks indexed by the two released-lock bits (0..3).
+///
+/// Each lock enables exactly one of its locked/released indicators. There
+/// is no terminator; the saved released-lock value must stay in 0..3.
+static u16 _gAcropolisSecurityRoomLockIndicatorMasksByReleasedLocks[4] = {
+    [ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_NONE]  = ACROPOLIS_SECURITY_ROOM_INDICATOR_LEFT_LOCKED | ACROPOLIS_SECURITY_ROOM_INDICATOR_RIGHT_LOCKED,
+    [ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_LEFT]  = ACROPOLIS_SECURITY_ROOM_INDICATOR_LEFT_RELEASED | ACROPOLIS_SECURITY_ROOM_INDICATOR_RIGHT_LOCKED,
+    [ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_RIGHT] = ACROPOLIS_SECURITY_ROOM_INDICATOR_LEFT_LOCKED | ACROPOLIS_SECURITY_ROOM_INDICATOR_RIGHT_RELEASED,
+    [ACROPOLIS_SECURITY_ROOM_LOCKS_RELEASED_BOTH]  = ACROPOLIS_SECURITY_ROOM_INDICATOR_LEFT_RELEASED | ACROPOLIS_SECURITY_ROOM_INDICATOR_RIGHT_RELEASED,
 };
 
 /// Palette row, texture quadrant and screen centre of the four lock-status lamps.
@@ -710,8 +752,13 @@ static EffectUnitQuadCorner _gAcropolisSecurityRoomFallingQuadUnitCorners[4] = {
     { 1, -1 },
 };
 
-WorldCollisionRoomResources D_acropolis_security_room_801839D0[1] = {
-    { &_gAcropolisSecurityRoomCollisionGrid, _gAcropolisSecurityRoomViewBoundaryTriggers, D_acropolis_security_room_80183EE8, NULL },
+WorldCollisionRoomResources gAcropolisSecurityRoomRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gAcropolisSecurityRoomCollisionGrid,
+        .viewBoundaryTriggers = _gAcropolisSecurityRoomViewBoundaryTriggers,
+        .actionTriggers       = _gAcropolisSecurityRoomActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* gAcropolisSecurityRoomViewMaps[1] = {
@@ -724,8 +771,28 @@ WorldCoordRoomLighting gAcropolisSecurityRoomRoomLightingTable[1] = {
     { .lights = &_gAcropolisSecurityRoomLights, .ambientTable = NULL },
 };
 
-DirectionWarpEntry D_acropolis_security_room_801839F0[1] = {
-    { { { .word = 0 }, -46, -935, -2877 }, { 0, 0, 0, 0 }, { { .word = 0 }, -46, -935, -2877 }, { 0, 0, 0, 0 }, 0x51060005, 0x51060004, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 498 },
+/// Security/hallway endpoint selectors and security-side arrival presentation.
+enum {
+    ACROPOLIS_SECURITY_ROOM_WARP_HALLWAY             = 1,
+    ACROPOLIS_SECURITY_ROOM_HALLWAY_ARRIVAL_ENDPOINT = 2,
+    ACROPOLIS_SECURITY_ROOM_WARP_ENDPOINT_SHIFT      = 4,
+    ACROPOLIS_SECURITY_ROOM_WARP_INITIAL_VIEW        = 2,
+    ACROPOLIS_SECURITY_ROOM_HALLWAY_MAP_MARK_FLAG    = 0x1F2,
+};
+
+DirectionWarpEntry gAcropolisSecurityRoomWarpEntries[1] = {
+    [ACROPOLIS_SECURITY_ROOM_WARP_HALLWAY - 1] = {
+        .player         = { { .word = 0 }, -46, -935, -2877 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, -46, -935, -2877 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 5),
+        .departureSound = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 4),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = ACROPOLIS_SECURITY_ROOM_WARP_INITIAL_VIEW,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = ACROPOLIS_SECURITY_ROOM_HALLWAY_MAP_MARK_FLAG,
+    },
 };
 
 /// Room-local Q12 normals for the security-room collision mesh.
@@ -788,12 +855,25 @@ static WorldCollisionTrigger _gAcropolisSecurityRoomViewBoundaryTriggers[4] = {
     { NULL, NULL, NULL, { 0, -2208, -1024, 0 }, { { -1472, 1664, 0, 0 }, { 1472, 1664, 0, 0 }, { -1472, -1664, 0, 0 }, { 1472, -1664, 0, 0 } }, { 0, 0, 4103, 0 }, { 0, 0, 0, 0 }, 2217, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_security_room_80183EE8[5] = {
-    { NULL, NULL, NULL, { 128, -1024, -2896, 0 }, { { -544, 0, -240, 0 }, { 544, 0, -240, 0 }, { -544, 0, 240, 0 }, { 544, 0, 240, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 593, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1088, -1088, -704, 0 }, { { -464, 0, -752, 0 }, { 464, 0, -752, 0 }, { -464, 0, 752, 0 }, { 464, 0, 752, 0 } }, { 0, 4111, 0, 0 }, { 4096, 0, 0, 0 }, 882, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 192, -1088, 144, 0 }, { { -272, 0, -416, 0 }, { 272, 0, -416, 0 }, { -272, 0, 416, 0 }, { 272, 0, 416, 0 } }, { 0, 4095, 0, 0 }, { -4097, 0, -27, 0 }, 496, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -448, -1056, 1568, 0 }, { { -784, 0, -272, 0 }, { 784, 0, -272, 0 }, { -784, 0, 272, 0 }, { 784, 0, 272, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 829, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 0, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -880, -1056, -2880, 0 }, { { -432, 0, -304, 0 }, { 432, 0, -304, 0 }, { -432, 0, 304, 0 }, { 432, 0, 304, 0 } }, { 0, 4096, 0, 0 }, { 1189, 0, 3920, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Slots in the loaded CAP command table and the room-action message table.
+enum {
+    ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_1  = 1,
+    ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_2  = 2,
+    ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_10 = 10,
+    ACROPOLIS_SECURITY_ROOM_TRIGGER_MONITOR_ACTION = 0,
+};
+
+/// Facing quads for hallway departure, CAP commands 1/2, monitor use and CAP command 10.
+///
+/// Origins, vertices and radii use room-coordinate units; normals use ONE
+/// per unit. Activation binds coordinates and links/enables all five records,
+/// including the LAST-marked final quad. Keep storage loaded until unlinked.
+static WorldCollisionTrigger _gAcropolisSecurityRoomActionTriggers[5] = {
+    { NULL, NULL, NULL, { 128, -1024, -2896, 0 }, { { -544, 0, -240, 0 }, { 544, 0, -240, 0 }, { -544, 0, 240, 0 }, { 544, 0, 240, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 593, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_HALLWAY, (ACROPOLIS_SECURITY_ROOM_WARP_HALLWAY << ACROPOLIS_SECURITY_ROOM_WARP_ENDPOINT_SHIFT) | ACROPOLIS_SECURITY_ROOM_HALLWAY_ARRIVAL_ENDPOINT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1088, -1088, -704, 0 }, { { -464, 0, -752, 0 }, { 464, 0, -752, 0 }, { -464, 0, 752, 0 }, { 464, 0, 752, 0 } }, { 0, 4111, 0, 0 }, { ONE, 0, 0, 0 }, 882, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 192, -1088, 144, 0 }, { { -272, 0, -416, 0 }, { 272, 0, -416, 0 }, { -272, 0, 416, 0 }, { 272, 0, 416, 0 } }, { 0, 4095, 0, 0 }, { -4097, 0, -27, 0 }, 496, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -448, -1056, 1568, 0 }, { { -784, 0, -272, 0 }, { 784, 0, -272, 0 }, { -784, 0, 272, 0 }, { 784, 0, 272, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ONE, 0 }, 829, WORLD_COLLISION_TRIGGER_ACTION_ROOM, ACROPOLIS_SECURITY_ROOM_TRIGGER_MONITOR_ACTION, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -880, -1056, -2880, 0 }, { { -432, 0, -304, 0 }, { 432, 0, -304, 0 }, { -432, 0, 304, 0 }, { 432, 0, 304, 0 } }, { 0, ONE, 0, 0 }, { 1189, 0, 3920, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_SECURITY_ROOM_TRIGGER_CAP_COMMAND_10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Rupert and SWAT resource recipes for the default security-room placement variant.
@@ -806,11 +886,11 @@ static AreaResource _gAcropolisSecurityRoomActorResources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_acropolis_security_room_80184088[4] = {
-    { NULL, NULL },
-    { gMapAkropolisSecurityRoomVariant1Placements, _gAcropolisSecurityRoomActorResources },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gAcropolisSecurityRoomAreaVariants[4] = {
+    { .placements = NULL, .resources = NULL },
+    { .placements = gMapAkropolisSecurityRoomVariant1Placements, .resources = _gAcropolisSecurityRoomActorResources },
+    { .placements = NULL, .resources = NULL },
+    { .placements = NULL, .resources = NULL },
 };
 
 /// The security room's three white point lights, contributing in every view.
@@ -1161,29 +1241,47 @@ ViewCamera gAcropolisSecurityRoomViewCameras[ACROPOLIS_SECURITY_ROOM_VIEW_COUNT]
     { { { { 3982, 0, 958 }, { -16, 4095, 69 }, { -958, -71, 3981 } }, { -1500, 1380, 7850 } }, 225 },
 };
 
-AreaApplyRec D_acropolis_security_room_80184F50[10] = {
-    { 1, 8, 2, 17 },
-    { 1, 8, 7, 33 },
-    { 1, 9, 4, 16 },
-    { 1, 9, 8, 32 },
-    { 1, 10, 3, 0 },
-    { 1, 11, 3, 17 },
-    { 1, 11, 8, 33 },
-    { 1, 13, 2, 17 },
-    { 1, 13, 8, 33 },
-    { 255, 0, 0, 0 },
+/// Nonzero low policy nibble requests the saved area's map mark.
+enum { ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK = 1 };
+
+/// Saved-area layouts and map marks committed when the right lock releases.
+///
+/// Fountain, promenade and roof garden set their map marks; forked road and
+/// observatory clear them. Paired layouts select normal/replay plus Scavenger,
+/// or Bounty plus Nightmare. Observatory layout 3 applies in every mode.
+/// The tenth entry ends the synchronous update walk.
+static AreaApplyRec _gAcropolisSecurityRoomRightUnlockAreaUpdates[10] = {
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 2, AREA_APPLY_MODE_REPLAY_SCAVENGER | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 4, AREA_APPLY_MODE_REPLAY_SCAVENGER },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FORKED_ROAD, 8, AREA_APPLY_MODE_BOUNTY_NIGHTMARE },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_OBSERVATORY, 3, AREA_APPLY_MODE_ALWAYS },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 3, AREA_APPLY_MODE_REPLAY_SCAVENGER | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 8, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 2, AREA_APPLY_MODE_REPLAY_SCAVENGER | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
+    { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 8, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | ACROPOLIS_SECURITY_ROOM_AREA_UPDATE_SET_MAP_MARK },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
-AreaApplyRec D_acropolis_security_room_80184F78[1] = {
-    { 255, 0, 0, 0 },
+/// Empty right-unlock update list for follow-up story progress below 3.
+///
+/// The end marker is checked before any area lookup, so applying it does nothing.
+static AreaApplyRec _gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates[1] = {
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
-AreaApplyRec D_acropolis_security_room_80184F7C[1] = {
-    { 255, 0, 0, 0 },
+/// Empty right-unlock update list for follow-up story progress at least 3.
+///
+/// The end marker is checked before any area lookup, so applying it does nothing.
+static AreaApplyRec _gAcropolisSecurityRoomRightUnlockLateStoryAreaUpdates[1] = {
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
-AreaApplyRec D_acropolis_security_room_80184F80[1] = {
-    { 255, 0, 0, 0 },
+/// Empty saved-area update list applied by every successful left-lock release.
+///
+/// The end marker is checked before any area lookup, so applying it does nothing.
+static AreaApplyRec _gAcropolisSecurityRoomLeftUnlockAreaUpdates[1] = {
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 /// Cue-2 entries in the loaded type-1 bank; cue 1 uses the following entry.
@@ -1271,7 +1369,12 @@ TmdSource gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 = {
 
 Task* D_acropolis_security_room_801855A8;
 
-Task* D_acropolis_security_room_801855AC;
+/// Borrowed live power-supply panel handle used to forward room key-item messages.
+///
+/// NULL while absent. The opener publishes the spawn result, polls completion
+/// to release the task and its work, then clears this handle. Room-message
+/// registration also clears it; no receiver may retain it past completion.
+static Task* _gAcropolisSecurityRoomPowerSupplyTask;
 
 SVECTOR ActorContact_ScratchPosition;
 
@@ -1298,7 +1401,7 @@ static s32 _acropolisSecurityRoomForwardKeyItemUse(Task* task, s32 messageId, s3
     Task* panelTask;
     s32   useResult;
 
-    panelTask = D_acropolis_security_room_801855AC;
+    panelTask = _gAcropolisSecurityRoomPowerSupplyTask;
     if (panelTask == NULL) {
         useResult = ROOM_KEY_ITEM_USE_REFUSED;
     } else {
@@ -1320,7 +1423,7 @@ static s32 _acropolisSecurityRoomHandleCommand(Task* task, s32 messageId, s32 co
     };
 
     if (commandId == ACROPOLIS_SECURITY_ROOM_COMMAND_POWER_SUPPLY) {
-        taskSpawnFromTable(D_acropolis_security_room_80182618, ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_OPENER, 0, 0);
+        taskSpawnFromTable(_gAcropolisSecurityRoomPanelOpenerTaskDescs, ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_OPENER, 0, 0);
     }
     return 0;
 }
@@ -1338,13 +1441,15 @@ static s32 _acropolisSecurityRoomHandleAction(Task* task, s32 messageId, const D
     };
 
     if (request->actionId == ACROPOLIS_SECURITY_ROOM_ACTION_MONITOR) {
-        taskSpawnFromTable(D_acropolis_security_room_80182618, ACROPOLIS_SECURITY_ROOM_MONITOR_OPENER, 0, 0);
+        taskSpawnFromTable(_gAcropolisSecurityRoomPanelOpenerTaskDescs, ACROPOLIS_SECURITY_ROOM_MONITOR_OPENER, 0, 0);
     }
     return;
 }
-/// State table of the room's message task: register the room's message table,
-/// idle, then kill the task.
-static const TaskFuncTable3 D_acropolis_security_room_8017D5C4 = { {
+/// Room-message task states 0..2: register the receiver, idle and retire it.
+///
+/// Copied by value before unchecked dispatch. State must stay in 0..2 and
+/// this overlay's callback code must remain loaded through dispatch.
+static const TaskFuncTable3 _gAcropolisSecurityRoomMessageStates = { {
     _acropolisSecurityRoomRegisterRoomMessages,
     _acropolisSecurityRoomMessageIdle,
     taskKill,
@@ -1398,18 +1503,18 @@ static void _acropolisSecurityRoomOpenPowerSupplyTask(Task* task)
     switch (task->state) {
         case ACROPOLIS_SECURITY_ROOM_PANEL_OPENER_STATE_START:
             printf(PowerSupplyMsg);
-            D_acropolis_security_room_801855AC = taskSpawn(ACROPOLIS_SECURITY_ROOM_PANEL_TASK_BANK, ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_TASK, 0, 0);
+            _gAcropolisSecurityRoomPowerSupplyTask = taskSpawn(ACROPOLIS_SECURITY_ROOM_PANEL_TASK_BANK, ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_TASK, 0, 0);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE);
             task->state = task->state + 1;
             return;
         case ACROPOLIS_SECURITY_ROOM_PANEL_OPENER_STATE_WAIT:
-            if (taskPollKill(D_acropolis_security_room_801855AC, &panelResult) != 0) {
+            if (taskPollKill(_gAcropolisSecurityRoomPowerSupplyTask, &panelResult) != 0) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-                D_acropolis_security_room_801855AC = NULL;
+                _gAcropolisSecurityRoomPowerSupplyTask = NULL;
                 taskKill(task);
             }
             return;
@@ -1421,10 +1526,10 @@ static void _acropolisSecurityRoomOpenPowerSupplyTask(Task* task)
 /// Entry state of the room task; advances to its persistent idle state.
 static void _acropolisSecurityRoomRegisterRoomMessages(Task* task)
 {
-    task->msgTable = D_acropolis_security_room_801825DC;
+    task->msgTable = _gAcropolisSecurityRoomRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state                        = task->state + 1;
-    D_acropolis_security_room_801855AC = NULL;
+    task->state                            = task->state + 1;
+    _gAcropolisSecurityRoomPowerSupplyTask = NULL;
 }
 
 /// Keeps the room-message task alive and available to receive messages.
@@ -1432,10 +1537,11 @@ static void _acropolisSecurityRoomMessageIdle(Task* task)
 {
 }
 
-/// States of the security-monitor task, dispatched by
-/// `acropolisSecurityRoomMonitorTask`: set up the work block, run the
-/// camera list, redraw the panel, confirm a camera, and leave the monitor.
-static const TaskFuncTable7 D_acropolis_security_room_8017D5EC = { {
+/// Monitor-panel states 0..6: setup, arm, scan, open/handle commands, close, restricted scan.
+///
+/// Copied by value before unchecked dispatch. State must stay in 0..6 and
+/// the room overlay must remain loaded while the panel and cursor live.
+static const TaskFuncTable7 _gAcropolisSecurityRoomMonitorStates = { {
     _acropolisSecurityRoomMonitorInit,
     _acropolisSecurityRoomMonitorArmCursor,
     _acropolisSecurityRoomMonitorScanHotspots,
@@ -1449,7 +1555,7 @@ void acropolisSecurityRoomMessageTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_acropolis_security_room_8017D5C4;
+    handlers = _gAcropolisSecurityRoomMessageStates;
     handlers.funcs[task->state](task);
 }
 
@@ -1479,14 +1585,14 @@ static void _acropolisSecurityRoomMonitorInit(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer = taskSpawnFromTable(&D_acropolis_security_room_8018263C, 0, 1, 0);
+    task->spawnArg2.pointer = taskSpawnFromTable(&_gAcropolisSecurityRoomMonitorCursorTaskDesc, 0, 1, 0);
     task->work              = work;
     work->sweepTimer        = 0;
     detentIndex             = gameFlagGetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA);
     if ((u16)detentIndex < ACROPOLIS_SECURITY_ROOM_SCREEN_DETENT_COUNT) {
-        work->screenLevel = D_acropolis_security_room_801826B4[detentIndex];
+        work->screenLevel = _gAcropolisSecurityRoomMonitorWashDetents[detentIndex];
     } else {
-        work->screenLevel = D_acropolis_security_room_801826B4[0];
+        work->screenLevel = _gAcropolisSecurityRoomMonitorWashDetents[0];
     }
     if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) < ACROPOLIS_SECURITY_ROOM_MONITOR_ROUTE_RESTRICTED) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_MONITOR_INITIAL_VIEW;
@@ -1500,7 +1606,7 @@ static void _acropolisSecurityRoomMonitorInit(Task* task)
     gGameSession->hideHud      = 1;
     gGameSession->cutsceneHold = 1;
     gGameSession->eventState   = 1;
-    hotspot                    = D_acropolis_security_room_80182648;
+    hotspot                    = _gAcropolisSecurityRoomMonitorHotspots;
     if (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
         do {
             hotspot->hit = 0;
@@ -1520,7 +1626,7 @@ static void _acropolisSecurityRoomMonitorScanHotspots(Task* task)
     ActionPromptHotspot*               hotspot;
     ActionPrompt*                      prompt;
 
-    hotspot = D_acropolis_security_room_80182648;
+    hotspot = _gAcropolisSecurityRoomMonitorHotspots;
     prompt  = gActionPromptSlots;
     work    = task->work;
     _acropolisSecurityRoomDrawMonitorWash(work->screenLevel - ACROPOLIS_SECURITY_ROOM_MONITOR_SCREEN_BIAS);
@@ -1854,7 +1960,7 @@ static inline void _acropolisSecurityRoomSaveScreenLevel(s32 screenLevel)
     s32 detentIndex;
 
     for (detentIndex = 0; detentIndex < ACROPOLIS_SECURITY_ROOM_SCREEN_DETENT_COUNT; detentIndex++) {
-        if (screenLevel == D_acropolis_security_room_801826B4[detentIndex]) {
+        if (screenLevel == _gAcropolisSecurityRoomMonitorWashDetents[detentIndex]) {
             gameFlagSetNibble(GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA, detentIndex);
             return;
         }
@@ -1894,7 +2000,7 @@ static void _acropolisSecurityRoomMonitorScanRestrictedHotspots(Task* task)
 {
     enum { ACROPOLIS_SECURITY_ROOM_MONITOR_RESTRICTED_CAP_COMMAND = 14 };
     ActionPrompt*        prompt  = gActionPromptSlots;
-    ActionPromptHotspot* hotspot = D_acropolis_security_room_80182648;
+    ActionPromptHotspot* hotspot = _gAcropolisSecurityRoomMonitorHotspots;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -1926,8 +2032,12 @@ static void _acropolisSecurityRoomMonitorScanRestrictedHotspots(Task* task)
 
 #include "../../shared/action_prompt_hit_test.inc.c"
 
-/// The sixteen state handlers of the room's cap script.
-static const TaskFuncTable16 D_acropolis_security_room_8017D63C = { {
+/// Power-supply states: panel interaction 0..5, left release 6..9, right release 10..15.
+///
+/// The left lock consumes the blue key; the right consumes the red key.
+/// Copied by value before unchecked dispatch, requiring state 0..15 and
+/// the room overlay loaded throughout the panel and its children's lifetimes.
+static const TaskFuncTable16 _gAcropolisSecurityRoomPowerSupplyStates = { {
     _acropolisSecurityRoomPowerSupplyInit,
     _acropolisSecurityRoomPowerSupplyArmCursor,
     _acropolisSecurityRoomPowerSupplyScanHotspots,
@@ -1950,7 +2060,7 @@ void acropolisSecurityRoomMonitorTask(Task* task)
 {
     TaskFuncTable7 handlers;
 
-    handlers = D_acropolis_security_room_8017D5EC;
+    handlers = _gAcropolisSecurityRoomMonitorStates;
     handlers.funcs[task->state](task);
 }
 
@@ -1964,7 +2074,7 @@ void acropolisSecurityRoomMonitorTask(Task* task)
 static void _acropolisSecurityRoomPowerSupplyScanHotspots(Task* task)
 {
     ActionPrompt*                          prompt  = gActionPromptSlots;
-    ActionPromptHotspot*                   hotspot = D_acropolis_security_room_801826DC;
+    ActionPromptHotspot*                   hotspot = _gAcropolisSecurityRoomPowerSupplyHotspots;
     _AcropolisSecurityRoomPowerSupplyWork* work    = task->work;
 
     gGameSession->hideHud    = 1;
@@ -2019,7 +2129,7 @@ static inline void _acropolisSecurityRoomPowerSupplyBeginLeftUnlock(Task* task, 
     work->usedKey = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_KEY_NONE;
     task->state   = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_STATE_FADE_LEFT;
     padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET, PAD_INPUT_SUPPRESS_GAMEPLAY);
-    areaApplySavedUpdates(D_acropolis_security_room_80184F80);
+    areaApplySavedUpdates(_gAcropolisSecurityRoomLeftUnlockAreaUpdates);
     taskKill(task->spawnArg2.pointer);
 }
 
@@ -2078,11 +2188,11 @@ static inline void _acropolisSecurityRoomPowerSupplyBeginRightUnlock(Task* task,
     task->state              = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_STATE_FADE_RIGHT;
     gGameSession->eventState = 1;
     padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET, PAD_INPUT_SUPPRESS_GAMEPLAY);
-    areaApplySavedUpdates(D_acropolis_security_room_80184F50);
+    areaApplySavedUpdates(_gAcropolisSecurityRoomRightUnlockAreaUpdates);
     if (gameFlagGetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE) < ACROPOLIS_SECURITY_ROOM_FOLLOW_UP_UPDATE_SPLIT) {
-        areaApplySavedUpdates(D_acropolis_security_room_80184F78);
+        areaApplySavedUpdates(_gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates);
     } else {
-        areaApplySavedUpdates(D_acropolis_security_room_80184F7C);
+        areaApplySavedUpdates(_gAcropolisSecurityRoomRightUnlockLateStoryAreaUpdates);
     }
     taskKill(task->spawnArg2.pointer);
 }
@@ -2172,8 +2282,8 @@ static void _acropolisSecurityRoomPowerSupplyInit(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_acropolis_security_room_801826C0, 0, 1, 0);
-    task->msgTable                                             = D_acropolis_security_room_801826CC;
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&_gAcropolisSecurityRoomPowerSupplyCursorTaskDesc, 0, 1, 0);
+    task->msgTable                                             = _gAcropolisSecurityRoomPowerSupplyMessages;
     task->work                                                 = work;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_VIEW;
     task->state++;
@@ -2184,7 +2294,7 @@ static void _acropolisSecurityRoomPowerSupplyInit(Task* task)
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
     displayAcquireMenuHold();
-    for (hotspot = D_acropolis_security_room_801826DC; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+    for (hotspot = _gAcropolisSecurityRoomPowerSupplyHotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
         hotspot->hit = 0;
     }
 }
@@ -2382,7 +2492,7 @@ static void _acropolisSecurityRoomPowerSupplyStartRightUnlock(Task* task)
     _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
 
     if (work->timer == ACROPOLIS_SECURITY_ROOM_UNLOCK_START_DELAY_FRAMES) {
-        work->sceneTask = taskSpawnFromTable(D_acropolis_security_room_80182700, ACROPOLIS_SECURITY_ROOM_RIGHT_UNLOCK_SCENE_TASK, 0, 0);
+        work->sceneTask = taskSpawnFromTable(_gAcropolisSecurityRoomUnlockSceneTaskDescs, ACROPOLIS_SECURITY_ROOM_RIGHT_UNLOCK_SCENE_TASK, 0, 0);
         task->state     = task->state + 1;
     }
     work->timer = work->timer + 1;
@@ -2483,7 +2593,7 @@ static void _acropolisSecurityRoomPowerSupplyStartLeftUnlock(Task* task)
     _AcropolisSecurityRoomPowerSupplyWork* work = task->work;
 
     if (work->timer == ACROPOLIS_SECURITY_ROOM_UNLOCK_START_DELAY_FRAMES) {
-        work->sceneTask = taskSpawnFromTable(D_acropolis_security_room_80182700, ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_SCENE_TASK, 0, 0);
+        work->sceneTask = taskSpawnFromTable(_gAcropolisSecurityRoomUnlockSceneTaskDescs, ACROPOLIS_SECURITY_ROOM_LEFT_UNLOCK_SCENE_TASK, 0, 0);
         task->state     = task->state + 1;
     }
     work->timer = work->timer + 1;
@@ -2526,7 +2636,7 @@ void acropolisSecurityRoomPowerSupplyTask(Task* task)
 {
     TaskFuncTable16 handlers;
 
-    handlers = D_acropolis_security_room_8017D63C;
+    handlers = _gAcropolisSecurityRoomPowerSupplyStates;
     handlers.funcs[task->state](task);
 }
 
@@ -2646,36 +2756,36 @@ void acropolisSecurityRoomMonitorFeedsTask(Task* task)
     coord = task->extra.coordBody->coord;
 
     switch (task->state) {
-        // Seed all four screen CLUTs with the unlit palette before their first draw.
+        // Seed all four lamp CLUTs with the black source before their first draw.
         case ACROPOLIS_SECURITY_ROOM_FEEDS_STATE_INIT: {
-            u16* offPalette     = D_acropolis_security_room_80182718;
-            u16* litPalette     = D_acropolis_security_room_80182918;
-            u16* blendedPalette = D_acropolis_security_room_80183118;
+            const u16* offPalette     = _gAcropolisSecurityRoomLockIndicatorOffPalette;
+            const u16* litPalette     = _gAcropolisSecurityRoomLeftLockedPalette;
+            u16*       blendedPalette = _gAcropolisSecurityRoomLeftLockedClut;
 
             ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
-            litPalette     = D_acropolis_security_room_80182B18;
-            blendedPalette = D_acropolis_security_room_80183318;
+            litPalette     = _gAcropolisSecurityRoomLeftReleasedPalette;
+            blendedPalette = _gAcropolisSecurityRoomLeftReleasedClut;
             ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
-            litPalette     = D_acropolis_security_room_80182D18;
-            blendedPalette = D_acropolis_security_room_80183518;
+            litPalette     = _gAcropolisSecurityRoomRightLockedPalette;
+            blendedPalette = _gAcropolisSecurityRoomRightLockedClut;
             ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
-            litPalette     = D_acropolis_security_room_80182F18;
-            blendedPalette = D_acropolis_security_room_80183718;
+            litPalette     = _gAcropolisSecurityRoomRightReleasedPalette;
+            blendedPalette = _gAcropolisSecurityRoomRightReleasedClut;
             ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, 0, blendedPalette);
-            gpuUploadImages(D_acropolis_security_room_80183918);
+            gpuUploadImages(_gAcropolisSecurityRoomLockIndicatorClutUploads);
             task->state = task->state + 1;
             break;
         }
 
         case ACROPOLIS_SECURITY_ROOM_FEEDS_STATE_UPDATE:
-            work->index = D_acropolis_security_room_80183968[gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED)];
+            work->index = _gAcropolisSecurityRoomLockIndicatorMasksByReleasedLocks[gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED)];
             if ((viewGetMappedIndex() & 0xFF) == ACROPOLIS_SECURITY_ROOM_FEEDS_PICTURE_VIEW) {
-                u16* litPalette     = D_acropolis_security_room_80182918;
-                u16* offPalette     = D_acropolis_security_room_80182718;
-                u16* blendedPalette = D_acropolis_security_room_80183118;
-                s32  brightnessLimit;
+                const u16* litPalette     = _gAcropolisSecurityRoomLeftLockedPalette;
+                const u16* offPalette     = _gAcropolisSecurityRoomLockIndicatorOffPalette;
+                u16*       blendedPalette = _gAcropolisSecurityRoomLeftLockedClut;
+                s32        brightnessLimit;
 
-                // Brighten active feeds and alternate the ceiling by one brightness step.
+                // Brighten active lamps and alternate the ceiling by one brightness step.
                 brightnessLimit = ONE - ((gDisplayState.animFrame & 1) << ACROPOLIS_SECURITY_ROOM_FEEDS_BRIGHTNESS_STEP_SHIFT);
                 work->scale     = (work->index & ACROPOLIS_SECURITY_ROOM_FEEDS_FEED_0_MASK) ? ((work->scale < brightnessLimit) ? work->scale + ACROPOLIS_SECURITY_ROOM_FEEDS_BRIGHTNESS_STEP : brightnessLimit) : 0;
                 work->angle     = (work->index & ACROPOLIS_SECURITY_ROOM_FEEDS_FEED_1_MASK) ? ((work->angle < brightnessLimit) ? work->angle + ACROPOLIS_SECURITY_ROOM_FEEDS_BRIGHTNESS_STEP : brightnessLimit) : 0;
@@ -2683,16 +2793,16 @@ void acropolisSecurityRoomMonitorFeedsTask(Task* task)
                 work->step      = (work->index & ACROPOLIS_SECURITY_ROOM_FEEDS_FEED_3_MASK) ? ((work->step < brightnessLimit) ? work->step + ACROPOLIS_SECURITY_ROOM_FEEDS_BRIGHTNESS_STEP : brightnessLimit) : 0;
 
                 ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, work->scale, blendedPalette);
-                litPalette     = D_acropolis_security_room_80182B18;
-                blendedPalette = D_acropolis_security_room_80183318;
+                litPalette     = _gAcropolisSecurityRoomLeftReleasedPalette;
+                blendedPalette = _gAcropolisSecurityRoomLeftReleasedClut;
                 ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, work->angle, blendedPalette);
-                litPalette     = D_acropolis_security_room_80182D18;
-                blendedPalette = D_acropolis_security_room_80183518;
+                litPalette     = _gAcropolisSecurityRoomRightLockedPalette;
+                blendedPalette = _gAcropolisSecurityRoomRightLockedClut;
                 ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, work->period, blendedPalette);
-                litPalette     = D_acropolis_security_room_80182F18;
-                blendedPalette = D_acropolis_security_room_80183718;
+                litPalette     = _gAcropolisSecurityRoomRightReleasedPalette;
+                blendedPalette = _gAcropolisSecurityRoomRightReleasedClut;
                 ACROPOLIS_SECURITY_ROOM_BLEND_MONITOR_PALETTE(colorIndex, litPalette, offPalette, work->step, blendedPalette);
-                gpuUploadImages(D_acropolis_security_room_80183918);
+                gpuUploadImages(_gAcropolisSecurityRoomLockIndicatorClutUploads);
 
                 // Lamp quads are one-frame children; respawn all four after uploading their CLUTs.
                 for (feedIndex = 0; feedIndex < ARRAY_SIZE(_gAcropolisSecurityRoomLockIndicatorQuads); feedIndex++) {

@@ -44078,7 +44078,7 @@ When an `if`/`else` picks between two static symbols and passes the result to
 one call, writing it as a temporary
 
 ```c
-if (cond) { recs = D_80184F78; } else { recs = D_80184F7C; }
+if (cond) { recs = _gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates; } else { recs = _gAcropolisSecurityRoomRightUnlockLateStoryAreaUpdates; }
 areaApplySavedUpdates(recs);
 ```
 
@@ -44086,8 +44086,8 @@ gives GCC 2.8.1 a pseudo-register for the address, and the pseudo is copied into
 the argument register at the join:
 
 ```
-lui   v0,%hi(D_80184F78)
-addiu a0,v0,%lo(D_80184F78)
+lui   v0,%hi(_gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates)
+addiu a0,v0,%lo(_gAcropolisSecurityRoomRightUnlockEarlyStoryAreaUpdates)
 ```
 
 The target instead forms the address directly in `$a0`
@@ -51819,7 +51819,7 @@ Occasionally the `.rodata` block is one word longer than what the function
 copies — seven `lw`/`sw` pairs, but eight words in the data, the last one zero:
 
 ```
-dlabel D_acropolis_security_room_8017D5EC
+dlabel _gAcropolisSecurityRoomMonitorStates
     .word func_..._8017D9DC     /* 7 handlers */
     ...
     .word 0x00000000            /* copied by nobody */
@@ -51834,10 +51834,10 @@ a plain seven-entry `TaskFuncTable7`, and the eighth word appears by itself once
 the table and the jump table are emitted from the same object:
 
 ```c
-static const TaskFuncTable7 D_acropolis_security_room_8017D5EC = { { f0, ..., f6 } };
+static const TaskFuncTable7 _gAcropolisSecurityRoomMonitorStates = { { f0, ..., f6 } };
 
 TaskFuncTable7 sp;
-sp = D_acropolis_security_room_8017D5EC;   /* 28 bytes; the pad word follows */
+sp = _gAcropolisSecurityRoomMonitorStates;   /* 28 bytes; the pad word follows */
 sp.funcs[task->state](task);
 ```
 
@@ -52091,12 +52091,12 @@ rather than between two of them.
 **Problem.** `acropolisSecurityRoomMonitorFeedsTask` runs four `for (colorIndex = 0; colorIndex <
 0x100; colorIndex += 0x10)` loops in a row, each blending one CLUT against the same
 unlit palette. Written with the arrays named directly —
-`gpuBlendRgb555ClutRow(&D_80182918[colorIndex], &D_80182718[colorIndex], 0, &D_80183118[colorIndex])` — every
-loop preheader re-materialises `&D_80182718` with its own `lui` / `addiu`
+`gpuBlendRgb555ClutRow(&_gAcropolisSecurityRoomLeftLockedPalette[colorIndex], &_gAcropolisSecurityRoomLockIndicatorOffPalette[colorIndex], 0, &_gAcropolisSecurityRoomLeftLockedClut[colorIndex])` — every
+loop preheader re-materialises `&_gAcropolisSecurityRoomLockIndicatorOffPalette` with its own `lui` / `addiu`
 (75.8%). The target computes it once and starts each preheader with
 `move $s2, $s4`.
 
-**Cause.** With a bare `&D_80182718[colorIndex]` the address is a constant *inside* the
+**Cause.** With a bare `&_gAcropolisSecurityRoomLockIndicatorOffPalette[colorIndex]` the address is a constant *inside* the
 address expression, so strength reduction initialises the giv from the constant
 itself and there is no invariant pseudo left to share; each loop gets its own
 `lui`/`addiu`. Give the base a pointer local and the giv is initialised from a
@@ -52108,15 +52108,15 @@ back into inline `lui`/`addiu` — which is why only the shared base shows a
 `move`.
 
 ```c
-u16* offPalette     = D_acropolis_security_room_80182718;
-u16* litPalette     = D_acropolis_security_room_80182918;
-u16* blendedPalette = D_acropolis_security_room_80183118;
+u16* offPalette     = _gAcropolisSecurityRoomLockIndicatorOffPalette;
+u16* litPalette     = _gAcropolisSecurityRoomLeftLockedPalette;
+u16* blendedPalette = _gAcropolisSecurityRoomLeftLockedClut;
 
 for (colorIndex = 0; colorIndex < 0x100; colorIndex += 0x10) {
     gpuBlendRgb555ClutRow(&litPalette[colorIndex], &offPalette[colorIndex], 0, &blendedPalette[colorIndex]);
 }
-litPalette     = D_acropolis_security_room_80182B18;
-blendedPalette = D_acropolis_security_room_80183318;
+litPalette     = _gAcropolisSecurityRoomLeftReleasedPalette;
+blendedPalette = _gAcropolisSecurityRoomLeftReleasedClut;
 for (colorIndex = 0; colorIndex < 0x100; colorIndex += 0x10) {
     gpuBlendRgb555ClutRow(&litPalette[colorIndex], &offPalette[colorIndex], 0, &blendedPalette[colorIndex]);
 }
@@ -52124,7 +52124,7 @@ for (colorIndex = 0; colorIndex < 0x100; colorIndex += 0x10) {
 
 **The same base in two hard registers means two variables.** This function
 blends the same four palettes in `case 0` and again in `case 1`, and the target
-holds `&D_80182718` in `$s4` for one and `$s6` for the other. One C variable is
+holds `&_gAcropolisSecurityRoomLockIndicatorOffPalette` in `$s4` for one and `$s6` for the other. One C variable is
 one pseudo and gets one hard register for the whole function, so a single
 `offPalette` declared at function scope cannot produce that. Declaring it inside each
 `case` / `if` block gives two pseudos and the two registers fall out. Whenever
@@ -52390,10 +52390,10 @@ it non-`static` and `extern`-declare it in the new unit:
 ```c
 /* unit 1 - owns .rodata 0x2C..0x4C, so this must be emitted even though
    nothing in this file reads it any more. */
-const AsrMonitorStateTable AsrMonitorStates = { ... };
+const TaskFuncTable7 _gAcropolisSecurityRoomMonitorStates = { ... };
 
 /* unit 2 */
-extern const AsrMonitorStateTable AsrMonitorStates;
+extern const TaskFuncTable7 _gAcropolisSecurityRoomMonitorStates;
 ```
 
 The codegen is unchanged: `%hi`/`%lo` of a global resolves to the same address

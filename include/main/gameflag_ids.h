@@ -106,7 +106,7 @@ enum {
     /// Junk yard plays a one-shot scene once it reaches 2.
     GAME_FLAG_TRAILER_COACH_PROGRESS = 0x028,
     /// Index (0-4) into the security-room camera table
-    /// D_acropolis_security_room_801826B4 of the feed on screen when the monitor was
+    /// _gAcropolisSecurityRoomMonitorWashDetents of the feed on screen when the monitor was
     /// last left (0 if not in the table); the monitor reopens on that camera.
     GAME_FLAG_SECURITY_MONITOR_LAST_CAMERA = 0x02A,
     /// Unidentified. Set to 1 by the factory's first action-1 hotspot use (starts CAP

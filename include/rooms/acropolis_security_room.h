@@ -15,12 +15,21 @@
 /// Number of identity-mapped camera and sprite slots in the security room.
 enum { ACROPOLIS_SECURITY_ROOM_VIEW_COUNT = 16 };
 
-extern AreaVariant D_acropolis_security_room_80184088[4];
+/// Placement variants 0..3 for Acropolis area 6, indexed by saved layout variant.
+///
+/// Only variant 1 is populated: map-owned placements borrow this room's
+/// Rupert/SWAT resource recipes. Slots 0, 2 and 3 are absent. Keep both
+/// the Acropolis map and security-room overlays loaded while using the tables.
+extern AreaVariant gAcropolisSecurityRoomAreaVariants[4];
 
 extern TmdSource gAcropolisSecurityRoomAcropolisSanctuaryModel090F0;
 
-// acropolis_security_room
-extern WorldCollisionRoomResources D_acropolis_security_room_801839D0[];
+/// Collision resources for the security room's sole room, indexed by room minus one.
+///
+/// Borrows the mutable grid, four view boundaries and five action triggers;
+/// there are no sight occluders. Keep the room overlay loaded while its grid
+/// is active and until its triggers are unlinked.
+extern WorldCollisionRoomResources gAcropolisSecurityRoomRoomCollisionResources[1];
 
 /// Logical-view maps for the security room's sole room.
 ///
@@ -39,7 +48,13 @@ extern ViewCount gAcropolisSecurityRoomViewCounts[1];
 /// ambient minima. Keep the room overlay loaded during lighting queries.
 extern WorldCoordRoomLighting gAcropolisSecurityRoomRoomLightingTable[1];
 
-extern DirectionWarpEntry D_acropolis_security_room_801839F0[];
+/// Single hallway warp endpoint, selected by one-based warp ID 1.
+///
+/// Player and companion arrive at world (-46,-935,-2877), yaw zero in
+/// 4096-units-per-turn angles, and view 2. The paired hallway arrival slot
+/// is 2; both ends use the same doorway map marker. Lookup and complete-entry
+/// copies require the room overlay loaded; this table has no terminator.
+extern DirectionWarpEntry gAcropolisSecurityRoomWarpEntries[1];
 
 /// Sprite sources and batches for security-room mapped views 1..16.
 ///
