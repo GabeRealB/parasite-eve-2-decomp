@@ -181,7 +181,7 @@ gM4a1RifleModel = 0x8011DEC4; // absolute:True owner=m4a1
 gGrenadePistolWeaponModel = 0x8011E28C; // absolute:True owner=grenade_pistol
 D_tonfa_baton_8011E460 = 0x8011E460; // absolute:True owner=tonfa_baton
 gMm1WeaponModel = 0x8011E494; // absolute:True owner=mm1
-D_p229_8011E5E4 = 0x8011E5E4; // absolute:True owner=p229
+gP229WeaponModel = 0x8011E5E4; // absolute:True owner=p229
 D_tonfa_baton_8011E5EC = 0x8011E5EC; // absolute:True owner=tonfa_baton
 gM4a1BayonetWeaponModel = 0x8011E9FC; // absolute:True owner=m4a1_bayonet
 gM4a1GrenadeWeaponModel = 0x8011EA2C; // absolute:True owner=m4a1_grenade

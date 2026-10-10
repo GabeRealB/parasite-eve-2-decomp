@@ -313,7 +313,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM93rWeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM950WeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_p08_8011D924 } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_p229_8011E5E4 } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gP229WeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gUnused85HeldWeaponModel } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },

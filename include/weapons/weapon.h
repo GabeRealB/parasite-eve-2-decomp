@@ -95,7 +95,13 @@ extern TmdSource gSp12Model;
 
 extern TmdSource D_tonfa_baton_8011E460;
 
-extern TmdSource D_p229_8011E5E4;
+/// Rigid P229 pistol model attached to the player's weapon hand.
+///
+/// One root part holds 30 vertices and 24 lighting normals. Model instances
+/// borrow the source, geometry and writable command stream while the P229
+/// package is loaded; release them before replacing the package. Creation
+/// resolves draw handlers in place and copies the initial root transform.
+extern TmdSource gP229WeaponModel;
 
 extern TmdSource D_tonfa_baton_8011E5EC;
 

@@ -1,4 +1,4 @@
-D_p229_8011E5E4 = 0x8011E5E4; // model named by a task descriptor
+gP229WeaponModel = 0x8011E5E4; // held pistol model
 
 p229MuzzleFlashTask = 0x8011D1DC; // type:func
 _muzzleFlashDrawCore = 0x8011D464; // type:func

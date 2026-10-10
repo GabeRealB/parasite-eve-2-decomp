@@ -43,6 +43,12 @@
 
 #include "../../shared/muzzle_flash.h"
 
+/// Pose-bank selectors used by the P229 player's translation/rotation and rotation-only tracks.
+enum {
+    P229_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    P229_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
 /// Muzzle offset of the P229, in the firing hand's coordinate frame.
 static SVECTOR _gMuzzleOffset = { 0, 0x140, 0x20, 0 };
 
@@ -180,146 +186,232 @@ void p229AttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
-static TmdBone _gP229Model01110Skeleton[1] = {
+/// Identity transform and self-parented root of the rigid held pistol.
+///
+/// Read-only asset tables retain their serialized positions in .data.
+static const TmdBone _gP229WeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/p229_model_01110_skeleton.inc"
 };
 
-static u32 _gP229Model01110PartVerts[1] = {
+/// Vertex count of the pistol's sole part, covering all 30 local vertices.
+static const u32 _gP229WeaponModelPartVerts[ARRAY_SIZE(_gP229WeaponModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/p229_model_01110_partVerts.inc"
 };
 
-static SVECTOR _gP229Model01110Verts[30] = {
+/// Pistol vertices in integer coordinates local to its single root part.
+static SVECTOR _gP229WeaponModelVerts[] = {
 #include "assets/p229_model_01110_verts.inc"
 };
 
-static SVECTOR _gP229Model01110Normals[24] = {
+/// Part-local lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gP229WeaponModelNormals[] = {
 #include "assets/p229_model_01110_normals.inc"
 };
 
-static u32 _gP229Model01110Stream[197] = {
+/// Writable draw commands for one flat textured quad, two Gouraud triangles and 24 Gouraud quads.
+///
+/// First creation resolves handler slots in place. The part group and an empty
+/// trailing group end with `TMD_STREAM_GROUP_END`, then `TMD_STREAM_END`.
+/// All packets use the directly transformed region of each primitive-buffer half.
+static u32 _gP229WeaponModelStream[] = {
 #include "assets/p229_model_01110_stream.inc"
 };
 
-TmdSource D_p229_8011E5E4 = {
-    0,
-    1368,
-    0,
-    1,
-    _gP229Model01110PartVerts,
-    _gP229Model01110Verts,
-    _gP229Model01110Normals,
-    _gP229Model01110Skeleton,
-    _gP229Model01110Stream,
+TmdSource gP229WeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = sizeof(POLY_FT4) + (2 * sizeof(POLY_GT3)) + (24 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gP229WeaponModelSkeleton),
+    .partVertexCounts    = _gP229WeaponModelPartVerts,
+    .verts               = _gP229WeaponModelVerts,
+    .normals             = _gP229WeaponModelNormals,
+    .skeleton            = _gP229WeaponModelSkeleton,
+    .stream              = _gP229WeaponModelStream,
 };
 
-static AnimationPackedPose _gP229Animation015D8Bank1[2] = {
+/// Translation/rotation poses for `_gP229PlayerIdleAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_015D8_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation015D8Bank4[8] = {
+/// Rotation-only poses for `_gP229PlayerIdleAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_015D8_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation015D8Records[76] = {
+/// Keyframe durations and loop controls for `_gP229PlayerIdleAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_015D8_records.inc"
 };
 
-static u16 _gP229Animation015D8Indices[20] = {
+/// Absolute record starts for `_gP229PlayerIdleAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_015D8_indices.inc"
 };
 
-static AnimationSet _gP229Animation015D8 = {
-    _gP229Animation015D8Records,
-    _gP229Animation015D8Indices,
-    { NULL, _gP229Animation015D8Bank1, NULL, NULL, _gP229Animation015D8Bank4, NULL, NULL, NULL },
+/// Standing player pose in the P229 bank, shared by set indices 1, 21, 22 and 41.
+///
+/// Locomotion selects set 1 when movement and turning stop. Tracks 0 and 1
+/// carry translation/rotation; tracks 2..18 carry rotation only. These tracks
+/// animate the player rig, and the package must remain loaded during playback.
+static AnimationSet _gP229PlayerIdleAnimation = {
+    .records           = _gP229PlayerIdleAnimationRecords,
+    .trackStartIndices = _gP229PlayerIdleAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerIdleAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation01C7CBank1[12] = {
+/// Translation/rotation poses for `_gP229PlayerUnarmedWalkAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerUnarmedWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_01C7C_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation01C7CBank4[151] = {
+/// Rotation-only poses for `_gP229PlayerUnarmedWalkAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerUnarmedWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_01C7C_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation01C7CRecords[218] = {
+/// Keyframe durations and loop controls for `_gP229PlayerUnarmedWalkAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerUnarmedWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_01C7C_records.inc"
 };
 
-static u16 _gP229Animation01C7CIndices[20] = {
+/// Absolute record starts for `_gP229PlayerUnarmedWalkAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerUnarmedWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_01C7C_indices.inc"
 };
 
-static AnimationSet _gP229Animation01C7C = {
-    _gP229Animation01C7CRecords,
-    _gP229Animation01C7CIndices,
-    { NULL, _gP229Animation01C7CBank1, NULL, NULL, _gP229Animation01C7CBank4, NULL, NULL, NULL },
+/// Forward player walk when the P229 bank is active but the held model is absent.
+///
+/// Locomotion selects set 19 when equipment slot 1 has no task. Tracks 0 and 1
+/// carry translation/rotation; tracks 2..18 carry rotation only. These tracks
+/// animate the player rig, and the package must remain loaded during playback.
+static AnimationSet _gP229PlayerUnarmedWalkAnimation = {
+    .records           = _gP229PlayerUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gP229PlayerUnarmedWalkAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerUnarmedWalkAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerUnarmedWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation025C8Bank1[16] = {
+/// Translation/rotation poses for `_gP229PlayerWalkAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_025C8_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation025C8Bank4[221] = {
+/// Rotation-only poses for `_gP229PlayerWalkAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_025C8_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation025C8Records[306] = {
+/// Keyframe durations and loop controls for `_gP229PlayerWalkAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_025C8_records.inc"
 };
 
-static u16 _gP229Animation025C8Indices[20] = {
+/// Absolute record starts for `_gP229PlayerWalkAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_025C8_indices.inc"
 };
 
-static AnimationSet _gP229Animation025C8 = {
-    _gP229Animation025C8Records,
-    _gP229Animation025C8Indices,
-    { NULL, _gP229Animation025C8Bank1, NULL, NULL, _gP229Animation025C8Bank4, NULL, NULL, NULL },
+/// Forward player walk with the P229 held, selected by native-bank set 2.
+///
+/// Locomotion selects it for forward movement without running while equipment
+/// slot 1 has a task. Tracks 0 and 1 carry translation/rotation; tracks 2..18
+/// carry rotation only. The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerWalkAnimation = {
+    .records           = _gP229PlayerWalkAnimationRecords,
+    .trackStartIndices = _gP229PlayerWalkAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerWalkAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation02EA0Bank1[19] = {
+/// Translation/rotation poses for `_gP229PlayerBackwardWalkAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerBackwardWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_02EA0_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation02EA0Bank4[193] = {
+/// Rotation-only poses for `_gP229PlayerBackwardWalkAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerBackwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_02EA0_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation02EA0Records[296] = {
+/// Keyframe durations and loop controls for `_gP229PlayerBackwardWalkAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerBackwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_02EA0_records.inc"
 };
 
-static u16 _gP229Animation02EA0Indices[20] = {
+/// Absolute record starts for `_gP229PlayerBackwardWalkAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerBackwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_02EA0_indices.inc"
 };
 
-static AnimationSet _gP229Animation02EA0 = {
-    _gP229Animation02EA0Records,
-    _gP229Animation02EA0Indices,
-    { NULL, _gP229Animation02EA0Bank1, NULL, NULL, _gP229Animation02EA0Bank4, NULL, NULL, NULL },
+/// Backward player walk with the P229, selected by native-bank set 3.
+///
+/// Locomotion selects it for negative movement input. Tracks 0 and 1 carry
+/// translation/rotation; tracks 2..18 carry rotation only. These tracks animate
+/// the player rig, and the package must remain loaded during playback.
+static AnimationSet _gP229PlayerBackwardWalkAnimation = {
+    .records           = _gP229PlayerBackwardWalkAnimationRecords,
+    .trackStartIndices = _gP229PlayerBackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerBackwardWalkAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerBackwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gP229Animation035D4Bank1[13] = {
+/// Translation/rotation poses for `_gP229PlayerRunAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gP229PlayerRunAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_035D4_bank1.inc"
 };
 
-static AnimationPackedRotation _gP229Animation035D4Bank4[167] = {
+/// Rotation-only poses for `_gP229PlayerRunAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gP229PlayerRunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_035D4_bank4.inc"
 };
 
-static AnimationRecord _gP229Animation035D4Records[235] = {
+/// Keyframe durations and loop controls for `_gP229PlayerRunAnimation`'s nineteen part tracks.
+static const AnimationRecord _gP229PlayerRunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_035D4_records.inc"
 };
 
-static u16 _gP229Animation035D4Indices[20] = {
+/// Absolute record starts for `_gP229PlayerRunAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained after the nineteen track starts;
+/// it is outside the playback track range.
+static const u16 _gP229PlayerRunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/p229_animation_035D4_indices.inc"
 };
 
-static AnimationSet _gP229Animation035D4 = {
-    _gP229Animation035D4Records,
-    _gP229Animation035D4Indices,
-    { NULL, _gP229Animation035D4Bank1, NULL, NULL, _gP229Animation035D4Bank4, NULL, NULL, NULL },
+/// Forward player run with the P229, selected by native-bank set 4.
+///
+/// Locomotion selects it for permitted running according to the saved movement
+/// mode and run input. Tracks 0 and 1 carry translation/rotation; tracks 2..18
+/// carry rotation only. The package must remain loaded during player playback.
+static AnimationSet _gP229PlayerRunAnimation = {
+    .records           = _gP229PlayerRunAnimationRecords,
+    .trackStartIndices = _gP229PlayerRunAnimationIndices,
+    .poseBanks         = {
+        [P229_ANIMATION_TRANSLATION_ROTATION_BANK] = _gP229PlayerRunAnimationBank1,
+        [P229_ANIMATION_PACKED_ROTATION_BANK]      = _gP229PlayerRunAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gP229Animation03E34Bank1[19] = {
@@ -1006,10 +1098,10 @@ static AnimationSet _gP229Animation0E334 = {
 
 AnimationBank D_p229_8012B51C = { { {
     NULL,
-    &_gP229Animation015D8,
-    &_gP229Animation025C8,
-    &_gP229Animation02EA0,
-    &_gP229Animation035D4,
+    &_gP229PlayerIdleAnimation,
+    &_gP229PlayerWalkAnimation,
+    &_gP229PlayerBackwardWalkAnimation,
+    &_gP229PlayerRunAnimation,
     &_gP229Animation03E34,
     &_gP229Animation04698,
     &_gP229Animation0DD68,
@@ -1024,10 +1116,10 @@ AnimationBank D_p229_8012B51C = { { {
     &_gP229Animation072FC,
     &_gP229Animation0761C,
     &_gP229Animation07DE0,
-    &_gP229Animation01C7C,
+    &_gP229PlayerUnarmedWalkAnimation,
     &_gP229Animation0D31C,
-    &_gP229Animation015D8,
-    &_gP229Animation015D8,
+    &_gP229PlayerIdleAnimation,
+    &_gP229PlayerIdleAnimation,
     &_gP229Animation09078,
     &_gP229Animation0A30C,
     &_gP229Animation09BF0,
@@ -1046,7 +1138,7 @@ AnimationBank D_p229_8012B51C = { { {
     &_gP229Animation05EF4,
     &_gP229Animation05B64,
     &_gP229Animation049AC,
-    &_gP229Animation015D8,
+    &_gP229PlayerIdleAnimation,
     &_gP229Animation0AEC8,
     &_gP229Animation0B0BC,
     &_gP229Animation0B53C,
