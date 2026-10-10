@@ -12,19 +12,23 @@
 #include "main/mc.h"
 #include "main/mc_types.h"
 
-static const u16 Display_WidthTable[];
+static const u16 _gDisplayWidthPixelsBySelector[6];
 
 static const u16 _gDisplayHeightLinesBySelector[2];
 
 /// Gap in VRAM rows between the two 240-line framebuffer regions.
 enum { DISPLAY_FRAMEBUFFER_VERTICAL_GAP = 32 };
 
-static const u16 Display_WidthTable[] = {
-    0x100,
-    0x140,
-    0x180,
-    0x200,
-    0x280,
+/// Framebuffer pixel widths selected by display setup bits 4..7.
+///
+/// Ordinary width selectors are 0..4. Slot 5 retains a zero word with no
+/// established display-mode role; selectors beyond 5 are outside this table.
+static const u16 _gDisplayWidthPixelsBySelector[6] = {
+    256,
+    320,
+    384,
+    512,
+    640,
     0,
 };
 
@@ -91,7 +95,7 @@ void displayConfigureFramebuffers(s32 setupBits)
     }
     interlaced      = (setupBits & DISPLAY_SETUP_INTERLACE_MASK) != 0;
     display         = &gDisplayState;
-    widthPixels     = Display_WidthTable[(setupBits & DISPLAY_SETUP_WIDTH_MASK) >> 4];
+    widthPixels     = _gDisplayWidthPixelsBySelector[(setupBits & DISPLAY_SETUP_WIDTH_MASK) >> 4];
     heightPixels    = _gDisplayHeightLinesBySelector[setupBits & DISPLAY_SETUP_HEIGHT_MASK];
     display->width  = widthPixels;
     display->height = heightPixels;

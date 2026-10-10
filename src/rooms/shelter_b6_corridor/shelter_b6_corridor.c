@@ -943,9 +943,9 @@ static void _shelterB6CorridorInitRoom(Task* task)
     _shelterB6CorridorMaskImagePixels();
     D_shelter_b6_corridor_801851B0.field_0 = 2;
     if (gGameSession->location.loc.variant == SHELTER_B6_CORRIDOR_SCENE_MUSIC_VARIANT) {
-        gStageSceneMusicEntry    = SHELTER_B6_CORRIDOR_SCENE_MUSIC_ENTRY;
-        gGameSession->flowFlags |= GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
-        gGameSession->flowFlags |= GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
+        gStageCountdownMusicEntry = SHELTER_B6_CORRIDOR_SCENE_MUSIC_ENTRY;
+        gGameSession->flowFlags  |= GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
+        gGameSession->flowFlags  |= GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
     }
     task->state++;
 }

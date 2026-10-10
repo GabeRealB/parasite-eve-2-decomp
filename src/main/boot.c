@@ -79,7 +79,7 @@ extern u8 D_80400000[];
 
 /// Fixed byte address of actor work buffer 1 (actor-overlay slot 2).
 ///
-/// Initializes `Fs_ActorLoadBase1`. Loaded packages, scene/movie workspaces
+/// Initializes `gFsActorBuffer1Base`. Loaded packages, scene/movie workspaces
 /// and GPU packets reuse this RAM; previous users must finish before reuse.
 /// This address specifies no capacity or reservation.
 #define FILE_SYSTEM_ACTOR_BUFFER_1_BASE ((u8*)0x80149E20)
@@ -90,36 +90,44 @@ extern u8 D_80400000[];
 /// demo state and GPU packets share this RAM, so users must coordinate reuse.
 #define FILE_SYSTEM_ACTOR_BUFFER_2_BASE ((u8*)0x80161E20)
 
-// Build stamp (must stay in .rodata ahead of bootColdStartTask jtbl).
-/// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
-static const char Boot_BuildStamp[];
+static const char _gBootBuildStamp[sizeof("2000/05/01 19:24 ver2.49")];
 
 /// Unreferenced.
 static void* Mem_UnusedTopRamPointer;
 
-/// Unreferenced.
-static void* Mem_UnusedDevKitEndPointer;
+static u8* _gMemUnusedDevKitAddress;
 
-static GfxImageSlot* Gfx_ImageSlotTables[];
+static const GfxImageSlot* _gGfxImageSlotTablesByStage[6];
 
-// Build stamp (must stay in .rodata ahead of bootColdStartTask jtbl).
-/// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
-static const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
+/// Retained NUL-terminated ASCII build identification for the resident image.
+///
+/// No code reader is established. Its bytes precede the boot state jump table
+/// in rodata and must retain that position.
+static const char _gBootBuildStamp[sizeof("2000/05/01 19:24 ver2.49")] = "2000/05/01 19:24 ver2.49";
 
 FsImgBuffers* gFsImageWorkspacePtr = &gFsImageWorkspace;
 /// Unreferenced.
 static void* Mem_UnusedTopRamPointer = D_801FD000;
 void*        Fs_ActorLoadBase0       = D_80131E20;
-void*        Fs_ActorLoadBase1       = FILE_SYSTEM_ACTOR_BUFFER_1_BASE;
-void*        Fs_ActorLoadBase2       = FILE_SYSTEM_ACTOR_BUFFER_2_BASE;
-/// Unreferenced.
-static void* Mem_UnusedDevKitEndPointer = D_80400000;
+u8*          gFsActorBuffer1Base     = FILE_SYSTEM_ACTOR_BUFFER_1_BASE;
+u8*          gFsActorBuffer2Base     = FILE_SYSTEM_ACTOR_BUFFER_2_BASE;
+/// Retained unused byte pointer to development RAM address 0x80400000.
+///
+/// No reader or allocation-end role is established.
+static u8* _gMemUnusedDevKitAddress = D_80400000;
 
 /// Start of the auxiliary region while no area map is selected: the address the
 /// map overlays load at, since without one their memory is free as well.
 #define MEM_AUX_REGION_DEFAULT_BASE ((u8*)0x80179950)
 
-static GfxImageSlot* Gfx_ImageSlotTables[] = {
+/// Map-owned image-memory rows indexed directly by stage ID 0..5.
+///
+/// Stage zero has no row and is used only with the default-memory path.
+/// Other stages borrow their loaded map's records, indexed by that stage's
+/// area ID: row extents are 22, 39, 39, 50 and 34. Capture/restore and slot
+/// memory selection require a nonempty record; holes are not usable storage.
+/// Stages 2..5 retain a parking-region record at area zero, of unproven role.
+static const GfxImageSlot* _gGfxImageSlotTablesByStage[6] = {
     NULL,
     gMapAkropolisImageSlots,
     gMapDryfieldImageSlots,
@@ -226,7 +234,7 @@ void memConfigureImageMemory(s32 stageId, s32 areaId)
 {
     const GfxImageSlot* areaSlots;
 
-    areaSlots = Gfx_ImageSlotTables[stageId];
+    areaSlots = _gGfxImageSlotTablesByStage[stageId];
     // Initially keep the active heap below the resident image workspace.
     if ((gDisplayState.videoMode == DISPLAY_VIDEO_NORMAL) || (stageId == GAME_STAGE_NONE)) {
         gMemSavedImageRegion      = MEM_AUX_REGION_DEFAULT_BASE;
@@ -358,7 +366,7 @@ void gfxCaptureAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex, s32 auxHeapOf
     RECT                frameRect;
     const GfxImageSlot* areaSlots;
 
-    areaSlots   = Gfx_ImageSlotTables[stageId];
+    areaSlots   = _gGfxImageSlotTablesByStage[stageId];
     frameRect.x = 0;
     if (bufferIndex != 0) {
         frameRect.y = 0;
@@ -379,7 +387,7 @@ void gfxRestoreAreaFrame(s32 stageId, s32 areaId, s32 bufferIndex)
     RECT                frameRect;
     const GfxImageSlot* areaSlots;
 
-    areaSlots = Gfx_ImageSlotTables[stageId];
+    areaSlots = _gGfxImageSlotTablesByStage[stageId];
     if (bufferIndex == 0) {
         frameRect.y = 0;
     } else {

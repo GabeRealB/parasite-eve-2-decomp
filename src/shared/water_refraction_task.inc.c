@@ -289,7 +289,7 @@ void waterRefractionTask(Task* task)
         task->state++;
     }
     // The reserved actor-buffer prefix has one packet bank for each OT buffer.
-    strip   = Fs_ActorLoadBase2;
+    strip   = (POLY_FT4*)gFsActorBuffer2Base;
     display = &gDisplayState;
     if (display->otBuffer != 0) {
         strip += WATER_REFRACTION_PACKETS_PER_BUFFER;

@@ -484,7 +484,7 @@ static inline void _gameMainBeginFrame(void)
     _gpuBeginOt(bufferIndex);
 
     // Select matching halves of the system-packet and heap-packet arenas.
-    Gpu_SysPrimCursor = Gpu_PrimBufStatic + gDisplayState.otBuffer * (s32)(sizeof(Gpu_PrimBufStatic) / 2);
+    Gpu_SysPrimCursor = gDisplayStaticPrimitiveArena + gDisplayState.otBuffer * (s32)(sizeof(gDisplayStaticPrimitiveArena) / 2);
     gGpuPrimCursor    = gGpuPrimitiveBufferBase + gDisplayState.otBuffer * (gGpuPrimitiveBufferBytes >> 1);
 }
 

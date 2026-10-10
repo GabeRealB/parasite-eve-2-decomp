@@ -1,4 +1,4 @@
-#include "display.h"
+#include "display_types.h"
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
@@ -11,7 +11,6 @@
 
 #include "fs.h"
 #include "main/display_types.h"
-#include "display_types.h"
 #include "gamemain.h"
 #include "main/mem.h"
 #include "mem.h"
@@ -27,23 +26,35 @@
 #include "gameplay/loading.h"
 
 /* Define BSS before API headers to preserve first-declaration order. */
-u8 Gpu_PrimBufStatic[0x6000];
+u8 gDisplayStaticPrimitiveArena[DISPLAY_STATIC_PRIMITIVE_ARENA_BYTES];
 
-/// Byte arena supplying both halves of task-owned presentation primitives.
-static u8* _gGpuDisplayPrimBufferBase;
+/// Borrowed byte arena bound for modal task presentation.
+///
+/// Paired with `_gDisplayTaskPrimitiveArenaBytes`; storage belongs to the
+/// resident static arena or the configured image-memory reservation. Previous
+/// GPU work must finish before rebinding or reusing either region.
+static u8* _gDisplayTaskPrimitiveArenaBase;
 
-/// Total arena capacity in bytes, split evenly between the two frame buffers.
-static s32 _gGpuDisplayPrimBufferBytes;
+/// Signed total-byte capacity of the bound display-task primitive arena.
+///
+/// Configured as 0x6000 or 0x10000 bytes, divided into two equal frame halves.
+/// The frame path preserves signed division when deriving its byte stride.
+static s32 _gDisplayTaskPrimitiveArenaBytes;
 
 GsOT gGpuTaskOrderingTables[2];
 
-TaskNode gTaskDisplayList;
+TaskNode gDisplayTaskList;
 
 static s32 Display_HoldMode;
 
-static u_long Gpu_SmallOtTags[2 * GPU_SMALL_ORDERING_TABLE_ENTRIES];
+/// Two resident 64-word DMA tag banks for modal task presentation.
+///
+/// Each four-byte word carries a 24-bit DMA link and 8-bit packet length.
+/// The SDK borrows each half through its `GsOT_TAG` view until drawing ends.
+static u_long _gDisplaySmallTaskOtTags[2 * GPU_SMALL_ORDERING_TABLE_ENTRIES];
 
 #include "main/display.h"
+#include "display.h"
 #include "task.h"
 
 static TaskDesc Display_MenuTaskDesc;
@@ -67,11 +78,11 @@ static __inline__ void _displayConfigureSmallTaskBuffers(void)
 {
     // SDK descriptors view the packed DMA words as tags.
     gGpuTaskOrderingTables[0].length = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-    gGpuTaskOrderingTables[0].org    = (GsOT_TAG*)Gpu_SmallOtTags;
+    gGpuTaskOrderingTables[0].org    = (GsOT_TAG*)_gDisplaySmallTaskOtTags;
     gGpuTaskOrderingTables[1].length = GPU_SMALL_ORDERING_TABLE_DEPTH_BITS;
-    gGpuTaskOrderingTables[1].org    = (GsOT_TAG*)(Gpu_SmallOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES);
-    _gGpuDisplayPrimBufferBase       = Gpu_PrimBufStatic;
-    _gGpuDisplayPrimBufferBytes      = sizeof(Gpu_PrimBufStatic);
+    gGpuTaskOrderingTables[1].org    = (GsOT_TAG*)(_gDisplaySmallTaskOtTags + GPU_SMALL_ORDERING_TABLE_ENTRIES);
+    _gDisplayTaskPrimitiveArenaBase  = gDisplayStaticPrimitiveArena;
+    _gDisplayTaskPrimitiveArenaBytes = sizeof(gDisplayStaticPrimitiveArena);
 }
 
 s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unusedOtBuffer)
@@ -82,23 +93,23 @@ s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unu
 /// halfBytes and savedOt locals. Requires configured reusable task buffers and
 /// a frame index of 0 or 1. Saves the caller's OT for restoration after drawing.
 /// Expands to one compound statement; undefined before this function ends.
-#define DISPLAY_BEGIN_TASK_FRAME()                                                      \
-    {                                                                                   \
-        if (display->mdecActive == 0) {                                                 \
-            display->frameBuffer ^= 1;                                                  \
-        }                                                                               \
-        if (display->control.flags.flipMode != DISPLAY_FLIP_HOLD) {                     \
-            display->drawBuffer = display->frameBuffer;                                 \
-        }                                                                               \
-        orderingTables = gGpuTaskOrderingTables;                                        \
-        GsClearOt(0, 0, &orderingTables[display->frameBuffer]);                         \
-        firstTag       = (u_long*)orderingTables[display->frameBuffer].org;             \
-        halfBytes      = _gGpuDisplayPrimBufferBytes;                                   \
-        *firstTag      = GPU_OT_END_PRIM;                                               \
-        halfBytes     /= 2;                                                             \
-        savedOt        = gGpuCurrentOt;                                                 \
-        gGpuCurrentOt  = (u_long*)orderingTables[display->frameBuffer].org;             \
-        gGpuPrimCursor = _gGpuDisplayPrimBufferBase + display->frameBuffer * halfBytes; \
+#define DISPLAY_BEGIN_TASK_FRAME()                                                           \
+    {                                                                                        \
+        if (display->mdecActive == 0) {                                                      \
+            display->frameBuffer ^= 1;                                                       \
+        }                                                                                    \
+        if (display->control.flags.flipMode != DISPLAY_FLIP_HOLD) {                          \
+            display->drawBuffer = display->frameBuffer;                                      \
+        }                                                                                    \
+        orderingTables = gGpuTaskOrderingTables;                                             \
+        GsClearOt(0, 0, &orderingTables[display->frameBuffer]);                              \
+        firstTag       = (u_long*)orderingTables[display->frameBuffer].org;                  \
+        halfBytes      = _gDisplayTaskPrimitiveArenaBytes;                                   \
+        *firstTag      = GPU_OT_END_PRIM;                                                    \
+        halfBytes     /= 2;                                                                  \
+        savedOt        = gGpuCurrentOt;                                                      \
+        gGpuCurrentOt  = (u_long*)orderingTables[display->frameBuffer].org;                  \
+        gGpuPrimCursor = _gDisplayTaskPrimitiveArenaBase + display->frameBuffer * halfBytes; \
     }
 
     enum {
@@ -115,7 +126,7 @@ s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unu
     // Borrow the task OT and its primitive half until this frame is submitted.
     display = &gDisplayState;
     DISPLAY_BEGIN_TASK_FRAME();
-    taskExecList(&gTaskDisplayList);
+    taskExecList(&gDisplayTaskList);
     cdCmdService();
     if (display->mdecActive == 0) {
         DrawSync(0);
@@ -168,7 +179,7 @@ Task* displaySpawnTask(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, 
         _displayConfigureSmallTaskBuffers();
         display->frameBuffer = display->drawBuffer ^ 1;
         previousList         = taskGetActiveList();
-        taskInitList(&gTaskDisplayList);
+        taskInitList(&gDisplayTaskList);
         spawnedTask = taskSpawn(bank, selector, spawnArg1, spawnArg2);
         // Commit the presentation handoff only after the task has been created.
         if (spawnedTask != NULL) {
@@ -194,7 +205,7 @@ Task* displaySpawnTaskFromTable(TaskDesc* table, s32 index, TaskSpawnArg spawnAr
         _displayConfigureSmallTaskBuffers();
         display->frameBuffer = display->drawBuffer ^ 1;
         previousList         = taskGetActiveList();
-        taskInitList(&gTaskDisplayList);
+        taskInitList(&gDisplayTaskList);
         spawnedTask = taskSpawnFromTable(table, index, spawnArg1, spawnArg2);
         // Commit the presentation handoff only after the task has been created.
         if (spawnedTask != NULL) {
@@ -407,12 +418,12 @@ void gpuInitTaskOrderingTables(void)
 
 void displayUseHeapTaskPrimitiveBuffer(void)
 {
-    _gGpuDisplayPrimBufferBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
-    _gGpuDisplayPrimBufferBase  = gGpuPrimitiveBufferBase;
+    _gDisplayTaskPrimitiveArenaBytes = MEMORY_PRIMITIVE_HEAP_BYTES;
+    _gDisplayTaskPrimitiveArenaBase  = gGpuPrimitiveBufferBase;
 }
 
 void displayUseStaticTaskPrimitiveBuffer(void)
 {
-    _gGpuDisplayPrimBufferBase  = Gpu_PrimBufStatic;
-    _gGpuDisplayPrimBufferBytes = sizeof(Gpu_PrimBufStatic);
+    _gDisplayTaskPrimitiveArenaBase  = gDisplayStaticPrimitiveArena;
+    _gDisplayTaskPrimitiveArenaBytes = sizeof(gDisplayStaticPrimitiveArena);
 }

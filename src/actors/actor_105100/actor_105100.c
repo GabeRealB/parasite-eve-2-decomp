@@ -1346,7 +1346,7 @@ static void _actor105100Idle(Task* task, Enemy* unusedEnemy)
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_IDLE) {
         if (--work->engageDelay <= 0) {
             sceneEngageBattle(1);
-            gStageSceneMusicEntry = ACTOR_105100_BATTLE_MUSIC;
+            gStageCountdownMusicEntry = ACTOR_105100_BATTLE_MUSIC;
         }
     }
     if (work->shield.word == 0) {

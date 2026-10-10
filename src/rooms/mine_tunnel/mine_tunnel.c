@@ -202,8 +202,8 @@ static void _mineTunnelInitializeRoomTask(Task* task)
     if ((gGameSession->location.loc.variant == MINE_TUNNEL_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == MINE_TUNNEL_EVENT_STARTED)) {
         _mineTunnelSetEnemyWave(MINE_TUNNEL_ENEMY_WAVE_ENGAGE);
     }
-    task->state           = task->state + 1;
-    gStageSceneMusicEntry = MINE_TUNNEL_COUNTDOWN_MUSIC_ENTRY;
+    task->state               = task->state + 1;
+    gStageCountdownMusicEntry = MINE_TUNNEL_COUNTDOWN_MUSIC_ENTRY;
 }
 
 /// Keeps the mine tunnel's registered room task alive in state 1 for messages.

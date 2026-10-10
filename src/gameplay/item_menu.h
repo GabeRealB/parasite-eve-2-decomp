@@ -491,7 +491,7 @@ void itemMenuDrawUseRow(UiList* list, UiObject* object);
 
 /// Releases an item-information panel and clears its published holder if still current.
 ///
-/// The panel publishes its task-owned object in `D_80067634` when it starts.
+/// The panel publishes its task-owned object in `gItemMenuInfoPanel` when it starts.
 /// An older panel's exit must not clear a replacement's holder. The standard UI
 /// exit releases the object and its children even if the holder belongs elsewhere.
 void itemMenuInfoTaskExit(Task* task);

@@ -41,9 +41,13 @@
 /// or repurposing ends its lifetime.
 static void* _gCdCmdMovieWorkspace;
 
-static u16 CdCmd_EntryIter;
+/// Shared cursor for one walk of the resident eight-slot CD request ring.
+///
+/// Reset from the read index before walking; slots are 0..7. This is separate
+/// from the queue's producer/consumer indices and admits only one active walk.
+static u16 _gCdCmdEntryIterator;
 
-static s32* CdCmd_MapHeapSizes[];
+static const s32* _gCdCmdMovieWorkspaceBytesByStage[10];
 
 static void _cdCmdHandleMoviePlayback(void);
 
@@ -71,7 +75,13 @@ static void _cdCmdStageScenePlayback(void);
 
 static void _cdCmdResetRing(void);
 
-static s32* CdCmd_MapHeapSizes[] = {
+/// Borrowed per-area movie-workspace byte reservations indexed by saved stage.
+///
+/// Slots 1, 2 and 5 select loaded map rows of 21, 32 and 21 signed byte counts;
+/// all other slots are NULL. The caller must establish a movie slot first and
+/// keep the saved area index within that stage's row. Zero reserves no bytes.
+/// The map overlay must remain loaded while its row is read.
+static const s32* _gCdCmdMovieWorkspaceBytesByStage[10] = {
     NULL,
     gMapAkropolisMovieWorkspaceBytesByArea,
     gMapDryfieldMovieWorkspaceBytesByArea,
@@ -90,7 +100,7 @@ void* cdCmdReservePlaybackBuffers(void)
     CdCmdQueue* queue;
     u16         vlcBufferKind;
     u8          timingBufferKind;
-    s32*        areaWorkspaceBytes;
+    const s32*  areaWorkspaceBytes;
     s32         workspaceBytes;
 
     queue = &gCdCmdQueue;
@@ -108,11 +118,11 @@ void* cdCmdReservePlaybackBuffers(void)
                     break;
                 case STREAM_VLC_BUFFER_ACTOR_1:
                     gGameSession->field_7E = 0;
-                    queue->vlcTable        = Fs_ActorLoadBase1;
+                    queue->vlcTable        = (u16*)gFsActorBuffer1Base;
                     break;
                 case STREAM_VLC_BUFFER_ACTOR_2:
                     gGameSession->field_80 = 0;
-                    queue->vlcTable        = Fs_ActorLoadBase2;
+                    queue->vlcTable        = (u16*)gFsActorBuffer2Base;
                     break;
             }
             if (queue->vlcTableBuilt == 0) {
@@ -139,16 +149,16 @@ void* cdCmdReservePlaybackBuffers(void)
                 break;
             case STREAM_TIMING_BUFFER_ACTOR_1:
                 gGameSession->field_7E = 0;
-                queue->timingBuffer    = Fs_ActorLoadBase1;
+                queue->timingBuffer    = (u32*)gFsActorBuffer1Base;
                 if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
-                    queue->timingBuffer = (u32*)((u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES);
+                    queue->timingBuffer = (u32*)(gFsActorBuffer1Base + STREAM_VLC_TABLE_BYTES);
                 }
                 break;
             case STREAM_TIMING_BUFFER_ACTOR_2:
                 gGameSession->field_80 = 0;
-                queue->timingBuffer    = Fs_ActorLoadBase2;
+                queue->timingBuffer    = (u32*)gFsActorBuffer2Base;
                 if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
-                    queue->timingBuffer = (u32*)((u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES);
+                    queue->timingBuffer = (u32*)(gFsActorBuffer2Base + STREAM_VLC_TABLE_BYTES);
                 }
                 break;
         }
@@ -165,7 +175,7 @@ void* cdCmdReservePlaybackBuffers(void)
     } else if (streamFindMovieSlot(&gGameSession->location.loc, 0, 0) < 0) {
         return NULL;
     } else {
-        areaWorkspaceBytes = CdCmd_MapHeapSizes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage];
+        areaWorkspaceBytes = _gCdCmdMovieWorkspaceBytesByStage[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage];
         if (areaWorkspaceBytes != NULL) {
             workspaceBytes = areaWorkspaceBytes[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area];
             if (workspaceBytes != 0) {
@@ -1352,13 +1362,13 @@ CdCmdEntry* cdCmdNextQueuedEntry(void)
     CdCmdEntry* entry;
 
     queue = &gCdCmdQueue;
-    slot  = CdCmd_EntryIter;
+    slot  = _gCdCmdEntryIterator;
     entry = &queue->entries[slot];
     if (slot == queue->writeIdx) {
         return NULL;
     }
-    CdCmd_EntryIter = slot + 1;
-    CdCmd_EntryIter = CdCmd_EntryIter % ARRAY_SIZE(queue->entries);
+    _gCdCmdEntryIterator = slot + 1;
+    _gCdCmdEntryIterator = _gCdCmdEntryIterator % ARRAY_SIZE(queue->entries);
     return entry;
 }
 
@@ -1401,7 +1411,7 @@ static void _cdCmdResetRing(void)
 
 void cdCmdResetEntryIterator(void)
 {
-    CdCmd_EntryIter = gCdCmdQueue.readIdx;
+    _gCdCmdEntryIterator = gCdCmdQueue.readIdx;
 }
 
 void cdCmdEnqueueUnlessSceneAudioPending(s32 command, const void* fileKey, const void* commandArgs)

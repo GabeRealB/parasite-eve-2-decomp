@@ -144,7 +144,7 @@ s32          gPlayClockPendingTicks = 0;
 static s32 D_8005ED6C            = 0x40;
 s32        gPadConfirmButtonMask = PAD_BUTTON_CROSS;
 s32        gPadCancelButtonMask  = PAD_BUTTON_CIRCLE | PAD_BUTTON_SQUARE;
-s32        Pad_MaskMenu          = 0x900;
+s32        gPadMenuButtonMask    = PAD_BUTTON_START | PAD_BUTTON_SELECT;
 /// Unreferenced.
 static s32 D_8005ED7C = 0x10;
 /// Unreferenced.

@@ -9,6 +9,7 @@
 #include "types.h"
 
 #include "main/display_types.h"
+#include "main/task_types.h"
 #include "display_types.h"
 
 #define GPU_OT_END_PRIM 0xFFFFFF
@@ -17,7 +18,21 @@ extern u_long Gpu_OtTags[2 * GPU_ORDERING_TABLE_BUFFER_ENTRIES];
 
 extern u8* Gpu_SysPrimCursor;
 
-extern u8 Gpu_PrimBufStatic[0x6000];
+/// Resident primitive bytes shared by system drawing and modal task presentation.
+///
+/// Frame indices 0 and 1 select equal 0x3000-byte halves. Complete packets must
+/// fit their selected half and remain live until GPU drawing finishes. The
+/// arena has program lifetime; neither frame path owns or allocates it.
+extern u8 gDisplayStaticPrimitiveArena[DISPLAY_STATIC_PRIMITIVE_ARENA_BYTES];
+
+/// Resident bare execution-list head for modal display-owned presentation.
+///
+/// Initialize with `taskInitList` before spawning or executing; empty means
+/// next is NULL and prev points back to this head, which belongs to no task.
+/// The display controller and spawners select it temporarily, separately from
+/// the normal frame list. Reset discards links without releasing old tasks;
+/// those tasks/resources must already be disposable. The head has program lifetime.
+extern TaskNode gDisplayTaskList;
 
 extern volatile u8 D_8006EC30;
 

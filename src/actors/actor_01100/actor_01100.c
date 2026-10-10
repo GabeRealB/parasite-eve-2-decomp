@@ -3414,15 +3414,15 @@ static void _actor01100Advance(Enemy* enemy, Task* task, _Actor01100Work* work, 
 /// halves when a buffer exists. The descriptor keeps the source even on failure.
 static __inline__ void _actor01100SpawnBurstPart(Task* task, TmdSource* model)
 {
-    enum { ACTOR_01100_BURST_MODEL_TASK_INDEX = 0x32,
+    enum { ACTOR_01100_BURST_MODEL_TASK_INDEX = TASK_BANK1_BURST_MODEL_PART_SLOT,
            ACTOR_01100_BURST_PUFF_SIZE        = 512 };
     EffectWork* effect;
     TmdObject*  enemyModel;
     TmdObject*  partModel;
 
     // The effect's descriptor, entry 0x32 of bank 1, takes its model from the caller.
-    D_800670D0[ACTOR_01100_BURST_MODEL_TASK_INDEX].data.model = model;
-    effect                                                    = effectSpawn(EFFECT_FLYING_BODY_PART, &task->extra.tmd->coords[ACTOR_01100_PART_RIGHT_UPPER_ARM], ACTOR_01100_BURST_PUFF_SIZE, 0);
+    gTaskBank1Descs[ACTOR_01100_BURST_MODEL_TASK_INDEX].data.model = model;
+    effect                                                         = effectSpawn(EFFECT_FLYING_BODY_PART, &task->extra.tmd->coords[ACTOR_01100_PART_RIGHT_UPPER_ARM], ACTOR_01100_BURST_PUFF_SIZE, 0);
     if (effect != NULL) {
         enemyModel                   = task->extra.tmd;
         partModel                    = effect->task->extra.tmd;

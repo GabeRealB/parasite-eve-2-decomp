@@ -12,8 +12,6 @@
 /// `TaskDesc` run it points at. Several banks share one table.
 extern TaskDesc* gTaskDescBanks[15];
 
-extern TaskNode gTaskDisplayList;
-
 /// Resident bank 3: four teardown stubs followed by four development-image tasks.
 ///
 /// Slots 0..7 have program lifetime; slot 7 borrows a development-image model.

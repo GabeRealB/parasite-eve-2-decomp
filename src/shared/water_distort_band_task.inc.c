@@ -151,7 +151,7 @@ void waterDistortBandTask(Task* task)
         }
         strip = (POLY_FT4*)packetBytes - 1;
     } else {
-        strip = (POLY_FT4*)Fs_ActorLoadBase2 + WATER_DISTORT_REFRACTION_PREFIX_PACKETS;
+        strip = (POLY_FT4*)gFsActorBuffer2Base + WATER_DISTORT_REFRACTION_PREFIX_PACKETS;
         if (gDisplayState.otBuffer != 0) {
             strip += WATER_DISTORT_PACKETS_PER_BUFFER;
         }

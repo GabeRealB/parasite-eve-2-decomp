@@ -489,9 +489,9 @@ void loadingInitializeAreaMemoryAndAudioTask(Task* task)
         companionConfigureSoundBankRetention();
         sndScriptResetForArea(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= LOADING_NIGHT_MUSIC_FIRST_CHAPTER) {
-            gStageSceneMusicEntry = LOADING_SCENE_MUSIC_NIGHT;
+            gStageCountdownMusicEntry = LOADING_SCENE_MUSIC_NIGHT;
         } else {
-            gStageSceneMusicEntry = LOADING_SCENE_MUSIC_DEFAULT;
+            gStageCountdownMusicEntry = LOADING_SCENE_MUSIC_DEFAULT;
         }
         gGameSession->deathSoundCountdown = LOADING_DEATH_SOUND_INITIAL_TICKS;
         gGameSession->deathFadeFrames     = GAME_SESSION_DEATH_FADE_DEFAULT;

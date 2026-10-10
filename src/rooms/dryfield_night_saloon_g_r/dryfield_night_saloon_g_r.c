@@ -2937,7 +2937,7 @@ static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task)
 
     // Dismissal during a pending load leaves the host waiting for its completion.
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu | gPadCancelButtonMask) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask | gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
             if (task->status != JUKEBOX_MENU_TRAINING_LOCKED) {
                 if (task->status == JUKEBOX_MENU_IDLE) {

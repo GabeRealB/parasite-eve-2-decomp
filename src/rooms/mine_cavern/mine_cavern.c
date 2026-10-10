@@ -467,7 +467,7 @@ static void _mineCavernInitRoom(Task* task)
     if ((gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_INITIAL) && (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
         _mineCavernStartIntroEvent();
     } else {
-        gStageSceneMusicEntry = MINE_CAVERN_SCENE_MUSIC_DEFAULT_ENTRY;
+        gStageCountdownMusicEntry = MINE_CAVERN_SCENE_MUSIC_DEFAULT_ENTRY;
     }
     taskSpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
@@ -579,7 +579,7 @@ void mineCavernApplyPostEventAreaUpdates(void)
 
 void mineCavernSelectCountdownMusicEntry(u8 countdownEntry)
 {
-    gStageSceneMusicEntry = countdownEntry;
+    gStageCountdownMusicEntry = countdownEntry;
 }
 
 void mineCavernTimedSoundTask(Task* task)

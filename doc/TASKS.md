@@ -231,7 +231,7 @@ task. Both functions require a live, non-NULL task and loaded exit handlers.
 |------|------|
 | `gTaskDefaultList` | Resident head of the default priority-ordered execution list; initialized and selected on boot / session reset |
 | `_gTaskActiveList` | Private borrowed pointer selecting the head used for spawning and tail unlinking |
-| `gTaskDisplayList` | Task-owned presentation list. `displaySpawnTaskFromTable` / `displaySpawnTask` configure two 64-tag OTs and the static primitive arena, initialize and select the list, spawn onto it, then restore the previous selection |
+| `gDisplayTaskList` | Task-owned presentation list. `displaySpawnTaskFromTable` / `displaySpawnTask` configure two 64-tag OTs and the static primitive arena, initialize and select the list, spawn onto it, then restore the previous selection |
 
 Both display spawners return NULL without changes when the game loop does not
 own presentation. A successful spawn selects task-owned presentation and requests
@@ -273,7 +273,7 @@ NULL.
 | Bank | Symbol | n | What it is |
 |------|--------|--:|------------|
 | 0 | `_gTaskSystemDescs` | 39 | System: boot, title, gameflow, memcard, view, HUD |
-| 1 | `D_800670D0` | 51 | Enemies / room coords / TMD helpers + `0x807xxxxx` overlay |
+| 1 | `gTaskBank1Descs` | 51 | Enemies / room coords / TMD helpers + `0x807xxxxx` overlay |
 | 2 (=11–13) | `D_80067828` | 17 | Caption, pad helpers, script-18, room overlay, one stage overlay |
 | 3 | `gTaskBank3Descs` | 8 | Four `taskKill` stubs + four `0x807xxxxx` |
 | 4 | `gTaskBank4Descs` | 9 | Stubs + TMD / overlay |

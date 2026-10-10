@@ -1709,7 +1709,7 @@ static void _mineForkedTunnelInitRoomTask(Task* task)
 
     task->msgTable = D_mine_forked_tunnel_80181C80;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    gStageSceneMusicEntry = MINE_FORKED_TUNNEL_COUNTDOWN_MUSIC_ENTRY;
+    gStageCountdownMusicEntry = MINE_FORKED_TUNNEL_COUNTDOWN_MUSIC_ENTRY;
     _mineForkedTunnelSetSpriteBatchesHidden(areaGetCurrentObjectState(MINE_FORKED_TUNNEL_OAK_BOARD_OBJECT_ID) == MINE_FORKED_TUNNEL_OAK_BOARD_COLLECTED);
     task->state = task->state + 1;
 }

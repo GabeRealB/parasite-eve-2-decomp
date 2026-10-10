@@ -158,7 +158,7 @@ STATIC_ASSERT_SIZEOF(_Actor341900GluttonModelWork, 0x258);
 /// base weapon id records are numbered from, and `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects the
 /// alternate set -- 1 means the second block, anything else the `+0x22` one.
 /// Byte the other actor overlays' one-argument setters write; set to 0xC here
-/// beside `gStageSceneMusicEntry`.
+/// beside `gStageCountdownMusicEntry`.
 
 /// Parameter record `_actor341900UpdatePlayerAction` sends with message 0x3F4.
 extern AnimationSet* D_actor_341900_801639A4[2];
@@ -1071,7 +1071,7 @@ static void _actor341900EventTask(Task* task)
             task->state             += 1;
             return;
         case ACTOR_341900_EVENT_STATE_START_SCRIPT:
-            gStageSceneMusicEntry                               = ACTOR_341900_SCENE_MUSIC_ENTRY;
+            gStageCountdownMusicEntry                           = ACTOR_341900_SCENE_MUSIC_ENTRY;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_341900_SCENE_SOUND_EVENT;
             evsStartScriptWithSkip(D_actor_341900_80163B48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_341900_80163FB0);
             task->state += 1;

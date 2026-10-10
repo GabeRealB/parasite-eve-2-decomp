@@ -702,7 +702,7 @@ static void _shopItemListTask(Task* task)
     textDrawString(&req, _gShopBpLabel);
 
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -812,7 +812,7 @@ static void _shopCategoryListTask(Task* task)
     uiDrawPanelLabel(&object->panel, _gShopCategoryListTitle);
     if (task->state == SHOP_PANEL_INITIAL) {
         itemMenuClearPreviewItems();
-        D_80067634 = NULL;
+        gItemMenuInfoPanel = NULL;
         uiSpawnObject(&Shop_Data_80181B68, task->spawnArg1, USER_INTERFACE_PANEL_INACTIVE, 1, object);
         uiSpawnObject(&D_8010D6F4[10], 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
         list->itemCount                     = SHOP_CATEGORY_COUNT + 1;
@@ -823,7 +823,7 @@ static void _shopCategoryListTask(Task* task)
         task->state += 1;
     }
     uiUpdateList(list, &object->panel);
-    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | gPadMenuButtonMask) != 0) {
         object->result = USER_INTERFACE_RESULT_CANCEL;
     }
 
@@ -840,8 +840,8 @@ static void _shopCategoryListTask(Task* task)
                     object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                 }
             } else {
-                Wip_UiHolder   = NULL;
-                object->result = childResult;
+                gUiPromptObject = NULL;
+                object->result  = childResult;
             }
             childTask = nextChild;
         } while (childTask != task->firstChild);
@@ -1005,7 +1005,7 @@ static void _shopNoticeTask(Task* task)
     textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, message, SHOP_TEXT_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     task->killCountdown -= gDisplayState.frameTicks;
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
             return;
         }
@@ -1344,7 +1344,7 @@ static void _shopPurchasePromptTask(Task* task)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }

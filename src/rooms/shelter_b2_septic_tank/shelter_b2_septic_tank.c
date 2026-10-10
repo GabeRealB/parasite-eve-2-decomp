@@ -1675,9 +1675,9 @@ static inline void _shelterB2SepticTankResetWaterPacketCursor(void)
         SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES = 0xC000
     };
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == SHELTER_B2_SEPTIC_TANK_COMPANION_NONE) {
-        _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES;
+        _gShelterB2SepticTankWaterPacketCursor = gFsActorBuffer2Base + gDisplayState.otBuffer * SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES;
     } else {
-        _gShelterB2SepticTankWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES;
+        _gShelterB2SepticTankWaterPacketCursor = gFsActorBuffer1Base + gDisplayState.otBuffer * SHELTER_B2_SEPTIC_TANK_WATER_PACKET_HALF_BYTES;
     }
 }
 

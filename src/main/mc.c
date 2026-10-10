@@ -1440,7 +1440,7 @@ static void _mcBuildCardFileTitle(const McWork* work)
     titleCursor                                            = _mcAppendAsciiTitleLiteral(" ", titleCursor);
     _gMcFileHeader.title[sizeof(_gMcFileHeader.title) - 1] = 0;
     _gMcFileHeader.title[sizeof(_gMcFileHeader.title) - 2] = 0;
-    titleCursor                                            = _mcAppendEncodedTitleLabel(Mc_LocationTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], titleCursor);
+    titleCursor                                            = _mcAppendEncodedTitleLabel(gMcSavePointTitleLabels[(s8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.savePoint], titleCursor);
     titleCursor                                            = _mcAppendAsciiTitleLiteral("(", titleCursor);
     titleCursor                                            = _mcAppendAsciiTitleText(textItoaSigned(formatScratch, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveNumber), titleCursor);
     titleCursor                                            = _mcAppendAsciiTitleLiteral(_gMcTextCloseParen, titleCursor);

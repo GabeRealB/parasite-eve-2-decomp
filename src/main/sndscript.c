@@ -577,8 +577,8 @@ static _SndBankInitEntry Snd_BankInitTable[] = {
     { 0x0002, 0x20FF, 0x00CE, 0x0210, 0x73810 },
     { 0x000E, 0xE0FF, 0x0078, 0x0168, 0x6F810 },
 };
-s32        D_80068A78              = 0;
-static s16 SndScript_VoiceRanges[] = { 1, 2 };
+volatile s32 gSndBankInitializationBusy = 0;
+static s16   SndScript_VoiceRanges[]    = { 1, 2 };
 
 /// Selects the sound-script reverb setting for a stage and area.
 ///
@@ -1042,7 +1042,7 @@ s32 sndScriptInitSystem(u32 unused)
     s32 entryIndex;
 
     // Hold sector feeding off until boot reservations are published.
-    *(volatile s32*)&D_80068A78 = SOUND_BANK_INIT_BUSY;
+    gSndBankInitializationBusy = SOUND_BANK_INIT_BUSY;
     spuSetVoiceRange(SPU_VOICE_RANGE_SOUND_SCRIPTS, SOUND_SCRIPT_FIRST_EXCLUSIVE_VOICE, SOUND_SCRIPT_EXCLUSIVE_VOICE_COUNT);
     _sndScriptInit();
     _sndScriptSetReverb(SOUND_SCRIPT_REVERB_DEFAULT_LEVEL);
@@ -1053,7 +1053,7 @@ s32 sndScriptInitSystem(u32 unused)
         _sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex]);
     }
 
-    *(volatile s32*)&D_80068A78 = SOUND_BANK_INIT_IDLE;
+    gSndBankInitializationBusy = SOUND_BANK_INIT_IDLE;
     return -1;
 }
 

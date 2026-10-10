@@ -10326,7 +10326,7 @@ void RoomsShared8017d8c8(Task* arg0)
     arg0->field_24 = &RoomsShared8017d8c8Msgs;   /* not D_<room>_80180E8C */
     gameSetTaskSlot(arg0, 7);
     arg0->state = (s32)(arg0->state + 1);
-    D_80062735  = 1;
+    gStageCountdownMusicEntry  = 1;
 }
 ```
 
@@ -12167,8 +12167,8 @@ stores — GCC still lowers `% 8` to `& 7`, but only after materializing the
 truncated u16 value of the first assignment:
 
 ```c
-CdCmd_EntryIter = slot + 1;
-CdCmd_EntryIter = CdCmd_EntryIter % 8;  /* not &= 7, not (slot+1)&7 */
+_gCdCmdEntryIterator = slot + 1;
+_gCdCmdEntryIterator = _gCdCmdEntryIterator % 8;  /* not &= 7, not (slot+1)&7 */
 ```
 
 `cdCmdNextQueuedEntry` (8-entry queue walk of `gCdCmdQueue.entries`) is a pure example.
@@ -12271,15 +12271,15 @@ When a function sets a bit in one global and clears it from two others
    statements until that symbol is the early one — the final store order still
    ends up matching because of scheduling.
 
-`spuKeyOff` is the pure late-`nor` example: pointer on `Spu_KeyOffMask`,
-then `Spu_KeyOnMask &= ~voiceMask` before `Spu_KeyOnMaskExtra &= ~voiceMask` so
+`spuKeyOff` is the pure late-`nor` example: pointer on `_gSpuPendingKeyOffMask`,
+then `_gSpuPendingKeyOnMask &= ~voiceMask` before `_gSpuPendingStreamKeyOnMask &= ~voiceMask` so
 that EBAC is the early-loaded `$a2` value. `spuKeyOn` is the pure
 early-`nor` counterpart: pointer on the `|=` target plus `voiceMask = ~voiceMask`
 before the two clears.
 
 `spuKeyOnStreamVoice` is late-`nor` with an extra struct-field clear in the middle
 (`A |= mask; field &= ~mask; B &= ~mask; C &= ~mask`). Same recipe as E71C:
-local pointer on A (`&Spu_KeyOnMaskExtra`) and three inline `~voiceMask` uses — not
+local pointer on A (`&_gSpuPendingStreamKeyOnMask`) and three inline `~voiceMask` uses — not
 `voiceMask = ~voiceMask`. Dropping the pointer alone leaves only `li a1,1`
 mis-scheduled before the `sb`; using `channel = ~channel` with the pointer
 falls back to ~70%.
@@ -12550,7 +12550,7 @@ queue->readIdx = queue->readIdx % ARRAY_SIZE(queue->entries);
 
 `% 8` on a u16 forces the zero-extend `andi 0xffff` before `andi 7`. Writing
 `x & 7` (or `(x + 1) & 7`) combines into a single `andi 7` and drops one store.
-`cdCmdNextQueuedEntry` (`CdCmd_EntryIter = slot + 1; CdCmd_EntryIter = CdCmd_EntryIter % 8;`) is the
+`cdCmdNextQueuedEntry` (`_gCdCmdEntryIterator = slot + 1; _gCdCmdEntryIterator = _gCdCmdEntryIterator % 8;`) is the
 matched precedent; `_cdCmdHandleStageMount` needs the same form for `readIdx`.
 
 Same rule applies to **loop indices** that index `entries[slot]` each iteration. A
@@ -17430,7 +17430,7 @@ offset-first `addu` with their symbol bases visible to the compiler.
 `sndScriptInitSystem`'s indexed `for` calls
 `_sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex])`; the loop pass
 places the independent pointer and counter increments in these delay slots.
-`*(volatile s32*)&D_80068A78 = …` before the call keeps its last arg (`li a2`)
+`gSndBankInitializationBusy = …` (a volatile word store) before the call keeps its last arg (`li a2`)
 in the `jal` delay instead of the store (see “volatile blocks delay-slot
 filling”).
 
@@ -24817,14 +24817,14 @@ before it. Mark both accesses volatile so they stay in source order:
 
 ```c
 locationWord = *(const volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-*(UiObject* volatile*)&Wip_UiHolder = NULL;
+*(UiObject* volatile*)&gUiPromptObject = NULL;
 switch (locationWord & (s32)GAME_LOCATION_STAGE_AREA_MASK) {
 ```
 
 `do { val = src; } while (0)` also pins the load first but then parks
 `sw ra` in the prologue instead of the first `beq` delay.
 
-`shopOpenSession` is the example (the live save's location prefix, then `Wip_UiHolder`).
+`shopOpenSession` is the example (the live save's location prefix, then `gUiPromptObject`).
 
 ## Overlay imports of main functions may pass a dummy extra arg
 
@@ -28382,7 +28382,7 @@ if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
         object->result      = USER_INTERFACE_RESULT_CONFIRM;
         task->killCountdown = ITEM_MENU_TIMED_DIALOG_ACCEPTED_TICKS;
-    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+    } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
         object->result = USER_INTERFACE_RESULT_CANCEL;
     }
 }
@@ -30837,7 +30837,7 @@ later:
 
 ```c
 rec    = Gp_ReplayCursor;
-cursorOffsetBytes = (u8*)rec - (u8*)Fs_ActorLoadBase2;
+cursorOffsetBytes = (u8*)rec - gFsActorBuffer2Base;
 ```
 
 loads the two globals sequentially (`lw a2, ptr` then `lui`/`lw` of the
@@ -30846,7 +30846,7 @@ expression so the two `%hi`/`lw` pairs interleave and CSE keeps the
 pointer in `$a0`:
 
 ```c
-cursorOffsetBytes = (u8*)Gp_ReplayCursor - (u8*)Fs_ActorLoadBase2;
+cursorOffsetBytes = (u8*)Gp_ReplayCursor - gFsActorBuffer2Base;
 if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
     cursorOffsetBytes = (u8*)Gp_ReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
 }
@@ -30855,9 +30855,9 @@ if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
 
 ```
 lui   v0, %hi(Gp_ReplayCursor)
-lui   v1, %hi(Fs_ActorLoadBase2)
+lui   v1, %hi(gFsActorBuffer2Base)
 lw    a0, %lo(Gp_ReplayCursor)(v0)
-lw    v0, %lo(Fs_ActorLoadBase2)(v1)
+lw    v0, %lo(gFsActorBuffer2Base)(v1)
 subu  a2, a0, v0
 ```
 
@@ -89215,20 +89215,20 @@ symbol, 100%), `base_2.i`
 oak-board placement-state reader with the same immediate:
 
 ```c
-gStageSceneMusicEntry = 1;
+gStageCountdownMusicEntry = 1;
 _mineForkedTunnelSetSpriteBatchesHidden(areaGetCurrentObjectState(1) == 2);
 ```
 
 The target stores the music entry through a *copy* of the call's argument register -
-`li a0,1` / `lui v1,%hi(gStageSceneMusicEntry)` / `addu v0,a0,zero` / `jal
-areaGetCurrentObjectState` / `sb v0,%lo(gStageSceneMusicEntry)(v1)`:
+`li a0,1` / `lui v1,%hi(gStageCountdownMusicEntry)` / `addu v0,a0,zero` / `jal
+areaGetCurrentObjectState` / `sb v0,%lo(gStageCountdownMusicEntry)(v1)`:
 
 ```
 addiu a0,$zero,1     # the argument of the following call
-lui   v1,%hi(gStageSceneMusicEntry)
+lui   v1,%hi(gStageCountdownMusicEntry)
 addu  v0,a0,$zero    # the store value, a copy of that same constant
 jal   areaGetCurrentObjectState
-sb    v0,%lo(gStageSceneMusicEntry)(v1)
+sb    v0,%lo(gStageCountdownMusicEntry)(v1)
 ```
 
 Read `.rtl` and the two constants are separate insns - `(set (reg:QI 85)
@@ -92276,7 +92276,7 @@ The m2c seed here scored 99.082% with `regs=9` and one call argument wrong
 a pure `$v0`/`$v1`/`$a0` permutation:
 
 ```
-lw    v1,0x30(s0)      lui   v0,%hi(D_80062735)     li    a0,1
+lw    v1,0x30(s0)      lui   v0,%hi(gStageCountdownMusicEntry)     li    a0,1
 addiu v1,v1,1          addiu v1,v1,1               sb    a0,%lo(..)(v0)
 sw    v1,0x30(s0)      ...                          (target)
 ```
@@ -92793,7 +92793,7 @@ back:
 ```c
 task->msgTable = D_dryfield_night_r08_80180544;
 gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);                        /* addiu $a1,$zero,0x7 */
-streamSetExternalScenePayloadBuffer((u8*)Fs_ActorLoadBase1 + 0x20000);
+streamSetExternalScenePayloadBuffer(gFsActorBuffer1Base + 0x20000);
 ```
 
 Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
@@ -94217,11 +94217,11 @@ share this ordering.
 **Problem.** The target opened with the store first and the flag load after it:
 
 ```
-sb   $v0, %lo(D_80062735)($v1)
+sb   $v0, %lo(gStageCountdownMusicEntry)($v1)
 lh   $v0, 0x36($s2)
 ```
 
-The obvious `D_80062735 = 0xB; ... if (index->field_36 & 1)` schedules the `lh`
+The obvious `gStageCountdownMusicEntry = 0xB; ... if (index->field_36 & 1)` schedules the `lh`
 *above* the `sb`, and every register in the block shifts with it.
 
 **Symptom.** `reorder` on the opening block only, with the same instruction
@@ -94231,16 +94231,16 @@ multiset and one caller-saved register renamed throughout the prologue.
 `MEM_IN_STRUCT_P` read at a *varying* (register-based) address, in a mode other
 than `QImode`, never conflicts with a non-`MEM_IN_STRUCT_P` reference at a
 *fixed* address. `index->field_36` is a `COMPONENT_REF` (in-struct, varying) and
-a plain `extern u8 D_80062735;` is a scalar at a symbol (not in-struct, fixed),
+a plain `extern u8 gStageCountdownMusicEntry;` is a scalar at a symbol (not in-struct, fixed),
 so the two are declared independent and the scheduler is free to swap them.
 
 **Fix.** Give the store a member reference so `MEM_IN_STRUCT_P` is set on it
 too, which kills the exemption in both directions:
 
 ```c
-extern u8 D_80062735[];     /* the byte is inside a larger block */
+extern u8 gStageCountdownMusicEntry[];     /* the byte is inside a larger block */
 ...
-D_80062735[0] = 0xB;
+gStageCountdownMusicEntry[0] = 0xB;
 ```
 
 `expand_expr` sets `MEM_IN_STRUCT_P` for `COMPONENT_REF`, `ARRAY_REF` and
@@ -139078,7 +139078,7 @@ the scratch `sw` is re-zero-extended (`andi`); keep the widened value in an
 
 ## A store into a struct global stays ahead of a later field load (`func_actor_104900_80137498`)
 
-A scalar store to the word at `0x80067330` and `lw` of `task->extra` do not alias: the load is a varying `MEM_IN_STRUCT` and the store is a fixed non-struct address, so `true_dependence` drops the edge and sched1 sinks the `sw` past the load. That word is the model slot of a resident task descriptor, and storing it as what it is - `D_800670D0[0x32].data.model` - makes the store `MEM_IN_STRUCT` too. The exception no longer applies, the `sw` stays before the load, and the basic-block count does not change. So a target that keeps such a store ahead of the loads says the destination is a member of an aggregate: look for the table the address falls in before wrapping the word in a struct of its own. `void *volatile` does not: a volatile reference still moves past a non-volatile one.
+A scalar store to the word at `0x80067330` and `lw` of `task->extra` do not alias: the load is a varying `MEM_IN_STRUCT` and the store is a fixed non-struct address, so `true_dependence` drops the edge and sched1 sinks the `sw` past the load. That word is the model slot of a resident task descriptor, and storing it as what it is - `gTaskBank1Descs[0x32].data.model` - makes the store `MEM_IN_STRUCT` too. The exception no longer applies, the `sw` stays before the load, and the basic-block count does not change. So a target that keeps such a store ahead of the loads says the destination is a member of an aggregate: look for the table the address falls in before wrapping the word in a struct of its own. `void *volatile` does not: a volatile reference still moves past a non-volatile one.
 
 The address order around that store is a LUID tie. Both the slot `lui` and the TMD `addiu` have priority 1, and `rank_for_schedule` keeps the higher LUID next to the `sw`. Expanding the destination first puts the slot `lui` earlier. Assigning the symbol to a fresh `u8 *` and then storing that pointer emits `lui`/`addiu` in `$v0` and the slot `lui` in `$v1`, which is the target order. The same temporary as `void *` splits the `lo_sum` into `$v1` and reuses `$v0` for the slot. One temporary per store; reusing a `void *` across the three calls did not.
 
@@ -142116,7 +142116,7 @@ back to its node is written `PARENT_OF(p, GfxCoord, coord)`.
 (non-struct, fixed `%lo` address) and a load that is `MEM_IN_STRUCT_P` at a
 varying address. Every `index->field` read is in-struct (`COMPONENT_REF`
 expansion sets the flag, and combine keeps it when it narrows a word to `lh`),
-so after `D_80062735 = 0xB;` the scheduler may emit the `lh` of
+so after `gStageCountdownMusicEntry = 0xB;` the scheduler may emit the `lh` of
 `(index->spawnArg1 >> 16) & 1` above the `sb` - it does so to fill the load delay
 before the `andi`. The target kept the store first. Re-declaring the global as
 an array makes the store in-struct and restores the edge, but that gives one
@@ -142126,7 +142126,7 @@ into `0x36(s2)`:
 
 ```c
 spawnArg   = &arg0->spawnArg1;
-D_80062735 = 0xB;
+gStageCountdownMusicEntry = 0xB;
 ...
 if ((*spawnArg >> 16) & 1) {
 ```
@@ -146201,7 +146201,7 @@ nothing after it can take its slot. In the same function the file's
 hand-expanded body with `flag = 0x80;` inside the then-arm matches: inlining
 emits the constant's parameter copy in the block before the helper's first
 branch, and that extra insn lets sched1 hoist the preceding
-`gStageSceneMusicEntry = 2;` store to the top of the block. An explicit
+`gStageCountdownMusicEntry = 2;` store to the top of the block. An explicit
 `flag = 0x80;` hoisted to the same place reproduces the failure exactly.
 ## A barrier ordering one arm's sign extension before a reload is a statement macro's loop note (_actor400600UpdateArmSwing, 2026-09-27)
 

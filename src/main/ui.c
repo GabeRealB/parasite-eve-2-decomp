@@ -140,29 +140,21 @@ extern TmdSource D_8072C8F0;
 
 extern TmdSource D_8075BED4;
 
-/* Ｓｑｕａｒｅ */
-static u8 McTitleLocation_Square[];
+static u8 _gMcSavePointTitleSquareText[2 * 6 + 1];
 
-/* Ｔｒａｉｌｅｒ　Ｃｏａｃｈ */
-static u8 McTitleLocation_TrailerCoach[];
+static u8 _gMcSavePointTitleTrailerCoachText[2 * 13 + 1];
 
-/* Ｒｅｆｕｇｅ */
-static u8 McTitleLocation_Refuge[];
+static u8 _gMcSavePointTitleRefugeText[2 * 6 + 1];
 
-/* Ｓｔｅｒｉｌｉｚａｔｉｏｎ　Ｒｍ． */
-static u8 McTitleLocation_SterilizationRm[];
+static u8 _gMcSavePointTitleSterilizationRoomText[2 * 17 + 1];
 
-/* Ｕｎｄｅｒｇｒｏｕｎｄ　Ｐａｒｋ． */
-static u8 McTitleLocation_UndergroundPark[];
+static u8 _gMcSavePointTitleUndergroundParkingText[2 * 17 + 1];
 
-/* Ｐｏｄ　Ｄｅｃｋ */
-static u8 McTitleLocation_PodDeck[];
+static u8 _gMcSavePointTitlePodDeckText[2 * 8 + 1];
 
-/* Ｔｅｎｔ */
-static u8 McTitleLocation_Tent[];
+static u8 _gMcSavePointTitleTentText[2 * 4 + 1];
 
-/* Ｗｈｅｒｅ　ａｍ　Ｉ？ */
-static u8 McTitleLocation_WhereAmI[];
+static u8 _gMcSavePointTitleWhereAmIText[2 * 11 + 1];
 
 /// Unreferenced.
 static s32 D_80067638;
@@ -453,7 +445,7 @@ static void _uiDrawOptionDialogRow(UiList* list, UiObject* object);
 
 static void _uiUpdateOptionDialogTask(Task* owningTask);
 
-TaskDesc D_800670D0[] = {
+TaskDesc gTaskBank1Descs[TASK_BANK1_DESCRIPTOR_COUNT] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -562,8 +554,10 @@ const u8* gMcSavePointPreviewLabels[MEMORY_CARD_SAVE_POINT_PREVIEW_LABEL_COUNT] 
     _gMcSavePointPreviewMotelRoom6Text,
 };
 
-/* Ｓｑｕａｒｅ */
-static u8 McTitleLocation_Square[] = "\x82\x72\x82\x91\x82\x95\x82\x81\x82\x92\x82\x85";
+/// NUL-terminated full-width Shift-JIS Ｓｑｕａｒｅ card-title label in save-point slot 1.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleSquareText[2 * 6 + 1] = "\x82\x72\x82\x91\x82\x95\x82\x81\x82\x92\x82\x85";
 /// NUL-terminated full-width Shift-JIS Ｆｉｒｅ　Ｅｓｃａｐｅ card-title label in save-point slot 2.
 ///
 /// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
@@ -576,18 +570,26 @@ static u8 _gMcSavePointTitleMistParkingText[2 * 12 + 1] = "\x82\x6C\x82\x68\x82\
 ///
 /// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
 static u8 _gMcSavePointTitleGasStationText[2 * 11 + 1] = "\x82\x66\x82\x81\x82\x93\x81\x40\x82\x72\x82\x94\x82\x81\x82\x94\x82\x89\x82\x8F\x82\x8E";
-/* Ｔｒａｉｌｅｒ　Ｃｏａｃｈ */
-static u8 McTitleLocation_TrailerCoach[] = "\x82\x73\x82\x92\x82\x81\x82\x89\x82\x8C\x82\x85\x82\x92\x81\x40\x82\x62\x82\x8F\x82\x81\x82\x83\x82\x88";
+/// NUL-terminated full-width Shift-JIS Ｔｒａｉｌｅｒ　Ｃｏａｃｈ card-title label in save-point slot 5.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleTrailerCoachText[2 * 13 + 1] = "\x82\x73\x82\x92\x82\x81\x82\x89\x82\x8C\x82\x85\x82\x92\x81\x40\x82\x62\x82\x8F\x82\x81\x82\x83\x82\x88";
 /// NUL-terminated full-width Shift-JIS Ｍｏｔｅｌ　Ｌｏｂｂｙ card-title label in save-point slot 6.
 ///
 /// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
 static u8 _gMcSavePointTitleMotelLobbyText[2 * 11 + 1] = "\x82\x6C\x82\x8F\x82\x94\x82\x85\x82\x8C\x81\x40\x82\x6B\x82\x8F\x82\x82\x82\x82\x82\x99";
-/* Ｒｅｆｕｇｅ */
-static u8 McTitleLocation_Refuge[] = "\x82\x71\x82\x85\x82\x86\x82\x95\x82\x87\x82\x85";
-/* Ｓｔｅｒｉｌｉｚａｔｉｏｎ　Ｒｍ． */
-static u8 McTitleLocation_SterilizationRm[] = "\x82\x72\x82\x94\x82\x85\x82\x92\x82\x89\x82\x8C\x82\x89\x82\x9A\x82\x81\x82\x94\x82\x89\x82\x8F\x82\x8E\x81\x40\x82\x71\x82\x8D\x81\x44";
-/* Ｕｎｄｅｒｇｒｏｕｎｄ　Ｐａｒｋ． */
-static u8 McTitleLocation_UndergroundPark[] = "\x82\x74\x82\x8E\x82\x84\x82\x85\x82\x92\x82\x87\x82\x92\x82\x8F\x82\x95\x82\x8E\x82\x84\x81\x40\x82\x6F\x82\x81\x82\x92\x82\x8B\x81\x44";
+/// NUL-terminated full-width Shift-JIS Ｒｅｆｕｇｅ card-title label in save-point slot 7.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleRefugeText[2 * 6 + 1] = "\x82\x71\x82\x85\x82\x86\x82\x95\x82\x87\x82\x85";
+/// NUL-terminated full-width Shift-JIS Ｓｔｅｒｉｌｉｚａｔｉｏｎ　Ｒｍ． card-title label in save-point slot 8.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleSterilizationRoomText[2 * 17 + 1] = "\x82\x72\x82\x94\x82\x85\x82\x92\x82\x89\x82\x8C\x82\x89\x82\x9A\x82\x81\x82\x94\x82\x89\x82\x8F\x82\x8E\x81\x40\x82\x71\x82\x8D\x81\x44";
+/// NUL-terminated full-width Shift-JIS Ｕｎｄｅｒｇｒｏｕｎｄ　Ｐａｒｋ． card-title label in save-point slot 9.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleUndergroundParkingText[2 * 17 + 1] = "\x82\x74\x82\x8E\x82\x84\x82\x85\x82\x92\x82\x87\x82\x92\x82\x8F\x82\x95\x82\x8E\x82\x84\x81\x40\x82\x6F\x82\x81\x82\x92\x82\x8B\x81\x44";
 /// NUL-terminated full-width Shift-JIS Ｌａｂｏｒａｔｏｒｙ card-title label in save-point slot 10.
 ///
 /// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
@@ -596,14 +598,18 @@ static u8 _gMcSavePointTitleLaboratoryText[2 * 10 + 1] = "\x82\x6B\x82\x81\x82\x
 ///
 /// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
 static u8 _gMcSavePointTitleIncineratorControlRoomText[2 * 14 + 1] = "\x82\x68\x82\x8E\x82\x83\x82\x89\x82\x8E\x81\x44\x81\x40\x82\x62\x82\x8F\x82\x8E\x82\x94\x82\x92\x82\x8F\x82\x8C";
-/* Ｐｏｄ　Ｄｅｃｋ */
-static u8 McTitleLocation_PodDeck[] = "\x82\x6F\x82\x8F\x82\x84\x81\x40\x82\x63\x82\x85\x82\x83\x82\x8B";
+/// NUL-terminated full-width Shift-JIS Ｐｏｄ　Ｄｅｃｋ card-title label in save-point slot 12.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitlePodDeckText[2 * 8 + 1] = "\x82\x6F\x82\x8F\x82\x84\x81\x40\x82\x63\x82\x85\x82\x83\x82\x8B";
 /// NUL-terminated full-width Shift-JIS Ｎｕｒｓｅｒｙ card-title label in save-point slot 13.
 ///
 /// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
 static u8 _gMcSavePointTitleNurseryText[2 * 7 + 1] = "\x82\x6D\x82\x95\x82\x92\x82\x93\x82\x85\x82\x92\x82\x99";
-/* Ｔｅｎｔ */
-static u8 McTitleLocation_Tent[] = "\x82\x73\x82\x85\x82\x8E\x82\x94";
+/// NUL-terminated full-width Shift-JIS Ｔｅｎｔ card-title label in save-point slot 14.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleTentText[2 * 4 + 1] = "\x82\x73\x82\x85\x82\x8E\x82\x94";
 /// NUL-terminated full-width Shift-JIS Ｏｐｅｎｉｎｇ card-title label in save-point slot 15.
 ///
 /// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
@@ -612,31 +618,32 @@ static u8 _gMcSavePointTitleOpeningText[2 * 7 + 1] = "\x82\x6E\x82\x90\x82\x85\x
 ///
 /// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
 static u8 _gMcSavePointTitleMotelRoom6Text[2 * 12 + 1] = "\x82\x6C\x82\x8F\x82\x94\x82\x85\x82\x8C\x81\x40\x82\x71\x82\x8F\x82\x8F\x82\x8D\x81\x40\x82\x55";
-/* Ｗｈｅｒｅ　ａｍ　Ｉ？ */
-static u8 McTitleLocation_WhereAmI[] = "\x82\x76\x82\x88\x82\x85\x82\x92\x82\x85\x81\x40\x82\x81\x82\x8D\x81\x40\x82\x68\x81\x48";
+/// NUL-terminated full-width Shift-JIS Ｗｈｅｒｅ　ａｍ　Ｉ？ card-title label in save-point slot 0.
+///
+/// Each glyph occupies two bytes; the title writer copies the encoded bytes unchanged.
+static u8 _gMcSavePointTitleWhereAmIText[2 * 11 + 1] = "\x82\x76\x82\x88\x82\x85\x82\x92\x82\x85\x81\x40\x82\x81\x82\x8D\x81\x40\x82\x68\x81\x48";
 
-u8* Mc_LocationTitleLabels[] = {
-    McTitleLocation_WhereAmI,
-    McTitleLocation_Square,
+const u8* gMcSavePointTitleLabels[MEMORY_CARD_SAVE_POINT_TITLE_LABEL_COUNT] = {
+    _gMcSavePointTitleWhereAmIText,
+    _gMcSavePointTitleSquareText,
     _gMcSavePointTitleFireEscapeText,
     _gMcSavePointTitleMistParkingText,
     _gMcSavePointTitleGasStationText,
-    McTitleLocation_TrailerCoach,
+    _gMcSavePointTitleTrailerCoachText,
     _gMcSavePointTitleMotelLobbyText,
-    McTitleLocation_Refuge,
-    McTitleLocation_SterilizationRm,
-    McTitleLocation_UndergroundPark,
+    _gMcSavePointTitleRefugeText,
+    _gMcSavePointTitleSterilizationRoomText,
+    _gMcSavePointTitleUndergroundParkingText,
     _gMcSavePointTitleLaboratoryText,
     _gMcSavePointTitleIncineratorControlRoomText,
-    McTitleLocation_PodDeck,
+    _gMcSavePointTitlePodDeckText,
     _gMcSavePointTitleNurseryText,
-    McTitleLocation_Tent,
+    _gMcSavePointTitleTentText,
     _gMcSavePointTitleOpeningText,
     _gMcSavePointTitleMotelRoom6Text,
 };
 
-/// Current item-information panel; separate from the 17 save-point titles.
-UiObject* D_80067634 = NULL;
+UiObject* gItemMenuInfoPanel = NULL;
 /// Unreferenced.
 static s32 D_80067638 = 0x001C2824;
 /// Indexed text-modulation RGB words, with red in the low byte and no GPU command byte.
@@ -664,7 +671,7 @@ static s32 _gUiCursorScreenYFixed = -130;
 static UiListRowCallback Ui_DialogLineCallbacks[] = { _uiDrawOptionDialogRow };
 static UiList            Ui_DialogLineList        = { Ui_DialogLineCallbacks, 1, 1, 0, 0x0F };
 static UiObjectDesc      Ui_DialogListDesc        = { USER_INTERFACE_PANEL_TITLE_STYLE, { -48, -32, 0x60, 0x40 }, 0x20, 0, TASK_BODY_NONE, 0xC0, _uiUpdateOptionDialogTask, 0 };
-UiObject*                Wip_UiHolder             = NULL;
+UiObject*                gUiPromptObject          = NULL;
 
 /// Panel lifecycle dispatch in initial, opening, open, closing, hiding and hidden order.
 ///
@@ -3211,7 +3218,7 @@ static void _uiDrawOptionDialogRow(UiList* list, UiObject* object)
             object->result      = confirmResult;
             return;
         }
-        if ((request->flags & USER_INTERFACE_OPTION_DIALOG_CANCELLABLE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0)) {
+        if ((request->flags & USER_INTERFACE_OPTION_DIALOG_CANCELLABLE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | gPadMenuButtonMask) != 0)) {
             object->resultValue = USER_INTERFACE_RESULT_CANCEL;
             object->result      = USER_INTERFACE_RESULT_CANCEL;
         }
@@ -3287,15 +3294,15 @@ static void _uiUpdateOptionDialogTask(Task* owningTask)
 
 void uiSetPromptText(const u8* text, s32 unused2, s32 unused3)
 {
-    if (Wip_UiHolder != NULL) {
+    if (gUiPromptObject != NULL) {
         // The task payload carries an address; the prompt only reads its text.
-        Wip_UiHolder->owner->spawnArg1.pointer = (void*)text;
+        gUiPromptObject->owner->spawnArg1.pointer = (void*)text;
     }
 }
 
 void uiSetPromptPeItem(s32 peItemId, s32 unused2, s32 unused3)
 {
-    if (Wip_UiHolder != NULL) {
-        Wip_UiHolder->owner->spawnArg1.value = peItemId;
+    if (gUiPromptObject != NULL) {
+        gUiPromptObject->owner->spawnArg1.value = peItemId;
     }
 }

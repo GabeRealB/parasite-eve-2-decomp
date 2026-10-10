@@ -432,8 +432,8 @@ static void _mineGorgeInitializeRoomTask(Task* task)
         gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, MINE_GORGE_CAVERN_DOOR_UNPOWERED);
         capSpawnEventIfIdle(MINE_GORGE_REFUGE_EVENT_COMMAND, CAP_EVENT_NO_FLAGS);
     }
-    task->state           = task->state + 1;
-    gStageSceneMusicEntry = MINE_GORGE_COUNTDOWN_MUSIC_ENTRY;
+    task->state               = task->state + 1;
+    gStageCountdownMusicEntry = MINE_GORGE_COUNTDOWN_MUSIC_ENTRY;
 }
 
 /// Keeps the installed room task available for messages between entry and teardown.

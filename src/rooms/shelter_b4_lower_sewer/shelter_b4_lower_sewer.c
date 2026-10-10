@@ -441,9 +441,9 @@ static inline void _shelterB4LowerSewerResetWaterPacketCursor(void)
     enum { SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES = 0xC000 };
     // These are byte offsets into reusable arenas, rather than object members.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        gShelterB4LowerSewerWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
+        gShelterB4LowerSewerWaterPacketCursor = gFsActorBuffer2Base + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
     } else {
-        gShelterB4LowerSewerWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
+        gShelterB4LowerSewerWaterPacketCursor = gFsActorBuffer1Base + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
     }
 }
 

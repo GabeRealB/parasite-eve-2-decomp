@@ -11,9 +11,14 @@ extern StageMusicParams gStageMusicParams;
 /// that must wait for the music checks it.
 extern u8 gStageMusicLoadState;
 
-/// The music-table entry a scene selects. A load task spawned with argument 2
-/// plays it instead of the area's own entry; rooms and actors set it.
-extern u8 gStageSceneMusicEntry;
+/// Byte index of the active stage's selected countdown-music entry.
+///
+/// A music task requested with mode 2 borrows this entry from the loaded map's
+/// countdown table. Rooms, actors and event callbacks replace the selection;
+/// the index must fit that table (current tables provide slots 0..19).
+/// Ordinary requests choose their area/scene column independently. The byte
+/// records a selection, not whether loading or playback has completed.
+extern u8 gStageCountdownMusicEntry;
 
 /// MIDI sequence id requested by a room jukebox outside the stage music table.
 ///

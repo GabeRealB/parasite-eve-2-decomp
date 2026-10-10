@@ -471,7 +471,7 @@ void itemMenuApplyPouchPanel(UiObject* object, Task* task)
         if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_DISMISS;
             task->killCountdown = ITEM_MENU_POUCH_COMPLETED_COUNTDOWN;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result      = USER_INTERFACE_RESULT_CANCEL;
             task->killCountdown = ITEM_MENU_POUCH_COMPLETED_COUNTDOWN;
         }

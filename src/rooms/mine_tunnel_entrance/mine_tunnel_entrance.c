@@ -741,7 +741,7 @@ static void _mineTunnelEntranceInitRoomTask(Task* task)
     task->msgTable = _gMineTunnelEntranceRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
-    gStageSceneMusicEntry = MINE_TUNNEL_ENTRANCE_SCENE_MUSIC_ENTRY;
+    gStageCountdownMusicEntry = MINE_TUNNEL_ENTRANCE_SCENE_MUSIC_ENTRY;
 }
 
 /// Advances the saved mine-arrival event when the tunnel entrance is entered.

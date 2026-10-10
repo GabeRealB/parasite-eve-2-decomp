@@ -769,9 +769,9 @@ static inline void _telephoneMenuTask(Task* task)
         gGameSession->uiOpen       = activeControl;
         uiSetListSystemCursorSound(list, 1);
         itemMenuClearPreviewItems();
-        D_80067634   = NULL;
-        Wip_UiHolder = NULL;
-        task->state  = task->state + 1;
+        gItemMenuInfoPanel = NULL;
+        gUiPromptObject    = NULL;
+        task->state        = task->state + 1;
     } else {
         uiDrawPanelLabel(&(object)->panel, _gTelephoneMenuTitle);
         uiUpdateList(list, &object->panel);

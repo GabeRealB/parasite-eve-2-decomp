@@ -110,7 +110,13 @@ STATIC_ASSERT_SIZEOF(_AsyncCbQueue, 0x54);
 /// The SPU ADPCM block uploaded to SPU address 0x7B440 at start-up.
 static _AsyncCbQueue AsyncCb_Queue;
 
-static _SpuVoiceState Spu_VoiceState;
+/// Resident allocation and completion state for all 24 hardware voices.
+///
+/// Voice indices are 0..23. Initialization clears the complete object before
+/// queuing silent starts; ticks update the arrays and invoke borrowed owner
+/// callbacks. Ordinary nonsilent starts enter its completion-reset mask;
+/// stream starts are accounted for separately by their owner.
+static _SpuVoiceState _gSpuVoiceState;
 
 /// Unreferenced.
 static u8 D_8007E510[8];
@@ -119,11 +125,26 @@ static _SpuVoiceUpdateList Spu_LVoiceTable;
 
 static _SpuVoiceRange Spu_VoiceRanges[4];
 
-static u32 Spu_KeyOnMask;
+/// Pending ordinary or silent-block key-ons, with one bit per voice 0..23.
+///
+/// Flushing stops these voices before applying attributes and restarting them.
+/// Nonsilent starts enter completion tracking; silent-marked starts do not.
+/// The mask is emptied by the flush and individual key-offs cancel its bits.
+static u32 _gSpuPendingKeyOnMask;
 
-static u32 Spu_KeyOnMaskExtra;
+/// Pending CD-stream key-ons, with one bit per voice 0..23.
+///
+/// Flushing starts these alongside ordinary voices but excludes them from new
+/// completion-reset tracking. A stream request withdraws the ordinary pending
+/// start and silent mark; key-off cancels either class. Flushing empties it.
+static u32 _gSpuPendingStreamKeyOnMask;
 
-static u32 Spu_KeyOffMask;
+/// Pending key-offs, with one bit per hardware voice 0..23.
+///
+/// A key-on withdraws that voice's pending stop. Flushing also adds ordinary
+/// pending starts here, stops the selected voices before applying attributes,
+/// and empties this mask before sending the new key-ons.
+static u32 _gSpuPendingKeyOffMask;
 
 static _SpuReverbConfig Spu_ReverbCfg;
 
@@ -299,24 +320,24 @@ void spuInitVoices(void)
     SpuWrite(Spu_InitialAdpcmBlock, sizeof(Spu_InitialAdpcmBlock));
     SpuIsTransferCompleted(SPU_TRANSFER_WAIT);
 
-    clearWord          = (s32*)&Spu_LVoiceTable;
-    index              = 0;
-    Spu_KeyOnMask      = 0;
-    Spu_KeyOnMaskExtra = 0;
-    Spu_KeyOffMask     = 0;
+    clearWord                   = (s32*)&Spu_LVoiceTable;
+    index                       = 0;
+    _gSpuPendingKeyOnMask       = 0;
+    _gSpuPendingStreamKeyOnMask = 0;
+    _gSpuPendingKeyOffMask      = 0;
     do {
         *clearWord = 0;
         index++;
         clearWord++;
     } while ((u32)index < sizeof(Spu_LVoiceTable) / sizeof(*clearWord));
 
-    clearWord = (s32*)&Spu_VoiceState;
+    clearWord = (s32*)&_gSpuVoiceState;
     index     = 0;
     do {
         *clearWord = 0;
         index++;
         clearWord++;
-    } while ((u32)index < sizeof(Spu_VoiceState) / sizeof(*clearWord));
+    } while ((u32)index < sizeof(_gSpuVoiceState) / sizeof(*clearWord));
 
     // Queue every voice on silence; the next flush applies this complete batch.
     index = 0;
@@ -381,7 +402,7 @@ s32 spuAllocVoice(const s16* rangeIndices, s32 rangeCount, s32 priority)
     candidatePriority = priority;
     candidateVoiceIdx = SPU_VOICE_NONE;
     rangeIndex        = 0;
-    state             = &Spu_VoiceState;
+    state             = &_gSpuVoiceState;
 
     // Prefer the first free, inactive voice in the caller's range order.
     if (rangeCount > 0) {
@@ -442,9 +463,9 @@ static inline s32 _spuReleaseVoiceSlot(u32 voiceIdx)
     if ((u8)voiceIndex > (u32)SPU_VOICE_COUNT) {
         return -1;
     }
-    Spu_VoiceState.allocated[voiceIndex]  = false;
-    Spu_VoiceState.priorities[voiceIndex] = 0;
-    Spu_VoiceState.ages[voiceIndex]       = 0;
+    _gSpuVoiceState.allocated[voiceIndex]  = false;
+    _gSpuVoiceState.priorities[voiceIndex] = 0;
+    _gSpuVoiceState.ages[voiceIndex]       = 0;
     return 0;
 }
 
@@ -489,7 +510,7 @@ void spuTickVoices(void)
     s32             voiceAge;
     s8              keyStatus;
 
-    state = &Spu_VoiceState;
+    state = &_gSpuVoiceState;
     SpuGetAllKeysStatus(state->keyStatus);
     for (voiceIdx = 0; voiceIdx < SPU_VOICE_COUNT; voiceIdx++) {
         if (state->keyOnGraceTicks[voiceIdx] != 0) {
@@ -535,10 +556,10 @@ void spuFlushVoiceUpdates(void)
     }
 
     // Stop pending sound key-ons first, then apply attributes before restarting them.
-    Spu_KeyOffMask |= Spu_KeyOnMask;
-    if (Spu_KeyOffMask != 0) {
-        SpuSetKey(SPU_OFF, Spu_KeyOffMask);
-        Spu_KeyOffMask = 0;
+    _gSpuPendingKeyOffMask |= _gSpuPendingKeyOnMask;
+    if (_gSpuPendingKeyOffMask != 0) {
+        SpuSetKey(SPU_OFF, _gSpuPendingKeyOffMask);
+        _gSpuPendingKeyOffMask = 0;
     }
 
     list = &Spu_LVoiceTable;
@@ -553,16 +574,16 @@ void spuFlushVoiceUpdates(void)
     }
 
     // Only ordinary sound starts enter completion-reset tracking.
-    if ((Spu_KeyOnMask | Spu_KeyOnMaskExtra) != 0) {
-        SpuSetKey(SPU_ON, Spu_KeyOnMask | Spu_KeyOnMaskExtra);
-        if (Spu_KeyOnMask != 0) {
-            Spu_VoiceState.startedVoices |= Spu_KeyOnMask;
-            Spu_VoiceState.startedVoices &= ~Spu_VoiceState.silentKeyOnVoices;
+    if ((_gSpuPendingKeyOnMask | _gSpuPendingStreamKeyOnMask) != 0) {
+        SpuSetKey(SPU_ON, _gSpuPendingKeyOnMask | _gSpuPendingStreamKeyOnMask);
+        if (_gSpuPendingKeyOnMask != 0) {
+            _gSpuVoiceState.startedVoices |= _gSpuPendingKeyOnMask;
+            _gSpuVoiceState.startedVoices &= ~_gSpuVoiceState.silentKeyOnVoices;
         }
 
-        Spu_VoiceState.silentKeyOnVoices = 0;
-        Spu_KeyOnMask                    = 0;
-        Spu_KeyOnMaskExtra               = 0;
+        _gSpuVoiceState.silentKeyOnVoices = 0;
+        _gSpuPendingKeyOnMask             = 0;
+        _gSpuPendingStreamKeyOnMask       = 0;
     }
 }
 
@@ -570,16 +591,16 @@ void spuSetVoiceCallback(u32 voiceIdx, SpuVoiceCallback callback, void* context)
 {
     s8 voiceIndex = (s8)voiceIdx;
 
-    Spu_VoiceState.callbacks[voiceIndex]        = callback;
-    Spu_VoiceState.callbackContexts[voiceIndex] = context;
+    _gSpuVoiceState.callbacks[voiceIndex]        = callback;
+    _gSpuVoiceState.callbackContexts[voiceIndex] = context;
 }
 
 void spuClearVoiceCallback(u32 voiceIdx)
 {
     s8 voiceIndex = (s8)voiceIdx;
 
-    Spu_VoiceState.callbacks[voiceIndex]        = NULL;
-    Spu_VoiceState.callbackContexts[voiceIndex] = NULL;
+    _gSpuVoiceState.callbacks[voiceIndex]        = NULL;
+    _gSpuVoiceState.callbackContexts[voiceIndex] = NULL;
 }
 
 s32 spuSetVoiceRange(s32 rangeIndex, s32 firstVoice, s32 voiceCount)
@@ -602,13 +623,13 @@ s32 spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref)
 s32 spuReleaseVoiceSlot(u32 voiceIdx)
 {
     s8 voiceIndex = (s8)voiceIdx;
-    if (voiceIndex > (u32)ARRAY_SIZE(Spu_VoiceState.allocated)) {
+    if (voiceIndex > (u32)ARRAY_SIZE(_gSpuVoiceState.allocated)) {
         return -1;
     }
 
-    Spu_VoiceState.allocated[voiceIndex]  = false;
-    Spu_VoiceState.priorities[voiceIndex] = 0;
-    Spu_VoiceState.ages[voiceIndex]       = 0;
+    _gSpuVoiceState.allocated[voiceIndex]  = false;
+    _gSpuVoiceState.priorities[voiceIndex] = 0;
+    _gSpuVoiceState.ages[voiceIndex]       = 0;
     return 0;
 }
 
@@ -616,7 +637,7 @@ u8 spuGetVoiceKeyStatus(u32 voiceIdx)
 {
     s8 voiceIndex = (s8)voiceIdx;
 
-    return Spu_VoiceState.keyStatus[voiceIndex];
+    return _gSpuVoiceState.keyStatus[voiceIndex];
 }
 
 void spuKeyOn(u32 voiceIdx)
@@ -625,15 +646,15 @@ void spuKeyOn(u32 voiceIdx)
     u32*            keyOnMask;
     u32             voiceMask;
 
-    state                            = &Spu_VoiceState;
-    keyOnMask                        = &Spu_KeyOnMask;
+    state                            = &_gSpuVoiceState;
+    keyOnMask                        = &_gSpuPendingKeyOnMask;
     voiceIdx                         = (s8)voiceIdx;
     state->keyOnGraceTicks[voiceIdx] = SPU_KEY_ON_GRACE_TICKS;
     voiceMask                        = SPU_VOICECH(voiceIdx);
     *keyOnMask                      |= voiceMask;
     voiceMask                        = ~voiceMask;
     state->silentKeyOnVoices        &= voiceMask;
-    Spu_KeyOffMask                  &= voiceMask;
+    _gSpuPendingKeyOffMask          &= voiceMask;
 }
 
 void spuKeyOff(u32 voiceIdx)
@@ -641,19 +662,19 @@ void spuKeyOff(u32 voiceIdx)
     u32* keyOffMask;
     u32  voiceMask;
 
-    keyOffMask = &Spu_KeyOffMask;
+    keyOffMask = &_gSpuPendingKeyOffMask;
     voiceIdx   = (s8)voiceIdx;
 
-    voiceMask           = SPU_VOICECH(voiceIdx);
-    *keyOffMask        |= voiceMask;
-    Spu_KeyOnMask      &= ~voiceMask;
-    Spu_KeyOnMaskExtra &= ~voiceMask;
+    voiceMask                    = SPU_VOICECH(voiceIdx);
+    *keyOffMask                 |= voiceMask;
+    _gSpuPendingKeyOnMask       &= ~voiceMask;
+    _gSpuPendingStreamKeyOnMask &= ~voiceMask;
 }
 
 /// Refreshes the cached hardware reverb-routing mask; retained without callers.
 static void _spuRefreshReverbVoiceStatus(void)
 {
-    Spu_VoiceState.reverbVoiceStatus = SpuGetReverbVoice();
+    _gSpuVoiceState.reverbVoiceStatus = SpuGetReverbVoice();
 }
 
 void spuInitReverb(s32 mode)
@@ -727,7 +748,7 @@ void spuDisableVoiceReverb(u32 voiceIdx)
 /// Pending routing changes do not update this snapshot.
 static bool _spuIsVoiceReverbEnabled(u32 voiceIdx)
 {
-    return (Spu_VoiceState.reverbVoiceStatus >> voiceIdx) & 1;
+    return (_gSpuVoiceState.reverbVoiceStatus >> voiceIdx) & 1;
 }
 
 /// Applies pending reverb routing and parameters, then empties their masks.
@@ -812,14 +833,14 @@ static void _spuKeyOnSilentBlock(u32 voiceIdx)
     u32*            keyOnMask;
     u32             voiceMask;
 
-    state                            = &Spu_VoiceState;
-    keyOnMask                        = &Spu_KeyOnMask;
+    state                            = &_gSpuVoiceState;
+    keyOnMask                        = &_gSpuPendingKeyOnMask;
     voiceIdx                         = (s8)voiceIdx;
     state->keyOnGraceTicks[voiceIdx] = SPU_KEY_ON_GRACE_TICKS;
     voiceMask                        = SPU_VOICECH(voiceIdx);
     *keyOnMask                      |= voiceMask;
     state->silentKeyOnVoices        |= voiceMask;
-    Spu_KeyOffMask                  &= ~voiceMask;
+    _gSpuPendingKeyOffMask          &= ~voiceMask;
 }
 
 void spuKeyOnStreamVoice(u32 voiceIdx)
@@ -828,13 +849,13 @@ void spuKeyOnStreamVoice(u32 voiceIdx)
     u32*            keyOnMask;
     u32             voiceMask;
 
-    state                            = &Spu_VoiceState;
-    keyOnMask                        = &Spu_KeyOnMaskExtra;
+    state                            = &_gSpuVoiceState;
+    keyOnMask                        = &_gSpuPendingStreamKeyOnMask;
     voiceIdx                         = (s8)voiceIdx;
     state->keyOnGraceTicks[voiceIdx] = SPU_KEY_ON_GRACE_TICKS;
     voiceMask                        = SPU_VOICECH(voiceIdx);
     *keyOnMask                      |= voiceMask;
     state->silentKeyOnVoices        &= ~voiceMask;
-    Spu_KeyOnMask                   &= ~voiceMask;
-    Spu_KeyOffMask                  &= ~voiceMask;
+    _gSpuPendingKeyOnMask           &= ~voiceMask;
+    _gSpuPendingKeyOffMask          &= ~voiceMask;
 }

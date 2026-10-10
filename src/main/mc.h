@@ -136,8 +136,16 @@ extern u8 gMcTextCancel[sizeof("Cancel")];
 /// NUL-terminated label for the memory-card OK acknowledgment.
 extern u8 gMcTextOk[sizeof("OK")];
 
-// Save-slot detail labels and indexed descriptions.
-extern u8* Mc_LocationTitleLabels[];
+/// Card-title label slots, including Where am I? at index zero.
+enum { MEMORY_CARD_SAVE_POINT_TITLE_LABEL_COUNT = 17 };
+
+/// Borrowed NUL-terminated full-width Shift-JIS place labels for card file titles.
+///
+/// Indexed directly by the signed view of the live save-point byte, which must
+/// be 0..16; there is no bounds check. Slot zero is Where am I?, slot 15 Opening.
+/// The writer copies the encoded bytes unchanged rather than converting ASCII
+/// glyphs. Strings have resident lifetime and are read through const byte views.
+extern const u8* gMcSavePointTitleLabels[MEMORY_CARD_SAVE_POINT_TITLE_LABEL_COUNT];
 
 /// NUL-terminated TIME caption for a cached save preview's elapsed play time.
 extern const u8 gMcPreviewTimeLabel[sizeof("TIME")];

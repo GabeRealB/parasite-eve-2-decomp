@@ -1,6 +1,9 @@
 #ifndef MAIN_PRIVATE_DISPLAY_TYPES_H
 #define MAIN_PRIVATE_DISPLAY_TYPES_H
 
+/// Total bytes in the resident primitive arena shared by both frame halves.
+enum { DISPLAY_STATIC_PRIMITIVE_ARENA_BYTES = 0x6000 };
+
 /// Tags in each resident frame buffer, including the reserved foreground range.
 #define GPU_ORDERING_TABLE_BUFFER_ENTRIES 0x440
 

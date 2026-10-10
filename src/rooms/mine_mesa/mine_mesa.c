@@ -3219,7 +3219,7 @@ static void _mineMesaInitializeRoomState(Task* task)
     } else {
         _mineMesaUnlinkBattleTriggers();
     }
-    gStageSceneMusicEntry = SCENE_MUSIC_ENTRY;
+    gStageCountdownMusicEntry = SCENE_MUSIC_ENTRY;
     _mineMesaResetSceneTaskHandles();
     _gMineMesaEnemyWaveTask = NULL;
     _mineMesaRebuildVariantWalls();
@@ -3738,7 +3738,7 @@ static void _mineMesaSuppressAutomaticMusic(void)
 /// neither loads nor starts music; the room scripts select entry 2.
 static void _mineMesaSelectCountdownMusicEntry(u8 countdownEntry)
 {
-    gStageSceneMusicEntry = countdownEntry;
+    gStageCountdownMusicEntry = countdownEntry;
 }
 
 /// Starts the run scene's timed sound cues at elapsed tick zero.
@@ -4220,7 +4220,7 @@ static void _mineMesaSpawnEnemyWaveState(Task* task)
     unusedEnemy.param            = NULL;
     gSceneCombatState.battleRefs = 1;
     sceneReleaseBattleRef(task, 0);
-    gStageSceneMusicEntry = POST_WAVE_MUSIC_ENTRY;
+    gStageCountdownMusicEntry = POST_WAVE_MUSIC_ENTRY;
     task->state++;
 }
 

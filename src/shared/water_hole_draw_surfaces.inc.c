@@ -51,9 +51,9 @@ static void _waterHoleDrawSurfaces(Task* task)
 
     surface = _gWaterHoleSurfaces;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        _gWaterHolePrimCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * WATER_HOLE_PACKET_HALF_BYTES;
+        _gWaterHolePrimCursor = gFsActorBuffer2Base + gDisplayState.otBuffer * WATER_HOLE_PACKET_HALF_BYTES;
     } else {
-        _gWaterHolePrimCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * WATER_HOLE_PACKET_HALF_BYTES;
+        _gWaterHolePrimCursor = gFsActorBuffer1Base + gDisplayState.otBuffer * WATER_HOLE_PACKET_HALF_BYTES;
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         _gWaterHoleWaveScroll++;

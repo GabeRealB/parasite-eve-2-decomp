@@ -548,8 +548,8 @@ static void _itemMenuTransferScreenTask(Task* task)
     screen         = task->spawnArg2.pointer;
     screen->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == ITEM_MENU_TRANSFER_INITIAL) {
-        Wip_UiHolder = NULL;
-        D_80067634   = NULL;
+        gUiPromptObject    = NULL;
+        gItemMenuInfoPanel = NULL;
         itemMenuClearPreviewItems();
         work      = memCalloc(sizeof(*work), 0);
         paneIndex = 0;
@@ -777,7 +777,7 @@ static void _itemMenuTransferPaneTask(Task* task)
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 object->result             = USER_INTERFACE_RESULT_CANCEL;
-            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 object->result             = USER_INTERFACE_RESULT_CANCEL;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
@@ -786,7 +786,7 @@ static void _itemMenuTransferPaneTask(Task* task)
                     object->result = ITEM_MENU_RESULT_CHANGE_PANE;
                 }
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | gPadMenuButtonMask) != 0) {
             object->result = ITEM_MENU_RESULT_CANCEL_SWAP;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
             if ((task->spawnArg1.value == ITEM_MENU_PANE_CONTAINER && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) || (task->spawnArg1.value == ITEM_MENU_PANE_CARRIED && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) || padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2) != 0) {
@@ -1009,7 +1009,7 @@ static void _itemMenuTransferActionsTask(Task* task)
     }
     uiUpdateList(list, &object->panel);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             if (object->owner->status != 0) {
                 object->result = USER_INTERFACE_RESULT_CONFIRM;
             } else {
@@ -1259,7 +1259,7 @@ static void _itemMenuAmmoSplitTask(Task* task)
                 inventoryConsumeFirstStack(carriedRange - 1, task->spawnArg1.value, transferQty);
             }
             object->result = USER_INTERFACE_RESULT_DISMISS;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             object->result             = USER_INTERFACE_RESULT_CANCEL;
@@ -1764,7 +1764,7 @@ static inline void _itemMenuDrawHolderPromptLines(const UiObject* object, const 
 
 /// Publishes the transfer screen's prompt panel and draws two text lines.
 ///
-/// spawnArg2 borrows its live task-owned UiObject, published as Wip_UiHolder
+/// spawnArg2 borrows its live task-owned UiObject, published as gUiPromptObject
 /// on initialization. spawnArg1 is NULL or borrowed encoded text, kept live
 /// while drawn and replaceable through uiSetPromptText. Uses fixed normal RGB
 /// and outlined left-aligned text at contentLeft+2, contentTop+15/+30 pixels.
@@ -1779,8 +1779,8 @@ static void _itemMenuHolderPromptTask(Task* task)
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        Wip_UiHolder = object;
-        task->state += 1;
+        gUiPromptObject = object;
+        task->state    += 1;
     }
     promptText = task->spawnArg1.pointer;
     if (promptText != 0) {
@@ -1839,7 +1839,7 @@ void itemPickupPublishPlacedObjectTask(Task* task)
         Gp_PubItemQty   = packQuantity;
     }
     displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-    Wip_UiHolder        = NULL;
+    gUiPromptObject     = NULL;
     task->killCountdown = 1;
     task->state         = task->state + 1;
 }

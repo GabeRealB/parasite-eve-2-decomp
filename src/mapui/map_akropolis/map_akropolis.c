@@ -326,7 +326,7 @@ static void _mapAkropolisKeyItemPanelTask(Task* task)
         task->state          += 1;
     }
     uiUpdateList(list, &object->panel);
-    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu) != 0) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | gPadMenuButtonMask) != 0) {
         object->result = USER_INTERFACE_RESULT_CANCEL;
     }
     if (task->firstChild != NULL) {

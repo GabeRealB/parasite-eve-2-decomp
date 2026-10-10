@@ -1425,9 +1425,9 @@ static void _shelterB4UpperSewerUpdateWater(Task* task)
 
     // Borrow the unused actor-load buffer, with one packet area per display buffer.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
+        D_shelter_b4_upper_sewer_80188D30 = gFsActorBuffer2Base + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
     } else {
-        D_shelter_b4_upper_sewer_80188D30 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
+        D_shelter_b4_upper_sewer_80188D30 = gFsActorBuffer1Base + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
     }
     if (D_shelter_b4_upper_sewer_80186438 < SHELTER_B4_UPPER_SEWER_WATER_MIN_Y) {
         D_shelter_b4_upper_sewer_80186438 = SHELTER_B4_UPPER_SEWER_WATER_MIN_Y;

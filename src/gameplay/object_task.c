@@ -81,13 +81,13 @@ static inline void _objectTaskResetRoomPresentation(void)
     switch (musicOverride) {
         case OBJECT_TASK_MUSIC_OVERRIDE_SUBMARINE:
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
-                gStageSceneMusicEntry = OBJECT_TASK_DRYFIELD_NIGHT_MUSIC_ENTRY;
+                gStageCountdownMusicEntry = OBJECT_TASK_DRYFIELD_NIGHT_MUSIC_ENTRY;
             } else {
                 gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             }
             break;
         case OBJECT_TASK_MUSIC_OVERRIDE_PARKING:
-            gStageSceneMusicEntry = OBJECT_TASK_PARKING_MUSIC_ENTRY;
+            gStageCountdownMusicEntry = OBJECT_TASK_PARKING_MUSIC_ENTRY;
             break;
     }
 }

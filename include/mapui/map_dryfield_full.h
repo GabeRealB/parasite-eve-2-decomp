@@ -49,7 +49,7 @@ extern StageMusicEntry gMapDryfieldFullAreaMusicEntries[(MAP_DRYFIELD_FULL_AREA_
 
 /// Scene-indexed countdown music for Dryfield at night.
 ///
-/// `gStageSceneMusicEntry` directly selects 0..19, without a terminator or
+/// `gStageCountdownMusicEntry` directly selects 0..19, without a terminator or
 /// bounds check. Entries 12..19 retain sequence zero and start mode zero.
 /// Keep this overlay loaded until the music task finishes using its selection.
 extern StageMusicEntry gMapDryfieldFullCountdownMusicEntries[20];

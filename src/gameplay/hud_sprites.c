@@ -1020,7 +1020,7 @@ static void _gameDebugStartInputReplay(void)
     if (display->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     } else {
-        Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+        Gp_ReplayCursor = (u16*)(gFsActorBuffer2Base + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     }
     // Force the first record to install its duration before the countdown steps.
     Gp_ReplayButtons                   = GAME_DEBUG_REPLAY_BUTTONS_INVALID;

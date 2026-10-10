@@ -13,7 +13,7 @@ static void _telephonePromptTask(Task* task)
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == TELEPHONE_PANEL_INITIALIZE) {
-        Wip_UiHolder       = object;
+        gUiPromptObject    = object;
         task->exitCallback = _telephonePromptTaskExit;
         task->state       += 1;
     }
@@ -234,8 +234,8 @@ static void _telephonePromptTaskExit(Task* task)
     UiObject* object;
 
     object = task->spawnArg2.pointer;
-    if (Wip_UiHolder == object) {
-        Wip_UiHolder = NULL;
+    if (gUiPromptObject == object) {
+        gUiPromptObject = NULL;
     }
     uiObjectTaskExit(task);
 }

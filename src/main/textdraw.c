@@ -229,7 +229,7 @@ static TaskDesc _gTaskSystemDescs[39] = {
 
 TaskDesc* gTaskDescBanks[15] = {
     _gTaskSystemDescs,
-    D_800670D0,
+    gTaskBank1Descs,
     D_80067828,
     gTaskBank3Descs,
     gTaskBank4Descs,
@@ -1517,9 +1517,9 @@ static void _uiVibrationOptionsTask(Task* task)
     s16       closingTicksLeft;
 
     if (task->state == USER_INTERFACE_VIBRATION_OPEN) {
-        Wip_UiHolder = NULL;
-        panel        = uiSpawnObject(Ui_OverlayLoadingDesc, OPTIONS_MENU_VIBRATION_ONLY, USER_INTERFACE_PANEL_ACTIVE,
-                                     USER_INTERFACE_VIBRATION_OPEN_TICKS, NULL);
+        gUiPromptObject = NULL;
+        panel           = uiSpawnObject(Ui_OverlayLoadingDesc, OPTIONS_MENU_VIBRATION_ONLY, USER_INTERFACE_PANEL_ACTIVE,
+                                        USER_INTERFACE_VIBRATION_OPEN_TICKS, NULL);
         if (panel != NULL) {
             task->spawnArg2.pointer = panel;
             task->state             = task->state + 1;

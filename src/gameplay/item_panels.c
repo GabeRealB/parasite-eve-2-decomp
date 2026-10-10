@@ -578,7 +578,7 @@ void itemMenuCommandTask(Task* task)
             if (listAction != USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED) {
                 if (listAction == USER_INTERFACE_LIST_ACTION_MOVE) {
                     object->result = listAction;
-                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
                     object->result = USER_INTERFACE_RESULT_CANCEL;
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -960,7 +960,7 @@ void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task)
             task->killCountdown = ITEM_MENU_COMPLETED_COUNTDOWN;
             return;
         }
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result      = USER_INTERFACE_RESULT_CANCEL;
             task->killCountdown = ITEM_MENU_COMPLETED_COUNTDOWN;
         }
@@ -1040,7 +1040,7 @@ void itemMenuInvokeParasiteEnergyItem(UiObject* object, Task* task, s32 itemId)
     // Invocation notices advance their timeout even while the panel is inactive.
     task->killCountdown--;
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_DISMISS;
@@ -1964,7 +1964,7 @@ void itemPickupHandleResultTask(Task* task)
             }
 
             uiStartTreeClosing(object, object->owner);
-            Wip_UiHolder         = NULL;
+            gUiPromptObject      = NULL;
             gGameSession->uiOpen = 0;
             task->killCountdown  = ITEM_PICKUP_CLOSE_DELAY_UPDATES;
             task->state          = task->state + 1;

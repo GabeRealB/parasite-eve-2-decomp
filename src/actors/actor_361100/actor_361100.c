@@ -1191,7 +1191,7 @@ static void _actor361100StreamWaterTask(Task* task)
     if (Fs_ChunkOutputSizes[2] != ACTOR_361100_STREAM_NOT_STARTED) {
         freeBytes   = ACTOR_361100_STREAM_WINDOW_BYTES - Fs_ChunkOutputSizes[2];
         freeBytes  &= ~ACTOR_361100_STREAM_PACKET_ALIGNMENT_MASK;
-        streamWrite = (u8*)Fs_ActorLoadBase2 + Fs_ChunkOutputSizes[2];
+        streamWrite = gFsActorBuffer2Base + Fs_ChunkOutputSizes[2];
         // Seed a shallow disc before either water presentation can draw.
         if (task->state == 0) {
             ripple = memCalloc(sizeof(Actor403600Ripple), false);
@@ -1260,7 +1260,7 @@ static inline void _actor361100PrepareRefractionProjection(WaterRefractionScratc
 /// Redraws the scene's lower screen rows as vertically refracted framebuffer strips.
 ///
 /// Called for view 11 during the chunked actor load. Requires a writable 0x18000-
-/// byte streaming window at `Fs_ActorLoadBase2`, a written-byte count in 0..0x18000,
+/// byte streaming window at `gFsActorBuffer2Base`, a written-byte count in 0..0x18000,
 /// and scratch-stack space. The count is rounded up to an eight-byte boundary;
 /// only an aligned free tail of at least 0x6680 bytes draws. Each display buffer
 /// uses half that tail, with 160 rows split into 320 POLY_FT4 packets (12800 bytes).
@@ -1345,7 +1345,7 @@ static void _actor361100DrawStreamRefraction(Task* task)
     freeBytes            = ACTOR_361100_REFRACTION_STREAM_BYTES - Fs_ChunkOutputSizes[2];
     freeBytes           &= -8;
     negativeWrittenBytes = freeBytes - ACTOR_361100_REFRACTION_STREAM_BYTES;
-    packetBytes          = (u8*)Fs_ActorLoadBase2 - negativeWrittenBytes;
+    packetBytes          = gFsActorBuffer2Base - negativeWrittenBytes;
     display              = &gDisplayState;
     displayBuffer        = display->otBuffer;
     clipMode             = 0;

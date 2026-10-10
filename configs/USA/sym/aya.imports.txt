@@ -60,7 +60,7 @@ sndEvtRequestScriptStart = 0x8005414C; // type:func absolute:True
 gFsImageWorkspacePtr = 0x8005C364; // absolute:True
 gGameSession = 0x8005ED64; // absolute:True
 gPadCancelButtonMask = 0x8005ED74; // absolute:True
-Pad_MaskMenu = 0x8005ED78; // absolute:True
+gPadMenuButtonMask = 0x8005ED78; // absolute:True
 gMcDialogDescriptors = 0x800611C8; // absolute:True size:0x38
 gGpuPrimitiveBufferBase = 0x80068F88; // absolute:True
 gGpuPrimitiveBufferBytes = 0x80068F90; // absolute:True
@@ -86,7 +86,7 @@ Gp_ItemDescs = 0x8010D838; // absolute:True
 gAttachmentLevelTable = 0x8011398C; // absolute:True
 
 // --- still unnamed in their own overlay (10)
-D_80067634 = 0x80067634; // absolute:True
+gItemMenuInfoPanel = 0x80067634; // absolute:True
 D_80071068 = 0x80071068; // absolute:True
 D_80071072 = 0x80071072; // absolute:True
 D_80071086 = 0x80071086; // absolute:True

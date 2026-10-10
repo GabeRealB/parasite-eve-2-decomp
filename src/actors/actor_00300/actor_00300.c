@@ -1641,10 +1641,10 @@ static void _actor00300InitEnemy(Enemy* enemy, Task* task)
     work->drainBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->drainBody);
     worldCollisionInitContacts(drainContacts, ARRAY_SIZE(work->drainContacts), 0);
-    gStageSceneMusicEntry = ACTOR_00300_SCENE_MUSIC_ENTRY;
-    work->drainBody.flags = work->drainBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    task->msgTable        = Actor00300_D16314;
-    task->state           = ACTOR_00300_TASK_ACTIVE;
+    gStageCountdownMusicEntry = ACTOR_00300_SCENE_MUSIC_ENTRY;
+    work->drainBody.flags     = work->drainBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    task->msgTable            = Actor00300_D16314;
+    task->state               = ACTOR_00300_TASK_ACTIVE;
 }
 #undef ACTOR_00300_BIND_DRAIN_TEXTURE
 

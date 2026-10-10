@@ -641,18 +641,18 @@ s32 streamReadSceneImageSector(s32 unused0, s32 unused1)
             }                                                                                           \
             break;                                                                                      \
         case STREAM_SCENE_BUFFER_ACTOR_1:                                                               \
-            D_80114D10 = (u8*)Fs_ActorLoadBase1;                                                        \
+            D_80114D10 = gFsActorBuffer1Base;                                                           \
             if ((queue)->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {          \
-                D_80114D10 = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;                           \
+                D_80114D10 = gFsActorBuffer1Base + STREAM_VLC_TABLE_BYTES;                              \
             }                                                                                           \
             if ((queue)->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) { \
                 D_80114D10 += (queue)->sceneStream->data.scene.timingBufferBytes;                       \
             }                                                                                           \
             break;                                                                                      \
         case STREAM_SCENE_BUFFER_ACTOR_2:                                                               \
-            D_80114D10 = (u8*)Fs_ActorLoadBase2;                                                        \
+            D_80114D10 = gFsActorBuffer2Base;                                                           \
             if ((queue)->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {          \
-                D_80114D10 = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;                           \
+                D_80114D10 = gFsActorBuffer2Base + STREAM_VLC_TABLE_BYTES;                              \
             }                                                                                           \
             if ((queue)->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) { \
                 D_80114D10 += (queue)->sceneStream->data.scene.timingBufferBytes;                       \

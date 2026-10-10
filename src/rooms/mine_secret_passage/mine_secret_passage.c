@@ -201,7 +201,7 @@ static void _mineSecretPassageInitRoomTask(Task* task)
     task->msgTable = gMineSecretPassageRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
-    gStageSceneMusicEntry = MINE_SECRET_PASSAGE_COUNTDOWN_MUSIC_ENTRY;
+    gStageCountdownMusicEntry = MINE_SECRET_PASSAGE_COUNTDOWN_MUSIC_ENTRY;
 }
 
 /// Attempts the passage's one-time CAP event and advances to idle.

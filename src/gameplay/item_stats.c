@@ -278,11 +278,11 @@ void itemMenuInfoTask(Task* task)
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == ITEM_MENU_INFO_STATE_INITIALIZE) {
         // Publish this panel and apply its item-identification side effects once.
-        if ((D_80067634 != NULL) && (D_80067634 != object)) {
-            taskCallExit(D_80067634->owner);
+        if ((gItemMenuInfoPanel != NULL) && (gItemMenuInfoPanel != object)) {
+            taskCallExit(gItemMenuInfoPanel->owner);
             object->panel.animationTicks = ITEM_MENU_INFO_REPLACEMENT_OPEN_TICKS;
         }
-        D_80067634         = object;
+        gItemMenuInfoPanel = object;
         task->exitCallback = itemMenuInfoTaskExit;
         task->state        = ITEM_MENU_INFO_STATE_WAIT_FOR_LOAD;
         if ((itemId < ITEM_TEXT_KEY_ID_FIRST) || (itemId == INVENTORY_COLLECTION_ID_DRYFIELD_MAP) || (itemId == INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY) || (itemId == INVENTORY_COLLECTION_ID_WIRE_ROPE) ||
@@ -679,7 +679,7 @@ void itemMenuInfoTask(Task* task)
                 }
                 displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 object->result = USER_INTERFACE_RESULT_CONFIRM;
-            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+            } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
                 displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
                 object->result = USER_INTERFACE_RESULT_CANCEL;
             }
@@ -747,7 +747,7 @@ void itemMenuUseKeyItemTask(Task* task)
         }
         task->killCountdown = task->killCountdown - gDisplayState.frameTicks;
         if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
                 object->result = USER_INTERFACE_RESULT_CANCEL;
             } else if ((task->killCountdown <= 0) ||
                        (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
@@ -784,7 +784,7 @@ void itemMenuKeyItemCommandTask(Task* task)
     }
     uiUpdateList(commandList, &object->panel);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -979,7 +979,7 @@ void itemMenuCollectedItemsTask(Task* task)
         uiUpdateList(collectedList, &object->panel);
         if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
             if (object->result == USER_INTERFACE_RESULT_NONE) {
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
                     object->result = USER_INTERFACE_RESULT_CANCEL;
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                     if (gGameSession->cutsceneHold == 1) {

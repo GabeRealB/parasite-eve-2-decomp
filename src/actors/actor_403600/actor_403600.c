@@ -1640,7 +1640,7 @@ static void _actor403600FxTask(Task* task)
         task->state++;
     }
     fx                                = task->work;
-    gActor403600EffectPrimitiveCursor = (u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * ACTOR_403600_EFFECT_ARENA_HALF_BYTES);
+    gActor403600EffectPrimitiveCursor = gFsActorBuffer2Base + (gDisplayState.otBuffer * ACTOR_403600_EFFECT_ARENA_HALF_BYTES);
     if (bossWork->defeated != 1 && bossWork->screenDistortion > 0) {
         _actor403600DrawScreenDistortion(task, bossWork, fx);
     }

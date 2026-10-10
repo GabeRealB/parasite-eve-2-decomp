@@ -758,7 +758,7 @@ void stageStartModeController(void)
     display->displayOwner           = DISPLAY_OWNER_TRANSITION;
     display->control.flags.flipMode = DISPLAY_FLIP_HOLD;
     display->frameBuffer            = display->otBuffer ^ 1;
-    taskInitList(&gTaskDisplayList);
+    taskInitList(&gDisplayTaskList);
     taskSpawnFromTable(&Display_ModeTaskDesc, STAGE_MODE_CONTROLLER_ENTRY, 0, 0);
 }
 
@@ -1128,9 +1128,9 @@ void mdecRequestSceneImageDecode(const u8* viewId)
             gGameSession->field_7C = 0;
             break;
         case STREAM_SCENE_BUFFER_ACTOR_1:
-            Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1;
+            Mdec_DecodeBase = gFsActorBuffer1Base;
             if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
-                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase1 + STREAM_VLC_TABLE_BYTES;
+                Mdec_DecodeBase = gFsActorBuffer1Base + STREAM_VLC_TABLE_BYTES;
             }
             if (queue->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) {
                 Mdec_DecodeBase = Mdec_DecodeBase + queue->sceneStream->data.scene.timingBufferBytes;
@@ -1138,9 +1138,9 @@ void mdecRequestSceneImageDecode(const u8* viewId)
             gGameSession->field_7E = 0;
             break;
         case STREAM_SCENE_BUFFER_ACTOR_2:
-            Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2;
+            Mdec_DecodeBase = gFsActorBuffer2Base;
             if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
-                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase2 + STREAM_VLC_TABLE_BYTES;
+                Mdec_DecodeBase = gFsActorBuffer2Base + STREAM_VLC_TABLE_BYTES;
             }
             if (queue->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) {
                 Mdec_DecodeBase = Mdec_DecodeBase + queue->sceneStream->data.scene.timingBufferBytes;

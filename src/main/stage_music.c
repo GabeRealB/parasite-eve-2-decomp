@@ -107,8 +107,8 @@ static void _stageMusicTask(Task* task);
 
 static void _stageMusicFinishWhenCdIdle(Task* task);
 
-u8 gStageMusicLoadState  = 0xFF;
-u8 gStageSceneMusicEntry = 0;
+u8 gStageMusicLoadState      = 0xFF;
+u8 gStageCountdownMusicEntry = 0;
 /// Nonzero while the 0x60010001 ambient sound, started by a table entry of
 /// 0x80, is playing.
 static u8 gStageAmbientOn         = 0;
@@ -165,7 +165,7 @@ static inline void _stageMusicChooseCountdownEntry(_StageMusicSelection* selecti
     countdownStageId           = gGameSession->location.loc.stage;
     Stage_MusicCountdownActive = STAGE_MUSIC_COUNTDOWN_ACTIVE;
     countdownTable             = Stage_CountdownMusicTables[countdownStageId - 1];
-    countdownEntryIndex        = gStageSceneMusicEntry;
+    countdownEntryIndex        = gStageCountdownMusicEntry;
     Stage_MusicCountdownFrames = STAGE_MUSIC_COUNTDOWN_TIMEOUT_FRAMES;
     selection->index           = countdownEntryIndex;
     selection->table           = countdownTable;

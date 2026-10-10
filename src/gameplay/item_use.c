@@ -667,7 +667,7 @@ void itemMenuArmorAttachmentPanelTask(Task* panelTask)
             if (D_8010F884 >= equipmentGetArmorAttachmentSlotCount(armorItemId)) {
                 D_8010F884 = 0;
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | Pad_MaskMenu)) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask | gPadMenuButtonMask)) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result   = USER_INTERFACE_RESULT_CANCEL;
             panelTask->state = ITEM_MENU_ATTACHMENT_PANEL_CLOSED;

@@ -2045,17 +2045,17 @@ static void _actor405800InitEnemy(Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    gStageSceneMusicEntry = ACTOR_405800_BATTLE_MUSIC_ENTRY;
-    model->lightMtx       = &work->lightMtx;
-    model->colorMtx       = &work->colorMtx;
-    model->flags          = 0;
-    task->msgTable        = D_actor_405800_8015149C;
-    enemy->field_4        = &rootCoord->coord;
-    enemy->field_48       = 0;
-    enemy->bodyPos.vx     = 0;
-    enemy->bodyPos.vy     = 0;
-    enemy->bodyPos.vz     = 0;
-    enemy->coord          = &task->extra.tmd->coords[ACTOR_405800_PART_BODY];
+    gStageCountdownMusicEntry = ACTOR_405800_BATTLE_MUSIC_ENTRY;
+    model->lightMtx           = &work->lightMtx;
+    model->colorMtx           = &work->colorMtx;
+    model->flags              = 0;
+    task->msgTable            = D_actor_405800_8015149C;
+    enemy->field_4            = &rootCoord->coord;
+    enemy->field_48           = 0;
+    enemy->bodyPos.vx         = 0;
+    enemy->bodyPos.vy         = 0;
+    enemy->bodyPos.vz         = 0;
+    enemy->coord              = &task->extra.tmd->coords[ACTOR_405800_PART_BODY];
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     enemy->param                  = &D_actor_405800_801418FC;

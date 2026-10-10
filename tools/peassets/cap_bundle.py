@@ -28,7 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / "assets" / "USA" / "raw" / "pe2cap2"
 SLOTS, FIRST = 50, 0x7F0
-# Where an attract demo's state is streamed (`Fs_ActorLoadBase2`), and the size of the serialized state before the
+# Where an attract demo's state is streamed (`gFsActorBuffer2Base`), and the size of the serialized state before the
 # input replay: the live save, the player status record, the five stage banks and the flag nibble bank.
 DEMO_DEST, DEMO_STATE = 0x80161E20, 0xD4C
 

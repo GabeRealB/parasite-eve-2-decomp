@@ -93,7 +93,7 @@ static void _dryfieldNightR08InitializeRoom(Task* task)
 
     task->msgTable = D_dryfield_night_r08_80180544;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    streamSetExternalScenePayloadBuffer((u8*)Fs_ActorLoadBase1 + DRYFIELD_NIGHT_R08_SCENE_PAYLOAD_BYTE_OFFSET);
+    streamSetExternalScenePayloadBuffer(gFsActorBuffer1Base + DRYFIELD_NIGHT_R08_SCENE_PAYLOAD_BYTE_OFFSET);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != DRYFIELD_NIGHT_R08_DEMO_SCENE) {
         evsStartScriptWithSkip(D_actor_535700_80133898, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_535700_801341E0);
     }

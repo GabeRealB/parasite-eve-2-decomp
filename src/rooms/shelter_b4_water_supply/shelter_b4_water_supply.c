@@ -1487,9 +1487,9 @@ static inline void _shelterB4WaterSupplyResetWaterPackets(void)
     enum { SHELTER_B4_WATER_SUPPLY_COMPANION_NONE          = 0,
            SHELTER_B4_WATER_SUPPLY_WATER_PACKET_HALF_BYTES = 0xC000 };
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == SHELTER_B4_WATER_SUPPLY_COMPANION_NONE) {
-        _gShelterB4WaterSupplyWaterPacketCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_WATER_SUPPLY_WATER_PACKET_HALF_BYTES;
+        _gShelterB4WaterSupplyWaterPacketCursor = gFsActorBuffer2Base + gDisplayState.otBuffer * SHELTER_B4_WATER_SUPPLY_WATER_PACKET_HALF_BYTES;
     } else {
-        _gShelterB4WaterSupplyWaterPacketCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_WATER_SUPPLY_WATER_PACKET_HALF_BYTES;
+        _gShelterB4WaterSupplyWaterPacketCursor = gFsActorBuffer1Base + gDisplayState.otBuffer * SHELTER_B4_WATER_SUPPLY_WATER_PACKET_HALF_BYTES;
     }
 }
 

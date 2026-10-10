@@ -3513,7 +3513,7 @@ static void _shelterB3DumpingHoleDebrisEventTask(Task* directorTask)
             poseWork->pose.rot.vx                               = 0;
             poseWork->pose.rot.vz                               = 0;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_SCENE_EVENT;
-            gStageSceneMusicEntry                               = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_MUSIC_ENTRY;
+            gStageCountdownMusicEntry                           = SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_MUSIC_ENTRY;
             directorTask->state++;
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_EVENT_WAIT_TRIGGER:

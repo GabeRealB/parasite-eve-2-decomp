@@ -2898,10 +2898,10 @@ static void _actor00400InitDiver(Task* task)
     u16                         stainY;
     s32*                        spawnPayload;
 
-    spawnPayload          = &task->spawnArg1.value;
-    gStageSceneMusicEntry = ACTOR_00400_SCENE_MUSIC_ENTRY;
-    enemy                 = task->spawnArg2.pointer;
-    rootCoord             = task->extra.tmd->coords;
+    spawnPayload              = &task->spawnArg1.value;
+    gStageCountdownMusicEntry = ACTOR_00400_SCENE_MUSIC_ENTRY;
+    enemy                     = task->spawnArg2.pointer;
+    rootCoord                 = task->extra.tmd->coords;
     if ((*spawnPayload >> ACTOR_00400_SPAWN_REJECT_SHIFT) & 1) {
         enemyDestroy(enemy, task);
         return;

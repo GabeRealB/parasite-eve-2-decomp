@@ -884,10 +884,10 @@ static void _mineRefugeInitRoomTask(Task* task)
 
     task->msgTable = D_mine_refuge_80181884;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_mine_refuge_80182AD8 = NULL;
-    gStageSceneMusicEntry  = MINE_REFUGE_SCENE_MUSIC_ENTRY;
-    task->state            = task->state + 1;
-    D_80115598             = MINE_REFUGE_CAP_COMPLETION_SOUNDS_ENABLED;
+    D_mine_refuge_80182AD8    = NULL;
+    gStageCountdownMusicEntry = MINE_REFUGE_SCENE_MUSIC_ENTRY;
+    task->state               = task->state + 1;
+    D_80115598                = MINE_REFUGE_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the room message task idle while its installed handlers remain available.

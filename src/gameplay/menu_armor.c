@@ -396,7 +396,7 @@ void itemMenuAttachmentItemPickerTask(Task* task)
     }
     itemMenuUpdateSelectionPreview(candidateList, object, previewItemId, ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_PROFILE);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);

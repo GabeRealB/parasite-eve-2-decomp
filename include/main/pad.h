@@ -29,8 +29,12 @@ extern s32 gPadConfirmButtonMask;
 /// The current program initializes this combined mask once.
 extern s32 gPadCancelButtonMask;
 
-// Menu-open mask (0x900); suppressed exactly while the in-game menu is locked.
-extern s32 Pad_MaskMenu;
+/// Resident active-high Start-or-Select mask for leaving or cancelling UI panels.
+///
+/// Queries use the selected physical pad sample, usually newly pressed input;
+/// some panels combine this with `gPadCancelButtonMask`. Gameplay logical input
+/// suppression and display menu holds are separate from this fixed mask.
+extern s32 gPadMenuButtonMask;
 
 /// Tests the stored Start-button press on controller port 0.
 ///

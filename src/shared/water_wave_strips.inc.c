@@ -227,9 +227,9 @@ static void WATER_WAVE_STRIPS_DRAW_FUNCTION(Task* task)
     }
     // Borrow the unused actor-load area, split by the display's buffer index.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        WATER_WAVE_STRIPS_PACKET_CURSOR = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * WATER_WAVE_STRIPS_PACKET_HALF_BYTES;
+        WATER_WAVE_STRIPS_PACKET_CURSOR = gFsActorBuffer2Base + gDisplayState.otBuffer * WATER_WAVE_STRIPS_PACKET_HALF_BYTES;
     } else {
-        WATER_WAVE_STRIPS_PACKET_CURSOR = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * WATER_WAVE_STRIPS_PACKET_HALF_BYTES;
+        WATER_WAVE_STRIPS_PACKET_CURSOR = gFsActorBuffer1Base + gDisplayState.otBuffer * WATER_WAVE_STRIPS_PACKET_HALF_BYTES;
     }
     scratchTop                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;

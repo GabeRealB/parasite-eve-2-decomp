@@ -214,7 +214,7 @@ void itemMenuInitializeCaptionTask(UiObject* object, Task* task)
     void* workAllocation;
     s32   rowCount;
 
-    Wip_UiHolder = object;
+    gUiPromptObject = object;
     // The task owns four cleared bytes; the later first-byte clear has no proven reader.
     workAllocation = memCalloc(ITEM_MENU_CAPTION_WORK_BYTES, false);
     if (workAllocation != NULL) {

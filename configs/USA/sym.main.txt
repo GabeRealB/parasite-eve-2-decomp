@@ -59,7 +59,7 @@ tmdDrawStreamPrimGt4CornerColors       = 0x80012520; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x02F50   VA: 0x80012750   subsegment: .rodata, boot
 //--------------------------------------------------------------------
-Boot_BuildStamp             = 0x80012750;
+_gBootBuildStamp             = 0x80012750;
 
 //--------------------------------------------------------------------
 //--- PA: 0x03C04   VA: 0x80013404   subsegment: .rodata, gamemain
@@ -2332,7 +2332,7 @@ gMemPrimaryHeapBase          = 0x8005C360;
 //--- PA: 0x4CB64   VA: 0x8005C364   subsegment: data
 //--------------------------------------------------------------------
 gFsImageWorkspacePtr           = 0x8005C364; // type:u32 size:0x4
-Gfx_ImageSlotTables     = 0x8005C37C;
+_gGfxImageSlotTablesByStage     = 0x8005C37C;
 
 //--------------------------------------------------------------------
 //--- PA: 0x4CBD4   VA: 0x8005C3D4   subsegment: o, libetc/intr_vb
@@ -2497,6 +2497,7 @@ rcossin_tbl                 = 0x800630D0;
 //--------------------------------------------------------------------
 //--- PA: 0x578D0   VA: 0x800670D0   subsegment: data
 //--------------------------------------------------------------------
+gTaskBank1Descs = 0x800670D0; // type:TaskDesc size:0x264 allow_addend:True
 
 //--------------------------------------------------------------------
 //--- PA: 0x57EA8   VA: 0x800676A8   subsegment: data
@@ -2770,12 +2771,12 @@ SndHeap_Buffer           = 0x8007A3B0; // type:u8 size:0x3D00
 AudioTick_List             = 0x8007E0B0; // size:0x18
 AudioTick_Enabled             = 0x8007E0C8; // type:u32
 D648E0_SpuTimerED           = 0x8007E0D0; // type:s32
-Spu_VoiceState             = 0x8007E338; // size:0x1D4
+_gSpuVoiceState             = 0x8007E338; // size:0x1D4
 Spu_LVoiceTable             = 0x8007E518; // size:0x67C
 Spu_VoiceRanges                  = 0x8007EB98; // size:0x10
-Spu_KeyOnMask             = 0x8007EBA8; // type:u32
-Spu_KeyOnMaskExtra             = 0x8007EBAC; // type:u32
-Spu_KeyOffMask             = 0x8007EBB0; // type:u32
+_gSpuPendingKeyOnMask             = 0x8007EBA8; // type:u32
+_gSpuPendingStreamKeyOnMask             = 0x8007EBAC; // type:u32
+_gSpuPendingKeyOffMask             = 0x8007EBB0; // type:u32
 Spu_ReverbCfg         = 0x8007EBB8; // size:0x24
 CdAudio_Phase                  = 0x80082798; // type:CdAudioProgress size:0x6
 _gCdStreamRuntime            = 0x80082818; // type:CdStreamRuntime size:0xD8
@@ -2789,7 +2790,7 @@ main_BSS_END                = 0x80082948; // absolute:True
 // Sound / font / OT / async-cb renames (Snd_ / Font_ / Gpu_ / AsyncCb_)
 Snd_Banks                   = 0x8007E0D8; // type:SndBank size:0x200
 gGpuTaskOrderingTables          = 0x8007A0E8; // type:GsOT size:0x28
-gTaskDisplayList            = 0x8007A110; // type:TaskNode
+gDisplayTaskList            = 0x8007A110; // type:TaskNode
 AsyncCb_Queue               = 0x8007E2E0; // size:0x54
 _gFontGlyphsMedium          = 0x8005EFB0; // type:u8 size:0xA80 // medium _FontGlyph[224], byte representation for splitting
 _gFontGlyphsLarge           = 0x8005FA30; // type:u8 size:0xA80 // large _FontGlyph[224], byte representation for splitting
@@ -2823,15 +2824,15 @@ Snd_BankInitTable           = 0x80068A60;
 CdAudio_TblEntries          = 0x80082794;
 gGameDebugState              = 0x800626A8;
 gPlayerStatus               = 0x80073B88; // type:PlayerStatus size:0x80
-Wip_UiHolder                = 0x80067694;
+gUiPromptObject                = 0x80067694;
 
 // Vacuum-driven renames (tools/vacuum.log roles)
-CdCmd_EntryIter             = 0x8006AC04; // type:func
+_gCdCmdEntryIterator             = 0x8006AC04; // type:func
 
 // Title overlay stubs live in configs/USA/sym.main.imports.txt (absolute:True).
 
 // Display tables (taskutil.c .rodata)
-Display_WidthTable          = 0x80013E88; // type:u16
+_gDisplayWidthPixelsBySelector          = 0x80013E88; // type:u16
 _gDisplayHeightLinesBySelector         = 0x80013E94; // type:u16
 Display_TaskStates                  = 0x80013E98; // size:0x18
 
@@ -2845,15 +2846,15 @@ gRandomLcgState                  = 0x80070F60;
 // Globals naming pass 1
 gGpuPrimCursor              = 0x80071190;
 Gpu_SysPrimCursor           = 0x80070EE0;
-Gpu_PrimBufStatic           = 0x800740E0;
-_gGpuDisplayPrimBufferBase             = 0x8007A0E0;
+gDisplayStaticPrimitiveArena           = 0x800740E0;
+_gDisplayTaskPrimitiveArenaBase             = 0x8007A0E0;
 gGfxViewCoord               = 0x80070F10; // type:GfxCoord size:0x50
 Gfx_ViewWorldMtx            = 0x80070F34;
 gGfxViewRotCoord            = 0x80070E40; // type:GfxCoord size:0x50
 Gfx_ViewOffsetCoord         = 0x80070E90; // type:GfxCoord size:0x50
 gPadConfirmButtonMask             = 0x8005ED70;
 gPadCancelButtonMask              = 0x8005ED74;
-Pad_MaskMenu                = 0x8005ED78;
+gPadMenuButtonMask                = 0x8005ED78;
 _gMcDialogTitle            = 0x8001398C;
 
 // Globals naming pass 2
@@ -2872,7 +2873,7 @@ D_800820E6                  = 0x800820E6; // type:s16 size:0x2
 D_8005EAEE                  = 0x8005EAEE; // type:u16 size:0x2
 D_8005ED8A                  = 0x8005ED8A; // type:u16 size:0x2
 gStageMusicLoadState        = 0x80062734; // type:u8 size:0x1
-gStageSceneMusicEntry       = 0x80062735; // type:u8 size:0x1
+gStageCountdownMusicEntry       = 0x80062735; // type:u8 size:0x1
 gStageAmbientOn             = 0x80062736; // type:u8 size:0x1
 gStageRoomMusicSequence              = 0x80062737; // type:u8 size:0x1
 gStageMusicRow              = 0x80062738; // type:u8 size:0x1
@@ -3099,7 +3100,7 @@ _gMcSavePointPreviewOpeningText = 0x80067400;
 
 _gMcSavePointPreviewMotelRoom6Text = 0x80067408;
 
-McTitleLocation_Square = 0x8006745C;
+_gMcSavePointTitleSquareText = 0x8006745C;
 
 _gMcSavePointTitleFireEscapeText = 0x8006746C;
 
@@ -3107,49 +3108,49 @@ _gMcSavePointTitleMistParkingText = 0x80067484;
 
 _gMcSavePointTitleGasStationText = 0x800674A0;
 
-McTitleLocation_TrailerCoach = 0x800674B8;
+_gMcSavePointTitleTrailerCoachText = 0x800674B8;
 
 _gMcSavePointTitleMotelLobbyText = 0x800674D4;
 
-McTitleLocation_Refuge = 0x800674EC;
+_gMcSavePointTitleRefugeText = 0x800674EC;
 
-McTitleLocation_SterilizationRm = 0x800674FC;
+_gMcSavePointTitleSterilizationRoomText = 0x800674FC;
 
-McTitleLocation_UndergroundPark = 0x80067520;
+_gMcSavePointTitleUndergroundParkingText = 0x80067520;
 
 _gMcSavePointTitleLaboratoryText = 0x80067544;
 
 _gMcSavePointTitleIncineratorControlRoomText = 0x8006755C;
 
-McTitleLocation_PodDeck = 0x8006757C;
+_gMcSavePointTitlePodDeckText = 0x8006757C;
 
 _gMcSavePointTitleNurseryText = 0x80067590;
 
-McTitleLocation_Tent = 0x800675A0;
+_gMcSavePointTitleTentText = 0x800675A0;
 
 _gMcSavePointTitleOpeningText = 0x800675AC;
 
 _gMcSavePointTitleMotelRoom6Text = 0x800675BC;
 
-McTitleLocation_WhereAmI = 0x800675D8;
+_gMcSavePointTitleWhereAmIText = 0x800675D8;
 
 Fs_ActorLoadBase0 = 0x8005C36C;
 
-Fs_ActorLoadBase1 = 0x8005C370;
+gFsActorBuffer1Base = 0x8005C370;
 
-Fs_ActorLoadBase2 = 0x8005C374;
+gFsActorBuffer2Base = 0x8005C374;
 
 Mem_UnusedTopRamPointer = 0x8005C368;
 
-Mem_UnusedDevKitEndPointer = 0x8005C378;
+_gMemUnusedDevKitAddress = 0x8005C378;
 
-CdCmd_MapHeapSizes = 0x8005DCB4;
+_gCdCmdMovieWorkspaceBytesByStage = 0x8005DCB4;
 
-_gGpuDisplayPrimBufferBytes = 0x8007A0E4;
+_gDisplayTaskPrimitiveArenaBytes = 0x8007A0E4;
 
 Display_HoldMode = 0x8007A118;
 
-Gpu_SmallOtTags = 0x8007A120;
+_gDisplaySmallTaskOtTags = 0x8007A120;
 
 Display_MenuTaskDesc = 0x8006268C;
 
@@ -3219,7 +3220,7 @@ gMcMenuPromptDesc = 0x800612D0;
 
 gMcSavePointPreviewLabels = 0x80067418;
 
-Mc_LocationTitleLabels = 0x800675F0;
+gMcSavePointTitleLabels = 0x800675F0;
 
 Text_FillClutPixels = 0x80060910;
 
@@ -3270,7 +3271,7 @@ gGameFlagMineShelterBanks = 0x80073670; // size:0x1C8
 gGameFlagNeoArkBanks = 0x80073838; // size:0x148
 Gp_FlagBanks = 0x80060A30; // size:0x18
 
-D_80067634 = 0x80067634; // size:0x4 defined:True
+gItemMenuInfoPanel = 0x80067634; // size:0x4 defined:True
 gSndLoadBankId = 0x800689E4; // size:0x4
 gSndVolumeReducedMode = 0x800689ec; // type:s16 size:0x2
 gTaskDeferModelBufferAllocation = 0x8005ed8c;
@@ -3307,3 +3308,4 @@ _gCdStreamLastGapSectorStamp = 0x80068b74;
 _gCdStreamGapSectorIndex = 0x80068b78;
 gTaskBank14Descs = 0x80068b7c; // size:0x3C
 _gCdStreamSectorHeader = 0x800827f8; // size:0x10
+gSndBankInitializationBusy = 0x80068a78;

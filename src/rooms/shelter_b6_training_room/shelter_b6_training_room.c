@@ -549,7 +549,7 @@ static void _shelterB6TrainingRoomInitializeRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _shelterB6TrainingRoomMaskBackdrop();
     gameFlagSetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, SHELTER_B6_TRAINING_ROOM_COMPANION_SCHEDULE);
-    gStageSceneMusicEntry = SHELTER_B6_TRAINING_ROOM_SCENE_MUSIC_ENTRY;
+    gStageCountdownMusicEntry = SHELTER_B6_TRAINING_ROOM_SCENE_MUSIC_ENTRY;
     _shelterB6TrainingRoomClearPlayerHeadAimTask(0);
     task->state++;
     D_shelter_b6_training_room_80185C58 = SHELTER_B6_TRAINING_ROOM_WAITING_FOR_DEFEAT;

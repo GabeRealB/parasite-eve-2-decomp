@@ -771,8 +771,8 @@ void itemMenuInfoTaskExit(Task* task)
 
     object = task->spawnArg2.pointer;
     if (object != NULL) {
-        if (D_80067634 == object) {
-            D_80067634 = NULL;
+        if (gItemMenuInfoPanel == object) {
+            gItemMenuInfoPanel = NULL;
         }
     }
     uiObjectTaskExit(task);
@@ -1203,7 +1203,7 @@ void menuMapNavigateTask(Task* mapTask)
             _menuMapBeginClosing(mapTask, mapObject, USER_INTERFACE_RESULT_CONFIRM);
             return;
         }
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             _menuMapBeginClosing(mapTask, mapObject, USER_INTERFACE_RESULT_CANCEL);
             return;
         }
@@ -2048,7 +2048,7 @@ void menuMapHelpTask(Task* task)
                     object->resultValue = panelControl;
                     object->result      = USER_INTERFACE_RESULT_CONFIRM;
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
                     object->result = USER_INTERFACE_RESULT_CANCEL;
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
                 }
@@ -2330,7 +2330,7 @@ void itemMenuItemCommandTask(Task* task)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
@@ -2419,7 +2419,7 @@ void itemMenuPeCommandTask(Task* task)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
@@ -2658,7 +2658,7 @@ void itemMenuPeElementTask(Task* task)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (list->actionResult == USER_INTERFACE_LIST_ACTION_AT_END && !(task->spawnArg1.value & ITEM_MENU_PE_ELEMENT_LOWER_ROW_BIT)) {
             UiObject* verticalObject;
@@ -2794,7 +2794,7 @@ void itemMenuNoticeTask(Task* task)
         if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             task->killCountdown = ITEM_MENU_NOTICE_ACCEPTED_TICKS;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
@@ -3274,7 +3274,7 @@ void itemMenuHotspotCommandTask(Task* task)
     }
     uiUpdateList(list, &object->panel);
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -3591,8 +3591,8 @@ s32 shopOpenSession(s32 stockSelector)
 
     // Use the saved room key: the display transition may replace live room state.
     // Preserve the single volatile prefix read before clearing the holder.
-    locationWord                        = *(const volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-    *(UiObject* volatile*)&Wip_UiHolder = NULL;
+    locationWord                           = *(const volatile s32*)&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+    *(UiObject* volatile*)&gUiPromptObject = NULL;
     switch (locationWord & (s32)GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0, 0):
             displayQueueModeTask(&gMistParkingShopSessionTaskDesc, stockSelector, 0, STAGE_ENTRY_RELOAD);
@@ -3808,7 +3808,7 @@ static inline void _itemMenuTickTimedDialogInput(UiObject* object, Task* task)
         if ((task->killCountdown <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0)) {
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
             task->killCountdown = ITEM_MENU_TIMED_DIALOG_ACCEPTED_TICKS;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
@@ -3910,7 +3910,7 @@ void itemMenuPeSpecificationsTask(Task* task)
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask | PAD_BUTTON_TRIANGLE) != 0) {
             object->result = USER_INTERFACE_RESULT_CONFIRM;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }

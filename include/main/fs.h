@@ -46,19 +46,30 @@ extern FsResourceSlot D_8006C338[50];
 
 extern s8 D5B498_8006C234;
 
-/// Bases of three fixed 0x18000-byte work buffers. The movie player takes one
-/// as its VLC table and decode area, chunked file loads stream into them, and
-/// overlays borrow them for primitives and saved state, so the bytes have no
-/// single type and each user views them as its own.
 extern void* Fs_ActorLoadBase0;
 
-extern void* Fs_ActorLoadBase1;
+/// Published byte base of actor-overlay slot 2 at 0x80149E20.
+///
+/// Actor loading, chunked input, scene/movie workspaces and GPU packets borrow
+/// overlapping RAM here. Finish previous users, including GPU transfers,
+/// before reuse, and keep the selected region writable for its whole use.
+/// This base specifies no capacity: each caller must establish its reservation
+/// and exclude overlapping occupants. External scene payloads can start beyond
+/// the ordinary actor-load window.
+extern u8* gFsActorBuffer1Base;
 
-extern void* Fs_ActorLoadBase2;
+/// Published byte base of actor-overlay slot 3 at 0x80161E20.
+///
+/// Actor loads, scene/movie workspaces, serialized demo/replay data and GPU
+/// packets share this RAM. The byte base has no single object layout or fixed
+/// capacity; typed word/packet views require suitable alignment and extent.
+/// Users must establish the borrowed reservation, exclude other occupants
+/// and complete prior transfers before repurposing it.
+extern u8* gFsActorBuffer2Base;
 
 /// Where a development unit holds the replay that `DISPLAY_DEMO_FIXED_REPLAY`
 /// plays, in memory a retail console does not have: the same save state and
-/// input record a demo otherwise reads from `Fs_ActorLoadBase2`.
+/// input record a demo otherwise reads from `gFsActorBuffer2Base`.
 #define FILE_SYSTEM_FIXED_REPLAY_BASE ((u8*)0x80600100)
 
 /// Starts STR playback; the first command-argument byte is a stream slot (0..14).

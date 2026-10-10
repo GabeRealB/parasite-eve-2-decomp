@@ -2626,7 +2626,7 @@ s32 sndLoadFeedChunkSector(u8* sector)
     SndLoadState* state;
     s32           phase;
 
-    if (D_80068A78 != 0) {
+    if (gSndBankInitializationBusy != 0) {
         return SOUND_LOAD_RESULT_ERROR;
     }
     state = &SndLoad_State;

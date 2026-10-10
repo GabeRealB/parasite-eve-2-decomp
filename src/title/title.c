@@ -213,7 +213,7 @@ static void _titleInitializeScreenTask(Task* task)
     screenFadeEnabled                  = true;
     display                            = &gDisplayState;
     display->control.flags.imageSource = DISPLAY_IMAGE_NONE;
-    Wip_UiHolder                       = NULL;
+    gUiPromptObject                    = NULL;
     if (task->spawnArg1.value < 0) {
         screenFadeEnabled      = false;
         task->spawnArg1.value &= TITLE_SCREEN_DELAY_MASK;
@@ -485,7 +485,7 @@ void titleRestoreAttractDemoState(void)
     s32       bankTimesEight;
     u8*       mineShelterBankBytes;
 
-    stateBytes     = Fs_ActorLoadBase2;
+    stateBytes     = gFsActorBuffer2Base;
     bank           = GAME_FLAG_NIBBLE_BANK_LIVE;
     savedDemoScene = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene;
     savedVibration = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;

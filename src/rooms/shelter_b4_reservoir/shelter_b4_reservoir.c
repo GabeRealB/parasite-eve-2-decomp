@@ -1896,9 +1896,9 @@ static void _shelterB4ReservoirDrawWaterTask(Task* task)
 
     // Borrow one half of the actor arena unused by the current companion setup.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        _gShelterB4ReservoirWaterPrimCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
+        _gShelterB4ReservoirWaterPrimCursor = gFsActorBuffer2Base + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
     } else {
-        _gShelterB4ReservoirWaterPrimCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
+        _gShelterB4ReservoirWaterPrimCursor = gFsActorBuffer1Base + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
     }
     if (gGameSession->location.loc.view != SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW) {
         surface->depth = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_DEPTH - (((gShelterB4ReservoirMainWaterY - SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y) * 0x31) >> 5);

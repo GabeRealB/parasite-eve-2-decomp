@@ -52,10 +52,21 @@ extern TaskDesc gTaskBank8Descs[6];
 /// Development-image callbacks require their backing code to be loaded.
 extern TaskDesc gTaskBank4Descs[9];
 
-/// Task descriptors of bank 1. Entry 0x32 is a model descriptor whose model is
-/// not fixed: callers store the model in its `data.model` just before spawning
-/// `EFFECT_FLYING_BODY_PART`, which spawns its task from that entry.
-extern TaskDesc D_800670D0[];
+/// Complete bank-1 extent and its caller-selected flying-model descriptor slot.
+enum {
+    TASK_BANK1_DESCRIPTOR_COUNT      = 51,
+    TASK_BANK1_BURST_MODEL_PART_SLOT = 50,
+};
+
+/// Resident bank 1 for scene tasks, lighting, pickups, fades and model effects.
+///
+/// Slots 0..50 have program lifetime; NULL callbacks mark unspawnable slots,
+/// not a table terminator. Callback code and borrowed model sources must be
+/// loaded for the selected task. Development-image slots require that image.
+/// Before spawning `EFFECT_FLYING_BODY_PART`, publish the borrowed TmdSource in
+/// slot `TASK_BANK1_BURST_MODEL_PART_SLOT`'s `data.model`. The spawn reads it
+/// synchronously; its model source and overlay must outlive the effect.
+extern TaskDesc gTaskBank1Descs[TASK_BANK1_DESCRIPTOR_COUNT];
 
 extern TaskDesc Stage_MusicTaskDesc;
 

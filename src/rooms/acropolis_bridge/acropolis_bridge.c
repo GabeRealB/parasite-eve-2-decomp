@@ -339,7 +339,7 @@ static s32 _gAcropolisBridgeKeypadExitResult;
 /// Next frame-local GPU image-move packet for the bridge's framebuffer streaks.
 ///
 /// The ambient task resets this borrowed cursor before streak tasks draw. Its
-/// two 0x7000-byte regions start at byte 0xA000 in `Fs_ActorLoadBase2`, selected
+/// two 0x7000-byte regions start at byte 0xA000 in `gFsActorBuffer2Base`, selected
 /// by OT buffer 0/1. Each streak draw consumes one 24-byte `DR_MOVE`; the normal
 /// counted-effect limit of 129 fits either region. This is byte-addressed file
 /// workspace, not an array owned by the cursor. Keep it reserved until queued
@@ -4165,7 +4165,7 @@ void acropolisBridgeAmbientEffectsTask(Task* task)
 
     // Borrow byte-addressed packet storage from the file buffer for this frame.
     _gAcropolisBridgeStreakMoveCursor =
-        (DR_MOVE*)((u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * ACROPOLIS_BRIDGE_STREAK_PACKET_BUFFER_BYTES + ACROPOLIS_BRIDGE_STREAK_PACKET_BASE_BYTES));
+        (DR_MOVE*)(gFsActorBuffer2Base + (gDisplayState.otBuffer * ACROPOLIS_BRIDGE_STREAK_PACKET_BUFFER_BYTES + ACROPOLIS_BRIDGE_STREAK_PACKET_BASE_BYTES));
 
 /// Seeds one view's framebuffer streaks with thirty attempted counted spawns.
 ///

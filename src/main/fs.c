@@ -872,11 +872,11 @@ static u8 _fsReadChunkPayloadSector(void)
                         Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase0;
                         break;
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE1:
-                        Fs_ChunkOutputSizes[1] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase1;
+                        Fs_ChunkOutputSizes[1] = Fs_ChunkWritePtr - gFsActorBuffer1Base;
                         break;
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE2:
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE2_ALTERNATE:
-                        Fs_ChunkOutputSizes[2] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase2;
+                        Fs_ChunkOutputSizes[2] = Fs_ChunkWritePtr - gFsActorBuffer2Base;
                         break;
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE0_INVALIDATE_BASE1:
                         outputSizes            = Fs_ChunkOutputSizes;

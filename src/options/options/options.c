@@ -581,7 +581,7 @@ void optionsUpdateMenuTask(Task* owningTask)
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
             object->resultValue = controlMode;
             object->result      = USER_INTERFACE_RESULT_CONFIRM;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
@@ -928,7 +928,7 @@ static void _optionsUpdateKeyConfigurationTask(Task* owningTask)
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask | gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
             object->result = USER_INTERFACE_RESULT_CONFIRM;
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }

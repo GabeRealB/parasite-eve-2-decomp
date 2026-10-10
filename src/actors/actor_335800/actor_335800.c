@@ -1465,7 +1465,7 @@ static void _actor335800SetSceneEvent(s8 sceneEvent)
 static void _actor335800StopStageMusic(s32 fadeTicks)
 {
     enum { ACTOR_335800_MUSIC_FADE_TICKS_MASK = 0xFFFF };
-    sndEvtRequestMidiStop(gStageSceneMusicEntry, fadeTicks & ACTOR_335800_MUSIC_FADE_TICKS_MASK);
+    sndEvtRequestMidiStop(gStageCountdownMusicEntry, fadeTicks & ACTOR_335800_MUSIC_FADE_TICKS_MASK);
 }
 
 /// Selects map objective code 24 after the balcony scene changes rooms.

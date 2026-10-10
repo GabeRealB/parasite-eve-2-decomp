@@ -10,11 +10,22 @@
 #include "main/task_types.h"
 #include "main/ui_types.h"
 
-/// Prompt panel whose owning task carries the current text in spawnArg1.
-extern UiObject* Wip_UiHolder;
+/// Borrowed task-owned object registered to receive the current UI prompt.
+///
+/// NULL means no registered prompt. Its owner carries a borrowed text address
+/// or packed PE/item selector in `spawnArg1`; the registered callback must
+/// support the chosen payload mode. The object, owner and borrowed text must
+/// stay live through drawing. Parent/session transitions clear the registration
+/// before release; telephone exit clears it only while it still owns the slot.
+extern UiObject* gUiPromptObject;
 
-/// Current item-information panel, cleared when its owner closes.
-extern UiObject* D_80067634;
+/// Borrowed task-owned object of the current item-information panel.
+///
+/// NULL means no published panel. A replacement exits the prior owner before
+/// publishing itself; exit clears the slot only if it still names that object.
+/// Menu transitions may detach it without taking ownership. The owning task
+/// releases the object, so the publication must not outlive that owner.
+extern UiObject* gItemMenuInfoPanel;
 
 /// Opens a screen-centered option dialog and clears its caller-owned answer.
 ///

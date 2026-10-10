@@ -2806,7 +2806,7 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
     }
 
     // The cursor addresses halfwords, but the buffer limit is a byte offset.
-    cursorOffsetBytes = (u8*)Gp_ReplayCursor - (u8*)Fs_ActorLoadBase2;
+    cursorOffsetBytes = (u8*)Gp_ReplayCursor - gFsActorBuffer2Base;
     if (gDisplayState.demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         cursorOffsetBytes = (u8*)Gp_ReplayCursor - FILE_SYSTEM_FIXED_REPLAY_BASE;
     }
@@ -2875,7 +2875,7 @@ static inline void _gameDebugInitializePlayReplay(DisplayState* display)
     if (display->demoScene == DISPLAY_DEMO_FIXED_REPLAY) {
         Gp_ReplayCursor = (u16*)(FILE_SYSTEM_FIXED_REPLAY_BASE + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     } else {
-        Gp_ReplayCursor = (u16*)((u8*)Fs_ActorLoadBase2 + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
+        Gp_ReplayCursor = (u16*)(gFsActorBuffer2Base + GAME_DEBUG_REPLAY_STREAM_OFFSET_BYTES);
     }
     // Invalidate the button cache so the first record installs its duration.
     Gp_ReplayButtons                   = GAME_DEBUG_REPLAY_BUTTONS_INVALID;

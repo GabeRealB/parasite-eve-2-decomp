@@ -1774,7 +1774,7 @@ static void _mistShootingGalleryCarryoverModeSessionTask(Task* task)
         if (task->killCountdown < 0) {
             taskCallExit(task);
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-            Wip_UiHolder = NULL;
+            gUiPromptObject = NULL;
             stageRequestModeTaskExit();
         }
     }
@@ -2377,7 +2377,7 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
         }
     }
     if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu | gPadCancelButtonMask) != 0) {
+        if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask | gPadCancelButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
             if (task->status != MIST_SHOOTING_GALLERY_JUKEBOX_TRAINING_UNSELECTED) {
                 if (task->status == MIST_SHOOTING_GALLERY_JUKEBOX_IDLE) {

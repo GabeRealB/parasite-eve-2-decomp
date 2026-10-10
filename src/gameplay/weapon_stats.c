@@ -680,7 +680,7 @@ void itemMenuWeaponChoiceListTask(Task* task)
     if (task->state == activeState) {
         uiUpdateList(list, &object->panel);
         if (object->panel.control.word == activeState) {
-            if (padCheckButtons(0, activeState, Pad_MaskMenu) != 0) {
+            if (padCheckButtons(0, activeState, gPadMenuButtonMask) != 0) {
                 object->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
@@ -713,7 +713,7 @@ void itemMenuWeaponChoiceListTask(Task* task)
         textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemMenuNoApplicableWeaponText, ITEM_MENU_STATS_NEUTRAL_COLOR_RGB, textDrawMode, TEXT_ALIGNMENT_LEFT);
     }
     task->killCountdown--;
-    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+    if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
         object->result = USER_INTERFACE_RESULT_CANCEL;
         return;
     }

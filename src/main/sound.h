@@ -79,7 +79,12 @@ enum {
 /// do not change it, so it records the policy rather than the current gains.
 extern volatile s16 gSndVolumeReducedMode;
 
-extern s32 D_80068A78;
+/// Word gate refusing chunked sound-bank sector input during system initialization.
+///
+/// Zero admits sector intake; 255 holds it off until boot bank reservations
+/// are published. Readers reject any nonzero value. This is a busy state,
+/// independent of bank IDs; word accesses remain observable during setup.
+extern volatile s32 gSndBankInitializationBusy;
 
 extern volatile u8 D_80082121;
 

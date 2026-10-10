@@ -178,7 +178,7 @@ def stage_maps() -> dict[int, str]:
     """
     obj = ROOT / "build/USA/src/main/boot.c.o"
     syms = subprocess.run(["mips-linux-gnu-nm", str(obj)], capture_output=True, text=True).stdout
-    base = int(re.search(r"^([0-9a-f]+) \w Gfx_ImageSlotTables$", syms, re.M).group(1), 16)
+    base = int(re.search(r"^([0-9a-f]+) \w _gGfxImageSlotTablesByStage$", syms, re.M).group(1), 16)
     relocs = subprocess.run(["mips-linux-gnu-readelf", "-rW", str(obj)], capture_output=True, text=True).stdout
     section = relocs.split("Relocation section '.rel.data'")[1].split("Relocation section")[0]
     out = {}

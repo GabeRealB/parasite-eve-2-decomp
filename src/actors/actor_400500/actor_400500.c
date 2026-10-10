@@ -3229,7 +3229,7 @@ static void _actor400500InitTask(Task* task)
     work->effectArg.spawnArgHi = ACTOR_400500_HIT_EFFECT_COUNT;
     work->effectArg.coord      = &partCoords[ACTOR_400500_PART_BODY];
     _actor400500SetState(task, ACTOR_400500_STATE_AMBUSH, ACTOR_400500_AMBUSH_STEP_START);
-    gStageSceneMusicEntry = ACTOR_400500_BATTLE_MUSIC_ENTRY;
+    gStageCountdownMusicEntry = ACTOR_400500_BATTLE_MUSIC_ENTRY;
     ACTOR_400500_REQUEST_HIDE(task, cloakWork, cloakRequest);
     task->state = task->state + 1;
 }

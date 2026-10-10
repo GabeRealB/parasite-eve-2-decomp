@@ -536,7 +536,7 @@ void itemMenuMainPanelTask(Task* task)
             if (object->result == USER_INTERFACE_RESULT_NONE) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                     object->result = USER_INTERFACE_RESULT_CANCEL;
-                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+                } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
                     object->result = USER_INTERFACE_RESULT_CANCEL;
                 }
             }
@@ -1582,7 +1582,7 @@ static void _itemMenuInventoryListTask(Task* task)
     controlMode = object->panel.control.word;
     if (controlMode == USER_INTERFACE_PANEL_ACTIVE) {
         if (object->result == USER_INTERFACE_RESULT_NONE) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
                 object->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (Gp_ItemOrderMode == ITEM_MENU_MODE_SELECT) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
@@ -2088,7 +2088,7 @@ void itemMenuWeaponPanelTask(Task* task)
                     Gp_ItemOrderMode                 = ITEM_MENU_WEAPON_MODE_SELECT;
                 }
             }
-        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+        } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CANCEL;
         }
     }
@@ -2582,7 +2582,7 @@ void itemMenuArmorPanelTask(Task* task)
         s32 activeControl;
         activeControl = object->panel.control.word;
         if (activeControl == USER_INTERFACE_PANEL_ACTIVE) {
-            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
+            if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadMenuButtonMask) != 0) {
                 object->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadCancelButtonMask) != 0) {
                 Task*     parentTask;

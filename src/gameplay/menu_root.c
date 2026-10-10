@@ -441,11 +441,11 @@ void menuRootTask(Task* task)
             gItemMenuRoomRestorePending = ITEM_MENU_ROOM_RESTORE_CLEAR;
             sndEvtRequestScriptDuckAcquire();
             itemMenuClearPreviewItems();
-            D_80067634 = NULL;
-            D_80114DE0 = ITEM_MENU_ROOT_SECONDARY_ITEM_ABSENT;
-            player     = &gPlayerStatus;
-            D_80114DE8 = player->weapon;
-            D_80114DE4 = player->weaponSlotItem;
+            gItemMenuInfoPanel = NULL;
+            D_80114DE0         = ITEM_MENU_ROOT_SECONDARY_ITEM_ABSENT;
+            player             = &gPlayerStatus;
+            D_80114DE8         = player->weapon;
+            D_80114DE4         = player->weaponSlotItem;
             if (player->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 D_80114DE0 = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId;
             }
@@ -499,7 +499,7 @@ void menuRootTask(Task* task)
             }
             menuRequest = task->spawnArg1.value;
             if (menuRequest == ITEM_MENU_ROOT_REQUEST_OPTIONS) {
-                Wip_UiHolder = NULL;
+                gUiPromptObject = NULL;
                 cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
                 rootObject = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ROOT_OPTIONS_DESCRIPTOR], 1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ROOT_OPTIONS_OPEN_DELAY_TICKS, NULL);
             } else if (menuRequest == ITEM_MENU_ROOT_REQUEST_GALLERY_WEAPON) {
@@ -712,8 +712,8 @@ static void _itemMenuUpdatePromptTask(UiObject* object, Task* task)
         childObject = childTask->spawnArg2.pointer;
         childResult = childObject->result;
         if (childResult == USER_INTERFACE_RESULT_CANCEL) {
-            object->result = childResult;
-            Wip_UiHolder   = NULL;
+            object->result  = childResult;
+            gUiPromptObject = NULL;
         } else if (childResult == USER_INTERFACE_RESULT_CONFIRM) {
             object->resultValue = childObject->resultValue;
             uiStartTreeClosing(childObject, childObject->owner);
