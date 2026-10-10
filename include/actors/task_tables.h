@@ -494,7 +494,27 @@ extern TaskDesc gActor05600PawnGolemTasks[3];
 /// singleton body require actor_143900 resources to remain loaded.
 extern TaskDesc gActor143900SecondScriptedWalkerTaskDescriptors[3];
 
-extern TaskDesc D_actor_450800_8014AC88[];
+/// Entry indices of `gActor450800NurseryActorTasks`; every entry is live.
+enum {
+    ACTOR_450800_NURSERY_ACTOR_TASK_KYLE        = 0,
+    ACTOR_450800_NURSERY_ACTOR_TASK_LEFT_HAND   = 1,
+    ACTOR_450800_NURSERY_ACTOR_TASK_RIGHT_HAND  = 2,
+    ACTOR_450800_NURSERY_ACTOR_TASK_SECOND_BODY = 3,
+    ACTOR_450800_NURSERY_ACTOR_TASK_GUN         = 4,
+    ACTOR_450800_NURSERY_ACTOR_TASK_COUNT       = 5,
+};
+
+/// Nursery actor recipes: Kyle, left hand, right hand, second body and gun.
+///
+/// Five indexed TMD entries at priority 192, without a terminator. Only the
+/// second body skips automatic primitive-buffer allocation. Body spawns take
+/// a live owning `Enemy` in argument 2; the signed high half of argument 1
+/// selects initial visibility (1 shown, otherwise hidden). Both bodies create
+/// the same hand and gun helpers. Helper argument 1 selects the parent's model
+/// coordinate (8 left hand/gun, 12 right hand); set their parent before dispatch.
+/// Keep the parent body alive through helper use, and this package's code and
+/// borrowed model/animation data loaded through teardown.
+extern TaskDesc gActor450800NurseryActorTasks[ACTOR_450800_NURSERY_ACTOR_TASK_COUNT];
 
 /// Coordinate-body recipes: 0 destructible-part controller, 1 child part.
 ///

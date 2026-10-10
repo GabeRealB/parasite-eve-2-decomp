@@ -883,9 +883,9 @@ WorldCollisionTrigger gShelterB6NurseryViewBoundaryTriggers[6] = {
 };
 
 AreaResource D_shelter_b6_nursery_80187474[4] = {
-    { 101, 508, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_450800_8014AC88 },
+    { 101, 508, AREA_RESOURCE_FILE_GROUP_BASE_40, ACTOR_450800_NURSERY_ACTOR_TASK_KYLE, { 0, 0 }, gActor450800NurseryActorTasks },
     { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, PAIR_WALK_TASK_BODY, { 0, 0 }, gActor450800PawnGolemTasks },
-    { 140, 508, AREA_RESOURCE_FILE_GROUP_BASE_60, 3, { 0, 0 }, D_actor_450800_8014AC88 },
+    { 140, 508, AREA_RESOURCE_FILE_GROUP_BASE_60, ACTOR_450800_NURSERY_ACTOR_TASK_SECOND_BODY, { 0, 0 }, gActor450800NurseryActorTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
