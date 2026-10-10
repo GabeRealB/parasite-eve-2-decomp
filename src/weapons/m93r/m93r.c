@@ -561,136 +561,223 @@ static AnimationSet _gM93rPlayerParasiteEnergyChargeFamily0Animation = {
     },
 };
 
-static AnimationPackedPose _gM93rAnimation04388Bank1[6] = {
+/// PE family-0 cast translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerParasiteEnergyCastFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04388_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation04388Bank4[57] = {
+/// PE family-0 cast Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerParasiteEnergyCastFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04388_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation04388Records[87] = {
+/// PE family-0 cast keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerParasiteEnergyCastFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04388_records.inc"
 };
 
-static u16 _gM93rAnimation04388Indices[20] = {
+/// Absolute PE family-0 cast record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerParasiteEnergyCastFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04388_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation04388 = {
-    _gM93rAnimation04388Records,
-    _gM93rAnimation04388Indices,
-    { NULL, _gM93rAnimation04388Bank1, NULL, NULL, _gM93rAnimation04388Bank4, NULL, NULL, NULL },
+/// Parasite Energy cast for clip family 0 in the player's M93R bank.
+///
+/// Native clip 28; starts when the attachment charge countdown reaches zero.
+/// Family 0 is selected by attachment ID. Each of its 19 part tracks ends
+/// with a stop; tracks 0..1 carry translation/rotation and 2..18 packed rotation.
+/// Playback borrows the clip and tables; keep the M93R package loaded while
+/// any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerParasiteEnergyCastFamily0Animation = {
+    .records           = _gM93rPlayerParasiteEnergyCastFamily0AnimationRecords,
+    .trackStartIndices = _gM93rPlayerParasiteEnergyCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerParasiteEnergyCastFamily0AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerParasiteEnergyCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation0462CBank1[4] = {
+/// PE family-1 release translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerParasiteEnergyReleaseFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0462C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation0462CBank4[55] = {
+/// PE family-1 release Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerParasiteEnergyReleaseFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0462C_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation0462CRecords[82] = {
+/// PE family-1 release keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerParasiteEnergyReleaseFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0462C_records.inc"
 };
 
-static u16 _gM93rAnimation0462CIndices[20] = {
+/// Absolute PE family-1 release record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerParasiteEnergyReleaseFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0462C_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation0462C = {
-    _gM93rAnimation0462CRecords,
-    _gM93rAnimation0462CIndices,
-    { NULL, _gM93rAnimation0462CBank1, NULL, NULL, _gM93rAnimation0462CBank4, NULL, NULL, NULL },
+/// Parasite Energy release for clip family 1 in the player's M93R bank.
+///
+/// Native clip 29; plays while the attachment's charge countdown starts.
+/// Family 1 is selected by attachment ID. Each of its 19 part tracks ends
+/// with a stop; tracks 0..1 carry translation/rotation and 2..18 packed rotation.
+/// Playback borrows the clip and tables; keep the M93R package loaded while
+/// any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerParasiteEnergyReleaseFamily1Animation = {
+    .records           = _gM93rPlayerParasiteEnergyReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gM93rPlayerParasiteEnergyReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerParasiteEnergyReleaseFamily1AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerParasiteEnergyReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation0482CBank1[3] = {
+/// PE family-1 charge translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerParasiteEnergyChargeFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0482C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation0482CBank4[23] = {
+/// PE family-1 charge Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerParasiteEnergyChargeFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0482C_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation0482CRecords[76] = {
+/// PE family-1 charge keyframes, loop controls and retained stops.
+///
+/// Durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerParasiteEnergyChargeFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0482C_records.inc"
 };
 
-static u16 _gM93rAnimation0482CIndices[20] = {
+/// Absolute PE family-1 charge record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerParasiteEnergyChargeFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0482C_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation0482C = {
-    _gM93rAnimation0482CRecords,
-    _gM93rAnimation0482CIndices,
-    { NULL, _gM93rAnimation0482CBank1, NULL, NULL, _gM93rAnimation0482CBank4, NULL, NULL, NULL },
+/// Looping Parasite Energy charge pose for clip family 1 in the player's M93R bank.
+///
+/// Native clip 30; follows release until the attachment countdown reaches zero,
+/// then yields to casting. Family 1 is selected by attachment ID. Each of the
+/// 19 part tracks jumps back to its charge keyframe before a retained stop.
+/// Tracks 0..1 carry translation/rotation and 2..18 packed rotation. Playback
+/// borrows the clip and tables; keep the M93R package loaded while any slot
+/// or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerParasiteEnergyChargeFamily1Animation = {
+    .records           = _gM93rPlayerParasiteEnergyChargeFamily1AnimationRecords,
+    .trackStartIndices = _gM93rPlayerParasiteEnergyChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerParasiteEnergyChargeFamily1AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerParasiteEnergyChargeFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation04B80Bank1[8] = {
+/// PE family-1 cast translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerParasiteEnergyCastFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04B80_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation04B80Bank4[68] = {
+/// PE family-1 cast Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerParasiteEnergyCastFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04B80_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation04B80Records[101] = {
+/// PE family-1 cast keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerParasiteEnergyCastFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04B80_records.inc"
 };
 
-static u16 _gM93rAnimation04B80Indices[20] = {
+/// Absolute PE family-1 cast record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerParasiteEnergyCastFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04B80_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation04B80 = {
-    _gM93rAnimation04B80Records,
-    _gM93rAnimation04B80Indices,
-    { NULL, _gM93rAnimation04B80Bank1, NULL, NULL, _gM93rAnimation04B80Bank4, NULL, NULL, NULL },
+/// Parasite Energy cast for clip family 1 in the player's M93R bank.
+///
+/// Native clip 31; starts when the attachment charge countdown reaches zero.
+/// Family 1 is selected by attachment ID. Each of its 19 part tracks ends
+/// with a stop; tracks 0..1 carry translation/rotation and 2..18 packed rotation.
+/// Playback borrows the clip and tables; keep the M93R package loaded while
+/// any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerParasiteEnergyCastFamily1Animation = {
+    .records           = _gM93rPlayerParasiteEnergyCastFamily1AnimationRecords,
+    .trackStartIndices = _gM93rPlayerParasiteEnergyCastFamily1AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerParasiteEnergyCastFamily1AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerParasiteEnergyCastFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation04E34Bank1[5] = {
+/// Part-4 hit translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerHitPart4AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04E34_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation04E34Bank4[55] = {
+/// Part-4 hit Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerHitPart4AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04E34_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation04E34Records[83] = {
+/// Part-4 hit keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerHitPart4AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04E34_records.inc"
 };
 
-static u16 _gM93rAnimation04E34Indices[20] = {
+/// Absolute part-4 hit record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerHitPart4AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_04E34_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation04E34 = {
-    _gM93rAnimation04E34Records,
-    _gM93rAnimation04E34Indices,
-    { NULL, _gM93rAnimation04E34Bank1, NULL, NULL, _gM93rAnimation04E34Bank4, NULL, NULL, NULL },
+/// Player hit reaction for the collision sphere on model part 4 in the M93R bank.
+///
+/// Native clip 16; hit region 1 selects this reaction with a three-frame blend.
+/// Each of its 19 part tracks ends with a stop; tracks 0..1 carry
+/// translation/rotation and 2..18 packed rotation. Playback borrows the clip
+/// and tables; keep the M93R package loaded while any slot or cached record
+/// pointer refers to them.
+static AnimationSet _gM93rPlayerHitPart4Animation = {
+    .records           = _gM93rPlayerHitPart4AnimationRecords,
+    .trackStartIndices = _gM93rPlayerHitPart4AnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerHitPart4AnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerHitPart4AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation05154Bank1[6] = {
+/// Other-body hit translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerHitOtherBodyAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_05154_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation05154Bank4[66] = {
+/// Other-body hit Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerHitOtherBodyAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_05154_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation05154Records[96] = {
+/// Other-body hit keyframes and stops; durations are normal-rate frames and pose offsets count u32 words.
+static const AnimationRecord _gM93rPlayerHitOtherBodyAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_05154_records.inc"
 };
 
-static u16 _gM93rAnimation05154Indices[20] = {
+/// Absolute other-body hit record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerHitOtherBodyAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_05154_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation05154 = {
-    _gM93rAnimation05154Records,
-    _gM93rAnimation05154Indices,
-    { NULL, _gM93rAnimation05154Bank1, NULL, NULL, _gM93rAnimation05154Bank4, NULL, NULL, NULL },
+/// Player hit reaction for the other collision bodies in the M93R bank.
+///
+/// Native clip 17; hits on the root or part-1 sphere select this reaction
+/// with a three-frame blend. Each of its 19 part tracks ends with a stop;
+/// tracks 0..1 carry translation/rotation and 2..18 packed rotation. Playback
+/// borrows the clip and tables; keep the M93R package loaded while any slot
+/// or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerHitOtherBodyAnimation = {
+    .records           = _gM93rPlayerHitOtherBodyAnimationRecords,
+    .trackStartIndices = _gM93rPlayerHitOtherBodyAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerHitOtherBodyAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerHitOtherBodyAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM93rAnimation05918Bank1[18] = {
@@ -1128,8 +1215,8 @@ AnimationBank D_m93r_8012ADF8 = { { {
     &_gM93rAnimation09900,
     &_gM93rAnimation0AF84,
     &_gM93rPlayerIdleAnimation,
-    &_gM93rAnimation04E34,
-    &_gM93rAnimation05154,
+    &_gM93rPlayerHitPart4Animation,
+    &_gM93rPlayerHitOtherBodyAnimation,
     &_gM93rAnimation05918,
     &_gM93rPlayerUnarmedWalkAnimation,
     &_gM93rAnimation0AF84,
@@ -1140,10 +1227,10 @@ AnimationBank D_m93r_8012ADF8 = { { {
     &_gM93rAnimation07728,
     &_gM93rPlayerParasiteEnergyReleaseFamily0Animation,
     &_gM93rPlayerParasiteEnergyChargeFamily0Animation,
-    &_gM93rAnimation04388,
-    &_gM93rAnimation0462C,
-    &_gM93rAnimation0482C,
-    &_gM93rAnimation04B80,
+    &_gM93rPlayerParasiteEnergyCastFamily0Animation,
+    &_gM93rPlayerParasiteEnergyReleaseFamily1Animation,
+    &_gM93rPlayerParasiteEnergyChargeFamily1Animation,
+    &_gM93rPlayerParasiteEnergyCastFamily1Animation,
     &_gM93rAnimation082C4,
     &_gM93rAnimation0849C,
     &_gM93rAnimation0BBE8,
