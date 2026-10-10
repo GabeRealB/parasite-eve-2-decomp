@@ -115,7 +115,7 @@ static GfxImageSlot* Gfx_ImageSlotTables[] = {
     gMapAkropolisImageSlots,
     D_map_dryfield_80179A14,
     gMapDryfieldFullImageSlots,
-    D_map_shelter_80179B40,
+    gMapShelterImageSlotsByArea,
     D_map_neo_ark_80179DB8,
 };
 

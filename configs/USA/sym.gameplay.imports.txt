@@ -415,7 +415,7 @@ D_map_neo_ark_8017A9FC = 0x8017A9FC; // absolute:True owner=map_neo_ark
 gMapAkropolisSurfacePropertiesByArea = 0x8017AC6C; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AC9C = 0x8017AC9C; // absolute:True owner=map_dryfield
 gMapDryfieldFullSurfacePropertiesByArea = 0x8017ABB0; // absolute:True owner=map_dryfield_full
-D_map_shelter_8017B614 = 0x8017B614; // absolute:True owner=map_shelter
+gMapShelterSurfacePropertiesByArea = 0x8017B614; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AE3C = 0x8017AE3C; // absolute:True owner=map_neo_ark shared=mapui
 D_acropolis_bridge_8019004C = 0x8019004C; // absolute:True owner=acropolis_bridge
 D_mist_parking_801951B4 = 0x801951B4; // absolute:True owner=mist_parking

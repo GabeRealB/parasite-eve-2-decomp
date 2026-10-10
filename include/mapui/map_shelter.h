@@ -16,7 +16,14 @@
 #include "main/stage_types.h"
 #include "main/task_types.h"
 
-extern GfxImageSlot D_map_shelter_80179B40[];
+/// Mine/Shelter's image-memory slots for captured frames and auxiliary heaps.
+///
+/// Stage 4 selects this table; area IDs 1..49 index it directly, with every
+/// area populated. Extents are byte counts below the resident image workspace,
+/// not captured-frame lengths. The map overlay must remain loaded for lookup.
+/// Entry 0 retains the shared 0x3A8E0-byte slot also used by M.I.S.T. parking;
+/// its purpose here is unproven. No bounds or empty-slot checks are performed.
+extern GfxImageSlot gMapShelterImageSlotsByArea[50];
 
 extern StageMusicEntry D_map_shelter_8017BE28[];
 
@@ -61,7 +68,7 @@ extern WorldCoordRoomLighting* gMapShelterRoomLightingTables[49];
 
 /// This stage's entries in `Gp_WarpTables`,
 /// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
-/// `gViewIndexTables`, `gSpriteAreaTables` and `Gp_RoomParamTables`: each leads to
+/// `gViewIndexTables` and `gSpriteAreaTables`: each leads to
 /// one pointer per room into that room's package, except that some rooms'
 /// object records are this overlay's own.
 extern DirectionWarpEntry* D_map_shelter_8017AF88[];
@@ -84,7 +91,15 @@ extern ViewIndexTable gMapShelterViewIndexTable;
 /// separate extents. Room-owned mutable sprite resources must remain loaded.
 extern SpriteAreaTable gMapShelterSpriteAreaTable;
 
-extern WorldCollisionSurfaceProperties** D_map_shelter_8017B614[];
+/// Mine/Shelter's collision and footstep property directory for 49 areas.
+///
+/// Stage 4's `Gp_RoomParamTables` entry. Select with area - 1 (areas 1..49),
+/// then surface class 0..7; room variants share their area's class table.
+/// Each table supplies eight non-NULL class records, without a count header
+/// or terminator in that lookup domain. Any retained storage after class 7
+/// is outside the domain. The map overlay owns the directory and must stay
+/// loaded; borrowed class tables and records require their owning room overlay.
+extern WorldCollisionSurfaceProperties** gMapShelterSurfacePropertiesByArea[49];
 
 /// This stage's `D_8010F9F4` and `D_8010FA0C` entries: items awarded
 /// for battles won at a location, each list ended by a key of

@@ -165,57 +165,57 @@ static AreaObjectPlace D_map_shelter_8017BB28[3];
 #include "../../shared/room_variants_shelter.inc.c"
 #undef ROOM_VARIANT_RESOLVE_SHELTER
 
-GfxImageSlot D_map_shelter_80179B40[50] = {
-    GFX_IMAGE_SLOT(0x3A8E0),
-    GFX_IMAGE_SLOT(0x4B5F0),
-    GFX_IMAGE_SLOT(0x444B0),
-    GFX_IMAGE_SLOT(0x57100),
-    GFX_IMAGE_SLOT(0x56010),
-    GFX_IMAGE_SLOT(0x520D0),
-    GFX_IMAGE_SLOT(0x4F6C0),
-    GFX_IMAGE_SLOT(0x50950),
-    GFX_IMAGE_SLOT(0x529D0),
-    GFX_IMAGE_SLOT(0x518A0),
-    GFX_IMAGE_SLOT(0x53440),
-    GFX_IMAGE_SLOT(0x4E150),
-    GFX_IMAGE_SLOT(0x50CB0),
-    GFX_IMAGE_SLOT(0x4ED60),
-    GFX_IMAGE_SLOT(0x4EB50),
-    GFX_IMAGE_SLOT(0x4FC60),
-    GFX_IMAGE_SLOT(0x43FE0),
-    GFX_IMAGE_SLOT(0x50B80),
-    GFX_IMAGE_SLOT(0x518D0),
-    GFX_IMAGE_SLOT(0x56480),
-    GFX_IMAGE_SLOT(0x41CA0),
-    GFX_IMAGE_SLOT(0x567F0),
-    GFX_IMAGE_SLOT(0x4C350),
-    GFX_IMAGE_SLOT(0x50060),
-    GFX_IMAGE_SLOT(0x53DC0),
-    GFX_IMAGE_SLOT(0x548D0),
-    GFX_IMAGE_SLOT(0x578A0),
-    GFX_IMAGE_SLOT(0x518C0),
-    GFX_IMAGE_SLOT(0x53240),
-    GFX_IMAGE_SLOT(0x50B50),
-    GFX_IMAGE_SLOT(0x4FC40),
-    GFX_IMAGE_SLOT(0x478B0),
-    GFX_IMAGE_SLOT(0x4D930),
-    GFX_IMAGE_SLOT(0x4B480),
-    GFX_IMAGE_SLOT(0x4F300),
-    GFX_IMAGE_SLOT(0x50E70),
-    GFX_IMAGE_SLOT(0x53830),
-    GFX_IMAGE_SLOT(0x59070),
-    GFX_IMAGE_SLOT(0x58EF0),
-    GFX_IMAGE_SLOT(0x44E20),
-    GFX_IMAGE_SLOT(0x417F0),
-    GFX_IMAGE_SLOT(0x4FEF0),
-    GFX_IMAGE_SLOT(0x513B0),
-    GFX_IMAGE_SLOT(0x52420),
-    GFX_IMAGE_SLOT(0x4BF20),
-    GFX_IMAGE_SLOT(0x4DA70),
-    GFX_IMAGE_SLOT(0x51640),
-    GFX_IMAGE_SLOT(0x422F0),
-    GFX_IMAGE_SLOT(0x46F00),
-    GFX_IMAGE_SLOT(0x58970),
+GfxImageSlot gMapShelterImageSlotsByArea[50] = {
+    [0]                                               = GFX_IMAGE_SLOT(0x3A8E0),
+    [GAME_AREA_MINE_MESA]                             = GFX_IMAGE_SLOT(0x4B5F0),
+    [GAME_AREA_MINE_CAVERN]                           = GFX_IMAGE_SLOT(0x444B0),
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE]                  = GFX_IMAGE_SLOT(0x57100),
+    [GAME_AREA_MINE_TUNNEL]                           = GFX_IMAGE_SLOT(0x56010),
+    [GAME_AREA_MINE_GORGE]                            = GFX_IMAGE_SLOT(0x520D0),
+    [GAME_AREA_MINE_REFUGE]                           = GFX_IMAGE_SLOT(0x4F6C0),
+    [GAME_AREA_MINE_FORKED_TUNNEL]                    = GFX_IMAGE_SLOT(0x50950),
+    [GAME_AREA_MINE_SECRET_PASSAGE]                   = GFX_IMAGE_SLOT(0x529D0),
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL]              = GFX_IMAGE_SLOT(0x518A0),
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY]  = GFX_IMAGE_SLOT(0x53440),
+    [GAME_AREA_SHELTER_B1_STOREROOM]                  = GFX_IMAGE_SLOT(0x4E150),
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY]  = GFX_IMAGE_SLOT(0x50CB0),
+    [GAME_AREA_SHELTER_B1_ARMORY]                     = GFX_IMAGE_SLOT(0x4ED60),
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS]          = GFX_IMAGE_SLOT(0x4EB50),
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR]              = GFX_IMAGE_SLOT(0x4FC60),
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM]         = GFX_IMAGE_SLOT(0x43FE0),
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL]          = GFX_IMAGE_SLOT(0x50B80),
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM]               = GFX_IMAGE_SLOT(0x518D0),
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL]              = GFX_IMAGE_SLOT(0x56480),
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING]        = GFX_IMAGE_SLOT(0x41CA0),
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1]            = GFX_IMAGE_SLOT(0x567F0),
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM]                 = GFX_IMAGE_SLOT(0x4C350),
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY]         = GFX_IMAGE_SLOT(0x50060),
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL]            = GFX_IMAGE_SLOT(0x53DC0),
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL] = GFX_IMAGE_SLOT(0x548D0),
+    [GAME_AREA_SHELTER_B2_ELEVATOR]                   = GFX_IMAGE_SLOT(0x578A0),
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL]              = GFX_IMAGE_SLOT(0x518C0),
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY]  = GFX_IMAGE_SLOT(0x53240),
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM]             = GFX_IMAGE_SLOT(0x50B50),
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY]  = GFX_IMAGE_SLOT(0x4FC40),
+    [GAME_AREA_SHELTER_B2_LABORATORY]                 = GFX_IMAGE_SLOT(0x478B0),
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM]              = GFX_IMAGE_SLOT(0x4D930),
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR]              = GFX_IMAGE_SLOT(0x4B480),
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK]                = GFX_IMAGE_SLOT(0x4F300),
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL]          = GFX_IMAGE_SLOT(0x50E70),
+    [GAME_AREA_SHELTER_R36]                           = GFX_IMAGE_SLOT(0x53830),
+    [GAME_AREA_SHELTER_R37]                           = GFX_IMAGE_SLOT(0x59070),
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4]                = GFX_IMAGE_SLOT(0x58EF0),
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE]               = GFX_IMAGE_SLOT(0x44E20),
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR]        = GFX_IMAGE_SLOT(0x417F0),
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM]   = GFX_IMAGE_SLOT(0x4FEF0),
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL]              = GFX_IMAGE_SLOT(0x513B0),
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER]                = GFX_IMAGE_SLOT(0x52420),
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER]                = GFX_IMAGE_SLOT(0x4BF20),
+    [GAME_AREA_SHELTER_B4_RESERVOIR]                  = GFX_IMAGE_SLOT(0x4DA70),
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY]               = GFX_IMAGE_SLOT(0x51640),
+    [GAME_AREA_SHELTER_R47]                           = GFX_IMAGE_SLOT(0x422F0),
+    [GAME_AREA_SHELTER_R48]                           = GFX_IMAGE_SLOT(0x46F00),
+    [GAME_AREA_SHELTER_R49]                           = GFX_IMAGE_SLOT(0x58970),
 };
 
 u8 D_map_shelter_80179CD0[7] = { 0, 0x17, 0x17, 0x17, 0x18, 0x18, 0x18 };
@@ -431,8 +431,13 @@ MenuMapAreaName D_map_shelter_8017A268[49] = {
     { "Oval Office\x81\x69morning\x81\x6A" },
 };
 
-static AreaObjectSpawn D_map_shelter_8017A888[1] = {
-    { AREA_OBJECT_SPAWN_END },
+/// Empty generic spawn list shared by areas with flag-only object placements.
+///
+/// The single terminator keeps the spawn pointer non-NULL and stops every kind
+/// search before a task descriptor is read. The placement lists still seed
+/// and expose their two-bit object flags.
+static AreaObjectSpawn _gMapShelterEmptyObjectSpawns[1] = {
+    { .kind = AREA_OBJECT_SPAWN_END },
 };
 
 static AreaObjectSpawn D_map_shelter_8017A898[2] = {
@@ -477,19 +482,19 @@ static AreaObjectSpawn D_map_shelter_8017A978[2] = {
 
 AreaObjectRoom D_map_shelter_8017A998[51] = {
     { { NULL }, NULL },
-    { { D_map_shelter_8017B6D8 }, D_map_shelter_8017A888 },
-    { { D_map_shelter_8017B6F8 }, D_map_shelter_8017A888 },
+    { { D_map_shelter_8017B6D8 }, _gMapShelterEmptyObjectSpawns },
+    { { D_map_shelter_8017B6F8 }, _gMapShelterEmptyObjectSpawns },
     { { NULL }, NULL },
     { { NULL }, NULL },
     { { NULL }, NULL },
-    { { D_map_shelter_8017B728 }, D_map_shelter_8017A888 },
+    { { D_map_shelter_8017B728 }, _gMapShelterEmptyObjectSpawns },
     { { D_map_shelter_8017B778 }, D_map_shelter_8017A898 },
     { { NULL }, NULL },
     { { NULL }, NULL },
     { { NULL }, NULL },
-    { { D_map_shelter_8017B7A8 }, D_map_shelter_8017A888 },
-    { { D_map_shelter_8017B7D8 }, D_map_shelter_8017A888 },
-    { { D_map_shelter_8017B7F8 }, D_map_shelter_8017A888 },
+    { { D_map_shelter_8017B7A8 }, _gMapShelterEmptyObjectSpawns },
+    { { D_map_shelter_8017B7D8 }, _gMapShelterEmptyObjectSpawns },
+    { { D_map_shelter_8017B7F8 }, _gMapShelterEmptyObjectSpawns },
     { { D_map_shelter_8017B848 }, D_map_shelter_8017A8B8 },
     { { NULL }, NULL },
     { { D_map_shelter_8017B868 }, D_map_shelter_8017A978 },
@@ -497,15 +502,15 @@ AreaObjectRoom D_map_shelter_8017A998[51] = {
     { { NULL }, NULL },
     { { NULL }, NULL },
     { { D_map_shelter_8017B898 }, D_map_shelter_8017A968 },
-    { { D_map_shelter_8017B988 }, D_map_shelter_8017A888 },
+    { { D_map_shelter_8017B988 }, _gMapShelterEmptyObjectSpawns },
     { { NULL }, NULL },
     { { NULL }, NULL },
     { { NULL }, NULL },
     { { NULL }, NULL },
-    { { D_map_shelter_8017B998 }, D_map_shelter_8017A888 },
+    { { D_map_shelter_8017B998 }, _gMapShelterEmptyObjectSpawns },
     { { NULL }, NULL },
     { { NULL }, NULL },
-    { { D_map_shelter_8017B9B8 }, D_map_shelter_8017A888 },
+    { { D_map_shelter_8017B9B8 }, _gMapShelterEmptyObjectSpawns },
     { { NULL }, NULL },
     { { D_map_shelter_8017B9E8 }, D_map_shelter_8017A8D8 },
     { { D_map_shelter_8017BA18 }, D_map_shelter_8017A8F8 },
@@ -523,7 +528,7 @@ AreaObjectRoom D_map_shelter_8017A998[51] = {
     { { NULL }, NULL },
     { { D_map_shelter_8017BAC8 }, NULL },
     { { NULL }, NULL },
-    { { D_map_shelter_8017BAE8 }, D_map_shelter_8017A888 },
+    { { D_map_shelter_8017BAE8 }, _gMapShelterEmptyObjectSpawns },
     { { D_map_shelter_8017BB28 }, D_map_shelter_8017A938 },
     { { NULL }, NULL },
     { { .sentinel = AREA_OBJECT_ROOM_END }, NULL },
@@ -615,96 +620,188 @@ u16 D_map_shelter_8017AD88[30] = {
     0x1BB,
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017ADC4[1] = {
-    { &gShelterB1NorthMaintenanceWalkwayRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B1 north maintenance walkway, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB1NorthMaintenanceWalkwayRoomLighting[1] = {
+    { .lights = &gShelterB1NorthMaintenanceWalkwayRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017ADCC[1] = {
-    { &gShelterB1ArmoryRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B1 armory, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB1ArmoryRoomLighting[1] = {
+    { .lights = &gShelterB1ArmoryRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017ADD4[1] = {
-    { &gShelterB1SleepingQuartersRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B1 sleeping quarters, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB1SleepingQuartersRoomLighting[1] = {
+    { .lights = &gShelterB1SleepingQuartersRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017ADDC[1] = {
-    { &gShelterB1MainCorridorRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B1 main corridor, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB1MainCorridorRoomLighting[1] = {
+    { .lights = &gShelterB1MainCorridorRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017ADE4[1] = {
-    { &gShelterB1PodAccessTunnelRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B1 pod access tunnel, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB1PodAccessTunnelRoomLighting[1] = {
+    { .lights = &gShelterB1PodAccessTunnelRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017ADEC[1] = {
-    { &gShelterB1ControlRoomRoomLights, gShelterB1ControlRoomAmbientByView },
+/// Model-lighting descriptors for Shelter B1 control room, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights and
+/// per-view ambient minima. Both inputs require that overlay to remain loaded.
+static WorldCoordRoomLighting _gMapShelterB1ControlRoomLighting[1] = {
+    { .lights = &gShelterB1ControlRoomRoomLights, .ambientTable = gShelterB1ControlRoomAmbientByView },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017ADF4[1] = {
-    { &gShelterB1AccessTunnelRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B1 access tunnel, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB1AccessTunnelRoomLighting[1] = {
+    { .lights = &gShelterB1AccessTunnelRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017ADFC[1] = {
-    { &gShelterB1GolemFreezer1RoomLights, gShelterB1GolemFreezer1AmbientByView },
+/// Model-lighting descriptors for Shelter B1 golem freezer 1, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights and
+/// per-view ambient minima. Both inputs require that overlay to remain loaded.
+static WorldCoordRoomLighting _gMapShelterB1GolemFreezer1RoomLighting[1] = {
+    { .lights = &gShelterB1GolemFreezer1RoomLights, .ambientTable = gShelterB1GolemFreezer1AmbientByView },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE04[1] = {
-    { &gShelterB1PodServiceGantryRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B1 pod service gantry, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB1PodServiceGantryRoomLighting[1] = {
+    { .lights = &gShelterB1PodServiceGantryRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE0C[1] = {
-    { &gShelterB1TransferTunnelRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B1 transfer tunnel, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB1TransferTunnelRoomLighting[1] = {
+    { .lights = &gShelterB1TransferTunnelRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE14[1] = {
-    { &gShelterB1ControlRoomAccessTunnelRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B1 control room access tunnel, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB1ControlRoomAccessTunnelRoomLighting[1] = {
+    { .lights = &gShelterB1ControlRoomAccessTunnelRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE1C[1] = {
-    { &gShelterB2ElevatorRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B2 elevator, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB2ElevatorRoomLighting[1] = {
+    { .lights = &gShelterB2ElevatorRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE24[1] = {
-    { &gShelterB2ElevatorHallRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B2 elevator hall, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB2ElevatorHallRoomLighting[1] = {
+    { .lights = &gShelterB2ElevatorHallRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE2C[1] = {
-    { &gShelterB2SouthMaintenanceWalkwayRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B2 south maintenance walkway, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB2SouthMaintenanceWalkwayRoomLighting[1] = {
+    { .lights = &gShelterB2SouthMaintenanceWalkwayRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE34[1] = {
-    { &gShelterB2OperatingRoomRoomLights, gShelterB2OperatingRoomRoomAmbient },
+/// Model-lighting descriptors for Shelter B2 operating room, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights and
+/// per-view ambient minima. Both inputs require that overlay to remain loaded.
+static WorldCoordRoomLighting _gMapShelterB2OperatingRoomLighting[1] = {
+    { .lights = &gShelterB2OperatingRoomRoomLights, .ambientTable = gShelterB2OperatingRoomRoomAmbient },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE3C[1] = {
-    { &gShelterB2NorthMaintenanceWalkwayLights, NULL },
+/// Model-lighting descriptors for Shelter B2 north maintenance walkway, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB2NorthMaintenanceWalkwayRoomLighting[1] = {
+    { .lights = &gShelterB2NorthMaintenanceWalkwayLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE44[1] = {
-    { &gShelterB2LaboratoryRoomLights, gShelterB2LaboratoryViewAmbientTable },
+/// Model-lighting descriptors for Shelter B2 laboratory, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights and
+/// per-view ambient minima. Both inputs require that overlay to remain loaded.
+static WorldCoordRoomLighting _gMapShelterB2LaboratoryRoomLighting[1] = {
+    { .lights = &gShelterB2LaboratoryRoomLights, .ambientTable = gShelterB2LaboratoryViewAmbientTable },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE4C[1] = {
-    { &gShelterB2BreedingRoomRoomLights, gShelterB2BreedingRoomAmbientByView },
+/// Model-lighting descriptors for Shelter B2 breeding room, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights and
+/// per-view ambient minima. Both inputs require that overlay to remain loaded.
+static WorldCoordRoomLighting _gMapShelterB2BreedingRoomLighting[1] = {
+    { .lights = &gShelterB2BreedingRoomRoomLights, .ambientTable = gShelterB2BreedingRoomAmbientByView },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE54[1] = {
-    { &gShelterB2MainCorridorRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B2 main corridor, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB2MainCorridorRoomLighting[1] = {
+    { .lights = &gShelterB2MainCorridorRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE5C[1] = {
-    { &gShelterB2SepticTankRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B2 septic tank, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB2SepticTankRoomLighting[1] = {
+    { .lights = &gShelterB2SepticTankRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE64[1] = {
-    { &gShelterR36RoomLights, NULL },
+/// Model-lighting descriptors for Shelter area 36, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterR36RoomLighting[1] = {
+    { .lights = &gShelterR36RoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE6C[1] = {
-    { &gShelterR37RoomLights, NULL },
+/// Model-lighting descriptors for Shelter area 37, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterR37RoomLighting[1] = {
+    { .lights = &gShelterR37RoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE74[1] = {
-    { &gShelter1fHeliportS4RoomLights, NULL },
+/// Model-lighting descriptors for Shelter 1F heliport (stage 4), room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelter1fHeliportS4RoomLighting[1] = {
+    { .lights = &gShelter1fHeliportS4RoomLights, .ambientTable = NULL },
 };
 
 /// Dumping-hole lighting descriptors for Mine/Shelter area 39, rooms 1 and 2.
@@ -716,29 +813,54 @@ static WorldCoordRoomLighting _gMapShelterDumpingHoleRoomLighting[2] = {
     { &gShelterB3DumpingHoleRoom2Lights, gShelterB3DumpingHoleRoom2AmbientByView },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE8C[2] = {
-    { &gShelterB3IncineratorControlRoomLights, NULL },
-    { &gShelterB3IncineratorControlRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B3 incinerator control room, rooms 1 and 2.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+/// Both room variants share the same light collection and default ambient.
+static WorldCoordRoomLighting _gMapShelterB3IncineratorControlRoomLighting[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_COUNT] = {
+    { .lights = &gShelterB3IncineratorControlRoomLights, .ambientTable = NULL },
+    { .lights = &gShelterB3IncineratorControlRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AE9C[1] = {
-    { &gShelterB3ElevatorHallRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B3 elevator hall, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB3ElevatorHallRoomLighting[1] = {
+    { .lights = &gShelterB3ElevatorHallRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AEA4[1] = {
-    { &gShelterB4LowerSewerRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B4 lower sewer, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB4LowerSewerRoomLighting[1] = {
+    { .lights = &gShelterB4LowerSewerRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AEAC[1] = {
-    { &gShelterB4UpperSewerRoomLights, NULL },
+/// Model-lighting descriptors for Shelter B4 upper sewer, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterB4UpperSewerRoomLighting[1] = {
+    { .lights = &gShelterB4UpperSewerRoomLights, .ambientTable = NULL },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AEB4[1] = {
-    { &gShelterB4WaterSupplyRoomLights, gShelterB4WaterSupplyRoomAmbient },
+/// Model-lighting descriptors for Shelter B4 water supply, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights and
+/// per-view ambient minima. Both inputs require that overlay to remain loaded.
+static WorldCoordRoomLighting _gMapShelterB4WaterSupplyRoomLighting[1] = {
+    { .lights = &gShelterB4WaterSupplyRoomLights, .ambientTable = gShelterB4WaterSupplyRoomAmbient },
 };
 
-static WorldCoordRoomLighting D_map_shelter_8017AEBC[1] = {
-    { &gShelterR47RoomLights, NULL },
+/// Model-lighting descriptors for Shelter area 47, room 1.
+///
+/// Indexed by room - 1; borrows the loaded room overlay's mutable lights.
+/// NULL ambient table selects default minima; the room overlay must stay loaded.
+static WorldCoordRoomLighting _gMapShelterR47RoomLighting[1] = {
+    { .lights = &gShelterR47RoomLights, .ambientTable = NULL },
 };
 
 WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
@@ -753,42 +875,42 @@ WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
     [GAME_AREA_SHELTER_B1_ELEVATOR_HALL - 1]              = gShelterB1ElevatorHallRoomLighting,
     [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1SouthMaintenanceWalkwayRoomLighting,
     [GAME_AREA_SHELTER_B1_STOREROOM - 1]                  = gShelterB1StoreroomRoomLighting,
-    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = D_map_shelter_8017ADC4,
-    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = D_map_shelter_8017ADCC,
-    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = D_map_shelter_8017ADD4,
-    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = D_map_shelter_8017ADDC,
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = _gMapShelterB1NorthMaintenanceWalkwayRoomLighting,
+    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = _gMapShelterB1ArmoryRoomLighting,
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = _gMapShelterB1SleepingQuartersRoomLighting,
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = _gMapShelterB1MainCorridorRoomLighting,
     [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]         = gShelterB1SterilizationRoomLighting,
-    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = D_map_shelter_8017ADE4,
-    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = D_map_shelter_8017ADEC,
-    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = D_map_shelter_8017ADF4,
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = _gMapShelterB1PodAccessTunnelRoomLighting,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = _gMapShelterB1ControlRoomLighting,
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = _gMapShelterB1AccessTunnelRoomLighting,
     [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1]        = gShelterB1UndergroundParkingRoomLighting,
-    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = D_map_shelter_8017ADFC,
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = _gMapShelterB1GolemFreezer1RoomLighting,
     [GAME_AREA_SHELTER_B2_POD_BOTTOM - 1]                 = gShelterB2PodBottomRoomLighting,
-    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = D_map_shelter_8017AE04,
-    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = D_map_shelter_8017AE0C,
-    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = D_map_shelter_8017AE14,
-    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = D_map_shelter_8017AE1C,
-    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = D_map_shelter_8017AE24,
-    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = D_map_shelter_8017AE2C,
-    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = D_map_shelter_8017AE34,
-    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = D_map_shelter_8017AE3C,
-    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = D_map_shelter_8017AE44,
-    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = D_map_shelter_8017AE4C,
-    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = D_map_shelter_8017AE54,
-    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = D_map_shelter_8017AE5C,
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = _gMapShelterB1PodServiceGantryRoomLighting,
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = _gMapShelterB1TransferTunnelRoomLighting,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = _gMapShelterB1ControlRoomAccessTunnelRoomLighting,
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = _gMapShelterB2ElevatorRoomLighting,
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = _gMapShelterB2ElevatorHallRoomLighting,
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = _gMapShelterB2SouthMaintenanceWalkwayRoomLighting,
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = _gMapShelterB2OperatingRoomLighting,
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = _gMapShelterB2NorthMaintenanceWalkwayRoomLighting,
+    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = _gMapShelterB2LaboratoryRoomLighting,
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = _gMapShelterB2BreedingRoomLighting,
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = _gMapShelterB2MainCorridorRoomLighting,
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = _gMapShelterB2SepticTankRoomLighting,
     [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1]          = gShelterB2PodAccessTunnelRoomLighting,
-    [GAME_AREA_SHELTER_R36 - 1]                           = D_map_shelter_8017AE64,
-    [GAME_AREA_SHELTER_R37 - 1]                           = D_map_shelter_8017AE6C,
-    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = D_map_shelter_8017AE74,
+    [GAME_AREA_SHELTER_R36 - 1]                           = _gMapShelterR36RoomLighting,
+    [GAME_AREA_SHELTER_R37 - 1]                           = _gMapShelterR37RoomLighting,
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = _gMapShelter1fHeliportS4RoomLighting,
     [GAME_AREA_SHELTER_B3_DUMPING_HOLE - 1]               = _gMapShelterDumpingHoleRoomLighting,
     [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR - 1]        = gShelterB3GarbageIncineratorRoomLighting,
-    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = D_map_shelter_8017AE8C,
-    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = D_map_shelter_8017AE9C,
-    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = D_map_shelter_8017AEA4,
-    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = D_map_shelter_8017AEAC,
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = _gMapShelterB3IncineratorControlRoomLighting,
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = _gMapShelterB3ElevatorHallRoomLighting,
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = _gMapShelterB4LowerSewerRoomLighting,
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = _gMapShelterB4UpperSewerRoomLighting,
     [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = gShelterB4ReservoirRoomLighting,
-    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = D_map_shelter_8017AEB4,
-    [GAME_AREA_SHELTER_R47 - 1]                           = D_map_shelter_8017AEBC,
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = _gMapShelterB4WaterSupplyRoomLighting,
+    [GAME_AREA_SHELTER_R47 - 1]                           = _gMapShelterR47RoomLighting,
     [GAME_AREA_SHELTER_R48 - 1]                           = gShelterR48RoomLighting,
     [GAME_AREA_SHELTER_R49 - 1]                           = gShelterR49RoomLighting,
 };
@@ -1240,56 +1362,56 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
 
 SpriteAreaTable gMapShelterSpriteAreaTable = { _gMapShelterAreaSpriteViews };
 
-WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
-    gMineMesaSurfacePropertiesByClass,
-    gMineCavernSurfacePropertiesByClass,
-    gMineTunnelEntranceSurfacePropertiesByClass,
-    gMineTunnelSurfaceProperties,
-    gMineGorgeSurfacePropertiesByClass,
-    gMineRefugeSurfacePropertiesByClass,
-    gMineForkedTunnelSurfacePropertiesByClass,
-    gMineSecretPassageSurfacePropertiesByClass,
-    gShelterB1ElevatorHallSurfacePropertiesByClass,
-    gShelterB1SouthMaintenanceWalkwaySurfacePropertiesByClass,
-    gShelterB1StoreroomSurfaceClassProperties,
-    gShelterB1NorthMaintenanceWalkwaySurfacePropertiesByClass,
-    gShelterB1ArmorySurfacePropertiesByClass,
-    gShelterB1SleepingQuartersSurfacePropertiesByClass,
-    gShelterB1MainCorridorSurfacePropertiesByClass,
-    gShelterB1SterilizationRoomSurfacePropertiesByClass,
-    gShelterB1PodAccessTunnelSurfacePropertiesByClass,
-    gShelterB1ControlRoomSurfacePropertiesByClass,
-    gShelterB1AccessTunnelSurfacePropertiesByClass,
-    gShelterB1UndergroundParkingSurfacePropertiesByClass,
-    gShelterB1GolemFreezer1SurfacePropertiesByClass,
-    gShelterB2PodBottomSurfaceProperties,
-    gShelterB1PodServiceGantrySurfacePropertiesByClass,
-    gShelterB1TransferTunnelSurfacePropertiesByClass,
-    gShelterB1ControlRoomAccessTunnelSurfacePropertiesByClass,
-    gShelterB2ElevatorSurfacePropertiesByClass,
-    gShelterB2ElevatorHallSurfacePropertiesByClass,
-    gShelterB2SouthMaintenanceWalkwaySurfacePropertiesByClass,
-    gShelterB2OperatingRoomSurfaceProperties,
-    gShelterB2NorthMaintenanceWalkwaySurfacePropertiesByClass,
-    gShelterB2LaboratorySurfacePropertiesByClass,
-    gShelterB2BreedingRoomSurfacePropertiesByClass,
-    gShelterB2MainCorridorSurfacePropertiesByClass,
-    gShelterB2SepticTankSurfacePropertiesByClass,
-    gShelterB2PodAccessTunnelSurfacePropertiesByClass,
-    gShelterR36SurfacePropertiesByClass,
-    gShelterR37SurfacePropertiesByClass,
-    gShelter1fHeliportS4SurfacePropertiesByClass,
-    gShelterB3DumpingHoleSurfacePropertiesByClass,
-    gShelterB3GarbageIncineratorSurfaceProperties,
-    gShelterB3IncineratorControlRoomSurfacePropertiesByClass,
-    gShelterB3ElevatorHallSurfacePropertiesByClass,
-    gShelterB4LowerSewerSurfacePropertiesByClass,
-    gShelterB4UpperSewerSurfacePropertiesByClass,
-    gShelterB4ReservoirSurfacePropertiesByClass,
-    gShelterB4WaterSupplySurfacePropertiesByClass,
-    gShelterR47SurfaceProperties,
-    gShelterR48SurfacePropertiesByClass,
-    gShelterR49SurfacePropertiesByClass,
+WorldCollisionSurfaceProperties** gMapShelterSurfacePropertiesByArea[49] = {
+    [GAME_AREA_MINE_MESA - 1]                             = gMineMesaSurfacePropertiesByClass,
+    [GAME_AREA_MINE_CAVERN - 1]                           = gMineCavernSurfacePropertiesByClass,
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = gMineTunnelEntranceSurfacePropertiesByClass,
+    [GAME_AREA_MINE_TUNNEL - 1]                           = gMineTunnelSurfaceProperties,
+    [GAME_AREA_MINE_GORGE - 1]                            = gMineGorgeSurfacePropertiesByClass,
+    [GAME_AREA_MINE_REFUGE - 1]                           = gMineRefugeSurfacePropertiesByClass,
+    [GAME_AREA_MINE_FORKED_TUNNEL - 1]                    = gMineForkedTunnelSurfacePropertiesByClass,
+    [GAME_AREA_MINE_SECRET_PASSAGE - 1]                   = gMineSecretPassageSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_ELEVATOR_HALL - 1]              = gShelterB1ElevatorHallSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1SouthMaintenanceWalkwaySurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_STOREROOM - 1]                  = gShelterB1StoreroomSurfaceClassProperties,
+    [GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY - 1]  = gShelterB1NorthMaintenanceWalkwaySurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_ARMORY - 1]                     = gShelterB1ArmorySurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS - 1]          = gShelterB1SleepingQuartersSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_MAIN_CORRIDOR - 1]              = gShelterB1MainCorridorSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_STERILIZATION_ROOM - 1]         = gShelterB1SterilizationRoomSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL - 1]          = gShelterB1PodAccessTunnelSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM - 1]               = gShelterB1ControlRoomSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_ACCESS_TUNNEL - 1]              = gShelterB1AccessTunnelSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING - 1]        = gShelterB1UndergroundParkingSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1 - 1]            = gShelterB1GolemFreezer1SurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_POD_BOTTOM - 1]                 = gShelterB2PodBottomSurfaceProperties,
+    [GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY - 1]         = gShelterB1PodServiceGantrySurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL - 1]            = gShelterB1TransferTunnelSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL - 1] = gShelterB1ControlRoomAccessTunnelSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_ELEVATOR - 1]                   = gShelterB2ElevatorSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_ELEVATOR_HALL - 1]              = gShelterB2ElevatorHallSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY - 1]  = gShelterB2SouthMaintenanceWalkwaySurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_OPERATING_ROOM - 1]             = gShelterB2OperatingRoomSurfaceProperties,
+    [GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY - 1]  = gShelterB2NorthMaintenanceWalkwaySurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_LABORATORY - 1]                 = gShelterB2LaboratorySurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_BREEDING_ROOM - 1]              = gShelterB2BreedingRoomSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_MAIN_CORRIDOR - 1]              = gShelterB2MainCorridorSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_SEPTIC_TANK - 1]                = gShelterB2SepticTankSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL - 1]          = gShelterB2PodAccessTunnelSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_R36 - 1]                           = gShelterR36SurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_R37 - 1]                           = gShelterR37SurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_1F_HELIPORT_S4 - 1]                = gShelter1fHeliportS4SurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B3_DUMPING_HOLE - 1]               = gShelterB3DumpingHoleSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR - 1]        = gShelterB3GarbageIncineratorSurfaceProperties,
+    [GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM - 1]   = gShelterB3IncineratorControlRoomSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B3_ELEVATOR_HALL - 1]              = gShelterB3ElevatorHallSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B4_LOWER_SEWER - 1]                = gShelterB4LowerSewerSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B4_UPPER_SEWER - 1]                = gShelterB4UpperSewerSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B4_RESERVOIR - 1]                  = gShelterB4ReservoirSurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = gShelterB4WaterSupplySurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_R47 - 1]                           = gShelterR47SurfaceProperties,
+    [GAME_AREA_SHELTER_R48 - 1]                           = gShelterR48SurfacePropertiesByClass,
+    [GAME_AREA_SHELTER_R49 - 1]                           = gShelterR49SurfacePropertiesByClass,
 };
 
 static AreaObjectPlace D_map_shelter_8017B6D8[2] = {
