@@ -68,8 +68,12 @@ enum {
 /// `index + 0x7F`.
 #define WEAPON_ITEM(index) ((index) + 0x7F)
 
-/// Models those descriptors attach.
-extern TmdSource D_unused_85_8011D53C;
+/// Held-weapon model for unused weapon index 6 (item 0x85).
+///
+/// The resident model-task descriptor borrows this single-part source while
+/// `unused_85` is loaded. Keep the package loaded until its model tasks are
+/// released; creation resolves the writable command stream in place.
+extern TmdSource gUnused85HeldWeaponModel;
 
 extern TmdSource D_p08_8011D924;
 

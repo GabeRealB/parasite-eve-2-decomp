@@ -1,150 +1,212 @@
-#include <psyq/sys/types.h>
+#include "weapons/weapon.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
 #include "gameplay/animation.h"
 
-static TmdBone _gUnused85Model0016CSkeleton[1] = {
+enum {
+    UNUSED_85_HELD_WEAPON_QUAD_COUNT              = 18,
+    UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    UNUSED_85_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
+// Read-only embedded payloads retain the package's fixed addresses in .data.
+/// Initial identity transform and self-parented root of the held weapon's single part.
+static const TmdBone _gUnused85HeldWeaponModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/unused_85_model_0016C_skeleton.inc"
 };
 
-static u32 _gUnused85Model0016CPartVerts[1] = {
+/// Vertex count of the held weapon's single part (20 vertices).
+static const u32 _gUnused85HeldWeaponModelPartVerts[1] __attribute__((section(".data"))) = {
 #include "assets/unused_85_model_0016C_partVerts.inc"
 };
 
-static SVECTOR _gUnused85Model0016CVerts[20] = {
+/// Held-weapon vertices in integer part-local coordinates, borrowed by runtime models.
+static SVECTOR _gUnused85HeldWeaponModelVerts[20] = {
 #include "assets/unused_85_model_0016C_verts.inc"
 };
 
-static SVECTOR _gUnused85Model0016CNormals[20] = {
+/// Held-weapon lighting normals, indexed independently of the vertices by each corner.
+static SVECTOR _gUnused85HeldWeaponModelNormals[20] = {
 #include "assets/unused_85_model_0016C_normals.inc"
 };
 
-static u32 _gUnused85Model0016CStream[132] = {
+/// Eighteen directly transformed GT4 quads; model creation rewrites their handler slot.
+static u32 _gUnused85HeldWeaponModelStream[132] = {
 #include "assets/unused_85_model_0016C_stream.inc"
 };
 
-TmdSource D_unused_85_8011D53C = {
-    0,
-    936,
-    0,
-    1,
-    _gUnused85Model0016CPartVerts,
-    _gUnused85Model0016CVerts,
-    _gUnused85Model0016CNormals,
-    _gUnused85Model0016CSkeleton,
-    _gUnused85Model0016CStream,
+TmdSource gUnused85HeldWeaponModel = {
+    .handlersResolved    = 0,
+    .bufferHalfBytes     = UNUSED_85_HELD_WEAPON_QUAD_COUNT * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gUnused85HeldWeaponModelSkeleton),
+    .partVertexCounts    = _gUnused85HeldWeaponModelPartVerts,
+    .verts               = _gUnused85HeldWeaponModelVerts,
+    .normals             = _gUnused85HeldWeaponModelNormals,
+    .skeleton            = _gUnused85HeldWeaponModelSkeleton,
+    .stream              = _gUnused85HeldWeaponModelStream,
 };
 
-static AnimationPackedPose _gUnused85Animation00530Bank1[2] = {
+/// Idle translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85IdleAnimationBank1[2] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_00530_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation00530Bank4[8] = {
+/// Packed idle rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85IdleAnimationBank4[8] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_00530_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation00530Records[76] = {
+/// Idle keyframes and loop/stop controls; keyframe durations count normal-rate frames.
+static const AnimationRecord _gUnused85IdleAnimationRecords[76] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_00530_records.inc"
 };
 
-static u16 _gUnused85Animation00530Indices[20] = {
+/// Idle track starts for parts 0..18, followed by the retained unused export halfword.
+static const u16 _gUnused85IdleAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_00530_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation00530 = {
-    _gUnused85Animation00530Records,
-    _gUnused85Animation00530Indices,
-    { NULL, _gUnused85Animation00530Bank1, NULL, NULL, _gUnused85Animation00530Bank4, NULL, NULL, NULL },
+/// Player standing-idle clip for unused weapon index 6.
+///
+/// Native-bank set 1; sets 21, 22 and 41 also select this same clip.
+/// All 19 tracks borrow the embedded payloads while this package is loaded.
+static AnimationSet _gUnused85IdleAnimation = {
+    .records           = _gUnused85IdleAnimationRecords,
+    .trackStartIndices = _gUnused85IdleAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85IdleAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85IdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation00BD4Bank1[12] = {
+/// Unarmed-walk translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85UnarmedWalkAnimationBank1[12] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_00BD4_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation00BD4Bank4[151] = {
+/// Packed unarmed-walk rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85UnarmedWalkAnimationBank4[151] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_00BD4_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation00BD4Records[218] = {
+/// Unarmed-walk keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85UnarmedWalkAnimationRecords[218] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_00BD4_records.inc"
 };
 
-static u16 _gUnused85Animation00BD4Indices[20] = {
+/// Unarmed-walk track starts for parts 0..18 and the retained unused export halfword.
+static const u16 _gUnused85UnarmedWalkAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_00BD4_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation00BD4 = {
-    _gUnused85Animation00BD4Records,
-    _gUnused85Animation00BD4Indices,
-    { NULL, _gUnused85Animation00BD4Bank1, NULL, NULL, _gUnused85Animation00BD4Bank4, NULL, NULL, NULL },
+/// Player forward-walk clip when no held-weapon task exists, for unused weapon index 6.
+///
+/// Native-bank set 19. Its 19 tracks borrow this package's embedded payloads.
+static AnimationSet _gUnused85UnarmedWalkAnimation = {
+    .records           = _gUnused85UnarmedWalkAnimationRecords,
+    .trackStartIndices = _gUnused85UnarmedWalkAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85UnarmedWalkAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85UnarmedWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation01520Bank1[16] = {
+/// Forward-walk translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85WalkAnimationBank1[16] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_01520_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation01520Bank4[221] = {
+/// Packed forward-walk rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85WalkAnimationBank4[221] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_01520_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation01520Records[306] = {
+/// Forward-walk keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85WalkAnimationRecords[306] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_01520_records.inc"
 };
 
-static u16 _gUnused85Animation01520Indices[20] = {
+/// Forward-walk track starts for parts 0..18 and the retained unused export halfword.
+static const u16 _gUnused85WalkAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_01520_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation01520 = {
-    _gUnused85Animation01520Records,
-    _gUnused85Animation01520Indices,
-    { NULL, _gUnused85Animation01520Bank1, NULL, NULL, _gUnused85Animation01520Bank4, NULL, NULL, NULL },
+/// Player forward-walk clip with a held weapon, for unused weapon index 6.
+///
+/// Native-bank set 2. Its 19 tracks borrow this package's embedded payloads.
+static AnimationSet _gUnused85WalkAnimation = {
+    .records           = _gUnused85WalkAnimationRecords,
+    .trackStartIndices = _gUnused85WalkAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85WalkAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85WalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation01DF8Bank1[19] = {
+/// Backward-walk translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85BackwardWalkAnimationBank1[19] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_01DF8_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation01DF8Bank4[193] = {
+/// Packed backward-walk rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85BackwardWalkAnimationBank4[193] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_01DF8_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation01DF8Records[296] = {
+/// Backward-walk keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85BackwardWalkAnimationRecords[296] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_01DF8_records.inc"
 };
 
-static u16 _gUnused85Animation01DF8Indices[20] = {
+/// Backward-walk track starts for parts 0..18 and the retained unused export halfword.
+static const u16 _gUnused85BackwardWalkAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_01DF8_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation01DF8 = {
-    _gUnused85Animation01DF8Records,
-    _gUnused85Animation01DF8Indices,
-    { NULL, _gUnused85Animation01DF8Bank1, NULL, NULL, _gUnused85Animation01DF8Bank4, NULL, NULL, NULL },
+/// Player backward-walk clip for unused weapon index 6.
+///
+/// Native-bank set 3. Its 19 tracks borrow this package's embedded payloads.
+static AnimationSet _gUnused85BackwardWalkAnimation = {
+    .records           = _gUnused85BackwardWalkAnimationRecords,
+    .trackStartIndices = _gUnused85BackwardWalkAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85BackwardWalkAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85BackwardWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation0252CBank1[13] = {
+/// Run translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85RunAnimationBank1[13] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0252C_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation0252CBank4[167] = {
+/// Packed run rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85RunAnimationBank4[167] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0252C_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation0252CRecords[235] = {
+/// Run keyframes and loop/stop controls; keyframe durations count normal-rate frames.
+static const AnimationRecord _gUnused85RunAnimationRecords[235] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0252C_records.inc"
 };
 
-static u16 _gUnused85Animation0252CIndices[20] = {
+/// Run track starts for parts 0..18, followed by the retained unused export halfword.
+static const u16 _gUnused85RunAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_0252C_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation0252C = {
-    _gUnused85Animation0252CRecords,
-    _gUnused85Animation0252CIndices,
-    { NULL, _gUnused85Animation0252CBank1, NULL, NULL, _gUnused85Animation0252CBank4, NULL, NULL, NULL },
+/// Player run clip for unused weapon index 6.
+///
+/// Native-bank set 4. Its 19 tracks borrow this package's embedded payloads.
+static AnimationSet _gUnused85RunAnimation = {
+    .records           = _gUnused85RunAnimationRecords,
+    .trackStartIndices = _gUnused85RunAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85RunAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85RunAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gUnused85Animation02D8CBank1[19] = {
@@ -831,10 +893,10 @@ static AnimationSet _gUnused85Animation0D28C = {
 
 AnimationBank D_unused_85_8012A474 = { { {
     NULL,
-    &_gUnused85Animation00530,
-    &_gUnused85Animation01520,
-    &_gUnused85Animation01DF8,
-    &_gUnused85Animation0252C,
+    &_gUnused85IdleAnimation,
+    &_gUnused85WalkAnimation,
+    &_gUnused85BackwardWalkAnimation,
+    &_gUnused85RunAnimation,
     &_gUnused85Animation02D8C,
     &_gUnused85Animation035F0,
     &_gUnused85Animation0CCC0,
@@ -849,10 +911,10 @@ AnimationBank D_unused_85_8012A474 = { { {
     &_gUnused85Animation06254,
     &_gUnused85Animation06574,
     &_gUnused85Animation06D38,
-    &_gUnused85Animation00BD4,
+    &_gUnused85UnarmedWalkAnimation,
     &_gUnused85Animation0C274,
-    &_gUnused85Animation00530,
-    &_gUnused85Animation00530,
+    &_gUnused85IdleAnimation,
+    &_gUnused85IdleAnimation,
     &_gUnused85Animation07FD0,
     &_gUnused85Animation09264,
     &_gUnused85Animation08B48,
@@ -871,7 +933,7 @@ AnimationBank D_unused_85_8012A474 = { { {
     &_gUnused85Animation04E4C,
     &_gUnused85Animation04ABC,
     &_gUnused85Animation03904,
-    &_gUnused85Animation00530,
+    &_gUnused85IdleAnimation,
     &_gUnused85Animation09E20,
     &_gUnused85Animation0A014,
     &_gUnused85Animation0A494,
