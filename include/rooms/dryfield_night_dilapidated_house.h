@@ -47,7 +47,12 @@ extern ViewCamera gDryfieldNightDilapidatedHouseViewCameras[11];
 /// and batch arrays remain valid while this room overlay is loaded.
 extern SpriteView gDryfieldNightDilapidatedHouseSpriteViews[11];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_dilapidated_house_8018A0E4[];
+/// Surface-class directory for the nighttime house, indexed by class 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply grid pushback.
+/// Classes 1 and 2 supply footstep cues; classes 0 and 3..7 do not. The stage
+/// map borrows this directory and its records only while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightDilapidatedHouseSurfacePropertiesByClass[8];
 
 /// Draws the nighttime dilapidated house's view-selected additive light prisms.
 ///

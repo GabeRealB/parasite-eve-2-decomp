@@ -38,7 +38,7 @@ gDryfieldNightDilapidatedHousePointLights = 0x80189500; // size:0x300 defined:Tr
 gDryfieldNightDilapidatedHouseConeLights = 0x80189800; // size:0x6C defined:True
 _gDryfieldNightDilapidatedHouseUnreferencedData = 0x8018986C; // size:0x2F4 defined:True
 D_dryfield_night_dilapidated_house_801872B4 = 0x801872B4; // size:0x18 defined:True
-D_dryfield_night_dilapidated_house_80189B60 = 0x80189B60; // size:0x18 defined:True
+gDryfieldNightDilapidatedHouseRoomLights = 0x80189B60; // size:0x18 defined:True
 D_dryfield_night_dilapidated_house_80189B78 = 0x80189B78; // size:0x390 defined:True
 D_dryfield_night_dilapidated_house_80189F08 = 0x80189F08; // size:0x3C defined:True
 D_dryfield_night_dilapidated_house_80189F44 = 0x80189F44; // size:0x24 defined:True
@@ -51,7 +51,7 @@ _gDryfieldNightDilapidatedHouseSurface2FootstepSounds = 0x8018A0C0; // size:0xC 
 _gDryfieldNightDilapidatedHouseDefaultSurfaceProperties = 0x8018A0CC; // size:0x8 defined:True
 _gDryfieldNightDilapidatedHouseSurface1Properties = 0x8018A0D4; // size:0x8 defined:True
 _gDryfieldNightDilapidatedHouseSurface2Properties = 0x8018A0DC; // size:0x8 defined:True
-D_dryfield_night_dilapidated_house_8018A0E4 = 0x8018A0E4; // size:0x20 defined:True
+gDryfieldNightDilapidatedHouseSurfacePropertiesByClass = 0x8018A0E4; // size:0x20 defined:True
 gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor204000BloodSucklerTaskDesc = 0x80156500; // absolute:True owner=actor_204000

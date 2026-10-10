@@ -27,7 +27,7 @@ enum {
 /// Work block of the room's control console: the screen on which the player
 /// selects one of five rows and flips its switch, each switch a game flag.
 ///
-/// The task family's state table is `D_shelter_r47_8017D6C8`; the block is
+/// The task family's state table is `_gShelterR47ConsoleStateHandlers`; the block is
 /// allocated zeroed by its state 0 and stored at `Task::work`. Positions are
 /// screen pixels relative to the display centre, and each one eases a quarter
 /// of the way toward its target every frame.

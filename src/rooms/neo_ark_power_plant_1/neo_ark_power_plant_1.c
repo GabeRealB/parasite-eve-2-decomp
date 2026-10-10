@@ -51,31 +51,59 @@ s32 D_neo_ark_power_plant_1_80181BB4[3] = {
     0x10000019,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_power_plant_1_80181BC0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for surface classes 0..2 and 6..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gNeoArkPowerPlant1DefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_power_plant_1_80181BC8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for surface class 3: probes pass and weapon impacts are ignored.
+///
+/// Grid contacts still apply pushback; no footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkPowerPlant1Surface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_power_plant_1_80181BD0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &gNeoArkPowerPlant1Surface4FootstepSounds },
+/// Collision policy for surface class 4: probes block, impacts are enabled and pushback applies.
+///
+/// Borrows room-owned walking, running and scripted-jump cue bases while loaded.
+static WorldCollisionSurfaceProperties _gNeoArkPowerPlant1Surface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &gNeoArkPowerPlant1Surface4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_power_plant_1_80181BD8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &gNeoArkPowerPlant1Surface5FootstepSounds },
+/// Collision policy for surface class 5: probes block, impacts are enabled and pushback applies.
+///
+/// Borrows room-owned walking, running and scripted-jump cue bases while loaded.
+static WorldCollisionSurfaceProperties _gNeoArkPowerPlant1Surface5Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &gNeoArkPowerPlant1Surface5FootstepSounds,
 };
 
 WorldCollisionSurfaceProperties* D_neo_ark_power_plant_1_80181BE0[8] = {
-    D_neo_ark_power_plant_1_80181BC0,
-    D_neo_ark_power_plant_1_80181BC0,
-    D_neo_ark_power_plant_1_80181BC0,
-    D_neo_ark_power_plant_1_80181BC8,
-    D_neo_ark_power_plant_1_80181BD0,
-    D_neo_ark_power_plant_1_80181BD8,
-    D_neo_ark_power_plant_1_80181BC0,
-    D_neo_ark_power_plant_1_80181BC0,
+    &_gNeoArkPowerPlant1DefaultSurfaceProperties,
+    &_gNeoArkPowerPlant1DefaultSurfaceProperties,
+    &_gNeoArkPowerPlant1DefaultSurfaceProperties,
+    &_gNeoArkPowerPlant1Surface3Properties,
+    &_gNeoArkPowerPlant1Surface4Properties,
+    &_gNeoArkPowerPlant1Surface5Properties,
+    &_gNeoArkPowerPlant1DefaultSurfaceProperties,
+    &_gNeoArkPowerPlant1DefaultSurfaceProperties,
 };
 
 AreaApplyRec D_neo_ark_power_plant_1_80181C00[2] = {

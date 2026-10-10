@@ -34,7 +34,12 @@ extern AreaVariant D_neo_ark_island_80183F48[13];
 // neo_ark_island
 extern WorldCollisionRoomResources D_neo_ark_island_80181B94[];
 
-extern WorldCoordRoomLighting D_neo_ark_island_80181BA4[];
+/// Lighting for the island's single room selector, indexed by room minus one.
+///
+/// Borrows the island's four directional lights; a NULL ambient table selects
+/// gameplay's default minimum ambient colour for every view. The stage map
+/// borrows this descriptor and its light collection while the island is loaded.
+extern WorldCoordRoomLighting gNeoArkIslandRoomLighting[1];
 
 /// Logical-view map directory for the area's single room selector.
 ///

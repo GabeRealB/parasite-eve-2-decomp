@@ -1,6 +1,6 @@
 // Overlay-local symbols for neo_ark_r31.
 D_neo_ark_r31_8017DC54 = 0x8017DC54; // size:0x4 defined:True
-D_neo_ark_r31_8017DC2C = 0x8017DC2C; // size:0x8 defined:True
+_gNeoArkR31SurfaceProperties = 0x8017DC2C; // size:0x8 defined:True
 D_neo_ark_r31_8017DC34 = 0x8017DC34; // size:0x20 defined:True
 D_neo_ark_r31_8017D9E8 = 0x8017D9E8; // size:0xC defined:True
 D_neo_ark_r31_8017D9F4 = 0x8017D9F4; // size:0x28 defined:True

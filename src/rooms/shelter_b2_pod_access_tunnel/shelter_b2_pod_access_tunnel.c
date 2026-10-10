@@ -63,31 +63,59 @@ static WorldCollisionFootstepSounds _gShelterB2PodAccessTunnelSurface3FootstepSo
     .scriptedJump = SHELTER_B2_POD_ACCESS_TUNNEL_SURFACE_3_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_pod_access_tunnel_801856B8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for surface classes 0 and 4..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gShelterB2PodAccessTunnelDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_pod_access_tunnel_801856C0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for surface class 1: probes pass and weapon impacts are ignored.
+///
+/// Grid contacts still apply pushback; no footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB2PodAccessTunnelSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_pod_access_tunnel_801856C8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for surface class 2: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gShelterB2PodAccessTunnelSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_pod_access_tunnel_801856D0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gShelterB2PodAccessTunnelSurface3FootstepSounds },
+/// Collision policy for surface class 3: probes block, impacts are enabled and pushback applies.
+///
+/// Borrows room-owned walking, running and scripted-jump cue bases while loaded.
+static WorldCollisionSurfaceProperties _gShelterB2PodAccessTunnelSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2PodAccessTunnelSurface3FootstepSounds,
 };
 
 WorldCollisionSurfaceProperties* D_shelter_b2_pod_access_tunnel_801856D8[8] = {
-    D_shelter_b2_pod_access_tunnel_801856B8,
-    D_shelter_b2_pod_access_tunnel_801856C0,
-    D_shelter_b2_pod_access_tunnel_801856C8,
-    D_shelter_b2_pod_access_tunnel_801856D0,
-    D_shelter_b2_pod_access_tunnel_801856B8,
-    D_shelter_b2_pod_access_tunnel_801856B8,
-    D_shelter_b2_pod_access_tunnel_801856B8,
-    D_shelter_b2_pod_access_tunnel_801856B8,
+    &_gShelterB2PodAccessTunnelDefaultSurfaceProperties,
+    &_gShelterB2PodAccessTunnelSurface1Properties,
+    &_gShelterB2PodAccessTunnelSurface2Properties,
+    &_gShelterB2PodAccessTunnelSurface3Properties,
+    &_gShelterB2PodAccessTunnelDefaultSurfaceProperties,
+    &_gShelterB2PodAccessTunnelDefaultSurfaceProperties,
+    &_gShelterB2PodAccessTunnelDefaultSurfaceProperties,
+    &_gShelterB2PodAccessTunnelDefaultSurfaceProperties,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };

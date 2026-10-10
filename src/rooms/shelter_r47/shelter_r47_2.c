@@ -55,14 +55,6 @@ typedef struct {
 } _ShelterR47MapMark;
 STATIC_ASSERT_SIZEOF(_ShelterR47MapMark, 8);
 
-/// Marker tables indexed by `ShelterR47MapTerminalWork::page`. The second is used
-/// while `GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED` is 1.
-extern _ShelterR47MapMark* D_shelter_r47_801875C4[];
-extern _ShelterR47MapMark* D_shelter_r47_801875D8[];
-
-extern s16 D_shelter_r47_801875EC[];
-extern s16 D_shelter_r47_801875F8[][2];
-
 /// Console rows follow the saved-switch order, not the sprite UV order.
 enum {
     SHELTER_R47_CONSOLE_ROW_TRANSFER_DOOR = 0,
@@ -124,10 +116,16 @@ static void _shelterR47ConsoleSaveSwitches(Task* task);
 static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row);
 static void _shelterR47MapTerminalDrawPageOverlay(Task* task);
 
-/// State handlers of the room's first cap script, run by
-/// `shelterR47ConsoleTask`.
-static const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
-    {
+/// Fourteen state handlers for the control-console screen.
+///
+/// Indexed by `Task::state` (0..13): initialize, reset prompt, reveal view,
+/// select hotspot, open commands, handle command, dismiss, change view,
+/// reveal row, begin button press, apply button press, wait for flash,
+/// begin closing fade and fade out. Entry zero owns work/prompt setup;
+/// dismiss and fade out save switches and release control. The dispatcher
+/// copies this complete 56-byte value before calling its selected handler.
+static const TaskFuncTable14 _gShelterR47ConsoleStateHandlers = {
+    .funcs = {
         shelterR47ConsoleInitializeTask,
         _shelterR47ConsoleResetPromptTask,
         _shelterR47ConsoleOpenViewTask,
@@ -145,7 +143,11 @@ static const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
     },
 };
 
-_ShelterR47MapMark D_shelter_r47_80187404[7] = {
+/// Area-marker centres on the Shelter 1F terminal page, in display-centred pixels.
+///
+/// Ends with `SHELTER_R47_MAP_MARK_END`. Saved map-mark and pose-restore flags
+/// select which entries are drawn; this overlay owns the list while loaded.
+static _ShelterR47MapMark _gShelterR47MapTerminal1fMarks[7] = {
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_PARKING_GARAGE, 124, 0 },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 87, 0 },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_BULWARK, 55, 0 },
@@ -155,7 +157,11 @@ _ShelterR47MapMark D_shelter_r47_80187404[7] = {
     { SHELTER_R47_MAP_MARK_END },
 };
 
-_ShelterR47MapMark D_shelter_r47_8018743C[17] = {
+/// Area-marker centres on the Shelter B1 terminal page, in display-centred pixels.
+///
+/// Ends with `SHELTER_R47_MAP_MARK_END`. Saved map-mark and pose-restore flags
+/// select which entries are drawn; this overlay owns the list while loaded.
+static _ShelterR47MapMark _gShelterR47MapTerminalB1Marks[17] = {
     { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 100, -77 },
     { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 64, -58 },
     { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 55, -12 },
@@ -175,7 +181,11 @@ _ShelterR47MapMark D_shelter_r47_8018743C[17] = {
     { SHELTER_R47_MAP_MARK_END },
 };
 
-_ShelterR47MapMark D_shelter_r47_801874C4[11] = {
+/// Area-marker centres on the Shelter B2 terminal page, in display-centred pixels.
+///
+/// Ends with `SHELTER_R47_MAP_MARK_END`. Saved map-mark and pose-restore flags
+/// select which entries are drawn; this overlay owns the list while loaded.
+static _ShelterR47MapMark _gShelterR47MapTerminalB2Marks[11] = {
     { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 53, -73 },
     { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 13, -73 },
     { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 7, -11 },
@@ -189,7 +199,11 @@ _ShelterR47MapMark D_shelter_r47_801874C4[11] = {
     { SHELTER_R47_MAP_MARK_END },
 };
 
-_ShelterR47MapMark D_shelter_r47_8018751C[5] = {
+/// Area-marker centres on the Shelter B3 terminal page, in display-centred pixels.
+///
+/// Ends with `SHELTER_R47_MAP_MARK_END`. Saved map-mark and pose-restore flags
+/// select which entries are drawn; this overlay owns the list while loaded.
+static _ShelterR47MapMark _gShelterR47MapTerminalB3Marks[5] = {
     { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, -33, -59 },
     { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 85, -53 },
     { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM, 89, 51 },
@@ -197,11 +211,18 @@ _ShelterR47MapMark D_shelter_r47_8018751C[5] = {
     { SHELTER_R47_MAP_MARK_END },
 };
 
-_ShelterR47MapMark D_shelter_r47_80187544[1] = {
+/// Empty Neo Ark marker list before the second power plant is cleared.
+///
+/// The sole entry terminates traversal; the page draws its separate overlay.
+static _ShelterR47MapMark _gShelterR47MapTerminalEmptyMarks[1] = {
     { SHELTER_R47_MAP_MARK_END },
 };
 
-_ShelterR47MapMark D_shelter_r47_8018754C[15] = {
+/// Area-marker centres on the Neo Ark terminal page, in display-centred pixels.
+///
+/// Ends with `SHELTER_R47_MAP_MARK_END`. Saved map-mark and pose-restore flags
+/// select which entries are drawn; this overlay owns the list while loaded.
+static _ShelterR47MapMark _gShelterR47MapTerminalNeoArkMarks[15] = {
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL, 146, 6 },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_NORTH_PROMENADE, 135, -65 },
     { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 45, -75 },
@@ -219,23 +240,39 @@ _ShelterR47MapMark D_shelter_r47_8018754C[15] = {
     { SHELTER_R47_MAP_MARK_END },
 };
 
-_ShelterR47MapMark* D_shelter_r47_801875C4[5] = {
-    D_shelter_r47_8018743C,
-    D_shelter_r47_801874C4,
-    D_shelter_r47_8018751C,
-    D_shelter_r47_80187544,
-    D_shelter_r47_80187404,
+/// Terminal marker lists by page while the second power plant clear flag is not 1.
+///
+/// Indexed by `SHELTER_R47_MAP_PAGE_*` (0..4). Each borrowed list is terminated
+/// by `SHELTER_R47_MAP_MARK_END`; only the Neo Ark entry differs between the
+/// two directories. Selected when `GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED`
+/// is not 1; storage belongs to the loaded room overlay.
+static _ShelterR47MapMark* _gShelterR47MapTerminalMarksBeforeNeoArkClearByPage[SHELTER_R47_MAP_PAGE_COUNT] = {
+    [SHELTER_R47_MAP_PAGE_B1]      = _gShelterR47MapTerminalB1Marks,
+    [SHELTER_R47_MAP_PAGE_B2]      = _gShelterR47MapTerminalB2Marks,
+    [SHELTER_R47_MAP_PAGE_B3]      = _gShelterR47MapTerminalB3Marks,
+    [SHELTER_R47_MAP_PAGE_NEO_ARK] = _gShelterR47MapTerminalEmptyMarks,
+    [SHELTER_R47_MAP_PAGE_1F]      = _gShelterR47MapTerminal1fMarks,
 };
 
-_ShelterR47MapMark* D_shelter_r47_801875D8[5] = {
-    D_shelter_r47_8018743C,
-    D_shelter_r47_801874C4,
-    D_shelter_r47_8018751C,
-    D_shelter_r47_8018754C,
-    D_shelter_r47_80187404,
+/// Terminal marker lists by page while the second power plant clear flag is 1.
+///
+/// Indexed by `SHELTER_R47_MAP_PAGE_*` (0..4). Each borrowed list is terminated
+/// by `SHELTER_R47_MAP_MARK_END`; only the Neo Ark entry differs between the
+/// two directories. Selected when `GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED`
+/// is 1; storage belongs to the loaded room overlay.
+static _ShelterR47MapMark* _gShelterR47MapTerminalMarksAfterNeoArkClearByPage[SHELTER_R47_MAP_PAGE_COUNT] = {
+    [SHELTER_R47_MAP_PAGE_B1]      = _gShelterR47MapTerminalB1Marks,
+    [SHELTER_R47_MAP_PAGE_B2]      = _gShelterR47MapTerminalB2Marks,
+    [SHELTER_R47_MAP_PAGE_B3]      = _gShelterR47MapTerminalB3Marks,
+    [SHELTER_R47_MAP_PAGE_NEO_ARK] = _gShelterR47MapTerminalNeoArkMarks,
+    [SHELTER_R47_MAP_PAGE_1F]      = _gShelterR47MapTerminal1fMarks,
 };
 
-s16 D_shelter_r47_801875EC[6] = {
+/// Texture V rows of the five terminal page titles, in texels.
+///
+/// Page indices 0..4 follow `SHELTER_R47_MAP_PAGE_*`; each title is 10 texels
+/// high. The retained sixth halfword has no reader and its purpose is unproven.
+static s16 _gShelterR47MapTerminalPageTitleV[6] = {
     10,
     20,
     30,
@@ -244,7 +281,14 @@ s16 D_shelter_r47_801875EC[6] = {
     0,
 };
 
-s16 D_shelter_r47_801875F8[5][2] = {
+/// Texture V row from which the terminal's caption-strip offsets are measured.
+enum { SHELTER_R47_MAP_CAPTION_ATLAS_BASE_V = 56 };
+
+/// Texture V offsets of each page's first and second caption strips, in texels.
+///
+/// Page indices 0..4 follow `SHELTER_R47_MAP_PAGE_*`; columns 0 and 1 select
+/// the upper and lower 8-texel-high strips. Add `SHELTER_R47_MAP_CAPTION_ATLAS_BASE_V`.
+static s16 _gShelterR47MapTerminalPageCaptionVOffsets[SHELTER_R47_MAP_PAGE_COUNT][2] = {
     { 0, 16 },
     { 8, 24 },
     { 16, 32 },
@@ -857,7 +901,7 @@ void shelterR47ConsoleTask(Task* task)
 {
     TaskFuncTable14 stateHandlers;
 
-    stateHandlers = D_shelter_r47_8017D6C8;
+    stateHandlers = _gShelterR47ConsoleStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -1367,9 +1411,9 @@ static void _shelterR47MapTerminalDrawPageOverlay(Task* task)
     work       = task->work;
     brightness = (u8)work->openFrames * SHELTER_R47_MAP_OPEN_BRIGHTNESS_STEP;
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
-        mark = D_shelter_r47_801875D8[work->page];
+        mark = _gShelterR47MapTerminalMarksAfterNeoArkClearByPage[work->page];
     } else {
-        mark = D_shelter_r47_801875C4[work->page];
+        mark = _gShelterR47MapTerminalMarksBeforeNeoArkClearByPage[work->page];
     }
     if (work->page != SHELTER_R47_MAP_PAGE_NEO_ARK) {
         if (work->openMode != SHELTER_R47_MAP_MODE_TIMED && work->page == SHELTER_R47_MAP_PAGE_B1 && inventoryHasCollectedBit(SHELTER_R47_MAP_B1_MICRO_DEVICE_ITEM_ID) != 0) {
@@ -1526,7 +1570,7 @@ void shelterR47MapTerminalDrawPageTitle(Task* task, s16 page)
     sprite->x0    = work->labelX;
     sprite->y0    = -0x67;
     sprite->u0    = 0;
-    sprite->v0    = D_shelter_r47_801875EC[page];
+    sprite->v0    = _gShelterR47MapTerminalPageTitleV[page];
     sprite->w     = 0x50;
     sprite->h     = 0xA;
     addPrim(&gGpuCurrentOt[SHELTER_R47_MAP_TERMINAL_LABEL_OT], packet);
@@ -1548,7 +1592,7 @@ void shelterR47MapTerminalDrawPageCaptions(Task* task, s16 page)
     sprite->x0    = work->labelX;
     sprite->y0    = 0x35;
     sprite->u0    = 0;
-    sprite->v0    = D_shelter_r47_801875F8[page][0] + 0x38;
+    sprite->v0    = _gShelterR47MapTerminalPageCaptionVOffsets[page][0] + SHELTER_R47_MAP_CAPTION_ATLAS_BASE_V;
     sprite->w     = 0x50;
     sprite->h     = 8;
     addPrim(&gGpuCurrentOt[SHELTER_R47_MAP_TERMINAL_LABEL_OT], packet);
@@ -1565,7 +1609,7 @@ void shelterR47MapTerminalDrawPageCaptions(Task* task, s16 page)
     sprite->x0    = work->labelX;
     sprite->y0    = 0x60;
     sprite->u0    = 0;
-    sprite->v0    = D_shelter_r47_801875F8[page][1] + 0x38;
+    sprite->v0    = _gShelterR47MapTerminalPageCaptionVOffsets[page][1] + SHELTER_R47_MAP_CAPTION_ATLAS_BASE_V;
     sprite->w     = 0x50;
     sprite->h     = 8;
     addPrim(&gGpuCurrentOt[SHELTER_R47_MAP_TERMINAL_LABEL_OT], packet);

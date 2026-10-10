@@ -34,15 +34,24 @@ SpriteView D_dryfield_r04_8017E280[2] = {
 /// The room's surface-property record does not reference them.
 static s32 D_dryfield_r04_8017E298[3] = { 0x10000011, 0x10000013, 0x10000011 };
 
-static WorldCollisionSurfaceProperties D_dryfield_r04_8017E2A4 = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL };
+/// Collision policy for surface classes 0..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gDryfieldR04SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
 
 WorldCollisionSurfaceProperties* D_dryfield_r04_8017E2AC[8] = {
-    &D_dryfield_r04_8017E2A4,
-    &D_dryfield_r04_8017E2A4,
-    &D_dryfield_r04_8017E2A4,
-    &D_dryfield_r04_8017E2A4,
-    &D_dryfield_r04_8017E2A4,
-    &D_dryfield_r04_8017E2A4,
-    &D_dryfield_r04_8017E2A4,
-    &D_dryfield_r04_8017E2A4,
+    &_gDryfieldR04SurfaceProperties,
+    &_gDryfieldR04SurfaceProperties,
+    &_gDryfieldR04SurfaceProperties,
+    &_gDryfieldR04SurfaceProperties,
+    &_gDryfieldR04SurfaceProperties,
+    &_gDryfieldR04SurfaceProperties,
+    &_gDryfieldR04SurfaceProperties,
+    &_gDryfieldR04SurfaceProperties,
 };

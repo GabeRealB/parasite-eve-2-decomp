@@ -307,19 +307,33 @@ static WorldCollisionSurfaceProperties _gDryfieldNightFactorySurface1Properties 
     .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A78C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gDryfieldNightFactorySurface2FootstepSounds },
+/// Collision policy for surface class 2: probes block, impacts are enabled and pushback applies.
+///
+/// Borrows room-owned walking, running and scripted-jump cue bases while loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightFactorySurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightFactorySurface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_factory_8018A794[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gDryfieldNightFactorySurface3FootstepSounds },
+/// Collision policy for surface class 3: probes block, impacts are enabled and pushback applies.
+///
+/// Borrows room-owned walking, running and scripted-jump cue bases while loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightFactorySurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightFactorySurface3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[8] = {
+WorldCollisionSurfaceProperties* gDryfieldNightFactorySurfacePropertiesByClass[8] = {
     &_gDryfieldNightFactoryDefaultSurfaceProperties,
     &_gDryfieldNightFactorySurface1Properties,
-    D_dryfield_night_factory_8018A78C,
-    D_dryfield_night_factory_8018A794,
+    &_gDryfieldNightFactorySurface2Properties,
+    &_gDryfieldNightFactorySurface3Properties,
     &_gDryfieldNightFactoryDefaultSurfaceProperties,
     &_gDryfieldNightFactoryDefaultSurfaceProperties,
     &_gDryfieldNightFactoryDefaultSurfaceProperties,

@@ -112,23 +112,37 @@ static WorldCollisionFootstepSounds _gNeoArkGardenSurface4FootstepSounds = {
     .scriptedJump = NEO_ARK_GARDEN_SURFACE_4_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_garden_80182BC8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for surface classes 0..3 and 5..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gNeoArkGardenDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_garden_80182BD0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gNeoArkGardenSurface4FootstepSounds },
+/// Collision policy for surface class 4: probes block, impacts are enabled and pushback applies.
+///
+/// Borrows room-owned walking, running and scripted-jump cue bases while loaded.
+static WorldCollisionSurfaceProperties _gNeoArkGardenSurface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkGardenSurface4FootstepSounds,
 };
 
 WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[8] = {
-    D_neo_ark_garden_80182BC8,
-    D_neo_ark_garden_80182BC8,
-    D_neo_ark_garden_80182BC8,
-    D_neo_ark_garden_80182BC8,
-    D_neo_ark_garden_80182BD0,
-    D_neo_ark_garden_80182BC8,
-    D_neo_ark_garden_80182BC8,
-    D_neo_ark_garden_80182BC8,
+    &_gNeoArkGardenDefaultSurfaceProperties,
+    &_gNeoArkGardenDefaultSurfaceProperties,
+    &_gNeoArkGardenDefaultSurfaceProperties,
+    &_gNeoArkGardenDefaultSurfaceProperties,
+    &_gNeoArkGardenSurface4Properties,
+    &_gNeoArkGardenDefaultSurfaceProperties,
+    &_gNeoArkGardenDefaultSurfaceProperties,
+    &_gNeoArkGardenDefaultSurfaceProperties,
 };
 
 AreaApplyRec D_neo_ark_garden_80182BF8[3] = {

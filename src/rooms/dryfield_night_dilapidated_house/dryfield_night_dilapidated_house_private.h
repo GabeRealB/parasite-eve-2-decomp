@@ -16,7 +16,12 @@
 /// sequence, entry 1 is the task that plays it.
 extern TaskDesc D_dryfield_night_dilapidated_house_801872B4[];
 
-extern WorldCoordRoomLights D_dryfield_night_dilapidated_house_80189B60[1];
+/// The house's eight point lights and one cone light, with no directional lights.
+///
+/// Shared by the single room selector's lighting descriptor. Counts are light
+/// elements; coordinate setup and shading mutate the borrowed arrays. The
+/// collection and arrays belong to this overlay and remain live while loaded.
+extern WorldCoordRoomLights gDryfieldNightDilapidatedHouseRoomLights;
 
 extern WorldCollisionTrigger D_dryfield_night_dilapidated_house_80189B78[12];
 

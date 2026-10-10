@@ -1208,7 +1208,7 @@ static SVECTOR _gDryfieldNightDilapidatedHouseLightPrismCorners[24] = {
 };
 
 WorldCoordRoomLighting D_dryfield_night_dilapidated_house_8018738C[1] = {
-    { D_dryfield_night_dilapidated_house_80189B60, gDryfieldNightDilapidatedHouseAmbientByView },
+    { &gDryfieldNightDilapidatedHouseRoomLights, gDryfieldNightDilapidatedHouseAmbientByView },
 };
 
 WorldCollisionRoomResources D_dryfield_night_dilapidated_house_80187394[1] = {

@@ -53,7 +53,13 @@ extern ViewCamera D_dryfield_night_factory_80187C14[];
 
 extern SpriteView D_dryfield_night_factory_80189A24[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[];
+/// Surface-class directory for the nighttime factory, indexed by class 0..7.
+///
+/// Class 1 passes probes and ignores weapon impacts; all others block probes
+/// and allow impacts. Every class applies grid pushback. Only classes 2 and 3
+/// supply footstep cues. The stage map borrows this directory and its records
+/// only while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightFactorySurfacePropertiesByClass[8];
 
 /// Night factory instance of the mapped view 9 power-sprite visibility setter.
 ///

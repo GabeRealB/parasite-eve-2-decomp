@@ -68,8 +68,8 @@ WorldCollisionRoomResources D_neo_ark_island_80181B94[1] = {
     { &gNeoArkIslandCollisionGrid, gNeoArkIslandViewBoundaryTriggers, gNeoArkIslandActionTriggers, NULL },
 };
 
-WorldCoordRoomLighting D_neo_ark_island_80181BA4[1] = {
-    { &gNeoArkIslandRoomLights, NULL },
+WorldCoordRoomLighting gNeoArkIslandRoomLighting[1] = {
+    { .lights = &gNeoArkIslandRoomLights, .ambientTable = NULL },
 };
 
 u8* gNeoArkIslandViewMaps[1] = {

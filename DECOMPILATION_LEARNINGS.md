@@ -47151,7 +47151,7 @@ The `TaskFuncTable` recipe ("A room overlay is several task families, each with
 its own `Task::work` block") settles the *dispatched* states, but a room's
 `.text` is mostly helpers that appear in no state table at all, and two families
 in one room routinely use the same low offsets. `shelter_r47` has two:
-`D_shelter_r47_8017D6C8` (state 0 `shelterR47ConsoleInitializeTask`, `memCalloc(0x54)`)
+`_gShelterR47ConsoleStateHandlers` (state 0 `shelterR47ConsoleInitializeTask`, `memCalloc(0x54)`)
 and `D_shelter_r47_8017D7DC` (state 0 `_shelterR47MapTerminalInitTask`,
 `memCalloc(0x30)`). Both read `work` fields `0x18` and `0x1C` as `s16`, so the
 access pattern alone cannot tell them apart, and picking the wrong struct still
@@ -47161,7 +47161,7 @@ Resolve it by `grep`ping for the `jal`:
 
 ```
 grep -rn 'jal *_shelterR47ConsoleSaveSwitches' asm/USA/rooms/nonmatchings/shelter_r47/
-# -> _shelterR47ConsoleDismissTask, which D_shelter_r47_8017D6C8 lists  => family A
+# -> _shelterR47ConsoleDismissTask, which _gShelterR47ConsoleStateHandlers lists  => family A
 ```
 
 A helper is reached only from its own family's dispatcher chain, so one caller

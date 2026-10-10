@@ -5,3 +5,4 @@ _gDryfieldR04Collision00C34Faces = 0x8017D8AC; // size:0x300 defined:True
 _gDryfieldR04Collision00C34Cells = 0x8017DBAC; // size:0x504 defined:True
 _gDryfieldR04Collision00C34Table = 0x8017E0B0; // size:0x144 defined:True
 D_dryfield_r04_8017E1F4 = 0x8017E1F4; // size:0x24 defined:True
+_gDryfieldR04SurfaceProperties = 0x8017e2a4;

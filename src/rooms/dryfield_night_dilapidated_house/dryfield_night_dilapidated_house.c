@@ -45,11 +45,13 @@ extern RoomEventActiveBytes gRoomEventActive;
 extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 
-/// Set by the event gate when its last call latched a request and spawned the
-/// event task; every call clears it first.
-
-WorldCoordRoomLights D_dryfield_night_dilapidated_house_80189B60[1] = {
-    { 0, NULL, ARRAY_SIZE(gDryfieldNightDilapidatedHousePointLights), gDryfieldNightDilapidatedHousePointLights, ARRAY_SIZE(gDryfieldNightDilapidatedHouseConeLights), gDryfieldNightDilapidatedHouseConeLights },
+WorldCoordRoomLights gDryfieldNightDilapidatedHouseRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(gDryfieldNightDilapidatedHousePointLights),
+    .pointLights           = gDryfieldNightDilapidatedHousePointLights,
+    .coneLightCount        = ARRAY_SIZE(gDryfieldNightDilapidatedHouseConeLights),
+    .coneLights            = gDryfieldNightDilapidatedHouseConeLights,
 };
 
 WorldCollisionTrigger D_dryfield_night_dilapidated_house_80189B78[12] = {
@@ -195,7 +197,7 @@ static WorldCollisionSurfaceProperties _gDryfieldNightDilapidatedHouseSurface2Pr
     .footstepSounds      = &_gDryfieldNightDilapidatedHouseSurface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_dilapidated_house_8018A0E4[8] = {
+WorldCollisionSurfaceProperties* gDryfieldNightDilapidatedHouseSurfacePropertiesByClass[8] = {
     &_gDryfieldNightDilapidatedHouseDefaultSurfaceProperties,
     &_gDryfieldNightDilapidatedHouseSurface1Properties,
     &_gDryfieldNightDilapidatedHouseSurface2Properties,

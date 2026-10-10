@@ -327,23 +327,37 @@ static WorldCollisionFootstepSounds _gDryfieldNightMotelLoftSurface1FootstepSoun
     .scriptedJump = DRYFIELD_NIGHT_MOTEL_LOFT_SURFACE_1_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_loft_801808FC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for surface classes 0 and 2..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelLoftDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_motel_loft_80180904[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gDryfieldNightMotelLoftSurface1FootstepSounds },
+/// Collision policy for surface class 1: probes block, impacts are enabled and pushback applies.
+///
+/// Borrows room-owned walking, running and scripted-jump cue bases while loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightMotelLoftSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightMotelLoftSurface1FootstepSounds,
 };
 
 WorldCollisionSurfaceProperties* D_dryfield_night_motel_loft_8018090C[8] = {
-    D_dryfield_night_motel_loft_801808FC,
-    D_dryfield_night_motel_loft_80180904,
-    D_dryfield_night_motel_loft_801808FC,
-    D_dryfield_night_motel_loft_801808FC,
-    D_dryfield_night_motel_loft_801808FC,
-    D_dryfield_night_motel_loft_801808FC,
-    D_dryfield_night_motel_loft_801808FC,
-    D_dryfield_night_motel_loft_801808FC,
+    &_gDryfieldNightMotelLoftDefaultSurfaceProperties,
+    &_gDryfieldNightMotelLoftSurface1Properties,
+    &_gDryfieldNightMotelLoftDefaultSurfaceProperties,
+    &_gDryfieldNightMotelLoftDefaultSurfaceProperties,
+    &_gDryfieldNightMotelLoftDefaultSurfaceProperties,
+    &_gDryfieldNightMotelLoftDefaultSurfaceProperties,
+    &_gDryfieldNightMotelLoftDefaultSurfaceProperties,
+    &_gDryfieldNightMotelLoftDefaultSurfaceProperties,
 };
 
 ActorCommand D_dryfield_night_motel_loft_8018092C = { 0 };

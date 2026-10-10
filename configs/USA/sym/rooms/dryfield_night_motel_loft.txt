@@ -3,8 +3,8 @@ D_dryfield_night_motel_loft_8018092C = 0x8018092C; // size:0x4 defined:True
 D_dryfield_night_motel_loft_8017ED78 = 0x8017ED78; // size:0x38 defined:True
 D_dryfield_night_motel_loft_80180888 = 0x80180888; // size:0x68 defined:True
 _gDryfieldNightMotelLoftSurface1FootstepSounds = 0x801808F0; // size:0xC defined:True
-D_dryfield_night_motel_loft_801808FC = 0x801808FC; // size:0x8 defined:True
-D_dryfield_night_motel_loft_80180904 = 0x80180904; // size:0x8 defined:True
+_gDryfieldNightMotelLoftDefaultSurfaceProperties = 0x801808FC; // size:0x8 defined:True
+_gDryfieldNightMotelLoftSurface1Properties = 0x80180904; // size:0x8 defined:True
 D_dryfield_night_motel_loft_8018090C = 0x8018090C; // size:0x20 defined:True
 D_map_dryfield_full_8017CB58 = 0x8017CB58; // absolute:True owner=map_dryfield_full
 D_map_dryfield_full_8017CB98 = 0x8017CB98; // absolute:True owner=map_dryfield_full

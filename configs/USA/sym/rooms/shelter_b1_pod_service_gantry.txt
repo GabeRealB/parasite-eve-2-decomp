@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b1_pod_service_gantry.
 D_shelter_b1_pod_service_gantry_8018256C = 0x8018256C; // size:0x8 defined:True
 D_shelter_b1_pod_service_gantry_8017FAF4 = 0x8017FAF4; // size:0x28 defined:True
-D_shelter_b1_pod_service_gantry_80182518 = 0x80182518; // size:0x8 defined:True
+_gShelterB1PodServiceGantrySurfaceProperties = 0x80182518; // size:0x8 defined:True
 D_shelter_b1_pod_service_gantry_80182520 = 0x80182520; // size:0x20 defined:True
 D_shelter_b1_pod_service_gantry_80182540 = 0x80182540; // size:0x2C defined:True
 D_shelter_b1_pod_service_gantry_8017FB1C = 0x8017FB1C; // size:0x4 defined:True

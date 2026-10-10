@@ -148,19 +148,26 @@ s32 D_neo_ark_r31_8017DC20[3] = {
     0x10000011,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_r31_8017DC2C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Collision policy for surface classes 0..7: probes block, impacts are enabled and pushback applies.
+///
+/// No footstep cues; the loaded room overlay owns this record.
+static WorldCollisionSurfaceProperties _gNeoArkR31SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
 WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[8] = {
-    D_neo_ark_r31_8017DC2C,
-    D_neo_ark_r31_8017DC2C,
-    D_neo_ark_r31_8017DC2C,
-    D_neo_ark_r31_8017DC2C,
-    D_neo_ark_r31_8017DC2C,
-    D_neo_ark_r31_8017DC2C,
-    D_neo_ark_r31_8017DC2C,
-    D_neo_ark_r31_8017DC2C,
+    &_gNeoArkR31SurfaceProperties,
+    &_gNeoArkR31SurfaceProperties,
+    &_gNeoArkR31SurfaceProperties,
+    &_gNeoArkR31SurfaceProperties,
+    &_gNeoArkR31SurfaceProperties,
+    &_gNeoArkR31SurfaceProperties,
+    &_gNeoArkR31SurfaceProperties,
+    &_gNeoArkR31SurfaceProperties,
 };
 
 s32 D_neo_ark_r31_8017DC54 = 0;

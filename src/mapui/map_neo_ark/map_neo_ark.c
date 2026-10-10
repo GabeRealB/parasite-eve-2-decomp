@@ -581,7 +581,7 @@ WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[33] = {
     D_neo_ark_forest_zone_801820B4,
     D_neo_ark_submarine_tunnel_80181E00,
     D_neo_ark_pavilion_801838D4,
-    D_neo_ark_island_80181BA4,
+    gNeoArkIslandRoomLighting,
     gNeoArkGardenRoomLighting,
     D_neo_ark_power_plant_2_801806A0,
     gNeoArkPowerPlant1RoomLighting,
