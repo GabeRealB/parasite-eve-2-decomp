@@ -414,136 +414,220 @@ static AnimationSet _gAs12ItemUseAnimation = {
     },
 };
 
-static AnimationPackedPose _gAs12Animation03794Bank1[14] = {
+/// Translation/rotation keyframes for `_gAs12StairAscentAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12StairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_03794_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation03794Bank4[156] = {
+/// Rotation-only keyframes for `_gAs12StairAscentAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12StairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_03794_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation03794Records[253] = {
+/// Keyframe durations, footstep cues and controls for `_gAs12StairAscentAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12StairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_03794_records.inc"
 };
 
-static u16 _gAs12Animation03794Indices[20] = {
+/// Record-array starts of `_gAs12StairAscentAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12StairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_03794_indices.inc"
 };
 
-static AnimationSet _gAs12Animation03794 = {
-    _gAs12Animation03794Records,
-    _gAs12Animation03794Indices,
-    { NULL, _gAs12Animation03794Bank1, NULL, NULL, _gAs12Animation03794Bank4, NULL, NULL, NULL },
+/// Player stair-ascent clip in AS12 bank slot 36.
+///
+/// Scripted flights repeat the stride until the requested stair count is exhausted.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12StairAscentAnimation = {
+    .records           = _gAs12StairAscentAnimationRecords,
+    .trackStartIndices = _gAs12StairAscentAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12StairAscentAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12StairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation03F1CBank1[16] = {
+/// Translation/rotation keyframes for `_gAs12StairDescentAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12StairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_03F1C_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation03F1CBank4[167] = {
+/// Rotation-only keyframes for `_gAs12StairDescentAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12StairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_03F1C_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation03F1CRecords[247] = {
+/// Keyframe durations, footstep cues and controls for `_gAs12StairDescentAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12StairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_03F1C_records.inc"
 };
 
-static u16 _gAs12Animation03F1CIndices[20] = {
+/// Record-array starts of `_gAs12StairDescentAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12StairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_03F1C_indices.inc"
 };
 
-static AnimationSet _gAs12Animation03F1C = {
-    _gAs12Animation03F1CRecords,
-    _gAs12Animation03F1CIndices,
-    { NULL, _gAs12Animation03F1CBank1, NULL, NULL, _gAs12Animation03F1CBank4, NULL, NULL, NULL },
+/// Player stair-descent clip in AS12 bank slot 37.
+///
+/// Scripted flights repeat the stride until the requested stair count is exhausted.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12StairDescentAnimation = {
+    .records           = _gAs12StairDescentAnimationRecords,
+    .trackStartIndices = _gAs12StairDescentAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12StairDescentAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12StairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation041F0Bank1[6] = {
+/// Translation/rotation keyframes for `_gAs12StairAscentFinishOddAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12StairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_041F0_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation041F0Bank4[52] = {
+/// Rotation-only keyframes for `_gAs12StairAscentFinishOddAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12StairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_041F0_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation041F0Records[91] = {
+/// Keyframe durations, footstep cues and controls for `_gAs12StairAscentFinishOddAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12StairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_041F0_records.inc"
 };
 
-static u16 _gAs12Animation041F0Indices[20] = {
+/// Record-array starts of `_gAs12StairAscentFinishOddAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12StairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_041F0_indices.inc"
 };
 
-static AnimationSet _gAs12Animation041F0 = {
-    _gAs12Animation041F0Records,
-    _gAs12Animation041F0Indices,
-    { NULL, _gAs12Animation041F0Bank1, NULL, NULL, _gAs12Animation041F0Bank4, NULL, NULL, NULL },
+/// Player stair-ascent finish for an odd initial stair count, in AS12 bank slot 39.
+///
+/// Ends the climb with a level stride before returning to scripted idle.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12StairAscentFinishOddAnimation = {
+    .records           = _gAs12StairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gAs12StairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12StairAscentFinishOddAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12StairAscentFinishOddAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation04580Bank1[7] = {
+/// Translation/rotation keyframes for `_gAs12StairAscentFinishEvenAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12StairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04580_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation04580Bank4[73] = {
+/// Rotation-only keyframes for `_gAs12StairAscentFinishEvenAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12StairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04580_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation04580Records[114] = {
+/// Keyframe durations, footstep cues and controls for `_gAs12StairAscentFinishEvenAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12StairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04580_records.inc"
 };
 
-static u16 _gAs12Animation04580Indices[20] = {
+/// Record-array starts of `_gAs12StairAscentFinishEvenAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12StairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04580_indices.inc"
 };
 
-static AnimationSet _gAs12Animation04580 = {
-    _gAs12Animation04580Records,
-    _gAs12Animation04580Indices,
-    { NULL, _gAs12Animation04580Bank1, NULL, NULL, _gAs12Animation04580Bank4, NULL, NULL, NULL },
+/// Player stair-ascent finish for an even initial stair count, in AS12 bank slot 38.
+///
+/// Ends the climb with a level stride before returning to scripted idle.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12StairAscentFinishEvenAnimation = {
+    .records           = _gAs12StairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gAs12StairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12StairAscentFinishEvenAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12StairAscentFinishEvenAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation04A08Bank1[9] = {
+/// Translation/rotation keyframes for `_gAs12PeReleaseFamily0Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12PeReleaseFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04A08_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation04A08Bank4[104] = {
+/// Rotation-only keyframes for `_gAs12PeReleaseFamily0Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12PeReleaseFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04A08_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation04A08Records[139] = {
+/// Keyframe durations and control records for `_gAs12PeReleaseFamily0Animation`'s nineteen part tracks.
+static const AnimationRecord _gAs12PeReleaseFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04A08_records.inc"
 };
 
-static u16 _gAs12Animation04A08Indices[20] = {
+/// Record-array starts of `_gAs12PeReleaseFamily0Animation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12PeReleaseFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04A08_indices.inc"
 };
 
-static AnimationSet _gAs12Animation04A08 = {
-    _gAs12Animation04A08Records,
-    _gAs12Animation04A08Indices,
-    { NULL, _gAs12Animation04A08Bank1, NULL, NULL, _gAs12Animation04A08Bank4, NULL, NULL, NULL },
+/// Family-0 Parasite Energy release clip in AS12 bank slot 26.
+///
+/// Plays before the charge phase when the selected attachment uses clip family 0.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12PeReleaseFamily0Animation = {
+    .records           = _gAs12PeReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gAs12PeReleaseFamily0AnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12PeReleaseFamily0AnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12PeReleaseFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation04C04Bank1[3] = {
+/// Translation/rotation keyframes for `_gAs12PeChargeFamily0Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12PeChargeFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04C04_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation04C04Bank4[22] = {
+/// Rotation-only keyframes for `_gAs12PeChargeFamily0Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12PeChargeFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04C04_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation04C04Records[76] = {
+/// Keyframe durations and control records for `_gAs12PeChargeFamily0Animation`'s nineteen part tracks.
+static const AnimationRecord _gAs12PeChargeFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04C04_records.inc"
 };
 
-static u16 _gAs12Animation04C04Indices[20] = {
+/// Record-array starts of `_gAs12PeChargeFamily0Animation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12PeChargeFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_04C04_indices.inc"
 };
 
-static AnimationSet _gAs12Animation04C04 = {
-    _gAs12Animation04C04Records,
-    _gAs12Animation04C04Indices,
-    { NULL, _gAs12Animation04C04Bank1, NULL, NULL, _gAs12Animation04C04Bank4, NULL, NULL, NULL },
+/// Family-0 Parasite Energy charge clip in AS12 bank slot 27.
+///
+/// Repeats while the selected attachment's countdown runs, before the cast clip.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12PeChargeFamily0Animation = {
+    .records           = _gAs12PeChargeFamily0AnimationRecords,
+    .trackStartIndices = _gAs12PeChargeFamily0AnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12PeChargeFamily0AnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12PeChargeFamily0AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gAs12Animation04EDCBank1[6] = {
@@ -1123,8 +1207,8 @@ AnimationBank D_as12_8012C300 = { { {
     &_gAs12Animation07704,
     &_gAs12Animation08998,
     &_gAs12Animation0827C,
-    &_gAs12Animation04A08,
-    &_gAs12Animation04C04,
+    &_gAs12PeReleaseFamily0Animation,
+    &_gAs12PeChargeFamily0Animation,
     &_gAs12Animation04EDC,
     &_gAs12Animation05180,
     &_gAs12Animation05380,
@@ -1133,10 +1217,10 @@ AnimationBank D_as12_8012C300 = { { {
     &_gAs12Animation08FF0,
     &_gAs12Animation08E18,
     &_gAs12Animation08FF0,
-    &_gAs12Animation03794,
-    &_gAs12Animation03F1C,
-    &_gAs12Animation04580,
-    &_gAs12Animation041F0,
+    &_gAs12StairAscentAnimation,
+    &_gAs12StairDescentAnimation,
+    &_gAs12StairAscentFinishEvenAnimation,
+    &_gAs12StairAscentFinishOddAnimation,
     &_gAs12ItemUseAnimation,
     &_gAs12IdleAnimation,
     &_gAs12Animation09554,
