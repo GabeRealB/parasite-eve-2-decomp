@@ -45,8 +45,8 @@ For stage zero, a `CdCmdEntry` in `include/main/fs_types.h` identifies a file as
 The other three `args.file` bytes hold the load mode and signed image offsets.
 `fsLoadFile` switches on `fileKey->fileGroup` (the 10000s
 place / category). Categories `0`–`5` and `90` have dedicated tables;
-everything else (`10`, `20`, `30`, `40`, `80`, `90` as a *file id prefix*,
-…) goes through `Fs_FileTable` with
+remaining categories with full IDs at least 100000 (`10`, `20`, `30`, `40`,
+`80`, …) go through `_gFsStage0FullIdFiles` with
 `fileId = fileKey->fileGroup*10000 + fileKey->fileIdHundreds*100 + fileKey->fileIndex`.
 
 `D5B498_8006ADF4 = fileKey->fileGroup / 10` is the high “bank” digit used when looking

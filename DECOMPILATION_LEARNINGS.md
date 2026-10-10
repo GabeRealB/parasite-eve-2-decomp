@@ -20661,7 +20661,7 @@ Use function-scope `ptr`/`i` when the target wants the inverse allocation
 When `i` is already 0, a search over a `u16` length:
 
 ```c
-for (; (u16)i < Fs_FolderTableLen; i++) {
+for (; (u16)i < _gFsStageFolderCount; i++) {
     if (key == table[i & 0xFFFF].id) {
         break;
     }
@@ -20670,7 +20670,7 @@ for (; (u16)i < Fs_FolderTableLen; i++) {
 
 compiles to `lhu v1, len; beqz v1, done` then a bottom-tested loop — the
 initial `0 < len` collapses to `beqz`. Wrapping the same loop in
-`if (Fs_FolderTableLen != 0) { for (...) }` inserts an *extra* `sltu`/`beqz`
+`if (_gFsStageFolderCount != 0) { for (...) }` inserts an *extra* `sltu`/`beqz`
 pair (or peels a `do`/`while` into a first-element special case). Prefer the
 plain `for` when the target has a single `beqz` on the length.
 
@@ -21636,7 +21636,7 @@ fileList = Fs_CdSector.fileList;
 /* phase 1: walk fileList[entryIndex] */
 ...
 /* phase 2: locate the stream-side folder entry */
-streamFolder = Fs_FolderTable + (folderTableIndex & 0xFFFF);
+streamFolder = _gFsStageFolders + (folderTableIndex & 0xFFFF);
 stream->startSector += streamFolder->sectorOffset + stage;
 ```
 
@@ -22528,15 +22528,15 @@ fileCursor = (FsCdfFile*)sectorBuffer->words;
 uncategorizedFileId = ((FsCdfFile*)&((u32*)fileCursor)[(u16)recordWordOffset])->fileId;
 if (uncategorizedFileId / FILE_SYSTEM_HED_FULL_FILE_ID_MIN != 0) {
     u32 tableIndex;
-    fileCursor = Fs_FileTable;          /* lui order: table before len */
-    tableIndex = Fs_FileTableLen;
-    Fs_FileTableLen++;
+    fileCursor = _gFsStage0FullIdFiles;          /* lui order: table before len */
+    tableIndex = _gFsStage0FullIdFileCount;
+    _gFsStage0FullIdFileCount++;
     fileCursor[tableIndex].fileId       = uncategorizedFileId; /* reloaded, not fileId */
     fileCursor[tableIndex].sectorOffset = ((FsCdfFile*)&sectorBuffer->words[(u16)recordWordOffset])->sectorOffset;
 }
 ```
 
-Assigning `fileCursor = Fs_FileTable` *before* reading the length also fixes the
+Assigning `fileCursor = _gFsStage0FullIdFiles` *before* reading the length also fixes the
 `lui v1,table` / `lui a1,len` order for the generic file table.
 
 ## Cat tables: `_FsStage0CategoryFile*` first, then len (switch delay + lui order)
@@ -22544,7 +22544,7 @@ Assigning `fileCursor = Fs_FileTable` *before* reading the length also fixes the
 For the small (u16/u16) category tables, indexing `Fs_FileTableCatN[i]`
 directly after reading the length emits `lui len` *before* `lui table`.
 Target wants table-then-len for cases 1–3, and for case 4 it wants
-`lui v0,%hi(Fs_FileTableCat4)` in the switch-tree delay slot of
+`lui v0,%hi(_gFsStage0Category4Files)` in the switch-tree delay slot of
 `bnez …, case4` (with only `lui a1,len` left in the case body).
 
 Fix: use a shared `_FsStage0CategoryFile*` (not `FsCdfFile*` — wrong 8-byte stride),
@@ -22554,10 +22554,10 @@ which lands in `$v0`; assign the flag early, then table then len:
 case 4: {
     u32 tableIndex;
     categoryHandled = true;              /* li t1,1 early — helps schedule */
-    categoryTable = Fs_FileTableCat4;    /* lui order: table before len;
+    categoryTable = _gFsStage0Category4Files;    /* lui order: table before len;
                                            %hi can fill the case4 delay slot */
-    tableIndex = Fs_FileTableCat4Len;
-    Fs_FileTableCat4Len++;
+    tableIndex = _gFsStage0Category4FileCount;
+    _gFsStage0Category4FileCount++;
     categoryTable[tableIndex].idInCategory = fileId - fileCategory * FILE_SYSTEM_HED_FILE_CATEGORY_SCALE;
     categoryTable[tableIndex].sectorOffset = fileRecord->sectorOffset; /* sector entry is full word */
     break;
@@ -22670,7 +22670,7 @@ if (fileKey->fileIdHundreds == 1) {
     if (absoluteSector == 0) {
         return 0;
     }
-    D5B498_8006ACC8 = 1;
+    _gFsUseSoundBankReader = 1;
     Fs_ChunkMode    = 0;
     _fsStartFileRead(absoluteSector);   /* often joins the setup_and_load ReadSector */
 }
@@ -23210,10 +23210,10 @@ CdGetSector(sec->bytes, 0x200);
 Keep `$s1` live by later reading the absolute symbol
 `Fs_CdSector.chunk.type` (not `sec->chunk.type`).
 
-### Setup: keep `a1` = `%hi(D_8006C4D4)` across the field_2 update
+### Setup: keep `a1` = `%hi(gFsLzssInputEnd)` across the field_2 update
 
 Post-`CdGetSector` setup matches only if the final
-`sw …, %lo(D_8006C4D4)(a1)` reuses the same `a1` from the opening `lui`.
+`sw …, %lo(gFsLzssInputEnd)(a1)` reuses the same `a1` from the opening `lui`.
 Do the bulk in asm that **outputs** `a1`, then interleave type load in C:
 
 ```c
@@ -23233,14 +23233,14 @@ Un-pin `type` from `asm("v1")` — a pinned `type` made GCC use `t0` then
 set_phase_ff:
     __asm__ volatile("li $2, 0xFF" ::: "v0");
 set_phase_stream:
-    __asm__ volatile("sb $2, %%lo(Fs_LoadPhase)($3)" ::: "memory");
-    Fs_Streaming = 1;
+    __asm__ volatile("sb $2, %%lo(_gFsPayloadPhase)($3)" ::: "memory");
+    _gFsReadingPayload = 1;
 ret0:
     return 0;
 ```
 
 Callers jump with `j set_phase_stream; li $2, <phase>` and must have
-`%hi(Fs_LoadPhase)` already in `$v1` from a prior delay slot.
+`%hi(_gFsPayloadPhase)` already in `$v1` from a prior delay slot.
 
 ### Branch delay must carry the hi; do not leave a residual `lui`
 
@@ -23253,7 +23253,7 @@ emits a dead `lui` for that “fallthrough”. Prefer:
 __asm__ volatile(
     ".set noreorder\n\t"
     "bne %0, %1, %2\n\t"
-    "lui $3, %%hi(Fs_LoadPhase)\n\t"
+    "lui $3, %%hi(_gFsPayloadPhase)\n\t"
     ".set reorder"
     : : "r"(a), "r"(b), "i"(&&target));
 ```
@@ -23263,9 +23263,9 @@ __asm__ volatile(
    the `j`, **not** on the `lui`, so mode==3 can skip the loop-exit `lui` and
    reuse the mode-check delay `lui` instead.
 
-### `0x8007` vs `%hi(Fs_LoadPhase)`
+### `0x8007` vs `%hi(_gFsPayloadPhase)`
 
-`Fs_LoadPhase` / `Fs_Streaming` / `Fs_ChunkEndFlag` all sit under `%hi == 0x8007`.
+`_gFsPayloadPhase` / `_gFsReadingPayload` / `_gFsChunkEndMarker` all sit under `%hi == 0x8007`.
 ROM `target.o` shows absolute `lui …, 0x8007`; GCC emits `%hi(symbol)`. Same
 encoding after link; for local objdump score, case 5 needs the literal
 `lui $3, 0x8007` in the loop-exit delay.
@@ -23276,9 +23276,9 @@ encoding after link; for local objdump score, case 5 needs the literal
 __asm__ volatile(
     ".set noreorder\n\t"
     "bne %0, %1, %2\n\t"
-    "lui $2, %%hi(Fs_LoadPhase)\n\t" /* delay */
+    "lui $2, %%hi(_gFsPayloadPhase)\n\t" /* delay */
     ".set reorder" : : "r"(status), "r"(one), "i"(&&phase2));
-endFlag = Fs_ChunkEndFlag; /* starts with lui EndFlag — same 0x8007 */
+endFlag = _gFsChunkEndMarker; /* starts with lui EndFlag — same 0x8007 */
 ```
 
 Phase2 then reuses `$2` without a third `lui`.
@@ -150489,7 +150489,7 @@ attempts; left as it was.
   reaches the case (a compare-tree case label with one user, followed under
   `-fcse-follow-jumps`); in the `default:` case, reached from several jumps,
   the test comes out as `len != 0` instead, which the old source spelled
-  `(len = Fs_FileTableLen) != 0`. With the `do`/`while` spelling a `break`
+  `(len = _gFsStage0FullIdFileCount) != 0`. With the `do`/`while` spelling a `break`
   did not match (33 insns longer, registers renumbered from the top; the
   cause was not isolated); with the `for` it matches first try.
   A scan whose entry test compares an unrelated zero-valued variable is a

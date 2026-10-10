@@ -49,7 +49,7 @@ Linker pulls **one object** twice into the early-image run:
 
 Not a GCC switch table: one `dlabel jtbl_Fs_DecompressChunk` with relocatable
 mid-function labels for cooperative suspend when the CD sector buffer ends
-(`D_8006C4D4`). Loads use `%lo(jtbl + 4*i)`; next call `jr`s to the entry.
+(`gFsLzssInputEnd`). Loads use `%lo(jtbl + 4*i)`; next call `jr`s to the entry.
 
 | Index | Offset | Label | Meaning |
 |-------|--------|-------|---------|

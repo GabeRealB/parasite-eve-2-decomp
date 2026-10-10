@@ -83,8 +83,8 @@ glabel fsDecompressStream
     /* Restore the bit reservoir and any token split across input intervals. */
     /* 850 80010050 0780083C */  lui        $t0, %hi(Fs_ChunkReadPtr)
     /* 854 80010054 2CC2088D */  lw         $t0, %lo(Fs_ChunkReadPtr)($t0)
-    /* 858 80010058 0780183C */  lui        $t8, %hi(D_8006C4D4)
-    /* 85C 8001005C D4C4188F */  lw         $t8, %lo(D_8006C4D4)($t8)
+    /* 858 80010058 0780183C */  lui        $t8, %hi(gFsLzssInputEnd)
+    /* 85C 8001005C D4C4188F */  lw         $t8, %lo(gFsLzssInputEnd)($t8)
     /* 860 80010060 0780093C */  lui        $t1, %hi(Fs_ChunkWritePtr)
     /* 864 80010064 D8D4298D */  lw         $t1, %lo(Fs_ChunkWritePtr)($t1)
     /* 868 80010068 07800A3C */  lui        $t2, %hi(D5B498_8006EBB0)

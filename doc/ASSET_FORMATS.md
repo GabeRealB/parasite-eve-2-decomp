@@ -126,7 +126,7 @@ The on-disc word at `0x4` is a sector count. The tool's
 × 0x800`; 7 sectors is `0x3800`). Pack derives it from the clean payload and
 `sector_len` via `format.pack_chunk_payload` — it is **not** a `stages.json`
 field. The loader adds the sector count to the header sector
-(`Fs_ChunkEndSector = Fs_ReqSector - 1 + sectorCount`).
+(`_gFsPayloadEndSector = Fs_ReqSector - 1 + sectorCount`).
 
 ### 3.3 Multi-sector payload layout and `sector_len`
 
@@ -176,7 +176,7 @@ clean_len = first_cap + (n_sectors - 1) * cont_cap
 where `n_sectors` is derived from the on-disc blob (extract) or from the
 minimum sectors needed for the clean payload (pack).
 
-Runtime: `D_8006C4D4 = &Fs_CdSector + sector_len` bounds decompress input
+Runtime: `gFsLzssInputEnd = Fs_CdSector.bytes + sector_len` marks the decompress input boundary
 (`src/main/fs.c`).
 
 ### 3.4 Extract vs pack

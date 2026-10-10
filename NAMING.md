@@ -1692,11 +1692,11 @@ Category tables:
 
 | id / 10000 | Runtime table |
 |---|---|
-| 0 | `Fs_FileOffsetsCat0` |
-| 1–4 | `Fs_FileTableCat1`–`Cat4` |
-| 5 | `Fs_FileOffsetsCat5` |
-| 90 | `Fs_FileOffsetsCat90` |
-| high (≥ ~10) | `Fs_FileTable` |
+| 0 | `_gFsStage0Category0Sectors` |
+| 1–4 | `_gFsStage0Category1Files` through `_gFsStage0Category4Files` |
+| 5 | `_gFsStage0Category5Sectors` |
+| 90 | `_gFsStage0Category90Sectors` |
+| remaining categories ≥ 10 (full IDs ≥ 100000) | `_gFsStage0FullIdFiles` |
 
 ## CD commands (non-exhaustive)
 

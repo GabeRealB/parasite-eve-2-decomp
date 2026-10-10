@@ -135,10 +135,19 @@ enum {
     FILE_SYSTEM_STREAM_DECODE_SCRATCH_BUSY = 0xFFFF,
 };
 
+/// Exclusive byte boundary at which the sector-fed LZSS decoder suspends input.
+///
+/// Points into the current CD sector at its header's valid-byte end, reused
+/// for continuation sectors; startup seeds the whole-sector end. The decoder
+/// tests equality after advancing its cursor, preserving the loaded byte for
+/// resumption. A complete RAM stream can instead end by token without reaching
+/// this boundary, so this pointer does not establish that stream's RAM extent.
+extern const u8* gFsLzssInputEnd;
+
 /// Decodes an LZSS stream into RAM until its input boundary or end token.
 ///
 /// Set `Fs_ChunkReadPtr` to readable compressed bytes and `Fs_ChunkWritePtr` to
-/// sufficient output storage. For sector-fed decoding, `D_8006C4D4` is the
+/// sufficient output storage. For sector-fed decoding, `gFsLzssInputEnd` is the
 /// exclusive end of the current nonempty input interval. Complete RAM streams
 /// may instead leave that boundary outside the addresses their cursor reaches.
 /// Bits are read MSB first: a 1 flag precedes an eight-bit literal; a 0 flag

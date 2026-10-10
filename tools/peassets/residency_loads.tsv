@@ -93,11 +93,11 @@ title	optional	attract demo = scene	801000,801100,801200 by demo scene - 1	0	0	C
 # So MENU (-8, -3, relocate): all image columns 512 halfwords left, first column 128 rows down, CLUT rows 245..255
 #   land at y - 2 and other CLUTs at y + 1. PREVIEW (0, -2, default): CLUT rows 245..255 up 2, images untouched.
 #   RELOCATED_PREVIEW (0, -2, relocate): first image column 128 rows down, CLUT rows 245..255 at y - 1, others y + 1.
-# Group handling in fsLoadFile: group 0 requires hundreds 0 and indexes Fs_FileOffsetsCat0 by index (index 0 sets
+# Group handling in fsLoadFile: group 0 requires hundreds 0 and indexes _gFsStage0Category0Sectors by index (index 0 sets
 #   videoMode STREAMING, 1 NORMAL); groups 5 and 0x5A index their offset tables by index alone (hundreds ignored);
 #   group 4 is read only for hundreds 1, forces chunk mode 0 and returns before the offsets are stored;
 #   groups 1..3 look up hundreds*100 + index; any other group needs group/10 != 0 and looks up the full id
-#   (group 8 with hundreds 1..3 sets gGameSession->field_4E); stage != 0 reads D_8006C158[index] of the published folder.
+#   (group 8 with hundreds 1..3 sets gGameSession->field_4E); stage != 0 reads _gFsFolderFileSectors[index] of the published folder.
 #
 # --- uploads without a queued file ---
 # src/main/fs.c:1517 fsScanIsoDirectory(bootMode 1): at cold boot the ISO file INIT.BS (16 sectors, not a
