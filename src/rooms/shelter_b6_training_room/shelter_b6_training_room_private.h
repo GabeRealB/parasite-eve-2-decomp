@@ -53,19 +53,51 @@ extern const GfxCoord* gShelterB6TrainingRoomEnergyArcAnchor;
 /// release older flashes. It is a replacement stamp, not an active-task count.
 extern u16 gShelterB6TrainingRoomHitFlashGeneration;
 
-extern TaskMessageEntry D_shelter_b6_training_room_80182AF4[6];
+/// Terminated room-controller message table, borrowed while this overlay is loaded.
+///
+/// Resolves transitions, rejects key items, ignores room actions, selects part
+/// dialogue and starts the defeat scene. Unknown IDs return zero at the sentinel.
+extern TaskMessageEntry gShelterB6TrainingRoomMessages[6];
 
-extern s32 D_shelter_b6_training_room_80182B24;
+/// Requests that placed actor 3 stop the training-room controller and its sound.
+///
+/// Borrowed through synchronous actor-command dispatch. Context tags 5/24 are
+/// retained; the receiver ignores them and latches stop for nonzero command 1.
+extern ActorCommand gShelterB6TrainingRoomControllerStopCommand;
 
-extern TaskDesc D_shelter_b6_training_room_801839A8;
+/// Priority-96 player head-aim controller descriptor with no model or work body.
+///
+/// Spawned with zero payload words; the room tracks its handle until release.
+extern TaskDesc gShelterB6TrainingRoomPlayerHeadAimTaskDesc;
 
-extern EvsCommand D_shelter_b6_training_room_80183BB4[58];
+/// Skippable defeat scene replacing the battle body with Masked Eve's scene walker.
+///
+/// Installs player clips 48..51, stages the player, Masked Eve and Kyle, runs
+/// CAP dialogue 4, restores weapons, hides the scene walkers and releases head aim.
+/// Borrowed commands and payloads require the room and actor resources to stay
+/// loaded until completion. The early fade disables skip; its later target is
+/// `gShelterB6TrainingRoomDefeatSkipScript`. Ends with the event-script sentinel.
+extern EvsCommand gShelterB6TrainingRoomDefeatScript[58];
 
-extern EvsCommand D_shelter_b6_training_room_80184124[14];
+/// Defeat-scene skip path placing the player at the final spot and hiding the walkers.
+///
+/// Retains the skip sound, installs the same player clips, stops battle
+/// presentation, releases head aim and requests scene cleanup before ending.
+/// Borrows the room's payloads and callbacks until the interpreter completes.
+extern EvsCommand gShelterB6TrainingRoomDefeatSkipScript[14];
 
-extern EvsCommand D_shelter_b6_training_room_80184274[7];
+/// Departure script handing display to the movie before reloading the nursery.
+///
+/// Starts the room's sound cue, waits three updates on either side of movie
+/// launch, enables display and requests the saved-location reload, then ends.
+/// Movie, script and callback resources must remain loaded through the handoff.
+extern EvsCommand gShelterB6TrainingRoomDepartureScript[7];
 
-extern TaskDesc D_shelter_b6_training_room_8018431C[2];
+/// Two zero-body priority-192 movie tasks: launcher at 0 and hold-after-playback at 1.
+///
+/// Shared by execution-task launch and display-task handoff; the table and
+/// callbacks are borrowed from this room overlay through movie restoration.
+extern TaskDesc gShelterB6TrainingRoomMovieTasks[2];
 
 /// Refuses every selected key item without changing inventory or starting a scene.
 ///

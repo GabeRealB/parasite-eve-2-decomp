@@ -31,7 +31,7 @@ static inline void _shelterB6TrainingRoomHandoffMovieDisplay(void)
 {
     enum { SHELTER_B6_TRAINING_ROOM_MOVIE_PLAYER_TASK = 1 };
 
-    displaySpawnTaskFromTable(D_shelter_b6_training_room_8018431C, SHELTER_B6_TRAINING_ROOM_MOVIE_PLAYER_TASK, 0, 0);
+    displaySpawnTaskFromTable(gShelterB6TrainingRoomMovieTasks, SHELTER_B6_TRAINING_ROOM_MOVIE_PLAYER_TASK, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
 }

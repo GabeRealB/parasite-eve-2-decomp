@@ -528,8 +528,8 @@ s32 shelterB6TrainingRoomStartDefeatScene(Task* unusedTask, s32 unusedMessageId,
 
     // Keep the normal and skipped scene paths paired before commanding the actor.
     gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-    evsStartScriptWithSkip(D_shelter_b6_training_room_80183BB4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b6_training_room_80184124);
-    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_ACTOR_INDEX), ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b6_training_room_80182B24, 0);
+    evsStartScriptWithSkip(gShelterB6TrainingRoomDefeatScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gShelterB6TrainingRoomDefeatSkipScript);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_ACTOR_INDEX), ACTOR_COMMAND_MESSAGE_APPLY, &gShelterB6TrainingRoomControllerStopCommand, 0);
     D_shelter_b6_training_room_80185C58 = SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_RUNNING;
     return 0;
 }
@@ -545,7 +545,7 @@ static void _shelterB6TrainingRoomInitializeRoom(Task* task)
         SHELTER_B6_TRAINING_ROOM_COMPANION_SCHEDULE = 1,
         SHELTER_B6_TRAINING_ROOM_SCENE_MUSIC_ENTRY  = 10
     };
-    task->msgTable = D_shelter_b6_training_room_80182AF4;
+    task->msgTable = gShelterB6TrainingRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _shelterB6TrainingRoomMaskBackdrop();
     gameFlagSetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, SHELTER_B6_TRAINING_ROOM_COMPANION_SCHEDULE);
@@ -569,7 +569,7 @@ static void _shelterB6TrainingRoomUpdateRoom(Task* unusedTask)
     variant                   = gGameSession->location.loc.variant;
     // In the default variant, the variant byte also equals the running-scene latch.
     if (variant == SHELTER_B6_TRAINING_ROOM_DEFAULT_VARIANT && gGameSession->eventState == 0 && D_shelter_b6_training_room_80185C58 == variant) {
-        evsStartScript(D_shelter_b6_training_room_80184274, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(gShelterB6TrainingRoomDepartureScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         D_shelter_b6_training_room_80185C58 = SHELTER_B6_TRAINING_ROOM_DEPARTURE_STARTED;
     }
 }
@@ -589,7 +589,7 @@ void shelterB6TrainingRoomRoomTask(Task* task)
 
 void shelterB6TrainingRoomStartPlayerHeadAim(void)
 {
-    D_shelter_b6_training_room_80185C5C = taskSpawnFromTable(&D_shelter_b6_training_room_801839A8, 0, 0, 0);
+    D_shelter_b6_training_room_80185C5C = taskSpawnFromTable(&gShelterB6TrainingRoomPlayerHeadAimTaskDesc, 0, 0, 0);
 }
 
 void shelterB6TrainingRoomControlPlayerHeadAim(s32 command)
@@ -654,7 +654,7 @@ void shelterB6TrainingRoomStartMovie(void)
 {
     enum { SHELTER_B6_TRAINING_ROOM_MOVIE_LAUNCH_TASK = 0 };
 
-    taskSpawnFromTable(D_shelter_b6_training_room_8018431C, SHELTER_B6_TRAINING_ROOM_MOVIE_LAUNCH_TASK, 0, 0);
+    taskSpawnFromTable(gShelterB6TrainingRoomMovieTasks, SHELTER_B6_TRAINING_ROOM_MOVIE_LAUNCH_TASK, 0, 0);
 }
 
 void shelterB6TrainingRoomPrepareDefeatScene(s32 endDelayFrames)

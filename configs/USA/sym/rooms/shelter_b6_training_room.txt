@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b6_training_room.
 D_shelter_b6_training_room_80185C58 = 0x80185C58; // size:0x4 defined:True
 D_shelter_b6_training_room_80185C5C = 0x80185C5C; // size:0x4 defined:True
-D_shelter_b6_training_room_801843FC = 0x801843FC; // size:0x8 defined:True
+_gShelterB6TrainingRoomBeamColorRamp = 0x801843FC; // size:0x8 defined:True
 
 D_shelter_b6_training_room_801859DC = 0x801859DC; // size:0x68 defined:True
 D_shelter_b6_training_room_80185A44 = 0x80185A44; // size:0x17C defined:True
@@ -48,11 +48,11 @@ gActor205200ControllerPartTasks = 0x8014CA60; // absolute:True owner=actor_20520
 gActor205200BodyTaskDesc = 0x801567C4; // absolute:True owner=actor_205200
 gActor350700MaskedEveReverseWalkTaskDesc = 0x80169D10; // absolute:True owner=actor_350700
 gActor350700KyleMadiganTaskDescriptors = 0x801708DC; // absolute:True owner=actor_350700
-D_shelter_b6_training_room_80184334 = 0x80184334; // size:0xC8 defined:True
-D_shelter_b6_training_room_80184404 = 0x80184404; // size:0x14 defined:True
+_gShelterB6TrainingRoomEffectPositions = 0x80184334; // size:0xC8 defined:True
+_gShelterB6TrainingRoomBandShapes = 0x80184404; // size:0x14 defined:True
 gShelterB6TrainingRoomHitFlashGeneration = 0x80185C98; // size:0x2 defined:True
-D_shelter_b6_training_room_80182AF4 = 0x80182AF4; // size:0x30 defined:True
-D_shelter_b6_training_room_80182B24 = 0x80182B24; // size:0x4 defined:True
+gShelterB6TrainingRoomMessages = 0x80182AF4; // size:0x30 defined:True
+gShelterB6TrainingRoomControllerStopCommand = 0x80182B24; // size:0x4 defined:True
 _gShelterB6TrainingRoomAnimation05844Bank1 = 0x80182B28; // size:0x48 defined:True
 _gShelterB6TrainingRoomAnimation05844Bank4 = 0x80182B70; // size:0xB8 defined:True
 _gShelterB6TrainingRoomAnimation05844Records = 0x80182C28; // size:0x1B4 defined:True
@@ -73,35 +73,35 @@ _gShelterB6TrainingRoomAnimation063C0Bank4 = 0x801837B8; // size:0x74 defined:Tr
 _gShelterB6TrainingRoomAnimation063C0Records = 0x8018382C; // size:0x12C defined:True
 _gShelterB6TrainingRoomAnimation063C0Indices = 0x80183958; // size:0x28 defined:True
 _gShelterB6TrainingRoomAnimation063C0 = 0x80183980; // size:0x28 defined:True
-D_shelter_b6_training_room_801839A8 = 0x801839A8; // size:0xC defined:True
-D_shelter_b6_training_room_801839B4 = 0x801839B4; // size:0x14 defined:True
-D_shelter_b6_training_room_801839C8 = 0x801839C8; // size:0x8 defined:True
+gShelterB6TrainingRoomPlayerHeadAimTaskDesc = 0x801839A8; // size:0xC defined:True
+_gShelterB6TrainingRoomDefeatPlayerAnimationSets = 0x801839B4; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatPlayerAnimationBankCopy = 0x801839C8; // size:0x8 defined:True
 D_shelter_b6_training_room_801839D0 = 0x801839D0; // size:0x14 defined:True
-D_shelter_b6_training_room_801839E4 = 0x801839E4; // size:0x14 defined:True
-D_shelter_b6_training_room_801839F8 = 0x801839F8; // size:0x14 defined:True
-D_shelter_b6_training_room_80183A0C = 0x80183A0C; // size:0x14 defined:True
-D_shelter_b6_training_room_80183A20 = 0x80183A20; // size:0x14 defined:True
-D_shelter_b6_training_room_80183A34 = 0x80183A34; // size:0x18 defined:True
-D_shelter_b6_training_room_80183A4C = 0x80183A4C; // size:0x18 defined:True
+_gShelterB6TrainingRoomDefeatPlayerClip48Request = 0x801839E4; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatPlayerClip49Request = 0x801839F8; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatPlayerClip50Request = 0x80183A0C; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatPlayerClip51Request = 0x80183A20; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatPlayerInitialTransform = 0x80183A34; // size:0x18 defined:True
+_gShelterB6TrainingRoomDefeatPlayerFinalTransform = 0x80183A4C; // size:0x18 defined:True
 D_shelter_b6_training_room_80183A64 = 0x80183A64; // size:0x14 defined:True
-D_shelter_b6_training_room_80183A78 = 0x80183A78; // size:0x14 defined:True
-D_shelter_b6_training_room_80183A8C = 0x80183A8C; // size:0x14 defined:True
-D_shelter_b6_training_room_80183AA0 = 0x80183AA0; // size:0x14 defined:True
-D_shelter_b6_training_room_80183AB4 = 0x80183AB4; // size:0x14 defined:True
-D_shelter_b6_training_room_80183AC8 = 0x80183AC8; // size:0x14 defined:True
-D_shelter_b6_training_room_80183ADC = 0x80183ADC; // size:0x18 defined:True
+_gShelterB6TrainingRoomDefeatKyleClip1Request = 0x80183A78; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatKyleClip2Request = 0x80183A8C; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatKyleClip3Request = 0x80183AA0; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatKyleClip4Request = 0x80183AB4; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatKyleClip5Request = 0x80183AC8; // size:0x14 defined:True
+_gShelterB6TrainingRoomDefeatKyleTransform = 0x80183ADC; // size:0x18 defined:True
 D_shelter_b6_training_room_80183AF4 = 0x80183AF4; // size:0x64 defined:True
-D_shelter_b6_training_room_80183B58 = 0x80183B58; // size:0x18 defined:True
-D_shelter_b6_training_room_80183B70 = 0x80183B70; // size:0x18 defined:True
-D_shelter_b6_training_room_80183B88 = 0x80183B88; // size:0x18 defined:True
+_gShelterB6TrainingRoomDefeatEveInitialTransform = 0x80183B58; // size:0x18 defined:True
+_gShelterB6TrainingRoomDefeatEveFirstWalkTarget = 0x80183B70; // size:0x18 defined:True
+_gShelterB6TrainingRoomDefeatEveExitWalkTarget = 0x80183B88; // size:0x18 defined:True
 D_shelter_b6_training_room_80183BA0 = 0x80183BA0; // size:0x4 defined:True
-D_shelter_b6_training_room_80183BA4 = 0x80183BA4; // size:0x4 defined:True
-D_shelter_b6_training_room_80183BA8 = 0x80183BA8; // size:0x8 defined:True
+_gShelterB6TrainingRoomDefeatEveWalkForwardCommand = 0x80183BA4; // size:0x4 defined:True
+_gShelterB6TrainingRoomDefeatEveFirstWalkAnimations = 0x80183BA8; // size:0x8 defined:True
 D_shelter_b6_training_room_80183BB0 = 0x80183BB0; // size:0x4 defined:True
-D_shelter_b6_training_room_80183BB4 = 0x80183BB4; // size:0x570 defined:True
-D_shelter_b6_training_room_80184124 = 0x80184124; // size:0x150 defined:True
-D_shelter_b6_training_room_80184274 = 0x80184274; // size:0xA8 defined:True
-D_shelter_b6_training_room_8018431C = 0x8018431C; // size:0x18 defined:True
+gShelterB6TrainingRoomDefeatScript = 0x80183BB4; // size:0x570 defined:True
+gShelterB6TrainingRoomDefeatSkipScript = 0x80184124; // size:0x150 defined:True
+gShelterB6TrainingRoomDepartureScript = 0x80184274; // size:0xA8 defined:True
+gShelterB6TrainingRoomMovieTasks = 0x8018431C; // size:0x18 defined:True
 
 shelterB6TrainingRoomDrawBodyGlow = 0x80181930; // type:func
 

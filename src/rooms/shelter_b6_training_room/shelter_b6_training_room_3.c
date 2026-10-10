@@ -15,6 +15,7 @@
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/captions.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/evs.h"
@@ -50,17 +51,15 @@
 #define SPRITE_QUAD_FRAME_T s16
 #include "../../shared/sprite_quad.h"
 
-/// Three shapes for this room's ring bands, with the halfword in the gap after them.
+/// Three band-shape rows and the unclassified halfword immediately after them.
 ///
-/// The rows end two bytes short of the next word-aligned object. That gap is
-/// nonzero, so it is a member rather than compiler padding. Code reads the
-/// rows; nothing reads the halfword, and its value is unproven.
+/// Retains the complete initialized 20-byte span. Only the shape rows have
+/// established readers; the trailing nonzero bytes have no proven meaning.
 typedef struct {
-    EffectBandShape entries[3];    // One shape per ring band; spawn arguments 0, 1 and 2
-    u16             alignmentFill; // Gap before the next word-aligned object; never read
+    EffectBandShape entries[SHELTER_B6_TRAINING_ROOM_BAND_COUNT]; // Shape selected by band index 0..2
+    u16             unknownTrailer;                               // Unclassified trailing halfword; no direct reader found
 } _ShelterB6TrainingRoomBandShapeStorage;
 STATIC_ASSERT_SIZEOF(_ShelterB6TrainingRoomBandShapeStorage, 0x14);
-extern _ShelterB6TrainingRoomBandShapeStorage D_shelter_b6_training_room_80184404;
 
 /// Scratch-stack workspace for drawing one of this room's ring bands.
 ///
@@ -88,9 +87,6 @@ typedef struct {
 } _ShelterB6TrainingRoomBandScratch;
 STATIC_ASSERT_SIZEOF(_ShelterB6TrainingRoomBandScratch, 0x78);
 
-extern SVECTOR D_shelter_b6_training_room_80184334[];
-extern u16     D_shelter_b6_training_room_801843FC[];
-
 /// Beam angles are in 4096 units per turn; trig results have 12 fractional bits.
 enum {
     SHELTER_B6_TRAINING_ROOM_BEAM_HALF_TURN       = ONE / 2,
@@ -111,7 +107,32 @@ enum {
     SHELTER_B6_TRAINING_ROOM_SKIP_END_DELAY_FRAMES   = 8
 };
 
-TaskMessageEntry D_shelter_b6_training_room_80182AF4[6] = {
+// Scheduling priorities and placement indices of this room's scene tasks.
+enum {
+    SHELTER_B6_TRAINING_ROOM_HEAD_AIM_TASK_PRIORITY   = 96,
+    SHELTER_B6_TRAINING_ROOM_MOVIE_TASK_PRIORITY      = 192,
+    SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR         = 0,
+    SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR        = 1,
+    SHELTER_B6_TRAINING_ROOM_DEFEAT_BATTLE_BODY_ACTOR = 4,
+    SHELTER_B6_TRAINING_ROOM_DEFEAT_CAP_COMMAND       = 4
+};
+
+// Draw modes used by the scene walkers; mode 2 also schedules buffer release.
+enum {
+    SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_HIDE    = 0,
+    SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_SHOW    = 1,
+    SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_RELEASE = 2
+};
+
+// Packed stage/area sound-script keys used by the defeat and departure scenes.
+enum {
+    SHELTER_B6_TRAINING_ROOM_SOUND_SCRIPT_1 = 0x55190001,
+    SHELTER_B6_TRAINING_ROOM_SOUND_SCRIPT_2 = 0x55190002,
+    SHELTER_B6_TRAINING_ROOM_SOUND_SCRIPT_4 = 0x55190004,
+    SHELTER_B6_TRAINING_ROOM_SOUND_SCRIPT_5 = 0x55190005
+};
+
+TaskMessageEntry gShelterB6TrainingRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, shelterB6TrainingRoomResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, shelterB6TrainingRoomRefuseKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, shelterB6TrainingRoomIgnoreRoomAction },
@@ -120,7 +141,18 @@ TaskMessageEntry D_shelter_b6_training_room_80182AF4[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-s32 D_shelter_b6_training_room_80182B24 = 0x11805;
+// Actor-command context tags are retained even though these receivers ignore them.
+enum {
+    SHELTER_B6_TRAINING_ROOM_COMMAND_STAGE_TAG        = 5,
+    SHELTER_B6_TRAINING_ROOM_COMMAND_AREA_TAG         = 24,
+    SHELTER_B6_TRAINING_ROOM_COMMAND_CONTROLLER_STOP  = 1,
+    SHELTER_B6_TRAINING_ROOM_COMMAND_EVE_WALK_FORWARD = 2
+};
+
+ActorCommand gShelterB6TrainingRoomControllerStopCommand = {
+    { .loc = { SHELTER_B6_TRAINING_ROOM_COMMAND_STAGE_TAG, SHELTER_B6_TRAINING_ROOM_COMMAND_AREA_TAG } },
+    SHELTER_B6_TRAINING_ROOM_COMMAND_CONTROLLER_STOP
+};
 
 static AnimationPackedPose _gShelterB6TrainingRoomAnimation05844Bank1[6] = {
 #include "assets/shelter_b6_training_room_animation_05844_bank1.inc"
@@ -210,9 +242,13 @@ static AnimationSet _gShelterB6TrainingRoomAnimation063C0 = {
     { NULL, _gShelterB6TrainingRoomAnimation063C0Bank1, NULL, NULL, _gShelterB6TrainingRoomAnimation063C0Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b6_training_room_801839A8 = { { { TASK_BODY_NONE, 96 } }, shelterB6TrainingRoomPlayerHeadAimTask, { .value = 0 } };
+TaskDesc gShelterB6TrainingRoomPlayerHeadAimTaskDesc = { { { TASK_BODY_NONE, SHELTER_B6_TRAINING_ROOM_HEAD_AIM_TASK_PRIORITY } }, shelterB6TrainingRoomPlayerHeadAimTask, { .value = 0 } };
 
-AnimationSet* D_shelter_b6_training_room_801839B4[5] = {
+/// Five words copied to the equipped player's bank at set indices 47..51.
+///
+/// Index 47 is absent; 48..51 borrow these four twenty-part defeat-scene clips.
+/// The room and its clip data must remain loaded through the player's playback.
+static AnimationSet* _gShelterB6TrainingRoomDefeatPlayerAnimationSets[5] = {
     NULL,
     &_gShelterB6TrainingRoomAnimation05844,
     &_gShelterB6TrainingRoomAnimation05F74,
@@ -220,37 +256,57 @@ AnimationSet* D_shelter_b6_training_room_801839B4[5] = {
     &_gShelterB6TrainingRoomAnimation063C0,
 };
 
-AnimationBankCopyRequest D_shelter_b6_training_room_801839C8 = { { .sets = D_shelter_b6_training_room_801839B4 }, ARRAY_SIZE(D_shelter_b6_training_room_801839B4) };
+/// Installs all five defeat-scene set pointers in the equipped player's extension.
+static AnimationBankCopyRequest _gShelterB6TrainingRoomDefeatPlayerAnimationBankCopy = { { .sets = _gShelterB6TrainingRoomDefeatPlayerAnimationSets }, ARRAY_SIZE(_gShelterB6TrainingRoomDefeatPlayerAnimationSets) };
 
-AnimationPlayRequest D_shelter_b6_training_room_801839D0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced bank-1 clip-1 reset request; its intended receiver is unproven.
+static AnimationPlayRequest D_shelter_b6_training_room_801839D0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_b6_training_room_801839E4 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends the player into extension clip 48 over 20 frames with grid response off.
+///
+/// Both defeat paths resolve the stored bank selector against the equipped weapon.
+static AnimationPlayRequest _gShelterB6TrainingRoomDefeatPlayerClip48Request = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT + 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_b6_training_room_801839F8 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets player extension clip 49 after placing the scene actors; grid response stays off.
+static AnimationPlayRequest _gShelterB6TrainingRoomDefeatPlayerClip49Request = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT + 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_b6_training_room_80183A0C = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets player extension clip 50 at the final scene placement; grid response stays off.
+static AnimationPlayRequest _gShelterB6TrainingRoomDefeatPlayerClip50Request = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT + 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_b6_training_room_80183A20 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends player extension clip 51 for two frames before head aim fades in.
+static AnimationPlayRequest _gShelterB6TrainingRoomDefeatPlayerClip51Request = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT + 4, ANIMATION_BLEND_INTERPOLATE, 2, ANIMATION_WORLD_COLLISION_DISABLE };
 
-ActorTransform D_shelter_b6_training_room_80183A34 = { { 2300, 0, 8900, 0 }, { 0, 910, 0, 0 } };
+/// Player's initial defeat-scene placement in room units and 4096-unit Euler angles.
+static ActorTransform _gShelterB6TrainingRoomDefeatPlayerInitialTransform = { .pos = { 2300, 0, 8900, 0 }, .rot = { 0, 910, 0, 0 } };
 
-ActorTransform D_shelter_b6_training_room_80183A4C = { { 2300, 0, 9000, 0 }, { 0, 1707, 0, 0 } };
+/// Player's final placement shared by both defeat paths, in room units and angle units.
+static ActorTransform _gShelterB6TrainingRoomDefeatPlayerFinalTransform = { .pos = { 2300, 0, 9000, 0 }, .rot = { 0, 1707, 0, 0 } };
 
-AnimationPlayRequest D_shelter_b6_training_room_80183A64 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced bank-0 clip-1 reset request; its intended receiver is unproven.
+static AnimationPlayRequest D_shelter_b6_training_room_80183A64 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_b6_training_room_80183A78 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends Kyle's bank-0 clip 1 over 20 frames before the defeat dialogue.
+///
+/// Kyle's actor-motion receiver ignores the collision word in these requests.
+static AnimationPlayRequest _gShelterB6TrainingRoomDefeatKyleClip1Request = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_b6_training_room_80183A8C = { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Blends Kyle's bank-0 clip 2 over 20 frames at two defeat-dialogue cues.
+static AnimationPlayRequest _gShelterB6TrainingRoomDefeatKyleClip2Request = { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_shelter_b6_training_room_80183AA0 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Blends Kyle's bank-0 clip 3 over eight frames before the dialogue's 100-frame hold.
+static AnimationPlayRequest _gShelterB6TrainingRoomDefeatKyleClip3Request = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_shelter_b6_training_room_80183AB4 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Resets Kyle's bank-0 clip 4 as the player's head aim fades in.
+static AnimationPlayRequest _gShelterB6TrainingRoomDefeatKyleClip4Request = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_shelter_b6_training_room_80183AC8 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Blends Kyle's bank-0 clip 5 over four frames before the closing fade.
+static AnimationPlayRequest _gShelterB6TrainingRoomDefeatKyleClip5Request = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
 
-ActorTransform D_shelter_b6_training_room_80183ADC = { { 2850, 0, 8050, 0 }, { 0, -228, 0, 0 } };
+/// Kyle's defeat-dialogue placement in room units and 4096-unit Euler angles.
+static ActorTransform _gShelterB6TrainingRoomDefeatKyleTransform = { .pos = { 2850, 0, 8050, 0 }, .rot = { 0, -228, 0, 0 } };
 
-AnimationPlayRequest D_shelter_b6_training_room_80183AF4[5] = {
+/// Unreferenced bank-0 requests for clips 1..4; their intended receiver is unproven.
+static AnimationPlayRequest D_shelter_b6_training_room_80183AF4[5] = {
     { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -258,100 +314,108 @@ AnimationPlayRequest D_shelter_b6_training_room_80183AF4[5] = {
     { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-ActorTransform D_shelter_b6_training_room_80183B58 = { { 3250, 0, 9500, 0 }, { 0, -1024, 0, 0 } };
+/// Masked Eve's initial scene placement in room units and 4096-unit Euler angles.
+static ActorTransform _gShelterB6TrainingRoomDefeatEveInitialTransform = { .pos = { 3250, 0, 9500, 0 }, .rot = { 0, -1024, 0, 0 } };
 
-ActorTransform D_shelter_b6_training_room_80183B70 = { { 3250, 0, 9500, 0 }, { 0, 1024, 0, 0 } };
+/// Masked Eve's first walk target: her current room position, ending at yaw 1024.
+static ActorTransform _gShelterB6TrainingRoomDefeatEveFirstWalkTarget = { .pos = { 3250, 0, 9500, 0 }, .rot = { 0, 1024, 0, 0 } };
 
-ActorTransform D_shelter_b6_training_room_80183B88 = { { 5000, 0, 0x2710, 0 }, { 0, 1024, 0, 0 } };
+/// Masked Eve's departure walk target in room units, ending at yaw 1024.
+static ActorTransform _gShelterB6TrainingRoomDefeatEveExitWalkTarget = { .pos = { 5000, 0, 10000, 0 }, .rot = { 0, 1024, 0, 0 } };
 
 ActorCommand D_shelter_b6_training_room_80183BA0 = { { .loc = { 5, 24 } }, 1 };
 
-ActorCommand D_shelter_b6_training_room_80183BA4 = { { .loc = { 5, 24 } }, 2 };
+/// Selects forward travel for Masked Eve's nineteen-part reversing walker.
+static ActorCommand _gShelterB6TrainingRoomDefeatEveWalkForwardCommand = {
+    { .loc = { SHELTER_B6_TRAINING_ROOM_COMMAND_STAGE_TAG, SHELTER_B6_TRAINING_ROOM_COMMAND_AREA_TAG } },
+    SHELTER_B6_TRAINING_ROOM_COMMAND_EVE_WALK_FORWARD
+};
 
-ActorMotionWalkAnim D_shelter_b6_training_room_80183BA8 = { .animationId = 3, .nextAnimId = 4 };
+/// Masked Eve's first walk uses bank-0 clip 3, followed by clip 4 on arrival.
+static ActorMotionWalkAnim _gShelterB6TrainingRoomDefeatEveFirstWalkAnimations = { .animationId = 3, .nextAnimId = 4 };
 
 ActorCommand D_shelter_b6_training_room_80183BB0 = { { .loc = { 5, 24 } }, 1 };
 
-EvsCommand D_shelter_b6_training_room_80183BB4[58] = {
+EvsCommand gShelterB6TrainingRoomDefeatScript[58] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomPrepareDefeatScene }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_END_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b6_training_room_801839C8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_801839E4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShelterB6TrainingRoomDefeatPlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB6TrainingRoomDefeatPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6TrainingRoomStopBattlePresentation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = D_shelter_b6_training_room_80184124 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = gShelterB6TrainingRoomDefeatSkipScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b6_training_room_80183A34 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_shelter_b6_training_room_80183B58 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_shelter_b6_training_room_80183ADC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 4 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatPlayerInitialTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatEveInitialTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatKyleTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_BATTLE_BODY_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6TrainingRoomStartPlayerHeadAim }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_801839F8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b6_training_room_80183A78 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_training_room_80183BA4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_shelter_b6_training_room_80183B70 } }, { .message = { .pointer = &D_shelter_b6_training_room_80183BA8 } } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB6TrainingRoomDefeatPlayerClip49Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterB6TrainingRoomDefeatKyleClip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB6TrainingRoomDefeatEveWalkForwardCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatEveFirstWalkTarget } }, { .message = { .pointer = &_gShelterB6TrainingRoomDefeatEveFirstWalkAnimations } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55190001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHELTER_B6_TRAINING_ROOM_SOUND_SCRIPT_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_shelter_b6_training_room_80183B88 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatEveExitWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b6_training_room_80183A4C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_80183A0C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b6_training_room_80183A8C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatPlayerFinalTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB6TrainingRoomDefeatPlayerClip50Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterB6TrainingRoomDefeatKyleClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55190004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHELTER_B6_TRAINING_ROOM_SOUND_SCRIPT_4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b6_training_room_80183AA0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterB6TrainingRoomDefeatKyleClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b6_training_room_80183A8C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterB6TrainingRoomDefeatKyleClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_80183A20 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB6TrainingRoomDefeatPlayerClip51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55190002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHELTER_B6_TRAINING_ROOM_SOUND_SCRIPT_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomControlPlayerHeadAim }, { .value = SHELTER_B6_TRAINING_ROOM_HEAD_AIM_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b6_training_room_80183AB4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterB6TrainingRoomDefeatKyleClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b6_training_room_80183AC8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gShelterB6TrainingRoomDefeatKyleClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_RELEASE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomControlPlayerHeadAim }, { .value = SHELTER_B6_TRAINING_ROOM_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b6_training_room_80184124[14] = {
+EvsCommand gShelterB6TrainingRoomDefeatSkipScript[14] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomPrepareDefeatScene }, { .value = SHELTER_B6_TRAINING_ROOM_SKIP_END_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b6_training_room_801839C8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_801839E4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShelterB6TrainingRoomDefeatPlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB6TrainingRoomDefeatPlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6TrainingRoomStopBattlePresentation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b6_training_room_80183A4C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6TrainingRoomDefeatPlayerFinalTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_KYLE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_EVE_ACTOR }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_TRAINING_ROOM_SCENE_DRAW_RELEASE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomControlPlayerHeadAim }, { .value = SHELTER_B6_TRAINING_ROOM_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b6_training_room_80184274[7] = {
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55190005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gShelterB6TrainingRoomDepartureScript[7] = {
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHELTER_B6_TRAINING_ROOM_SOUND_SCRIPT_5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6TrainingRoomStartMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -360,12 +424,17 @@ EvsCommand D_shelter_b6_training_room_80184274[7] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_shelter_b6_training_room_8018431C[2] = {
-    { { { TASK_BODY_NONE, 192 } }, shelterB6TrainingRoomStartMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, streamedScenePlayThenHold, { .value = 0 } },
+TaskDesc gShelterB6TrainingRoomMovieTasks[2] = {
+    { { { TASK_BODY_NONE, SHELTER_B6_TRAINING_ROOM_MOVIE_TASK_PRIORITY } }, shelterB6TrainingRoomStartMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B6_TRAINING_ROOM_MOVIE_TASK_PRIORITY } }, streamedScenePlayThenHold, { .value = 0 } },
 };
 
-SVECTOR D_shelter_b6_training_room_80184334[25] = {
+/// Fixed room-space effect positions, in signed whole-coordinate units.
+///
+/// Entries 0..7 are fixture-disc centres, 8/9 and 10/11 are capsule endpoint
+/// pairs, 12..23 are other ambient-disc centres, and 24 is the healing spiral centre.
+/// Capsule draws borrow two consecutive vectors; all consumers are read only.
+static SVECTOR _gShelterB6TrainingRoomEffectPositions[25] = {
     { 260, -1440, 0x283C, 0 },
     { 565, -1405, 0x283C, 0 },
     { 910, -1470, 0x283C, 0 },
@@ -393,14 +462,26 @@ SVECTOR D_shelter_b6_training_room_80184334[25] = {
     { 2500, -1000, 7750, 0 },
 };
 
-u16 D_shelter_b6_training_room_801843FC[4] = {
-    258,
-    532,
-    1064,
-    1596,
+/// Four beam brightness steps encoded as RGB nibbles in bits 8..11, 4..7 and 0..3.
+///
+/// Summon-beam indices 0..3 select these colours; channels expand by 16 before
+/// flicker. The ground drawer reuses the selected word as a halfword offset
+/// from this table; that second access has no established object bound.
+static u16 _gShelterB6TrainingRoomBeamColorRamp[4] = {
+    0x102,
+    0x214,
+    0x428,
+    0x63C,
 };
 
-_ShelterB6TrainingRoomBandShapeStorage D_shelter_b6_training_room_80184404 = { { { 256, 2048, 512 }, { 512, 1536, 768 }, { 768, 1024, 1024 } }, 0xF23F };
+/// Three summon-ring band presets in coordinate units, selected by band index 0..2.
+///
+/// Each row supplies base radius, lift along local -Y and top-ring spread.
+/// The retained trailing halfword has no proven role or direct reader.
+static _ShelterB6TrainingRoomBandShapeStorage _gShelterB6TrainingRoomBandShapes = {
+    .entries        = { { 256, 2048, 512 }, { 512, 1536, 768 }, { 768, 1024, 1024 } },
+    .unknownTrailer = 0xF23F
+};
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -430,14 +511,14 @@ static inline void _shelterB6TrainingRoomDrawFixedGlows(void)
         SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_LARGE_RADIUS_SCALE  = 0x200
     };
 
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[0], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_MEDIUM_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[1], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_LARGE_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[2], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[3], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[4], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[5], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[6], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_MEDIUM_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600);
-    glowDrawDisc(&D_shelter_b6_training_room_80184334[7], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_LARGE_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[0], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_MEDIUM_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[1], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_LARGE_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[2], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[3], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[4], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[5], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_SMALL_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+    glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[6], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_MEDIUM_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600);
+    glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[7], SHELTER_B6_TRAINING_ROOM_FIXED_GLOW_LARGE_RADIUS_SCALE, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
 }
 
 void shelterB6TrainingRoomGlowTask(Task* task)
@@ -463,52 +544,52 @@ void shelterB6TrainingRoomGlowTask(Task* task)
     // Draw only the fixtures visible in this mapped camera view.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            _glowDrawCapsule(&_gShelterB6TrainingRoomEffectPositions[10], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[12], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[13], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[14], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[15], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[16], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[18], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[19], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[20], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[21], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[22], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            _glowDrawCapsule(&_gShelterB6TrainingRoomEffectPositions[10], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            _glowDrawCapsule(&_gShelterB6TrainingRoomEffectPositions[8], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[12], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[13], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[14], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[15], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[16], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[18], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[19], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[20], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[21], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[22], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
             _shelterB6TrainingRoomDrawFixedGlows();
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[12], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[13], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[14], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[18], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[19], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[20], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            _glowDrawCapsule(&_gShelterB6TrainingRoomEffectPositions[8], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[12], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[13], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[14], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[18], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[19], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[20], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
             _shelterB6TrainingRoomDrawFixedGlows();
             break;
         case 5:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[8], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            _glowDrawCapsule(&_gShelterB6TrainingRoomEffectPositions[8], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
             _shelterB6TrainingRoomDrawFixedGlows();
             break;
         case 6:
             _shelterB6TrainingRoomDrawFixedGlows();
             break;
         case 7:
-            _glowDrawCapsule(&D_shelter_b6_training_room_80184334[10], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[17], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[23], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            _glowDrawCapsule(&_gShelterB6TrainingRoomEffectPositions[10], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_210);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[17], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[23], 0x280, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_444);
             break;
         case 8:
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[2], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[3], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[4], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[5], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[6], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600);
-            glowDrawDisc(&D_shelter_b6_training_room_80184334[7], 0x200, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[2], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[3], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[4], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[5], 0x100, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[6], 0x180, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_600);
+            glowDrawDisc(&_gShelterB6TrainingRoomEffectPositions[7], 0x200, SHELTER_B6_TRAINING_ROOM_GLOW_RGB_044);
             break;
     }
 }
@@ -719,7 +800,7 @@ void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusSca
         gte_stszotz(&scratch->pair.otz1);
         if (scratch->pair.flag >= 0) {
             // The ground tint also uses the selected packed word as a palette offset.
-            colorIndex = D_shelter_b6_training_room_801843FC[colorIndex];
+            colorIndex = _gShelterB6TrainingRoomBeamColorRamp[colorIndex];
             baseRed    = ((colorIndex >> 8) & SHELTER_B6_TRAINING_ROOM_BEAM_RGB_NIBBLE_MASK) << 4;
             baseGreen  = ((colorIndex >> 4) & SHELTER_B6_TRAINING_ROOM_BEAM_RGB_NIBBLE_MASK) << 4;
             flicker    = ((u8)gDisplayState.animFrame & 1) << 4;
@@ -849,7 +930,8 @@ static void _shelterB6TrainingRoomDrawGroundBeam(const GfxCoord* startCoord, con
         gte_stflg(&scratch->pair.flag);
         gte_stszotz(&scratch->pair.otz1);
         if (scratch->pair.flag >= 0) {
-            paletteOffset         = D_shelter_b6_training_room_801843FC[paletteOffset];
+            // Retain the binary's second lookup; the packed colour reaches beyond this ramp.
+            paletteOffset         = _gShelterB6TrainingRoomBeamColorRamp[paletteOffset];
             red                   = ((paletteOffset >> 8) & SHELTER_B6_TRAINING_ROOM_BEAM_RGB_NIBBLE_MASK) << 1;
             green                 = ((paletteOffset >> 4) & SHELTER_B6_TRAINING_ROOM_BEAM_RGB_NIBBLE_MASK) << 1;
             blue                  = (paletteOffset & SHELTER_B6_TRAINING_ROOM_BEAM_RGB_NIBBLE_MASK) << 1;
@@ -1119,7 +1201,7 @@ static void _shelterB6TrainingRoomDrawRingBand(const EffectWork* work, const Gfx
     u16                                lift;
     u16                                liftGrowth;
 
-    shape         = &D_shelter_b6_training_room_80184404.entries[bandIndex];
+    shape         = &_gShelterB6TrainingRoomBandShapes.entries[bandIndex];
     liftGrowth    = work->period;
     bottomRadius  = work->angle;
     lift          = liftGrowth + shape->lift;
@@ -1544,9 +1626,9 @@ void shelterB6TrainingRoomHealSpiralTask(Task* task)
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         // The scale slot holds a wrapping 16-bit angle here, and move holds the next world position.
         work->scale  += ((gRandomLcgState >> 16) & SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_PHASE_STEP_MASK) + SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_PHASE_STEP_MIN;
-        work->move.vx = D_shelter_b6_training_room_80184334[SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_CENTRE_INDEX].vx + ((rcos(work->scale) * SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_RADIUS) >> SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_TRIG_SHIFT);
-        work->move.vy = D_shelter_b6_training_room_80184334[SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_CENTRE_INDEX].vy - work->age * SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_RISE_STEP;
-        work->move.vz = D_shelter_b6_training_room_80184334[SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_CENTRE_INDEX].vz + ((rsin(work->scale) * SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_RADIUS) >> SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_TRIG_SHIFT);
+        work->move.vx = _gShelterB6TrainingRoomEffectPositions[SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_CENTRE_INDEX].vx + ((rcos(work->scale) * SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_RADIUS) >> SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_TRIG_SHIFT);
+        work->move.vy = _gShelterB6TrainingRoomEffectPositions[SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_CENTRE_INDEX].vy - work->age * SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_RISE_STEP;
+        work->move.vz = _gShelterB6TrainingRoomEffectPositions[SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_CENTRE_INDEX].vz + ((rsin(work->scale) * SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_RADIUS) >> SHELTER_B6_TRAINING_ROOM_HEAL_SPIRAL_TRIG_SHIFT);
         effectSpawn(EFFECT_1AE, NULL, 0, &work->move);
     }
 }
