@@ -1054,136 +1054,234 @@ static AnimationSet _gM4a1JavelinNegativeTurnAnimation = {
     .poseBanks         = { NULL, _gM4a1JavelinNegativeTurnAnimationBank1, NULL, NULL, _gM4a1JavelinNegativeTurnAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation04E78Bank1[19] = {
+/// Pose encodings used as bank indices by these player-rig clips.
+enum {
+    M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
+/// Positive-turn translation/rotation poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinPositiveTurnAnimationBank1[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_04E78_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation04E78Bank4[170] = {
+/// Positive-turn rotation-only poses, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinPositiveTurnAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_04E78_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation04E78Records[290] = {
+/// Keyframes and loop controls for the nineteen-part positive-turn clip.
+///
+/// Pose offsets count four-byte words; keyframe durations count normal-rate frames.
+static const AnimationRecord _gM4a1JavelinPositiveTurnAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_04E78_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation04E78Indices[20] = {
+/// Absolute record starts for the positive-turn clip's nineteen model-part tracks.
+///
+/// The exported final halfword is retained outside the track-index domain; its role is unproven.
+static const u16 _gM4a1JavelinPositiveTurnAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_04E78_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation04E78 = {
-    _gM4a1JavelinAnimation04E78Records,
-    _gM4a1JavelinAnimation04E78Indices,
-    { NULL, _gM4a1JavelinAnimation04E78Bank1, NULL, NULL, _gM4a1JavelinAnimation04E78Bank4, NULL, NULL, NULL },
+/// Looping positive-turn clip for the player with the M4A1 Javelin equipped.
+///
+/// Native bank entry 6 serves stationary turns and scripted positive-yaw turns.
+/// Its nineteen tracks borrow read-only, word-aligned pose banks while the package is loaded.
+static AnimationSet _gM4a1JavelinPositiveTurnAnimation = {
+    .records           = _gM4a1JavelinPositiveTurnAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinPositiveTurnAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinPositiveTurnAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinPositiveTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0518CBank1[3] = {
+/// Item-use translation/rotation poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinItemUseAnimationBank1[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0518C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0518CBank4[69] = {
+/// Item-use rotation-only poses, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinItemUseAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0518C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0518CRecords[99] = {
+/// Keyframes and stop controls for the nineteen-part item-use clip.
+///
+/// Pose offsets count four-byte words; keyframe durations count normal-rate frames.
+static const AnimationRecord _gM4a1JavelinItemUseAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0518C_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0518CIndices[20] = {
+/// Absolute record starts for the item-use clip's nineteen model-part tracks.
+///
+/// The exported final halfword is retained outside the track-index domain; its role is unproven.
+static const u16 _gM4a1JavelinItemUseAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0518C_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0518C = {
-    _gM4a1JavelinAnimation0518CRecords,
-    _gM4a1JavelinAnimation0518CIndices,
-    { NULL, _gM4a1JavelinAnimation0518CBank1, NULL, NULL, _gM4a1JavelinAnimation0518CBank4, NULL, NULL, NULL },
+/// Item-use presentation clip for the player with the M4A1 Javelin equipped.
+///
+/// Native bank entry 40 stops at its final pose before aim locomotion resumes.
+/// Its nineteen tracks borrow read-only, word-aligned pose banks while the package is loaded.
+static AnimationSet _gM4a1JavelinItemUseAnimation = {
+    .records           = _gM4a1JavelinItemUseAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinItemUseAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinItemUseAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinItemUseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation058E8Bank1[14] = {
+/// Stair-ascent translation/rotation poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinStairAscentAnimationBank1[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_058E8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation058E8Bank4[156] = {
+/// Stair-ascent rotation-only poses, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinStairAscentAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_058E8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation058E8Records[253] = {
+/// Keyframes, footstep cues and loop controls for the nineteen-part stair-ascent clip.
+///
+/// Pose offsets count four-byte words; keyframe durations count normal-rate frames.
+static const AnimationRecord _gM4a1JavelinStairAscentAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_058E8_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation058E8Indices[20] = {
+/// Absolute record starts for the stair-ascent clip's nineteen model-part tracks.
+///
+/// The exported final halfword is retained outside the track-index domain; its role is unproven.
+static const u16 _gM4a1JavelinStairAscentAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_058E8_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation058E8 = {
-    _gM4a1JavelinAnimation058E8Records,
-    _gM4a1JavelinAnimation058E8Indices,
-    { NULL, _gM4a1JavelinAnimation058E8Bank1, NULL, NULL, _gM4a1JavelinAnimation058E8Bank4, NULL, NULL, NULL },
+/// Looping stair-ascent clip for the player with the M4A1 Javelin equipped.
+///
+/// Native bank entry 36 supplies footstep cues that gate each scripted upward stride.
+/// Its nineteen tracks borrow read-only, word-aligned pose banks while the package is loaded.
+static AnimationSet _gM4a1JavelinStairAscentAnimation = {
+    .records           = _gM4a1JavelinStairAscentAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinStairAscentAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinStairAscentAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinStairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation06070Bank1[16] = {
+/// Stair-descent translation/rotation poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinStairDescentAnimationBank1[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06070_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation06070Bank4[167] = {
+/// Stair-descent rotation-only poses, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinStairDescentAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06070_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation06070Records[247] = {
+/// Keyframes, footstep cues and loop controls for the nineteen-part stair-descent clip.
+///
+/// Pose offsets count four-byte words; keyframe durations count normal-rate frames.
+static const AnimationRecord _gM4a1JavelinStairDescentAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06070_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation06070Indices[20] = {
+/// Absolute record starts for the stair-descent clip's nineteen model-part tracks.
+///
+/// The exported final halfword is retained outside the track-index domain; its role is unproven.
+static const u16 _gM4a1JavelinStairDescentAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06070_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation06070 = {
-    _gM4a1JavelinAnimation06070Records,
-    _gM4a1JavelinAnimation06070Indices,
-    { NULL, _gM4a1JavelinAnimation06070Bank1, NULL, NULL, _gM4a1JavelinAnimation06070Bank4, NULL, NULL, NULL },
+/// Looping stair-descent clip for the player with the M4A1 Javelin equipped.
+///
+/// Native bank entry 37 supplies footstep cues that gate each scripted downward stride.
+/// Its nineteen tracks borrow read-only, word-aligned pose banks while the package is loaded.
+static AnimationSet _gM4a1JavelinStairDescentAnimation = {
+    .records           = _gM4a1JavelinStairDescentAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinStairDescentAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinStairDescentAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinStairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation06344Bank1[6] = {
+/// Odd-ascent finish translation/rotation poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinStairAscentFinishOddAnimationBank1[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06344_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation06344Bank4[52] = {
+/// Odd-ascent finish rotation-only poses, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinStairAscentFinishOddAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06344_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation06344Records[91] = {
+/// Keyframes, footstep cues and stop controls for the nineteen-part odd-ascent finish.
+///
+/// Pose offsets count four-byte words; keyframe durations count normal-rate frames.
+static const AnimationRecord _gM4a1JavelinStairAscentFinishOddAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06344_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation06344Indices[20] = {
+/// Absolute record starts for the odd-ascent finish's nineteen model-part tracks.
+///
+/// The exported final halfword is retained outside the track-index domain; its role is unproven.
+static const u16 _gM4a1JavelinStairAscentFinishOddAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_06344_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation06344 = {
-    _gM4a1JavelinAnimation06344Records,
-    _gM4a1JavelinAnimation06344Indices,
-    { NULL, _gM4a1JavelinAnimation06344Bank1, NULL, NULL, _gM4a1JavelinAnimation06344Bank4, NULL, NULL, NULL },
+/// Finishes an odd-length stair ascent with the M4A1 Javelin equipped.
+///
+/// Native bank entry 39 is selected from the requested stair count's saved parity.
+/// Its nineteen tracks stop at their final poses and borrow read-only, word-aligned
+/// pose banks while the package is loaded.
+static AnimationSet _gM4a1JavelinStairAscentFinishOddAnimation = {
+    .records           = _gM4a1JavelinStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinStairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinStairAscentFinishOddAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinStairAscentFinishOddAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation066D4Bank1[7] = {
+/// Even-ascent finish translation/rotation poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinStairAscentFinishEvenAnimationBank1[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_066D4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation066D4Bank4[73] = {
+/// Even-ascent finish rotation-only poses, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinStairAscentFinishEvenAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_066D4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation066D4Records[114] = {
+/// Keyframes, footstep cues and stop controls for the nineteen-part even-ascent finish.
+///
+/// Pose offsets count four-byte words; keyframe durations count normal-rate frames.
+static const AnimationRecord _gM4a1JavelinStairAscentFinishEvenAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_066D4_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation066D4Indices[20] = {
+/// Absolute record starts for the even-ascent finish's nineteen model-part tracks.
+///
+/// The exported final halfword is retained outside the track-index domain; its role is unproven.
+static const u16 _gM4a1JavelinStairAscentFinishEvenAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_066D4_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation066D4 = {
-    _gM4a1JavelinAnimation066D4Records,
-    _gM4a1JavelinAnimation066D4Indices,
-    { NULL, _gM4a1JavelinAnimation066D4Bank1, NULL, NULL, _gM4a1JavelinAnimation066D4Bank4, NULL, NULL, NULL },
+/// Finishes an even-length stair ascent with the M4A1 Javelin equipped.
+///
+/// Native bank entry 38 is selected from the requested stair count's saved parity.
+/// Its nineteen tracks stop at their final poses and borrow read-only, word-aligned
+/// pose banks while the package is loaded.
+static AnimationSet _gM4a1JavelinStairAscentFinishEvenAnimation = {
+    .records           = _gM4a1JavelinStairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinStairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinStairAscentFinishEvenAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinStairAscentFinishEvenAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1JavelinAnimation06B5CBank1[9] = {
@@ -1809,7 +1907,7 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     &_gM4a1JavelinAnimation10E64,
     &_gM4a1JavelinAnimation11838,
     &_gM4a1JavelinNegativeTurnAnimation,
-    &_gM4a1JavelinAnimation04E78,
+    &_gM4a1JavelinPositiveTurnAnimation,
     &_gM4a1JavelinAnimation0F4FC,
     &_gM4a1JavelinAnimation0FE0C,
     &_gM4a1JavelinAnimation0BEF8,
@@ -1839,11 +1937,11 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     &_gM4a1JavelinAnimation0B144,
     &_gM4a1JavelinAnimation0AF6C,
     &_gM4a1JavelinAnimation0B144,
-    &_gM4a1JavelinAnimation058E8,
-    &_gM4a1JavelinAnimation06070,
-    &_gM4a1JavelinAnimation066D4,
-    &_gM4a1JavelinAnimation06344,
-    &_gM4a1JavelinAnimation0518C,
+    &_gM4a1JavelinStairAscentAnimation,
+    &_gM4a1JavelinStairDescentAnimation,
+    &_gM4a1JavelinStairAscentFinishEvenAnimation,
+    &_gM4a1JavelinStairAscentFinishOddAnimation,
+    &_gM4a1JavelinItemUseAnimation,
     &_gM4a1JavelinIdleAnimation,
     &_gM4a1JavelinAnimation0B6A8,
     &_gM4a1JavelinAnimation0B89C,
