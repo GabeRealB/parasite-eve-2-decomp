@@ -4,11 +4,15 @@
     room_scene.py ROOM                      print the room's scene
     room_scene.py --all --out DIR           one <room>.json each, plus _report.json / _report.txt
 
-Everything is read, nothing is guessed. The route to each table is the one
-gameplay takes: the stage's map overlay holds a directory per kind of table,
-indexed by area (a room folder's disc id / 100), and `Gp_AreaTables` holds the
-placement variants. From those roots the tool follows symbols into the room's
-C initialisers:
+Everything is read from the extracted packages, nothing is guessed and no C
+initialiser is parsed. The route to each table is the one gameplay takes:
+gameplay holds, per stage, a pointer to each of the stage map overlay's
+directories, every directory is indexed by area (a room folder's disc id /
+100), and `Gp_AreaTables` holds the placement variants. Those roots are pinned
+by ADDRESS (`GAMEPLAY_ROOTS`, `STAGE_DIRECTORIES`); from them the tool follows
+pointers with the images mapped at their load addresses - gameplay, the
+stage's map overlay and the room - and decodes each record with the layouts
+below:
 
     WorldCollisionRoomResources[room index]  grid, view boundaries, action triggers, occluders
     u8* [room index] + ViewCount[]           logical view -> view file
@@ -17,20 +21,26 @@ C initialisers:
     AreaVariant[variant]                     AreaPlacement + AreaResource tables
     AreaObjectRoom[area]                     placed objects (AreaObjectPlace) and how they spawn
 
-Values come from the C initialiser (evaluated with `asset_journal.evaluate`);
-the same record is then decoded from the extracted package at the symbol's
-address and the two are compared, so a parser slip shows up as a mismatch in
-the report instead of a wrong coordinate. Where a value is not written in C
-(an expression the evaluator cannot fold, a table still in assembly) the
-package bytes are used and the block says so. Collision geometry is an asset:
-its arrays are generated includes, so grids are always read from the package
-at the header's address (layout checked by tools/gen_collision_inc.py).
+Names and extents come from the splat symbol maps (`configs/USA/sym.*.txt`,
+`configs/USA/sym/**/*.txt`) and the overlay manifest. A table's length is, in
+this order: its terminator or the count the game itself uses; its symbol's
+`size:` over the record size; the distance to the next symbol. `sources` says
+which one settled each table (`length`) and cites the symbol's declaration,
+found by a plain search for its name. A renamed symbol or a rewritten
+initialiser therefore changes names and citations, never a value.
+
+C is read only for what is code and not data: who stores a placement variant
+(`area_variants.py`, `areaSetPlacementVariant` calls, direct writes), warp
+redirects, writes to a view map and a collision patch's `memCopyBytes`
+targets. Collision geometry is an asset; its layout is checked against
+tools/gen_collision_inc.py.
 
 What cannot be read reliably is left out and listed under `unresolved`.
 """
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
 import math
 import re
@@ -45,11 +55,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(ROOT / "tools"))
 import area_variants  # noqa: E402
 import asset_journal  # noqa: E402
-import asset_residency  # noqa: E402
 import asset_schema  # noqa: E402
 import gen_collision_inc  # noqa: E402
 import pkg_model  # noqa: E402
-from asset_residency import GROUP_BASE, IDENTITY_MAP, IDENTITY_VIEWS  # noqa: E402
+from asset_residency import GROUP_BASE  # noqa: E402
 
 SCHEMA = 1
 FLOOR_NORMAL_Y = -0xDDA          # include/gameplay/world_collision.h WORLD_COLLISION_FLOOR_NORMAL_Y; strictly below is floor
@@ -81,148 +90,168 @@ CONVENTIONS = {
 }
 
 
-# --------------------------------------------------------------------------- C text
+# --------------------------------------------------------------------------- roots, by address
 
-DEF = re.compile(r"^(?:static\s+)?(?:const\s+)?(?:struct\s+)?([A-Za-z_]\w*)\s*(\*+)?\s*(?:const\s+)?([A-Za-z_]\w*)\s*((?:\[[^\]\n]*\])*)\s*(?:(?:__attribute__\s*\(\(.*?\)\)|[A-Z][A-Z0-9_]*\s*\([^()\n]*\))\s*)*=\s*", re.M)
-DESIGNATOR = re.compile(r"\s*((?:\.\w+|\[[^\]]*\])+)\s*=\s*")
-ADDR_SUFFIX = re.compile(r"_([0-9A-F]{8})$")
-SYMLINE = re.compile(r"^\s*(\w+)\s*=\s*0x([0-9A-Fa-f]+)\s*;", re.M)
-CAST = re.compile(r"\(\s*(?:const\s+)?(?:struct\s+)?\w+\s*\*+\s*\)")
+# Symbols get renamed; addresses do not move. Every root below is an address, and its current name is looked up in
+# the symbol maps only for display.
+GAMEPLAY = "gameplay"
+GAMEPLAY_LOAD = 0x80093800       # configs/USA/gameplay.yaml; the resident image the stage tables live in
+MAIN_LOAD = 0x80010000           # the executable: only its names are used (task callbacks)
+
+# The stage's map overlay. Established by the directories themselves - every populated entry of stage N's camera
+# directory is an address inside one of stage N's room packages - and checked on every run against the package's
+# own id word (offset 0), which is 279 + stage for these five (overlays.toml ids 280-284).
+STAGE_MAPS = {1: "map_akropolis", 2: "map_dryfield", 3: "map_dryfield_full", 4: "map_shelter", 5: "map_neo_ark"}
+STAGE_MAP_ID_BASE = 279
+
+# gameplay's per-stage tables: kind -> (address, bytes per stage, offset of the pointer in a stage's entry, stage of
+# entry 0, whether the pointer leads to a one-word wrapper in the map overlay holding the directory's address).
+# Established from src/gameplay (load_screen.c, view_image.c, scene_runtime.c, cd_loading.c) at commit 2b2fe57e4a,
+# where they are Gp_ViewTables, Gp_ViewCountTables, gViewIndexTables, gSpriteAreaTables, Gp_RoomObjTables,
+# Gp_WarpTables, Gp_RoomParamTables, Gp_Bit2Banks and Gp_AreaTables, and from sym.gameplay.txt for the addresses.
+GAMEPLAY_ROOTS = {
+    "cameras":   (0x8010CB2C, 4, 0, 1, True),    # ViewCameraTable* [5]            -> { ViewCamera** }
+    "counts":    (0x8010CB40, 4, 0, 1, True),    # ViewCountTable* [5]             -> { ViewCount** }
+    "maps":      (0x8010CB54, 4, 0, 1, True),    # ViewIndexTable* [5]             -> { u8*** }
+    "sprites":   (0x8010CB68, 4, 0, 1, True),    # SpriteAreaTable* [5]            -> { SpriteView** }
+    "resources": (0x8010CB7C, 4, 0, 1, True),    # WorldCollisionStageResources* [5] -> { WorldCollisionRoomResources** }
+    "warps":     (0x8010CB90, 4, 0, 1, False),   # DirectionWarpEntry** [5]
+    "surfaces":  (0x8010CBB8, 4, 0, 1, False),   # WorldCollisionSurfaceProperties*** [5]
+    "objects":   (0x8010D230, 8, 0, 0, False),   # AreaObjectStage [6]: { AreaObjectRoom*, object states }
+    "areas":     (0x8010CBCC, 4, 0, 0, False),   # AreaRecord* [6] (Gp_AreaTables), in gameplay itself
+}
+
+# The per-stage directories in the five map overlays (and the stage's AreaRecord array in gameplay). Established by
+# reading the tables above from gameplay.pe2pkg; `Project` re-reads them on every run and reports a disagreement, so
+# a pinned address that stopped being what gameplay uses cannot pass silently. All are indexed by area - 1, except
+# `objects` and `areas`, which are indexed by area. The Dryfield stages' object place lists live in gameplay
+# (0x8010xxxx) and need no pin: `objects` entries point at them and the pointer is followed.
+STAGE_DIRECTORIES = {
+    1: {"cameras": 0x8017ABC4, "counts": 0x8017AB70, "maps": 0x8017AC18, "sprites": 0x8017AACC, "resources": 0x8017AA78,
+        "warps": 0x8017AB20, "surfaces": 0x8017AC6C, "objects": 0x8017A7FC, "areas": 0x8010CBE4},
+    2: {"cameras": 0x8017AAC8, "counts": 0x8017A990, "maps": 0x8017AB64, "sprites": 0x8017AC00, "resources": 0x8017AA2C,
+        "warps": 0x8017A8F8, "surfaces": 0x8017AC9C, "objects": 0x8017A564, "areas": 0x8010CC94},
+    3: {"cameras": 0x8017A9DC, "counts": 0x8017A8A4, "maps": 0x8017AA78, "sprites": 0x8017AB14, "resources": 0x8017A940,
+        "warps": 0x8017A80C, "surfaces": 0x8017ABB0, "objects": 0x8017A46C, "areas": 0x8010CDD4},
+    4: {"cameras": 0x8017B3BC, "counts": 0x8017B04C, "maps": 0x8017B484, "sprites": 0x8017B54C, "resources": 0x8017B2F4,
+        "warps": 0x8017AF88, "surfaces": 0x8017B614, "objects": 0x8017A998, "areas": 0x8010CF14},
+    5: {"cameras": 0x8017ACA4, "counts": 0x8017AB04, "maps": 0x8017AD2C, "sprites": 0x8017ADB4, "resources": 0x8017AC1C,
+        "warps": 0x8017AA80, "surfaces": 0x8017AE3C, "objects": 0x8017A6EC, "areas": 0x8010D0AC},
+}
+BY_AREA = ("objects", "areas")   # indexed by area; every other directory by area - 1
+
+# gameplay's shared identity view map (gViewIdentityMap in sym.gameplay.txt, `size:0x32`): a room index whose map
+# pointer is this address uses view N -> file N. Its 50 bytes are read from gameplay like any other map.
+IDENTITY_MAP = 0x8010CAF8
+IDENTITY_MAP_LENGTH = 50
+
+OBJECT_ROOM_END = -1             # AreaObjectRoom.places.sentinel that ends a stage's room table (area_flags.h)
 
 
-class Items(list):
-    """A brace list of an initialiser; `desig[i]` is item i's designator text."""
+# --------------------------------------------------------------------------- symbol maps
+
+SYMLINE = re.compile(r"^[ \t]*(\w+)[ \t]*=[ \t]*0x([0-9A-Fa-f]+)[ \t]*;[ \t]*(?://([^\n]*))?$", re.M)
+SYMSIZE = re.compile(r"\bsize:0x([0-9A-Fa-f]+)")
+SYMOWNER = re.compile(r"\bowner=(\w+)")
+
+
+class Symbols:
+    """One image's names and sizes, by address."""
+
+    def __init__(self, owner: str):
+        self.owner = owner
+        self.names: dict[int, str] = {}
+        self.sizes: dict[int, int] = {}
+        self.marks: set[int] = set()        # addresses known to start something, with no name in a map (pinned roots)
+        self._sized: list[int] | None = None
+        self._all: list[int] | None = None
+
+    def add(self, address: int, name: str, size: int | None) -> None:
+        self.names.setdefault(address, name)
+        if size and address not in self.sizes and self.names[address] == name:
+            self.sizes[address] = size
+        self._sized = self._all = None
+
+    def mark(self, address: int) -> None:
+        self.marks.add(address)
+        self._all = None
+
+    def default(self, address: int) -> str:
+        """splat's name for an address no map names."""
+        return f"D_{address:08X}" if self.owner in ("main", GAMEPLAY) else f"D_{self.owner}_{address:08X}"
+
+    def find(self, address: int) -> tuple[str, int, int | None]:
+        """(name, base, size) of the symbol at `address`, or the sized symbol containing it; else its default name."""
+        if address in self.names:
+            return self.names[address], address, self.sizes.get(address)
+        if self._sized is None:
+            self._sized = sorted(self.sizes)
+        i = bisect.bisect_right(self._sized, address) - 1
+        if i >= 0 and self._sized[i] + self.sizes[self._sized[i]] > address:
+            base = self._sized[i]
+            return self.names[base], base, self.sizes[base]
+        return self.default(address), address, None
+
+    def next_after(self, address: int) -> int | None:
+        if self._all is None:
+            self._all = sorted(set(self.names) | self.marks)
+        i = bisect.bisect_right(self._all, address)
+        return self._all[i] if i < len(self._all) else None
+
+
+class SymbolMaps:
+    """Every splat symbol map of the project.
+
+    A line of an image's own map names something in that image. A line marked `absolute:True` (and every line of an
+    imports file) names something elsewhere: `owner=` says in which package, and the address alone says so for main
+    and gameplay. Those foreign lines are how a room's or a map overlay's table is tied to the actor it points into.
+    """
 
     def __init__(self):
-        super().__init__()
-        self.desig: dict[int, str] = {}
+        self.own: dict[str, Symbols] = {}
+        self.foreign: dict[str, dict[int, list[tuple[str, str | None]]]] = defaultdict(lambda: defaultdict(list))
+        self.annotated: dict[str, dict[int, str]] = defaultdict(dict)
+        self.definer: dict[str, str] = {}       # name -> the first actor map defining it
+        base = ROOT / "configs/USA"
+        for image in ("main", GAMEPLAY):
+            self._read(base / f"sym.{image}.txt", image, False)
+            self._read(base / f"sym.{image}.imports.txt", image, True)
+        for path in sorted((base / "sym").glob("*.imports.txt")):
+            self._read(path, path.name.removesuffix(".imports.txt") + ".imports", True)
+        for path in sorted((base / "sym").glob("*/*.txt")):
+            self._read(path, path.stem, False, actors=path.parent.name == "actors")
+        for owner, named in self.annotated.items():
+            for address in named:
+                self.of(owner).mark(address)
 
+    def _read(self, path: Path, holder: str, imports: bool, actors: bool = False) -> None:
+        if not path.exists():
+            return
+        own = self.of(holder) if not imports else None
+        for m in SYMLINE.finditer(path.read_text()):
+            name, address, note = m[1], int(m[2], 16), m[3] or ""
+            owner = SYMOWNER.search(note)
+            size = SYMSIZE.search(note)
+            if imports or "absolute:True" in note or (owner and owner[1] != holder):
+                self.foreign[holder][address].append((name, owner[1] if owner else None))
+                if owner:
+                    self.annotated[owner[1]].setdefault(address, name)
+                continue
+            own.add(address, name, int(size[1], 16) if size else None)
+            if actors:
+                self.definer.setdefault(name, holder)
 
-def parse_braces(text: str, i: int) -> tuple[Items, int]:
-    """Parse the brace list starting at text[i] == '{'; returns it and the index after its '}'."""
-    out = Items()
-    i += 1
-    n = len(text)
-    while i < n:
-        while i < n and text[i] in " \t\r\n":
-            i += 1
-        c = text[i]
-        if c == "}":
-            return out, i + 1
-        if c == ",":
-            i += 1
-            continue
-        if c == "#":
-            end = text.find("\n", i)
-            line = text[i:end].strip()
-            if line.startswith("#include"):
-                out.append(line)
-            i = end + 1
-            continue
-        m = DESIGNATOR.match(text, i)
-        if m:
-            out.desig[len(out)] = m[1]
-            i = m.end()
-            c = text[i]
-        if c == "{":
-            sub, i = parse_braces(text, i)
-            out.append(sub)
-            continue
-        depth, start = 0, i
-        while i < n:
-            c = text[i]
-            if c in "([":
-                depth += 1
-            elif c in ")]":
-                depth -= 1
-            elif depth == 0 and c in ",}":
-                break
-            i += 1
-        out.append(text[start:i].strip())
-    raise ValueError("unterminated initialiser")
+    def of(self, owner: str) -> Symbols:
+        if owner not in self.own:
+            self.own[owner] = Symbols(owner)
+        return self.own[owner]
 
-
-class Def:
-    __slots__ = ("symbol", "type", "stars", "dims_text", "path", "line", "owner", "text", "start", "_init")
-
-    def __init__(self, symbol, type_, stars, dims_text, path, line, owner, text, start):
-        self.symbol, self.type, self.stars, self.dims_text = symbol, type_, stars, dims_text
-        self.path, self.line, self.owner, self.text, self.start = path, line, owner, text, start
-        self._init = None
-
-    @property
-    def init(self):
-        if self._init is None:
-            if self.text[self.start] == "{":
-                self._init = parse_braces(self.text, self.start)[0]
-            else:
-                end = self.text.find(";", self.start)
-                self._init = self.text[self.start:end].strip()
-        return self._init
-
-    @property
-    def is_array(self) -> bool:
-        return bool(self.dims_text)
-
-    def where(self) -> dict:
-        return {"symbol": self.symbol, "file": self.path, "line": self.line}
-
-
-# Function-like macros of the project's headers (`SOUND_AREA(stage, area, entry)`), name -> (parameters, body):
-# a table cell written through one is expanded before it is evaluated.
-MACROS: dict[str, tuple[list[str], str]] = {}
-MACRO_DEF = re.compile(r"^[ \t]*#[ \t]*define[ \t]+([A-Za-z_]\w*)\(([^()\n]*)\)[ \t]+((?:[^\n\\]|\\\n|\\.)+)$", re.M)
-MACRO_CALL = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
-
-
-def expand(text: str, depth: int = 0) -> str:
-    """`text` with every call of a known function-like macro replaced by its body."""
-    if depth > 8 or not MACROS:
-        return text
-    out, at = [], 0
-    for call in MACRO_CALL.finditer(text):
-        if call.start() < at or call[1] not in MACROS:
-            continue
-        level, end = 0, None
-        for i in range(call.end() - 1, len(text)):
-            level += text[i] == "("
-            level -= text[i] == ")"
-            if level == 0:
-                end = i
-                break
-        if end is None:
-            continue
-        params, body = MACROS[call[1]]
-        args = asset_journal.split_args(text[call.end():end]) if text[call.end():end].strip() else []
-        if len(args) != len(params):
-            continue
-        for name, arg in zip(params, args):
-            body = re.sub(rf"\b{re.escape(name)}\b", f"({arg.strip()})", body)
-        out.append(text[at:call.start()] + "(" + expand(body, depth + 1) + ")")
-        at = end + 1
-    out.append(text[at:])
-    return "".join(out)
-
-
-ARRAY_SIZE = re.compile(r"\bARRAY_SIZE\s*\(\s*(\w+)\s*\)")
-LENGTHS = None      # set by Project: symbol -> the number of elements its definition declares, or None
-
-
-def evaluate(expr: str, known) -> int | None:
-    # `ARRAY_SIZE(table)` is how a naming pass writes a count that is another table's length.
-    if LENGTHS is not None and "ARRAY_SIZE" in expr:
-        def length(match: re.Match) -> str:
-            n = LENGTHS(match[1], known)
-            return match[0] if n is None else str(n)
-        expr = ARRAY_SIZE.sub(length, expr)
-    return asset_journal.evaluate(expand(expr), known)
-
-
-UNFOLDED: Counter = Counter()     # C expressions the evaluator could not fold, by shape; the report lists the commonest
-
-
-class Unres(str):
-    """A C expression the evaluator could not fold."""
+    def find(self, owner: str, address: int) -> tuple[str, int, int | None]:
+        """As `Symbols.find`, falling back on what another map says this owner has at the address."""
+        name, base, size = self.of(owner).find(address)
+        if base == address and address not in self.of(owner).names and address in self.annotated.get(owner, {}):
+            name = self.annotated[owner][address]
+        return name, base, size
 
 
 # --------------------------------------------------------------------------- record layouts
@@ -316,107 +345,32 @@ FOOTSTEPS = rec(("walk", "s32"), ("run", "s32"), ("scriptedJump", "s32"))
 GRID_FACE = rec(("v", arr("u16", 4)), ("normalIndex", "u16"), ("surfaceClass", "s16"))
 
 
-def wrap(t: str, value: int) -> int:
-    code, size = SCALARS[t]
-    bits = size * 8
-    value &= (1 << bits) - 1
-    if code.islower() and value >= 1 << (bits - 1):
-        value -= 1 << bits
-    return value
-
-
-class Cursor:
-    def __init__(self, items):
-        self.items, self.i = items, 0
-
-    def peek(self):
-        return self.items[self.i] if self.i < len(self.items) else None
-
-    def take(self):
-        item = self.peek()
-        self.i += 1
-        return item
-
-
-def from_c(t, cur: Cursor, consts) -> object:
-    """Consume one object of layout `t` from an initialiser cursor, with C's brace-elision rules."""
-    if isinstance(t, str):
-        item = cur.take()
-        while isinstance(item, list):
-            item = item[0] if item else None
-        if item is None:
-            return None if t in ("ptr", "pint") else 0
-        if item.startswith("#include"):
-            raise ValueError("generated include")
-        text = CAST.sub("", item).strip()
-        value = evaluate(text, consts)
-        if t in ("ptr", "pint"):
-            if value is not None:
-                return None if value == 0 else (wrap("s32", value) if t == "pint" else Unres(item))
-            return text.lstrip("&").strip()
-        return Unres(item) if value is None else wrap(t, value)
-    if t[0] == "union":
-        if isinstance(cur.peek(), list):
-            sub = cur.take()
-            if sub.desig.get(0) == ".word":
-                raise ValueError("union initialised through .word")
-            return from_c(t[1], Cursor(sub), consts)
-        return from_c(t[1], cur, consts)
-    src = Cursor(cur.take()) if isinstance(cur.peek(), list) else cur
-    if t[0] == "arr":
-        # Positional, except that `[index] = value` moves to that element (the ones left out stay zero).
-        out, at = [None] * t[2], 0
-        while True:
-            designator = src.items.desig.get(src.i, "") if isinstance(src.items, Items) else ""
-            if designator.startswith("["):
-                close = designator.index("]")
-                if designator[close + 1:]:
-                    raise ValueError(f"array designator {designator} reaches into an element")
-                index = evaluate(designator[1:close], consts)
-                if index is None or not 0 <= index < t[2]:
-                    raise ValueError(f"array designator {designator} not evaluable")
-                at = index
-            elif at >= t[2] or src.peek() is None:
-                break
-            out[at] = from_c(t[1], src, consts)
-            at += 1
-        return [zero(t[1]) if value is None else value for value in out]
-    # A record: positional, except that `.field = value` moves to the field of that name (the rest stay zero).
-    names = [name for name, _ft in t[1]]
-    out, at = {}, 0
-    while at < len(names):
-        designator = src.items.desig.get(src.i, "") if isinstance(src.items, Items) else ""
-        if designator.startswith(".") and designator[1:] in names:
-            at = names.index(designator[1:])
-        elif src.peek() is None:
-            break
-        out[names[at]] = from_c(t[1][at][1], src, consts)
-        at += 1
-    for name, ft in t[1]:
-        if name not in out:
-            out[name] = zero(ft)
-    return out
-
-
-def zero(t):
-    if isinstance(t, str):
-        return None if t in ("ptr", "pint") else 0
-    if t[0] == "union":
-        return zero(t[1])
-    if t[0] == "arr":
-        return [zero(t[1]) for _ in range(t[2])]
-    return {name: zero(ft) for name, ft in t[1]}
-
-
 def v3(v: dict) -> list[int]:
     return [v["vx"], v["vy"], v["vz"]]
 
 
+def is_pointer(value) -> bool:
+    return isinstance(value, int) and value >= 0x80000000
+
+
 # --------------------------------------------------------------------------- the project
+
+# A file-scope definition: the declared name is the last identifier before the dimensions and the `=`.
+DECLARATION = re.compile(r"^(?!(?:extern|typedef|return)\b)[A-Za-z_][^\n;(){}=]*?\b([A-Za-z_]\w*)[ \t]*(?:\[[^\]\n]*\][ \t]*)*"
+                         r"(?:(?:__attribute__\s*\(\(.*?\)\)|[A-Z][A-Z0-9_]*\s*\([^()\n]*\))\s*)*=(?!=)", re.M)
+SOURCE_DIRS = {"rooms": "src/rooms/{}", "mapui": "src/mapui/{}", GAMEPLAY: "src/gameplay", "main": "src/main"}
+
 
 class Project:
     def __init__(self):
         self.manifest = tomllib.loads((ROOT / "configs/USA/overlays.toml").read_text())
+        self.family: dict[str, str] = {GAMEPLAY: GAMEPLAY, "main": "main"}
+        self.load_of: dict[str, int] = {GAMEPLAY: GAMEPLAY_LOAD}
+        for family, body in self.manifest.items():
+            for key, overlay in (body.get("overlays") or {}).items():
+                for package in [key] + [slot["package"] for slot in overlay.get("slots", ()) if "package" in slot]:
+                    self.family.setdefault(package, family)
+                    self.load_of.setdefault(package, body["load_addr"])
         self.load = {"rooms": self.manifest["rooms"]["load_addr"], "mapui": self.manifest["mapui"]["load_addr"]}
         self.assets, self.embedded = asset_schema.load()
         self.tree = asset_schema.load_tree()
@@ -434,45 +388,147 @@ class Project:
                 package = r.get("source", "").removesuffix(".pe2pkg")
                 self.models_of[package].append(key)
                 self.model_at[package, r["vram"]] = key
-        self.defs: dict[str, list[Def]] = defaultdict(list)
-        global LENGTHS
-        LENGTHS = self.array_length
-        self.texts: dict[str, str] = {}
-        self.owner_files: dict[str, list[str]] = defaultdict(list)
-        self.file_consts: dict[str, dict] = {}
+        self.maps = SymbolMaps()
         self._pkg: dict[str, bytes | None] = {}
-        self._sym: dict[str, dict[str, int]] = {}
-        self._actor_names: dict[str, str] | None = None
+        self._code: dict[str, dict[str, str]] = {}
+        self._declared: dict[str, dict[str, tuple[str, int]]] = {}
         self._setters = None
-        self._residency_maps = None
-        self._gameplay_scanned = False
-        self.globals = {"NULL": 0}
-        self._load_constants()
-        for base in ("src/rooms", "src/mapui"):
-            for path in sorted((ROOT / base).glob("*/*.c")):
-                self._scan(path, path.parent.name)
-        for name in ("cd_loading.c",):
-            self._scan(ROOT / "src/gameplay" / name, "gameplay")
+        self._globals: dict[str, int] | None = None
+        self.root_problems: list[str] = []
         self.stages = self._stage_directories()
 
-    def array_length(self, symbol: str, known) -> int | None:
-        """How many elements the one definition of `symbol` declares: its stated length, or its initialiser's."""
-        found = self.defs.get(symbol) or ()
-        if len(found) != 1 or not found[0].dims_text:
-            return None
-        first = re.match(r"\[([^\]]*)\]", found[0].dims_text)[1].strip()
-        if first:
-            return asset_journal.evaluate(expand(first), ChainMap(self.file_consts.get(found[0].path, {}), self.globals))
-        init = found[0].init
-        return len(init) if isinstance(init, list) else None
+    # ---- images
 
-    # ---- constants
+    def package(self, owner: str) -> bytes | None:
+        if owner not in self._pkg:
+            path = ROOT / "assets/USA/pe2pkg" / f"{owner}.pe2pkg"
+            self._pkg[owner] = path.read_bytes() if path.exists() else None
+        return self._pkg[owner]
 
-    def _collect(self, text: str, base) -> dict[str, int]:
+    def word(self, owner: str, address: int) -> int | None:
+        data, off = self.package(owner), address - self.load_of.get(owner, 0)
+        return struct.unpack_from("<I", data, off)[0] if data is not None and 0 <= off <= len(data) - 4 else None
+
+    def extent(self, owner: str, address: int) -> tuple[int | None, str | None]:
+        """(bytes from `address` to the end of its object, what settled it): its symbol's size, else the next symbol."""
+        _name, base, size = self.maps.find(owner, address)
+        if size is not None:
+            return base + size - address, "symbol size"
+        nxt = self.maps.of(owner).next_after(address)
+        data = self.package(owner)
+        end = self.load_of[owner] + len(data) if data is not None and owner in self.load_of else None
+        if end is not None and (nxt is None or nxt > end):
+            return end - address, "end of package"      # the last object of the image
+        return (nxt - address, "next symbol") if nxt is not None else (None, None)
+
+    def actor_of(self, symbol: str) -> str | None:
+        """The overlay a task table belongs to: by its D_ name, or the first actor symbol map that defines it."""
+        m = asset_journal.OWNER.match(symbol)
+        return m[1] if m else self.maps.definer.get(symbol)
+
+    # ---- stage directories
+
+    def _stage_directories(self) -> dict[int, dict]:
+        """stage -> its map overlay and, per kind, the directory's address, owner, entry count and what settled it."""
+        out: dict[int, dict] = {}
+        derived: dict[int, dict[str, int | None]] = defaultdict(dict)
+        for stage, owner in STAGE_MAPS.items():
+            data = self.package(owner)
+            if data is None or self.package(GAMEPLAY) is None:
+                continue
+            if struct.unpack_from("<H", data, 0)[0] != STAGE_MAP_ID_BASE + stage:
+                self.root_problems.append(f"{owner}: package id is not {STAGE_MAP_ID_BASE + stage}, so it is not stage {stage}'s map overlay")
+            symbols = self.maps.of(owner)
+            for kind, (table, stride, offset, first, wrapped) in GAMEPLAY_ROOTS.items():
+                pointer = self.word(GAMEPLAY, table + (stage - first) * stride + offset)
+                if wrapped and pointer:
+                    symbols.mark(pointer)               # the one-word wrapper ends whatever precedes it
+                    pointer = self.word(owner, pointer)
+                derived[stage][kind] = pointer
+                pinned = STAGE_DIRECTORIES[stage][kind]
+                (self.maps.of(GAMEPLAY) if kind == "areas" else symbols).mark(pinned)
+                if pointer != pinned:
+                    self.root_problems.append(f"stage {stage} {kind}: pinned 0x{pinned:08X}, gameplay's table at 0x{table:08X} leads to "
+                                              + (f"0x{pointer:08X}" if pointer else "nothing"))
+        for stage, owner in STAGE_MAPS.items():
+            if stage not in derived:
+                continue
+            entry: dict = {"map": owner}
+            for kind, address in STAGE_DIRECTORIES[stage].items():
+                holder = GAMEPLAY if kind == "areas" else owner
+                size = sizeof(OBJECT_ROOM) if kind == "objects" else sizeof(AREA_RECORD) if kind == "areas" else 4
+                count, how = None, None
+                if kind == "objects":
+                    data, off, n = self.package(holder), address - self.load_of[holder], 0
+                    while 0 <= off + n * size <= len(data) - size:
+                        n += 1
+                        if struct.unpack_from("<i", data, off + (n - 1) * size)[0] == OBJECT_ROOM_END:
+                            count, how = n, "terminator"
+                            break
+                if count is None:
+                    span, how = self.extent(holder, address)
+                    count = span // size if span is not None else None
+                entry[kind] = {"address": address, "owner": holder, "size": size, "count": count, "length": how,
+                               "symbol": self.maps.find(holder, address)[0]}
+            out[stage] = entry
+        # What a directory entry points at starts an object: splat names it D_<owner>_<ADDR> whether or not a map
+        # does, so it bounds the object before it like any other symbol.
+        for stage, entry in out.items():
+            for kind, d in entry.items():
+                if kind == "map" or d["count"] is None:
+                    continue
+                data, off = self.package(d["owner"]), d["address"] - self.load_of[d["owner"]]
+                for index in range(d["count"]):
+                    room = self.room_at.get((stage, index if kind in BY_AREA else index + 1))
+                    for word in struct.unpack_from(f"<{d['size'] // 4}I", data, off + index * d["size"]):
+                        owner = next((o for o in (GAMEPLAY, entry["map"], room) if o and self.package(o) is not None
+                                      and 0 <= word - self.load_of[o] < len(self.package(o))), None)
+                        if owner:
+                            self.maps.of(owner).mark(word)
+        return out
+
+    # ---- sources: citations, and the code that is read as code
+
+    def code(self, owner: str) -> dict[str, str]:
+        """The C files of an image's source directory, comments blanked, by repository path."""
+        if owner not in self._code:
+            folder = SOURCE_DIRS.get(self.family.get(owner, ""), "")
+            texts = {}
+            if folder:
+                for path in sorted((ROOT / folder.format(owner)).glob("*.c")):
+                    texts[path.relative_to(ROOT).as_posix()] = asset_journal.code_of(path)
+            self._code[owner] = texts
+        return self._code[owner]
+
+    def declaration(self, owner: str, symbol: str) -> tuple[str, int] | None:
+        """(file, line) declaring `symbol` in its image's sources: its definition, else the first line naming it."""
+        if owner not in self._declared:
+            found: dict[str, tuple[str, int]] = {}
+            for rel, text in self.code(owner).items():
+                for m in DECLARATION.finditer(text):
+                    found.setdefault(m[1], (rel, text.count("\n", 0, m.start()) + 1))
+            self._declared[owner] = found
+        found = self._declared[owner]
+        if symbol not in found:
+            word = re.compile(rf"\b{re.escape(symbol)}\b")
+            for rel, text in self.code(owner).items():
+                m = word.search(text) if symbol in text else None
+                if m:
+                    found[symbol] = (rel, text.count("\n", 0, m.start()) + 1)
+                    break
+            else:
+                found[symbol] = None
+        return found[symbol]
+
+    # Constants are collected for the readers of CODE only (a setter's `areaSetPlacementVariant(&key, VARIANT, ...)`,
+    # a patch's `memCopyBytes(..., &pool[INDEX], ...)`); no table value passes through them.
+
+    @staticmethod
+    def _collect(text: str, base) -> dict[str, int]:
         local: dict[str, int] = {}
         env = ChainMap(local, base)
         for m in asset_journal.DEFINE.finditer(text):
-            value = evaluate(m[2], env)
+            value = asset_journal.evaluate(m[2], env)
             if value is not None:
                 local[m[1]] = value
         for m in asset_journal.ENUM.finditer(text):
@@ -481,7 +537,7 @@ class Project:
                 item = asset_journal.ITEM_WHOLE.match(piece)
                 if item is None:
                     continue
-                value = evaluate(item[2], env) if item[2] else nxt
+                value = asset_journal.evaluate(item[2], env) if item[2] else nxt
                 if value is None:
                     nxt = None
                     continue
@@ -489,143 +545,17 @@ class Project:
                 nxt = value + 1
         return local
 
-    def _load_constants(self) -> None:
-        headers = [p for p in sorted((ROOT / "include").rglob("*.h")) if "psyq" not in p.parts]
-        texts = [asset_journal.code_of(p) for p in headers]
-        # Psy-Q's fixed-point one, which rotation matrices and unit normals are written with (libgte.h).
-        self.globals.setdefault("ONE", 4096)
-        for text in texts:
-            for m in MACRO_DEF.finditer(text):
-                MACROS.setdefault(m[1], ([p.strip() for p in m[2].split(",") if p.strip()], m[3].replace("\\\n", " ")))
-        for _ in range(3):
-            seen: dict[str, set[int]] = defaultdict(set)
-            for text in texts:
-                for name, value in self._collect(text, self.globals).items():
-                    seen[name].add(value)
-            self.globals.update({name: next(iter(v)) for name, v in seen.items() if len(v) == 1})
-
-    def consts_for(self, rel: str):
-        owner_dir = str(Path(rel).parent)
-        chain = [self.file_consts.get(rel, {})]
-        chain += [self.file_consts[f] for f in self.owner_files.get(owner_dir, ()) if f != rel]
-        return ChainMap(*chain, self.globals)
-
-    # ---- sources
-
-    def _scan(self, path: Path, owner: str) -> None:
-        rel = path.relative_to(ROOT).as_posix()
-        text = asset_journal.code_of(path)
-        self.texts[rel] = text
-        self.owner_files[str(Path(rel).parent)].append(rel)
-        self.file_consts[rel] = self._collect(text, self.globals)
-        for h in sorted(path.parent.glob("*.h")):
-            hrel = h.relative_to(ROOT).as_posix()
-            if hrel not in self.file_consts:
-                self.file_consts[hrel] = self._collect(asset_journal.code_of(h), self.globals)
-                self.owner_files[str(Path(rel).parent)].append(hrel)
-        for m in DEF.finditer(text):
-            if m[1] in ("return", "typedef", "extern", "enum", "else", "case", "goto"):
-                continue
-            line = text.count("\n", 0, m.start()) + 1
-            self.defs[m[3]].append(Def(m[3], m[1], m[2] or "", m[4], rel, line, owner, text, m.end()))
-
-    def find(self, symbol: str, owner: str | None = None) -> Def | None:
-        found = self.defs.get(symbol)
-        if not found and not self._gameplay_scanned and not symbol.startswith(("D_map_", "_g")) and asset_journal.OWNER.match(symbol) is None:
-            # A table gameplay owns (the Dryfield stages' object lists live in src/gameplay/item_placement.c).
-            self._gameplay_scanned = True
-            for path in sorted((ROOT / "src/gameplay").glob("*.c")):
-                if path.name != "cd_loading.c":
-                    self._scan(path, "gameplay")
-            found = self.defs.get(symbol)
-        if not found:
-            return None
-        return next((d for d in found if d.owner == owner), found[0])
-
-    def owner_of(self, symbol: str) -> str | None:
-        d = self.find(symbol)
-        if d:
-            return d.owner
-        m = asset_journal.OWNER.match(symbol)
-        return m[1] if m else None
-
-    def package(self, owner: str) -> bytes | None:
-        if owner not in self._pkg:
-            path = ROOT / "assets/USA/pe2pkg" / f"{owner}.pe2pkg"
-            self._pkg[owner] = path.read_bytes() if path.exists() else None
-        return self._pkg[owner]
-
-    def family(self, owner: str) -> str | None:
-        return "mapui" if owner.startswith("map_") else ("rooms" if owner in self.place_of else None)
-
-    def symbols(self, owner: str) -> dict[str, int]:
-        if owner not in self._sym:
-            out = {}
-            family = self.family(owner)
-            path = ROOT / "configs/USA/sym" / str(family) / f"{owner}.txt"
-            if path.exists():
-                out = {m[1]: int(m[2], 16) for m in SYMLINE.finditer(path.read_text())}
-            self._sym[owner] = out
-        return self._sym[owner]
-
-    def address(self, symbol: str, owner: str | None) -> int | None:
-        m = ADDR_SUFFIX.search(symbol)
-        if m and symbol.startswith("D_"):
-            return int(m[1], 16)
-        return self.symbols(owner).get(symbol) if owner else None
-
-    def actor_of(self, symbol: str) -> str | None:
-        """The overlay a task table belongs to: by its D_ name, or the actor symbol map that lists it."""
-        m = asset_journal.OWNER.match(symbol)
-        if m:
-            return m[1]
-        if self._actor_names is None:
-            self._actor_names = {}
-            for path in sorted((ROOT / "configs/USA/sym/actors").glob("*.txt")):
-                for s in SYMLINE.finditer(path.read_text()):
-                    self._actor_names.setdefault(s[1], path.stem)
-        return self._actor_names.get(symbol)
-
-    def _actor_symbols(self, actor: str) -> dict[str, int]:
-        if actor not in self._sym:
-            path = ROOT / "configs/USA/sym/actors" / f"{actor}.txt"
-            self._sym[actor] = {m[1]: int(m[2], 16) for m in SYMLINE.finditer(path.read_text())} if path.exists() else {}
-        return self._sym[actor]
-
-    # ---- stage directories
-
-    def _stage_directories(self) -> dict[int, dict]:
-        kinds = {("WorldCollisionRoomResources", "*"): "resources", ("SpriteView", "*"): "sprites", ("DirectionWarpEntry", "*"): "warps",
-                 ("ViewCount", "*"): "counts", ("ViewCamera", "*"): "cameras", ("u8", "**"): "maps", ("AreaObjectRoom", ""): "objects",
-                 ("WorldCollisionSurfaceProperties", "**"): "surfaces"}
-        out: dict[int, dict] = {}
-        by_owner: dict[str, dict] = defaultdict(dict)
-        for found in self.defs.values():
-            for d in found:
-                kind = kinds.get((d.type, d.stars))
-                if kind and d.owner.startswith("map_") and d.is_array:
-                    by_owner[d.owner].setdefault(kind, []).append(d)
-        for owner, tables in by_owner.items():
-            cameras = tables.get("cameras", [])
-            votes = Counter()
-            if len(cameras) == 1:
-                for item in cameras[0].init:
-                    room = self.owner_of(item.lstrip("&")) if isinstance(item, str) else None
-                    if room in self.place_of:
-                        votes[self.place_of[room][0]] += 1
-            if not votes:
-                continue
-            stage = votes.most_common(1)[0][0]
-            out[stage] = {"map": owner, **{k: (v[0] if len(v) == 1 else None) for k, v in tables.items()},
-                          "ambiguous": sorted(k for k, v in tables.items() if len(v) != 1)}
-        tables = self.find("Gp_AreaTables")
-        if tables:
-            for stage, name in enumerate(tables.init):
-                if stage in out and isinstance(name, str) and name != "NULL":
-                    out[stage]["areas"] = self.find(name)
-        return out
-
-    # ---- variant setters
+    def code_constants(self, text: str):
+        if self._globals is None:
+            self._globals = {"NULL": 0}
+            texts = [asset_journal.code_of(p) for p in sorted((ROOT / "include").rglob("*.h")) if "psyq" not in p.parts]
+            for _ in range(3):
+                seen: dict[str, set[int]] = defaultdict(set)
+                for header in texts:
+                    for name, value in self._collect(header, self._globals).items():
+                        seen[name].add(value)
+                self._globals.update({name: next(iter(v)) for name, v in seen.items() if len(v) == 1})
+        return ChainMap(self._collect(text, self._globals), self._globals)
 
     def setters(self) -> dict:
         """Who stores a placement variant: AreaApplyRec lists, areaSetPlacementVariant calls and direct writes."""
@@ -648,7 +578,7 @@ class Project:
                 continue        # the generic appliers (AreaApplyRec, save restore, new game), not a room's own setter
             overlay = path.parent.name
             text = asset_journal.code_of(path)
-            consts = ChainMap(self._collect(text, self.globals), self.globals)
+            consts = self.code_constants(text)
             lines = text.splitlines()
             for n, line in enumerate(lines, 1):
                 target, value, kind = None, None, None
@@ -663,8 +593,8 @@ class Project:
                         for back in lines[max(0, n - 30):n]:
                             s = re.search(r"\b" + re.escape(key) + r"\.stage\s*=\s*([^;]+);", back)
                             a = re.search(r"\b" + re.escape(key) + r"\.area\s*=\s*([^;]+);", back)
-                            stage = evaluate(s[1], consts) if s else stage
-                            area = evaluate(a[1], consts) if a else area
+                            stage = asset_journal.evaluate(s[1], consts) if s else stage
+                            area = asset_journal.evaluate(a[1], consts) if a else area
                         target = self.room_at.get((stage, area))
                 else:
                     m = write.search(line)
@@ -672,7 +602,7 @@ class Project:
                         kind, value, target = "direct write of location.loc.variant", m[1], "current"
                 if kind is None:
                     continue
-                number = evaluate(value, consts)
+                number = asset_journal.evaluate(value, consts)
                 entry = {"kind": kind, "variant": number if number is not None else value.strip(), "by": overlay, "file": rel, "line": n}
                 if target == "current":
                     (by_room if overlay in self.place_of else by_actor)[overlay].append(entry)
@@ -683,13 +613,6 @@ class Project:
         self._setters = {"room": by_room, "actor": by_actor}
         return self._setters
 
-    def residency_maps(self) -> dict:
-        if self._residency_maps is None:
-            files = sorted(p for p in (ROOT / "src/rooms").rglob("*.c"))
-            packages = {k for k, r in self.assets.items() if r["type"] == "pe2pkg"}
-            self._residency_maps = asset_residency.view_maps(files, packages)
-        return self._residency_maps
-
 
 # --------------------------------------------------------------------------- one room
 
@@ -697,12 +620,14 @@ class Scene:
     def __init__(self, project: Project, room: str):
         self.p, self.room = project, room
         self.stage, self.area, self.folder_id = project.place_of[room]
+        self.map = STAGE_MAPS.get(self.stage)
+        self.images = [owner for owner in (GAMEPLAY, self.map, room) if owner]      # what is mapped while the room runs
         self.unresolved: list[dict] = []
         self.sources: dict[str, list[dict]] = defaultdict(list)
         self.notes: list[str] = []
-        self.mismatches: list[str] = []
-        self.byte_filled = 0
-        self.byte_checked = 0
+        self.addresses: dict[str, int] = {}     # displayed pointer -> its address
+        self.records_read = 0
+        self.lengths: Counter = Counter()
 
     # ---- helpers
 
@@ -711,148 +636,132 @@ class Scene:
         if entry not in self.unresolved:
             self.unresolved.append(entry)
 
-    def cite(self, block: str, d: Def | dict) -> dict:
-        where = d.where() if isinstance(d, Def) else d
-        if where not in self.sources[block]:
-            self.sources[block].append(where)
+    def owner_of(self, address: int) -> str | None:
+        """The mapped image holding `address` (main, below gameplay, holds only names)."""
+        for owner in self.images:
+            data = self.p.package(owner)
+            if data is not None and 0 <= address - self.p.load_of[owner] < len(data):
+                return owner
+        return "main" if MAIN_LOAD <= address < GAMEPLAY_LOAD else None
+
+    def foreign(self, address: int, prefer=()) -> tuple[str | None, str | None]:
+        """(name, package) of an address outside the mapped images, from what this room's and its map's symbol maps name there."""
+        found = []
+        for holder in (self.room, self.map, "rooms.imports", "mapui.imports"):
+            found += self.p.maps.foreign.get(holder, {}).get(address, [])
+        for want in prefer:         # a map overlay's table names one address in several actors: the loaded one is meant
+            for name, owner in found:
+                if want and owner == want:
+                    return name, owner
+        if found:
+            return found[0]
+        for want in prefer:         # no map of ours names it: the loaded package's own map does
+            if want and want in self.p.maps.own and address in self.p.maps.own[want].names:
+                return self.p.maps.own[want].names[address], want
+        return None, None
+
+    def ref(self, address: int | None, record: int | None = None) -> str | None:
+        """A pointer as the symbol map names it: `symbol`, `symbol[index]` into an array, or the raw address."""
+        if not address:
+            return None
+        owner = self.owner_of(address)
+        if owner is None:
+            text = self.foreign(address)[0] or f"0x{address:08X}"
+        else:
+            name, base, _size = self.p.maps.find(owner, address)
+            delta = address - base
+            text = name if not delta else f"{name}[{delta // record}]" if record and delta % record == 0 else f"{name}+0x{delta:X}"
+        self.addresses[text] = address
+        return text
+
+    def cite(self, block: str, address: int, length: str | None = None, **extra) -> dict:
+        """The citation of the symbol at (or containing) `address`: where its declaration is, else its address."""
+        owner = self.owner_of(address)
+        symbol, base, _size = self.p.maps.find(owner, address) if owner else (self.ref(address), address, None)
+        found = self.p.declaration(owner, symbol) if owner else None
+        where = {"symbol": symbol, "file": found[0], "line": found[1]} if found else {"symbol": symbol, "address": f"0x{base:08X}"}
+        entry = {**where, **extra}
+        if length:
+            entry["length"] = length
+        if entry not in self.sources[block]:
+            self.sources[block].append(entry)
         return where
 
-    @staticmethod
-    def ref(text) -> tuple[str | None, int]:
-        """A pointer initialiser as (symbol, element index)."""
-        if not isinstance(text, str) or isinstance(text, Unres):
-            return None, 0
-        m = re.fullmatch(r"&?\s*(\w+)\s*(?:\[\s*(\w+)\s*\])?", text.strip())
-        if m is None:
-            m = re.fullmatch(r"(\w+)\s*\+\s*(\w+)", text.strip())
-        if m is None:
-            return None, 0
-        index = evaluate(m[2], {}) if m[2] else 0
-        return m[1], index or 0
+    def table(self, block: str, address: int, layout, *, count: int | None = None, stop=None):
+        """Records of `layout` from `address`: (rows, info), or (None, None) when its length is not settled.
 
-    def _merge(self, c, b, path: str, t):
-        """C value checked against (and completed from) the package bytes."""
-        if isinstance(t, str):
-            if b is None and c is None:
-                return c
-            if isinstance(c, Unres):
-                if t in ("ptr", "pint") or b is None:
-                    return c
-                self.byte_filled += 1
-                UNFOLDED[re.sub(r"\d+", "N", str(c))[:60]] += 1
-                return b
-            if t in ("ptr", "pint") and isinstance(c, str):
-                sym, index = self.ref(c)
-                if sym is None or index or not isinstance(b, int):
-                    if b is None:
-                        self.mismatches.append(f"{path}: C names {c}, package holds NULL")
-                    return c
-                addr = self._addr_any(sym)
-                if addr is not None and addr != b:
-                    self.mismatches.append(f"{path}: C names {c} (0x{addr:X}), package holds 0x{b:X}")
-                return c
-            if c != b:
-                self.mismatches.append(f"{path}: C gives {c}, package holds {b}")
-                return b
-            return c
-        if t[0] == "union":
-            return self._merge(c, b, path, t[1])
-        if t[0] == "arr":
-            return [self._merge(ci, bi, f"{path}[{i}]", t[1]) for i, (ci, bi) in enumerate(zip(c, b))]
-        return {name: self._merge(c[name], b[name], f"{path}.{name}", ft) for name, ft in t[1]}
-
-    def _addr_any(self, symbol: str) -> int | None:
-        m = ADDR_SUFFIX.search(symbol)
-        if m and symbol.startswith("D_"):
-            return int(m[1], 16)
-        for owner in (self.room, self.p.stages.get(self.stage, {}).get("map")):
-            if owner and symbol in self.p.symbols(owner):
-                return self.p.symbols(owner)[symbol]
-        return None
-
-    def table(self, block: str, symbol: str, layout, *, count: int | None = None, start: int = 0, stop=None):
-        """Rows of the table `symbol`: (rows, Def or None). `stop(row)` ends a list on its last record."""
-        d = self.p.find(symbol, self.room) or self.p.find(symbol, self.p.stages.get(self.stage, {}).get("map"))
-        owner = d.owner if d else (self.p.owner_of(symbol) or self.room)
-        address = self.p.address(symbol, owner)
-        data = self.p.package(owner) if self.p.family(owner) else None
-        base = self.p.load.get(self.p.family(owner) or "", 0)
-        size = sizeof(layout)
-        rows = None
-        declared = None
-        if d is not None:
-            consts = self.p.consts_for(d.path)
-            n = 1
-            if d.is_array:
-                first = re.match(r"\[([^\]]*)\]", d.dims_text)[1].strip()
-                n = evaluate(first, consts) if first else len(d.init)
-            try:
-                if n is None:
-                    raise ValueError(f"array length {d.dims_text} not evaluable")
-                declared = n
-                init = d.init
-                if not isinstance(init, list):
-                    raise ValueError("not a brace initialiser")
-                rows = from_c(arr(layout, n), Cursor([init]), consts) if d.is_array else [from_c(layout, Cursor([init]), consts)]
-            except (ValueError, IndexError, AttributeError, TypeError) as error:
-                self.notes.append(f"{block}: {symbol} read from the package, its C initialiser was not parsed ({error})")
-                rows = None
-            self.cite(block, d)
-        if data is not None and address is not None and 0 <= address - base < len(data):
-            off = address - base
-            if rows is not None:
-                fits = off + len(rows) * size <= len(data)
-                if fits:
-                    raw = [read_bytes(layout, data, off + i * size) for i in range(len(rows))]
-                    self.byte_checked += len(rows)
-                    rows = [self._merge(c, b, f"{symbol}[{i}]", layout) for i, (c, b) in enumerate(zip(rows, raw))]
-            else:
-                rows, i = [], 0
-                if count is None and declared is not None:
-                    count = declared - start
-                limit = count if count is not None else (len(data) - off) // size
-                while i < limit and off + (start + i + 1) * size <= len(data):
-                    row = read_bytes(layout, data, off + (start + i) * size)
-                    rows.append(row)
-                    i += 1
-                    if stop and stop(row):
-                        break
-                if count is None and stop is None:
-                    self.miss(block, symbol, "not defined in C and its length is not stored; nothing read")
-                    return None, d
-                if d is None:
-                    self.cite(block, {"symbol": symbol, "file": f"assets/USA/pe2pkg/{owner}.pe2pkg", "line": None, "offset": f"0x{off:X}"})
-                return rows, d
-        if rows is None:
-            self.miss(block, symbol, "no C definition found and no package bytes at its address")
-            return None, d
-        rows = rows[start:]
-        if stop:
-            for i, row in enumerate(rows):
-                if stop(row):
-                    rows = rows[:i + 1]
-                    break
+        The length is `count` when the caller knows the game's own; else the list's terminator (`stop(row)` is true on
+        the last record), kept inside its symbol's size; else its symbol's size; else the distance to the next symbol.
+        `info` has the symbol, the index in it the rows start at, the pointer as displayed and the citation.
+        """
+        owner = self.owner_of(address)
+        data = self.p.package(owner) if owner and owner != "main" else None
+        text = self.ref(address, sizeof(layout))
+        if data is None:
+            self.miss(block, text, "its address is in no mapped image (gameplay, the stage's map overlay, this room)")
+            return None, None
+        size, off = sizeof(layout), address - self.p.load_of[owner]
+        symbol, base, _symbol_size = self.p.maps.find(owner, address)
+        span, how = self.p.extent(owner, address)
+        fits = (len(data) - off) // size
+        rows = []
         if count is not None:
-            rows = rows[:count]
-        return rows, d
+            how, limit = "count", min(count, fits)
+        elif stop is not None:
+            limit = min(span // size, fits) if how == "symbol size" else fits
+        elif span is None:
+            self.miss(block, text, "no terminator, no size in the symbol map and no later symbol: its length is not settled")
+            return None, None
+        else:
+            limit = min(span // size, fits)
+        ended = False
+        for i in range(limit):
+            row = read_bytes(layout, data, off + i * size)
+            rows.append(row)
+            if stop is not None and stop(row):
+                ended = True
+                break
+        if stop is not None and count is None:
+            if ended:
+                how = "terminator"
+            elif how != "symbol size":
+                self.miss(block, text, "no terminator before the end of the package and no size in the symbol map")
+                return None, None
+        self.records_read += len(rows)
+        self.lengths[how] += 1
+        where = self.cite(block, address, how)
+        return rows, {"symbol": symbol, "start": (address - base) // size, "table": text, "where": where, "length": how}
+
+    def directory(self, kind: str, room: str | None = None):
+        """This area's entry of a stage directory: (value, directory) - a pointer, None for NULL or past the end, or
+        the AreaObjectRoom / AreaRecord record; `directory` is None when the stage has none."""
+        stage, area, _folder = self.p.place_of[room or self.room]
+        d = self.p.stages.get(stage, {}).get(kind)
+        if d is None or d["count"] is None:
+            return None, d
+        index = area if kind in BY_AREA else area - 1
+        if index >= d["count"]:
+            return None, d
+        data, off = self.p.package(d["owner"]), d["address"] - self.p.load_of[d["owner"]] + index * d["size"]
+        if kind in BY_AREA:
+            return read_bytes(OBJECT_ROOM if kind == "objects" else AREA_RECORD, data, off), d
+        return read_bytes("ptr", data, off), d
 
     def directory_entry(self, kind: str, block: str):
-        """The stage directory's entry for this area: (text or None, directory Def)."""
-        stage = self.p.stages.get(self.stage)
-        if stage is None:
-            self.miss(block, "stage directory", f"no map overlay identified for stage {self.stage}")
-            return None, None
-        d = stage.get(kind)
+        """`directory`, cited, with the reasons it has no entry listed under `unresolved`."""
+        value, d = self.directory(kind)
+        index = self.area if kind in BY_AREA else self.area - 1
         if d is None:
-            self.miss(block, f"{kind} directory", f"map overlay {stage['map']} declares {'several' if kind in stage['ambiguous'] else 'no'} such table")
-            return None, None
-        index = self.area if kind == "objects" else self.area - 1
-        init = d.init
-        if index >= len(init):
-            self.miss(block, d.symbol, f"the stage directory has {len(init)} entries; area {self.area} is past its end, so gameplay has no table for this room")
-            return None, d
-        self.cite(block, {**d.where(), "index": index})
-        return init[index], d
+            self.miss(block, f"{kind} directory", f"no map overlay identified for stage {self.stage}")
+        elif d["count"] is None:
+            self.miss(block, d["symbol"], "the directory's length is not settled (no size in the symbol map, no later symbol)")
+        elif index >= d["count"]:
+            what = "the stage's area table" if kind == "areas" else "the stage directory"
+            self.miss(block, d["symbol"], f"{what} has {d['count']} entries; area {self.area} is past its end"
+                      + ("" if kind == "areas" else ", so gameplay has no table for this room"))
+        else:
+            self.cite(block, d["address"], d["length"], index=index)
+        return value, d
 
     # ---- blocks
 
@@ -860,11 +769,9 @@ class Scene:
         scene: dict = {"schema": SCHEMA, "room": self.room, "stage": self.stage, "stageName": STAGE_NAMES[self.stage], "area": self.area,
                        "folderId": self.folder_id, "package": self.room, "mapOverlay": self.p.stages.get(self.stage, {}).get("map"),
                        "conventions": CONVENTIONS}
-        owner_check, _ = self.directory_entry("cameras", "views")
-        if isinstance(owner_check, str) and owner_check != "NULL":
-            named = self.p.owner_of(owner_check.lstrip("&"))
-            if named != self.room:
-                self.miss("views", owner_check, f"the stage directory's entry for area {self.area} belongs to {named}, not {self.room}")
+        cameras, _ = self.directory("cameras")
+        if cameras and self.owner_of(cameras) != self.room:
+            self.miss("views", self.ref(cameras), f"the stage directory's entry for area {self.area} is not an address in {self.room}'s package")
         self.folder = {int(n["id"]): n for n in self.p.tree[self.stage]["folders"][self.room]["files"].values()}
         rooms = self.room_resources()
         scene["rooms"] = rooms
@@ -881,38 +788,27 @@ class Scene:
         scene["checks"] = self.checks(scene)
         scene["notes"] = self.notes
         scene["unresolved"] = self.unresolved
-        scene["verification"] = {"recordsComparedWithPackage": self.byte_checked, "valuesTakenFromPackage": self.byte_filled, "mismatches": self.mismatches}
+        scene["verification"] = {"recordsReadFromPackage": self.records_read, "tableLengthsBy": dict(self.lengths), "mismatches": self.p.root_problems}
         return scene
 
     def room_resources(self) -> list[dict]:
         entry, _ = self.directory_entry("resources", "rooms")
         rows = []
-        if isinstance(entry, str) and entry != "NULL":
-            symbol, start = self.ref(entry)
-            got, d = self.table("rooms", symbol, ROOM_RESOURCES, start=start) if symbol else (None, None)
+        if entry:
+            got, info = self.table("rooms", entry, ROOM_RESOURCES)
             for i, row in enumerate(got or []):
-                rows.append({"roomIndex": i + 1, "table": symbol, "grid": row["grid"], "viewBoundaryTriggers": row["viewBoundaryTriggers"],
-                             "actionTriggers": row["actionTriggers"], "occluders": row["occluders"]})
+                rows.append({"roomIndex": i + 1, "table": info["symbol"], "grid": self.ref(row["grid"], sizeof(GRID)),
+                             "viewBoundaryTriggers": self.ref(row["viewBoundaryTriggers"], sizeof(TRIGGER)),
+                             "actionTriggers": self.ref(row["actionTriggers"], sizeof(TRIGGER)), "occluders": self.ref(row["occluders"], sizeof(OCCLUDER))})
         maps_entry, _ = self.directory_entry("maps", "views")
         counts_entry, _ = self.directory_entry("counts", "views")
         names, counts = [], []
-        if isinstance(maps_entry, str) and maps_entry != "NULL":
-            symbol, _i = self.ref(maps_entry)
-            d = self.p.find(symbol, self.room) if symbol else None
-            if d is not None and isinstance(d.init, list):
-                names = [x.lstrip("&") if isinstance(x, str) else None for x in d.init]
-                self.cite("views", d)
-            else:
-                self.miss("views", maps_entry, "view-map directory not defined in C")
-        if isinstance(counts_entry, str) and counts_entry != "NULL":
-            symbol, _i = self.ref(counts_entry)
-            d = self.p.find(symbol, self.room) if symbol else None
-            if d is not None:
-                init = d.init if isinstance(d.init, list) else [d.init]
-                counts = [evaluate(x, self.p.consts_for(d.path)) for x in init]
-                self.cite("views", d)
-            else:
-                self.miss("views", counts_entry, "view-count table not defined in C")
+        if maps_entry:
+            got, _info = self.table("views", maps_entry, "ptr")
+            names = [self.ref(x) for x in got or []]
+        if counts_entry:
+            counts, _info = self.table("views", counts_entry, "s16")
+            counts = counts or []
         for i in range(max(len(rows), len(names))):
             if i >= len(rows):
                 rows.append({"roomIndex": i + 1, "table": None, "grid": None, "viewBoundaryTriggers": None, "actionTriggers": None, "occluders": None})
@@ -931,32 +827,23 @@ class Scene:
         declared = {int(o["at"], 16) for o in manifest if o.get("kind") == "collisionSource"}
         out, seen = [], set()
         for text, indices in used.items():
-            symbol, index = self.ref(text)
-            address = self._addr_any(symbol) if symbol else None
-            d = self.p.find(symbol, self.room) if symbol else None
-            if address is None or data is None:
-                self.miss("grids", text, "the grid header's address is not known (no D_ address, not in the room's symbol map)")
+            address = self.addresses[text]
+            if data is None or self.owner_of(address) != self.room:
+                self.miss("grids", text, "the grid header's address is not in this room's package")
                 continue
-            address += index * sizeof(GRID)
-            if d:
-                self.cite("grids", d)
-            grid = self.read_grid(data, load, address - load, symbol if not index else f"{symbol}[{index}]")
+            where = self.cite("grids", address)
+            grid = self.read_grid(data, load, address - load, text)
             if grid is None:
                 continue
-            grid.update({"roomIndices": indices, "patch": False, "source": d.where() if d else None,
-                         "inManifest": (address - load) in declared})
+            grid.update({"roomIndices": indices, "patch": False, "source": where, "inManifest": (address - load) in declared})
             seen.add(address - load)
             out.append(grid)
         for off in sorted(declared - seen):
             # A grid the manifest declares that no room index names: code installs it (a second floor, a changed layout).
-            names = [s for s, a in self.p.symbols(self.room).items() if a == load + off] or [f"D_{self.room}_{load + off:08X}"]
-            d = self.p.find(names[0], self.room)
-            grid = self.read_grid(data, load, off, names[0]) if data else None
+            grid = self.read_grid(data, load, off, self.ref(load + off)) if data else None
             if grid is None:
                 continue
-            if d:
-                self.cite("grids", d)
-            grid.update({"roomIndices": [], "patch": False, "source": d.where() if d else None, "inManifest": True,
+            grid.update({"roomIndices": [], "patch": False, "source": self.cite("grids", load + off), "inManifest": True,
                          "note": "declared in the overlay manifest (collisionSource) but named by no room-resource row: installed or swapped by code"})
             out.append(grid)
         for o in manifest:
@@ -1020,11 +907,11 @@ class Scene:
         return out
 
     def read_patch(self, data: bytes, load: int, at: int, pieces: list[str]) -> dict:
-        by_addr = {a: s for s, a in self.p.symbols(self.room).items()}
-        code = {f: self.p.texts[f] for f in self.p.owner_files.get(f"src/rooms/{self.room}", ()) if f.endswith(".c")}
+        named = self.p.maps.of(self.room).names
+        code = self.p.code(self.room)
         out = []
         for part in gen_collision_inc.patch_pieces(at, pieces):
-            symbol = by_addr.get(load + part["offset"])
+            symbol = named.get(load + part["offset"])
             if part["name"] == "vectors":
                 values = [list(struct.unpack_from("<3h", data, part["offset"] + i * 8)) for i in range(part["size"] // 8)]
             else:
@@ -1033,13 +920,12 @@ class Scene:
                     f = read_bytes(GRID_FACE, data, part["offset"] + i * 12)
                     values.append({"v": f["v"] if f["v"][3] != 0xFFFF else f["v"][:3], "normalIndex": f["normalIndex"], "surfaceClass": f["surfaceClass"]})
             piece = {"kind": part["name"], "symbol": symbol, "packageOffset": f"0x{part['offset']:X}", "values": values, "copiedTo": []}
-            d = self.p.find(symbol, self.room) if symbol else None
-            if d:
-                piece["source"] = self.cite("grids", d)
-                consts = self.p.consts_for(d.path)
+            if symbol:
+                piece["source"] = self.cite("grids", load + part["offset"], "manifest")
+                # Code, not data: where the room's own memCopyBytes call puts the piece.
                 for rel, text in code.items():
                     for m in re.finditer(r"memCopyBytes\s*\(\s*" + re.escape(symbol) + r"\s*,\s*&?\s*(\w+)\s*(?:\[([^\]]+)\])?", text):
-                        piece["copiedTo"].append({"pool": m[1], "index": evaluate(m[2], consts) if m[2] else 0,
+                        piece["copiedTo"].append({"pool": m[1], "index": asset_journal.evaluate(m[2], self.p.code_constants(text)) if m[2] else 0,
                                                   "file": rel, "line": text.count("\n", 0, m.start()) + 1})
             out.append(piece)
         return {"id": f"{self.room}_collision_patch_{at:05X}", "patch": True, "packageOffset": f"0x{at:X}", "pieces": out,
@@ -1048,28 +934,22 @@ class Scene:
 
     def surfaces(self) -> list[dict]:
         entry, _ = self.directory_entry("surfaces", "surfaceClasses")
-        symbol, _i = self.ref(entry) if isinstance(entry, str) and entry != "NULL" else (None, 0)
-        d = self.p.find(symbol, self.room) if symbol else None
-        if d is None or not isinstance(d.init, list):
-            return []
-        self.cite("surfaceClasses", d)
+        classes, _info = self.table("surfaceClasses", entry, "ptr") if entry else (None, None)
         out = []
-        for index, item in enumerate(d.init):
-            name, _i = self.ref(item)
-            if not name or name == "NULL":
+        for index, pointer in enumerate(classes or []):
+            if not pointer:
                 out.append({"surfaceClass": index, "record": None})
                 continue
-            rows, _d = self.table("surfaceClasses", name, SURFACE)
+            rows, _info = self.table("surfaceClasses", pointer, SURFACE, count=1)       # a class is one record
             row = rows[0] if rows else None
-            entry = {"surfaceClass": index, "record": name}
+            entry = {"surfaceClass": index, "record": self.ref(pointer)}
             if row:
                 entry.update({k: row[k] for k in ("field_0", "probePassThrough", "weaponImpactEnabled", "suppressPushback")})
-                entry["footstepSounds"] = row["footstepSounds"]
-                fname, _i = self.ref(row["footstepSounds"])
-                if fname:
-                    sounds, _d = self.table("surfaceClasses", fname, FOOTSTEPS)
+                entry["footstepSounds"] = self.ref(row["footstepSounds"])
+                if row["footstepSounds"]:
+                    sounds, _info = self.table("surfaceClasses", row["footstepSounds"], FOOTSTEPS, count=1)
                     if sounds:
-                        entry["footsteps"] = {k: f"0x{v & 0xFFFFFFFF:08X}" if isinstance(v, int) else v for k, v in sounds[0].items()}
+                        entry["footsteps"] = {k: f"0x{v & 0xFFFFFFFF:08X}" for k, v in sounds[0].items()}
             out.append(entry)
         return out
 
@@ -1086,18 +966,14 @@ class Scene:
                 used[row[field]].append(row["roomIndex"])
         out = []
         for text, indices in used.items():
-            symbol, start = self.ref(text)
-            if symbol is None:
-                self.miss(block, str(text), "trigger pointer is not a plain symbol")
-                continue
-            rows, d = self.table(block, symbol, TRIGGER, start=start, stop=lambda r: bool(r["flags"] & 0x80))
+            rows, info = self.table(block, self.addresses[text], TRIGGER, stop=lambda r: bool(r["flags"] & 0x80))
             if rows is None:
                 continue
             if rows and not rows[-1]["flags"] & 0x80:
-                self.notes.append(f"{block}: {symbol} has no record with the LAST flag; all {len(rows)} declared records listed")
+                self.notes.append(f"{block}: {info['symbol']} has no record with the LAST flag; all {len(rows)} records of its symbol listed")
             items = []
             for i, row in enumerate(rows):
-                item = {"index": start + i, **self.quad(row), "facingNormal": v3(row["facingNormal"]), "flags": row["flags"],
+                item = {"index": info["start"] + i, **self.quad(row), "facingNormal": v3(row["facingNormal"]), "flags": row["flags"],
                         "geometryKind": TRIGGER_KIND.get(row["flags"] & 7, row["flags"] & 7), "last": bool(row["flags"] & 0x80),
                         "control": row["control"], "parameter0": row["parameter0"], "parameter1": row["parameter1"]}
                 if block == "boundaries":
@@ -1105,7 +981,7 @@ class Scene:
                 else:
                     item.update(self.action(row))
                 items.append(item)
-            out.append({"table": text.lstrip("&"), "roomIndices": indices, "source": d.where() if d else None, "items": items})
+            out.append({"table": text, "roomIndices": indices, "source": info["where"], "items": items})
         return out
 
     @staticmethod
@@ -1140,12 +1016,11 @@ class Scene:
                 used[row["occluders"]].append(row["roomIndex"])
         out = []
         for text, indices in used.items():
-            symbol, start = self.ref(text)
-            rows, d = self.table("occluders", symbol, OCCLUDER, start=start, stop=lambda r: bool(r["flags"] & 0x80)) if symbol else (None, None)
+            rows, info = self.table("occluders", self.addresses[text], OCCLUDER, stop=lambda r: bool(r["flags"] & 0x80))
             if rows is None:
                 continue
-            out.append({"table": text.lstrip("&"), "roomIndices": indices, "source": d.where() if d else None,
-                        "items": [{"index": start + i, **self.quad(r), "flags": r["flags"], "last": bool(r["flags"] & 0x80)} for i, r in enumerate(rows)]})
+            out.append({"table": text, "roomIndices": indices, "source": info["where"],
+                        "items": [{"index": info["start"] + i, **self.quad(r), "flags": r["flags"], "last": bool(r["flags"] & 0x80)} for i, r in enumerate(rows)]})
         return out
 
     @staticmethod
@@ -1153,27 +1028,18 @@ class Scene:
         word = t["yaw"]
         return {"position": [t["x"], t["y"], t["z"]], "yaw": word, "yawSpecial": YAW_SPECIAL.get(word)}
 
-    def warp_entries(self, room: str, block: str | None) -> tuple[list[dict] | None, Def | None, str | None]:
-        """A room's arrival endpoints, through its own stage directory entry."""
-        stage, area, _folder = self.p.place_of[room]
-        directory = self.p.stages.get(stage, {}).get("warps")
-        if directory is None or area - 1 >= len(directory.init):
-            return None, None, None
-        entry = directory.init[area - 1]
-        symbol, start = self.ref(entry)
-        if not symbol or symbol == "NULL":
-            return None, None, None
-        if block:
-            rows, d = self.table(block, symbol, WARP, start=start)
-        else:
-            other = Scene(self.p, room)
-            rows, d = other.table("warps", symbol, WARP, start=start)
-        return rows, d, symbol
+    def warp_entries(self, room: str, block: str | None) -> tuple[list[dict] | None, dict | None]:
+        """A room's arrival endpoints, through its own stage directory entry (read with that room mapped)."""
+        scene = self if block else Scene(self.p, room)
+        entry, _ = scene.directory("warps")
+        if not entry:
+            return None, None
+        return scene.table(block or "warps", entry, WARP)
 
     def warps(self, triggers: list[dict]) -> dict:
         self.directory_entry("warps", "warps")
-        rows, d, symbol = self.warp_entries(self.room, "warps")
-        out = {"table": symbol, "source": d.where() if d else None, "entries": [], "exits": [], "redirects": []}
+        rows, info = self.warp_entries(self.room, "warps")
+        out = {"table": info["symbol"] if info else None, "source": info["where"] if info else None, "entries": [], "exits": [], "redirects": []}
         for i, row in enumerate(rows or []):
             out["entries"].append({"slot": i + 1, "player": self.endpoint(row["player"]), "companion": self.endpoint(row["companion"]),
                                    "unknown_10": row["unknown_10"], "unknown_24": row["unknown_24"],
@@ -1216,55 +1082,43 @@ class Scene:
                         self.miss("warps", f"{group['table']}[{item['index']}]",
                                   f"arrival slot {arrival} is not in {dest}'s warp table ({len(there) if there else 'no'} entries)")
                 out["exits"].append(exit_)
+        # Code, not data: the room's handler rewriting where a warp leads.
         pattern = re.compile(r"\breply->(areaId|room|warp|stage)\s*=(?!=)")
-        for rel in self.p.owner_files.get(f"src/rooms/{self.room}", ()):
-            if not rel.endswith(".c"):
-                continue
-            for n, line in enumerate(self.p.texts[rel].splitlines(), 1):
+        for rel, text in self.p.code(self.room).items():
+            for n, line in enumerate(text.splitlines(), 1):
                 if pattern.search(line):
                     out["redirects"].append({"file": rel, "line": n, "text": line.strip()})
         return out
 
     def views(self, rooms: list[dict], boundaries: list[dict], warps: dict) -> list[dict]:
         entry, _ = self.directory_entry("cameras", "views")
-        cameras, camera_def = None, None
-        if isinstance(entry, str) and entry != "NULL":
-            symbol, start = self.ref(entry)
-            cameras, camera_def = self.table("views", symbol, VIEW_CAMERA, start=start) if symbol else (None, None)
+        cameras, camera_info = self.table("views", entry, VIEW_CAMERA) if entry else (None, None)
         sprite_entry, _ = self.directory_entry("sprites", "views")
-        sprite_symbol = self.ref(sprite_entry)[0] if isinstance(sprite_entry, str) else None
-        if sprite_symbol and self.p.find(sprite_symbol, self.room):
-            self.cite("views", self.p.find(sprite_symbol, self.room))
-        residency = self.p.residency_maps().get(self.room)
+        sprite_symbol = self.ref(sprite_entry)
+        if sprite_entry:
+            self.cite("views", sprite_entry)
         out = []
         for row in rooms:
             name, count = row.get("viewMap"), row.get("viewCount")
             index = row["roomIndex"]
-            if not name or name == "NULL":
+            if not name:
                 continue
-            block = {"roomIndex": index, "map": name, "viewCount": count, "cameraTable": camera_def.symbol if camera_def else None,
+            block = {"roomIndex": index, "map": name, "viewCount": count, "cameraTable": camera_info["symbol"] if camera_info else None,
                      "spriteTable": sprite_symbol, "mapSource": None, "mapWriters": [], "views": []}
-            if name == IDENTITY_MAP:
-                mapping = list(IDENTITY_VIEWS)
-                block["mapSource"] = {"symbol": IDENTITY_MAP, "file": "include/gameplay/view.h", "line": None, "note": "gameplay's shared identity map, 50 entries"}
+            identity = self.addresses[name] == IDENTITY_MAP
+            mapping, info = self.table("views", self.addresses[name], "u8", count=IDENTITY_MAP_LENGTH if identity else None)
+            if mapping is None:
+                continue
+            block["mapSource"] = info["where"]
+            if identity:
+                block["mapSource"] = {**info["where"], "note": f"gameplay's shared identity map, {IDENTITY_MAP_LENGTH} entries"}
             else:
-                d = self.p.find(name, self.room)
-                if d is None or not isinstance(d.init, list):
-                    self.miss("views", name, "view map not defined in C")
-                    continue
-                mapping = [evaluate(x, self.p.consts_for(d.path)) if isinstance(x, str) else None for x in d.init]
-                block["mapSource"] = self.cite("views", d)
-                address, data = self._addr_any(name), self.p.package(self.room)
-                if address and data and list(data[address - self.p.load["rooms"]:][:len(mapping)]) != mapping:
-                    self.mismatches.append(f"{name}: view map in C differs from the package")
-                writer = re.compile(r"\b" + re.escape(name) + r"\s*\[[^\]]+\]\s*[|&+-]?=(?!=)")
-                for rel in self.p.owner_files.get(f"src/rooms/{self.room}", ()):
-                    for n, line in enumerate(self.p.texts.get(rel, "").splitlines(), 1):
+                # Code, not data: the room's own writes to the map.
+                writer = re.compile(r"\b" + re.escape(info["symbol"]) + r"\s*\[[^\]]+\]\s*[|&+-]?=(?!=)")
+                for rel, text in self.p.code(self.room).items():
+                    for n, line in enumerate(text.splitlines(), 1):
                         if writer.search(line) and not line.lstrip().startswith(("u8", "static")):
                             block["mapWriters"].append({"file": rel, "line": n, "text": line.strip()})
-            if residency and index - 1 < len(residency) and count:
-                if list(residency[index - 1][:count]) != mapping[:count]:
-                    self.mismatches.append(f"room index {index}: view map differs from asset_residency.view_maps")
             reach = count or 0
             for group in boundaries:
                 if index in group["roomIndices"]:
@@ -1289,7 +1143,7 @@ class Scene:
                 else:
                     item["note"] = f"the room's folder has no file {file}: nothing is loaded for this view (src/main/fs.c), the camera still applies"
                 if cameras is not None and 1 <= file <= len(cameras):
-                    item["camera"] = self.camera(cameras[file - 1], camera_def, file - 1)
+                    item["camera"] = self.camera(cameras[file - 1], file - 1)
                 elif cameras is not None:
                     self.miss("views", f"room index {index} view {view}", f"file {file} is past the {len(cameras)}-entry camera array")
                 block["views"].append(item)
@@ -1297,11 +1151,9 @@ class Scene:
         return out
 
     @staticmethod
-    def camera(row: dict, d: Def | None, index: int) -> dict:
+    def camera(row: dict, index: int) -> dict:
         m, t = row["transform"]["m"], row["transform"]["t"]
         h = row["screenDistance"]
-        if any(not isinstance(c, (int, float)) for c in [*(c for line in m for c in line), *t, h]):
-            return None                 # a cell neither the C nor the package settles; the caller records the view without a camera
         unit = lambda r: [round(c / 4096, 6) for c in r]  # noqa: E731
         return {"index": index, "matrix": m, "translation": t, "position": [-t[0], -t[1], -t[2]], "screenDistance": h,
                 "right": unit(m[0]), "down": unit(m[1]), "forward": unit(m[2]),
@@ -1324,23 +1176,29 @@ class Scene:
             out["models"] = list(self.p.models_of.get(package, [])) if package else []
         return out
 
+    def task_table(self, address: int | None, package: str | None, loaded: list) -> tuple[str | None, str | None]:
+        """(name, actor) of a resource's task table: an address in the actor overlay the resource's file loads."""
+        if not address:
+            return None, None
+        if self.owner_of(address):
+            return self.ref(address, sizeof(TASK_DESC)), None
+        name, owner = self.foreign(address, [package, *loaded])
+        if name is None:
+            text = f"0x{address:08X}"
+            self.miss("placements", text, "task table address is named by no symbol map (this room's, its map overlay's, the loaded actors')")
+            return text, None
+        return name, self.p.actor_of(name) or (owner if owner and owner.startswith("actor_") else None)
+
     def placements(self) -> dict:
         out = {"table": None, "source": None, "variants": [], "defaultVariant": 1}
-        areas = self.p.stages.get(self.stage, {}).get("areas")
-        if areas is None:
-            self.miss("placements", "Gp_AreaTables", f"no area table found for stage {self.stage}")
+        record, _ = self.directory_entry("areas", "placements")
+        if record is None:
             return out
-        if self.area >= len(areas.init):
-            self.miss("placements", areas.symbol, f"the stage's area table has {len(areas.init)} entries; area {self.area} is past its end")
-            return out
-        record = areas.init[self.area]
-        self.cite("placements", {**areas.where(), "index": self.area})
-        symbol, _i = self.ref(record[0] if isinstance(record, list) and record else None)
-        if not symbol or symbol == "NULL":
+        if not record["variants"]:
             self.notes.append(f"placements: Gp_AreaTables[{self.stage}][{self.area}] has no variant table")
             return out
-        variants, d = self.table("placements", symbol, VARIANT)
-        out["table"], out["source"] = symbol, d.where() if d else None
+        variants, info = self.table("placements", record["variants"], VARIANT)
+        out["table"], out["source"] = self.ref(record["variants"]), info["where"] if info else None
         setters = self.p.setters()
         mine = list(setters["room"].get(self.room, []))
         actors_here = set()
@@ -1348,30 +1206,28 @@ class Scene:
             if index == 0 and not row["placements"] and not row["resources"]:
                 continue        # slot 0 is never a layout (include/gameplay/area.h)
             # A slot storing NULL/NULL is still a selectable variant: the room with nothing placed.
+            rsym, psym = self.ref(row["resources"], sizeof(RESOURCE)), self.ref(row["placements"], sizeof(PLACEMENT))
             entry = {"variant": index, "default": index == 1, "empty": not row["placements"] and not row["resources"],
-                     "placementsTable": row["placements"], "resourcesTable": row["resources"],
+                     "placementsTable": psym, "resourcesTable": rsym,
                      "resources": [], "placed": [], "setters": [], "hasSetter": False}
             resources = {}
-            rsym, rstart = self.ref(row["resources"])
-            rrows, rd = self.table("placements", rsym, RESOURCE, start=rstart, stop=lambda r: r["entryId"] == 0xFF) if rsym else (None, None)
-            entry["resourcesSource"] = rd.where() if rd else None
-            for r in rrows or []:
-                if r["entryId"] == 0xFF:
-                    break
-                task = self.ref(r["taskTable"])[0]
-                actor = self.p.actor_of(task) if task else None
+            rrows, rinfo = self.table("placements", row["resources"], RESOURCE, stop=lambda r: r["entryId"] == 0xFF) if rsym else (None, None)
+            entry["resourcesSource"] = rinfo["where"] if rinfo else None
+            rrows = [r for r in rrows or [] if r["entryId"] != 0xFF]
+            files = [self.resolve_file(r) for r in rrows]
+            for r, file in zip(rrows, files):
+                task, actor = self.task_table(r["taskTable"], file["package"], [f["package"] for f in files])
                 item = {"entryId": r["entryId"], "fileNumber": r["fileNumber"], "fileGroupIndex": r["fileGroupIndex"],
-                        "groupBase": GROUP_BASE[r["fileGroupIndex"]] if isinstance(r["fileGroupIndex"], int) and r["fileGroupIndex"] < len(GROUP_BASE) else None,
-                        "taskIndex": r["taskIndex"], "taskTable": r["taskTable"], "actor": actor, **self.resolve_file(r)}
+                        "groupBase": GROUP_BASE[r["fileGroupIndex"]] if r["fileGroupIndex"] < len(GROUP_BASE) else None,
+                        "taskIndex": r["taskIndex"], "taskTable": task, "actor": actor, **file}
                 if item["fileExists"] is False:
                     item["note"] = "the disc has no file with this id: nothing is loaded for it (src/main/fs.c)"
                 if actor:
                     actors_here.add(actor)
                 resources.setdefault(r["entryId"], (r, item))
                 entry["resources"].append(item)
-            psym, pstart = self.ref(row["placements"])
-            prows, pd = self.table("placements", psym, PLACEMENT, start=pstart, stop=lambda r: r["entryId"] == 0xFF) if psym else (None, None)
-            entry["placementsSource"] = pd.where() if pd else None
+            prows, pinfo = self.table("placements", row["placements"], PLACEMENT, stop=lambda r: r["entryId"] == 0xFF) if psym else (None, None)
+            entry["placementsSource"] = pinfo["where"] if pinfo else None
             for i, r in enumerate(prows or []):
                 if r["entryId"] == 0xFF:
                     break
@@ -1412,34 +1268,30 @@ class Scene:
 
     def objects(self) -> dict:
         out = {"placesTable": None, "spawnsTable": None, "items": [], "spawns": [], "roomModels": []}
-        entry, _ = self.directory_entry("objects", "objects")
+        row, _ = self.directory_entry("objects", "objects")
         placed_models = set()
-        if isinstance(entry, list) and entry:
-            consts = self.p.consts_for(self.p.stages[self.stage]["objects"].path)
-            row = from_c(OBJECT_ROOM, Cursor([entry]), consts)
+        if row:
             spawns = {}
-            ssym = self.ref(row["spawns"])[0]
-            if ssym:
-                srows, sd = self.table("objects", ssym, OBJECT_SPAWN, stop=lambda r: r["kind"] == 0xFFFF)
-                out["spawnsTable"] = ssym
+            if row["spawns"]:
+                srows, sinfo = self.table("objects", row["spawns"], OBJECT_SPAWN, stop=lambda r: r["kind"] == 0xFFFF)
+                out["spawnsTable"] = self.ref(row["spawns"], sizeof(OBJECT_SPAWN))
                 for r in srows or []:
                     if r["kind"] == 0xFFFF:
                         break
                     task = r["taskDesc"]
                     flags = task["header"]["flags"]
-                    model = task["data"] if isinstance(task["data"], str) else None
-                    key = self.model_key(model) if model and (flags & 0xFF) == 1 else None
+                    model = self.ref(task["data"]) if is_pointer(task["data"]) else None
+                    key = self.model_key(task["data"]) if model and (flags & 0xFF) == 1 else None
                     if key:
                         placed_models.add(key)
-                    spawn = {"kind": r["kind"], "body": {0: "none", 1: "tmd", 2: "coord"}.get(flags & 0xFF, flags & 0xFF) if isinstance(flags, int) else flags,
-                             "bodyFlags": flags, "priority": task["header"]["priority"], "callback": task["callback"], "model": model, "modelKey": key,
-                             "data": task["data"] if not isinstance(task["data"], str) else None}
+                    spawn = {"kind": r["kind"], "body": {0: "none", 1: "tmd", 2: "coord"}.get(flags & 0xFF, flags & 0xFF),
+                             "bodyFlags": flags, "priority": task["header"]["priority"], "callback": self.ref(task["callback"]), "model": model, "modelKey": key,
+                             "data": task["data"] if model is None else None}
                     spawns.setdefault(r["kind"], spawn)
                     out["spawns"].append(spawn)
-            psym = self.ref(row["places"])[0] if isinstance(row["places"], str) else None
-            if psym:
-                prows, pd = self.table("objects", psym, OBJECT_PLACE, stop=lambda r: r["flagIndex"] == 0xFFFF)
-                out["placesTable"] = psym
+            if is_pointer(row["places"]):
+                prows, pinfo = self.table("objects", row["places"], OBJECT_PLACE, stop=lambda r: r["flagIndex"] == 0xFFFF)
+                out["placesTable"] = self.ref(row["places"], sizeof(OBJECT_PLACE))
                 for i, r in enumerate(prows or []):
                     if r["flagIndex"] == 0xFFFF:
                         break
@@ -1452,23 +1304,23 @@ class Scene:
             out["roomModels"].append({"key": key, "address": f"0x{self.p.embedded[key]['vram']:08X}", "spawnedByObjectTable": key in placed_models})
         return out
 
-    def model_key(self, symbol: str) -> str | None:
-        """The asset key of the model a TmdSource symbol draws: its stream, matched to the catalogue."""
-        symbol = symbol.lstrip("&")
-        owner = self.room if symbol in self.p.symbols(self.room) else self.p.actor_of(symbol)
+    def model_key(self, address: int) -> str | None:
+        """The asset key of the model a TmdSource record draws: its stream, matched to the catalogue."""
+        text = self.ref(address)
+        owner = self.owner_of(address)
         if owner is None:
-            self.miss("objects", symbol, "model source is in no symbol map (this room's or an actor's)")
-            return None
-        if owner != self.room:
-            # An actor overlay's model: its symbol map gives the stream's address, which is the catalogue's.
-            stream = self.p._actor_symbols(owner).get(f"_{symbol}Stream")
+            # An actor overlay's model: the map naming it says whose, and the record's stream word is the catalogue's address.
+            _name, owner = self.foreign(address)
+            stream = self.p.word(owner, address + 0x20) if owner in self.p.load_of else None
             key = self.p.model_at.get((owner, stream))
-            if key is None:
-                self.miss("objects", symbol, f"its stream in {owner} is not a catalogued model")
+            if owner is None:
+                self.miss("objects", text, "model source is in no mapped image and no symbol map says whose it is")
+            elif key is None:
+                self.miss("objects", text, f"its stream in {owner} is not a catalogued model")
             return key
-        address, data, load = self.p.symbols(self.room)[symbol], self.p.package(self.room), self.p.load["rooms"]
-        if data is None or not 0 <= address - load + 0x24 <= len(data):
-            self.miss("objects", symbol, "model source address is outside this room's package")
+        data, load = self.p.package(self.room), self.p.load["rooms"]
+        if owner != self.room or address - load + 0x24 > len(data):
+            self.miss("objects", text, "model source address is outside this room's package")
             return None
         stream = struct.unpack_from("<I", data, address - load + 0x20)[0]
         key = self.p.model_at.get((self.room, stream))
@@ -1479,7 +1331,7 @@ class Scene:
             except Exception:  # noqa: BLE001 - an unreadable stream is reported below
                 key = None
         if key is None:
-            self.miss("objects", symbol, f"its stream at 0x{stream:08X} is not a catalogued model")
+            self.miss("objects", text, f"its stream at 0x{stream:08X} is not a catalogued model")
         return key
 
     # ---- checks
@@ -1633,6 +1485,7 @@ def report(scenes: dict[str, dict], errors: dict[str, str]) -> tuple[dict, str]:
     yaw = Counter()
     quads = Counter()
     verify = Counter()
+    lengths = Counter()
     mismatches = []
     for room, s in scenes.items():
         cams["views"] += s["checks"]["camerasResolved"]["views"]
@@ -1641,9 +1494,9 @@ def report(scenes: dict[str, dict], errors: dict[str, str]) -> tuple[dict, str]:
         yaw["agree"] += s["checks"]["warpYawAgreesWithTrigger"]["agree"]
         quads["quads"] += s["checks"]["gridQuadsConvexInStripOrder"]["quads"]
         quads["convex"] += s["checks"]["gridQuadsConvexInStripOrder"]["convex"]
-        verify["compared"] += s["verification"]["recordsComparedWithPackage"]
-        verify["fromPackage"] += s["verification"]["valuesTakenFromPackage"]
-        mismatches += [f"{room}: {m}" for m in s["verification"]["mismatches"]]
+        verify["read"] += s["verification"]["recordsReadFromPackage"]
+        lengths.update(s["verification"]["tableLengthsBy"])
+        mismatches = s["verification"]["mismatches"]        # the pinned roots, the same list in every scene
     lines += ["", "sanity checks (XZ distance outside the union of the room's grid bounds):"]
     for key, c in checks.items():
         lines.append(f"  {key:<14} {c['count']:>5} points, {c['insideGridBoundsXZ']:>5} inside; outside: {c['outside'] or 'none'}")
@@ -1653,12 +1506,12 @@ def report(scenes: dict[str, dict], errors: dict[str, str]) -> tuple[dict, str]:
               f"  cameras        {cams['withCamera']} of {cams['views']} mapped views have a camera record",
               f"  warp yaw       {yaw['agree']} of {yaw['compared']} warp triggers agree with forward(yaw) = (sin, 0, cos) of their departure endpoint",
               f"  grid quads     {quads['convex']} of {quads['quads']} are convex in strip order (loop 1, 0, 2, 3)",
-              f"  C vs package   {verify['compared']} records compared, {verify['fromPackage']} values taken from the package, {len(mismatches)} mismatches"]
+              f"  package bytes  {verify['read']} records read; table lengths by {dict(lengths)}; {len(mismatches)} pinned roots disagree with gameplay"]
     lines += [f"      {m}" for m in mismatches[:40]]
     summary = {"rooms": len(scenes), "errors": errors, "coverage": {b: dict(table[b]) for b in BLOCKS},
                "failures": [{"room": r, "block": b, "unresolved": u} for r, b, u in failures], "checks": checks,
-               "viewFilesMissing": missing, "cameras": dict(cams), "warpYaw": dict(yaw), "gridQuads": dict(quads), "verification": dict(verify),
-               "mismatches": mismatches}
+               "viewFilesMissing": missing, "cameras": dict(cams), "warpYaw": dict(yaw), "gridQuads": dict(quads),
+               "verification": {**dict(verify), "tableLengthsBy": dict(lengths)}, "mismatches": mismatches}
     return summary, "\n".join(lines) + "\n"
 
 
@@ -1670,6 +1523,10 @@ def main() -> int:
     parser.add_argument("--indent", type=int, default=None, help="pretty-print with this indent")
     args = parser.parse_args()
     project = Project()
+    roots = {"gameplay": {kind: {"address": f"0x{root[0]:08X}", "symbol": project.maps.find(GAMEPLAY, root[0])[0]} for kind, root in GAMEPLAY_ROOTS.items()},
+             "identityMap": {"address": f"0x{IDENTITY_MAP:08X}", "symbol": project.maps.find(GAMEPLAY, IDENTITY_MAP)[0]},
+             "stages": {stage: {kind: ({**d, "address": f"0x{d['address']:08X}"} if isinstance(d, dict) else d) for kind, d in entry.items()}
+                        for stage, entry in project.stages.items()}}
     if args.all:
         if args.out is None:
             parser.error("--all needs --out DIR")
@@ -1683,6 +1540,7 @@ def main() -> int:
                 continue
             (args.out / f"{room}.json").write_text(json.dumps(scenes[room], indent=args.indent, separators=None if args.indent else (",", ":")) + "\n")
         summary, text = report(scenes, errors)
+        summary["roots"] = roots
         (args.out / "_report.json").write_text(json.dumps(summary, indent=1) + "\n")
         (args.out / "_report.txt").write_text(text)
         sys.stdout.write(text)
