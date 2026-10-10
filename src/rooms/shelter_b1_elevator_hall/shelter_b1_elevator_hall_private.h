@@ -10,13 +10,35 @@
 
 #include "rooms/room_common.h"
 
-extern TaskDesc D_shelter_b1_elevator_hall_80182CAC;
+/// Bodyless priority-32 recipe for the hall's elevator floor-selection task.
+///
+/// Spawn at index 0 after starting the floor-choice CAP. The first argument is
+/// the sound-script ID to await before travel; the second argument is unused.
+/// The task borrows this overlay's callback until it reloads or is cancelled.
+extern TaskDesc gShelterB1ElevatorHallElevatorTaskDesc;
 
-extern TaskMessageEntry D_shelter_b1_elevator_hall_80182CB8[6];
+/// Five synchronous room-message handlers followed by the unsupported-ID sentinel.
+///
+/// Resolves borrowed room-transition request/reply records, refuses key-item
+/// use, ignores direction actions and room commands, and dispatches sound cues.
+/// The room task borrows this read-only table and callbacks while the overlay
+/// is loaded. Never dispatch `TASK_MESSAGE_TABLE_END`.
+extern TaskMessageEntry gShelterB1ElevatorHallRoomMessages[6];
 
-extern TaskDesc D_shelter_b1_elevator_hall_80182CE8;
+/// Bodyless priority-32 recipe for the deferred passage to the mine.
+///
+/// Spawn at index 0 with unused zero payloads after saving the resolved
+/// destination and holding player control. Only one passage may run at once:
+/// it borrows the hall's destination and fade storage through room reload.
+extern TaskDesc gShelterB1ElevatorHallMineTransitTaskDesc;
 
-extern RoomFadeStorage D_shelter_b1_elevator_hall_801849F0;
+/// Singleton fade control and its adjoining unused word for passage to the mine.
+///
+/// The passage initializes `fade` to a 30-frame subtractive ramp and lends it
+/// to the full-screen fade task until room reload tears the tasks down.
+/// Keep the overlay loaded and do not reuse this storage during the passage.
+/// The following word has no established role and is never accessed here.
+extern RoomFadeStorage gShelterB1ElevatorHallMineTransitFade;
 
 // Callbacks referenced by the overlay's shared data tables.
 

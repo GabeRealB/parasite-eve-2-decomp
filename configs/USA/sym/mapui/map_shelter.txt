@@ -80,10 +80,10 @@ gMineSecretPassageSpriteViews = 0x80182994; // absolute:True owner=mine_secret_p
 gMineSecretPassageSurfacePropertiesByClass = 0x80183420; // absolute:True owner=mine_secret_passage shared=rooms
 shelterB1ElevatorHallRoomTask = 0x8017DC28; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 gShelterB1ElevatorHallRoomLighting = 0x80182DF8; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
-D_shelter_b1_elevator_hall_80182E00 = 0x80182E00; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
+gShelterB1ElevatorHallRoomCollisionResources = 0x80182E00; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
 gShelterB1ElevatorHallRoomViewMaps = 0x80182E10; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
-D_shelter_b1_elevator_hall_80182E14 = 0x80182E14; // absolute:True owner=shelter_b1_elevator_hall
-D_shelter_b1_elevator_hall_80182E18 = 0x80182E18; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
+gShelterB1ElevatorHallRoomViewCounts = 0x80182E14; // absolute:True owner=shelter_b1_elevator_hall
+gShelterB1ElevatorHallWarpEntries = 0x80182E18; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
 gShelterB1ElevatorHallViewCameras = 0x80183438; // absolute:True owner=shelter_b1_elevator_hall
 gShelterB1ElevatorHallSpriteViews = 0x80183CC4; // absolute:True owner=shelter_b1_elevator_hall
 gShelterB1ElevatorHallSurfacePropertiesByClass = 0x801849D0; // absolute:True owner=shelter_b1_elevator_hall

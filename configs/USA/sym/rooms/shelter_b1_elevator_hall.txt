@@ -3,10 +3,10 @@ D_shelter_b1_elevator_hall_801849F8 = 0x801849F8; // size:0x8 defined:True
 _gShelterB1ElevatorHallGlowEndpointPairs = 0x80182CF4; // size:0xE0 defined:True
 _gRoomVisualEffectsHaloShades = 0x80182DD4; // size:0x14 defined:True
 gShelterB1ElevatorHallRoomLighting = 0x80182DF8; // size:0x8 defined:True
-D_shelter_b1_elevator_hall_80182E00 = 0x80182E00; // size:0x10 defined:True
+gShelterB1ElevatorHallRoomCollisionResources = 0x80182E00; // size:0x10 defined:True
 gShelterB1ElevatorHallRoomViewMaps = 0x80182E10; // size:0x4 defined:True
-D_shelter_b1_elevator_hall_80182E14 = 0x80182E14; // size:0x2 defined:True
-D_shelter_b1_elevator_hall_80182E18 = 0x80182E18; // size:0xE0 defined:True
+gShelterB1ElevatorHallRoomViewCounts = 0x80182E14; // size:0x2 defined:True
+gShelterB1ElevatorHallWarpEntries = 0x80182E18; // size:0xE0 defined:True
 _gShelterB1ElevatorHallCollisionGridNormals = 0x80182EF8; // size:0x40 defined:True
 _gShelterB1ElevatorHallCollisionGridVerts = 0x80182F38; // size:0x1D0 defined:True
 _gShelterB1ElevatorHallCollisionGridFaces = 0x80183108; // size:0x180 defined:True
@@ -30,34 +30,34 @@ _gShelterB1ElevatorHallView9SpriteBatches = 0x80183CB4; // size:0x10 defined:Tru
 gShelterB1ElevatorHallSpriteViews = 0x80183CC4; // size:0x6C defined:True
 _gShelterB1ElevatorHallPointLights = 0x80183D30; // size:0x540 defined:True
 _gShelterB1ElevatorHallRoomLights = 0x80184270; // size:0x18 defined:True
-D_shelter_b1_elevator_hall_80184288 = 0x80184288; // size:0x2F8 defined:True
-D_shelter_b1_elevator_hall_80184580 = 0x80184580; // size:0x1C8 defined:True
-D_shelter_b1_elevator_hall_80184748 = 0x80184748; // size:0x3C defined:True
-D_shelter_b1_elevator_hall_80184784 = 0x80184784; // size:0x18 defined:True
-D_shelter_b1_elevator_hall_8018479C = 0x8018479C; // size:0x18 defined:True
-D_shelter_b1_elevator_hall_801847B4 = 0x801847B4; // size:0x18 defined:True
-D_shelter_b1_elevator_hall_801847CC = 0x801847CC; // size:0x24 defined:True
-D_shelter_b1_elevator_hall_801847F0 = 0x801847F0; // size:0x40 defined:True
-D_shelter_b1_elevator_hall_80184830 = 0x80184830; // size:0x30 defined:True
-D_shelter_b1_elevator_hall_80184860 = 0x80184860; // size:0xB0 defined:True
-D_shelter_b1_elevator_hall_80184910 = 0x80184910; // size:0x30 defined:True
-D_shelter_b1_elevator_hall_80184940 = 0x80184940; // size:0x60 defined:True
+_gShelterB1ElevatorHallViewBoundaryTriggers = 0x80184288; // size:0x2F8 defined:True
+_gShelterB1ElevatorHallActionTriggers = 0x80184580; // size:0x1C8 defined:True
+_gShelterB1ElevatorHallOccluders = 0x80184748; // size:0x3C defined:True
+_gShelterB1ElevatorHallZebraStalkerResources = 0x80184784; // size:0x18 defined:True
+_gShelterB1ElevatorHallBrainStingerResources = 0x8018479C; // size:0x18 defined:True
+_gShelterB1ElevatorHallWatcherResources = 0x801847B4; // size:0x18 defined:True
+_gShelterB1ElevatorHallGolemResources = 0x801847CC; // size:0x24 defined:True
+_gShelterB1ElevatorHallZebraStalkerPlacements = 0x801847F0; // size:0x40 defined:True
+_gShelterB1ElevatorHallBrainStingerPlacements = 0x80184830; // size:0x30 defined:True
+_gShelterB1ElevatorHallWatcherPlacements = 0x80184860; // size:0xB0 defined:True
+_gShelterB1ElevatorHallGolemPlacements = 0x80184910; // size:0x30 defined:True
+gShelterB1ElevatorHallAreaVariants = 0x80184940; // size:0x60 defined:True
 _gShelterB1ElevatorHallSurface1Footsteps = 0x801849A0; // size:0xC defined:True
 _gShelterB1ElevatorHallSurface2Footsteps = 0x801849AC; // size:0xC defined:True
 _gShelterB1ElevatorHallSilentSurfaceProperties = 0x801849B8; // size:0x8 defined:True
 _gShelterB1ElevatorHallSurface1Properties = 0x801849C0; // size:0x8 defined:True
 _gShelterB1ElevatorHallSurface2Properties = 0x801849C8; // size:0x8 defined:True
 gShelterB1ElevatorHallSurfacePropertiesByClass = 0x801849D0; // size:0x20 defined:True
-D_shelter_b1_elevator_hall_801849F0 = 0x801849F0; // size:0x8 defined:True
+gShelterB1ElevatorHallMineTransitFade = 0x801849F0; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
 gActor102300RookGolemTasks = 0x80147AB8; // absolute:True owner=actor_102300
 gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gActor205600PawnGolemTasks = 0x801602C0; // absolute:True owner=actor_205600
-D_shelter_b1_elevator_hall_80182CAC = 0x80182CAC; // size:0xC defined:True
-D_shelter_b1_elevator_hall_80182CB8 = 0x80182CB8; // size:0x30 defined:True
-D_shelter_b1_elevator_hall_80182CE8 = 0x80182CE8; // size:0xC defined:True
+gShelterB1ElevatorHallElevatorTaskDesc = 0x80182CAC; // size:0xC defined:True
+gShelterB1ElevatorHallRoomMessages = 0x80182CB8; // size:0x30 defined:True
+gShelterB1ElevatorHallMineTransitTaskDesc = 0x80182CE8; // size:0xC defined:True
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80182DE8; // size:0x10 defined:True
 
 shelterB1ElevatorHallRoomVisualEffectsFlashTask = 0x80180D18; // type:func

@@ -66,7 +66,7 @@ s32 shelterB1ElevatorHallResolveRoomTransition(Task* task, s32 messageId, RoomEv
         } else {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 capRunCommand(CAP_COMMAND_ELEVATOR_RIDE, CAP_PLAYBACK_IN_PLACE);
-                taskSpawnFromTable(&D_shelter_b1_elevator_hall_80182CAC, 0, SOUND_SHELTER_B1_ELEVATOR_RIDE, 0);
+                taskSpawnFromTable(&gShelterB1ElevatorHallElevatorTaskDesc, 0, SOUND_SHELTER_B1_ELEVATOR_RIDE, 0);
             }
         }
         return TRANSITION_REFUSED;
@@ -78,7 +78,7 @@ s32 shelterB1ElevatorHallResolveRoomTransition(Task* task, s32 messageId, RoomEv
             D_shelter_b1_elevator_hall_801849F8.field_4           = reply->warp;
             ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1] = reply->room;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&D_shelter_b1_elevator_hall_80182CE8, 0, 0, 0);
+            taskSpawnFromTable(&gShelterB1ElevatorHallMineTransitTaskDesc, 0, 0, 0);
         }
         return TRANSITION_DEFERRED;
     }
@@ -147,10 +147,10 @@ void shelterB1ElevatorHallMineTransitTask(Task* task)
             task->state++;
             break;
         case MINE_TRANSIT_START_FADE:
-            D_shelter_b1_elevator_hall_801849F0.fade.blend      = SCREEN_FADE_SUBTRACT;
-            D_shelter_b1_elevator_hall_801849F0.fade.phase      = SCREEN_FADE_RUNNING;
-            D_shelter_b1_elevator_hall_801849F0.fade.rampFrames = FADE_RAMP_FRAMES;
-            taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &D_shelter_b1_elevator_hall_801849F0.fade);
+            gShelterB1ElevatorHallMineTransitFade.fade.blend      = SCREEN_FADE_SUBTRACT;
+            gShelterB1ElevatorHallMineTransitFade.fade.phase      = SCREEN_FADE_RUNNING;
+            gShelterB1ElevatorHallMineTransitFade.fade.rampFrames = FADE_RAMP_FRAMES;
+            taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &gShelterB1ElevatorHallMineTransitFade.fade);
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_ELEV_HALL_MINE_TRANSIT, 0, 0);
             task->state++;
             break;
@@ -214,7 +214,7 @@ static void _shelterB1ElevatorHallInitRoomTask(Task* task)
            ROOM_VISITED          = 1,
            FIRST_VISIT_OBJECTIVE = 0x1D };
 
-    task->msgTable = D_shelter_b1_elevator_hall_80182CB8;
+    task->msgTable = gShelterB1ElevatorHallRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED) == ROOM_UNVISITED) {
         gameFlagSetNibble(GAME_FLAG_SHELTER_B1_ELEVATOR_HALL_VISITED, ROOM_VISITED);

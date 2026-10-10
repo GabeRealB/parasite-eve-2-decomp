@@ -11,7 +11,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_elevator_hall_80184940[12];
+/// Encounter layouts indexed by the hall's saved placement variant, in 0..11.
+///
+/// Slots 2, 3, 4 and 11 contain three Zebra Stalkers, two Brain Stingers,
+/// ten Watchers and a Rook/Pawn GOLEM pair respectively; other slots are empty.
+/// Placement and resource lists include their own end records. The directory,
+/// lists and referenced actor packages must remain loaded while used.
+extern AreaVariant gShelterB1ElevatorHallAreaVariants[12];
 
 // shelter_b1_elevator_hall
 /// Lighting for the hall's single room, indexed by room ID minus one.
@@ -20,7 +26,12 @@ extern AreaVariant D_shelter_b1_elevator_hall_80184940[12];
 /// minima. The descriptor and light storage remain valid while this overlay is loaded.
 extern WorldCoordRoomLighting gShelterB1ElevatorHallRoomLighting[1];
 
-extern WorldCollisionRoomResources D_shelter_b1_elevator_hall_80182E00[];
+/// Collision resources for the hall's single room, indexed by room ID minus one.
+///
+/// Borrows the grid, ten view boundaries, six action triggers and one sight
+/// occluder. Setup mutates and links the trigger and occluder arrays through
+/// their last records. Keep the room overlay loaded until all are unlinked.
+extern WorldCollisionRoomResources gShelterB1ElevatorHallRoomCollisionResources[1];
 
 /// Logical-view map for the hall's single room, indexed by room ID minus one.
 ///
@@ -29,9 +40,19 @@ extern WorldCollisionRoomResources D_shelter_b1_elevator_hall_80182E00[];
 /// the shared byte map belongs to gameplay and has no terminator.
 extern u8* gShelterB1ElevatorHallRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_elevator_hall_80182E14[];
+/// Nine logical views for the hall's single room, indexed by room ID minus one.
+///
+/// Limits reverse searches through the borrowed identity view map to slots
+/// 1..9. The count array has no terminator and belongs to this loaded overlay.
+extern ViewCount gShelterB1ElevatorHallRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_elevator_hall_80182E18[];
+/// Four warp endpoints: mine passage, main corridor, elevator and south walkway.
+///
+/// Indexed by warp ID minus one, in 0..3, without a terminator. Each endpoint
+/// supplies player/companion world positions and facing, the initial view,
+/// stage-4 area-9 sound cues and departure options. Corridor and elevator
+/// arrivals update their map markers. Borrow only while this overlay is loaded.
+extern DirectionWarpEntry gShelterB1ElevatorHallWarpEntries[4];
 
 /// Nine cameras selected by the hall's mapped view index minus one.
 ///

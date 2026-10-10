@@ -285,7 +285,7 @@ gNeoArkWoodlandPathViewBoundaryTriggers = 0x80183F9C; // absolute:True owner=neo
 gNeoArkWoodlandPathActionTriggers = 0x8018445C; // absolute:True owner=neo_ark_woodland_path
 gNeoArkWoodlandPathRoomAmbientByView = 0x8018477C; // absolute:True owner=neo_ark_woodland_path shared=rooms
 gNeoArkWoodlandPathSightOccluders = 0x801847D4; // absolute:True owner=neo_ark_woodland_path
-gNeoArkWoodlandPathSurfaceProperties = 0x80184910; // absolute:True owner=neo_ark_woodland_path shared=rooms
+gNeoArkWoodlandPathSurfaceProperties = 0x80184910; // absolute:True owner=neo_ark_woodland_path
 neoArkSubmarineGalleryMessageTask = 0x8017EBCC; // type:func absolute:True owner=neo_ark_submarine_gallery
 gNeoArkSubmarineGalleryViewMaps = 0x80181A08; // absolute:True owner=neo_ark_submarine_gallery
 D_neo_ark_submarine_gallery_80181A0C = 0x80181A0C; // absolute:True owner=neo_ark_submarine_gallery
