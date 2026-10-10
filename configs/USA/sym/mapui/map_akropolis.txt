@@ -179,7 +179,7 @@ gMistR18CollisionRoomResources = 0x8018660C; // absolute:True owner=mist_r18 sha
 gMistR18ViewMaps = 0x8018661C; // absolute:True owner=mist_r18
 gMistR18ViewCounts = 0x80186620; // absolute:True owner=mist_r18
 gMistR18RoomLightingTable = 0x80186624; // absolute:True owner=mist_r18
-gMistR18WarpEntries = 0x8018662C; // absolute:True owner=mist_r18 shared=rooms
+gMistR18WarpEntries = 0x8018662C; // absolute:True owner=mist_r18
 gMistR18ViewCameras = 0x8018671C; // absolute:True owner=mist_r18 shared=rooms
 gMistR18SpriteViews = 0x80186B60; // absolute:True owner=mist_r18
 gMistR18SurfacePropertiesByClass = 0x80186E70; // absolute:True owner=mist_r18 shared=rooms

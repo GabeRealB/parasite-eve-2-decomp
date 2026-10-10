@@ -191,8 +191,8 @@ gNeoArkShrineRoomLighting = 0x80182784; // absolute:True owner=neo_ark_shrine
 gNeoArkShrineViewMaps = 0x801827F0; // absolute:True owner=neo_ark_shrine
 D_neo_ark_shrine_80182808 = 0x80182808; // absolute:True owner=neo_ark_shrine
 D_neo_ark_shrine_80182814 = 0x80182814; // absolute:True owner=neo_ark_shrine shared=rooms
-D_neo_ark_shrine_801836BC = 0x801836BC; // absolute:True owner=neo_ark_shrine
-D_neo_ark_shrine_80185280 = 0x80185280; // absolute:True owner=neo_ark_shrine
+gNeoArkShrineViewCameras = 0x801836BC; // absolute:True owner=neo_ark_shrine
+gNeoArkShrineSpriteViews = 0x80185280; // absolute:True owner=neo_ark_shrine
 gNeoArkShrineSurfaceProperties = 0x80186844; // absolute:True owner=neo_ark_shrine shared=rooms
 shelterB6NurseryRoomTask = 0x8017FF9C; // type:func absolute:True owner=shelter_b6_nursery
 D_shelter_b6_nursery_80185304 = 0x80185304; // absolute:True owner=shelter_b6_nursery shared=rooms
@@ -236,7 +236,7 @@ D_shelter_b6_training_room_8018441C = 0x8018441C; // absolute:True owner=shelter
 D_shelter_b6_training_room_80184420 = 0x80184420; // absolute:True owner=shelter_b6_training_room
 D_shelter_b6_training_room_80184734 = 0x80184734; // absolute:True owner=shelter_b6_training_room shared=rooms
 D_shelter_b6_training_room_80184758 = 0x80184758; // absolute:True owner=shelter_b6_training_room shared=rooms
-D_shelter_b6_training_room_80184D78 = 0x80184D78; // absolute:True owner=shelter_b6_training_room shared=rooms
+D_shelter_b6_training_room_80184D78 = 0x80184D78; // absolute:True owner=shelter_b6_training_room
 D_shelter_b6_training_room_80185768 = 0x80185768; // absolute:True owner=shelter_b6_training_room
 D_shelter_b6_training_room_80185780 = 0x80185780; // absolute:True owner=shelter_b6_training_room shared=rooms
 D_shelter_b6_training_room_80185A44 = 0x80185A44; // absolute:True owner=shelter_b6_training_room

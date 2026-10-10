@@ -153,14 +153,6 @@ static void _actionPromptResetDefault(Task* task);
 static void _neoArkShrineUpdateFallingPropLighting(Task* task);
 static void _neoArkShrineDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
-extern SVECTOR D_neo_ark_shrine_8018268C[];
-extern SVECTOR D_neo_ark_shrine_80182694[];
-extern SVECTOR D_neo_ark_shrine_8018269C[];
-extern SVECTOR D_neo_ark_shrine_801826AC[];
-extern SVECTOR D_neo_ark_shrine_801826C4[];
-extern SVECTOR D_neo_ark_shrine_801826D4[];
-extern SVECTOR D_neo_ark_shrine_80182704[];
-
 /// Offset of the beam's near end from the effect's parent coordinate. The far
 /// end's offset follows it directly; the beam's set-up state reaches that one
 /// as element 1.
@@ -217,7 +209,7 @@ static const TaskFuncTable3 D_neo_ark_shrine_8017D620 = {
     { _neoArkShrineInitializeSecondFallingProp, _neoArkShrineDropSecondProp, taskKill },
 };
 
-extern WorldCollisionGrid     D_neo_ark_shrine_80182D2C[1];
+static WorldCollisionGrid     _gNeoArkShrineBaseCollisionGrid;
 extern WorldCollisionGrid     D_neo_ark_shrine_801831D8[1];
 extern WorldCollisionGrid     D_neo_ark_shrine_80183698[1];
 extern WorldCollisionOccluder D_neo_ark_shrine_80186730[4];
@@ -227,40 +219,27 @@ extern WorldCollisionTrigger  D_neo_ark_shrine_80186154[8];
 extern WorldCollisionTrigger  D_neo_ark_shrine_801863B4[8];
 static WorldCoordRoomLights   _gNeoArkShrineRoomLights;
 
-SVECTOR D_neo_ark_shrine_8018268C[1] = {
+/// Seventeen fixed shrine flare centres in signed world-coordinate units.
+///
+/// Mapped views select overlapping subsets of this single array. Entries
+/// 0..14 use flare texture 1; entries 15..16 use texture 0 in views 10 and 17.
+/// Storage remains in the loaded room's data segment throughout drawing.
+static SVECTOR _gNeoArkShrineFlarePositions[] = {
     { 3560, -1200, 6310, 0 },
-};
-
-SVECTOR D_neo_ark_shrine_80182694[1] = {
     { 4990, -1200, 6280, 0 },
-};
-
-SVECTOR D_neo_ark_shrine_8018269C[2] = {
     { 3560, -1200, 3690, 0 },
     { 4920, -1200, 3690, 0 },
-};
-
-SVECTOR D_neo_ark_shrine_801826AC[3] = {
     { 5770, -1200, 2980, 0 },
     { 5790, -1200, 1740, 0 },
     { 5780, -1200, 440, 0 },
-};
-
-SVECTOR D_neo_ark_shrine_801826C4[2] = {
     { 8320, -1200, 5070, 0 },
     { 8340, -1200, 3610, 0 },
-};
-
-SVECTOR D_neo_ark_shrine_801826D4[6] = {
     { 9060, -1200, 2750, 0 },
-    { 0x28BE, -1200, 2880, 0 },
-    { 0x2DBE, -1200, 2750, 0 },
+    { 10430, -1200, 2880, 0 },
+    { 11710, -1200, 2750, 0 },
     { 9060, -1200, 260, 0 },
-    { 0x28AA, -1200, 260, 0 },
-    { 0x2DBE, -1200, 260, 0 },
-};
-
-SVECTOR D_neo_ark_shrine_80182704[2] = {
+    { 10410, -1200, 260, 0 },
+    { 11710, -1200, 260, 0 },
     { 6300, -1870, -4490, 0 },
     { 7760, -1880, -4490, 0 },
 };
@@ -268,10 +247,10 @@ SVECTOR D_neo_ark_shrine_80182704[2] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_neo_ark_shrine_80182724[6] = {
-    { D_neo_ark_shrine_80182D2C, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80185EA8, D_neo_ark_shrine_80186730 },
+    { &_gNeoArkShrineBaseCollisionGrid, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80185EA8, D_neo_ark_shrine_80186730 },
     { D_neo_ark_shrine_801831D8, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80186154, D_neo_ark_shrine_80186730 },
     { D_neo_ark_shrine_80183698, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_801863B4, D_neo_ark_shrine_80186730 },
-    { D_neo_ark_shrine_80182D2C, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80185EA8, D_neo_ark_shrine_80186730 },
+    { &_gNeoArkShrineBaseCollisionGrid, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80185EA8, D_neo_ark_shrine_80186730 },
     { D_neo_ark_shrine_801831D8, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_80186154, D_neo_ark_shrine_80186730 },
     { D_neo_ark_shrine_80183698, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_801863B4, D_neo_ark_shrine_80186730 },
 };
@@ -382,30 +361,55 @@ DirectionWarpEntry D_neo_ark_shrine_80182814[3] = {
     { { { .word = 2048 }, 6950, 0, -3700 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6950, 0, -3700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkShrineCollision0576CNormals[10] = {
+/// Cell dimensions of the base-layout collision grid's X-major directory.
+enum {
+    NEO_ARK_SHRINE_BASE_COLLISION_CELLS_X = 4,
+    NEO_ARK_SHRINE_BASE_COLLISION_CELLS_Z = 3,
+};
+
+/// Base-layout collision normals in room axes, with ONE for unit length.
+static SVECTOR _gNeoArkShrineBaseCollisionGridNormals[] = {
 #include "assets/neo_ark_shrine_collision_0576C_normals.inc"
 };
 
-static SVECTOR _gNeoArkShrineCollision0576CVerts[46] = {
+/// Base-layout collision vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkShrineBaseCollisionGridVerts[] = {
 #include "assets/neo_ark_shrine_collision_0576C_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkShrineCollision0576CFaces[30] = {
+/// Base-layout indexed quads, selecting the shrine's surface classes 0 and 2.
+static WorldCollisionGridFace _gNeoArkShrineBaseCollisionGridFaces[] = {
 #include "assets/neo_ark_shrine_collision_0576C_faces.inc"
 };
 
-static s16 _gNeoArkShrineCollision0576CCells[140] = {
+/// Packed face-index lists for the base layout, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gNeoArkShrineBaseCollisionGridCells[] = {
 #include "assets/neo_ark_shrine_collision_0576C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkShrineCollision0576CCells[i])
-static s16* _gNeoArkShrineCollision0576CTable[12] = {
+#define GRID_CELL(i) (&_gNeoArkShrineBaseCollisionGridCells[i])
+/// X-major directory of base-layout face lists, indexed as x * 3 + z.
+static s16* _gNeoArkShrineBaseCollisionGridTable[NEO_ARK_SHRINE_BASE_COLLISION_CELLS_X * NEO_ARK_SHRINE_BASE_COLLISION_CELLS_Z] = {
 #include "assets/neo_ark_shrine_collision_0576C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_shrine_80182D2C[1] = {
-    { NULL, _gNeoArkShrineCollision0576CNormals, _gNeoArkShrineCollision0576CVerts, _gNeoArkShrineCollision0576CFaces, _gNeoArkShrineCollision0576CTable, 0, 5000, 4, 3, 4000, 30 },
+/// Mutable collision mesh for the shrine's base layout, used by room selectors 1 and 4.
+///
+/// Its twelve 4000-unit cells begin at X = 0, Z = -5000. Activation borrows
+/// the room-owned pools and binds viewCoord to the active view coordinate.
+static WorldCollisionGrid _gNeoArkShrineBaseCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkShrineBaseCollisionGridNormals,
+    .vertices    = _gNeoArkShrineBaseCollisionGridVerts,
+    .faces       = _gNeoArkShrineBaseCollisionGridFaces,
+    .cellFaceIds = _gNeoArkShrineBaseCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 5000,
+    .cellCountX  = NEO_ARK_SHRINE_BASE_COLLISION_CELLS_X,
+    .cellCountZ  = NEO_ARK_SHRINE_BASE_COLLISION_CELLS_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkShrineBaseCollisionGridFaces),
 };
 
 static SVECTOR _gNeoArkShrineCollision05C18Normals[9] = {
@@ -460,18 +464,18 @@ WorldCollisionGrid D_neo_ark_shrine_80183698[1] = {
     { NULL, _gNeoArkShrineCollision060D8Normals, _gNeoArkShrineCollision060D8Verts, _gNeoArkShrineCollision060D8Faces, _gNeoArkShrineCollision060D8Table, 0, 5000, 4, 3, 4000, 31 },
 };
 
-ViewCamera D_neo_ark_shrine_801836BC[18] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x5A28, -1050 } }, 329 },
+ViewCamera gNeoArkShrineViewCameras[NEO_ARK_SHRINE_MAPPED_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -7000, 0x5A28, -1050 } }, 329 },
     { { { { 642, 0, -4045 }, { -628, 4046, -99 }, { 3996, 636, 634 } }, { -7100, 1660, -950 } }, 329 },
     { { { { 617, 0, 4049 }, { 342, 4081, -52 }, { -4034, 346, 615 } }, { -0x32C8, 1390, -860 } }, 275 },
     { { { { 4049, 0, -613 }, { -103, 4037, -681 }, { 604, 689, 3991 } }, { -6330, 1660, 4750 } }, 257 },
     { { { { 4082, 0, -331 }, { -43, 4061, -529 }, { 329, 531, 4047 } }, { -6720, 1475, 5 } }, 329 },
-    { { { { -574, 0, -4055 }, { -1, 4096, 0 }, { 4055, 1, -574 } }, { 1295, 970, -5540 } }, 329 },
+    { { { { -574, 0, -4055 }, { -1, ONE, 0 }, { 4055, 1, -574 } }, { 1295, 970, -5540 } }, 329 },
     { { { { -802, 0, 4016 }, { 90, 4094, 18 }, { -4015, 92, -801 } }, { -6180, 1120, -5590 } }, 329 },
     { { { { 4022, 0, -772 }, { -101, 4060, -528 }, { 765, 537, 3987 } }, { -365, 1325, 425 } }, 282 },
     { { { { -4086, 0, -277 }, { -137, 3557, 2026 }, { 240, 2030, -3548 } }, { -610, 2540, -4060 } }, 282 },
     { { { { -4063, 0, -515 }, { -123, 3977, 970 }, { 500, 978, -3945 } }, { -6730, 1660, -480 } }, 225 },
-    { { { { -4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, -4096 } }, { -7000, 1554, 3630 } }, 541 },
+    { { { { -ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, -ONE } }, { -7000, 1554, 3630 } }, 541 },
     { { { { 4085, 0, -297 }, { -133, 3662, -1828 }, { 265, 1832, 3653 } }, { -6700, 2300, -1490 } }, 348 },
     { { { { -3829, 0, -1452 }, { 701, 3587, -1848 }, { 1272, -1977, -3353 } }, { -7890, 1790, 2780 } }, 312 },
     { { { { 3986, 0, -938 }, { 71, 4084, 303 }, { 936, -312, 3975 } }, { -6140, 980, 4450 } }, 269 },
@@ -826,143 +830,184 @@ static SpriteBatch _gNeoArkShrineView12SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_80184B28[28] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -48, 575, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -160, -120, 475, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -112, -120, 475, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -64, -120, 475, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -16, -120, 475, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 32, -120, 475, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, -120, 475, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, -120, 475, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -160, -88, 525, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -112, -88, 525, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -64, -88, 525, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -16, -88, 525, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 32, -88, 525, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -160, -64, 575, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -112, -64, 575, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, -64, 575, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -160, -48, 575, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 88, -120, 475, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 56, -120, 475, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 88, -88, 475, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, -88, 475, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 88, -56, 525, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, -56, 525, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 88, -32, 550, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, -32, 550, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 88, -16, 562, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, -16, 562, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 0, 575, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
+/// Encoded 8-bit texture pages, row-255 palette and neutral opaque sprite modulation.
+enum {
+    NEO_ARK_SHRINE_SPRITE_PAGE_832          = 141,
+    NEO_ARK_SHRINE_SPRITE_PAGE_896          = 142,
+    NEO_ARK_SHRINE_SPRITE_PAGE_960          = 143,
+    NEO_ARK_SHRINE_SPRITE_PALETTE           = 0x3FC0,
+    NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB       = 128,
+    NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION = 0,
 };
 
-SpriteBatch D_neo_ark_shrine_80184D58[4] = {
+/// Foreground rectangles for mapped shrine view 13, with centre-relative pixel positions and OT depths.
+///
+/// Texture coordinates select 8-bit page (960, 0) and CLUT row 255. Cached
+/// drawing snapshots rectangle geometry while retaining mutable sorting depths.
+static SpriteSource _gNeoArkShrineView13SpriteSources[] = {
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 8 } }, -112, -48, 575, { .fields = { 48, 248 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 32 } }, -160, -120, 475, { .fields = { 80, 192 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 32 } }, -112, -120, 475, { .fields = { 80, 160 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 32 } }, -64, -120, 475, { .fields = { 56, 64 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 32 } }, -16, -120, 475, { .fields = { 80, 224 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 32 } }, 32, -120, 475, { .fields = { 80, 128 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 40, 24 } }, 80, -120, 475, { .fields = { 40, 120 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 40, 16 } }, 120, -120, 475, { .fields = { 32, 48 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 24 } }, -160, -88, 525, { .fields = { 32, 144 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 24 } }, -112, -88, 525, { .fields = { 32, 192 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 24 } }, -64, -88, 525, { .fields = { 32, 168 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 24 } }, -16, -88, 525, { .fields = { 32, 24 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 8 } }, 32, -88, 525, { .fields = { 48, 112 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 16 } }, -160, -64, 575, { .fields = { 32, 216 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 16 } }, -112, -64, 575, { .fields = { 16, 96 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 24, 8 } }, -64, -64, 575, { .fields = { 56, 248 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 16 } }, -160, -48, 575, { .fields = { 8, 80 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 32 } }, 88, -120, 475, { .fields = { 80, 32 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 32, 32 } }, 56, -120, 475, { .fields = { 96, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 32 } }, 88, -88, 475, { .fields = { 80, 96 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 24, 32 } }, 64, -88, 475, { .fields = { 104, 64 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 24 } }, 88, -56, 525, { .fields = { 48, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 24 } }, 72, -56, 525, { .fields = { 64, 96 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 16 } }, 88, -32, 550, { .fields = { 32, 232 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 16 } }, 80, -32, 550, { .fields = { 72, 48 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 16 } }, 88, -16, 562, { .fields = { 8, 64 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 16 } }, 80, -16, 562, { .fields = { 40, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 8 } }, 88, 0, 575, { .fields = { 80, 24 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+};
+
+/// Two sprite ranges covering mapped shrine view 13 over its decoded background.
+///
+/// Ranges split after source 16; the terminal record contributes no sprites.
+/// The final two serialized bytes of each record retain an unproven role.
+static SpriteBatch _gNeoArkShrineView13SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 1, 0 } },
-    { 17, 11, 0, 0, { 0, 0 } },
+    { 17, ARRAY_SIZE(_gNeoArkShrineView13SpriteSources) - 17, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_shrine_80184D78[2] = {
+/// Decoded-background selection and an empty sprite list for mapped shrine view 14.
+static SpriteBatch _gNeoArkShrineView14SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_shrine_80184D88[2] = {
+/// Decoded-background selection and an empty sprite list for mapped shrine view 15.
+static SpriteBatch _gNeoArkShrineView15SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_80184D98[34] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 32, 962, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -16, 962, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, 32, 962, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, -16, 962, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -64, 962, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -112, 962, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -160, -120, 962, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, -64, 962, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, -112, 962, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -112, -120, 962, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -64, 32, 962, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -64, -16, 962, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -64, -64, 962, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -64, -88, 962, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 16, 1000, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -32, 1000, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, -80, 1000, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 40 } }, 112, -120, 1000, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 48 } }, 72, 16, 1000, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 48 } }, 72, -32, 1000, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 48 } }, 72, -80, 1000, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 72, -120, 1000, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 16, 1112, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 40, 16, 1250, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 56, -32, 1112, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -32, 1250, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 56, -80, 1112, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, -80, 1250, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 56, -120, 1125, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 40, -120, 1250, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 24, -120, 1250, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, -80, -32, 1950, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, -80, -80, 1950, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -72, -120, 1950, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+/// Foreground rectangles for mapped shrine view 16, with centre-relative pixel positions and OT depths.
+///
+/// Texture coordinates select 8-bit pages (896, 0) and (960, 0), with CLUT
+/// row 255. Rooms 2 and 5 also map logical view 4 to this background.
+static SpriteSource _gNeoArkShrineView16SpriteSources[] = {
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, 32, 962, { .fields = { 24, 144 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, -16, 962, { .fields = { 72, 192 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -112, 32, 962, { .fields = { 80, 48 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -112, -16, 962, { .fields = { 80, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, -64, 962, { .fields = { 32, 48 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, -112, 962, { .fields = { 32, 96 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 8 } }, -160, -120, 962, { .fields = { 64, 248 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -112, -64, 962, { .fields = { 72, 144 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -112, -112, 962, { .fields = { 80, 96 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 8 } }, -112, -120, 962, { .fields = { 64, 240 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 40 } }, -64, 32, 962, { .fields = { 72, 48 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 48 } }, -64, -16, 962, { .fields = { 64, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 48 } }, -64, -64, 962, { .fields = { 120, 192 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 24 } }, -64, -88, 962, { .fields = { 80, 224 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, 112, 16, 1000, { .fields = { 24, 192 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, 112, -32, 1000, { .fields = { 16, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, 112, -80, 1000, { .fields = { 104, 192 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 40 } }, 112, -120, 1000, { .fields = { 64, 144 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 40, 48 } }, 72, 16, 1000, { .fields = { 120, 96 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 40, 48 } }, 72, -32, 1000, { .fields = { 112, 144 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 40, 48 } }, 72, -80, 1000, { .fields = { 120, 48 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 40, 40 } }, 72, -120, 1000, { .fields = { 64, 184 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 48 } }, 56, 16, 1112, { .fields = { 0, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 40 } }, 40, 16, 1250, { .fields = { 88, 96 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 48 } }, 56, -32, 1112, { .fields = { 112, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 48 } }, 48, -32, 1250, { .fields = { 120, 144 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 48 } }, 56, -80, 1112, { .fields = { 104, 96 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 16 } }, 40, -80, 1250, { .fields = { 112, 240 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 40 } }, 56, -120, 1125, { .fields = { 56, 40 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 40 } }, 40, -120, 1250, { .fields = { 64, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 32 } }, 24, -120, 1250, { .fields = { 88, 224 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 32, 48 } }, -80, -32, 1950, { .fields = { 80, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 32, 48 } }, -80, -80, 1950, { .fields = { 88, 48 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_896, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 24, 40 } }, -72, -120, 1950, { .fields = { 64, 88 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
 };
 
-SpriteBatch D_neo_ark_shrine_80185040[5] = {
+/// Three sprite ranges covering mapped shrine view 16 over its decoded background.
+///
+/// Ranges split at source indices 14 and 31; the terminal record contributes
+/// no sprites. The final two serialized bytes retain an unproven role.
+static SpriteBatch _gNeoArkShrineView16SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 1, 0 } },
     { 14, 17, 0, 0, { 2, 0 } },
-    { 31, 3, 0, 0, { 0, 0 } },
+    { 31, ARRAY_SIZE(_gNeoArkShrineView16SpriteSources) - 31, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_80185068[14] = {
-    { 141, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 475, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, -160, 32, 475, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 32 } }, -160, 0, 475, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 32 } }, -160, -32, 475, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, -160, -72, 475, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 32 } }, -160, -104, 475, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 16 } }, -112, 104, 485, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 48 } }, 112, 72, 475, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 40 } }, 120, 32, 475, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 32, 32 } }, 128, 0, 475, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 24, 32 } }, 136, -32, 475, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 32 } }, 152, -104, 475, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 16, 40 } }, 144, -72, 475, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 8, 16 } }, 104, 104, 475, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
+/// Foreground rectangles for mapped shrine view 17, with centre-relative pixel positions and OT depths.
+///
+/// Texture coordinates select 8-bit page (832, 0) and CLUT row 255. Rooms
+/// 4..6 map logical view 10 to this background after the first enemy reveal.
+static SpriteSource _gNeoArkShrineView17SpriteSources[] = {
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, 72, 475, { .fields = { 0, 176 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 40, 40 } }, -160, 32, 475, { .fields = { 0, 136 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 32, 32 } }, -160, 0, 475, { .fields = { 0, 104 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 24, 32 } }, -160, -32, 475, { .fields = { 0, 72 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 40 } }, -160, -72, 475, { .fields = { 0, 32 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 32 } }, -160, -104, 475, { .fields = { 0, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 16 } }, -112, 104, 485, { .fields = { 48, 208 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, 112, 72, 475, { .fields = { 8, 176 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 40, 40 } }, 120, 32, 475, { .fields = { 16, 136 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 32, 32 } }, 128, 0, 475, { .fields = { 24, 104 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 24, 32 } }, 136, -32, 475, { .fields = { 32, 72 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 32 } }, 152, -104, 475, { .fields = { 48, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 40 } }, 144, -72, 475, { .fields = { 40, 32 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_832, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 16 } }, 104, 104, 475, { .fields = { 0, 208 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
 };
 
-SpriteBatch D_neo_ark_shrine_80185180[4] = {
+/// Two sprite ranges covering mapped shrine view 17 over its decoded background.
+///
+/// The ranges split at source index 7; the terminal record contributes no
+/// sprites. The final two serialized bytes retain an unproven role.
+static SpriteBatch _gNeoArkShrineView17SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
-    { 7, 7, 0, 0, { 0, 0 } },
+    { 7, ARRAY_SIZE(_gNeoArkShrineView17SpriteSources) - 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_801851A0[10] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 875, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -112, 72, 875, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 72, 1000, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 24, 875, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -112, 24, 875, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 0, 875, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 875, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 875, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -120, 875, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, -120, 875, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+/// Foreground rectangles for mapped shrine view 18, with centre-relative pixel positions and OT depths.
+///
+/// Texture coordinates select 8-bit page (960, 0) and CLUT row 255. Rooms
+/// 2 and 5 also map logical view 5 to this background.
+static SpriteSource _gNeoArkShrineView18SpriteSources[] = {
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, 72, 875, { .fields = { 80, 48 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 24, 48 } }, -112, 72, 875, { .fields = { 104, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 16 } }, -88, 72, 1000, { .fields = { 120, 240 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, 24, 875, { .fields = { 80, 96 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 16, 48 } }, -112, 24, 875, { .fields = { 88, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 8, 24 } }, -112, 0, 875, { .fields = { 72, 48 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, -24, 875, { .fields = { 80, 192 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, -72, 875, { .fields = { 80, 144 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 48, 48 } }, -160, -120, 875, { .fields = { 40, 0 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_SHRINE_SPRITE_PAGE_960, NEO_ARK_SHRINE_SPRITE_PALETTE, { .fields = { 24, 24 } }, -112, -120, 875, { .fields = { 56, 72 } }, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_NEUTRAL_RGB, NEO_ARK_SHRINE_SPRITE_OPAQUE_MODULATION },
 };
 
-SpriteBatch D_neo_ark_shrine_80185268[3] = {
+/// One sprite range covering mapped shrine view 18 over its decoded background.
+static SpriteBatch _gNeoArkShrineView18SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkShrineView18SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_shrine_80185280[18] = {
+SpriteView gNeoArkShrineSpriteViews[NEO_ARK_SHRINE_MAPPED_VIEW_COUNT] = {
     { { .empty = _gNeoArkShrineView1SpriteBatches }, _gNeoArkShrineView1SpriteBatches, NULL },
     { { .empty = _gNeoArkShrineView2SpriteBatches }, _gNeoArkShrineView2SpriteBatches, NULL },
     { { .elements = _gNeoArkShrineView3SpriteSources }, _gNeoArkShrineView3SpriteBatches, NULL },
@@ -975,12 +1020,12 @@ SpriteView D_neo_ark_shrine_80185280[18] = {
     { { .elements = _gNeoArkShrineView10SpriteSources }, _gNeoArkShrineView10SpriteBatches, NULL },
     { { .empty = _gNeoArkShrineView11SpriteBatches }, _gNeoArkShrineView11SpriteBatches, NULL },
     { { .empty = _gNeoArkShrineView12SpriteBatches }, _gNeoArkShrineView12SpriteBatches, NULL },
-    { { .elements = D_neo_ark_shrine_80184B28 }, D_neo_ark_shrine_80184D58, NULL },
-    { { .empty = D_neo_ark_shrine_80184D78 }, D_neo_ark_shrine_80184D78, NULL },
-    { { .empty = D_neo_ark_shrine_80184D88 }, D_neo_ark_shrine_80184D88, NULL },
-    { { .elements = D_neo_ark_shrine_80184D98 }, D_neo_ark_shrine_80185040, NULL },
-    { { .elements = D_neo_ark_shrine_80185068 }, D_neo_ark_shrine_80185180, NULL },
-    { { .elements = D_neo_ark_shrine_801851A0 }, D_neo_ark_shrine_80185268, NULL },
+    { { .elements = _gNeoArkShrineView13SpriteSources }, _gNeoArkShrineView13SpriteBatches, NULL },
+    { { .empty = _gNeoArkShrineView14SpriteBatches }, _gNeoArkShrineView14SpriteBatches, NULL },
+    { { .empty = _gNeoArkShrineView15SpriteBatches }, _gNeoArkShrineView15SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView16SpriteSources }, _gNeoArkShrineView16SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView17SpriteSources }, _gNeoArkShrineView17SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView18SpriteSources }, _gNeoArkShrineView18SpriteBatches, NULL },
 };
 
 /// Two mutable directional lights contributing in every shrine view and room selector.
@@ -1074,55 +1119,74 @@ WorldCollisionTrigger D_neo_ark_shrine_801863B4[8] = {
     { NULL, NULL, NULL, { 8399, -64, -2161, 0 }, { { 317, 0, -1041, 0 }, { 1052, 0, -375, 0 }, { -1051, 0, 376, 0 }, { -316, 0, 1042, 0 } }, { 0, 4098, 0, 0 }, { -3290, 0, -2440, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_shrine_80186614[2] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys for the shrine's enemy resources, independent of actor RAM slot.
+enum {
+    NEO_ARK_SHRINE_RESOURCE_BLACK_BEETLE = 38,
+    NEO_ARK_SHRINE_RESOURCE_SCORPION     = 25,
+    NEO_ARK_SHRINE_RESOURCE_PAWN_GOLEM   = 20,
+    NEO_ARK_SHRINE_RESOURCE_KNIGHT_GOLEM = 22,
+    NEO_ARK_SHRINE_RESOURCE_BISHOP_GOLEM = 39,
 };
 
-AreaResource D_neo_ark_shrine_8018662C[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Black Beetle files and spawn recipe for placement variant 1, ending with AREA_PLACEMENT_END.
+static AreaResource _gNeoArkShrineVariant1Resources[] = {
+    { .entryId = NEO_ARK_SHRINE_RESOURCE_BLACK_BEETLE, .fileNumber = 38, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103800BlackBeetleTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_shrine_80186644[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor-slot-1 Scorpion files and spawn recipe for placement variant 2, ending with AREA_PLACEMENT_END.
+static AreaResource _gNeoArkShrineVariant2Resources[] = {
+    { .entryId = NEO_ARK_SHRINE_RESOURCE_SCORPION, .fileNumber = 25, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102500Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_shrine_8018665C[3] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor02500Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor-slot-1 Scorpion files and spawn recipe for placement variant 3, ending with AREA_PLACEMENT_END.
+static AreaResource _gNeoArkShrineVariant3Resources[] = {
+    { .entryId = NEO_ARK_SHRINE_RESOURCE_SCORPION, .fileNumber = 25, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102500Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_shrine_80186680[2] = {
-    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Black Beetle and actor-slot-2 Scorpion files and spawn recipes for placement variant 4.
+///
+/// Entry IDs 38 and 25 bind the matching placements; AREA_PLACEMENT_END ends
+/// the list. Each live entry selects its descriptor table's index 0.
+static AreaResource _gNeoArkShrineVariant4Resources[] = {
+    { .entryId = NEO_ARK_SHRINE_RESOURCE_BLACK_BEETLE, .fileNumber = 38, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103800BlackBeetleTaskDesc },
+    { .entryId = NEO_ARK_SHRINE_RESOURCE_SCORPION, .fileNumber = 25, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = gActor02500Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_shrine_80186698[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Pawn GOLEM files and spawn recipe for placement variant 5, ending with AREA_PLACEMENT_END.
+static AreaResource _gNeoArkShrineVariant5Resources[] = {
+    { .entryId = NEO_ARK_SHRINE_RESOURCE_PAWN_GOLEM, .fileNumber = 20, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102000PawnGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_shrine_801866B0[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Knight GOLEM files and spawn recipe for placement variant 7, ending with AREA_PLACEMENT_END.
+static AreaResource _gNeoArkShrineVariant7Resources[] = {
+    { .entryId = NEO_ARK_SHRINE_RESOURCE_KNIGHT_GOLEM, .fileNumber = 22, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor402200GolemTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Bishop GOLEM files and spawn recipe for placement variant 11, ending with AREA_PLACEMENT_END.
+static AreaResource _gNeoArkShrineVariant11Resources[] = {
+    { .entryId = NEO_ARK_SHRINE_RESOURCE_BISHOP_GOLEM, .fileNumber = 39, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor403900GolemTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_neo_ark_shrine_801866C8[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017BEB0, D_neo_ark_shrine_80186614 },
-    { D_map_neo_ark_8017BEF0, D_neo_ark_shrine_8018662C },
-    { D_map_neo_ark_8017BF40, D_neo_ark_shrine_80186644 },
-    { D_map_neo_ark_8017BF90, D_neo_ark_shrine_8018665C },
-    { D_map_neo_ark_8017C020, D_neo_ark_shrine_80186680 },
+    { D_map_neo_ark_8017BEB0, _gNeoArkShrineVariant1Resources },
+    { D_map_neo_ark_8017BEF0, _gNeoArkShrineVariant2Resources },
+    { D_map_neo_ark_8017BF40, _gNeoArkShrineVariant3Resources },
+    { D_map_neo_ark_8017BF90, _gNeoArkShrineVariant4Resources },
+    { D_map_neo_ark_8017C020, _gNeoArkShrineVariant5Resources },
     { NULL, NULL },
-    { D_map_neo_ark_8017C050, D_neo_ark_shrine_80186698 },
+    { D_map_neo_ark_8017C050, _gNeoArkShrineVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017C070, D_neo_ark_shrine_801866B0 },
+    { D_map_neo_ark_8017C070, _gNeoArkShrineVariant11Resources },
     { NULL, NULL },
 };
 
@@ -1767,7 +1831,7 @@ void neoArkShrineFlareTask(Task* task)
 
     switch (viewGetMappedIndex() & 0xFF) {
         case 2: {
-            const SVECTOR* positions = D_neo_ark_shrine_801826D4;
+            const SVECTOR* positions = &_gNeoArkShrineFlarePositions[9];
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[2], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
@@ -1777,7 +1841,7 @@ void neoArkShrineFlareTask(Task* task)
             break;
         }
         case 3: {
-            const SVECTOR* positions = D_neo_ark_shrine_801826AC;
+            const SVECTOR* positions = &_gNeoArkShrineFlarePositions[4];
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[2], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
@@ -1789,7 +1853,7 @@ void neoArkShrineFlareTask(Task* task)
             break;
         }
         case 4: {
-            const SVECTOR* positions = D_neo_ark_shrine_801826AC;
+            const SVECTOR* positions = &_gNeoArkShrineFlarePositions[4];
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[3], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[4], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
@@ -1798,14 +1862,14 @@ void neoArkShrineFlareTask(Task* task)
         }
         case 5:
         case 18: {
-            const SVECTOR* positions = D_neo_ark_shrine_801826AC;
+            const SVECTOR* positions = &_gNeoArkShrineFlarePositions[4];
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[3], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[4], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 6: {
-            const SVECTOR* positions = D_neo_ark_shrine_8018269C;
+            const SVECTOR* positions = &_gNeoArkShrineFlarePositions[2];
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[5], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
@@ -1813,27 +1877,27 @@ void neoArkShrineFlareTask(Task* task)
             break;
         }
         case 7: {
-            const SVECTOR* positions = D_neo_ark_shrine_8018268C;
+            const SVECTOR* positions = _gNeoArkShrineFlarePositions;
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[2], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 12: {
-            const SVECTOR* positions = D_neo_ark_shrine_80182694;
+            const SVECTOR* positions = &_gNeoArkShrineFlarePositions[1];
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[3], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[6], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 14: {
-            const SVECTOR* positions = D_neo_ark_shrine_801826C4;
+            const SVECTOR* positions = &_gNeoArkShrineFlarePositions[7];
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[2], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;
         }
         case 16: {
-            const SVECTOR* positions = D_neo_ark_shrine_801826AC;
+            const SVECTOR* positions = &_gNeoArkShrineFlarePositions[4];
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[3], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[4], NEO_ARK_SHRINE_FLARE_TEXTURE_1, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
@@ -1842,7 +1906,7 @@ void neoArkShrineFlareTask(Task* task)
         }
         case 10:
         case 17: {
-            const SVECTOR* positions = D_neo_ark_shrine_80182704;
+            const SVECTOR* positions = &_gNeoArkShrineFlarePositions[15];
             _neoArkShrineDrawFlare(&positions[0], NEO_ARK_SHRINE_FLARE_TEXTURE_0, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             _neoArkShrineDrawFlare(&positions[1], NEO_ARK_SHRINE_FLARE_TEXTURE_0, NEO_ARK_SHRINE_FLARE_RADIUS_SCALE);
             break;

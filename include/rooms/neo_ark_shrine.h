@@ -36,9 +36,25 @@ extern ViewCount D_neo_ark_shrine_80182808[];
 
 extern DirectionWarpEntry D_neo_ark_shrine_80182814[];
 
-extern ViewCamera D_neo_ark_shrine_801836BC[];
+/// Number of camera and sprite-resource entries addressed by the shrine's mapped views.
+enum { NEO_ARK_SHRINE_MAPPED_VIEW_COUNT = 18 };
 
-extern SpriteView D_neo_ark_shrine_80185280[];
+/// Cameras for the shrine's eighteen mapped views, indexed by mapped view - 1.
+///
+/// Shared by all six room selectors. Rotation uses ONE for unit length,
+/// translation is the negated world-space camera origin, and projection
+/// distance is in pixels. Entries 16..18 repeat cameras 4, 10 and 5 for
+/// alternate backgrounds. Borrowed records require this room overlay loaded.
+extern ViewCamera gNeoArkShrineViewCameras[NEO_ARK_SHRINE_MAPPED_VIEW_COUNT];
+
+/// Sprite resources for the shrine's eighteen mapped views, indexed by mapped view - 1.
+///
+/// Shared by all six room selectors; logical views select these through
+/// `gNeoArkShrineViewMaps`. Every batch list ends with `SPRITE_BATCH_END`,
+/// starts with decoded-background selection and indexes its own source
+/// elements. Draw-area pointers are NULL. These mutable records and their
+/// private source/batch arrays remain borrowed while the room overlay is loaded.
+extern SpriteView gNeoArkShrineSpriteViews[NEO_ARK_SHRINE_MAPPED_VIEW_COUNT];
 
 /// Collision policies and footstep cues for the shrine's eight surface classes.
 ///
