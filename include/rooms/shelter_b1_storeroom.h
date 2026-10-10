@@ -16,9 +16,19 @@ extern AreaVariant D_shelter_b1_storeroom_80186C9C[22];
 // shelter_b1_storeroom
 extern WorldCollisionRoomResources D_shelter_b1_storeroom_80184B50[];
 
-extern WorldCoordRoomLighting D_shelter_b1_storeroom_80184B60[];
+/// Authored lighting for the storeroom's single room, indexed by room minus one.
+///
+/// Borrows one directional light, four point lights and ambient minima for
+/// logical views 1..8. Light transforms and attenuation are mutable; the room
+/// overlay must stay loaded while gameplay holds these resources.
+extern WorldCoordRoomLighting gShelterB1StoreroomRoomLighting[1];
 
-extern u8* D_shelter_b1_storeroom_80184B68[];
+/// Logical-view map directory for the storeroom's single room.
+///
+/// Indexed by room minus one; the borrowed gameplay identity map preserves
+/// logical views 1..8 as camera, image and sprite indices. The directory stays
+/// valid only while this room overlay is loaded.
+extern u8* gShelterB1StoreroomRoomViewMaps[1];
 
 extern ViewCount D_shelter_b1_storeroom_80184B6C[];
 
@@ -26,9 +36,19 @@ extern DirectionWarpEntry D_shelter_b1_storeroom_80184B70[];
 
 extern ViewCamera D_shelter_b1_storeroom_801850FC[];
 
-extern SpriteView D_shelter_b1_storeroom_80186090[];
+/// Foreground sprite resources for mapped views 1..8, indexed by view minus one.
+///
+/// Views 2..7 borrow mutable sources and sentinel-terminated batches; views 1
+/// and 8 use image strips alone. No view supplies clipping commands. The room
+/// overlay must stay loaded while allocating or drawing these resources.
+extern SpriteView gShelterB1StoreroomSpriteViews[8];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_storeroom_80186DEC[];
+/// Collision policies and footstep cues indexed by room-local surface class 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Class 1 supplies floor footstep cues; classes 0 and 2..7 share the silent
+/// record. Gameplay borrows these records while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB1StoreroomSurfaceClassProperties[8];
 
 /// Runs the storeroom's room-message receiver until room teardown.
 ///

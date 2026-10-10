@@ -52,64 +52,57 @@
 
 #include "../../shared/room_visual_effects.h"
 
-// Indexed views below share one contiguous table.
-extern WorldCollisionGrid         D_shelter_b1_storeroom_801850D8[1];
-extern WorldCollisionOccluder     D_shelter_b1_storeroom_80186D94[1];
-extern WorldCollisionTrigger      D_shelter_b1_storeroom_801862E0[12];
-extern WorldCollisionTrigger      D_shelter_b1_storeroom_80186670[15];
-extern WorldCoordRoomAmbientEntry D_shelter_b1_storeroom_80186D4C[9];
-extern WorldCoordRoomLights       D_shelter_b1_storeroom_801862C8[1];
+/// World-space placements for the ceiling tubes and the three bulbs above each door.
+typedef struct {
+    SVECTOR tubeEnds[20][2]; // Endpoint pairs, in signed world-coordinate units
+    SVECTOR bulbCenters[9];  // Door bulbs, in signed world-coordinate units
+} _ShelterB1StoreroomLampGlowPoints;
+STATIC_ASSERT_SIZEOF(_ShelterB1StoreroomLampGlowPoints, 0x188);
 
-SVECTOR D_shelter_b1_storeroom_80184998[49] = {
-    { -1130, -2290, 1920, 0 },
-    { -400, -2290, 1920, 0 },
-    { 370, -2290, 1920, 0 },
-    { 1110, -2290, 1920, 0 },
-    { 1880, -2290, 1920, 0 },
-    { 2620, -2290, 1920, 0 },
-    { 3350, -2290, 1920, 0 },
-    { 4090, -2290, 1920, 0 },
-    { -1130, -2290, 1300, 0 },
-    { -400, -2290, 1300, 0 },
-    { 370, -2290, 1300, 0 },
-    { 1110, -2290, 1300, 0 },
-    { 1880, -2290, 1300, 0 },
-    { 2620, -2290, 1300, 0 },
-    { 3350, -2290, 1300, 0 },
-    { 4090, -2290, 1300, 0 },
-    { -1130, -2290, -1310, 0 },
-    { -400, -2290, -1310, 0 },
-    { 370, -2290, -1310, 0 },
-    { 1110, -2290, -1310, 0 },
-    { 1880, -2290, -1310, 0 },
-    { 2620, -2290, -1310, 0 },
-    { 3350, -2290, -1310, 0 },
-    { 4090, -2290, -1310, 0 },
-    { -1130, -2290, -1930, 0 },
-    { -400, -2290, -1930, 0 },
-    { 370, -2290, -1930, 0 },
-    { 1110, -2290, -1930, 0 },
-    { 1880, -2290, -1930, 0 },
-    { 2620, -2290, -1930, 0 },
-    { 3350, -2290, -1930, 0 },
-    { 4090, -2290, -1930, 0 },
-    { -3130, -2290, 390, 0 },
-    { -3130, -2290, -340, 0 },
-    { -2520, -2290, 390, 0 },
-    { -2520, -2290, -340, 0 },
-    { 5390, -2290, 390, 0 },
-    { 5390, -2290, -340, 0 },
-    { 6010, -2290, 390, 0 },
-    { 6010, -2290, -340, 0 },
-    { 5490, -2160, 2600, 0 },
-    { 5770, -2160, 2600, 0 },
-    { 6060, -2160, 2600, 0 },
-    { -3580, -2160, -2570, 0 },
-    { -3300, -2160, -2570, 0 },
-    { -3010, -2160, -2570, 0 },
-    { 5490, -2160, -2570, 0 },
-    { 5770, -2160, -2570, 0 },
-    { 6060, -2160, -2570, 0 },
+static WorldCollisionGrid               _gShelterB1StoreroomCollisionGrid;
+extern WorldCollisionOccluder           D_shelter_b1_storeroom_80186D94[1];
+extern WorldCollisionTrigger            D_shelter_b1_storeroom_801862E0[12];
+extern WorldCollisionTrigger            D_shelter_b1_storeroom_80186670[15];
+static const WorldCoordRoomAmbientEntry _gShelterB1StoreroomRoomAmbient[9];
+static WorldCoordRoomLights             _gShelterB1StoreroomRoomLights;
+
+/// Fixed world-space glow placements: twenty tube pairs followed by nine door bulbs.
+///
+/// Read-only placements retain their authored position in the data section.
+static const _ShelterB1StoreroomLampGlowPoints _gShelterB1StoreroomLampGlowPoints __attribute__((section(".data"))) = {
+    .tubeEnds = {
+        { { -1130, -2290, 1920, 0 }, { -400, -2290, 1920, 0 } },
+        { { 370, -2290, 1920, 0 }, { 1110, -2290, 1920, 0 } },
+        { { 1880, -2290, 1920, 0 }, { 2620, -2290, 1920, 0 } },
+        { { 3350, -2290, 1920, 0 }, { 4090, -2290, 1920, 0 } },
+        { { -1130, -2290, 1300, 0 }, { -400, -2290, 1300, 0 } },
+        { { 370, -2290, 1300, 0 }, { 1110, -2290, 1300, 0 } },
+        { { 1880, -2290, 1300, 0 }, { 2620, -2290, 1300, 0 } },
+        { { 3350, -2290, 1300, 0 }, { 4090, -2290, 1300, 0 } },
+        { { -1130, -2290, -1310, 0 }, { -400, -2290, -1310, 0 } },
+        { { 370, -2290, -1310, 0 }, { 1110, -2290, -1310, 0 } },
+        { { 1880, -2290, -1310, 0 }, { 2620, -2290, -1310, 0 } },
+        { { 3350, -2290, -1310, 0 }, { 4090, -2290, -1310, 0 } },
+        { { -1130, -2290, -1930, 0 }, { -400, -2290, -1930, 0 } },
+        { { 370, -2290, -1930, 0 }, { 1110, -2290, -1930, 0 } },
+        { { 1880, -2290, -1930, 0 }, { 2620, -2290, -1930, 0 } },
+        { { 3350, -2290, -1930, 0 }, { 4090, -2290, -1930, 0 } },
+        { { -3130, -2290, 390, 0 }, { -3130, -2290, -340, 0 } },
+        { { -2520, -2290, 390, 0 }, { -2520, -2290, -340, 0 } },
+        { { 5390, -2290, 390, 0 }, { 5390, -2290, -340, 0 } },
+        { { 6010, -2290, 390, 0 }, { 6010, -2290, -340, 0 } },
+    },
+    .bulbCenters = {
+        { 5490, -2160, 2600, 0 },
+        { 5770, -2160, 2600, 0 },
+        { 6060, -2160, 2600, 0 },
+        { -3580, -2160, -2570, 0 },
+        { -3300, -2160, -2570, 0 },
+        { -3010, -2160, -2570, 0 },
+        { 5490, -2160, -2570, 0 },
+        { 5770, -2160, -2570, 0 },
+        { 6060, -2160, -2570, 0 },
+    },
 };
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { \
@@ -135,14 +128,14 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
 WorldCollisionRoomResources D_shelter_b1_storeroom_80184B50[1] = {
-    { D_shelter_b1_storeroom_801850D8, D_shelter_b1_storeroom_801862E0, D_shelter_b1_storeroom_80186670, D_shelter_b1_storeroom_80186D94 },
+    { &_gShelterB1StoreroomCollisionGrid, D_shelter_b1_storeroom_801862E0, D_shelter_b1_storeroom_80186670, D_shelter_b1_storeroom_80186D94 },
 };
 
-WorldCoordRoomLighting D_shelter_b1_storeroom_80184B60[1] = {
-    { D_shelter_b1_storeroom_801862C8, D_shelter_b1_storeroom_80186D4C },
+WorldCoordRoomLighting gShelterB1StoreroomRoomLighting[1] = {
+    { &_gShelterB1StoreroomRoomLights, _gShelterB1StoreroomRoomAmbient },
 };
 
-u8* D_shelter_b1_storeroom_80184B68[1] = {
+u8* gShelterB1StoreroomRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -154,30 +147,48 @@ DirectionWarpEntry D_shelter_b1_storeroom_80184B70[3] = {
     { { { .word = 2048 }, 5750, 0, 2200 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5750, 0, 2200 }, { 0, 0, 0, 0 }, 0x540B0004, 0x540B0003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B0 },
 };
 
-static SVECTOR _gShelterB1StoreroomCollision07B18Normals[18] = {
+/// Room-space face normals, with 4096 representing unit length.
+static SVECTOR _gShelterB1StoreroomCollisionGridNormals[18] = {
 #include "assets/shelter_b1_storeroom_collision_07B18_normals.inc"
 };
 
-static SVECTOR _gShelterB1StoreroomCollision07B18Verts[64] = {
+/// Room-space collision vertices in signed game-coordinate units.
+static SVECTOR _gShelterB1StoreroomCollisionGridVerts[64] = {
 #include "assets/shelter_b1_storeroom_collision_07B18_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1StoreroomCollision07B18Faces[26] = {
+/// Collision quads; class 1 is the floor and class 0 covers the other faces.
+static WorldCollisionGridFace _gShelterB1StoreroomCollisionGridFaces[26] = {
 #include "assets/shelter_b1_storeroom_collision_07B18_faces.inc"
 };
 
-static s16 _gShelterB1StoreroomCollision07B18Cells[108] = {
+/// Face-index lists for the eight cells, terminated by WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB1StoreroomCollisionGridCells[108] = {
 #include "assets/shelter_b1_storeroom_collision_07B18_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1StoreroomCollision07B18Cells[i])
-static s16* _gShelterB1StoreroomCollision07B18Table[8] = {
+#define GRID_CELL(i) (&_gShelterB1StoreroomCollisionGridCells[i])
+/// X-major cell lookup, with two Z entries for each of four X cells.
+static s16* _gShelterB1StoreroomCollisionGridTable[8] = {
 #include "assets/shelter_b1_storeroom_collision_07B18_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_storeroom_801850D8[1] = {
-    { NULL, _gShelterB1StoreroomCollision07B18Normals, _gShelterB1StoreroomCollision07B18Verts, _gShelterB1StoreroomCollision07B18Faces, _gShelterB1StoreroomCollision07B18Table, 5082, 3225, 4, 2, 4000, 26 },
+/// Storeroom collision mesh, indexed by a 4-by-2 grid of 4000-unit XZ cells.
+///
+/// Activation binds the view coordinate; mesh storage stays live with the room overlay.
+static WorldCollisionGrid _gShelterB1StoreroomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1StoreroomCollisionGridNormals,
+    .vertices    = _gShelterB1StoreroomCollisionGridVerts,
+    .faces       = _gShelterB1StoreroomCollisionGridFaces,
+    .cellFaceIds = _gShelterB1StoreroomCollisionGridTable,
+    .xBias       = 5082,
+    .zBias       = 3225,
+    .cellCountX  = 4,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1StoreroomCollisionGridFaces),
 };
 
 ViewCamera D_shelter_b1_storeroom_801850FC[8] = {
@@ -191,278 +202,316 @@ ViewCamera D_shelter_b1_storeroom_801850FC[8] = {
     { { { { 4094, 0, 116 }, { 51, 3680, -1796 }, { -104, 1797, 3679 } }, { 594, 1676, -1050 } }, 303 },
 };
 
-SpriteBatch D_shelter_b1_storeroom_8018521C[2] = {
+/// Texture pages, palette and neutral RGB modulation for mapped-view foreground sprites.
+///
+/// The 8-bit indexed pages start at VRAM X=896 and X=960 words, Y=0;
+/// the palette starts at X=0 words, Y=255. Source flags select opaque drawing.
+enum {
+    SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT  = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    SHELTER_B1_STOREROOM_SPRITE_CLUT               = getClut(0, 255),
+    SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR      = 128,
+};
+
+/// Mapped view 1 image-strip selection and empty, sentinel-terminated sprite list.
+static SpriteBatch _gShelterB1StoreroomView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_storeroom_8018522C[52] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -120, 1110, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -120, 433, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, -120, 410, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, -120, 437, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -48, -120, 428, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -48, -96, 441, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 32, -96, 454, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -112, -96, 428, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -80, -120, 429, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 0, -120, 443, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, -120, 665, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, -120, 606, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, -120, 535, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, -120, 479, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -120, 422, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, -120, 394, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 88, -120, 381, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, -120, 377, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, -120, 373, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 136, -120, 373, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, -120, 373, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -80, 760, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -72, 757, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -8, 697, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 56, 825, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 56, 809, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -64, 704, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -40, 710, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, -24, 710, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 0, 688, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, -16, 685, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 0, 706, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 16, 794, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 32, 813, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -96, 48, 812, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 16, 796, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, 32, 801, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, -64, 710, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, -48, 702, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, -32, 709, { .fields = { 0, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 40, 32, 909, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 64 } }, 112, 32, 825, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, 96, 875, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 64 } }, 64, 32, 850, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -16, 750, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, 72, -80, 650, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 64 } }, 112, -80, 591, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 56, -72, 807, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -16, 750, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, -16, 797, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 0, 917, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 16, 921, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+/// Depth-sorted foreground rectangles for mapped view 2, in screen pixels.
+static SpriteSource _gShelterB1StoreroomView2Sprites[52] = {
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, -120, 1110, { .fields = { 32, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -120, 433, { .fields = { 48, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 40 } }, -128, -120, 410, { .fields = { 56, 136 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 32 } }, 56, -120, 437, { .fields = { 40, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 48, 8 } }, -48, -120, 428, { .fields = { 96, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 48, 16 } }, -48, -96, 441, { .fields = { 96, 48 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 16 } }, 32, -96, 454, { .fields = { 120, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 16 } }, -112, -96, 428, { .fields = { 112, 80 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 40 } }, -80, -120, 429, { .fields = { 40, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 40 } }, 0, -120, 443, { .fields = { 48, 184 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, 24, -120, 665, { .fields = { 24, 208 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, 32, -120, 606, { .fields = { 24, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, 40, -120, 535, { .fields = { 24, 152 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, -120, 479, { .fields = { 24, 32 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 32 } }, 56, -120, 422, { .fields = { 48, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 32 } }, 72, -120, 394, { .fields = { 64, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 32 } }, 88, -120, 381, { .fields = { 32, 208 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 32 } }, 104, -120, 377, { .fields = { 24, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 32 } }, 120, -120, 373, { .fields = { 16, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 32 } }, 136, -120, 373, { .fields = { 24, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 32 } }, 152, -120, 373, { .fields = { 72, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, -104, -80, 760, { .fields = { 80, 184 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, -104, -72, 757, { .fields = { 8, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, -8, 697, { .fields = { 16, 144 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, 56, 825, { .fields = { 8, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -88, 56, 809, { .fields = { 16, 32 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, -64, 704, { .fields = { 16, 56 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -96, -40, 710, { .fields = { 24, 232 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -88, -24, 710, { .fields = { 24, 56 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 0, 688, { .fields = { 24, 80 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, -16, 685, { .fields = { 0, 64 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 0, 706, { .fields = { 8, 160 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -96, 16, 794, { .fields = { 8, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -96, 32, 813, { .fields = { 8, 208 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 8 } }, -96, 48, 812, { .fields = { 56, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, 16, 796, { .fields = { 16, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -80, 32, 801, { .fields = { 16, 80 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, -64, 710, { .fields = { 8, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, -48, 702, { .fields = { 0, 32 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, -32, 709, { .fields = { 0, 16 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 40 } }, 40, 32, 909, { .fields = { 32, 136 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 48, 64 } }, 112, 32, 825, { .fields = { 80, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 48, 24 } }, 64, 96, 875, { .fields = { 104, 104 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 48, 64 } }, 64, 32, 850, { .fields = { 80, 64 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -16, 750, { .fields = { 32, 48 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 64 } }, 72, -80, 650, { .fields = { 88, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 48, 64 } }, 112, -80, 591, { .fields = { 80, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 56 } }, 56, -72, 807, { .fields = { 72, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -16, 750, { .fields = { 32, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, -16, 797, { .fields = { 0, 144 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, 0, 917, { .fields = { 8, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, 16, 921, { .fields = { 32, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_storeroom_8018563C[6] = {
+/// Mapped view 2 sprite ranges, ending with SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1StoreroomView2SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 3, 0 } },
     { 10, 11, 0, 0, { 0, 0 } },
     { 21, 19, 0, 0, { 2, 0 } },
-    { 40, 12, 0, 0, { 1, 0 } },
+    { 40, ARRAY_SIZE(_gShelterB1StoreroomView2Sprites) - 40, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_storeroom_8018566C[37] = {
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 24, -24, 2098, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 32, -32, 1723, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 32, -8, 1722, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 40, 732, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 72, 40, 722, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -8, 1384, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 24, 0, 1562, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, -16, 1852, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, -16, 1381, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, 16, 1029, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 16, 1020, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 40, -8, 948, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, -8, 948, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 48, -24, 919, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 48, -40, 912, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 72, -48, 982, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 40, 818, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 32, 825, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 48, 818, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 48, 32, 823, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 8, 833, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -24, 848, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, -48, 876, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 56, -48, 858, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 56, -32, 837, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 72, 8, 822, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 56, 8, 840, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 56, -8, 850, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 72, -16, 835, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 144 } }, -72, -88, 1112, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, -48, -72, 1450, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -32, -72, 1875, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -16, -56, 2192, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 96 } }, -160, -112, 752, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -88, -96, 850, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 96 } }, -160, -16, 750, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -88, -16, 850, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+/// Depth-sorted foreground rectangles for mapped view 3, in screen pixels.
+static SpriteSource _gShelterB1StoreroomView3Sprites[37] = {
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 32 } }, 24, -24, 2098, { .fields = { 56, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 32, -32, 1723, { .fields = { 120, 24 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 32, -8, 1722, { .fields = { 0, 200 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 32 } }, 64, 40, 732, { .fields = { 96, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 32 } }, 72, 40, 722, { .fields = { 40, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, -8, 1384, { .fields = { 64, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 24, 0, 1562, { .fields = { 0, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, 40, -16, 1852, { .fields = { 72, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 48 } }, 48, -16, 1381, { .fields = { 64, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 32 } }, 40, 16, 1029, { .fields = { 32, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, 16, 1020, { .fields = { 24, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 40, -8, 948, { .fields = { 120, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 64, -8, 948, { .fields = { 8, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 16 } }, 48, -24, 919, { .fields = { 96, 120 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 16 } }, 48, -40, 912, { .fields = { 96, 136 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 8 } }, 72, -48, 982, { .fields = { 120, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 40, 818, { .fields = { 8, 48 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 32, 825, { .fields = { 96, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, 80, 48, 818, { .fields = { 96, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 8 } }, 48, 32, 823, { .fields = { 0, 248 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 8, 833, { .fields = { 8, 72 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, -24, 848, { .fields = { 24, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, -48, 876, { .fields = { 0, 72 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, -48, 858, { .fields = { 112, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, -32, 837, { .fields = { 112, 152 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 72, 8, 822, { .fields = { 120, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 8 } }, 56, 8, 840, { .fields = { 112, 72 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 8 } }, 56, -8, 850, { .fields = { 120, 168 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 72, -16, 835, { .fields = { 120, 48 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 144 } }, -72, -88, 1112, { .fields = { 104, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 112 } }, -48, -72, 1450, { .fields = { 112, 144 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 96 } }, -32, -72, 1875, { .fields = { 16, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 64 } }, -16, -56, 2192, { .fields = { 80, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 72, 96 } }, -160, -112, 752, { .fields = { 24, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 80 } }, -88, -96, 850, { .fields = { 8, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 72, 96 } }, -160, -16, 750, { .fields = { 32, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 96 } }, -88, -16, 850, { .fields = { 96, 144 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_storeroom_80185950[8] = {
+/// Mapped view 3 sprite ranges, ending with SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1StoreroomView3SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 3, 0 } },
     { 3, 2, 0, 0, { 0, 0 } },
     { 5, 4, 0, 0, { 5, 0 } },
     { 9, 7, 0, 0, { 1, 0 } },
     { 16, 13, 0, 0, { 4, 0 } },
-    { 29, 8, 0, 0, { 2, 0 } },
+    { 29, ARRAY_SIZE(_gShelterB1StoreroomView3Sprites) - 29, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_storeroom_80185990[10] = {
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -88, -80, 882, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -88, 0, 873, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -72, -72, 877, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -72, 0, 876, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -128, -8, 832, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -128, -96, 811, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -112, -8, 854, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, -112, -96, 847, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 96 } }, -160, -104, 819, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 104 } }, -160, -8, 814, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// Depth-sorted foreground rectangles for mapped view 4, in screen pixels.
+static SpriteSource _gShelterB1StoreroomView4Sprites[10] = {
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 80 } }, -88, -80, 882, { .fields = { 56, 168 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 72 } }, -88, 0, 873, { .fields = { 48, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 72 } }, -72, -72, 877, { .fields = { 80, 184 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 72 } }, -72, 0, 876, { .fields = { 40, 168 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 96 } }, -128, -8, 832, { .fields = { 80, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 88 } }, -128, -96, 811, { .fields = { 64, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 80 } }, -112, -8, 854, { .fields = { 48, 88 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 88 } }, -112, -96, 847, { .fields = { 72, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 96 } }, -160, -104, 819, { .fields = { 96, 104 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 104 } }, -160, -8, 814, { .fields = { 96, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_storeroom_80185A58[3] = {
+/// Mapped view 4 sprite ranges, ending with SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1StoreroomView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1StoreroomView4Sprites), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_storeroom_80185A70[21] = {
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 56, -8, 1467, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, -24, 1581, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 64, -32, 1524, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 40 } }, 72, 16, 901, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, 8, 1022, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, 8, 985, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 40, 797, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 88, 40, 832, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 16, 877, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, -8, 828, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, -24, 789, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 8, -48, 1950, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 104 } }, -160, -120, 625, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 120 } }, -160, -16, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, -16, -64, 1825, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 96 } }, -128, -16, 750, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, -88, -16, 950, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 88 } }, -128, -104, 750, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 88 } }, -88, -104, 950, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -48, -80, 1300, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 72 } }, -48, -16, 1300, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+/// Depth-sorted foreground rectangles for mapped view 5, in screen pixels.
+static SpriteSource _gShelterB1StoreroomView5Sprites[21] = {
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 40 } }, 56, -8, 1467, { .fields = { 112, 112 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, 56, -24, 1581, { .fields = { 56, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 64, -32, 1524, { .fields = { 120, 152 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 40 } }, 72, 16, 901, { .fields = { 112, 72 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 8 } }, 72, 8, 1022, { .fields = { 104, 248 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 48 } }, 64, 8, 985, { .fields = { 56, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 72, 40, 797, { .fields = { 0, 200 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 88, 40, 832, { .fields = { 120, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 88, 16, 877, { .fields = { 112, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 88, -8, 828, { .fields = { 96, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, -24, 789, { .fields = { 16, 72 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 72 } }, 8, -48, 1950, { .fields = { 24, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 104 } }, -160, -120, 625, { .fields = { 96, 120 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 120 } }, -160, -16, 625, { .fields = { 96, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 96 } }, -16, -64, 1825, { .fields = { 72, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 96 } }, -128, -16, 750, { .fields = { 56, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 80 } }, -88, -16, 950, { .fields = { 16, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 88 } }, -128, -104, 750, { .fields = { 16, 88 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 88 } }, -88, -104, 950, { .fields = { 32, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 64 } }, -48, -80, 1300, { .fields = { 64, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 72 } }, -48, -16, 1300, { .fields = { 120, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_storeroom_80185C14[6] = {
+/// Mapped view 5 sprite ranges, ending with SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1StoreroomView5SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 3, 0 } },
     { 3, 3, 0, 0, { 0, 0 } },
     { 6, 5, 0, 0, { 2, 0 } },
-    { 11, 10, 0, 0, { 1, 0 } },
+    { 11, ARRAY_SIZE(_gShelterB1StoreroomView5Sprites) - 11, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_storeroom_80185C44[19] = {
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, 48, 804, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 64, 732, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -120, -8, 778, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, -160, -120, 629, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, -144, -56, 658, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -144, 16, 688, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 48, 860, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, -96, 776, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 40, -48, 802, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 40, 0, 831, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, 120, 40, 537, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, 120, -40, 537, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, 120, -120, 537, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 88, -112, 650, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 88, 24, 650, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 88, -40, 650, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 64 } }, 56, -112, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 56, -48, 750, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 56, 16, 750, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
+/// Depth-sorted foreground rectangles for mapped view 6, in screen pixels.
+static SpriteSource _gShelterB1StoreroomView6Sprites[19] = {
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -112, 48, 804, { .fields = { 112, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -120, 64, 732, { .fields = { 120, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 72 } }, -120, -8, 778, { .fields = { 80, 144 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 64 } }, -160, -120, 629, { .fields = { 16, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 72 } }, -144, -56, 658, { .fields = { 56, 144 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 64 } }, -144, 16, 688, { .fields = { 0, 64 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 48, 860, { .fields = { 104, 240 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 48 } }, 40, -96, 776, { .fields = { 0, 184 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 48 } }, 40, -48, 802, { .fields = { 120, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 56 } }, 40, 0, 831, { .fields = { 8, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 80 } }, 120, 40, 537, { .fields = { 88, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 80 } }, 120, -40, 537, { .fields = { 88, 80 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 80 } }, 120, -120, 537, { .fields = { 88, 160 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 72 } }, 88, -112, 650, { .fields = { 56, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 72 } }, 88, 24, 650, { .fields = { 56, 72 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 64 } }, 88, -40, 650, { .fields = { 24, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 64 } }, 56, -112, 750, { .fields = { 120, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 64 } }, 56, -48, 750, { .fields = { 24, 64 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 64 } }, 56, 16, 750, { .fields = { 24, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_storeroom_80185DC0[4] = {
+/// Mapped view 6 sprite ranges, ending with SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1StoreroomView6SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 1, 0 } },
-    { 6, 13, 0, 0, { 0, 0 } },
+    { 6, ARRAY_SIZE(_gShelterB1StoreroomView6Sprites) - 6, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_storeroom_80185DE0[32] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, -24, 430, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -8, 550, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -40, 533, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 72, -48, 533, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 64, -40, 504, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 88, -40, 524, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, -40, 526, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 104, -16, 432, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 64, 8, 421, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 96, 8, 396, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 128, 8, 391, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, 24, 438, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, 72, 442, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, 24, 405, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 120, 72, 411, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 48 } }, 64, 24, 455, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, 64, 72, 459, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 112, 452, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 88, 0, 453, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 128, 0, 411, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 40, 0, 427, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 64, 0, 477, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -56, -88, 830, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -56, -8, 846, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -48, -56, 850, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -48, -8, 865, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 96 } }, -88, -120, 812, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 88 } }, -88, -24, 812, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 104 } }, -160, -8, 625, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 112 } }, -160, -120, 625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 96 } }, -120, -16, 725, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 104 } }, -120, -120, 725, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+/// Depth-sorted foreground rectangles for mapped view 7, in screen pixels.
+static SpriteSource _gShelterB1StoreroomView7Sprites[32] = {
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, 120, -24, 430, { .fields = { 56, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, -8, 550, { .fields = { 56, 216 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 40 } }, 56, -40, 533, { .fields = { 64, 216 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 8 } }, 72, -48, 533, { .fields = { 88, 64 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 40 } }, 64, -40, 504, { .fields = { 112, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 40 } }, 88, -40, 524, { .fields = { 120, 136 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 104, -40, 526, { .fields = { 0, 224 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 16 } }, 104, -16, 432, { .fields = { 112, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 16 } }, 64, 8, 421, { .fields = { 56, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 16 } }, 96, 8, 396, { .fields = { 104, 192 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, 8, 391, { .fields = { 120, 208 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 48 } }, 48, 24, 438, { .fields = { 24, 184 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 48 } }, 48, 72, 442, { .fields = { 8, 80 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 48 } }, 120, 24, 405, { .fields = { 8, 128 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 48 } }, 120, 72, 411, { .fields = { 8, 176 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 56, 48 } }, 64, 24, 455, { .fields = { 88, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 56, 40 } }, 64, 72, 459, { .fields = { 72, 216 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 8 } }, 104, 112, 452, { .fields = { 0, 248 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 8 } }, 88, 0, 453, { .fields = { 88, 48 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_LEFT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 16, 8 } }, 128, 0, 411, { .fields = { 112, 56 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 40, 0, 427, { .fields = { 16, 232 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 24, 8 } }, 64, 0, 477, { .fields = { 40, 248 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 80 } }, -56, -88, 830, { .fields = { 16, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 64 } }, -56, -8, 846, { .fields = { 40, 184 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 48 } }, -48, -56, 850, { .fields = { 0, 48 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 8, 64 } }, -48, -8, 865, { .fields = { 48, 184 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 96 } }, -88, -120, 812, { .fields = { 24, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 88 } }, -88, -24, 812, { .fields = { 24, 96 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 104 } }, -160, -8, 625, { .fields = { 56, 112 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 40, 112 } }, -160, -120, 625, { .fields = { 88, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 96 } }, -120, -16, 725, { .fields = { 56, 0 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STOREROOM_SPRITE_TEXTURE_PAGE_RIGHT, SHELTER_B1_STOREROOM_SPRITE_CLUT, { .fields = { 32, 104 } }, -120, -120, 725, { .fields = { 96, 112 } }, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B1_STOREROOM_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_storeroom_80186060[4] = {
+/// Mapped view 7 sprite ranges, ending with SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1StoreroomView7SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 1, 0 } },
-    { 22, 10, 0, 0, { 0, 0 } },
+    { 22, ARRAY_SIZE(_gShelterB1StoreroomView7Sprites) - 22, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_storeroom_80186080[2] = {
+/// Mapped view 8 image-strip selection and empty, sentinel-terminated sprite list.
+static SpriteBatch _gShelterB1StoreroomView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_storeroom_80186090[8] = {
-    { { .empty = D_shelter_b1_storeroom_8018521C }, D_shelter_b1_storeroom_8018521C, NULL },
-    { { .elements = D_shelter_b1_storeroom_8018522C }, D_shelter_b1_storeroom_8018563C, NULL },
-    { { .elements = D_shelter_b1_storeroom_8018566C }, D_shelter_b1_storeroom_80185950, NULL },
-    { { .elements = D_shelter_b1_storeroom_80185990 }, D_shelter_b1_storeroom_80185A58, NULL },
-    { { .elements = D_shelter_b1_storeroom_80185A70 }, D_shelter_b1_storeroom_80185C14, NULL },
-    { { .elements = D_shelter_b1_storeroom_80185C44 }, D_shelter_b1_storeroom_80185DC0, NULL },
-    { { .elements = D_shelter_b1_storeroom_80185DE0 }, D_shelter_b1_storeroom_80186060, NULL },
-    { { .empty = D_shelter_b1_storeroom_80186080 }, D_shelter_b1_storeroom_80186080, NULL },
+SpriteView gShelterB1StoreroomSpriteViews[8] = {
+    { { .empty = _gShelterB1StoreroomView1SpriteBatches }, _gShelterB1StoreroomView1SpriteBatches, NULL },
+    { { .elements = _gShelterB1StoreroomView2Sprites }, _gShelterB1StoreroomView2SpriteBatches, NULL },
+    { { .elements = _gShelterB1StoreroomView3Sprites }, _gShelterB1StoreroomView3SpriteBatches, NULL },
+    { { .elements = _gShelterB1StoreroomView4Sprites }, _gShelterB1StoreroomView4SpriteBatches, NULL },
+    { { .elements = _gShelterB1StoreroomView5Sprites }, _gShelterB1StoreroomView5SpriteBatches, NULL },
+    { { .elements = _gShelterB1StoreroomView6Sprites }, _gShelterB1StoreroomView6SpriteBatches, NULL },
+    { { .elements = _gShelterB1StoreroomView7Sprites }, _gShelterB1StoreroomView7SpriteBatches, NULL },
+    { { .empty = _gShelterB1StoreroomView8SpriteBatches }, _gShelterB1StoreroomView8SpriteBatches, NULL },
 };
 
-WorldCoordLight D_shelter_b1_storeroom_801860F0[1] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 10, -4227, -10 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } },
+/// Directional model light for every view, with Q12 direction and RGB intensity.
+///
+/// Coordinate composition and lighting queries update the cached transform and attenuation.
+static WorldCoordLight _gShelterB1StoreroomDirectionalLights[1] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 10, -4227, -10 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_shelter_b1_storeroom_80186148[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 920, -1702, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 20, 7321 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5582, -1606, 2511 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3276, 2293 }, { 0, 0 } }, 602, 1600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5780, -1749, -1968 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3276, 2293 }, { 0, 0 } }, 621, 1721 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3270, -1736, -2109 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3276, 2293 }, { 0, 0 } }, 661, 1921 },
+/// Four model-shading point lights for every view: one central light and three door lights.
+///
+/// Positions and falloff radii use world units; RGB intensities use twelve fractional bits.
+/// Coordinate composition and lighting queries update the cached transforms and attenuation.
+static WorldCoordPointLight _gShelterB1StoreroomPointLights[4] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 920, -1702, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 20, 7321 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5582, -1606, 2511 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3276, 2293 }, { 0, 0 } }, 602, 1600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5780, -1749, -1968 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3276, 2293 }, { 0, 0 } }, 621, 1721 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3270, -1736, -2109 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3276, 2293 }, { 0, 0 } }, 661, 1921 },
 };
 
-WorldCoordRoomLights D_shelter_b1_storeroom_801862C8[1] = {
-    { ARRAY_SIZE(D_shelter_b1_storeroom_801860F0), D_shelter_b1_storeroom_801860F0, ARRAY_SIZE(D_shelter_b1_storeroom_80186148), D_shelter_b1_storeroom_80186148, 0, NULL },
+/// Authored model-light collection: one directional light, four point lights, no cones.
+static WorldCoordRoomLights _gShelterB1StoreroomRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gShelterB1StoreroomDirectionalLights),
+    .directionalLights     = _gShelterB1StoreroomDirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB1StoreroomPointLights),
+    .pointLights           = _gShelterB1StoreroomPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_shelter_b1_storeroom_801862E0[12] = {
@@ -577,8 +626,12 @@ AreaVariant D_shelter_b1_storeroom_80186C9C[22] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b1_storeroom_80186D4C[9] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b1_storeroom_80186D4C) - 1 },
+/// Ambient minima for logical views 1..8, preceded by their view-count header.
+///
+/// Each RGB component uses sixteen units per 8-bit colour level.
+/// Read-only levels retain their authored position in the data section.
+static const WorldCoordRoomAmbientEntry _gShelterB1StoreroomRoomAmbient[9] __attribute__((section(".data"))) = {
+    { .viewCount = ARRAY_SIZE(_gShelterB1StoreroomRoomAmbient) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 470, 470, 470, 470 } },
     { .color = { 650, 650, 650, 650 } },
@@ -593,29 +646,49 @@ WorldCollisionOccluder D_shelter_b1_storeroom_80186D94[1] = {
     { NULL, NULL, { 1568, -240, 0, 0 }, { { -2976, 1840, 0, 0 }, { 2976, 1840, 0, 0 }, { -2976, -1840, 0, 0 }, { 2976, -1840, 0, 0 } }, { 0, 0, 4096, 0 }, 3491, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_storeroom_80186DD0 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+// Type-1 requests select the loaded room bank; cue 1 uses the next entry.
+enum {
+    SHELTER_B1_STOREROOM_WALK_FOOTSTEP_BASE = 0x10000041,
+    SHELTER_B1_STOREROOM_RUN_FOOTSTEP_BASE  = 0x10000043,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_storeroom_80186DDC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Floor cue bases for walking, running and scripted jumps in the loaded room bank.
+///
+/// Walking and jumps share entries 0x41/0x42; running uses 0x43/0x44.
+/// Read-only cue bases retain their authored position in the data section.
+static const WorldCollisionFootstepSounds _gShelterB1StoreroomFloorFootstepSounds __attribute__((section(".data"))) = {
+    .walk         = SHELTER_B1_STOREROOM_WALK_FOOTSTEP_BASE,
+    .run          = SHELTER_B1_STOREROOM_RUN_FOOTSTEP_BASE,
+    .scriptedJump = SHELTER_B1_STOREROOM_WALK_FOOTSTEP_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_storeroom_80186DE4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_storeroom_80186DD0 },
+/// Collision policy without footstep cues, shared by surface classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gShelterB1StoreroomSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_storeroom_80186DEC[8] = {
-    D_shelter_b1_storeroom_80186DDC,
-    D_shelter_b1_storeroom_80186DE4,
-    D_shelter_b1_storeroom_80186DDC,
-    D_shelter_b1_storeroom_80186DDC,
-    D_shelter_b1_storeroom_80186DDC,
-    D_shelter_b1_storeroom_80186DDC,
-    D_shelter_b1_storeroom_80186DDC,
-    D_shelter_b1_storeroom_80186DDC,
+/// Floor collision policy with footstep cues, selected by surface class 1.
+static WorldCollisionSurfaceProperties _gShelterB1StoreroomFloorSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB1StoreroomFloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB1StoreroomSurfaceClassProperties[8] = {
+    &_gShelterB1StoreroomSilentSurfaceProperties,
+    &_gShelterB1StoreroomFloorSurfaceProperties,
+    &_gShelterB1StoreroomSilentSurfaceProperties,
+    &_gShelterB1StoreroomSilentSurfaceProperties,
+    &_gShelterB1StoreroomSilentSurfaceProperties,
+    &_gShelterB1StoreroomSilentSurfaceProperties,
+    &_gShelterB1StoreroomSilentSurfaceProperties,
+    &_gShelterB1StoreroomSilentSurfaceProperties,
 };
 
 /// Binds actor-spawned visual effects to the storeroom's task implementations.
@@ -657,58 +730,58 @@ void shelterB1StoreroomDrawGlowsTask(Task* task)
     // Select visible tube endpoints and point lights; RGB channels use packed nibbles.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[20], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[22], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[28], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[30], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[36], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[38], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184998[46], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184998[47], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184998[48], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[10], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[11], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[14], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[15], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[18], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[19], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            glowDrawDisc(&_gShelterB1StoreroomLampGlowPoints.bulbCenters[6], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&_gShelterB1StoreroomLampGlowPoints.bulbCenters[7], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&_gShelterB1StoreroomLampGlowPoints.bulbCenters[8], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 3:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[16], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[18], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[20], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[22], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[24], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[26], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[28], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[30], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[36], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[38], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[8], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[9], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[10], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[11], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[12], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[13], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[14], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[15], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[18], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[19], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[16], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[24], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[32], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184998[43], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184998[44], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184998[45], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[8], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[12], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[16], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[17], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            glowDrawDisc(&_gShelterB1StoreroomLampGlowPoints.bulbCenters[3], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&_gShelterB1StoreroomLampGlowPoints.bulbCenters[4], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&_gShelterB1StoreroomLampGlowPoints.bulbCenters[5], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 5:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[2], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[4], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[6], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[8], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[10], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[12], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[32], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[0], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[1], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[2], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[3], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[4], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[5], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[6], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[16], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[17], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[36], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[38], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184998[40], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184998[41], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
-            glowDrawDisc(&D_shelter_b1_storeroom_80184998[42], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[18], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[19], LAMP_GLOW_RADIUS, LAMP_GLOW_BRIGHT_RGB);
+            glowDrawDisc(&_gShelterB1StoreroomLampGlowPoints.bulbCenters[0], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&_gShelterB1StoreroomLampGlowPoints.bulbCenters[1], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
+            glowDrawDisc(&_gShelterB1StoreroomLampGlowPoints.bulbCenters[2], LAMP_GLOW_RADIUS, LAMP_GLOW_DIM_RGB);
             break;
         case 7:
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[32], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
-            _glowDrawCapsule(&D_shelter_b1_storeroom_80184998[34], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[16], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
+            _glowDrawCapsule(_gShelterB1StoreroomLampGlowPoints.tubeEnds[17], LAMP_GLOW_RADIUS, LAMP_GLOW_MEDIUM_RGB);
             break;
     }
 }
