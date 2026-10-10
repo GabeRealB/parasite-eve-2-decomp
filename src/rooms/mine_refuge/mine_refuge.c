@@ -52,6 +52,8 @@
 #include "main/ui.h"
 #include "main/ui_types.h"
 
+#include "actors/actor_548100.h"
+
 #include "mapui/map_shelter.h"
 
 #include "rooms/acropolis_square.h"
@@ -70,8 +72,6 @@ static void _roomCutsceneSoundTask(Task* task);
 // No separate references identify them; their role (including padding) is unresolved.
 extern u8 D_mine_refuge_80182ADC[4];
 
-extern TaskDesc D_actor_548100_801358D8;
-
 /// The save's `companionType` byte under a symbol of its own; the cutscene's
 /// end reads it through this name rather than through `gMcSaveData`.
 
@@ -87,7 +87,7 @@ extern TaskDesc D_mine_refuge_801818B4[];
 /// The cutscene's sound task, killed when the scene is skipped.
 extern Task* gRoomCutsceneSoundTask;
 
-/// Task `_mineRefugeCircuitPanelTask` spawns from `D_actor_548100_801358D8` and waits on;
+/// Task `_mineRefugeCircuitPanelTask` spawns from `gActor548100PanelTaskDesc` and waits on;
 /// message 0x13F1 is relayed to it while it exists.
 extern Task* D_mine_refuge_80182AD8;
 
@@ -484,7 +484,7 @@ static WorldCollisionTrigger _gMineRefugeActionTriggers[6] = {
 };
 
 AreaResource D_mine_refuge_801829D8[2] = {
-    { 101, 481, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &D_actor_548100_801358D8 },
+    { 101, 481, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &gActor548100PanelTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -636,7 +636,7 @@ static void _mineRefugeCircuitPanelTask(Task* task)
             return;
         case MINE_REFUGE_PANEL_OPEN:
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_PANEL_OPEN, 0, 0);
-            D_mine_refuge_80182AD8 = taskSpawnFromTable(&D_actor_548100_801358D8, 0, 0, 0);
+            D_mine_refuge_80182AD8 = taskSpawnFromTable(&gActor548100PanelTaskDesc, 0, 0, 0);
             task->state            = task->state + 1;
             return;
         case MINE_REFUGE_PANEL_WAIT_EXIT:

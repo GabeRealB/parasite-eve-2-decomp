@@ -78374,11 +78374,12 @@ and ending exactly where the next symbol begins.
 **Fix.** Take both numbers from the code, never from the symbol: the stride from
 the multiply the code materialises (`id * 7 * 2` reads as three shifts and two
 adds), and the bound from whatever the loop tests — a record whose first byte is
-zero here and in the sibling route strings at `D_actor_548100_80135B24`, whose
+zero here and in the sibling route strings at `_gActor548100Routes`, whose
 `0xFF` bytes jump to another node without a connecting wire.
-Declare such a table unsized (`extern _Actor548100Edge D_actor_548100_801351D0[]`),
-as the sibling overlay headers do; a size copied from the symbol is a latent
-mismatch, and the sentinel record is not part of the array's data anyway.
+Leave an external declaration's bound unspecified, as the sibling overlay
+headers do; a size copied from the symbol is a latent mismatch. Here the
+authored records and sentinel establish the single private definition,
+`static _Actor548100Edge _gActor548100PanelWires[92]`, including the sentinel.
 
 The same table also shows why the record's *field* names want evidence from every
 reader: `_actor548100SetLegComplete`, `_actor548100ResetWireStates`, `_actor548100MeasureLeg` and
@@ -78481,7 +78482,7 @@ wrong by exactly a factor of the element size, not by a constant.
 same shape the already-matched sibling in the TU uses:
 
 ```c
-for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+for (edge = _gActor548100PanelWires; edge->nodeA != 0; edge++) {
     if (edge->layout == ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY) {
         edge->state = ACTOR_548100_EDGE_STATE_ABSENT;
     } else {

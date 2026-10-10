@@ -1,3 +1,5 @@
+#include "actors/actor_548100.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -76,8 +78,23 @@ enum {
     ACTOR_548100_ROUTE_UNUSED    = 0,
     ACTOR_548100_ROUTE_END       = 0,
     ACTOR_548100_ROUTE_GAP       = 0xFF,
+    ACTOR_548100_STOP_NODE_NONE  = 0,
     ACTOR_548100_NODE_ID_MASK    = 0xFF,
     ACTOR_548100_NODE_KEY_STRIDE = 100,
+};
+
+/// Route-table ids, preserving the socket order within each authored wiring.
+enum {
+    ACTOR_548100_ROUTE_FIRST_SOCKET_1  = 1,
+    ACTOR_548100_ROUTE_FIRST_SOCKET_2  = 2,
+    ACTOR_548100_ROUTE_FIRST_SOCKET_3  = 3,
+    ACTOR_548100_ROUTE_FIRST_SOCKET_4  = 4,
+    ACTOR_548100_ROUTE_SECOND_SOCKET_1 = 5,
+    ACTOR_548100_ROUTE_SECOND_SOCKET_2 = 6,
+    ACTOR_548100_ROUTE_SECOND_SOCKET_3 = 7,
+    ACTOR_548100_ROUTE_SECOND_SOCKET_4 = 8,
+    ACTOR_548100_ROUTE_MAIN_FEED       = 9,
+    ACTOR_548100_ROUTE_COUNT           = 10,
 };
 
 /// Output choices and the changed-picture rectangle after the four socket pieces.
@@ -103,6 +120,26 @@ enum {
 
 /// Pulse level at which a wire colour equals its authored RGB bytes.
 enum { ACTOR_548100_COLOR_PULSE_ONE = 32 };
+
+/// Hotspot choices shared by the panel rectangles and their command handler.
+enum {
+    ACTOR_548100_CHOICE_SOCKET_1    = 1,
+    ACTOR_548100_CHOICE_SOCKET_2    = 2,
+    ACTOR_548100_CHOICE_SOCKET_3    = 3,
+    ACTOR_548100_CHOICE_SOCKET_4    = 4,
+    ACTOR_548100_CHOICE_SWITCH      = 5,
+    ACTOR_548100_CHOICE_POWER_LIGHT = 6,
+    ACTOR_548100_CHOICE_POWER_LINES = 7,
+    ACTOR_548100_CHOICE_GROUND_WIRE = 8,
+    ACTOR_548100_CHOICE_GATE_LOCKS  = 9,
+};
+
+/// Pulse phases stored in a byte, and the exported panel task's scheduling priority.
+enum {
+    ACTOR_548100_PULSE_RISING        = 0,
+    ACTOR_548100_PULSE_FALLING       = 1,
+    ACTOR_548100_PANEL_TASK_PRIORITY = 192,
+};
 
 /// Publishes a route node, skipping a gap marker when the caller already selected that branch.
 ///
@@ -204,10 +241,6 @@ typedef struct {
 } _Actor548100Circuit;
 STATIC_ASSERT_SIZEOF(_Actor548100Circuit, 0xA);
 
-/// The circuit of the current wiring that matches the filled sockets, looked
-/// up again every frame; `NULL` until the first lookup.
-extern _Actor548100Circuit* D_actor_548100_80135B4C;
-
 /// Values of `_Actor548100Edge::layout`: which of the panel's two wirings carry
 /// the wire.
 ///
@@ -259,14 +292,6 @@ typedef struct {
 } _Actor548100Edge;
 STATIC_ASSERT_SIZEOF(_Actor548100Edge, 0xE);
 
-extern _Actor548100Edge D_actor_548100_801351D0[];
-/// Node points `(x, y)`, indexed by node id.
-extern DVECTOR D_actor_548100_801358E4[];
-/// Route strings, indexed by route id: node ids, 0xFF-escaped, 0-terminated.
-extern u8* D_actor_548100_80135B24[];
-/// Edge-id matrix keyed `prev * 100 + cur`.
-extern u8 D_actor_548100_80135B5C[10000];
-
 /// One piece of the panel's picture that changes with its state: the battery
 /// in a filled socket, or the side of the panel that holds the thrown switch.
 ///
@@ -283,11 +308,6 @@ typedef struct {
 } _Actor548100TexRect;
 STATIC_ASSERT_SIZEOF(_Actor548100TexRect, 0x8);
 
-// Eleven socket masks: empty, four singles, and six pairs. Items 0x120/0x12C
-// move between inventory and sockets; pickup slot 6 supplies the second battery
-// once, while slots 4/5 return installed batteries. Thus normal puzzle actions
-// match a record before the end of this table, which has no sentinel.
-extern _Actor548100Circuit D_actor_548100_80135750[11];
 extern _Actor548100TexRect D_actor_548100_801357C0[5];
 
 /// Label of one of the three wire colours beside pointers to its components.
@@ -334,29 +354,13 @@ extern TaskDesc D_actor_548100_801351B4;
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
-extern TaskMessageEntry    D_actor_548100_801351C0[];
-extern ActionPromptHotspot D_actor_548100_801357E8[];
-extern _Actor548100Circuit D_actor_548100_801356D8[12];
-extern s16                 D_actor_548100_80135B50;
-extern u8                  D_actor_548100_80135B52;
-extern s8                  D_actor_548100_80135B53;
-extern s8                  D_actor_548100_80135B54;
-extern s8                  D_actor_548100_80135B55;
-extern s8                  D_actor_548100_80135B56;
-extern s8                  D_actor_548100_80135B57;
-extern s8                  D_actor_548100_80135B58;
-extern s8                  D_actor_548100_80135B59;
-extern s8                  D_actor_548100_80135B5A;
-extern s8                  D_actor_548100_80135B5B;
-extern u8                  D_actor_548100_80135884;
-extern u8                  D_actor_548100_80135885;
-extern u8                  D_actor_548100_80135886;
-extern u8                  D_actor_548100_80135887;
-extern u8                  D_actor_548100_80135888;
-extern u8                  D_actor_548100_80135889;
-extern u8                  D_actor_548100_8013588A;
-extern u8                  D_actor_548100_8013588B;
-extern u8                  D_actor_548100_8013588C[28];
+extern TaskMessageEntry D_actor_548100_801351C0[];
+extern s8               D_actor_548100_80135B56;
+extern s8               D_actor_548100_80135B57;
+extern s8               D_actor_548100_80135B58;
+extern s8               D_actor_548100_80135B59;
+extern s8               D_actor_548100_80135B5A;
+extern s8               D_actor_548100_80135B5B;
 
 static s32  _actor548100UseBattery(Task* task, s32 messageId, s32 itemId, s32 unused);
 static void _actor548100PromptTask(Task* task);
@@ -373,7 +377,11 @@ TaskMessageEntry D_actor_548100_801351C0[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-_Actor548100Edge D_actor_548100_801351D0[92] = {
+/// Mutable diagram wires: 91 node pairs followed by a nodeA-zero terminator.
+///
+/// Endpoints and wiring membership are authored. Opening the panel derives
+/// dominant-axis pixel geometry; each frame replaces the flow drawing state.
+static _Actor548100Edge _gActor548100PanelWires[92] = {
     { 68, 1, ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY },
     { 1, 2, ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY },
     { 2, 73, ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY },
@@ -468,33 +476,41 @@ _Actor548100Edge D_actor_548100_801351D0[92] = {
     { 0 },
 };
 
-_Actor548100Circuit D_actor_548100_801356D8[12] = {
-    { 0, 0, { { 0, 0 }, { 0, 0 }, { 9, 0 } }, 0, 1 },
-    { 1, 0, { { 1, 0 }, { 0, 0 }, { 9, 0 } }, 0, 1 },
-    { 2, 0, { { 2, 0 }, { 0, 0 }, { 9, 0 } }, 1, 1 },
-    { 3, 0, { { 3, 0 }, { 0, 0 }, { 9, 0 } }, 0, 1 },
-    { 4, 0, { { 4, 0 }, { 0, 0 }, { 9, 0 } }, 0, 1 },
-    { 1, 2, { { 1, 9 }, { 2, 9 }, { 9, 0 } }, 0, 1 },
-    { 1, 3, { { 1, 11 }, { 3, 11 }, { 9, 0 } }, 0, 1 },
-    { 1, 4, { { 1, 36 }, { 4, 36 }, { 9, 0 } }, 0, 1 },
-    { 2, 3, { { 2, 0 }, { 3, 0 }, { 9, 0 } }, 1, 1 },
-    { 2, 4, { { 2, 0 }, { 4, 0 }, { 9, 0 } }, 1, 1 },
-    { 3, 4, { { 3, 27 }, { 4, 27 }, { 9, 0 } }, 0, 1 },
-    { -1, -1, { { 0, 0 }, { 0, 0 }, { 0, 0 } }, 0, 0 },
+/// First-wiring circuits for empty sockets, four singles and six pairs, then a terminator.
+///
+/// Each record gives the battery routes, crossing stops and powered outputs.
+/// The third leg is always the independent main feed. SocketA -1 ends lookup.
+static _Actor548100Circuit _gActor548100FirstWiringCircuits[12] = {
+    { 0, 0, { { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 0, 1 },
+    { 1, 0, { { ACTOR_548100_ROUTE_FIRST_SOCKET_1, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 0, 1 },
+    { 2, 0, { { ACTOR_548100_ROUTE_FIRST_SOCKET_2, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 1, 1 },
+    { 3, 0, { { ACTOR_548100_ROUTE_FIRST_SOCKET_3, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 0, 1 },
+    { 4, 0, { { ACTOR_548100_ROUTE_FIRST_SOCKET_4, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 0, 1 },
+    { 1, 2, { { ACTOR_548100_ROUTE_FIRST_SOCKET_1, 9 }, { ACTOR_548100_ROUTE_FIRST_SOCKET_2, 9 }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 0, 1 },
+    { 1, 3, { { ACTOR_548100_ROUTE_FIRST_SOCKET_1, 11 }, { ACTOR_548100_ROUTE_FIRST_SOCKET_3, 11 }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 0, 1 },
+    { 1, 4, { { ACTOR_548100_ROUTE_FIRST_SOCKET_1, 36 }, { ACTOR_548100_ROUTE_FIRST_SOCKET_4, 36 }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 0, 1 },
+    { 2, 3, { { ACTOR_548100_ROUTE_FIRST_SOCKET_2, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_FIRST_SOCKET_3, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 1, 1 },
+    { 2, 4, { { ACTOR_548100_ROUTE_FIRST_SOCKET_2, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_FIRST_SOCKET_4, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 1, 1 },
+    { 3, 4, { { ACTOR_548100_ROUTE_FIRST_SOCKET_3, 27 }, { ACTOR_548100_ROUTE_FIRST_SOCKET_4, 27 }, { ACTOR_548100_ROUTE_MAIN_FEED, ACTOR_548100_STOP_NODE_NONE } }, 0, 1 },
+    { ACTOR_548100_CIRCUIT_END, ACTOR_548100_CIRCUIT_END, { { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
 };
 
-_Actor548100Circuit D_actor_548100_80135750[11] = {
-    { 0, 0, { { 0, 0 }, { 0, 0 }, { 0, 0 } }, 0, 0 },
-    { 1, 0, { { 5, 0 }, { 0, 0 }, { 0, 0 } }, 1, 0 },
-    { 2, 0, { { 6, 0 }, { 0, 0 }, { 0, 0 } }, 0, 0 },
-    { 3, 0, { { 7, 0 }, { 0, 0 }, { 0, 0 } }, 0, 0 },
-    { 4, 0, { { 8, 0 }, { 0, 0 }, { 0, 0 } }, 0, 1 },
-    { 1, 2, { { 5, 9 }, { 6, 9 }, { 0, 0 } }, 0, 0 },
-    { 1, 3, { { 5, 13 }, { 7, 13 }, { 0, 0 } }, 0, 0 },
-    { 1, 4, { { 5, 0 }, { 8, 0 }, { 0, 0 } }, 1, 1 },
-    { 2, 3, { { 6, 18 }, { 7, 18 }, { 0, 0 } }, 0, 0 },
-    { 2, 4, { { 6, 11 }, { 8, 11 }, { 0, 0 } }, 0, 0 },
-    { 3, 4, { { 7, 22 }, { 8, 22 }, { 0, 0 } }, 0, 0 },
+/// Second-wiring circuits for empty sockets, four singles and six pairs, without a terminator.
+///
+/// Lookup requires at most two occupied sockets. Only sockets 1 and 4 together
+/// power both outputs; the third leg is unused in every record.
+static _Actor548100Circuit _gActor548100SecondWiringCircuits[11] = {
+    { 0, 0, { { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
+    { 1, 0, { { ACTOR_548100_ROUTE_SECOND_SOCKET_1, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 1, 0 },
+    { 2, 0, { { ACTOR_548100_ROUTE_SECOND_SOCKET_2, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
+    { 3, 0, { { ACTOR_548100_ROUTE_SECOND_SOCKET_3, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
+    { 4, 0, { { ACTOR_548100_ROUTE_SECOND_SOCKET_4, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 1 },
+    { 1, 2, { { ACTOR_548100_ROUTE_SECOND_SOCKET_1, 9 }, { ACTOR_548100_ROUTE_SECOND_SOCKET_2, 9 }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
+    { 1, 3, { { ACTOR_548100_ROUTE_SECOND_SOCKET_1, 13 }, { ACTOR_548100_ROUTE_SECOND_SOCKET_3, 13 }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
+    { 1, 4, { { ACTOR_548100_ROUTE_SECOND_SOCKET_1, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_SECOND_SOCKET_4, ACTOR_548100_STOP_NODE_NONE }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 1, 1 },
+    { 2, 3, { { ACTOR_548100_ROUTE_SECOND_SOCKET_2, 18 }, { ACTOR_548100_ROUTE_SECOND_SOCKET_3, 18 }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
+    { 2, 4, { { ACTOR_548100_ROUTE_SECOND_SOCKET_2, 11 }, { ACTOR_548100_ROUTE_SECOND_SOCKET_4, 11 }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
+    { 3, 4, { { ACTOR_548100_ROUTE_SECOND_SOCKET_3, 22 }, { ACTOR_548100_ROUTE_SECOND_SOCKET_4, 22 }, { ACTOR_548100_ROUTE_UNUSED, ACTOR_548100_STOP_NODE_NONE } }, 0, 0 },
 };
 
 _Actor548100TexRect D_actor_548100_801357C0[5] = {
@@ -505,39 +521,56 @@ _Actor548100TexRect D_actor_548100_801357C0[5] = {
     { 0, 0, 75, 239 },
 };
 
-ActionPromptHotspot D_actor_548100_801357E8[13] = {
-    { -84, -87, 14, 14, 1, 0, 0 },
-    { -71, -75, 14, 14, 2, 0, 0 },
-    { -84, -63, 14, 14, 3, 0, 0 },
-    { -71, -51, 14, 14, 4, 0, 0 },
-    { -134, 0, 43, 88, 5, 0, 0 },
-    { -134, -98, 44, 200, 6, 0, 0 },
-    { 63, 42, 44, 38, 9, 0, 0 },
-    { -58, -96, 189, 55, 7, 0, 0 },
-    { 75, -46, 56, 117, 7, 0, 0 },
-    { 75, -46, 56, 117, 7, 0, 0 },
-    { -79, -1, 152, 93, 7, 0, 0 },
-    { -37, 92, 96, 20, 8, 0, 0 },
+/// Writable cursor hotspots in screen-centred pixels, ending at the id -1 sentinel.
+///
+/// Twelve inclusive rectangles select four sockets, the switch and caption
+/// targets. Hit testing marks every overlap; confirmation uses the first hit.
+/// Repeated power-line rectangles and their order are part of the authored table.
+static ActionPromptHotspot _gActor548100PanelHotspots[13] = {
+    { -84, -87, 14, 14, ACTOR_548100_CHOICE_SOCKET_1, 0, 0 },
+    { -71, -75, 14, 14, ACTOR_548100_CHOICE_SOCKET_2, 0, 0 },
+    { -84, -63, 14, 14, ACTOR_548100_CHOICE_SOCKET_3, 0, 0 },
+    { -71, -51, 14, 14, ACTOR_548100_CHOICE_SOCKET_4, 0, 0 },
+    { -134, 0, 43, 88, ACTOR_548100_CHOICE_SWITCH, 0, 0 },
+    { -134, -98, 44, 200, ACTOR_548100_CHOICE_POWER_LIGHT, 0, 0 },
+    { 63, 42, 44, 38, ACTOR_548100_CHOICE_GATE_LOCKS, 0, 0 },
+    { -58, -96, 189, 55, ACTOR_548100_CHOICE_POWER_LINES, 0, 0 },
+    { 75, -46, 56, 117, ACTOR_548100_CHOICE_POWER_LINES, 0, 0 },
+    { 75, -46, 56, 117, ACTOR_548100_CHOICE_POWER_LINES, 0, 0 },
+    { -79, -1, 152, 93, ACTOR_548100_CHOICE_POWER_LINES, 0, 0 },
+    { -37, 92, 96, 20, ACTOR_548100_CHOICE_GROUND_WIRE, 0, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-u8 D_actor_548100_80135884 = 16;
+/// Authored red channel of the flowing-current colour at pulse level 32.
+static u8 _gActor548100FlowBaseRed = 16;
 
-u8 D_actor_548100_80135885 = 165;
+/// Authored green channel of the flowing-current colour at pulse level 32.
+static u8 _gActor548100FlowBaseGreen = 165;
 
-u8 D_actor_548100_80135886 = 98;
+/// Authored blue channel of the flowing-current colour at pulse level 32.
+static u8 _gActor548100FlowBaseBlue = 98;
 
-u8 D_actor_548100_80135887 = 60;
+/// Authored red channel of the stopped-current colour at pulse level 32.
+static u8 _gActor548100StopBaseRed = 60;
 
-u8 D_actor_548100_80135888 = 60;
+/// Authored green channel of the stopped-current colour at pulse level 32.
+static u8 _gActor548100StopBaseGreen = 60;
 
-u8 D_actor_548100_80135889 = 16;
+/// Authored blue channel of the stopped-current colour at pulse level 32.
+static u8 _gActor548100StopBaseBlue = 16;
 
-u8 D_actor_548100_8013588A = 160;
+/// Authored red channel of the short-circuit colour at pulse level 32.
+static u8 _gActor548100ShortBaseRed = 160;
 
-u8 D_actor_548100_8013588B = 16;
+/// Authored green channel of the short-circuit colour at pulse level 32.
+static u8 _gActor548100ShortBaseGreen = 16;
 
-u8 D_actor_548100_8013588C[28] = {
+/// Retained byte storage whose first byte is the short-circuit blue channel at pulse level 32.
+///
+/// Only element 0 is accessed. The role and membership of the following 27 zero
+/// bytes are unproven; the stored span is preserved without treating them as padding.
+static u8 _gActor548100ShortBaseBlueStorage[28] = {
     32,
     0,
     0,
@@ -569,14 +602,18 @@ u8 D_actor_548100_8013588C[28] = {
 };
 
 _Actor548100ColorRow D_actor_548100_801358A8[3] = {
-    { { &D_actor_548100_80135884, &D_actor_548100_80135885, &D_actor_548100_80135886 }, D_actor_548100_80131E64 },
-    { { &D_actor_548100_80135887, &D_actor_548100_80135888, &D_actor_548100_80135889 }, D_actor_548100_80131E5C },
-    { { &D_actor_548100_8013588A, &D_actor_548100_8013588B, D_actor_548100_8013588C }, D_actor_548100_80131E54 },
+    { { &_gActor548100FlowBaseRed, &_gActor548100FlowBaseGreen, &_gActor548100FlowBaseBlue }, D_actor_548100_80131E64 },
+    { { &_gActor548100StopBaseRed, &_gActor548100StopBaseGreen, &_gActor548100StopBaseBlue }, D_actor_548100_80131E5C },
+    { { &_gActor548100ShortBaseRed, &_gActor548100ShortBaseGreen, _gActor548100ShortBaseBlueStorage }, D_actor_548100_80131E54 },
 };
 
-TaskDesc D_actor_548100_801358D8 = { { { TASK_BODY_NONE, 192 } }, _actor548100PanelTask, { .value = 0 } };
+TaskDesc gActor548100PanelTaskDesc = { { { TASK_BODY_NONE, ACTOR_548100_PANEL_TASK_PRIORITY } }, _actor548100PanelTask, { .value = 0 } };
 
-DVECTOR D_actor_548100_801358E4[82] = {
+/// Diagram node positions in pixels from the screen's top-left corner.
+///
+/// Wires index nodes 1..80; entry 0 is unused. The final (-1, -1) pair is
+/// retained but no consumer uses it as a terminator. Drawing subtracts (158, 118).
+static DVECTOR _gActor548100DiagramNodes[82] = {
     { 0, 0 },
     { 79, 26 },
     { 286, 26 },
@@ -661,10 +698,14 @@ DVECTOR D_actor_548100_801358E4[82] = {
     { -1, -1 },
 };
 
-u8 D_actor_548100_80135A2C[36] = {
+/// First-wiring socket 1's current route, from its battery through the diagram to ground.
+///
+/// Byte node ids end at zero; 0xFF escapes the next node across a gap.
+/// Bytes after the first zero are retained storage, with no established consumer.
+static u8 _gActor548100FirstWiringSocket1Route[36] = {
     69,
     75,
-    255,
+    ACTOR_548100_ROUTE_GAP,
     3,
     4,
     9,
@@ -695,16 +736,20 @@ u8 D_actor_548100_80135A2C[36] = {
     64,
     66,
     67,
-    0,
+    ACTOR_548100_ROUTE_END,
     0,
     0,
 };
 
-u8 D_actor_548100_80135A50[24] = {
+/// First-wiring socket 2's current route, from its battery to the door output.
+///
+/// Byte node ids end at zero; 0xFF escapes the next node across a gap.
+/// Bytes after the first zero are retained storage, with no established consumer.
+static u8 _gActor548100FirstWiringSocket2Route[24] = {
     70,
     76,
     77,
-    255,
+    ACTOR_548100_ROUTE_GAP,
     8,
     9,
     4,
@@ -722,15 +767,19 @@ u8 D_actor_548100_80135A50[24] = {
     51,
     57,
     58,
-    0,
+    ACTOR_548100_ROUTE_END,
     0,
     0,
 };
 
-u8 D_actor_548100_80135A68[28] = {
+/// First-wiring socket 3's current route through the diagram.
+///
+/// Byte node ids end at zero; 0xFF escapes the next node across a gap.
+/// Bytes after the first zero are retained storage, with no established consumer.
+static u8 _gActor548100FirstWiringSocket3Route[28] = {
     71,
     78,
-    255,
+    ACTOR_548100_ROUTE_GAP,
     15,
     16,
     17,
@@ -754,15 +803,19 @@ u8 D_actor_548100_80135A68[28] = {
     60,
     61,
     62,
-    0,
+    ACTOR_548100_ROUTE_END,
     0,
 };
 
-u8 D_actor_548100_80135A84[24] = {
+/// First-wiring socket 4's current route, from its battery through the diagram to ground.
+///
+/// Byte node ids end at zero; 0xFF escapes the next node across a gap.
+/// Bytes after the first zero are retained storage, with no established consumer.
+static u8 _gActor548100FirstWiringSocket4Route[24] = {
     72,
     79,
     80,
-    255,
+    ACTOR_548100_ROUTE_GAP,
     21,
     22,
     23,
@@ -780,15 +833,19 @@ u8 D_actor_548100_80135A84[24] = {
     65,
     66,
     67,
-    0,
+    ACTOR_548100_ROUTE_END,
     0,
     0,
 };
 
-u8 D_actor_548100_80135A9C[28] = {
+/// Second-wiring socket 1's current route, from its battery to the door output.
+///
+/// Byte node ids end at zero; 0xFF escapes the next node across a gap.
+/// Bytes after the first zero are retained storage, with no established consumer.
+static u8 _gActor548100SecondWiringSocket1Route[28] = {
     69,
     75,
-    255,
+    ACTOR_548100_ROUTE_GAP,
     3,
     4,
     9,
@@ -811,16 +868,19 @@ u8 D_actor_548100_80135A9C[28] = {
     51,
     57,
     58,
-    0,
+    ACTOR_548100_ROUTE_END,
     0,
     0,
 };
 
-u8 D_actor_548100_80135AB8[28] = {
+/// Second-wiring socket 2's current route, from its battery through the diagram to ground.
+///
+/// Byte node ids end at zero; 0xFF escapes the next node across a gap.
+static u8 _gActor548100SecondWiringSocket2Route[28] = {
     70,
     76,
     77,
-    255,
+    ACTOR_548100_ROUTE_GAP,
     8,
     9,
     4,
@@ -844,13 +904,16 @@ u8 D_actor_548100_80135AB8[28] = {
     65,
     66,
     67,
-    0,
+    ACTOR_548100_ROUTE_END,
 };
 
-u8 D_actor_548100_80135AD4[36] = {
+/// Second-wiring socket 3's current route, from its battery through the diagram to ground.
+///
+/// Byte node ids end at zero; 0xFF escapes the next node across a gap.
+static u8 _gActor548100SecondWiringSocket3Route[36] = {
     71,
     78,
-    255,
+    ACTOR_548100_ROUTE_GAP,
     15,
     16,
     22,
@@ -883,14 +946,18 @@ u8 D_actor_548100_80135AD4[36] = {
     64,
     66,
     67,
-    0,
+    ACTOR_548100_ROUTE_END,
 };
 
-u8 D_actor_548100_80135AF8[36] = {
+/// Second-wiring socket 4's current route, from its battery to the passage output.
+///
+/// Byte node ids end at zero; 0xFF escapes the next node across a gap.
+/// Bytes after the first zero are retained storage, with no established consumer.
+static u8 _gActor548100SecondWiringSocket4Route[36] = {
     72,
     79,
     80,
-    255,
+    ACTOR_548100_ROUTE_GAP,
     21,
     22,
     16,
@@ -919,47 +986,71 @@ u8 D_actor_548100_80135AF8[36] = {
     60,
     61,
     62,
-    0,
+    ACTOR_548100_ROUTE_END,
     0,
     0,
     0,
 };
 
-u8 D_actor_548100_80135B1C[8] = {
+/// Independent main-feed route powering the passage in every first-wiring circuit.
+///
+/// Byte node ids end at zero. Bytes after the first zero are retained storage,
+/// with no established consumer. The second wiring does not use this route.
+static u8 _gActor548100MainFeedRoute[8] = {
     68,
     1,
     2,
     73,
     74,
-    0,
+    ACTOR_548100_ROUTE_END,
     0,
     0,
 };
 
-u8* D_actor_548100_80135B24[10] = {
+/// Node-sequence lookup by route id: 0 unused, 1..4 first wiring, 5..8 second, 9 main feed.
+///
+/// Battery routes correspond to sockets 1..4 within each wiring. Each sequence
+/// ends at zero; 0xFF escapes the next node, moving across a gap without a wire.
+static const u8* _gActor548100Routes[ACTOR_548100_ROUTE_COUNT] = {
     NULL,
-    D_actor_548100_80135A2C,
-    D_actor_548100_80135A50,
-    D_actor_548100_80135A68,
-    D_actor_548100_80135A84,
-    D_actor_548100_80135A9C,
-    D_actor_548100_80135AB8,
-    D_actor_548100_80135AD4,
-    D_actor_548100_80135AF8,
-    D_actor_548100_80135B1C,
+    _gActor548100FirstWiringSocket1Route,
+    _gActor548100FirstWiringSocket2Route,
+    _gActor548100FirstWiringSocket3Route,
+    _gActor548100FirstWiringSocket4Route,
+    _gActor548100SecondWiringSocket1Route,
+    _gActor548100SecondWiringSocket2Route,
+    _gActor548100SecondWiringSocket3Route,
+    _gActor548100SecondWiringSocket4Route,
+    _gActor548100MainFeedRoute,
 };
 
-_Actor548100Circuit* D_actor_548100_80135B4C = NULL;
+/// Borrowed circuit record selected for the current wiring and sockets; NULL before first lookup.
+///
+/// Selection advances within an overlay-owned table each frame. Consumers
+/// read its legs and output flags; the pointer lasts only while this overlay is loaded.
+/// The first wiring retains its terminator when no arrangement matches; the
+/// second wiring requires at most two occupied sockets to stay within its table.
+static const _Actor548100Circuit* _gActor548100CurrentCircuit = NULL;
 
-s16 D_actor_548100_80135B50 = 0;
+/// Colour brightness numerator over 32, initialized to 16 on each panel visit.
+///
+/// Drawing uses one level for the frame, then advances the signed halfword.
+/// Normal phases cycle 16..32; other phase values decay positive levels to zero.
+static s16 _gActor548100ColorPulse = 0;
 
-u8 D_actor_548100_80135B52 = 0;
+/// Colour-pulse phase (0 rising, 1 falling); other values select decay to zero.
+///
+/// Opening the panel resets rising. No producer of the decay values is established.
+static u8 _gActor548100ColorPulsePhase = ACTOR_548100_PULSE_RISING;
 
-s8 D_actor_548100_80135B53 = 0;
+/// Current frame's red FLOW channel, stored as its low eight RGB bits.
+static u8 _gActor548100FlowRed = 0;
 
-s8 D_actor_548100_80135B54 = 0;
+/// Current frame's green FLOW channel, stored as its low eight RGB bits.
+static u8 _gActor548100FlowGreen = 0;
 
-s8 D_actor_548100_80135B55 = 0;
+/// Current frame's blue FLOW channel, stored as its low eight RGB bits.
+static u8 _gActor548100FlowBlue = 0;
 
 s8 D_actor_548100_80135B56 = 0;
 
@@ -967,7 +1058,13 @@ s8 D_actor_548100_80135B57 = 0;
 
 s8 D_actor_548100_80135B58 = 0;
 
-u8 D_actor_548100_80135B5C[10000] = { 0 };
+/// Undirected node-pair lookup of byte indices into the panel wire table.
+///
+/// Key = previousNode * 100 + currentNode. Opening the panel writes both
+/// directions of each authored wire; only those pairs are valid. Zero is a
+/// valid wire index, not an absent-edge sentinel. Authored keys reach 8079;
+/// the full extent beyond that is unproven and the existing storage is retained.
+static u8 _gActor548100WireIndexByNodePair[10000] = { 0 };
 
 static void _actor548100DrawEdge(const _Actor548100Edge* edge);
 
@@ -1046,12 +1143,12 @@ static void _actor548100InitPanel(Task* task)
     work->usedItem = 0;
     // Begin the panel menu hold and reset room-owned hotspot feedback.
     displayAcquireMenuHold();
-    hotspots = D_actor_548100_801357E8;
+    hotspots = _gActor548100PanelHotspots;
     for (hotspot = hotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
         hotspot->hit = 0;
     }
-    D_actor_548100_80135B50 = ACTOR_548100_INITIAL_COLOR_PULSE;
-    D_actor_548100_80135B52 = 0;
+    _gActor548100ColorPulse      = ACTOR_548100_INITIAL_COLOR_PULSE;
+    _gActor548100ColorPulsePhase = ACTOR_548100_PULSE_RISING;
     _actor548100InitWireGraph();
     _actor548100HoldPanelPresentation();
 }
@@ -1064,7 +1161,7 @@ static void _actor548100InitPanel(Task* task)
 static void _actor548100ScanHotspots(Task* task)
 {
     ActionPrompt*        prompt  = gActionPromptSlots;
-    ActionPromptHotspot* hotspot = D_actor_548100_801357E8;
+    ActionPromptHotspot* hotspot = _gActor548100PanelHotspots;
     _Actor548100Work*    work    = task->work;
 
     gGameSession->hideHud    = 1;
@@ -1138,15 +1235,6 @@ static inline void _actor548100OfferSocketBattery(_Actor548100Work* work)
 static void _actor548100HandleHotspotChoice(Task* task)
 {
     enum {
-        ACTOR_548100_CHOICE_SOCKET_1         = 1,
-        ACTOR_548100_CHOICE_SOCKET_2         = 2,
-        ACTOR_548100_CHOICE_SOCKET_3         = 3,
-        ACTOR_548100_CHOICE_SOCKET_4         = 4,
-        ACTOR_548100_CHOICE_SWITCH           = 5,
-        ACTOR_548100_CHOICE_POWER_LIGHT      = 6,
-        ACTOR_548100_CHOICE_POWER_LINES      = 7,
-        ACTOR_548100_CHOICE_GROUND_WIRE      = 8,
-        ACTOR_548100_CHOICE_GATE_LOCKS       = 9,
         ACTOR_548100_CAP_COMMAND_POWER_LIGHT = 4,
         ACTOR_548100_CAP_COMMAND_SWITCH      = 5,
         ACTOR_548100_CAP_COMMAND_POWER_LINES = 7,
@@ -1221,24 +1309,24 @@ static void _actor548100WaitSwitchCaption(Task* task)
             gameFlagSetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON, 1);
             task->state = ACTOR_548100_STATE_ANIMATE_FLOW;
             _actor548100SelectCircuit();
-            work->thirdLength = _actor548100MeasureLeg(D_actor_548100_80135B4C->leg[2].route, D_actor_548100_80135B4C->leg[2].stopNode);
-            firstLegLength    = _actor548100MeasureLeg(D_actor_548100_80135B4C->leg[0].route, D_actor_548100_80135B4C->leg[0].stopNode);
-            secondLegLength   = _actor548100MeasureLeg(D_actor_548100_80135B4C->leg[1].route, D_actor_548100_80135B4C->leg[1].stopNode);
+            work->thirdLength = _actor548100MeasureLeg(_gActor548100CurrentCircuit->leg[2].route, _gActor548100CurrentCircuit->leg[2].stopNode);
+            firstLegLength    = _actor548100MeasureLeg(_gActor548100CurrentCircuit->leg[0].route, _gActor548100CurrentCircuit->leg[0].stopNode);
+            secondLegLength   = _actor548100MeasureLeg(_gActor548100CurrentCircuit->leg[1].route, _gActor548100CurrentCircuit->leg[1].stopNode);
             // Keep the two battery legs in length order so their fronts arrive together.
             if (secondLegLength < firstLegLength) {
                 work->longLength        = firstLegLength;
                 work->shortLength       = secondLegLength;
-                work->longLeg.route     = D_actor_548100_80135B4C->leg[0].route;
-                work->shortLeg.route    = D_actor_548100_80135B4C->leg[1].route;
-                work->longLeg.stopNode  = D_actor_548100_80135B4C->leg[0].stopNode;
-                work->shortLeg.stopNode = D_actor_548100_80135B4C->leg[1].stopNode;
+                work->longLeg.route     = _gActor548100CurrentCircuit->leg[0].route;
+                work->shortLeg.route    = _gActor548100CurrentCircuit->leg[1].route;
+                work->longLeg.stopNode  = _gActor548100CurrentCircuit->leg[0].stopNode;
+                work->shortLeg.stopNode = _gActor548100CurrentCircuit->leg[1].stopNode;
             } else {
                 work->longLength        = secondLegLength;
                 work->shortLength       = firstLegLength;
-                work->longLeg.route     = D_actor_548100_80135B4C->leg[1].route;
-                work->shortLeg.route    = D_actor_548100_80135B4C->leg[0].route;
-                work->longLeg.stopNode  = D_actor_548100_80135B4C->leg[1].stopNode;
-                work->shortLeg.stopNode = D_actor_548100_80135B4C->leg[0].stopNode;
+                work->longLeg.route     = _gActor548100CurrentCircuit->leg[1].route;
+                work->shortLeg.route    = _gActor548100CurrentCircuit->leg[0].route;
+                work->longLeg.stopNode  = _gActor548100CurrentCircuit->leg[1].stopNode;
+                work->shortLeg.stopNode = _gActor548100CurrentCircuit->leg[0].stopNode;
             }
             work->longProgress  = 0;
             work->shortProgress = 0;
@@ -1267,9 +1355,6 @@ static void _actor548100DrawPanel(Task* task)
         ACTOR_548100_WIRE_DRAW_MODE                = _get_mode(0, 1, getTPage(0, GPU_BLEND_ADD, 640, 0)),
         ACTOR_548100_OT_WIRE_DRAW_MODE             = 0x3FD,
         ACTOR_548100_COLOR_PULSE_MIN               = 16,
-        ACTOR_548100_PULSE_RISING                  = 0,
-        ACTOR_548100_PULSE_FALLING                 = 1,
-        ACTOR_548100_STOP_NODE_NONE                = 0,
         ACTOR_548100_PASSAGE_UNPOWERED             = 0,
         ACTOR_548100_PASSAGE_POWERED_FIRST_WIRING  = 2,
         ACTOR_548100_PASSAGE_POWERED_SECOND_WIRING = 3,
@@ -1298,9 +1383,10 @@ static void _actor548100DrawPanel(Task* task)
     wireDrawMode->code[0] = ACTOR_548100_WIRE_DRAW_MODE;
     addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRE_DRAW_MODE], wireDrawMode);
 
-    _actor548100ScaleFlowColor(D_actor_548100_80135B50, &D_actor_548100_80135B53, &D_actor_548100_80135B54, &D_actor_548100_80135B55);
-    _actor548100ScaleStopColor(D_actor_548100_80135B50, &D_actor_548100_80135B56, &D_actor_548100_80135B57, &D_actor_548100_80135B58);
-    _actor548100ScaleShortColor(D_actor_548100_80135B50, &D_actor_548100_80135B59, &D_actor_548100_80135B5A, &D_actor_548100_80135B5B);
+    // The signed-byte scaler writes the same low eight bits into the unsigned RGB storage.
+    _actor548100ScaleFlowColor(_gActor548100ColorPulse, (s8*)&_gActor548100FlowRed, (s8*)&_gActor548100FlowGreen, (s8*)&_gActor548100FlowBlue);
+    _actor548100ScaleStopColor(_gActor548100ColorPulse, &D_actor_548100_80135B56, &D_actor_548100_80135B57, &D_actor_548100_80135B58);
+    _actor548100ScaleShortColor(_gActor548100ColorPulse, &D_actor_548100_80135B59, &D_actor_548100_80135B5A, &D_actor_548100_80135B5B);
     // Rebuild this frame from stopped wires before applying the selected circuit.
     _actor548100ResetWireStates();
     gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, ACTOR_548100_PASSAGE_UNPOWERED);
@@ -1308,23 +1394,23 @@ static void _actor548100DrawPanel(Task* task)
 
     if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
         if (task->state != ACTOR_548100_STATE_ANIMATE_FLOW) {
-            circuit = D_actor_548100_80135B4C;
+            circuit = _gActor548100CurrentCircuit;
             if (circuit->leg[0].route != ACTOR_548100_ROUTE_UNUSED) {
                 _actor548100SetLegComplete(circuit->leg[0].route, circuit->leg[0].stopNode);
-                circuit = D_actor_548100_80135B4C;
+                circuit = _gActor548100CurrentCircuit;
             }
             if (circuit->leg[1].route != ACTOR_548100_ROUTE_UNUSED) {
                 _actor548100SetLegComplete(circuit->leg[1].route, circuit->leg[1].stopNode);
             }
-            circuit = D_actor_548100_80135B4C;
+            circuit = _gActor548100CurrentCircuit;
             if (circuit->leg[2].route != ACTOR_548100_ROUTE_UNUSED) {
                 _actor548100SetLegComplete(circuit->leg[2].route, circuit->leg[2].stopNode);
             }
-            if (D_actor_548100_80135B4C->powersDoor != 0) {
+            if (_gActor548100CurrentCircuit->powersDoor != 0) {
                 _actor548100DrawOutputIndicator(ACTOR_548100_OUTPUT_DOOR);
                 gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 1);
             }
-            if (D_actor_548100_80135B4C->powersPassage != 0) {
+            if (_gActor548100CurrentCircuit->powersPassage != 0) {
                 _actor548100DrawOutputIndicator(ACTOR_548100_OUTPUT_PASSAGE);
                 if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == ACTOR_548100_WIRING_SECOND) {
                     gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE, ACTOR_548100_PASSAGE_POWERED_SECOND_WIRING);
@@ -1334,7 +1420,7 @@ static void _actor548100DrawPanel(Task* task)
             }
         } else {
             // Preview completed outputs while the switch-on current is still advancing.
-            circuit    = D_actor_548100_80135B4C;
+            circuit    = _gActor548100CurrentCircuit;
             doorLit    = 0;
             passageLit = 0;
             if (circuit->leg[2].route != ACTOR_548100_ROUTE_UNUSED) {
@@ -1356,8 +1442,8 @@ static void _actor548100DrawPanel(Task* task)
                 }
             }
             if (work->longProgress == work->longLength && work->longLeg.stopNode == ACTOR_548100_STOP_NODE_NONE && work->longLeg.route != ACTOR_548100_ROUTE_UNUSED) {
-                doorLit    = D_actor_548100_80135B4C->powersDoor;
-                passageLit = passageLit || D_actor_548100_80135B4C->powersPassage;
+                doorLit    = _gActor548100CurrentCircuit->powersDoor;
+                passageLit = passageLit || _gActor548100CurrentCircuit->powersPassage;
             }
             if (doorLit != 0) {
                 _actor548100DrawOutputIndicator(ACTOR_548100_OUTPUT_DOOR);
@@ -1377,16 +1463,16 @@ static void _actor548100DrawPanel(Task* task)
     }
 
     // Advance brightness after drawing so every wire uses the same pulse level.
-    if (D_actor_548100_80135B52 == ACTOR_548100_PULSE_RISING) {
-        if (++D_actor_548100_80135B50 >= ACTOR_548100_COLOR_PULSE_ONE) {
-            D_actor_548100_80135B52 = ACTOR_548100_PULSE_FALLING;
+    if (_gActor548100ColorPulsePhase == ACTOR_548100_PULSE_RISING) {
+        if (++_gActor548100ColorPulse >= ACTOR_548100_COLOR_PULSE_ONE) {
+            _gActor548100ColorPulsePhase = ACTOR_548100_PULSE_FALLING;
         }
-    } else if (D_actor_548100_80135B52 == ACTOR_548100_PULSE_FALLING) {
-        if (--D_actor_548100_80135B50 <= ACTOR_548100_COLOR_PULSE_MIN) {
-            D_actor_548100_80135B52 = ACTOR_548100_PULSE_RISING;
+    } else if (_gActor548100ColorPulsePhase == ACTOR_548100_PULSE_FALLING) {
+        if (--_gActor548100ColorPulse <= ACTOR_548100_COLOR_PULSE_MIN) {
+            _gActor548100ColorPulsePhase = ACTOR_548100_PULSE_RISING;
         }
-    } else if (D_actor_548100_80135B50 > 0) {
-        D_actor_548100_80135B50--;
+    } else if (_gActor548100ColorPulse > 0) {
+        _gActor548100ColorPulse--;
     }
 }
 
@@ -1411,17 +1497,17 @@ static void _actor548100SelectCircuit(void)
     s32 socketIndex;
 
     if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == ACTOR_548100_WIRING_FIRST) {
-        D_actor_548100_80135B4C = D_actor_548100_801356D8;
+        _gActor548100CurrentCircuit = _gActor548100FirstWiringCircuits;
     } else {
-        D_actor_548100_80135B4C = D_actor_548100_80135750;
+        _gActor548100CurrentCircuit = _gActor548100SecondWiringCircuits;
     }
-    while (D_actor_548100_80135B4C->socketA != ACTOR_548100_CIRCUIT_END) {
+    while (_gActor548100CurrentCircuit->socketA != ACTOR_548100_CIRCUIT_END) {
         circuitSocketMask = 0;
-        if (D_actor_548100_80135B4C->socketA != 0) {
-            circuitSocketMask = 1 << (D_actor_548100_80135B4C->socketA - 1);
+        if (_gActor548100CurrentCircuit->socketA != 0) {
+            circuitSocketMask = 1 << (_gActor548100CurrentCircuit->socketA - 1);
         }
-        if (D_actor_548100_80135B4C->socketB != 0) {
-            circuitSocketMask |= 1 << (D_actor_548100_80135B4C->socketB - 1);
+        if (_gActor548100CurrentCircuit->socketB != 0) {
+            circuitSocketMask |= 1 << (_gActor548100CurrentCircuit->socketB - 1);
         }
         filledSocketMask = 0;
         for (socketIndex = 0; socketIndex < ACTOR_548100_SOCKET_COUNT; socketIndex++) {
@@ -1432,7 +1518,7 @@ static void _actor548100SelectCircuit(void)
         if (circuitSocketMask == filledSocketMask) {
             break;
         }
-        D_actor_548100_80135B4C++;
+        _gActor548100CurrentCircuit++;
     }
 }
 
@@ -1495,10 +1581,10 @@ static void _actor548100DrawWire(s32 nodeA, s32 nodeB, u8 red, u8 green, u8 blue
     quad->r0       = red;
     quad->g0       = green;
     quad->b0       = blue;
-    startX         = D_actor_548100_801358E4[nodeA].vx - ACTOR_548100_WIRE_ORIGIN_X;
-    startY         = D_actor_548100_801358E4[nodeA].vy - ACTOR_548100_WIRE_ORIGIN_Y;
-    endX           = D_actor_548100_801358E4[nodeB].vx - ACTOR_548100_WIRE_ORIGIN_X;
-    endY           = D_actor_548100_801358E4[nodeB].vy - ACTOR_548100_WIRE_ORIGIN_Y;
+    startX         = _gActor548100DiagramNodes[nodeA].vx - ACTOR_548100_WIRE_ORIGIN_X;
+    startY         = _gActor548100DiagramNodes[nodeA].vy - ACTOR_548100_WIRE_ORIGIN_Y;
+    endX           = _gActor548100DiagramNodes[nodeB].vx - ACTOR_548100_WIRE_ORIGIN_X;
+    endY           = _gActor548100DiagramNodes[nodeB].vy - ACTOR_548100_WIRE_ORIGIN_Y;
     horizontalSpan = startX - endX;
     if (horizontalSpan < 0) {
         horizontalSpan = endX - startX;
@@ -1627,7 +1713,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
             _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B59, D_actor_548100_80135B5A, D_actor_548100_80135B5B);
             break;
         case ACTOR_548100_EDGE_STATE_FLOW:
-            _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
+            _actor548100DrawWire(fromNode, toNode, _gActor548100FlowRed, _gActor548100FlowGreen, _gActor548100FlowBlue);
             break;
         case ACTOR_548100_EDGE_STATE_STOP:
             _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B56, D_actor_548100_80135B57, D_actor_548100_80135B58);
@@ -1639,10 +1725,10 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
             // Prepending packets reverses execution: clip STOP, then FLOW, then restore.
             area           = gGpuPrimCursor;
             gGpuPrimCursor = area + 1;
-            fromX          = D_actor_548100_801358E4[fromNode].vx - ACTOR_548100_WIRE_ORIGIN_X;
-            fromY          = D_actor_548100_801358E4[fromNode].vy - ACTOR_548100_WIRE_ORIGIN_Y;
-            toX            = D_actor_548100_801358E4[toNode].vx - ACTOR_548100_WIRE_ORIGIN_X;
-            toY            = D_actor_548100_801358E4[toNode].vy - ACTOR_548100_WIRE_ORIGIN_Y;
+            fromX          = _gActor548100DiagramNodes[fromNode].vx - ACTOR_548100_WIRE_ORIGIN_X;
+            fromY          = _gActor548100DiagramNodes[fromNode].vy - ACTOR_548100_WIRE_ORIGIN_Y;
+            toX            = _gActor548100DiagramNodes[toNode].vx - ACTOR_548100_WIRE_ORIGIN_X;
+            toY            = _gActor548100DiagramNodes[toNode].vy - ACTOR_548100_WIRE_ORIGIN_Y;
             setRECT(&rect, 0, 0, ACTOR_548100_SCREEN_WIDTH, ACTOR_548100_SCREEN_HEIGHT);
             rect.y += gDisplayState.drawBuffer * ACTOR_548100_DRAW_BUFFER_STRIDE_Y;
             SetDrawArea(area, &rect);
@@ -1653,7 +1739,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                     direction = -1;
                 }
                 splitCoord = fromX + direction * edge->flowLength;
-                _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
+                _actor548100DrawWire(fromNode, toNode, _gActor548100FlowRed, _gActor548100FlowGreen, _gActor548100FlowBlue);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
                 if (fromX < toX) {
@@ -1678,7 +1764,7 @@ static void _actor548100DrawEdge(const _Actor548100Edge* edge)
                     direction = -1;
                 }
                 splitCoord = fromY + direction * edge->flowLength;
-                _actor548100DrawWire(fromNode, toNode, D_actor_548100_80135B53, D_actor_548100_80135B54, D_actor_548100_80135B55);
+                _actor548100DrawWire(fromNode, toNode, _gActor548100FlowRed, _gActor548100FlowGreen, _gActor548100FlowBlue);
                 area           = gGpuPrimCursor;
                 gGpuPrimCursor = area + 1;
                 if (fromY < toY) {
@@ -1738,9 +1824,9 @@ static void _actor548100DrawOutputIndicator(s32 output)
     gGpuPrimCursor = quad + 1;
     setPolyF4(quad);
     setSemiTrans(quad, 1);
-    quad->r0 = D_actor_548100_80135B53;
-    quad->g0 = D_actor_548100_80135B54;
-    quad->b0 = D_actor_548100_80135B55;
+    quad->r0 = _gActor548100FlowRed;
+    quad->g0 = _gActor548100FlowGreen;
+    quad->b0 = _gActor548100FlowBlue;
     leftX    = 0x43;
     if (output == ACTOR_548100_OUTPUT_DOOR) {
         topY    = 0x2E;
@@ -1761,9 +1847,9 @@ static void _actor548100DrawOutputIndicator(s32 output)
     quad->y3 = bottomY;
     addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], quad);
 
-    topRed         = D_actor_548100_80135B53;
-    topGreen       = D_actor_548100_80135B54;
-    topBlue        = D_actor_548100_80135B55;
+    topRed         = _gActor548100FlowRed;
+    topGreen       = _gActor548100FlowGreen;
+    topBlue        = _gActor548100FlowBlue;
     top            = gGpuPrimCursor;
     gGpuPrimCursor = top + 1;
     _actor548100InitGlowQuad(top, topRed, topGreen, topBlue);
@@ -1777,9 +1863,9 @@ static void _actor548100DrawOutputIndicator(s32 output)
     top->y3 = topY;
     addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], top);
 
-    leftRed        = D_actor_548100_80135B53;
-    leftGreen      = D_actor_548100_80135B54;
-    leftBlue       = D_actor_548100_80135B55;
+    leftRed        = _gActor548100FlowRed;
+    leftGreen      = _gActor548100FlowGreen;
+    leftBlue       = _gActor548100FlowBlue;
     left           = gGpuPrimCursor;
     gGpuPrimCursor = left + 1;
     _actor548100InitGlowQuad(left, leftRed, leftGreen, leftBlue);
@@ -1793,9 +1879,9 @@ static void _actor548100DrawOutputIndicator(s32 output)
     left->y3 = bottomY;
     addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], left);
 
-    rightRed       = D_actor_548100_80135B53;
-    rightGreen     = D_actor_548100_80135B54;
-    rightBlue      = D_actor_548100_80135B55;
+    rightRed       = _gActor548100FlowRed;
+    rightGreen     = _gActor548100FlowGreen;
+    rightBlue      = _gActor548100FlowBlue;
     right          = gGpuPrimCursor;
     gGpuPrimCursor = right + 1;
     _actor548100InitGlowQuad(right, rightRed, rightGreen, rightBlue);
@@ -1809,9 +1895,9 @@ static void _actor548100DrawOutputIndicator(s32 output)
     right->y3 = bottomY;
     addPrim(&gGpuCurrentOt[ACTOR_548100_OT_WIRES], right);
 
-    bottomRed      = D_actor_548100_80135B53;
-    bottomGreen    = D_actor_548100_80135B54;
-    bottomBlue     = D_actor_548100_80135B55;
+    bottomRed      = _gActor548100FlowRed;
+    bottomGreen    = _gActor548100FlowGreen;
+    bottomBlue     = _gActor548100FlowBlue;
     bottom         = gGpuPrimCursor;
     gGpuPrimCursor = bottom + 1;
     _actor548100InitGlowQuad(bottom, bottomRed, bottomGreen, bottomBlue);
@@ -1843,9 +1929,9 @@ static void _actor548100DrawSwitchRegionGlow(void)
     u8       green;
     u8       blue;
 
-    red   = D_actor_548100_80135B53;
-    green = D_actor_548100_80135B54;
-    blue  = D_actor_548100_80135B55;
+    red   = _gActor548100FlowRed;
+    green = _gActor548100FlowGreen;
+    blue  = _gActor548100FlowBlue;
 
     // Preserve the reserved core packet: only the four fringe packets are linked.
     quad           = gGpuPrimCursor;
@@ -1934,26 +2020,26 @@ static void _actor548100SetLegFlowProgress(s32 routeId, s32 stopNode, s16 progre
     s32       wireStart;
 
     wireEnd      = 0;
-    routeStart   = D_actor_548100_80135B24[routeId];
+    routeStart   = _gActor548100Routes[routeId];
     wireStart    = wireEnd;
     previousNode = routeStart[0];
     cursor       = routeStart + 1;
     while (*cursor != ACTOR_548100_ROUTE_END) {
 
         if (*cursor != ACTOR_548100_ROUTE_GAP) {
-            edgeIndex = D_actor_548100_80135B5C[*cursor + previousNode * ACTOR_548100_NODE_KEY_STRIDE];
-            wireEnd  += D_actor_548100_801351D0[edgeIndex].length;
+            edgeIndex = _gActor548100WireIndexByNodePair[*cursor + previousNode * ACTOR_548100_NODE_KEY_STRIDE];
+            wireEnd  += _gActor548100PanelWires[edgeIndex].length;
             if (progress >= wireEnd) {
-                D_actor_548100_801351D0[edgeIndex].state = ACTOR_548100_EDGE_STATE_FLOW;
+                _gActor548100PanelWires[edgeIndex].state = ACTOR_548100_EDGE_STATE_FLOW;
             } else if (wireStart < progress) {
-                if (D_actor_548100_801351D0[edgeIndex].nodeA == previousNode) {
-                    D_actor_548100_801351D0[edgeIndex].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_A;
+                if (_gActor548100PanelWires[edgeIndex].nodeA == previousNode) {
+                    _gActor548100PanelWires[edgeIndex].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_A;
                 } else {
-                    D_actor_548100_801351D0[edgeIndex].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_B;
+                    _gActor548100PanelWires[edgeIndex].state = ACTOR_548100_EDGE_STATE_FLOW_FROM_B;
                 }
-                D_actor_548100_801351D0[edgeIndex].flowLength = progress - wireStart;
+                _gActor548100PanelWires[edgeIndex].flowLength = progress - wireStart;
             } else {
-                D_actor_548100_801351D0[edgeIndex].state = ACTOR_548100_EDGE_STATE_STOP;
+                _gActor548100PanelWires[edgeIndex].state = ACTOR_548100_EDGE_STATE_STOP;
             }
             wireStart = wireEnd;
             ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 0);
@@ -1978,7 +2064,7 @@ static inline void _actor548100ResetWireStatesForStage(void)
     _Actor548100Edge* edge;
 
     if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == ACTOR_548100_WIRING_SECOND) {
-        for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+        for (edge = _gActor548100PanelWires; edge->nodeA != 0; edge++) {
             if (edge->layout == ACTOR_548100_EDGE_LAYOUT_FIRST_ONLY) {
                 edge->state = ACTOR_548100_EDGE_STATE_ABSENT;
             } else {
@@ -1986,7 +2072,7 @@ static inline void _actor548100ResetWireStatesForStage(void)
             }
         }
     } else {
-        for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+        for (edge = _gActor548100PanelWires; edge->nodeA != 0; edge++) {
             if (edge->layout == ACTOR_548100_EDGE_LAYOUT_SECOND_ONLY) {
                 edge->state = ACTOR_548100_EDGE_STATE_ABSENT;
             } else {
@@ -2016,16 +2102,16 @@ static void _actor548100InitWireGraph(void)
 
     // Index each authored wire in both directions and derive its pixel span.
     edgeIndex = 0;
-    for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++, edgeIndex++) {
-        D_actor_548100_80135B5C[edge->nodeB + edge->nodeA * ACTOR_548100_NODE_KEY_STRIDE] = edgeIndex;
-        D_actor_548100_80135B5C[edge->nodeA + edge->nodeB * ACTOR_548100_NODE_KEY_STRIDE] = edgeIndex;
-        pointA                                                                            = &D_actor_548100_801358E4[edge->nodeA];
-        pointB                                                                            = &D_actor_548100_801358E4[edge->nodeB];
-        nodeAX                                                                            = pointA->vx - ACTOR_548100_WIRE_ORIGIN_X;
-        nodeBX                                                                            = pointB->vx - ACTOR_548100_WIRE_ORIGIN_X;
-        horizontalSpan                                                                    = nodeAX - nodeBX;
-        nodeBY                                                                            = pointB->vy - ACTOR_548100_WIRE_ORIGIN_Y;
-        nodeAY                                                                            = pointA->vy - ACTOR_548100_WIRE_ORIGIN_Y;
+    for (edge = _gActor548100PanelWires; edge->nodeA != 0; edge++, edgeIndex++) {
+        _gActor548100WireIndexByNodePair[edge->nodeB + edge->nodeA * ACTOR_548100_NODE_KEY_STRIDE] = edgeIndex;
+        _gActor548100WireIndexByNodePair[edge->nodeA + edge->nodeB * ACTOR_548100_NODE_KEY_STRIDE] = edgeIndex;
+        pointA                                                                                     = &_gActor548100DiagramNodes[edge->nodeA];
+        pointB                                                                                     = &_gActor548100DiagramNodes[edge->nodeB];
+        nodeAX                                                                                     = pointA->vx - ACTOR_548100_WIRE_ORIGIN_X;
+        nodeBX                                                                                     = pointB->vx - ACTOR_548100_WIRE_ORIGIN_X;
+        horizontalSpan                                                                             = nodeAX - nodeBX;
+        nodeBY                                                                                     = pointB->vy - ACTOR_548100_WIRE_ORIGIN_Y;
+        nodeAY                                                                                     = pointA->vy - ACTOR_548100_WIRE_ORIGIN_Y;
         if (horizontalSpan < 0) {
             horizontalSpan = nodeBX - nodeAX;
         }
@@ -2188,7 +2274,7 @@ static inline void _actor548100ScaleWireColor(s16 pulse, const u8* baseRed, cons
 /// outputs are written red, green, blue, rereading each base component in turn.
 static void _actor548100ScaleFlowColor(s16 pulse, s8* red, s8* green, s8* blue)
 {
-    _actor548100ScaleWireColor(pulse, &D_actor_548100_80135884, &D_actor_548100_80135885, &D_actor_548100_80135886, red, green, blue);
+    _actor548100ScaleWireColor(pulse, &_gActor548100FlowBaseRed, &_gActor548100FlowBaseGreen, &_gActor548100FlowBaseBlue, red, green, blue);
 }
 
 /// Scales the panel's stopped colour by its current pulse level.
@@ -2199,7 +2285,7 @@ static void _actor548100ScaleFlowColor(s16 pulse, s8* red, s8* green, s8* blue)
 /// outputs are written red, green, blue, rereading each base component in turn.
 static void _actor548100ScaleStopColor(s16 pulse, s8* red, s8* green, s8* blue)
 {
-    _actor548100ScaleWireColor(pulse, &D_actor_548100_80135887, &D_actor_548100_80135888, &D_actor_548100_80135889, red, green, blue);
+    _actor548100ScaleWireColor(pulse, &_gActor548100StopBaseRed, &_gActor548100StopBaseGreen, &_gActor548100StopBaseBlue, red, green, blue);
 }
 
 /// Scales the panel's short-circuit colour by its current pulse level.
@@ -2210,7 +2296,7 @@ static void _actor548100ScaleStopColor(s16 pulse, s8* red, s8* green, s8* blue)
 /// outputs are written red, green, blue, rereading each base component in turn.
 static void _actor548100ScaleShortColor(s16 pulse, s8* red, s8* green, s8* blue)
 {
-    _actor548100ScaleWireColor(pulse, &D_actor_548100_8013588A, &D_actor_548100_8013588B, &D_actor_548100_8013588C[0], red, green, blue);
+    _actor548100ScaleWireColor(pulse, &_gActor548100ShortBaseRed, &_gActor548100ShortBaseGreen, &_gActor548100ShortBaseBlueStorage[0], red, green, blue);
 }
 
 /// Marks a completed panel leg FLOW, or SHORT when it stops at another battery's route.
@@ -2231,14 +2317,14 @@ static void _actor548100SetLegComplete(s32 routeId, u8 stopNode)
     if (stopNode != 0) {
         wireState = ACTOR_548100_EDGE_STATE_SHORT;
     }
-    routeStart   = D_actor_548100_80135B24[routeId];
+    routeStart   = _gActor548100Routes[routeId];
     previousNode = routeStart[0];
     cursor       = routeStart + 1;
     while (*cursor != ACTOR_548100_ROUTE_END) {
         currentNode = *cursor;
         if (currentNode != ACTOR_548100_ROUTE_GAP) {
-            edgeIndex                                = D_actor_548100_80135B5C[currentNode + previousNode * ACTOR_548100_NODE_KEY_STRIDE];
-            D_actor_548100_801351D0[edgeIndex].state = wireState;
+            edgeIndex                                = _gActor548100WireIndexByNodePair[currentNode + previousNode * ACTOR_548100_NODE_KEY_STRIDE];
+            _gActor548100PanelWires[edgeIndex].state = wireState;
             ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 0);
         } else {
             ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 1);
@@ -2257,7 +2343,7 @@ static void _actor548100DrawWires(void)
 {
     const _Actor548100Edge* edge;
 
-    for (edge = D_actor_548100_801351D0; edge->nodeA != 0; edge++) {
+    for (edge = _gActor548100PanelWires; edge->nodeA != 0; edge++) {
         _actor548100DrawEdge(edge);
     }
 }
@@ -2288,13 +2374,13 @@ static s32 _actor548100MeasureLeg(s32 routeId, u8 stopNode)
     if (routeId == ACTOR_548100_ROUTE_UNUSED) {
         return 1;
     }
-    routeStart   = D_actor_548100_80135B24[routeId];
+    routeStart   = _gActor548100Routes[routeId];
     length       = 0;
     previousNode = routeStart[0];
     cursor       = routeStart + 1;
     while (*cursor != ACTOR_548100_ROUTE_END) {
         if (*cursor != ACTOR_548100_ROUTE_GAP) {
-            length += D_actor_548100_801351D0[D_actor_548100_80135B5C[*cursor + previousNode * ACTOR_548100_NODE_KEY_STRIDE]].length;
+            length += _gActor548100PanelWires[_gActor548100WireIndexByNodePair[*cursor + previousNode * ACTOR_548100_NODE_KEY_STRIDE]].length;
             ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 0);
         } else {
             ACTOR_548100_READ_ROUTE_NODE(cursor, previousNode, 1);
@@ -2455,7 +2541,7 @@ static void _actor548100AnimateCircuitFlow(Task* task)
         work->longProgress = work->longLength;
         if (work->thirdProgress == work->thirdLength) {
             sndEvtRequestScriptStop(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            if (D_actor_548100_80135B4C->powersDoor != 0) {
+            if (_gActor548100CurrentCircuit->powersDoor != 0) {
                 sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_COMPLETE, 0, 0);
                 capRunCommand(ACTOR_548100_CAP_COMMAND_CIRCUIT_COMPLETE, CAP_PLAYBACK_IN_PLACE);
                 task->state = ACTOR_548100_STATE_WAIT_COMPLETION_CAPTION;
