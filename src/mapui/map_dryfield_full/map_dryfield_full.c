@@ -489,7 +489,7 @@ WorldCoordRoomLighting* D_map_dryfield_full_8017A774[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_night_underpass_8017DDD0,
+    gDryfieldNightUnderpassRoomLighting,
 };
 
 DirectionWarpEntry* D_map_dryfield_full_8017A80C[38] = {
@@ -700,7 +700,7 @@ static u8** D_map_dryfield_full_8017AA78[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_night_underpass_8017DE3C,
+    gDryfieldNightUnderpassViewMaps,
 };
 
 ViewIndexTable D_map_dryfield_full_8017AB10 = { D_map_dryfield_full_8017AA78 };
@@ -786,7 +786,7 @@ WorldCollisionSurfaceProperties** D_map_dryfield_full_8017ABB0[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_night_underpass_80180374,
+    gDryfieldNightUnderpassSurfacePropertiesByClass,
 };
 
 AreaPlacement D_map_dryfield_full_8017AC48[13] = {

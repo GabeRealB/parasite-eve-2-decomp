@@ -16,9 +16,20 @@ extern AreaVariant D_dryfield_night_underpass_801802DC[12];
 // dryfield_night_underpass
 extern WorldCollisionRoomResources D_dryfield_night_underpass_8017DD70[];
 
-extern WorldCoordRoomLighting D_dryfield_night_underpass_8017DDD0[];
+/// Model lighting for nighttime underpass room IDs 1..6.
+///
+/// Rooms 1, 3, 5 and 6 share nine point lights, including eight ceiling lamps;
+/// rooms 2 and 4 share six dimmer point lights. All use the default ambient
+/// minima. Keep this overlay loaded while its mutable lights are in use.
+extern WorldCoordRoomLighting gDryfieldNightUnderpassRoomLighting[6];
 
-extern u8* D_dryfield_night_underpass_8017DE3C[];
+/// Logical-view maps for nighttime underpass room IDs 1..6.
+///
+/// Indexed by room minus one, then logical view minus one. Room 1 borrows
+/// `gViewIdentityMap` for views 1..26; rooms 2..6 each map eleven logical views
+/// to camera/image/sprite indices 1..26. Their stored twelfth zero byte is
+/// outside the live range, not a terminator. Keep the room overlay loaded.
+extern u8* gDryfieldNightUnderpassViewMaps[6];
 
 extern ViewCount D_dryfield_night_underpass_8017DE54[];
 
@@ -28,7 +39,13 @@ extern ViewCamera D_dryfield_night_underpass_8017E6F8[];
 
 extern SpriteView D_dryfield_night_underpass_8017F420[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_underpass_80180374[];
+/// Nighttime underpass collision policies indexed directly by surface class 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Classes 2 and 4 share footstep cue bases; class 3 has its own set;
+/// classes 0, 1 and 5..7 have no footstep table. The records belong to this
+/// overlay and remain valid only while it is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightUnderpassSurfacePropertiesByClass[8];
 
 /// Draws the nighttime underpass's world-space flares for the current camera view.
 ///
