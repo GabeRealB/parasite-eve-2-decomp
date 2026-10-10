@@ -833,136 +833,270 @@ static AnimationSet _gM950PlayerPeChargeFamily1Animation = {
     },
 };
 
-static AnimationPackedPose _gM950Animation06500Bank1[8] = {
+/// Translation/Euler keys for `_gM950PlayerPeCastFamily1Animation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerPeCastFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_06500_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation06500Bank4[68] = {
+/// Rotation-only keys for `_gM950PlayerPeCastFamily1Animation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerPeCastFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_06500_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation06500Records[101] = {
+/// Keyframes and terminal stops for `_gM950PlayerPeCastFamily1Animation`'s nineteen tracks.
+///
+/// Pose offsets count four-byte words and durations count normal-rate frames.
+/// No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerPeCastFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_06500_records.inc"
 };
 
-static u16 _gM950Animation06500Indices[20] = {
+/// Absolute record starts for `_gM950PlayerPeCastFamily1Animation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerPeCastFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_06500_indices.inc"
 };
 
-static AnimationSet _gM950Animation06500 = {
-    _gM950Animation06500Records,
-    _gM950Animation06500Indices,
-    { NULL, _gM950Animation06500Bank1, NULL, NULL, _gM950Animation06500Bank4, NULL, NULL, NULL },
+/// Family-1 Parasite Energy cast clip at id 31 in the M950 player bank.
+///
+/// Family 1 covers spell IDs below 300 except tens digit 3, and item IDs at or
+/// above 601 with a tens digit other than 1. Cast follows release and charge
+/// when the attachment countdown reaches zero. All nineteen tracks stop;
+/// the M950 package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerPeCastFamily1Animation = {
+    .records           = _gM950PlayerPeCastFamily1AnimationRecords,
+    .trackStartIndices = _gM950PlayerPeCastFamily1AnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerPeCastFamily1AnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerPeCastFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation067B4Bank1[5] = {
+/// Translation/Euler keys for `_gM950PlayerHitPart4Animation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerHitPart4AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_067B4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation067B4Bank4[55] = {
+/// Rotation-only keys for `_gM950PlayerHitPart4Animation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerHitPart4AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_067B4_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation067B4Records[83] = {
+/// Keyframes and terminal stops for `_gM950PlayerHitPart4Animation`'s nineteen tracks.
+///
+/// Pose offsets count four-byte words and durations count normal-rate frames.
+/// No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerHitPart4AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_067B4_records.inc"
 };
 
-static u16 _gM950Animation067B4Indices[20] = {
+/// Absolute record starts for `_gM950PlayerHitPart4Animation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerHitPart4AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_067B4_indices.inc"
 };
 
-static AnimationSet _gM950Animation067B4 = {
-    _gM950Animation067B4Records,
-    _gM950Animation067B4Indices,
-    { NULL, _gM950Animation067B4Bank1, NULL, NULL, _gM950Animation067B4Bank4, NULL, NULL, NULL },
+/// Hit reaction for the player collision body at model part 4, at id 16 in the M950 bank.
+///
+/// Selected for pending and contact hits recorded as region 1, with a
+/// three-frame entry blend. All nineteen tracks stop; the M950 package
+/// must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerHitPart4Animation = {
+    .records           = _gM950PlayerHitPart4AnimationRecords,
+    .trackStartIndices = _gM950PlayerHitPart4AnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerHitPart4AnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerHitPart4AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation06AD4Bank1[6] = {
+/// Translation/Euler keys for `_gM950PlayerHitOtherBodyAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerHitOtherBodyAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_06AD4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation06AD4Bank4[66] = {
+/// Rotation-only keys for `_gM950PlayerHitOtherBodyAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerHitOtherBodyAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_06AD4_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation06AD4Records[96] = {
+/// Keyframes and terminal stops for `_gM950PlayerHitOtherBodyAnimation`'s nineteen tracks.
+///
+/// Pose offsets count four-byte words and durations count normal-rate frames.
+/// No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerHitOtherBodyAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_06AD4_records.inc"
 };
 
-static u16 _gM950Animation06AD4Indices[20] = {
+/// Absolute record starts for `_gM950PlayerHitOtherBodyAnimation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerHitOtherBodyAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_06AD4_indices.inc"
 };
 
-static AnimationSet _gM950Animation06AD4 = {
-    _gM950Animation06AD4Records,
-    _gM950Animation06AD4Indices,
-    { NULL, _gM950Animation06AD4Bank1, NULL, NULL, _gM950Animation06AD4Bank4, NULL, NULL, NULL },
+/// Hit reaction for the player's other collision bodies, at id 17 in the M950 bank.
+///
+/// Used for pending and contact hits outside region 1, including the root
+/// and model-part-1 bodies, with a three-frame entry blend. All nineteen
+/// tracks stop; the M950 package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerHitOtherBodyAnimation = {
+    .records           = _gM950PlayerHitOtherBodyAnimationRecords,
+    .trackStartIndices = _gM950PlayerHitOtherBodyAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerHitOtherBodyAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerHitOtherBodyAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation07298Bank1[18] = {
+/// Translation/Euler keys for `_gM950PlayerStoppedPoseAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerStoppedPoseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_07298_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation07298Bank4[184] = {
+/// Rotation-only keys for `_gM950PlayerStoppedPoseAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerStoppedPoseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_07298_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation07298Records[239] = {
+/// Keyframes and terminal stops for `_gM950PlayerStoppedPoseAnimation`'s nineteen tracks.
+///
+/// Pose offsets count four-byte words and durations count normal-rate frames.
+/// No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerStoppedPoseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_07298_records.inc"
 };
 
-static u16 _gM950Animation07298Indices[20] = {
+/// Absolute record starts for `_gM950PlayerStoppedPoseAnimation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerStoppedPoseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_07298_indices.inc"
 };
 
-static AnimationSet _gM950Animation07298 = {
-    _gM950Animation07298Records,
-    _gM950Animation07298Indices,
-    { NULL, _gM950Animation07298Bank1, NULL, NULL, _gM950Animation07298Bank4, NULL, NULL, NULL },
+/// Stopped-pose clip used at zero player HP, at id 18 in the M950 bank.
+///
+/// Plays with displacement, turning and targeting disabled. Normal control
+/// requests a four-frame entry blend; scripted control restores the native
+/// bank before requesting it. All nineteen tracks stop; the M950 package
+/// must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerStoppedPoseAnimation = {
+    .records           = _gM950PlayerStoppedPoseAnimationRecords,
+    .trackStartIndices = _gM950PlayerStoppedPoseAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerStoppedPoseAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerStoppedPoseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation08530Bank1[29] = {
+/// Translation/Euler keys for `_gM950PlayerHealthyIdleAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerHealthyIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_08530_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation08530Bank4[450] = {
+/// Rotation-only keys for `_gM950PlayerHealthyIdleAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerHealthyIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_08530_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation08530Records[633] = {
+/// Keyframes, tail-loop jumps and retained stops for `_gM950PlayerHealthyIdleAnimation`.
+///
+/// All nineteen tracks loop within their own spans; the trailing stops are
+/// not reached during forward playback. Pose offsets count four-byte words,
+/// jump targets count records and durations count normal-rate frames.
+/// No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerHealthyIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_08530_records.inc"
 };
 
-static u16 _gM950Animation08530Indices[20] = {
+/// Absolute record starts for `_gM950PlayerHealthyIdleAnimation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerHealthyIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_08530_indices.inc"
 };
 
-static AnimationSet _gM950Animation08530 = {
-    _gM950Animation08530Records,
-    _gM950Animation08530Indices,
-    { NULL, _gM950Animation08530Bank1, NULL, NULL, _gM950Animation08530Bank4, NULL, NULL, NULL },
+/// Looping idle clip for the player above half maximum HP, at id 23 in the M950 bank.
+///
+/// Normal locomotion selects it after 300 ticks without held directions,
+/// with a five-frame entry blend. All nineteen tracks loop; the M950
+/// package must remain loaded while playback borrows the clip.
+static AnimationSet _gM950PlayerHealthyIdleAnimation = {
+    .records           = _gM950PlayerHealthyIdleAnimationRecords,
+    .trackStartIndices = _gM950PlayerHealthyIdleAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerHealthyIdleAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerHealthyIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM950Animation090A8Bank1[12] = {
+/// Translation/Euler keys for `_gM950PlayerLowHealthIdleAnimation`'s tracks 0 and 1.
+///
+/// Translations use model units and angles use 1/4096 turns. Read-only clip
+/// tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM950PlayerLowHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_090A8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation090A8Bank4[266] = {
+/// Rotation-only keys for `_gM950PlayerLowHealthIdleAnimation`'s tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerLowHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_090A8_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation090A8Records[412] = {
+/// Keyframes, tail-loop jumps and retained stops for `_gM950PlayerLowHealthIdleAnimation`.
+///
+/// All nineteen tracks loop within their own spans; the trailing stops are
+/// not reached during forward playback. Pose offsets count four-byte words,
+/// jump targets count records and durations count normal-rate frames.
+/// No keyframe carries a cue.
+static const AnimationRecord _gM950PlayerLowHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_090A8_records.inc"
 };
 
-static u16 _gM950Animation090A8Indices[20] = {
+/// Absolute record starts for `_gM950PlayerLowHealthIdleAnimation`'s nineteen player tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4; ordinary child playback
+/// uses tracks 1..18. The resource's final zero halfword is retained.
+static const u16 _gM950PlayerLowHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_090A8_indices.inc"
 };
 
-static AnimationSet _gM950Animation090A8 = {
-    _gM950Animation090A8Records,
-    _gM950Animation090A8Indices,
-    { NULL, _gM950Animation090A8Bank1, NULL, NULL, _gM950Animation090A8Bank4, NULL, NULL, NULL },
+/// Looping low-health idle and paralysis clip at id 25 in the M950 player bank.
+///
+/// Normal locomotion selects it at or below a quarter maximum HP after 300
+/// ticks without held directions, with a five-frame blend. Paralysis selects
+/// it immediately with a six-frame blend. Both uses play all child tracks
+/// 1..18. All nineteen tracks loop; the M950 package must remain loaded
+/// while playback borrows the clip.
+static AnimationSet _gM950PlayerLowHealthIdleAnimation = {
+    .records           = _gM950PlayerLowHealthIdleAnimationRecords,
+    .trackStartIndices = _gM950PlayerLowHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M950_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM950PlayerLowHealthIdleAnimationBank1,
+        [M950_ANIMATION_PACKED_ROTATION_BANK]      = _gM950PlayerLowHealthIdleAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM950Animation097C4Bank1[9] = {
@@ -1268,22 +1402,22 @@ AnimationBank D_m950_8012BA78 = { { {
     &_gM950Animation0BDA8,
     &_gM950Animation0D914,
     &_gM950Animation0D914,
-    &_gM950Animation067B4,
-    &_gM950Animation06AD4,
-    &_gM950Animation07298,
+    &_gM950PlayerHitPart4Animation,
+    &_gM950PlayerHitOtherBodyAnimation,
+    &_gM950PlayerStoppedPoseAnimation,
     &_gM950PlayerUnarmedWalkAnimation,
     &_gM950Animation0D914,
     &_gM950PlayerIdleAnimation,
     &_gM950PlayerIdleAnimation,
-    &_gM950Animation08530,
+    &_gM950PlayerHealthyIdleAnimation,
     &_gM950Animation097C4,
-    &_gM950Animation090A8,
+    &_gM950PlayerLowHealthIdleAnimation,
     &_gM950PlayerPeReleaseFamily0Animation,
     &_gM950PlayerPeChargeFamily0Animation,
     &_gM950PlayerPeCastFamily0Animation,
     &_gM950PlayerPeReleaseFamily1Animation,
     &_gM950PlayerPeChargeFamily1Animation,
-    &_gM950Animation06500,
+    &_gM950PlayerPeCastFamily1Animation,
     &_gM950Animation09C44,
     &_gM950Animation09E1C,
     &_gM950Animation09C44,
