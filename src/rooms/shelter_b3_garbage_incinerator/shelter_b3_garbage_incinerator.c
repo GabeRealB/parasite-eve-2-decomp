@@ -84,9 +84,9 @@ static inline void _shelterB3GarbageIncineratorCommitControlRoomExit(Task* task)
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     gDisplayState.spriteVariant                                = SHELTER_B3_GARBAGE_INCINERATOR_DEFAULT_SPRITE_VARIANT;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b3_garbage_incinerator_8018FC2C.areaId;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b3_garbage_incinerator_8018FC2C.warp;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_shelter_b3_garbage_incinerator_8018FC2C.room;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = gShelterB3GarbageIncineratorControlRoomExitDestination.areaId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gShelterB3GarbageIncineratorControlRoomExitDestination.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gShelterB3GarbageIncineratorControlRoomExitDestination.room;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }
@@ -187,8 +187,8 @@ static s32 _shelterB3GarbageIncineratorResolveRoomEvent(Task* task, s32 messageI
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, SHELTER_B3_GARBAGE_INCINERATOR_COMPANION_BEFORE_BURNER);
         }
         // Preserve the resolved destination until the choice task commits it.
-        reply->warp                               = SHELTER_B3_GARBAGE_INCINERATOR_CONTROL_ROOM_ARRIVAL;
-        D_shelter_b3_garbage_incinerator_8018FC2C = *reply;
+        reply->warp                                            = SHELTER_B3_GARBAGE_INCINERATOR_CONTROL_ROOM_ARRIVAL;
+        gShelterB3GarbageIncineratorControlRoomExitDestination = *reply;
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 1);
         taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_801855CC, 0, 0, 0);

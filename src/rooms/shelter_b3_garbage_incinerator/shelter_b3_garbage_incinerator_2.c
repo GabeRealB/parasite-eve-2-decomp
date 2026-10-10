@@ -461,13 +461,13 @@ WorldCoordRoomLighting gShelterB3GarbageIncineratorRoomLighting[7] = {
 };
 
 WorldCollisionRoomResources D_shelter_b3_garbage_incinerator_801872B8[7] = {
-    { &gShelterB3GarbageIncineratorCollisionGrid, D_shelter_b3_garbage_incinerator_8018E5B0, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
-    { &gShelterB3GarbageIncineratorCollisionGrid, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
-    { &gShelterB3GarbageIncineratorCollisionGrid, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
-    { &gShelterB3GarbageIncineratorCollisionGrid, D_shelter_b3_garbage_incinerator_8018E5B0, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
-    { &gShelterB3GarbageIncineratorCollisionGrid, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
-    { &gShelterB3GarbageIncineratorCollisionGrid, D_shelter_b3_garbage_incinerator_8018EC38, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
-    { &gShelterB3GarbageIncineratorCollisionGrid, D_shelter_b3_garbage_incinerator_8018F228, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
+    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorWaitingViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
+    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorMovingAndLandedViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
+    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorMovingAndLandedViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
+    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorWaitingViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
+    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorMovingAndLandedViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
+    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorMovingAndLandedViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
+    { &gShelterB3GarbageIncineratorCollisionGrid, gShelterB3GarbageIncineratorRoom7ViewTriggers, gShelterB3GarbageIncineratorActionTriggers, gShelterB3GarbageIncineratorSightOccluders },
 };
 
 u8 gShelterB3GarbageIncineratorRoom1And3ViewMap[40] = {
@@ -993,15 +993,15 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
                 taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                rootCoord->parent                         = &gGfxViewCoord;
-                model->flags                              = 0;
-                model->otOffset                           = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_OT_OFFSET;
-                work->playerTask                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                model->colorMtx                           = &work->colorMtx;
-                D_shelter_b3_garbage_incinerator_8018FC34 = task;
-                model->lightMtx                           = &work->lightMtx;
-                task->msgTable                            = D_shelter_b3_garbage_incinerator_80185B40;
-                work->carriedActor                        = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
+                rootCoord->parent                    = &gGfxViewCoord;
+                model->flags                         = 0;
+                model->otOffset                      = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_OT_OFFSET;
+                work->playerTask                     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                model->colorMtx                      = &work->colorMtx;
+                gShelterB3GarbageIncineratorLiftTask = task;
+                model->lightMtx                      = &work->lightMtx;
+                task->msgTable                       = D_shelter_b3_garbage_incinerator_80185B40;
+                work->carriedActor                   = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
             }
             if (gGameSession->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_NONE) {
                 shelterB3GarbageIncineratorSetExitCollisionWalls();
@@ -1073,7 +1073,7 @@ static void _shelterB3GarbageIncineratorLiftTask(Task* task)
                 break;
             }
             gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_COMPLETE;
-            areaApplySavedUpdates(D_shelter_b3_garbage_incinerator_8018FB6C);
+            areaApplySavedUpdates(gShelterB3GarbageIncineratorDescentAreaUpdates);
             taskKill(task);
             return;
     }
@@ -1261,8 +1261,8 @@ static void _shelterB3GarbageIncineratorBlazeControllerTask(Task* task)
                 taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                work->playerTask                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_shelter_b3_garbage_incinerator_8018FC3C = task;
+                work->playerTask                                = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                gShelterB3GarbageIncineratorBlazeControllerTask = task;
             }
             taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_BASELINE_Y, 0);
             if (task->spawnArg1.value == 0) {
@@ -1317,7 +1317,7 @@ static void _shelterB3GarbageIncineratorPlayBlazeClip(s32 clipIndex)
 {
     s16 animationId = clipIndex + ANIMATION_BANK_BASE_SET_COUNT;
 
-    _shelterB3GarbageIncineratorPlayBlazeAnimation(D_shelter_b3_garbage_incinerator_8018FC3C, animationId, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCRIPT_BLEND_FRAMES);
+    _shelterB3GarbageIncineratorPlayBlazeAnimation(gShelterB3GarbageIncineratorBlazeControllerTask, animationId, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCRIPT_BLEND_FRAMES);
 }
 
 /// Requests the next colour ramp on the active burn scene's fade task.
@@ -1327,7 +1327,7 @@ static void _shelterB3GarbageIncineratorPlayBlazeClip(s32 clipIndex)
 /// slow red (3), then white (4). No callback result is consumed.
 static void _shelterB3GarbageIncineratorSetBlazeFadeState(s32 nextState)
 {
-    _ShelterB3GarbageIncineratorBlazeWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    _ShelterB3GarbageIncineratorBlazeWork* work = gShelterB3GarbageIncineratorBlazeControllerTask->work;
 
     taskMessageDispatch(work->fadeTask, BLAZE_FADE_MESSAGE_SET_STATE, nextState, 0);
 }
@@ -1344,7 +1344,7 @@ static void _shelterB3GarbageIncineratorStartBlazeHeatHaze(void)
         SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_RISE_TICKS    = 600,
         SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_PEAK_STRENGTH = 256,
     };
-    _ShelterB3GarbageIncineratorBlazeWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    _ShelterB3GarbageIncineratorBlazeWork* work = gShelterB3GarbageIncineratorBlazeControllerTask->work;
 
     work->blaze.wave.span  = SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_RISE_TICKS;
     work->blaze.wave.scale = SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_PEAK_STRENGTH;
@@ -1364,7 +1364,7 @@ static void _shelterB3GarbageIncineratorSetBodyFirePhase(s32 spreadFire)
         SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CULL_ZONE = 16,
         SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_TASK  = 3,
     };
-    _ShelterB3GarbageIncineratorBlazeWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
+    _ShelterB3GarbageIncineratorBlazeWork* work = gShelterB3GarbageIncineratorBlazeControllerTask->work;
 
     if (spreadFire == SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_START) {
         sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_BLAZE, 0, 0);

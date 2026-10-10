@@ -44,23 +44,60 @@ extern WorldCoordRoomLights gShelterB3GarbageIncineratorRooms1To3Lights;
 /// transforms and attenuation. The collection must not outlive the overlay.
 extern WorldCoordRoomLights gShelterB3GarbageIncineratorRooms4To7Lights;
 
-extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018E5B0[22];
+/// Twenty-two directed view boundaries for stationary incinerator rooms 1 and 4.
+///
+/// The final record carries LAST. Room binding mutates links, coordinate and
+/// enable/hit state; keep this room-owned array loaded while linked.
+extern WorldCollisionTrigger gShelterB3GarbageIncineratorWaitingViewTriggers[22];
 
-extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018EC38[20];
+/// Twenty directed view boundaries shared by moving/landed rooms 2, 3, 5 and 6.
+///
+/// The final record carries LAST. Room binding mutates links, coordinate and
+/// enable/hit state; keep this room-owned array loaded while linked.
+extern WorldCollisionTrigger gShelterB3GarbageIncineratorMovingAndLandedViewTriggers[20];
 
-extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018F228[17];
+/// Seventeen directed view boundaries for incinerator room 7.
+///
+/// The final record carries LAST. Room binding mutates links, coordinate and
+/// enable/hit state; keep this room-owned array loaded while linked.
+extern WorldCollisionTrigger gShelterB3GarbageIncineratorRoom7ViewTriggers[17];
 
-extern WorldCollisionTrigger D_shelter_b3_garbage_incinerator_8018F734[6];
+/// Six action quads shared by incinerator rooms 1..7.
+///
+/// Two warps, two automatic room actions and two facing-gated CAP actions;
+/// the final record carries LAST. Room binding mutates links, coordinate and
+/// enable/hit state. These borrowed records must stay loaded while linked.
+extern WorldCollisionTrigger gShelterB3GarbageIncineratorActionTriggers[6];
 
-extern WorldCollisionOccluder D_shelter_b3_garbage_incinerator_8018FAD8[1];
+/// One room-space sight-blocking quad shared by incinerator rooms 1..7.
+///
+/// The sole record carries LAST. Room setup mutates links and enables it;
+/// the array belongs to the room overlay and must stay loaded while linked.
+/// The low flag bit is retained with its meaning unproven.
+extern WorldCollisionOccluder gShelterB3GarbageIncineratorSightOccluders[1];
 
-extern RoomEventMsg D_shelter_b3_garbage_incinerator_8018FC2C;
+/// Copied destination retained during the deferred control-room departure choice.
+///
+/// The room-event reply replaces the full record before spawning the choice
+/// task. A committed departure copies area, warp and room into the live save.
+/// This overlay owns the value; no caller's request/reply pointer is retained.
+extern RoomEventMsg gShelterB3GarbageIncineratorControlRoomExitDestination;
 
-extern Task* D_shelter_b3_garbage_incinerator_8018FC34;
+/// Last successfully initialized incinerator lift task.
+///
+/// Initialization publishes this borrowed handle; there is no current reader.
+/// Teardown does not clear it, so a non-NULL value does not establish a live task.
+extern Task* gShelterB3GarbageIncineratorLiftTask;
 
 extern ScreenWaveCtx* gScreenWaveCtx;
 
-extern Task* D_shelter_b3_garbage_incinerator_8018FC3C;
+/// Borrowed controller for the incinerator's scripted player burn scene.
+///
+/// Initialization publishes the task and its allocated work. Blaze script
+/// callbacks require that controller/work and their child tasks to be live.
+/// Teardown does not clear this handle; neither the handle nor a non-NULL value
+/// owns the task or extends its lifetime beyond the active burn scene.
+extern Task* gShelterB3GarbageIncineratorBlazeControllerTask;
 
 extern CapCommandRef* CapCaption_Data_8015E650;
 

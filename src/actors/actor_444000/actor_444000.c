@@ -254,7 +254,7 @@ STATIC_ASSERT_SIZEOF(_GluttonHostTaskStorage, 8);
 /// selector the death sequence latches.
 
 /// Gameplay-resident globals the state-3 hand-off touches: `D_shelter_b3_garbage_incinerator_80187150` is the
-/// task table the successor is spawned from, `D_shelter_b3_garbage_incinerator_8018FBC8[0]` the view id copied
+/// task table the successor is spawned from, `gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock` the script countdown copied
 /// into `GameSession::sceneClock`, and `D_shelter_b3_garbage_incinerator_801855DE` a counter cleared with it.
 
 /// Spawn tables `evsStartScriptWithSkip` forwards to `taskSpawn`, taken as raw
@@ -3064,7 +3064,7 @@ static void _actor444000EventUpdateDescentRoom(s32 updateMode)
             gGameSession->incineratorRoomGroup                         = 1;
             gGameSession->roomObjsDirty                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = work->savedView;
-            areaApplySavedUpdates(D_shelter_b3_garbage_incinerator_8018FB6C);
+            areaApplySavedUpdates(gShelterB3GarbageIncineratorDescentAreaUpdates);
             if (updateMode == ACTOR_444000_DESCENT_UPDATE_WITH_BLEND) {
                 work->framebufferBlend = taskSpawn(ACTOR_444000_EVENT_BLEND_BANK, ACTOR_444000_EVENT_BLEND_DESCRIPTOR, ACTOR_444000_EVENT_BLEND_DOUBLE_PASS, 0);
             }
@@ -3186,7 +3186,7 @@ static void _actor444000IncineratorEventTask(Task* task)
             // Hand the settled room back to its incinerator controller.
             if (gGameSession->eventState == 0) {
                 D_shelter_b3_garbage_incinerator_801855DE = 0;
-                gGameSession->sceneClock                  = D_shelter_b3_garbage_incinerator_8018FBC8[0];
+                gGameSession->sceneClock                  = gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock;
                 taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
                 taskKill(task);
                 return;

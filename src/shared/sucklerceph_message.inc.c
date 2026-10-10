@@ -94,11 +94,11 @@ static s32 _sucklercephMessage(Task* task, s32 unusedMessageId, const ActorComma
                 sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             } else if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
                 spawnRotation.vx      = 0;
-                spawnRotation.vy      = D_shelter_b3_garbage_incinerator_801874C4[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].heading;
+                spawnRotation.vy      = gShelterB3GarbageIncineratorEncounterSpots[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].heading;
                 spawnRotation.vz      = 0;
-                rootCoord->coord.t[0] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].x;
-                rootCoord->coord.t[1] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].y;
-                rootCoord->coord.t[2] = D_shelter_b3_garbage_incinerator_801874C4[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].z;
+                rootCoord->coord.t[0] = gShelterB3GarbageIncineratorEncounterSpots[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].x;
+                rootCoord->coord.t[1] = gShelterB3GarbageIncineratorEncounterSpots[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].y;
+                rootCoord->coord.t[2] = gShelterB3GarbageIncineratorEncounterSpots[request->command >> SUCKLERCEPH_COMMAND_SPOT_SHIFT].z;
             }
             heading          = spawnRotation.vy;
             work->heading    = heading;

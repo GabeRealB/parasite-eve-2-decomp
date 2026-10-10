@@ -76,7 +76,7 @@ static void _madChaserEmergeAtSpot(Task* task)
             audioPan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
             sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         } else if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0, 0)) {
-            _madChaserPlaceEmergeRoot(work, root, D_shelter_b3_garbage_incinerator_801874C4);
+            _madChaserPlaceEmergeRoot(work, root, gShelterB3GarbageIncineratorEncounterSpots);
         }
         work->moveAccel          = 0;
         work->moveSpeed          = 100;

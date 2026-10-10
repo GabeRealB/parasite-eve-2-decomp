@@ -442,9 +442,9 @@ shelterB3GarbageIncineratorSetLiftCollisionWalls = 0x80185220; // type:func abso
 
 D_shelter_b3_garbage_incinerator_80187150 = 0x80187150; // absolute:True owner=shelter_b3_garbage_incinerator
 
-D_shelter_b3_garbage_incinerator_8018FB6C = 0x8018FB6C; // absolute:True owner=shelter_b3_garbage_incinerator
+gShelterB3GarbageIncineratorDescentAreaUpdates = 0x8018FB6C; // absolute:True owner=shelter_b3_garbage_incinerator
 
-D_shelter_b3_garbage_incinerator_8018FBC8 = 0x8018FBC8; // absolute:True owner=shelter_b3_garbage_incinerator
+gShelterB3GarbageIncineratorSuccessorSceneTiming = 0x8018FBC8; // absolute:True owner=shelter_b3_garbage_incinerator
 _actorRenderYawJointInWorld = 0x80132808; // type:func
 _actorContactApplyGridPushback = 0x80132B14; // type:func
 _gluttonBuildWall = 0x80132CB8; // type:func

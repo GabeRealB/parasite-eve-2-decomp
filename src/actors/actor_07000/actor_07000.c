@@ -2500,11 +2500,11 @@ static s32 _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorC
                 sndEvtRequestScriptStart(soundKey, soundPan, (s8)worldCoordGetOriginAudioDepth(coord));
             } else if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
                 placementRotation.vx = 0;
-                placementRotation.vy = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].heading;
+                placementRotation.vy = gShelterB3GarbageIncineratorEncounterSpots[request->command >> 8].heading;
                 placementRotation.vz = 0;
-                coord->coord.t[0]    = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].x;
-                coord->coord.t[1]    = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].y;
-                coord->coord.t[2]    = D_shelter_b3_garbage_incinerator_801874C4[request->command >> 8].z;
+                coord->coord.t[0]    = gShelterB3GarbageIncineratorEncounterSpots[request->command >> 8].x;
+                coord->coord.t[1]    = gShelterB3GarbageIncineratorEncounterSpots[request->command >> 8].y;
+                coord->coord.t[2]    = gShelterB3GarbageIncineratorEncounterSpots[request->command >> 8].z;
             }
             tmdAllocPrimitiveBuffer(task->extra.tmd);
             task->extra.tmd->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;

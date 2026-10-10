@@ -13,7 +13,12 @@
 
 #include "main/task_types.h"
 
-extern OverlayEncounterSpot D_shelter_b3_garbage_incinerator_801874C4[16];
+/// Sixteen incinerator encounter entry positions and headings.
+///
+/// Command spot indices must be 0..15: Mad Chaser reads bits 8..11, while Slouch
+/// and Sucklerceph use the full high byte. XYZ use world game units; headings
+/// use 4096 units per turn. The table is borrowed while this room overlay is loaded.
+extern OverlayEncounterSpot gShelterB3GarbageIncineratorEncounterSpots[16];
 
 extern u16 D_shelter_b3_garbage_incinerator_801855DE;
 
@@ -33,11 +38,37 @@ enum {
     SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_REVEAL_VIEW = 17,
 };
 
-extern AreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C[23];
+/// Saved Mine/Shelter area changes committed when the incinerator descent finishes.
+///
+/// Twenty-two updates plus AREA_APPLY_END. The first area's alternate layout
+/// and map mark depend on save mode; other listed areas update in every mode.
+/// Dumping Hole and Garbage Incinerator select variant 2 and clear their marks.
+/// Applying the list also discards those areas' saved enemy poses.
+extern AreaApplyRec gShelterB3GarbageIncineratorDescentAreaUpdates[23];
 
-extern u16 D_shelter_b3_garbage_incinerator_8018FBC8[2];
+/// Initial script-clock value and an adjacent halfword of unproven meaning.
+///
+/// The four-byte record retains the resource's full observed extent.
+typedef struct {
+    u16 initialSceneClock; // Successor script countdown in caption-task ticks (8850)
+    u16 unknown_2;         // No observed reader; meaning and subdivision unproven
+} ShelterB3GarbageIncineratorSceneTiming;
+STATIC_ASSERT_SIZEOF(ShelterB3GarbageIncineratorSceneTiming, 4);
 
-extern AreaVariant D_shelter_b3_garbage_incinerator_8018FA58[13];
+/// Script countdown seed used when the Glutton event hands control back to the room.
+///
+/// The seed is copied into `GameSession::sceneClock`; caption-task ticks decrement
+/// it while CAP is idle and actors are running. The adjacent halfword has no
+/// established use. Actor overlays borrow this record while the room remains loaded.
+extern ShelterB3GarbageIncineratorSceneTiming gShelterB3GarbageIncineratorSuccessorSceneTiming;
+
+/// Incinerator placement variants indexed by the saved area's layout selector.
+///
+/// Slots 1, 2, 3 and 10 select Glutton entrance, enemy encounter, a present
+/// empty layout and Glutton without entrance control. Slots 0, 4..9 and 11..12
+/// are absent (both pointers NULL). Selectors must be 0..12; all table storage
+/// is borrowed from the loaded incinerator overlay during loading and spawning.
+extern AreaVariant gShelterB3GarbageIncineratorAreaVariants[13];
 
 // shelter_b3_garbage_incinerator
 /// Garbage-incinerator model-lighting descriptors indexed by room minus one.
@@ -60,9 +91,19 @@ extern ViewCount D_shelter_b3_garbage_incinerator_8018740C[];
 
 extern DirectionWarpEntry D_shelter_b3_garbage_incinerator_8018741C[];
 
-extern ViewCamera D_shelter_b3_garbage_incinerator_801883AC[];
+/// Forty cameras selected by the incinerator's mapped view index minus one.
+///
+/// Mapped indices must be 1..40. Each record supplies a world-to-camera
+/// transform and a projection-plane distance in pixels. The Shelter map
+/// borrows this array for the lifetime of the loaded incinerator overlay.
+extern ViewCamera gShelterB3GarbageIncineratorCameras[40];
 
-extern SpriteView D_shelter_b3_garbage_incinerator_8018D100[];
+/// Forty sprite-view descriptors selected by mapped incinerator view minus one.
+///
+/// Mapped indices must be 1..40. Descriptors borrow this overlay's mutable
+/// sprite sources, terminated batch lists and optional clipping lists.
+/// The Shelter map and sprite renderer require the room overlay to remain loaded.
+extern SpriteView gShelterB3GarbageIncineratorSpriteViews[40];
 
 /// Collision policies and footstep cues indexed by incinerator surface class 0..7.
 ///

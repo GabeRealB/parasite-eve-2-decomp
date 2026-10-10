@@ -1205,7 +1205,7 @@ static inline void _actor342000EnterIncineratorRoomInline(void)
     gGameSession->eventRoomIndex                               = ACTOR_342000_INCINERATOR_EXIT_ROOM - 1;
     gGameSession->incineratorRoomGroup                         = ACTOR_342000_INCINERATOR_EXIT_ROOM_GROUP;
     gGameSession->roomObjsDirty                                = 1;
-    areaApplySavedUpdates(D_shelter_b3_garbage_incinerator_8018FB6C);
+    areaApplySavedUpdates(gShelterB3GarbageIncineratorDescentAreaUpdates);
 }
 
 /// Runs the incinerator's Glutton scene and the alternate timed door close.
@@ -1310,7 +1310,7 @@ static void _actor342000IncineratorEventTask(Task* task)
             break;
         case ACTOR_342000_EVENT_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
-                gGameSession->sceneClock = D_shelter_b3_garbage_incinerator_8018FBC8[0];
+                gGameSession->sceneClock = gShelterB3GarbageIncineratorSuccessorSceneTiming.initialSceneClock;
                 taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 1, 0);
                 gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_ENCOUNTER;
                 taskRequestKill(task, 0);

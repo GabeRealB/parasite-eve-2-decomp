@@ -55,9 +55,9 @@ shelterB3GarbageIncineratorSetExitCollisionWalls = 0x8018507C; // type:func abso
 
 D_shelter_b3_garbage_incinerator_80187150 = 0x80187150; // absolute:True owner=shelter_b3_garbage_incinerator
 
-D_shelter_b3_garbage_incinerator_8018FB6C = 0x8018FB6C; // absolute:True owner=shelter_b3_garbage_incinerator
+gShelterB3GarbageIncineratorDescentAreaUpdates = 0x8018FB6C; // absolute:True owner=shelter_b3_garbage_incinerator
 
-D_shelter_b3_garbage_incinerator_8018FBC8 = 0x8018FBC8; // absolute:True owner=shelter_b3_garbage_incinerator
+gShelterB3GarbageIncineratorSuccessorSceneTiming = 0x8018FBC8; // absolute:True owner=shelter_b3_garbage_incinerator
 actorMsgPlaceYawPitchRoll = 0x80164034; // type:func
 actorMsgSetDrawMode = 0x80163FB8; // type:func
 _actor342000FadeInTask = 0x80163eac; // type:func
