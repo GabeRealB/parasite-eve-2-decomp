@@ -1389,7 +1389,7 @@ gDryfieldTrailerCoachShopSessionTaskDesc = 0x80183F84; // absolute:True owner=dr
 
 gMistParkingShopSessionTaskDesc = 0x8018668C; // absolute:True owner=mist_parking
 
-D_shelter_1f_heliport_80181188 = 0x80181188; // absolute:True owner=shelter_1f_heliport
+gShelter1fHeliportShopSessionTaskDesc = 0x80181188; // absolute:True owner=shelter_1f_heliport
 
 D_shelter_b1_armory_801824D0 = 0x801824D0; // absolute:True owner=shelter_b1_armory
 
@@ -1595,7 +1595,7 @@ D_shelter_1f_airlock_8017F758 = 0x8017F758; // absolute:True owner=shelter_1f_ai
 
 D_shelter_1f_bulwark_80180DA8 = 0x80180DA8; // absolute:True owner=shelter_1f_bulwark
 
-D_shelter_1f_heliport_80182BF4 = 0x80182BF4; // absolute:True owner=shelter_1f_heliport
+gShelter1fHeliportAreaVariants = 0x80182BF4; // absolute:True owner=shelter_1f_heliport
 
 D_shelter_1f_tent_80184230 = 0x80184230; // absolute:True owner=shelter_1f_tent
 

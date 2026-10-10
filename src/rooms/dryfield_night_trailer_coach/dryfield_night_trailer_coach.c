@@ -936,32 +936,6 @@ static EvsCommand _gDryfieldNightTrailerCoachChapter4ShopGreetingScript[] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-/// Texts and panel descriptors of the shop list's two special rows (ids
-/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-
-static UiObjectDesc Shop_Data_80181BD8;
-
-static UiObjectDesc Shop_Data_80181B84;
-
-/// Messages and labels of the shop's panels.
-
-static u8 Shop_Data_80181A64[];
-
-static u8 Shop_Data_80181A70[];
-
-static u8 Shop_Data_80181A78[];
-
-/// Row handlers, lists and panel descriptors of the shop's panels.
-
-static UiList Shop_Data_80181AE0;
-
-static UiObjectDesc Shop_Data_80181B4C;
-
-static UiObjectDesc Shop_Data_80181B68;
-
-/// Descriptor of the panel `func_dryfield_night_trailer_coach_8017FEC0` opens.
-static UiObjectDesc Shop_Data_80181B30;
-
 static void _dryfieldNightTrailerCoachInitRoomTask(Task* task);
 
 #include "../../shared/shop.inc.c"

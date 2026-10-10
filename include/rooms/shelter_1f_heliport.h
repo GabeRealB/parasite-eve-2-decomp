@@ -11,12 +11,28 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_shelter_1f_heliport_80181188;
+/// Bodyless priority-192 recipe for this room's shop UI session.
+///
+/// The queued display transition borrows this recipe for asynchronous spawning.
+/// The shop task receives the packed stock selector in spawnArg1 (profile in
+/// the low halfword, category in the high halfword). Keep this overlay loaded
+/// through spawning and tree closure, when the session restores display timing
+/// and releases its buffer.
+extern TaskDesc gShelter1fHeliportShopSessionTaskDesc;
 
-extern AreaVariant D_shelter_1f_heliport_80182BF4[13];
+/// Saved-variant directory: slot 1 Jodie/Soldier B, slot 2 Rupert/Soldier B.
+///
+/// Indexed directly by GameLocationKey.variant (0..12); slots 0 and 3..12
+/// are absent, with both pointers NULL. Placements are borrowed from the Neo Ark
+/// map image, resources from this room; keep both loaded through actor setup.
+extern AreaVariant gShelter1fHeliportAreaVariants[13];
 
-// shelter_1f_heliport
-extern WorldCollisionRoomResources D_shelter_1f_heliport_801812D0[];
+/// Collision resources for the heliport's single room, indexed by room ID minus one.
+///
+/// Borrows the writable companion-aware grid, twelve view boundaries and 21
+/// action triggers, with no sight occluders. Records and children live in this
+/// overlay and must stay loaded while collision queries or updates use them.
+extern WorldCollisionRoomResources gShelter1fHeliportCollisionResources[1];
 
 /// Number of logical views and corresponding camera/sprite records in the heliport.
 enum { SHELTER_1F_HELIPORT_VIEW_COUNT = 12 };
@@ -39,7 +55,12 @@ extern u8* gShelter1fHeliportViewMaps[1];
 /// independently of that gameplay-owned map's capacity.
 extern ViewCount gShelter1fHeliportViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_1f_heliport_801812F0[];
+/// Warp endpoints 1 Bulwark and 2 Tent, indexed by warp ID minus one.
+///
+/// Player/companion positions use world game units and yaw uses 4096 per turn.
+/// Arrival views are 11 and 3; only the Bulwark endpoint requests arrival and
+/// departure sounds. Consumers copy complete entries while this overlay is loaded.
+extern DirectionWarpEntry gShelter1fHeliportWarpEntries[2];
 
 /// Cameras selected by the heliport's mapped view index minus one (views 1..12).
 ///

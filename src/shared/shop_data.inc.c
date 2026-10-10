@@ -1063,42 +1063,14 @@ static const u8 _gShopRechargeServicePrompt[60] SECTION(".data") = "Weapons usin
 /// NUL-terminated caption of the Weapons shop category.
 static const u8 _gShopWeaponsCategoryLabel[8] SECTION(".data") = "Weapons";
 
-static u8 Shop_Data_80181A64[12] = {
-    65,
-    109,
-    109,
-    117,
-    110,
-    105,
-    116,
-    105,
-    111,
-    110,
-    0,
-    0,
-};
+/// NUL-terminated caption of the Ammunition shop category.
+static const u8 _gShopAmmunitionCategoryLabel[12] SECTION(".data") = "Ammunition";
 
-static u8 Shop_Data_80181A70[8] = {
-    65,
-    114,
-    109,
-    111,
-    114,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated caption of the Armor shop category.
+static const u8 _gShopArmorCategoryLabel[8] SECTION(".data") = "Armor";
 
-static u8 Shop_Data_80181A78[8] = {
-    73,
-    116,
-    101,
-    109,
-    115,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated caption of the Items shop category.
+static const u8 _gShopItemsCategoryLabel[8] SECTION(".data") = "Items";
 
 /// NUL-terminated purchase notice shown when BP is below the pack price.
 static const u8 _gShopInsufficientBpText[20] SECTION(".data") = "Insufficient BP.";
@@ -1140,7 +1112,20 @@ static UiListRowCallback _gShopCategoryRowCallbacks[] = {
     _shopDrawCategoryRow,
 };
 
-static UiList Shop_Data_80181AE0 = { _gShopCategoryRowCallbacks, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
+/// Mutable category/Pass list shared by successive sessions in this room image.
+///
+/// Initialization expands the one-row seed to Weapons, Ammunition, Armor,
+/// Items and Pass, with clamped navigation and fifteen-pixel spacing. Fitting
+/// clears scrolling and flags, then the controller enables the shared row
+/// callback and system cursor sound. Selection survives closure unless the
+/// saved cursor preference resets it; only one category panel may use it at once.
+static UiList _gShopCategoryList = {
+    .rowCallbacks    = _gShopCategoryRowCallbacks,
+    .itemCount       = 1,
+    .visibleRowCount = { .unsignedValue = 1 },
+    .wrapNavigation  = 0,
+    .rowHeight       = 15,
+};
 
 /// Per-item callbacks for the two purchase-prompt choices: Purchase, then Pass.
 ///
@@ -1166,13 +1151,64 @@ static UiList _gShopPurchasePromptList = {
     .rowHeight       = USER_INTERFACE_LIST_DEFAULT_ROW_HEIGHT,
 };
 
-static UiObjectDesc Shop_Data_80181B30 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 128, 40 }, 56, 0, TASK_BODY_NONE, 192, _shopCategoryListTask, 0 };
+/// Bodyless priority-192 recipe for the shop session's root category panel.
+///
+/// Bounds are initial screen-centered pixels; the controller fits five rows.
+/// spawnArg1 carries the packed stock selector. The active root creates balance
+/// and help children; the session owns its tree through closure. Spawning copies
+/// the recipe, retaining callback code that requires this room image to stay loaded.
+static const UiObjectDesc _gShopCategoryListDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -144, -104, 128, 40 },
+    .otIndexSeed     = 56,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _shopCategoryListTask,
+};
 
-static UiObjectDesc Shop_Data_80181B4C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -140, -93, 188, 160 }, 48, 0, TASK_BODY_NONE, 192, _shopItemListTask, 0 };
+/// Bodyless priority-192 recipe for one selected category's offered-item panel.
+///
+/// The active child receives the packed stock selector and its category panel
+/// as parent. Its callback owns list work and a preview child and fits the list
+/// to these initial screen-centered pixel bounds. Spawning copies the recipe;
+/// this room image must stay loaded while its callback or child panels run.
+static const UiObjectDesc _gShopItemListDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -140, -93, 188, 160 },
+    .otIndexSeed     = 48,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _shopItemListTask,
+};
 
-static UiObjectDesc Shop_Data_80181B68 = { 0, { 48, 4, 96, 60 }, 52, 0, TASK_BODY_NONE, 192, _shopBalancePanelTask, 0 };
+/// Bodyless priority-192 recipe for the BP and carried-row-capacity display.
+///
+/// Spawned without input as a category-panel child; it reads the live player
+/// balance and inventory, counting occupied rows rather than item units.
+/// Bounds are screen-centered pixels. Spawning copies the recipe; the callback
+/// requires this room image and gameplay to stay loaded until the tree closes.
+static const UiObjectDesc _gShopBalancePanelDescriptor SECTION(".data") = {
+    .bounds          = { 48, 4, 96, 60 },
+    .otIndexSeed     = 52,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _shopBalancePanelTask,
+};
 
-static UiObjectDesc Shop_Data_80181B84 = { 0, { 48, 32, 70, 32 }, 20, 0, TASK_BODY_NONE, 192, _shopPurchasePromptTask, 0 };
+/// Bodyless priority-192 recipe for the selected row's Purchase/Pass prompt.
+///
+/// The item-list parent passes its selected row ID in spawnArg1, positions the
+/// fitted child beside that row and suspends its own input. This includes the
+/// dormant 0xFFFC row, whose meaning is unproven. Bounds are initial screen-
+/// centered pixels. Spawning copies the recipe; its callback and descendants
+/// require this room image to stay loaded until closure.
+static const UiObjectDesc _gShopPurchasePromptDescriptor SECTION(".data") = {
+    .bounds          = { 48, 32, 70, 32 },
+    .otIndexSeed     = 20,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _shopPurchasePromptTask,
+};
 
 /// Bodyless panel recipe for purchase-failure notices.
 ///

@@ -63,8 +63,7 @@
 #include "rooms/shop_tier.h"
 #include "../../shared/room_events.h"
 #include "../../shared/follow_collision.h"
-
-extern s8 D_shelter_1f_heliport_80182CB0;
+#include "../../shared/actor_messages.h"
 
 extern TaskDesc D_actor_161500_80136CDC;
 
@@ -73,29 +72,7 @@ static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
 
-/// Messages and labels of the shop's panels.
-static u8 Shop_Data_80181A64[];
-static u8 Shop_Data_80181A70[];
-static u8 Shop_Data_80181A78[];
-
 static s32 _gShopPreviewRowId;
-
-/// Row handlers, lists and panel descriptors of the shop's panels.
-static UiList       Shop_Data_80181AE0;
-static UiObjectDesc Shop_Data_80181B30;
-static UiObjectDesc Shop_Data_80181B4C;
-static UiObjectDesc Shop_Data_80181B68;
-static UiObjectDesc Shop_Data_80181B84;
-static UiObjectDesc Shop_Data_80181BD8;
-
-/// Descriptors of the room's event task and of its cap-script task.
-extern TaskDesc D_shelter_1f_heliport_80181194;
-extern TaskDesc D_shelter_1f_heliport_801811C8;
-
-/// Message handlers the room's controller task installs in pointer slot 7.
-extern TaskMessageEntry D_shelter_1f_heliport_801811A0[];
-
-extern u8 D_shelter_1f_heliport_801811D4[][4];
 
 static WorldCollisionGrid _gShelter1fHeliportCollisionGrid;
 
@@ -163,11 +140,31 @@ enum {
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_shelter_1f_heliport_80181188 = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
+enum { SHELTER_1F_HELIPORT_SHOP_TASK_PRIORITY   = 192,
+       SHELTER_1F_HELIPORT_SCRIPT_TASK_PRIORITY = 32 };
 
-TaskDesc D_shelter_1f_heliport_80181194 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+TaskDesc gShelter1fHeliportShopSessionTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_HELIPORT_SHOP_TASK_PRIORITY } },
+    .callback = _shopSessionTask,
+    .data     = { .value = 0 },
+};
 
-TaskMessageEntry D_shelter_1f_heliport_801811A0[5] = {
+/// Bodyless priority-32 task recipe for the latched Bulwark departure scene.
+///
+/// Spawning retains no descriptor pointer. The callback borrows the room's
+/// singleton event/message records through CAP, fade, sound and session reload;
+/// keep this overlay loaded and those records unchanged until completion.
+static TaskDesc _gShelter1fHeliportDepartureEventTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_HELIPORT_SCRIPT_TASK_PRIORITY } },
+    .callback = roomEventStagedTask,
+    .data     = { .value = 0 },
+};
+
+/// Terminated message dispatch for departures, key items, actions and CAP commands.
+///
+/// The room controller borrows this table for its lifetime. Payloads belong to
+/// each message's contract; unsupported IDs return zero at the final sentinel.
+static TaskMessageEntry _gShelter1fHeliportRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fHeliportResolveDepartureMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelter1fHeliportUseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fHeliportHandleRoomAction },
@@ -175,21 +172,38 @@ TaskMessageEntry D_shelter_1f_heliport_801811A0[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_1f_heliport_801811C8 = { { { TASK_BODY_NONE, 32 } }, _capDialogueLoopTask, { .value = 0 } };
+/// Bodyless priority-32 task recipe for repeating the heliport CAP dialogue.
+///
+/// The caller holds player control and supplies command 0x21 in spawnArg1.
+/// CAP choice 15 restores control and ends the task. Spawning reads the recipe
+/// synchronously; this overlay and its CAP resources must outlive playback.
+static TaskDesc _gShelter1fHeliportDialogueLoopTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = SHELTER_1F_HELIPORT_SCRIPT_TASK_PRIORITY } },
+    .callback = _capDialogueLoopTask,
+    .data     = { .value = 0 },
+};
 
-u8 D_shelter_1f_heliport_801811D4[12][4] = {
-    { 2, 2, 2, 2 },
-    { 1, 1, 1, 1 },
-    { 2, 2, 1, 1 },
-    { 1, 1, 2, 2 },
-    { 1, 1, 2, 2 },
-    { 2, 2, 1, 1 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 0, 0, 0, 0 },
-    { 2, 2, 1, 1 },
+enum { SHELTER_1F_HELIPORT_PLACED_ACTOR_COUNT  = 4,
+       SHELTER_1F_HELIPORT_DRAW_MODES_KEEP_ROW = 0 };
+
+/// Model draw modes for placement indices 0..3, indexed by saved view 0..11.
+///
+/// Only variants below 3 apply overrides. A zero first byte keeps the whole
+/// row unchanged; other rows show actors or hide them with automatic buffering
+/// disabled. Stored bytes are actor-message modes, not boolean visibility.
+static const u8 _gShelter1fHeliportPlacedActorDrawModesByView[SHELTER_1F_HELIPORT_VIEW_COUNT][SHELTER_1F_HELIPORT_PLACED_ACTOR_COUNT] SECTION(".data") = {
+    { ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER },
+    { ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_SHOW },
+    { ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_SHOW },
+    { ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER },
+    { ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER },
+    { ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_SHOW },
+    { SHELTER_1F_HELIPORT_DRAW_MODES_KEEP_ROW, 0, 0, 0 },
+    { SHELTER_1F_HELIPORT_DRAW_MODES_KEEP_ROW, 0, 0, 0 },
+    { SHELTER_1F_HELIPORT_DRAW_MODES_KEEP_ROW, 0, 0, 0 },
+    { SHELTER_1F_HELIPORT_DRAW_MODES_KEEP_ROW, 0, 0, 0 },
+    { SHELTER_1F_HELIPORT_DRAW_MODES_KEEP_ROW, 0, 0, 0 },
+    { ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, ACTOR_MESSAGE_DRAW_SHOW, ACTOR_MESSAGE_DRAW_SHOW },
 };
 
 /// Extra companion-obstacle translation in room axes and signed game units.
@@ -234,8 +248,8 @@ static s16* _gShelter1fHeliportCompanionObstacleTemplateTable[1] = {
 /// active room grid. The room overlay owns the record and all five pools.
 static WorldCollisionGrid _gShelter1fHeliportCompanionObstacleTemplate = { NULL, _gShelter1fHeliportCompanionObstacleTemplateNormals, _gShelter1fHeliportCompanionObstacleTemplateVerts, _gShelter1fHeliportCompanionObstacleTemplateFaces, _gShelter1fHeliportCompanionObstacleTemplateTable, 131, 227, 1, 1, 4000, ARRAY_SIZE(_gShelter1fHeliportCompanionObstacleTemplateFaces) };
 
-WorldCollisionRoomResources D_shelter_1f_heliport_801812D0[1] = {
-    { &_gShelter1fHeliportCollisionGrid, _gShelter1fHeliportViewBoundaryTriggers, _gShelter1fHeliportActionTriggers, NULL },
+WorldCollisionRoomResources gShelter1fHeliportCollisionResources[1] = {
+    { .grid = &_gShelter1fHeliportCollisionGrid, .viewBoundaryTriggers = _gShelter1fHeliportViewBoundaryTriggers, .actionTriggers = _gShelter1fHeliportActionTriggers, .occluders = NULL },
 };
 
 WorldCoordRoomLighting gShelter1fHeliportRoomLighting[1] = {
@@ -248,9 +262,34 @@ u8* gShelter1fHeliportViewMaps[1] = {
 
 ViewCount gShelter1fHeliportViewCounts[1] = { ARRAY_SIZE(gShelter1fHeliportViewCameras) };
 
-DirectionWarpEntry D_shelter_1f_heliport_801812F0[2] = {
-    { { { .word = 3072 }, 9920, 0, 3450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2792, 0, 2880 }, { 0, 0, 0, 0 }, 0x55040002, 0x55040001, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, 440, 0, 4340 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2792, 0, 2880 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+enum { SHELTER_1F_HELIPORT_BULWARK_ARRIVAL_SOUND   = 0x55040002,
+       SHELTER_1F_HELIPORT_BULWARK_DEPARTURE_SOUND = 0x55040001 };
+
+DirectionWarpEntry gShelter1fHeliportWarpEntries[2] = {
+    {
+        .player         = { { .word = 3072 }, 9920, 0, 3450 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 10130, 0, 2880 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SHELTER_1F_HELIPORT_BULWARK_ARRIVAL_SOUND,
+        .departureSound = SHELTER_1F_HELIPORT_BULWARK_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 11,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 1024 }, 440, 0, 4340 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 10130, 0, 2880 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 3,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 enum { SHELTER_1F_HELIPORT_COLLISION_CELLS_X = 3,
@@ -558,20 +597,9 @@ static AreaResource _gShelter1fHeliportVariant2Resources[3] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_shelter_1f_heliport_80182BF4[13] = {
-    { NULL, NULL },
-    { gMapNeoArkHeliportVariant1Placements, _gShelter1fHeliportVariant1Resources },
-    { gMapNeoArkHeliportVariant2Placements, _gShelter1fHeliportVariant2Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelter1fHeliportAreaVariants[13] = {
+    [1] = { .placements = gMapNeoArkHeliportVariant1Placements, .resources = _gShelter1fHeliportVariant1Resources },
+    [2] = { .placements = gMapNeoArkHeliportVariant2Placements, .resources = _gShelter1fHeliportVariant2Resources },
 };
 
 /// Cue-2 bases in the loaded type-1 sound bank; cue 1 uses the next entry.
@@ -643,13 +671,19 @@ RoomFadeStorage gRoomEventFade = { 0 };
 /// the room. A later accepted start replaces it; no separate queue is stored.
 static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-s8 D_shelter_1f_heliport_80182CB0 = 0;
+/// Whether the latest departure-event gate call spawned a staged event (0/1).
+///
+/// Cleared even by queries and already-recorded departures; this byte does
+/// not track the task's lifetime. No recovered consumer reads it.
+static s8 _gShelter1fHeliportEventStarted = 0;
 
-/// Three bytes stored after the flag; nothing references them.
+/// Retained byte initialized to 2; its role and object boundary are unproven.
 u8 D_shelter_1f_heliport_80182CB1 = 2;
 
+/// Retained byte initialized to 68; its role and object boundary are unproven.
 u8 D_shelter_1f_heliport_80182CB2 = 68;
 
+/// Retained byte initialized to 224; its role and object boundary are unproven.
 u8 D_shelter_1f_heliport_80182CB3 = 224;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
@@ -662,10 +696,11 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 
 #include "../../shared/room_event_staged_task.inc.c"
 
-/// State handlers of the room's controller task: installing its message
-/// table, a per-frame state that runs `_shelter1fHeliportUpdatePlacedActorVisibility`,
-/// and the kill.
-static const TaskFuncTable3 D_shelter_1f_heliport_8017D710 = {
+/// Controller states 0 initialize, 1 maintain placed-actor draw modes, 2 tear down.
+///
+/// The dispatcher copies all three callbacks by value before indexing them;
+/// the task state must remain in 0..2. This table lives with the room overlay.
+static const TaskFuncTable3 _gShelter1fHeliportRoomStateHandlers = {
     {
         _shelter1fHeliportInitializeRoomTask,
         _shelter1fHeliportUpdateRoom,
@@ -690,7 +725,7 @@ static __inline__ s32 _shelter1fHeliportStartEvent(const RoomEventMsg* message, 
            ROOM_EVENT_DEPARTURE_DIRECT  = 1,
            ROOM_EVENT_DEPARTURE_HANDLED = 2 };
 
-    D_shelter_1f_heliport_80182CB0 = false;
+    _gShelter1fHeliportEventStarted = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
             _gRoomEventStagedMsg = *message;
@@ -698,8 +733,8 @@ static __inline__ s32 _shelter1fHeliportStartEvent(const RoomEventMsg* message, 
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_1f_heliport_80181194, 0, 0, 0);
-            D_shelter_1f_heliport_80182CB0 = true;
+            taskSpawnFromTable(&_gShelter1fHeliportDepartureEventTaskDesc, 0, 0, 0);
+            _gShelter1fHeliportEventStarted = true;
         }
         return ROOM_EVENT_DEPARTURE_HANDLED;
     }
@@ -848,7 +883,7 @@ static s32 _shelter1fHeliportHandleCommandMessage(Task* unusedTask, s32 unusedMe
     switch (commandId) {
         case SHELTER_1F_HELIPORT_COMMAND_LOOP_DIALOGUE:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&D_shelter_1f_heliport_801811C8, 0, SHELTER_1F_HELIPORT_COMMAND_LOOP_DIALOGUE, 0);
+            taskSpawnFromTable(&_gShelter1fHeliportDialogueLoopTaskDesc, 0, SHELTER_1F_HELIPORT_COMMAND_LOOP_DIALOGUE, 0);
             break;
         case SHELTER_1F_HELIPORT_COMMAND_CHECK_TALK:
             requiredTalkCount = SHELTER_1F_HELIPORT_TALKS_REQUIRED;
@@ -918,7 +953,7 @@ static void _shelter1fHeliportInitializeRoomTask(Task* task)
            SHELTER_1F_HELIPORT_VARIANT_LATER   = 2 };
 
     // Publish the message receiver before restoring actor event scripts.
-    task->msgTable = D_shelter_1f_heliport_801811A0;
+    task->msgTable = _gShelter1fHeliportRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
         actor260500RestoreHeliportPlacement();
@@ -952,7 +987,7 @@ void shelter1fHeliportRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_1f_heliport_8017D710;
+    stateHandlers = _gShelter1fHeliportRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -969,10 +1004,10 @@ static void _shelter1fHeliportUpdatePlacedActorVisibility(void)
     s32 placeIndex;
     s32 viewIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
 
-    if (gGameSession->location.loc.variant < SHELTER_1F_HELIPORT_VISIBILITY_VARIANT_LIMIT && viewIndex < (s32)ARRAY_SIZE(D_shelter_1f_heliport_801811D4)) {
-        if (D_shelter_1f_heliport_801811D4[viewIndex][0] != SHELTER_1F_HELIPORT_VISIBILITY_KEEP) {
-            for (placeIndex = 0; placeIndex < (s32)ARRAY_SIZE(D_shelter_1f_heliport_801811D4[viewIndex]); placeIndex++) {
-                sceneSetPlacedActorDrawMode(placeIndex, D_shelter_1f_heliport_801811D4[viewIndex][placeIndex]);
+    if (gGameSession->location.loc.variant < SHELTER_1F_HELIPORT_VISIBILITY_VARIANT_LIMIT && viewIndex < (s32)ARRAY_SIZE(_gShelter1fHeliportPlacedActorDrawModesByView)) {
+        if (_gShelter1fHeliportPlacedActorDrawModesByView[viewIndex][0] != SHELTER_1F_HELIPORT_VISIBILITY_KEEP) {
+            for (placeIndex = 0; placeIndex < (s32)ARRAY_SIZE(_gShelter1fHeliportPlacedActorDrawModesByView[viewIndex]); placeIndex++) {
+                sceneSetPlacedActorDrawMode(placeIndex, _gShelter1fHeliportPlacedActorDrawModesByView[viewIndex][placeIndex]);
             }
         }
     }

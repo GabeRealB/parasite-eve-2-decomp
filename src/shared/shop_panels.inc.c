@@ -7,7 +7,22 @@ static void _shopItemPreviewTask(Task* task);
 
 static void _shopRefillWeaponSupplyTask(Task* task);
 
-static UiObjectDesc Shop_Data_80181BD8 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -36, 144, 64 }, 32, 0, TASK_BODY_NONE, 192, _shopRefillWeaponSupplyTask, 0 };
+/// Bodyless priority-192 recipe for the free Batteries/Fuel service panel.
+///
+/// Requires at least one carried rechargeable weapon. The active item-list
+/// child receives a zero payload and scans all carried supplies, committing
+/// each full load before animating its display. The callback borrows the
+/// carrier's refill storage and gameplay catalogue through closure. Bounds are
+/// screen-centered pixels; spawning copies the recipe, so only callback code
+/// and borrowed state must stay loaded until the panel ends.
+static const UiObjectDesc _gShopWeaponSupplyRefillDescriptor SECTION(".data") = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -72, -36, 144, 64 },
+    .otIndexSeed     = 32,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _shopRefillWeaponSupplyTask,
+};
 
 /// Bodyless priority-192 panel recipe for the selected item's preview and amount.
 ///

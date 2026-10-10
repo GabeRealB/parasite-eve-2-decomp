@@ -56,18 +56,6 @@ static const u16 _gShopStandardDefaultItemsStock[];
 
 static s32 _gShopPreviewRowId;
 
-/// Messages and labels of the shop's panels.
-static u8 Shop_Data_80181A64[];
-static u8 Shop_Data_80181A70[];
-static u8 Shop_Data_80181A78[];
-/// Row handlers, lists and panel descriptors of the shop's panels.
-static UiList       Shop_Data_80181AE0;
-static UiObjectDesc Shop_Data_80181B30;
-static UiObjectDesc Shop_Data_80181B4C;
-static UiObjectDesc Shop_Data_80181B68;
-static UiObjectDesc Shop_Data_80181B84;
-static UiObjectDesc Shop_Data_80181BD8;
-
 /// Descriptor of the event task the door gate spawns, and the table the
 /// room's own tasks are spawned from.
 extern TaskDesc gRoomEventTaskDesc;

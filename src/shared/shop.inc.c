@@ -386,7 +386,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
         textDrawString(&textRequest, _gShopRechargeServiceLabel);
         if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-            uiSpawnObject(&Shop_Data_80181BD8, 0, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
+            uiSpawnObject(&_gShopWeaponSupplyRefillDescriptor, 0, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
             object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
         return;
@@ -408,7 +408,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
         textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, _gShopUnusedSpecialRowLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && purchaseBlocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-            specialRowDialog = uiSpawnObject(&Shop_Data_80181B84, rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
+            specialRowDialog = uiSpawnObject(&_gShopPurchasePromptDescriptor, rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
             if (specialRowDialog != NULL) {
                 uiPositionRowDialog(&(specialRowDialog)->panel, list, &(object)->panel);
                 object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
@@ -433,7 +433,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
     }
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (purchaseBlocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
-            purchaseDialog = uiSpawnObject(&Shop_Data_80181B84, rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
+            purchaseDialog = uiSpawnObject(&_gShopPurchasePromptDescriptor, rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
             if (purchaseDialog != NULL) {
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
                 uiPositionRowDialog(&(purchaseDialog)->panel, list, &(object)->panel);
@@ -756,15 +756,15 @@ static void _shopDrawCategoryRow(UiList* list, UiObject* object)
         case SHOP_CATEGORY_WEAPONS:
             break;
         case SHOP_CATEGORY_AMMUNITION:
-            label                           = Shop_Data_80181A64;
+            label                           = _gShopAmmunitionCategoryLabel;
             object->owner->spawnArg1.value |= (SHOP_CATEGORY_AMMUNITION << 16);
             break;
         case SHOP_CATEGORY_ARMOR:
-            label                           = Shop_Data_80181A70;
+            label                           = _gShopArmorCategoryLabel;
             object->owner->spawnArg1.value |= (SHOP_CATEGORY_ARMOR << 16);
             break;
         case SHOP_CATEGORY_ITEMS:
-            label                           = Shop_Data_80181A78;
+            label                           = _gShopItemsCategoryLabel;
             object->owner->spawnArg1.value |= (SHOP_CATEGORY_ITEMS << 16);
             break;
     }
@@ -785,7 +785,7 @@ static void _shopDrawCategoryRow(UiList* list, UiObject* object)
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        uiSpawnObject(&Shop_Data_80181B4C, object->owner->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        uiSpawnObject(&_gShopItemListDescriptor, object->owner->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, object);
         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
     }
 }
@@ -807,13 +807,13 @@ static void _shopCategoryListTask(Task* task)
     s32       childResult;
 
     object         = task->spawnArg2.pointer;
-    list           = &Shop_Data_80181AE0;
+    list           = &_gShopCategoryList;
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&object->panel, _gShopCategoryListTitle);
     if (task->state == SHOP_PANEL_INITIAL) {
         itemMenuClearPreviewItems();
         gItemMenuInfoPanel = NULL;
-        uiSpawnObject(&Shop_Data_80181B68, task->spawnArg1, USER_INTERFACE_PANEL_INACTIVE, 1, object);
+        uiSpawnObject(&_gShopBalancePanelDescriptor, task->spawnArg1, USER_INTERFACE_PANEL_INACTIVE, 1, object);
         uiSpawnObject(&D_8010D6F4[10], 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
         list->itemCount                     = SHOP_CATEGORY_COUNT + 1;
         list->visibleRowCount.unsignedValue = SHOP_CATEGORY_COUNT + 1;
@@ -1378,7 +1378,7 @@ static void _shopSessionTask(Task* task)
 
     if (task->state == SHOP_SESSION_INITIAL) {
         stageEnsureHeapTaskPrimitiveBuffer();
-        object = uiSpawnObject(&Shop_Data_80181B30, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+        object = uiSpawnObject(&_gShopCategoryListDescriptor, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
         if (object == NULL) {
             return;
         }

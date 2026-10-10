@@ -579,7 +579,7 @@ AreaRecord D_8010D0AC[34] = {
     { D_shelter_1f_parking_garage_801818D8, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
     { D_shelter_1f_vehicular_airlock_80182A04, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
     { D_shelter_1f_bulwark_80180DA8, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
-    { D_shelter_1f_heliport_80182BF4, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
+    { gShelter1fHeliportAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
     { D_shelter_1f_airlock_8017F758, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
     { NULL, NULL },
     { gNeoArkObservatoryAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },

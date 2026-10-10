@@ -235,36 +235,11 @@ static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
 
-/// Texts and panel descriptors of the shop list's two special rows (ids
-/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-static UiObjectDesc Shop_Data_80181B84;
-static UiObjectDesc Shop_Data_80181BD8;
-
-/// Texts of the four rows that pick an entry of the shop's id list, and the
-/// panel they open.
-static u8           Shop_Data_80181A64[];
-static u8           Shop_Data_80181A70[];
-static u8           Shop_Data_80181A78[];
-static UiObjectDesc Shop_Data_80181B4C;
-
-/// List of the menu `func_shelter_b1_underground_parking_80180C90` runs, and
-/// the panel it opens first.
-static UiList       Shop_Data_80181AE0;
-static UiObjectDesc Shop_Data_80181B68;
-
 /// Remaining panel descriptors of the purchase confirmation.
 
 /// The quantity and supply of the slot the charge panel is animating.
 static s32                          _gShopRefillDisplayQuantityFixed;
 static const EquipmentWeaponSupply* _gShopRefillSupply;
-
-/// Label of the held-quantity line.
-
-/// The list `func_shelter_b1_underground_parking_80181D88` drives.
-
-/// The descriptor of the modal panel `func_shelter_b1_underground_parking_80181EB0`
-/// runs.
-static UiObjectDesc Shop_Data_80181B30;
 
 /// The scene sub-task the cutscene runner spawned, while it runs.
 extern Task* gRoomCutsceneSoundTask;

@@ -2004,32 +2004,6 @@ RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask = { 0 };
 /// Texture-page fields retain zero, selecting the runner's default page.
 static RoomCutsceneRec _gDryfieldTrailerCoachRepeatStoryScene = { 0 };
 
-/// Texts and panel descriptors of the shop list's two special rows (ids
-/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-
-static UiObjectDesc Shop_Data_80181BD8;
-
-static UiObjectDesc Shop_Data_80181B84;
-
-/// Messages and labels of the shop's panels.
-
-static u8 Shop_Data_80181A64[];
-
-static u8 Shop_Data_80181A70[];
-
-static u8 Shop_Data_80181A78[];
-
-/// Row handlers, lists and panel descriptors of the shop's panels.
-
-static UiList Shop_Data_80181AE0;
-
-static UiObjectDesc Shop_Data_80181B4C;
-
-static UiObjectDesc Shop_Data_80181B68;
-
-/// Descriptor of the panel `func_dryfield_trailer_coach_8017FE98` opens.
-static UiObjectDesc Shop_Data_80181B30;
-
 /// This room's cutscene sound-task slot. The runner uses `task`.
 extern RoomCutsceneSoundTaskStorage gRoomCutsceneSoundTask;
 

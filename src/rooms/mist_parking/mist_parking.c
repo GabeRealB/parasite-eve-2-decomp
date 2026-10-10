@@ -809,32 +809,6 @@ AnimationSet gMistParkingAnimation10174 = {
     { NULL, _gMistParkingAnimation10174Bank1, NULL, NULL, _gMistParkingAnimation10174Bank4, NULL, NULL, NULL },
 };
 
-/// Texts and panel descriptors of the shop list's two special rows (ids
-/// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-
-static UiObjectDesc Shop_Data_80181B84;
-
-static UiObjectDesc Shop_Data_80181BD8;
-
-/// Messages of the shop's panels.
-
-static u8 Shop_Data_80181A64[];
-
-static u8 Shop_Data_80181A70[];
-
-static u8 Shop_Data_80181A78[];
-
-/// Row handlers, lists and panel descriptors of the shop's panels.
-
-static UiList Shop_Data_80181AE0;
-
-static UiObjectDesc Shop_Data_80181B4C;
-
-static UiObjectDesc Shop_Data_80181B68;
-
-/// Descriptor of the panel `func_mist_parking_8017FF9C` opens.
-static UiObjectDesc Shop_Data_80181B30;
-
 static void _mistParkingInitializeRoomTask(Task* task);
 
 static void _mistParkingIdleRoomState(Task* task);
