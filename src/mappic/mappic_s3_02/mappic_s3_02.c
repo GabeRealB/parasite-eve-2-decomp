@@ -34,32 +34,34 @@ TmdSource gMappicS302GasStationShape = {
     .stream           = _gMappicS302GasStationShapeStream,
 };
 
-static TmdBone _gMappicS302MappicS202Model00C480011CSkeleton[1] = {
+/// Identity transform and self-parented root for the Main Street shape.
+static TmdBone _gMappicS302MainStreetShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_0011C_skeleton.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C480011CPartVerts[1] = {
+/// Vertex count of the Main Street shape's sole part (four vertices).
+static u32 _gMappicS302MainStreetShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_0011C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS302MappicS202Model00C480011CVerts[4] = {
+/// Main Street's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS302MainStreetShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_0011C_verts.inc"
 };
 
-static u32 _gMappicS302MappicS202Model00C480011CStream[9] = {
+/// One unlit quad's packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS302MainStreetShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_0011C_stream.inc"
 };
 
-TmdSource D_mappic_s3_02_8012F04C = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS302MappicS202Model00C480011CPartVerts,
-    _gMappicS302MappicS202Model00C480011CVerts,
-    &_gMappicS302MappicS202Model00C480011CVerts[4],
-    _gMappicS302MappicS202Model00C480011CSkeleton,
-    _gMappicS302MappicS202Model00C480011CStream,
+TmdSource gMappicS302MainStreetShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS302MainStreetShapeSkeleton),
+    .partVertexCounts = _gMappicS302MainStreetShapePartVerts,
+    .verts            = _gMappicS302MainStreetShapeVerts,
+    .normals          = &_gMappicS302MainStreetShapeVerts[ARRAY_SIZE(_gMappicS302MainStreetShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS302MainStreetShapeSkeleton,
+    .stream           = _gMappicS302MainStreetShapeStream,
 };
 
 static TmdBone _gMappicS302MappicS202Model00C48001ACSkeleton[1] = {
