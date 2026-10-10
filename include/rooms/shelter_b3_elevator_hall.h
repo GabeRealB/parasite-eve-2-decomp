@@ -12,7 +12,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b3_elevator_hall_8018477C[12];
+/// Placement layouts for the hall, indexed by saved area variant 0..11.
+///
+/// Variant 1 has two Mad Chasers, 2 has two Amoebas and a large Mossback,
+/// and 11 has two Stingers. Slots 0 and 3..10 have no placements or resources.
+/// The directory has no terminator; keep the room loaded while its tables
+/// are borrowed for loading, spawning or by live actors.
+extern AreaVariant gShelterB3ElevatorHallAreaVariants[12];
 
 /// Logical-view map directory for the hall's single room.
 ///
@@ -22,11 +28,28 @@ extern AreaVariant D_shelter_b3_elevator_hall_8018477C[12];
 /// the shared byte map remains owned by gameplay.
 extern u8* gShelterB3ElevatorHallViewMaps[1];
 
-extern ViewCount D_shelter_b3_elevator_hall_80182B58[];
+/// Logical-view search count for the hall's single room.
+///
+/// Room 1 searches seven byte entries in its logical-view map. This signed
+/// halfword array has one element and no terminator; it requires the loaded room.
+extern ViewCount gShelterB3ElevatorHallRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b3_elevator_hall_80182B5C[];
+/// The hall's three arrival and departure endpoints, indexed by warp ID minus one.
+///
+/// Slots 1..3 serve the incinerator control-room door, lower-sewer passage and
+/// elevator respectively; their initial views are 2, 6 and 2. Positions use
+/// world units and yaw uses 4096 per turn. There is no terminator. Lookups copy
+/// the full entry and require this room overlay loaded.
+extern DirectionWarpEntry gShelterB3ElevatorHallWarpEntries[3];
 
-extern WorldCollisionGrid D_shelter_b3_elevator_hall_801834C8;
+/// Collision mesh and XZ cell index for the hall's single room.
+///
+/// The 5-by-3 grid has 4000-world-unit cells and origin X/Z (-6978, -3041).
+/// Its private pools contain 103 vertices, nine normals and 68 faces, whose
+/// surface classes are 0..6. The X-major table borrows terminated face-index
+/// lists. Room binding supplies the view coordinate; keep the record and all
+/// its writable pools loaded while active.
+extern WorldCollisionGrid gShelterB3ElevatorHallCollisionGrid;
 
 /// Seven authored cameras for the hall's mapped views 1..7.
 ///
@@ -51,11 +74,30 @@ extern SpriteView gShelterB3ElevatorHallSpriteViews[7];
 /// arrays must remain in the loaded room overlay while lighting uses them.
 extern WorldCoordRoomLights gShelterB3ElevatorHallRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b3_elevator_hall_80184428[];
+/// Eight directed view boundaries joining the hall's views 2, 3, 4, 5 and 6.
+///
+/// Opposing pairs request 2<->3, 3<->4, 4<->5 and 5<->6. The final live
+/// record carries LAST. Room binding parents, links and enables these mutable
+/// quads; keep their room-overlay storage alive until the list is cleared.
+extern WorldCollisionTrigger gShelterB3ElevatorHallViewBoundaryTriggers[8];
 
-extern WorldCollisionTrigger D_shelter_b3_elevator_hall_801847DC[];
+/// Four action quads for the control-room door, descending stairs and elevator.
+///
+/// Record order is the control-room warp (hall slot 1 to area 41 slot 3),
+/// a five-step descent on surface class 1 facing yaw 1024, the automatic
+/// lower-sewer warp (hall slot 2 to area 43 slot 3), and the elevator request
+/// (hall slot 3 to area 26 slot 1). The elevator handler resolves cab travel.
+/// LAST marks the final live quad. Binding changes links, coordinate and enable
+/// flags; collision changes hit latches. Keep the room loaded until unlinked.
+extern WorldCollisionTrigger gShelterB3ElevatorHallActionTriggers[4];
 
-extern WorldCollisionOccluder D_shelter_b3_elevator_hall_8018490C[];
+/// Two room-space quads blocking line of sight across the hall.
+///
+/// The second live quad carries LAST. Room setup links and enables both;
+/// their world-unit origins and corners are transformed by the current view.
+/// Both retain authored low flag bit 0, whose role is unproven.
+/// Keep this writable room-overlay storage loaded until the list is cleared.
+extern WorldCollisionOccluder gShelterB3ElevatorHallOccluders[2];
 
 /// Collision and footstep records indexed by the hall's surface class 0..7.
 ///

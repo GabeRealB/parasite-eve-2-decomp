@@ -1655,7 +1655,7 @@ D_shelter_b2_south_maintenance_walkway_801837AC = 0x801837AC; // absolute:True o
 
 gShelterB3DumpingHoleAreaVariants = 0x8018EC3C; // absolute:True owner=shelter_b3_dumping_hole
 
-D_shelter_b3_elevator_hall_8018477C = 0x8018477C; // absolute:True owner=shelter_b3_elevator_hall shared=rooms
+gShelterB3ElevatorHallAreaVariants = 0x8018477C; // absolute:True owner=shelter_b3_elevator_hall shared=rooms
 
 D_shelter_b3_garbage_incinerator_8018FA58 = 0x8018FA58; // absolute:True owner=shelter_b3_garbage_incinerator
 

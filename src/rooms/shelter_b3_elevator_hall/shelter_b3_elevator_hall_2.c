@@ -32,6 +32,7 @@
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag_ids.h"
@@ -39,6 +40,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -58,37 +60,87 @@ u8* gShelterB3ElevatorHallViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b3_elevator_hall_80182B58[1] = { 7 };
+ViewCount gShelterB3ElevatorHallRoomViewCounts[1] = { 7 };
 
-DirectionWarpEntry D_shelter_b3_elevator_hall_80182B5C[3] = {
-    { { { .word = 2048 }, -6047, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3328 }, -5000, 0, -200 }, { 0, 0, 0, 0 }, 0x542A0004, 0x542A0003, 0x542A0005, 2, DIRECTION_WARP_FLAG_NONE, 459 },
-    { { { .word = 3072 }, 6749, 0, -300 }, { 0, 0, 0, 0 }, { { .word = 2304 }, 6400, 0, 500 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, -4500, 0, 920 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -4500, 0, 920 }, { 0, 0, 0, 0 }, 0x542A0002, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1BB },
+/// Arrival/departure cue IDs and the control-room door's optional map-marker nibble.
+enum {
+    SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 4),
+    SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 3),
+    SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_BLOCKED_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 5),
+    SHELTER_B3_ELEVATOR_HALL_ELEVATOR_ARRIVAL_SOUND       = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 2),
+    SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_MAP_FLAG        = 0x1CB,
 };
 
-static SVECTOR _gShelterB3ElevatorHallCollision05F08Normals[9] = {
+DirectionWarpEntry gShelterB3ElevatorHallWarpEntries[3] = {
+    { .player         = { { .word = 2048 }, -6047, 0, 1500 },
+      .companion      = { { .word = 3328 }, -5000, 0, -200 },
+      .arrivalSound   = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_ARRIVAL_SOUND,
+      .departureSound = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_DEPARTURE_SOUND,
+      .blockedSound   = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_BLOCKED_SOUND,
+      .initialView    = 2,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_MAP_FLAG },
+    { .player         = { { .word = 3072 }, 6749, 0, -300 },
+      .companion      = { { .word = 2304 }, 6400, 0, 500 },
+      .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+      .departureSound = DIRECTION_WARP_SOUND_NONE,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 6,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player         = { { .word = 3072 }, -4500, 0, 920 },
+      .companion      = { { .word = 3072 }, -4500, 0, 920 },
+      .arrivalSound   = SHELTER_B3_ELEVATOR_HALL_ELEVATOR_ARRIVAL_SOUND,
+      .departureSound = DIRECTION_WARP_SOUND_NONE,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 2,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = GAME_FLAG_MAP_MARK_SHELTER_1BB },
+};
+
+/// Room-space face normals, with 4096 representing unit length.
+static SVECTOR _gShelterB3ElevatorHallCollisionGridNormals[9] = {
 #include "assets/shelter_b3_elevator_hall_collision_05F08_normals.inc"
 };
 
-static SVECTOR _gShelterB3ElevatorHallCollision05F08Verts[103] = {
+/// Collision vertices in signed world-coordinate units.
+static SVECTOR _gShelterB3ElevatorHallCollisionGridVerts[103] = {
 #include "assets/shelter_b3_elevator_hall_collision_05F08_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB3ElevatorHallCollision05F08Faces[68] = {
+/// Indexed collision faces, carrying this room's surface classes 0..6.
+static WorldCollisionGridFace _gShelterB3ElevatorHallCollisionGridFaces[68] = {
 #include "assets/shelter_b3_elevator_hall_collision_05F08_faces.inc"
 };
 
-static s16 _gShelterB3ElevatorHallCollision05F08Cells[236] = {
+/// Signed face-index lists borrowed by the grid cells, each ending at -1.
+///
+/// Retains all 236 authored halfwords, including values between the lists.
+static s16 _gShelterB3ElevatorHallCollisionGridCells[236] = {
 #include "assets/shelter_b3_elevator_hall_collision_05F08_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB3ElevatorHallCollision05F08Cells[i])
-static s16* _gShelterB3ElevatorHallCollision05F08Table[15] = {
+// Asset initializer binding: an element offset into the signed face-index pool.
+#define GRID_CELL(i) (&_gShelterB3ElevatorHallCollisionGridCells[i])
+/// X-major 5-by-3 cell directory; NULL entries contain no collision faces.
+static s16* _gShelterB3ElevatorHallCollisionGridTable[15] = {
 #include "assets/shelter_b3_elevator_hall_collision_05F08_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b3_elevator_hall_801834C8 = { NULL, _gShelterB3ElevatorHallCollision05F08Normals, _gShelterB3ElevatorHallCollision05F08Verts, _gShelterB3ElevatorHallCollision05F08Faces, _gShelterB3ElevatorHallCollision05F08Table, 6978, 3041, 5, 3, 4000, 68 };
+WorldCollisionGrid gShelterB3ElevatorHallCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB3ElevatorHallCollisionGridNormals,
+    .vertices    = _gShelterB3ElevatorHallCollisionGridVerts,
+    .faces       = _gShelterB3ElevatorHallCollisionGridFaces,
+    .cellFaceIds = _gShelterB3ElevatorHallCollisionGridTable,
+    .xBias       = 6978,
+    .zBias       = 3041,
+    .cellCountX  = 5,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB3ElevatorHallCollisionGridFaces),
+};
 
 ViewCamera gShelterB3ElevatorHallViewCameras[7] = {
     { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -1000, 0x7530, 0 } }, 447 },
@@ -420,15 +472,71 @@ WorldCoordRoomLights gShelterB3ElevatorHallRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b3_elevator_hall_80184428[8] = {
-    { NULL, NULL, NULL, { 3519, 128, -2001, 0 }, { { 0, -4304, 2096, 0 }, { 0, -4304, -2096, 0 }, { 0, 4304, 2096, 0 }, { 0, 4304, -2096, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3360, 0, -2161, 0 }, { { 0, -4304, -1664, 0 }, { 0, -4304, 1664, 0 }, { 0, 4304, -1664, 0 }, { 0, 4304, 1664, 0 } }, { 4101, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4608, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1664, 0, -1888, 0 }, { { 0, -4304, -1664, 0 }, { 0, -4304, 1664, 0 }, { 0, 4304, -1664, 0 }, { 0, 4304, 1664, 0 } }, { 4101, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4608, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1536, 0, -1856, 0 }, { { 0, -4304, 2096, 0 }, { 0, -4304, -2096, 0 }, { 0, 4304, 2096, 0 }, { 0, 4304, -2096, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6176, 0, -1313, 0 }, { { 2304, -4304, 432, 0 }, { -2304, -4304, -432, 0 }, { 2304, 4304, 432, 0 }, { -2304, 4304, -432, 0 } }, { -758, 0, 4038, 0 }, { 0, 0, 4096, 0 }, 4884, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6192, 0, -1104, 0 }, { { -2128, -4304, -432, 0 }, { 2128, -4304, 432, 0 }, { -2128, 4304, -432, 0 }, { 2128, 4304, 432, 0 } }, { 816, 0, -4025, 0 }, { 0, 0, 4096, 0 }, 4802, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6272, 0, -1088, 0 }, { { -2128, -4304, 464, 0 }, { 2128, -4304, -464, 0 }, { -2128, 4304, 464, 0 }, { 2128, 4304, -464, 0 } }, { -878, 0, -4025, 0 }, { 0, 0, 4096, 0 }, 4802, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6208, 0, -1216, 0 }, { { 2128, -4304, -464, 0 }, { -2128, -4304, 464, 0 }, { 2128, 4304, -464, 0 }, { -2128, 4304, 464, 0 } }, { 877, 0, 4024, 0 }, { 0, 0, 4096, 0 }, 4802, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB3ElevatorHallViewBoundaryTriggers[8] = {
+    { .origin       = { 3519, 128, -2001, 0 },
+      .vertices     = { { 0, -4304, 2096, 0 }, { 0, -4304, -2096, 0 }, { 0, 4304, 2096, 0 }, { 0, 4304, -2096, 0 } },
+      .normal       = { -4097, 0, 0, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 4775,
+      .parameter0   = 4,
+      .parameter1   = 5,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { 3360, 0, -2161, 0 },
+      .vertices     = { { 0, -4304, -1664, 0 }, { 0, -4304, 1664, 0 }, { 0, 4304, -1664, 0 }, { 0, 4304, 1664, 0 } },
+      .normal       = { 4101, 0, 0, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 4608,
+      .parameter0   = 5,
+      .parameter1   = 4,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { -1664, 0, -1888, 0 },
+      .vertices     = { { 0, -4304, -1664, 0 }, { 0, -4304, 1664, 0 }, { 0, 4304, -1664, 0 }, { 0, 4304, 1664, 0 } },
+      .normal       = { 4101, 0, 0, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 4608,
+      .parameter0   = 4,
+      .parameter1   = 3,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { -1536, 0, -1856, 0 },
+      .vertices     = { { 0, -4304, 2096, 0 }, { 0, -4304, -2096, 0 }, { 0, 4304, 2096, 0 }, { 0, 4304, -2096, 0 } },
+      .normal       = { -4097, 0, 0, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 4775,
+      .parameter0   = 3,
+      .parameter1   = 4,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { -6176, 0, -1313, 0 },
+      .vertices     = { { 2304, -4304, 432, 0 }, { -2304, -4304, -432, 0 }, { 2304, 4304, 432, 0 }, { -2304, 4304, -432, 0 } },
+      .normal       = { -758, 0, 4038, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 4884,
+      .parameter0   = 2,
+      .parameter1   = 3,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { -6192, 0, -1104, 0 },
+      .vertices     = { { -2128, -4304, -432, 0 }, { 2128, -4304, 432, 0 }, { -2128, 4304, -432, 0 }, { 2128, 4304, 432, 0 } },
+      .normal       = { 816, 0, -4025, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 4802,
+      .parameter0   = 3,
+      .parameter1   = 2,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { 6272, 0, -1088, 0 },
+      .vertices     = { { -2128, -4304, 464, 0 }, { 2128, -4304, -464, 0 }, { -2128, 4304, 464, 0 }, { 2128, 4304, -464, 0 } },
+      .normal       = { -878, 0, -4025, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 4802,
+      .parameter0   = 5,
+      .parameter1   = 6,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY },
+    { .origin       = { 6208, 0, -1216, 0 },
+      .vertices     = { { 2128, -4304, -464, 0 }, { -2128, -4304, 464, 0 }, { 2128, 4304, -464, 0 }, { -2128, 4304, 464, 0 } },
+      .normal       = { 877, 0, 4024, 0 },
+      .facingNormal = { 0, 0, ONE, 0 },
+      .radius       = 4802,
+      .parameter0   = 6,
+      .parameter1   = 5,
+      .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST },
 };
 
 /// Placement key and decimal file component for the hall's ordinary Mad Chasers.
@@ -451,61 +559,216 @@ static AreaResource _gShelterB3ElevatorHallMadChaserResources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b3_elevator_hall_801846A0[3] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Resource keys, decimal file components and body descriptors used by hall layouts.
+enum {
+    SHELTER_B3_ELEVATOR_HALL_AMOEBA_RESOURCE_ENTRY         = 24,
+    SHELTER_B3_ELEVATOR_HALL_AMOEBA_FILE_NUMBER            = 24,
+    SHELTER_B3_ELEVATOR_HALL_AMOEBA_BODY_TASK_INDEX        = 0,
+    SHELTER_B3_ELEVATOR_HALL_LARGE_MOSSBACK_RESOURCE_ENTRY = 49,
+    SHELTER_B3_ELEVATOR_HALL_LARGE_MOSSBACK_FILE_NUMBER    = 49,
+    SHELTER_B3_ELEVATOR_HALL_MOSSBACK_BODY_TASK_INDEX      = 0,
+    SHELTER_B3_ELEVATOR_HALL_STINGER_RESOURCE_ENTRY        = 3,
+    SHELTER_B3_ELEVATOR_HALL_STINGER_FILE_NUMBER           = 3,
+    SHELTER_B3_ELEVATOR_HALL_STINGER_BODY_TASK_INDEX       = 0,
 };
 
-AreaResource D_shelter_b3_elevator_hall_801846C4[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Amoeba and large-Mossback loading and body-spawn recipes for layout variant 2.
+///
+/// Entries 24 and 49 load actor files 102400 and 204900. The latter uses the
+/// slot-2 Mossback task table; entry 49 selects its large tuning and model scale.
+/// The final record ends the list. Keep the room and actor descriptors loaded
+/// through loading and spawning.
+static AreaResource _gShelterB3ElevatorHallVariant2Resources[3] = {
+    { .entryId        = SHELTER_B3_ELEVATOR_HALL_AMOEBA_RESOURCE_ENTRY,
+      .fileNumber     = SHELTER_B3_ELEVATOR_HALL_AMOEBA_FILE_NUMBER,
+      .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+      .taskIndex      = SHELTER_B3_ELEVATOR_HALL_AMOEBA_BODY_TASK_INDEX,
+      .taskTable      = gActor102400Tasks },
+    { .entryId        = SHELTER_B3_ELEVATOR_HALL_LARGE_MOSSBACK_RESOURCE_ENTRY,
+      .fileNumber     = SHELTER_B3_ELEVATOR_HALL_LARGE_MOSSBACK_FILE_NUMBER,
+      .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20,
+      .taskIndex      = SHELTER_B3_ELEVATOR_HALL_MOSSBACK_BODY_TASK_INDEX,
+      .taskTable      = gActor201100Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b3_elevator_hall_801846DC[3] = {
-    { 44, 0, 0, 3800, 0, -2000, 2400, 0, 0, 2, 0 },
-    { 44, 0, 0, -1500, 0, -2300, 1750, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Stinger loading and body-spawn recipe for hall layout variant 11.
+///
+/// Entry 3 loads actor file 100300 and spawns its body descriptor. The second
+/// record terminates the list; keep room and actor descriptors loaded through
+/// loading and spawning.
+static AreaResource _gShelterB3ElevatorHallStingerResources[2] = {
+    { .entryId        = SHELTER_B3_ELEVATOR_HALL_STINGER_RESOURCE_ENTRY,
+      .fileNumber     = SHELTER_B3_ELEVATOR_HALL_STINGER_FILE_NUMBER,
+      .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+      .taskIndex      = SHELTER_B3_ELEVATOR_HALL_STINGER_BODY_TASK_INDEX,
+      .taskTable      = gActor100300Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b3_elevator_hall_8018470C[4] = {
-    { 24, 0, 0, -6500, 0, -800, 500, 0, 0, 2, 0 },
-    { 24, 0, 0, 5500, 0, -500, 300, 0, 0, 2, 0 },
-    { 49, 2, 0, 800, 0, -1500, 2048, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Actor-specific placement selectors and image palette-row relocations.
+enum {
+    SHELTER_B3_ELEVATOR_HALL_MAD_CHASER_SPAWN_VARIANT           = 0,
+    SHELTER_B3_ELEVATOR_HALL_MAD_CHASER_SPAWN_MODE              = 0,
+    SHELTER_B3_ELEVATOR_HALL_AMOEBA_TUNING                      = 0,
+    SHELTER_B3_ELEVATOR_HALL_MOSSBACK_ACTION_AWARENESS_VARIANT  = 2,
+    SHELTER_B3_ELEVATOR_HALL_STINGER_PATROL_ROUTE_LEFT          = 0,
+    SHELTER_B3_ELEVATOR_HALL_STINGER_PATROL_ROUTE_RIGHT         = 1,
+    SHELTER_B3_ELEVATOR_HALL_ENEMY_CLUT_ROW_OFFSET              = 2,
+    SHELTER_B3_ELEVATOR_HALL_LARGE_MOSSBACK_TEXTURE_PAGE_OFFSET = 2,
+    SHELTER_B3_ELEVATOR_HALL_LARGE_MOSSBACK_CLUT_ROW_OFFSET     = 4,
 };
 
-AreaPlacement D_shelter_b3_elevator_hall_8018474C[3] = {
-    { 3, 0, 0, -5000, 0, -2000, 1024, 0, 0, 2, 0 },
-    { 3, 0, 1, 6000, 0, -2000, 3072, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Two ordinary Mad Chasers in hall layout variant 1, followed by the ending record.
+///
+/// Transforms use world-coordinate units and 4096 yaw units per turn. Both
+/// spawn with actor variant/mode zero, use the base file and relocate CLUTs
+/// by two rows. Live actors borrow these records from the loaded room.
+static AreaPlacement _gShelterB3ElevatorHallMadChaserPlacements[3] = {
+    { .entryId       = SHELTER_B3_ELEVATOR_HALL_MAD_CHASER_RESOURCE_ENTRY,
+      .variant       = SHELTER_B3_ELEVATOR_HALL_MAD_CHASER_SPAWN_VARIANT,
+      .mode          = SHELTER_B3_ELEVATOR_HALL_MAD_CHASER_SPAWN_MODE,
+      .x             = 3800,
+      .y             = 0,
+      .z             = -2000,
+      .yaw           = 2400,
+      .clutRowOffset = SHELTER_B3_ELEVATOR_HALL_ENEMY_CLUT_ROW_OFFSET },
+    { .entryId       = SHELTER_B3_ELEVATOR_HALL_MAD_CHASER_RESOURCE_ENTRY,
+      .variant       = SHELTER_B3_ELEVATOR_HALL_MAD_CHASER_SPAWN_VARIANT,
+      .mode          = SHELTER_B3_ELEVATOR_HALL_MAD_CHASER_SPAWN_MODE,
+      .x             = -1500,
+      .y             = 0,
+      .z             = -2300,
+      .yaw           = 1750,
+      .clutRowOffset = SHELTER_B3_ELEVATOR_HALL_ENEMY_CLUT_ROW_OFFSET },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b3_elevator_hall_8018477C[12] = {
-    { NULL, NULL },
-    { D_shelter_b3_elevator_hall_801846DC, _gShelterB3ElevatorHallMadChaserResources },
-    { D_shelter_b3_elevator_hall_8018470C, D_shelter_b3_elevator_hall_801846A0 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b3_elevator_hall_8018474C, D_shelter_b3_elevator_hall_801846C4 },
+/// Two Amoebas and a large Mossback in hall layout variant 2, plus the ending record.
+///
+/// Amoebas use tuning 0; the Mossback's variant 2 reacts to player actions or
+/// nearby running. Transforms use world units and 4096 yaw units per turn. All use
+/// base files: Amoeba CLUTs shift two rows, Mossback textures shift two 64-word
+/// pages and its CLUT shifts four rows. Actors borrow these room-owned records.
+static AreaPlacement _gShelterB3ElevatorHallVariant2Placements[4] = {
+    { .entryId       = SHELTER_B3_ELEVATOR_HALL_AMOEBA_RESOURCE_ENTRY,
+      .mode          = SHELTER_B3_ELEVATOR_HALL_AMOEBA_TUNING,
+      .x             = -6500,
+      .y             = 0,
+      .z             = -800,
+      .yaw           = 500,
+      .clutRowOffset = SHELTER_B3_ELEVATOR_HALL_ENEMY_CLUT_ROW_OFFSET },
+    { .entryId       = SHELTER_B3_ELEVATOR_HALL_AMOEBA_RESOURCE_ENTRY,
+      .mode          = SHELTER_B3_ELEVATOR_HALL_AMOEBA_TUNING,
+      .x             = 5500,
+      .y             = 0,
+      .z             = -500,
+      .yaw           = 300,
+      .clutRowOffset = SHELTER_B3_ELEVATOR_HALL_ENEMY_CLUT_ROW_OFFSET },
+    { .entryId           = SHELTER_B3_ELEVATOR_HALL_LARGE_MOSSBACK_RESOURCE_ENTRY,
+      .variant           = SHELTER_B3_ELEVATOR_HALL_MOSSBACK_ACTION_AWARENESS_VARIANT,
+      .x                 = 800,
+      .y                 = 0,
+      .z                 = -1500,
+      .yaw               = 2048,
+      .texturePageOffset = SHELTER_B3_ELEVATOR_HALL_LARGE_MOSSBACK_TEXTURE_PAGE_OFFSET,
+      .clutRowOffset     = SHELTER_B3_ELEVATOR_HALL_LARGE_MOSSBACK_CLUT_ROW_OFFSET },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-WorldCollisionTrigger D_shelter_b3_elevator_hall_801847DC[4] = {
-    { NULL, NULL, NULL, { -6096, 0, 1696, 0 }, { { -752, 0, -352, 0 }, { 752, 0, -352, 0 }, { -752, 0, 352, 0 }, { 752, 0, 352, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 829, WORLD_COLLISION_TRIGGER_ACTION_WARP, 41, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6848, -48, 176, 0 }, { { 176, 0, -624, 0 }, { 176, 0, 625, 0 }, { -176, 0, -624, 0 }, { -176, 0, 625, 0 } }, { 0, 4106, 0, 0 }, { -4096, 0, 0, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 21, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7392, -128, 0, 0 }, { { 0, 2992, -1024, 0 }, { 0, 2992, 1024, 0 }, { 0, -2992, -1024, 0 }, { 0, -2992, 1024, 0 } }, { -4104, 0, 0, 0 }, { -4096, 0, 0, 0 }, 3156, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 43, 35, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4799, -48, 1136, 0 }, { { 432, 0, -720, 0 }, { 432, 0, 720, 0 }, { -432, 0, -720, 0 }, { -432, 0, 720, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 839, WORLD_COLLISION_TRIGGER_ACTION_WARP, 26, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Two lockable Stingers on separate patrol routes in layout variant 11, plus the end.
+///
+/// Modes 0 and 1 select the hall's left and right routes. Actor variant zero
+/// permits lock-on. World-unit transforms use 4096 yaw units per turn; both
+/// use the base file and move CLUTs two rows. Actors borrow these room records.
+static AreaPlacement _gShelterB3ElevatorHallStingerPlacements[3] = {
+    { .entryId       = SHELTER_B3_ELEVATOR_HALL_STINGER_RESOURCE_ENTRY,
+      .mode          = SHELTER_B3_ELEVATOR_HALL_STINGER_PATROL_ROUTE_LEFT,
+      .x             = -5000,
+      .y             = 0,
+      .z             = -2000,
+      .yaw           = 1024,
+      .clutRowOffset = SHELTER_B3_ELEVATOR_HALL_ENEMY_CLUT_ROW_OFFSET },
+    { .entryId       = SHELTER_B3_ELEVATOR_HALL_STINGER_RESOURCE_ENTRY,
+      .mode          = SHELTER_B3_ELEVATOR_HALL_STINGER_PATROL_ROUTE_RIGHT,
+      .x             = 6000,
+      .y             = 0,
+      .z             = -2000,
+      .yaw           = 3072,
+      .clutRowOffset = SHELTER_B3_ELEVATOR_HALL_ENEMY_CLUT_ROW_OFFSET },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-WorldCollisionOccluder D_shelter_b3_elevator_hall_8018490C[2] = {
-    { NULL, NULL, { -2176, -688, 672, 0 }, { { -2208, -4272, -1632, 0 }, { 2208, -4272, 1632, 0 }, { -2208, 4272, -1632, 0 }, { 2208, 4272, 1632, 0 } }, { 2434, 0, -3295, 0 }, 5068, 1, 0 },
-    { NULL, NULL, { 2719, -608, 703, 0 }, { { -2419, -4272, 1651, 0 }, { 2420, -4272, -1650, 0 }, { -2419, 4272, 1651, 0 }, { 2420, 4272, -1650, 0 } }, { -2311, 0, -3388, 0 }, 5170, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+AreaVariant gShelterB3ElevatorHallAreaVariants[12] = {
+    [1]  = { .placements = _gShelterB3ElevatorHallMadChaserPlacements, .resources = _gShelterB3ElevatorHallMadChaserResources },
+    [2]  = { .placements = _gShelterB3ElevatorHallVariant2Placements, .resources = _gShelterB3ElevatorHallVariant2Resources },
+    [11] = { .placements = _gShelterB3ElevatorHallStingerPlacements, .resources = _gShelterB3ElevatorHallStingerResources },
+};
+
+/// Warp-nibble packing and the hall's descending-stair action parameters.
+enum {
+    SHELTER_B3_ELEVATOR_HALL_WARP_DEPARTURE_SHIFT       = 4,
+    SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_WARP          = 1,
+    SHELTER_B3_ELEVATOR_HALL_LOWER_SEWER_WARP           = 2,
+    SHELTER_B3_ELEVATOR_HALL_ELEVATOR_WARP              = 3,
+    SHELTER_B3_ELEVATOR_HALL_CONTROL_ROOM_ARRIVAL_WARP  = 3,
+    SHELTER_B3_ELEVATOR_HALL_LOWER_SEWER_ARRIVAL_WARP   = 3,
+    SHELTER_B3_ELEVATOR_HALL_ELEVATOR_ARRIVAL_WARP      = 1,
+    SHELTER_B3_ELEVATOR_HALL_STAIR_DESCEND              = 0x100,
+    SHELTER_B3_ELEVATOR_HALL_STAIR_SURFACE_1_FIVE_STEPS = (1 << 4) | 5,
+    SHELTER_B3_ELEVATOR_HALL_STAIR_YAW_QUARTER_TURN     = 64,
+};
+
+WorldCollisionTrigger gShelterB3ElevatorHallActionTriggers[4] = {
+    { .origin       = { -6096, 0, 1696, 0 },
+      .vertices     = { { -752, 0, -352, 0 }, { 752, 0, -352, 0 }, { -752, 0, 352, 0 }, { 752, 0, 352, 0 } },
+      .normal       = { 0, 4095, 0, 0 },
+      .facingNormal = { 0, 0, -ONE, 0 },
+      .radius       = 829,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+      .parameter0   = GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM,
+      .parameter1   = (SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_WARP << SHELTER_B3_ELEVATOR_HALL_WARP_DEPARTURE_SHIFT) | SHELTER_B3_ELEVATOR_HALL_CONTROL_ROOM_ARRIVAL_WARP,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { 6848, -48, 176, 0 },
+      .vertices     = { { 176, 0, -624, 0 }, { 176, 0, 625, 0 }, { -176, 0, -624, 0 }, { -176, 0, 625, 0 } },
+      .normal       = { 0, 4106, 0, 0 },
+      .facingNormal = { -ONE, 0, 0, 0 },
+      .radius       = 646,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_FACING | SHELTER_B3_ELEVATOR_HALL_STAIR_DESCEND,
+      .parameter0   = SHELTER_B3_ELEVATOR_HALL_STAIR_SURFACE_1_FIVE_STEPS,
+      .parameter1   = SHELTER_B3_ELEVATOR_HALL_STAIR_YAW_QUARTER_TURN,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { 7392, -128, 0, 0 },
+      .vertices     = { { 0, 2992, -1024, 0 }, { 0, 2992, 1024, 0 }, { 0, -2992, -1024, 0 }, { 0, -2992, 1024, 0 } },
+      .normal       = { -4104, 0, 0, 0 },
+      .facingNormal = { -ONE, 0, 0, 0 },
+      .radius       = 3156,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+      .parameter0   = GAME_AREA_SHELTER_B4_LOWER_SEWER,
+      .parameter1   = (SHELTER_B3_ELEVATOR_HALL_LOWER_SEWER_WARP << SHELTER_B3_ELEVATOR_HALL_WARP_DEPARTURE_SHIFT) | SHELTER_B3_ELEVATOR_HALL_LOWER_SEWER_ARRIVAL_WARP,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin       = { -4799, -48, 1136, 0 },
+      .vertices     = { { 432, 0, -720, 0 }, { 432, 0, 720, 0 }, { -432, 0, -720, 0 }, { -432, 0, 720, 0 } },
+      .normal       = { 0, 4110, 0, 0 },
+      .facingNormal = { -ONE, 0, 0, 0 },
+      .radius       = 839,
+      .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+      .parameter0   = GAME_AREA_SHELTER_B2_ELEVATOR,
+      .parameter1   = (SHELTER_B3_ELEVATOR_HALL_ELEVATOR_WARP << SHELTER_B3_ELEVATOR_HALL_WARP_DEPARTURE_SHIFT) | SHELTER_B3_ELEVATOR_HALL_ELEVATOR_ARRIVAL_WARP,
+      .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST },
+};
+
+WorldCollisionOccluder gShelterB3ElevatorHallOccluders[2] = {
+    { .origin   = { -2176, -688, 672, 0 },
+      .vertices = { { -2208, -4272, -1632, 0 }, { 2208, -4272, 1632, 0 }, { -2208, 4272, -1632, 0 }, { 2208, 4272, 1632, 0 } },
+      .normal   = { 2434, 0, -3295, 0 },
+      .radius   = 5068,
+      .flags    = 1 },
+    { .origin   = { 2719, -608, 703, 0 },
+      .vertices = { { -2419, -4272, 1651, 0 }, { 2420, -4272, -1650, 0 }, { -2419, 4272, 1651, 0 }, { 2420, 4272, -1650, 0 } },
+      .normal   = { -2311, 0, -3388, 0 },
+      .radius   = 5170,
+      .flags    = 1 | WORLD_COLLISION_OCCLUDER_LAST },
 };
 
 /// Cue-2 entry bases in the room's loaded type-1 footstep bank.

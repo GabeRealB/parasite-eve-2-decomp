@@ -835,7 +835,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b3_dumping_hole_8018B6A4,
     D_shelter_b3_garbage_incinerator_8018741C,
     D_shelter_b3_incinerator_control_room_8018192C,
-    D_shelter_b3_elevator_hall_80182B5C,
+    gShelterB3ElevatorHallWarpEntries,
     D_shelter_b4_lower_sewer_80181FAC,
     D_shelter_b4_upper_sewer_80186598,
     D_shelter_b4_reservoir_80185124,
@@ -887,7 +887,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     gShelterB3DumpingHoleViewCounts,
     D_shelter_b3_garbage_incinerator_8018740C,
     gShelterB3IncineratorControlRoomViewCounts,
-    D_shelter_b3_elevator_hall_80182B58,
+    gShelterB3ElevatorHallRoomViewCounts,
     D_shelter_b4_lower_sewer_80181FA8,
     D_shelter_b4_upper_sewer_80186594,
     D_shelter_b4_reservoir_80185120,
@@ -997,7 +997,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B284[2] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2A4[1] = {
-    { &D_shelter_b3_elevator_hall_801834C8, D_shelter_b3_elevator_hall_80184428, D_shelter_b3_elevator_hall_801847DC, D_shelter_b3_elevator_hall_8018490C },
+    { &gShelterB3ElevatorHallCollisionGrid, gShelterB3ElevatorHallViewBoundaryTriggers, gShelterB3ElevatorHallActionTriggers, gShelterB3ElevatorHallOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2B4[1] = {
