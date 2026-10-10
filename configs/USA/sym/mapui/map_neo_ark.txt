@@ -143,7 +143,7 @@ D_neo_ark_garden_80182BD8 = 0x80182BD8; // absolute:True owner=neo_ark_garden
 neoArkPowerPlant2RoomTask = 0x8017D854; // type:func absolute:True owner=neo_ark_power_plant_2
 D_neo_ark_power_plant_2_80180690 = 0x80180690; // absolute:True owner=neo_ark_power_plant_2 shared=rooms
 D_neo_ark_power_plant_2_801806A0 = 0x801806A0; // absolute:True owner=neo_ark_power_plant_2
-D_neo_ark_power_plant_2_801806A8 = 0x801806A8; // absolute:True owner=neo_ark_power_plant_2 shared=rooms
+D_neo_ark_power_plant_2_801806A8 = 0x801806A8; // absolute:True owner=neo_ark_power_plant_2
 D_neo_ark_power_plant_2_801806AC = 0x801806AC; // absolute:True owner=neo_ark_power_plant_2 shared=rooms
 D_neo_ark_power_plant_2_801806B0 = 0x801806B0; // absolute:True owner=neo_ark_power_plant_2
 D_neo_ark_power_plant_2_80180DE8 = 0x80180DE8; // absolute:True owner=neo_ark_power_plant_2

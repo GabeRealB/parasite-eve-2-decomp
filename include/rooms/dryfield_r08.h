@@ -13,22 +13,62 @@
 
 extern AreaVariant D_dryfield_r08_80180B88[13];
 
-// dryfield_r08
-extern WorldCollisionRoomResources D_dryfield_r08_8017F6DC[];
+/// Collision resources for Dryfield R08's room variants 1 and 2.
+///
+/// Both entries borrow the same grid and have no boundary triggers, action
+/// triggers or sight occluders. Indexed by room minus one through the Dryfield
+/// map's area-8 directory; the room overlay must remain loaded while used.
+extern WorldCollisionRoomResources gDryfieldR08RoomCollisionResources[2];
 
-extern u8* D_dryfield_r08_8017F6FC[];
+/// Logical-view maps for Dryfield R08's room variants 1 and 2.
+///
+/// Indexed by room minus one. Both borrow gameplay's `gViewIdentityMap`;
+/// initially logical views 1..6 select cameras, images and sprite views 1..6.
+/// The directory belongs to the loaded room overlay; the maps belong to gameplay.
+extern u8* gDryfieldR08RoomViewMaps[2];
 
-extern ViewCount D_dryfield_r08_8017F704[];
+/// Six logical views in each of Dryfield R08's two room variants.
+///
+/// Signed halfword element counts indexed by room minus one, used to bound
+/// reverse view-map searches. The map borrows them while this overlay is loaded.
+extern ViewCount gDryfieldR08RoomViewCounts[2];
 
-extern WorldCoordRoomLighting D_dryfield_r08_8017F708[];
+/// Light collections for Dryfield R08's room variants 1 and 2.
+///
+/// Indexed by room minus one. Variant 1 initially selects one white point light;
+/// variant 2 selects two cyan and two red point lights. The selector can replace
+/// variant 1's collection. NULL ambient tables use the gameplay default minima.
+/// The descriptors and their mutable lights live in the loaded room overlay.
+extern WorldCoordRoomLighting gDryfieldR08RoomLighting[2];
 
-extern DirectionWarpEntry D_dryfield_r08_8017F718[];
+/// Dryfield R08's single warp endpoint, placing both actors facing +X in view 2.
+///
+/// The player and companion share world position (3360, 0, 2976) and a quarter-
+/// turn yaw. Warp ID 1 selects this entry; sounds, flags and map marker are absent.
+/// The stage map borrows the entry while the room overlay is loaded.
+extern DirectionWarpEntry gDryfieldR08WarpEntries[1];
 
-extern ViewCamera D_dryfield_r08_8017FBBC[];
+/// Cameras for Dryfield R08's mapped views 1..6, indexed by mapped view minus one.
+///
+/// Rotation coefficients have 12 fractional bits; translation is the negated
+/// world-space camera origin and projection distance is in pixels. Views 2 and 6
+/// share camera values. Queued camera application requires this overlay loaded.
+extern ViewCamera gDryfieldR08ViewCameras[6];
 
-extern SpriteView D_dryfield_r08_80180918[];
+/// Sprite resources for Dryfield R08's six mapped views.
+///
+/// Indexed by mapped view minus one. View 1 has no source sprites; views 2..6
+/// borrow mutable source and terminated batch arrays. Every view keeps decoded
+/// background strips and has no clipping-area list. View 4 has eleven individually
+/// hideable lamp batches. Keep the overlay loaded during packet setup and drawing.
+extern SpriteView gDryfieldR08SpriteViews[6];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_r08_80180C04[];
+/// Collision policy directory for Dryfield R08's surface classes 0..7.
+///
+/// All eight entries borrow one blocking record that allows weapon impacts and
+/// pushback, with no footstep cues. There is no terminator or room-variant index.
+/// The directory and record stay valid only while the room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldR08SurfacePropertiesByClass[8];
 
 /// Suppresses glows for the first `shatteredLampCount` lamps in the shattering order.
 ///

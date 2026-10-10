@@ -121285,7 +121285,7 @@ across the store.
 
 ## A loop's address biv is emitted index-first unless the index stays in the loop
 
-`p = D_dryfield_r08_8017F464 + i;` (or `&D[i]` outside the loop) followed by a
+`p = _gDryfieldR08LampGlowPoints + i;` (or `&D[i]` outside the loop) followed by a
 walking-pointer loop prints
 
 ```
@@ -121301,8 +121301,8 @@ value, and sched1 keeps that order (all priorities equal in the block). Move the
 index into the loop and let `loop.c` build the biv's initial value instead:
 
 ```c
-for (lampIndex = D_dryfield_r08_80180C24; lampIndex < (s32)ARRAY_SIZE(D_dryfield_r08_8017F464); lampIndex++) {
-    _dryfieldR08DrawLampGlow(&D_dryfield_r08_8017F464[lampIndex], DRYFIELD_R08_LAMP_GLOW_SIZE, DRYFIELD_R08_LAMP_GLOW_TINT);
+for (lampIndex = _gDryfieldR08ShatteredLampCount; lampIndex < (s32)ARRAY_SIZE(_gDryfieldR08LampGlowPoints); lampIndex++) {
+    _dryfieldR08DrawLampGlow(&_gDryfieldR08LampGlowPoints[lampIndex], DRYFIELD_R08_LAMP_GLOW_SIZE, DRYFIELD_R08_LAMP_GLOW_TINT);
 }
 ```
 
