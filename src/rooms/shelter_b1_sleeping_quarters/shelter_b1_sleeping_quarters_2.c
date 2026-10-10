@@ -35,25 +35,29 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 
-extern SVECTOR D_shelter_b1_sleeping_quarters_8018054C[];
-extern SVECTOR D_shelter_b1_sleeping_quarters_8018055C[];
-extern SVECTOR D_shelter_b1_sleeping_quarters_8018056C[];
-extern SVECTOR D_shelter_b1_sleeping_quarters_801805EC[];
-extern SVECTOR D_shelter_b1_sleeping_quarters_8018060C[];
-
-// Existing slice names select endpoints within one shared table, in SVECTOR elements.
-
-SVECTOR D_shelter_b1_sleeping_quarters_8018054C[2] = {
+/// World-space endpoints of the green beam visible in mapped views 2 and 3.
+static SVECTOR _gShelterB1SleepingQuartersGreenBeamEndpoints[2] = {
     { -350, -2200, -580, 0 },
     { -350, -2200, -1440, 0 },
 };
 
-SVECTOR D_shelter_b1_sleeping_quarters_8018055C[2] = {
-    { 0x2E18, -2350, 6330, 0 },
-    { 0, 0, 0, 0 },
+/// World-space red disc position visible in mapped views 8 and 9.
+///
+/// The drawer borrows only the centre; the following eight zero bytes have
+/// no established consumer or role.
+static struct {
+    SVECTOR centre;       // Red disc centre in signed world-coordinate units.
+    byte    unknown_8[8]; // Retained zero bytes; role unproven.
+} _gShelterB1SleepingQuartersRedDiscPosition = {
+    { 11800, -2350, 6330, 0 },
+    { 0 },
 };
 
-SVECTOR D_shelter_b1_sleeping_quarters_8018056C[16] = {
+/// World-space endpoints of eight white beams shared across mapped views.
+///
+/// Consecutive pairs form beams. Views 3, 4, 5, 7 and 8 select subsets;
+/// every draw borrows two signed world-coordinate points within this table.
+static SVECTOR _gShelterB1SleepingQuartersWhiteBeamEndpoints[16] = {
     { 1760, -2930, 4850, 0 },
     { 2600, -2930, 4850, 0 },
     { 1760, -2930, 2130, 0 },
@@ -72,14 +76,20 @@ SVECTOR D_shelter_b1_sleeping_quarters_8018056C[16] = {
     { 7840, -2290, 3350, 0 },
 };
 
-SVECTOR D_shelter_b1_sleeping_quarters_801805EC[4] = {
+/// World-space endpoints of two white beams visible in mapped view 6.
+///
+/// Consecutive pairs form beams; positions are borrowed only during drawing.
+static SVECTOR _gShelterB1SleepingQuartersView6BeamEndpoints[4] = {
     { 5080, -1880, -50, 0 },
     { 5080, -1880, 350, 0 },
     { 6420, -1880, -50, 0 },
     { 6420, -1880, 350, 0 },
 };
 
-SVECTOR D_shelter_b1_sleeping_quarters_8018060C[8] = {
+/// World-space endpoints of four white beams visible in mapped view 10.
+///
+/// Consecutive pairs form beams; positions are borrowed only during drawing.
+static SVECTOR _gShelterB1SleepingQuartersView10BeamEndpoints[8] = {
     { 8130, -2660, -30, 0 },
     { 7740, -2660, -30, 0 },
     { 9540, -2660, -30, 0 },
@@ -141,21 +151,21 @@ void shelterB1SleepingQuartersDrawViewLightsTask(Task* task)
     // Views 4, 5 and 7 share endpoint pairs from the same table.
     switch (viewGetMappedIndex() & VIEW_INDEX_MASK) {
         case 3:
-            _glowDrawBeam(&D_shelter_b1_sleeping_quarters_8018056C[4], BEAM_RADIUS_SCALE, 0, LIGHT_WHITE);
+            _glowDrawBeam(&_gShelterB1SleepingQuartersWhiteBeamEndpoints[4], BEAM_RADIUS_SCALE, 0, LIGHT_WHITE);
             // Fall through: view 3 also contains view 2's green beam.
         case 2:
-            _glowDrawBeam(D_shelter_b1_sleeping_quarters_8018054C, BEAM_RADIUS_SCALE, 0, LIGHT_GREEN);
+            _glowDrawBeam(_gShelterB1SleepingQuartersGreenBeamEndpoints, BEAM_RADIUS_SCALE, 0, LIGHT_GREEN);
             break;
         case 4: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_sleeping_quarters_8018056C;
+            lightPoints = _gShelterB1SleepingQuartersWhiteBeamEndpoints;
             _shelterB1SleepingQuartersDrawBeamPair(lightPoints, BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
             _glowDrawBeam(&lightPoints[6], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, LIGHT_WHITE);
             break;
         }
         case 5: {
             const SVECTOR* lightPoints;
-            lightPoints = &D_shelter_b1_sleeping_quarters_8018056C[6];
+            lightPoints = &_gShelterB1SleepingQuartersWhiteBeamEndpoints[6];
             _glowDrawBeam(&lightPoints[0], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
             _glowDrawBeam(&lightPoints[6], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
             _glowDrawBeam(&lightPoints[8], BEAM_RADIUS_SCALE, 0, LIGHT_WHITE);
@@ -163,13 +173,13 @@ void shelterB1SleepingQuartersDrawViewLightsTask(Task* task)
         }
         case 6: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_sleeping_quarters_801805EC;
+            lightPoints = _gShelterB1SleepingQuartersView6BeamEndpoints;
             _shelterB1SleepingQuartersDrawBeamPair(lightPoints, BEAM_RADIUS_SCALE, GLOW_QUARTER_TURN, LIGHT_WHITE);
             break;
         }
         case 7: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_sleeping_quarters_8018056C;
+            lightPoints = _gShelterB1SleepingQuartersWhiteBeamEndpoints;
             _glowDrawBeam(&lightPoints[0], BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, LIGHT_WHITE);
             _glowDrawBeam(&lightPoints[2], BEAM_RADIUS_SCALE, 0, LIGHT_WHITE);
             _glowDrawBeam(&lightPoints[8], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
@@ -178,14 +188,14 @@ void shelterB1SleepingQuartersDrawViewLightsTask(Task* task)
             break;
         }
         case 8:
-            _glowDrawBeam(&D_shelter_b1_sleeping_quarters_8018056C[10], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
+            _glowDrawBeam(&_gShelterB1SleepingQuartersWhiteBeamEndpoints[10], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
             // Fall through: view 8 also contains view 9's red glow disc.
         case 9:
-            _glowDrawBitDisc(D_shelter_b1_sleeping_quarters_8018055C, DISC_RADIUS_SCALE, LIGHT_RED);
+            _glowDrawBitDisc(&_gShelterB1SleepingQuartersRedDiscPosition.centre, DISC_RADIUS_SCALE, LIGHT_RED);
             break;
         case 10: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_sleeping_quarters_8018060C;
+            lightPoints = _gShelterB1SleepingQuartersView10BeamEndpoints;
             _shelterB1SleepingQuartersDrawBeamPair(&lightPoints[0], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
             _shelterB1SleepingQuartersDrawBeamPair(&lightPoints[4], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, LIGHT_WHITE);
             break;

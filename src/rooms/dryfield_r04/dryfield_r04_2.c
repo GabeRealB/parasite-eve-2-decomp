@@ -10,9 +10,9 @@
  * empty sprite lists and the location's parameters.
  */
 
-ViewCamera D_dryfield_r04_8017E218[2] = {
-    { { { { 0x1000, 0, 0 }, { 0, 0, -0x1000 }, { 0, 0x1000, 0 } }, { 0, 0x7530, 0 } }, 0xCF },
-    { { { { 0x1000, 0, 0 }, { 0, 0, -0x1000 }, { 0, 0x1000, 0 } }, { -0x3A98, 0x7530, -0x3E80 } }, 0xCF },
+ViewCamera gDryfieldR04ViewCameras[2] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 30000, 0 } }, 207 },
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -15000, 30000, -16000 } }, 207 },
 };
 
 /// Keeps decoded image strips without source sprites for mapped view 1.
@@ -40,8 +40,11 @@ SpriteView gDryfieldR04SpriteViews[2] = {
     { { .empty = _gDryfieldR04View2SpriteBatches }, _gDryfieldR04View2SpriteBatches, NULL },
 };
 
-/// Three sound IDs with the layout of `WorldCollisionFootstepSounds`.
-/// The room's surface-property record does not reference them.
+/// Three retained words with type-1 sound-script request values.
+///
+/// No C or assembly consumer establishes their role or subdivision. Their
+/// layout fits `WorldCollisionFootstepSounds`, but the surface policy does not
+/// reference them; a footstep interpretation remains unproven.
 static s32 D_dryfield_r04_8017E298[3] = { 0x10000011, 0x10000013, 0x10000011 };
 
 /// Collision policy for surface classes 0..7: probes block, impacts are enabled and pushback applies.

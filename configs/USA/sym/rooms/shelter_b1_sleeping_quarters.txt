@@ -1,9 +1,9 @@
 // Overlay-local symbols for shelter_b1_sleeping_quarters.
-D_shelter_b1_sleeping_quarters_8018054C = 0x8018054C; // size:0x10 defined:True
-D_shelter_b1_sleeping_quarters_8018055C = 0x8018055C; // size:0x10 defined:True
-D_shelter_b1_sleeping_quarters_8018056C = 0x8018056C; // size:0x80 defined:True
-D_shelter_b1_sleeping_quarters_801805EC = 0x801805EC; // size:0x20 defined:True
-D_shelter_b1_sleeping_quarters_8018060C = 0x8018060C; // size:0x40 defined:True
+_gShelterB1SleepingQuartersGreenBeamEndpoints = 0x8018054C; // size:0x10 defined:True
+_gShelterB1SleepingQuartersRedDiscPosition = 0x8018055C; // size:0x10 defined:True
+_gShelterB1SleepingQuartersWhiteBeamEndpoints = 0x8018056C; // size:0x80 defined:True
+_gShelterB1SleepingQuartersView6BeamEndpoints = 0x801805EC; // size:0x20 defined:True
+_gShelterB1SleepingQuartersView10BeamEndpoints = 0x8018060C; // size:0x40 defined:True
 D_shelter_b1_sleeping_quarters_80180518 = 0x80180518; // size:0x28 defined:True
 D_shelter_b1_sleeping_quarters_80180540 = 0x80180540; // size:0xC defined:True
 gShelterB1SleepingQuartersModel02DFC = 0x801804F4; // size:0x24 defined:True

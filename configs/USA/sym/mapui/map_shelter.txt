@@ -223,7 +223,7 @@ gShelterB1GolemFreezer1SurfacePropertiesByClass = 0x8017F290; // absolute:True o
 shelterB2PodBottomRoomTask = 0x8017D708; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 gShelterB2PodBottomRoomCollisionResources = 0x80181D14; // absolute:True owner=shelter_b2_pod_bottom
 gShelterB2PodBottomRoomLighting = 0x80181D24; // absolute:True owner=shelter_b2_pod_bottom
-gShelterB2PodBottomRoomViewMaps = 0x80181D2C; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
+gShelterB2PodBottomRoomViewMaps = 0x80181D2C; // absolute:True owner=shelter_b2_pod_bottom
 gShelterB2PodBottomRoomViewCounts = 0x80181D30; // absolute:True owner=shelter_b2_pod_bottom
 gShelterB2PodBottomWarpEntries = 0x80181D34; // absolute:True owner=shelter_b2_pod_bottom
 gShelterB2PodBottomViewCameras = 0x80182B80; // absolute:True owner=shelter_b2_pod_bottom shared=rooms

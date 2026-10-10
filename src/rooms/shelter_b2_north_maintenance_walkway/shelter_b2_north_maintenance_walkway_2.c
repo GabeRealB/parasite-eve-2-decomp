@@ -47,13 +47,6 @@
 #define ROOM_EVENT_LATCHED gRoomEventLatched.event
 #include "../../shared/room_events.h"
 
-/// Anchor points of the glows the room task draws.
-extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183B90[];
-extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183BB0[];
-extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C20[];
-extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C28[];
-extern SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[];
-
 /// Per-palette channel shifts for the halo, indexed by the palette the spawn
 /// argument selects.
 
@@ -70,14 +63,17 @@ TaskMessageEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_b2_north_maintenance_walkway_80183B90[4] = {
+/// World-space lamp endpoint pairs followed by the red disc centre.
+///
+/// The first 18 signed world-coordinate points form consecutive lamp
+/// pairs; point 18 is the red disc centre. Interior view bases keep
+/// every endpoint and centre within this one table. Drawers borrow positions
+/// only during the current frame; the room overlay owns the storage.
+static SVECTOR _gShelterB2NorthMaintenanceWalkwayGlowPoints[19] = {
     { 894, -197, -2271, 0 },
     { 894, -197, -3102, 0 },
     { 894, -197, 376, 0 },
     { 894, -197, -396, 0 },
-};
-
-SVECTOR D_shelter_b2_north_maintenance_walkway_80183BB0[14] = {
     { 894, -197, 2648, 0 },
     { 894, -197, 2036, 0 },
     { 3106, -197, -2271, 0 },
@@ -92,19 +88,20 @@ SVECTOR D_shelter_b2_north_maintenance_walkway_80183BB0[14] = {
     { 597, -197, 5113, 0 },
     { -1562, -197, 5113, 0 },
     { -2493, -197, 5113, 0 },
-};
-
-SVECTOR D_shelter_b2_north_maintenance_walkway_80183C20[1] = {
     { 749, -1283, 2310, 0 },
 };
 
-SVECTOR D_shelter_b2_north_maintenance_walkway_80183C28[1] = {
-    { 1107, -1181, -4935, 0 },
-};
+/// World-space cyan indicator centre for the unlocked operating-room north door.
+///
+/// Drawn in mapped views 2 and 7 while the north-door-unlocked flag is set;
+/// the signed world-coordinate centre is borrowed only while drawing.
+static SVECTOR _gShelterB2NorthMaintenanceWalkwayUnlockedDoorGlowCentre = { 1107, -1181, -4935, 0 };
 
-SVECTOR D_shelter_b2_north_maintenance_walkway_80183C30[1] = {
-    { 1107, -1125, -4900, 0 },
-};
+/// World-space orange indicator centre for the locked operating-room north door.
+///
+/// Drawn in mapped views 2 and 7 while the north-door-unlocked flag is clear;
+/// the signed world-coordinate centre is borrowed only while drawing.
+static SVECTOR _gShelterB2NorthMaintenanceWalkwayLockedDoorGlowCentre = { 1107, -1125, -4900, 0 };
 
 #define ROOM_FX_HALO_STORAGE_INITIALIZER { { { 0, 1, 2 }, { 2, 1, 0 }, { 0, 2, 1 } }, 0x9620 }
 #define ROOM_FX_HALO_STORAGE_TYPE        RoomFxHaloStorage
@@ -159,23 +156,22 @@ void shelterB2NorthMaintenanceWalkwayGlowTask(Task* task)
     }
 
     // Only queue glows visible from this mapped camera.
-    // Capsule indexing relies on the adjacent anchor tables' storage order.
     switch ((u8)viewGetMappedIndex()) {
         case 2: {
-            SVECTOR* glowPoints;
+            const SVECTOR* glowPoints;
             if (gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED) != 0) {
-                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, DOOR_RADIUS_SCALE, UNLOCKED_DOOR_COLOR);
+                _glowDrawTintedDisc(&_gShelterB2NorthMaintenanceWalkwayUnlockedDoorGlowCentre, DOOR_RADIUS_SCALE, UNLOCKED_DOOR_COLOR);
             } else {
-                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, DOOR_RADIUS_SCALE, LOCKED_DOOR_COLOR);
+                _glowDrawTintedDisc(&_gShelterB2NorthMaintenanceWalkwayLockedDoorGlowCentre, DOOR_RADIUS_SCALE, LOCKED_DOOR_COLOR);
             }
-            glowPoints = D_shelter_b2_north_maintenance_walkway_80183B90;
+            glowPoints = _gShelterB2NorthMaintenanceWalkwayGlowPoints;
             glowDrawDimGreyCapsule(&glowPoints[0], LAMP_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&glowPoints[6], LAMP_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
         }
         case 3: {
-            SVECTOR* glowPoints;
-            glowPoints = D_shelter_b2_north_maintenance_walkway_80183C20;
+            const SVECTOR* glowPoints;
+            glowPoints = &_gShelterB2NorthMaintenanceWalkwayGlowPoints[18];
             glowDrawRedDisc(glowPoints, LAMP_RADIUS_SCALE);
             glowDrawDimGreyCapsule(&glowPoints[-18], LAMP_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&glowPoints[-16], LAMP_RADIUS_SCALE, 0);
@@ -187,8 +183,8 @@ void shelterB2NorthMaintenanceWalkwayGlowTask(Task* task)
             break;
         }
         case 4: {
-            SVECTOR* glowPoints;
-            glowPoints = D_shelter_b2_north_maintenance_walkway_80183C20;
+            const SVECTOR* glowPoints;
+            glowPoints = &_gShelterB2NorthMaintenanceWalkwayGlowPoints[18];
             glowDrawRedDisc(glowPoints, LAMP_RADIUS_SCALE);
             glowDrawDimGreyCapsule(&glowPoints[-14], LAMP_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&glowPoints[-8], LAMP_RADIUS_SCALE, GLOW_QUARTER_TURN);
@@ -196,8 +192,8 @@ void shelterB2NorthMaintenanceWalkwayGlowTask(Task* task)
             break;
         }
         case 5: {
-            SVECTOR* glowPoints;
-            glowPoints = D_shelter_b2_north_maintenance_walkway_80183C20;
+            const SVECTOR* glowPoints;
+            glowPoints = &_gShelterB2NorthMaintenanceWalkwayGlowPoints[18];
             glowDrawRedDisc(glowPoints, LAMP_RADIUS_SCALE);
             glowDrawDimGreyCapsule(&glowPoints[-14], LAMP_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&glowPoints[-6], LAMP_RADIUS_SCALE, GLOW_HALF_TURN);
@@ -206,8 +202,8 @@ void shelterB2NorthMaintenanceWalkwayGlowTask(Task* task)
             break;
         }
         case 6: {
-            SVECTOR* glowPoints;
-            glowPoints = D_shelter_b2_north_maintenance_walkway_80183C20;
+            const SVECTOR* glowPoints;
+            glowPoints = &_gShelterB2NorthMaintenanceWalkwayGlowPoints[18];
             glowDrawRedDisc(glowPoints, LAMP_RADIUS_SCALE);
             glowDrawDimGreyCapsule(&glowPoints[-14], LAMP_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&glowPoints[-4], LAMP_RADIUS_SCALE, GLOW_HALF_TURN);
@@ -216,13 +212,13 @@ void shelterB2NorthMaintenanceWalkwayGlowTask(Task* task)
         }
         case 7:
             if (gameFlagGetNibble(GAME_FLAG_OPERATING_ROOM_NORTH_DOOR_UNLOCKED) != 0) {
-                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C28, DOOR_RADIUS_SCALE, UNLOCKED_DOOR_COLOR);
+                _glowDrawTintedDisc(&_gShelterB2NorthMaintenanceWalkwayUnlockedDoorGlowCentre, DOOR_RADIUS_SCALE, UNLOCKED_DOOR_COLOR);
             } else {
-                _glowDrawTintedDisc(D_shelter_b2_north_maintenance_walkway_80183C30, DOOR_RADIUS_SCALE, LOCKED_DOOR_COLOR);
+                _glowDrawTintedDisc(&_gShelterB2NorthMaintenanceWalkwayLockedDoorGlowCentre, DOOR_RADIUS_SCALE, LOCKED_DOOR_COLOR);
             }
             break;
         case 8:
-            glowDrawDimGreyCapsule(D_shelter_b2_north_maintenance_walkway_80183BB0, LAMP_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB2NorthMaintenanceWalkwayGlowPoints[4], LAMP_RADIUS_SCALE, GLOW_QUARTER_TURN);
             break;
     }
 }

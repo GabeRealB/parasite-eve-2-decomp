@@ -69,7 +69,6 @@ extern TaskDesc D_shelter_b3_elevator_hall_80182A2C[];
 extern TaskDesc D_shelter_b3_elevator_hall_80182A68[];
 /// The room's message table, which its CAP scripts index.
 extern TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[];
-extern SVECTOR          D_shelter_b3_elevator_hall_80182A74[];
 extern SVECTOR          D_shelter_b3_elevator_hall_80182AB4[];
 extern SVECTOR          D_shelter_b3_elevator_hall_80182AF4[];
 /// Per-palette right shifts applied to the halo's level for red, green and
@@ -106,7 +105,11 @@ TaskDesc D_shelter_b3_elevator_hall_80182A68[1] = {
     { { { TASK_BODY_NONE, 32 } }, _shelterB3ElevatorHallElevatorTransitTask, { .value = 0 } },
 };
 
-SVECTOR D_shelter_b3_elevator_hall_80182A74[8] = {
+/// World-space endpoints of four additive glow strips visible in mapped view 3.
+///
+/// Consecutive pairs form strips; all eight signed world-coordinate positions
+/// are borrowed only during drawing and remain owned by the loaded room overlay.
+static SVECTOR _gShelterB3ElevatorHallView3GlowStripEndpoints[8] = {
     { -5771, -3058, 151, 0 },
     { -5771, -3058, -1003, 0 },
     { -5653, -3058, 151, 0 },
@@ -388,7 +391,7 @@ void shelterB3ElevatorHallDrawGlowsTask(Task* task)
     }
     switch ((u8)viewGetMappedIndex()) {
         case 3: {
-            const SVECTOR* view3StripPoints = D_shelter_b3_elevator_hall_80182A74;
+            const SVECTOR* view3StripPoints = _gShelterB3ElevatorHallView3GlowStripEndpoints;
             _shelterB3ElevatorHallDrawGlowStrips(view3StripPoints);
         } break;
         case 4: {

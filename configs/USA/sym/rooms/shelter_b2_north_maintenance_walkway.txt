@@ -1,10 +1,8 @@
 // Overlay-local symbols for shelter_b2_north_maintenance_walkway.
 D_shelter_b2_north_maintenance_walkway_80186380 = 0x80186380; // size:0x20 defined:True
-D_shelter_b2_north_maintenance_walkway_80183B90 = 0x80183B90; // size:0x20 defined:True
-D_shelter_b2_north_maintenance_walkway_80183BB0 = 0x80183BB0; // size:0x70 defined:True
-D_shelter_b2_north_maintenance_walkway_80183C20 = 0x80183C20; // size:0x8 defined:True
-D_shelter_b2_north_maintenance_walkway_80183C28 = 0x80183C28; // size:0x8 defined:True
-D_shelter_b2_north_maintenance_walkway_80183C30 = 0x80183C30; // size:0x8 defined:True
+_gShelterB2NorthMaintenanceWalkwayGlowPoints = 0x80183B90; // size:0x98 defined:True
+_gShelterB2NorthMaintenanceWalkwayUnlockedDoorGlowCentre = 0x80183C28; // size:0x8 defined:True
+_gShelterB2NorthMaintenanceWalkwayLockedDoorGlowCentre = 0x80183C30; // size:0x8 defined:True
 _gShelterB2NorthMaintenanceWalkwayVariant1Placements = 0x801860C8; // size:0x30 defined:True
 D_shelter_b2_north_maintenance_walkway_801860F8 = 0x801860F8; // size:0x60 defined:True
 D_shelter_b2_north_maintenance_walkway_80186158 = 0x80186158; // size:0x50 defined:True

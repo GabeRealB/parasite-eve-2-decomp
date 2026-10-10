@@ -10,62 +10,72 @@
 #include "gameplay/room.h"
 #include "gameplay/view.h"
 
-/// The location's collision grid header, defined after the grid it points at.
-extern WorldCollisionGrid D_dryfield_r04_8017E1F4;
+static WorldCollisionGrid _gDryfieldR04CollisionGrid;
 
 /* Dryfield room 4 has no code. Its package holds only the room records the
  * stage tables point at: one location with its collision grid, two views with
  * no sprites, an exit record and the location's parameters.
  */
 
-WorldCollisionRoomResources D_dryfield_r04_8017D5C4[1] = {
-    { &D_dryfield_r04_8017E1F4, NULL, NULL, NULL },
+WorldCollisionRoomResources gDryfieldR04RoomCollisionResources[1] = {
+    { &_gDryfieldR04CollisionGrid, NULL, NULL, NULL },
 };
 
 u8* gDryfieldR04ViewMaps[1] = { gViewIdentityMap };
 
-ViewCount D_dryfield_r04_8017D5D8[1] = { 2 };
+ViewCount gDryfieldR04RoomViewCounts[1] = { 2 };
 
-/// Nothing points at this record: the stage's room coordinate table has no
-/// entry for this room.
+/// Two retained null words with the layout of a room-lighting record.
+///
+/// No C or assembly consumer establishes their role or subdivision. The stage
+/// lighting directory supplies NULL for this area; these words are unused.
 static WorldCoordRoomLighting D_dryfield_r04_8017D5DC = { NULL, NULL };
 
-DirectionWarpEntry D_dryfield_r04_8017D5E4[1] = {
-    { .initialView = 2 },
+DirectionWarpEntry gDryfieldR04WarpEntries[1] = {
+    { .arrivalSound = DIRECTION_WARP_SOUND_NONE, .departureSound = DIRECTION_WARP_SOUND_NONE, .blockedSound = DIRECTION_WARP_SOUND_NONE, .initialView = 2, .flags = DIRECTION_WARP_FLAG_NONE, .mapFlagId = DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldR04Collision00C34Normals[1] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gDryfieldR04CollisionGridNormals[1] = {
 #include "assets/dryfield_r04_collision_00C34_normals.inc"
 };
 
-static SVECTOR _gDryfieldR04Collision00C34Verts[81] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gDryfieldR04CollisionGridVerts[81] = {
 #include "assets/dryfield_r04_collision_00C34_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldR04Collision00C34Faces[64] = {
+/// Indexed collision faces referencing the grid's vertex and normal pools.
+static WorldCollisionGridFace _gDryfieldR04CollisionGridFaces[64] = {
 #include "assets/dryfield_r04_collision_00C34_faces.inc"
 };
 
-static s16 _gDryfieldR04Collision00C34Cells[642] = {
+/// Face-index lists for the grid cells, ending with `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gDryfieldR04CollisionGridCells[642] = {
 #include "assets/dryfield_r04_collision_00C34_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldR04Collision00C34Cells[i])
-static s16* _gDryfieldR04Collision00C34Table[81] = {
+#define GRID_CELL(i) (&_gDryfieldR04CollisionGridCells[i])
+/// X-major 9-by-9 directory of the grid's face-index lists.
+static s16* _gDryfieldR04CollisionGridTable[81] = {
 #include "assets/dryfield_r04_collision_00C34_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_r04_8017E1F4 = {
-    NULL,
-    _gDryfieldR04Collision00C34Normals,
-    _gDryfieldR04Collision00C34Verts,
-    _gDryfieldR04Collision00C34Faces,
-    _gDryfieldR04Collision00C34Table,
-    0,
-    0,
-    9,
-    9,
-    4000,
-    64,
+/// Mutable room collision mesh with a 9-by-9 index of 4000-unit XZ cells.
+///
+/// The origin is (0, 0). Room activation binds the initially NULL view transform;
+/// the room overlay owns the descriptor and every mesh/index pool.
+static WorldCollisionGrid _gDryfieldR04CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldR04CollisionGridNormals,
+    .vertices    = _gDryfieldR04CollisionGridVerts,
+    .faces       = _gDryfieldR04CollisionGridFaces,
+    .cellFaceIds = _gDryfieldR04CollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 0,
+    .cellCountX  = 9,
+    .cellCountZ  = 9,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldR04CollisionGridFaces),
 };

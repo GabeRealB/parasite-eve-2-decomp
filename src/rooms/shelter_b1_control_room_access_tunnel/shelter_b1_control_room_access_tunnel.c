@@ -40,9 +40,6 @@
 /// The room's message table, installed on its task by state 0.
 extern TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[];
 
-extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181E9C[];
-extern SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[];
-
 static s32 _shelterB1ControlRoomAccessTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelterB1ControlRoomAccessTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB1ControlRoomAccessTunnelIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
@@ -58,12 +55,15 @@ TaskMessageEntry D_shelter_b1_control_room_access_tunnel_80181E74[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_b1_control_room_access_tunnel_80181E9C[2] = {
+/// World-space lamp endpoint pairs followed by the red disc centre.
+///
+/// The first 8 signed world-coordinate points form consecutive lamp
+/// pairs; point 8 is the red disc centre. Interior view bases keep
+/// every endpoint and centre within this one table. Drawers borrow positions
+/// only during the current frame; the room overlay owns the storage.
+static SVECTOR _gShelterB1ControlRoomAccessTunnelGlowPoints[9] = {
     { 5017, -196, 1184, 0 },
     { 4172, -196, 1184, 0 },
-};
-
-SVECTOR D_shelter_b1_control_room_access_tunnel_80181EAC[7] = {
     { 2313, -196, 1184, 0 },
     { 1527, -196, 1184, 0 },
     { 5017, -196, -1028, 0 },
@@ -185,14 +185,14 @@ void shelterB1ControlRoomAccessTunnelDrawGlowsTask(Task* task)
     mappedView = viewGetMappedIndex();
     switch (mappedView) {
         case 2: {
-            // These retained indices span both adjacent glow-point tables.
-            const SVECTOR* glowPoints = D_shelter_b1_control_room_access_tunnel_80181E9C;
+            // Both views select interior bases in the same world-point table.
+            const SVECTOR* glowPoints = _gShelterB1ControlRoomAccessTunnelGlowPoints;
             glowDrawDimGreyCapsule(&glowPoints[0], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
             glowDrawDimGreyCapsule(&glowPoints[4], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
             glowDrawRedDisc(&glowPoints[8], GLOW_RADIUS_SCALE);
         } break;
         case 3: {
-            const SVECTOR* glowPoints = D_shelter_b1_control_room_access_tunnel_80181EAC;
+            const SVECTOR* glowPoints = &_gShelterB1ControlRoomAccessTunnelGlowPoints[2];
             glowDrawDimGreyCapsule(&glowPoints[0], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             glowDrawDimGreyCapsule(&glowPoints[4], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
         } break;

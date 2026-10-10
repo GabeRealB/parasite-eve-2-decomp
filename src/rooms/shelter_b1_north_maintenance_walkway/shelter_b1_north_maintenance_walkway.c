@@ -42,11 +42,6 @@ extern s8 D_shelter_b1_north_maintenance_walkway_80185B7C;
 extern TaskMessageEntry D_shelter_b1_north_maintenance_walkway_80184A84[];
 extern TaskDesc         D_shelter_b1_north_maintenance_walkway_80184AAC[];
 
-extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184AB8[];
-extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B08[];
-extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B18[];
-extern SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[];
-
 static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSeen);
 
 extern TaskDesc D_shelter_b1_north_maintenance_walkway_80184A78;
@@ -75,7 +70,13 @@ TaskDesc D_shelter_b1_north_maintenance_walkway_80184AAC[1] = {
     { { { TASK_BODY_NONE, 32 } }, _shelterB1NorthMaintenanceWalkwayPostBattleSceneTask, { .value = 0 } },
 };
 
-SVECTOR D_shelter_b1_north_maintenance_walkway_80184AB8[10] = {
+/// World-space lamp endpoint pairs followed by the red disc centre.
+///
+/// The first 18 signed world-coordinate points form consecutive lamp
+/// pairs; point 18 is the red disc centre. Interior view bases keep
+/// every endpoint and centre within this one table. Drawers borrow positions
+/// only during the current frame; the room overlay owns the storage.
+static SVECTOR _gShelterB1NorthMaintenanceWalkwayGlowPoints[19] = {
     { 894, -197, -2271, 0 },
     { 894, -197, -3102, 0 },
     { 894, -197, 376, 0 },
@@ -86,23 +87,14 @@ SVECTOR D_shelter_b1_north_maintenance_walkway_80184AB8[10] = {
     { 3106, -197, -3102, 0 },
     { 3106, -197, 376, 0 },
     { 3106, -197, -396, 0 },
-};
-
-SVECTOR D_shelter_b1_north_maintenance_walkway_80184B08[2] = {
     { 3106, -197, 2648, 0 },
     { 3106, -197, 2036, 0 },
-};
-
-SVECTOR D_shelter_b1_north_maintenance_walkway_80184B18[6] = {
     { 653, -197, 2896, 0 },
     { -31, -197, 2896, 0 },
     { -42, -197, 5113, 0 },
     { 597, -197, 5113, 0 },
     { -1562, -197, 5113, 0 },
     { -2493, -197, 5113, 0 },
-};
-
-SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[1] = {
     { 749, -1283, 2310, 0 },
 };
 
@@ -351,18 +343,18 @@ void shelterB1NorthMaintenanceWalkwayDrawGlowsTask(Task* task)
         task->state = GLOW_TASK_DRAW;
     }
 
-    // The point arrays' boundaries are unresolved; views 3, 4 and 6 cross them.
+    // Each view selects an interior base in the complete world-point table.
     switch (gGameSession->location.loc.view) {
         case 2: {
             const SVECTOR* glowPoints;
-            glowPoints = D_shelter_b1_north_maintenance_walkway_80184B18;
+            glowPoints = &_gShelterB1NorthMaintenanceWalkwayGlowPoints[12];
             glowDrawDimGreyCapsule(&glowPoints[0], LAMP_GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
             glowDrawDimGreyCapsule(&glowPoints[4], LAMP_GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
         }
         case 3: {
             const SVECTOR* glowPoints;
-            glowPoints = D_shelter_b1_north_maintenance_walkway_80184B08;
+            glowPoints = &_gShelterB1NorthMaintenanceWalkwayGlowPoints[10];
             glowDrawDimGreyCapsule(&glowPoints[0], LAMP_GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
             glowDrawDimGreyCapsule(&glowPoints[2], LAMP_GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
             glowDrawDimGreyCapsule(&glowPoints[4], LAMP_GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
@@ -371,7 +363,7 @@ void shelterB1NorthMaintenanceWalkwayDrawGlowsTask(Task* task)
         case 4:
         case 6: {
             const SVECTOR* glowPoints;
-            glowPoints = D_shelter_b1_north_maintenance_walkway_80184B48;
+            glowPoints = &_gShelterB1NorthMaintenanceWalkwayGlowPoints[18];
             glowDrawRedDisc(&glowPoints[0], LAMP_GLOW_RADIUS_SCALE);
             glowDrawDimGreyCapsule(&glowPoints[-18], LAMP_GLOW_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&glowPoints[-16], LAMP_GLOW_RADIUS_SCALE, 0);
@@ -384,7 +376,7 @@ void shelterB1NorthMaintenanceWalkwayDrawGlowsTask(Task* task)
         }
         case 5: {
             const SVECTOR* glowPoints;
-            glowPoints = D_shelter_b1_north_maintenance_walkway_80184AB8;
+            glowPoints = _gShelterB1NorthMaintenanceWalkwayGlowPoints;
             glowDrawDimGreyCapsule(&glowPoints[0], LAMP_GLOW_RADIUS_SCALE, 0);
             glowDrawDimGreyCapsule(&glowPoints[6], LAMP_GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;

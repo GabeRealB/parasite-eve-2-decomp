@@ -8,8 +8,11 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
-// dryfield_r04
-extern WorldCollisionRoomResources D_dryfield_r04_8017D5C4[];
+/// Collision resources for the area's single room, indexed by room minus one.
+///
+/// Borrows the loaded room's 9-by-9 collision grid; no view boundaries, action
+/// triggers or sight occluders are supplied. Keep the overlay loaded while used.
+extern WorldCollisionRoomResources gDryfieldR04RoomCollisionResources[1];
 
 /// Logical-view map directory for the area's single room selector.
 ///
@@ -18,11 +21,24 @@ extern WorldCollisionRoomResources D_dryfield_r04_8017D5C4[];
 /// is no terminator. The directory requires this room overlay to stay loaded.
 extern u8* gDryfieldR04ViewMaps[1];
 
-extern ViewCount D_dryfield_r04_8017D5D8[];
+/// Two logical views for the area's single room, indexed by room minus one.
+///
+/// Reverse lookup searches the first two identity-map entries. The stage map
+/// borrows this signed-halfword count while this room overlay is loaded.
+extern ViewCount gDryfieldR04RoomViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_r04_8017D5E4[];
+/// The area's sole warp endpoint, selecting logical view 2 on arrival.
+///
+/// Player and companion spawn transforms are zero. Sounds, departure flags and
+/// map-marker updates are disabled. The stage map borrows this complete entry
+/// while the room overlay is loaded; warp IDs index at warp minus one.
+extern DirectionWarpEntry gDryfieldR04WarpEntries[1];
 
-extern ViewCamera D_dryfield_r04_8017E218[];
+/// World-to-camera transforms for mapped views 1 and 2, indexed by view minus one.
+///
+/// Both use world +Y as camera depth and a 207-pixel projection distance.
+/// The stage map borrows these records while the room overlay is loaded.
+extern ViewCamera gDryfieldR04ViewCameras[2];
 
 /// Dryfield r04's sprite resources, indexed by mapped view minus one.
 ///
