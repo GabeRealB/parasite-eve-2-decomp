@@ -11,9 +11,21 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_dryfield_night_motel_room_6_80182E74[2];
+/// Player and held-model reflection recipes for nighttime motel room 6.
+///
+/// Slots 0 and 1 start bodyless tasks at priority 112, without a terminator.
+/// Player `spawnArg1.value` = 1 selects the room mirror plane; attachment
+/// `spawnArg1.value` selects player-held slot 0..3 and `spawnArg2.pointer` borrows
+/// the player reflection task. Spawning reads the recipe synchronously; keep
+/// this overlay and the borrowed player geometry loaded while the tasks live.
+extern TaskDesc gDryfieldNightMotelRoom6ReflectionTaskDescs[2];
 
-extern AreaVariant D_dryfield_night_motel_room_6_801861B4[11];
+/// Eleven absent placement/resource variants for nighttime motel room 6.
+///
+/// Indexed directly by `GameLocationKey.variant` (0..10), without a terminator.
+/// Every slot contains two NULL pointers, so no placement actors or files are
+/// selected. Gameplay borrows this table for night area 30 while the room is loaded.
+extern AreaVariant gDryfieldNightMotelRoom6AreaVariants[11];
 
 /// Lighting for nighttime motel room 6, indexed by the 1-based room ID minus one.
 ///
@@ -22,7 +34,13 @@ extern AreaVariant D_dryfield_night_motel_room_6_801861B4[11];
 /// Keep this overlay loaded while its lighting records are borrowed.
 extern WorldCoordRoomLighting gDryfieldNightMotelRoom6RoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_motel_room_6_80182F08[];
+/// Collision resources for nighttime motel room 6's sole room, room ID 1.
+///
+/// Indexed by room ID minus one, without a terminator. Borrows the mutable
+/// grid, ten directed view boundaries and fifteen action triggers; there are
+/// no sight occluders. Keep the overlay loaded while its grid is active or its
+/// triggers are linked; room binding replaces their coordinates and list links.
+extern WorldCollisionRoomResources gDryfieldNightMotelRoom6RoomCollisionResources[1];
 
 /// Logical-view maps for nighttime motel room 6, indexed by room ID minus one.
 ///
@@ -31,13 +49,39 @@ extern WorldCollisionRoomResources D_dryfield_night_motel_room_6_80182F08[];
 /// keep the room and gameplay overlays loaded while it is used.
 extern u8* gDryfieldNightMotelRoom6ViewMaps[1];
 
-extern ViewCount D_dryfield_night_motel_room_6_80182F1C[];
+/// Logical-view reverse-search count for nighttime motel room 6's sole room.
+///
+/// Room ID 1 selects the twelve-entry search at index zero. This signed element
+/// count is independent of `gViewIdentityMap`'s capacity. There is no terminator;
+/// the map overlay borrows this count while the room overlay is loaded.
+extern ViewCount gDryfieldNightMotelRoom6ViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_motel_room_6_80182F20[];
+/// Balcony and water-tower warp endpoints for nighttime motel room 6.
+///
+/// Warp IDs 1 and 2 select room views 2 and 5 at index ID minus one. Each places
+/// player and companion at the same room-coordinate point, with yaw in 4096
+/// units per turn. The balcony endpoint supplies arrival/departure sounds and
+/// an arrival map mark; the water-tower departure fades. There is no terminator.
+/// Consumers borrow or copy entries while the room overlay is loaded.
+extern DirectionWarpEntry gDryfieldNightMotelRoom6WarpEntries[2];
 
-extern ViewCamera D_dryfield_night_motel_room_6_801839A8[];
+/// Camera transforms and perspective distances for nighttime motel room 6's twelve views.
+///
+/// The identity view map selects entries at mapped view minus one, without a
+/// terminator. Rotation uses `ONE` (4096) per unit, translation is the negated
+/// world-space camera origin, and projection distance is in pixels. Keep the
+/// room overlay loaded through lookup and any queued camera application.
+extern ViewCamera gDryfieldNightMotelRoom6ViewCameras[12];
 
-extern SpriteView D_dryfield_night_motel_room_6_801857C0[];
+/// Sprite sources and drawing lists for nighttime motel room 6's twelve mapped views.
+///
+/// Indexed by mapped view minus one, without a terminator. Views 1, 6 and 9..12
+/// retain empty batch-list addresses in their source slots; views 2..5, 7 and 8
+/// select source sprites. Every batch list starts with a zero-count decoded-
+/// background selector and ends at `SPRITE_BATCH_END`. No view supplies draw-area
+/// clips. Keep this overlay loaded while accessing the mutable records or
+/// allocating, updating and linking their cached sprite packets.
+extern SpriteView gDryfieldNightMotelRoom6SpriteViews[12];
 
 /// Collision policies and footstep cues for nighttime motel room 6's classes 0..7.
 ///

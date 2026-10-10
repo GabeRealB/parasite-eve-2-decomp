@@ -2183,7 +2183,7 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(gDryfieldMotelRoom6ReflectionTaskDescs, 0, SCENE_ROOM_REFLECTION_MODE_PLANE, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_6, 0, 0):
-            taskSpawnFromTable(D_dryfield_night_motel_room_6_80182E74, 0, SCENE_ROOM_REFLECTION_MODE_PLANE, 0);
+            taskSpawnFromTable(gDryfieldNightMotelRoom6ReflectionTaskDescs, 0, SCENE_ROOM_REFLECTION_MODE_PLANE, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 0, 0):
             taskSpawnFromTable(&D_shelter_b1_control_room_80181B88, 0, 0, 0);

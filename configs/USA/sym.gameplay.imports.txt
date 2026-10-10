@@ -500,7 +500,7 @@ D_acropolis_plaza_80199390 = 0x80199390; // absolute:True
 
 gDryfieldMotelRoom6ReflectionTaskDescs = 0x80182D0C; // absolute:True owner=dryfield_motel_room_6
 
-D_dryfield_night_motel_room_6_80182E74 = 0x80182E74; // absolute:True owner=dryfield_night_motel_room_6 shared=rooms
+gDryfieldNightMotelRoom6ReflectionTaskDescs = 0x80182E74; // absolute:True owner=dryfield_night_motel_room_6 shared=rooms
 
 D_neo_ark_bridge_80181F18 = 0x80181F18; // absolute:True owner=neo_ark_bridge
 
@@ -1489,7 +1489,7 @@ D_dryfield_night_motel_room_4_801802FC = 0x801802FC; // absolute:True owner=dryf
 
 D_dryfield_night_motel_room_5_80181190 = 0x80181190; // absolute:True owner=dryfield_night_motel_room_5
 
-D_dryfield_night_motel_room_6_801861B4 = 0x801861B4; // absolute:True owner=dryfield_night_motel_room_6
+gDryfieldNightMotelRoom6AreaVariants = 0x801861B4; // absolute:True owner=dryfield_night_motel_room_6
 
 D_dryfield_night_parking_lot_80181438 = 0x80181438; // absolute:True owner=dryfield_night_parking_lot
 
