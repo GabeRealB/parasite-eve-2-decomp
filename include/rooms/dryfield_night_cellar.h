@@ -13,12 +13,22 @@
 
 extern AreaVariant D_dryfield_night_cellar_80180780[12];
 
-// dryfield_night_cellar
-extern WorldCoordRoomLighting D_dryfield_night_cellar_8017DAF0[];
+/// Model lighting for nighttime cellar rooms 1 and 2, indexed by room - 1.
+///
+/// Each room borrows its own five-point-light collection. Both use the default
+/// ambient minima in every view. Descriptors and light arrays remain live only
+/// while the nighttime cellar overlay is loaded; light updates mutate the arrays.
+extern WorldCoordRoomLighting gDryfieldNightCellarRoomLighting[2];
 
 extern WorldCollisionRoomResources D_dryfield_night_cellar_8017DB00[];
 
-extern u8* D_dryfield_night_cellar_8017DB28[];
+/// Logical-view maps for nighttime cellar rooms 1 and 2, indexed by room - 1.
+///
+/// Map entries are unsigned 1-based camera, image and sprite indices, indexed
+/// by logical view - 1. Room 1 uses the shared identity map for logical views
+/// 1..11; room 2 uses {1, 7, 8, 9, 10, 11} for logical views 1..6. There is no
+/// terminator. The directory and room 2 map are borrowed from the loaded overlay.
+extern u8* gDryfieldNightCellarViewMaps[2];
 
 extern ViewCount D_dryfield_night_cellar_8017DB30[];
 
@@ -28,7 +38,12 @@ extern ViewCamera D_dryfield_night_cellar_8017DE84[];
 
 extern SpriteView D_dryfield_night_cellar_8017FAB8[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_cellar_801807F4[];
+/// Collision and footstep policies for the nighttime cellar's surface classes 0..7.
+///
+/// Every class borrows the same blocking surface record: weapon impacts and
+/// pushback are enabled, with paired walking/running footstep scripts. The
+/// directory and referenced records stay valid only while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightCellarSurfacePropertiesByClass[8];
 
 /// Draws the nighttime cellar's switch-gated pair of flickering flares each frame.
 ///

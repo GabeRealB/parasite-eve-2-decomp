@@ -29,6 +29,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -53,13 +54,13 @@ static s32  _dryfieldNightCellarRejectKeyItem(Task* task, s32 messageId, s32 ite
 static s32  _dryfieldNightCellarIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* action, s32 unused);
 static void _dryfieldNightCellarIdle(Task* task);
 
-extern WorldCollisionGrid     D_dryfield_night_cellar_8017DE60[1];
+static WorldCollisionGrid     _gDryfieldNightCellarCollisionGrid;
 extern WorldCollisionOccluder D_dryfield_night_cellar_801802F4[1];
 extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FB3C[6];
 extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FD04[10];
 extern WorldCollisionTrigger  D_dryfield_night_cellar_8017FFFC[10];
-extern WorldCoordRoomLights   D_dryfield_night_cellar_80180510[1];
-extern WorldCoordRoomLights   D_dryfield_night_cellar_80180708[1];
+static WorldCoordRoomLights   _gDryfieldNightCellarRoom1Lights;
+static WorldCoordRoomLights   _gDryfieldNightCellarRoom2Lights;
 
 TaskMessageEntry D_dryfield_night_cellar_8017DAA8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveCellar },
@@ -79,17 +80,22 @@ SVECTOR D_dryfield_night_cellar_8017DAE0[2] = {
     { 8300, -2330, 200, 0 },
 };
 
-WorldCoordRoomLighting D_dryfield_night_cellar_8017DAF0[2] = {
-    { D_dryfield_night_cellar_80180510, NULL },
-    { D_dryfield_night_cellar_80180708, NULL },
+WorldCoordRoomLighting gDryfieldNightCellarRoomLighting[2] = {
+    { .lights = &_gDryfieldNightCellarRoom1Lights, .ambientTable = NULL },
+    { .lights = &_gDryfieldNightCellarRoom2Lights, .ambientTable = NULL },
 };
 
 WorldCollisionRoomResources D_dryfield_night_cellar_8017DB00[2] = {
-    { D_dryfield_night_cellar_8017DE60, D_dryfield_night_cellar_8017FB3C, D_dryfield_night_cellar_8017FD04, D_dryfield_night_cellar_801802F4 },
-    { D_dryfield_night_cellar_8017DE60, D_dryfield_night_cellar_8017FB3C, D_dryfield_night_cellar_8017FFFC, D_dryfield_night_cellar_801802F4 },
+    { &_gDryfieldNightCellarCollisionGrid, D_dryfield_night_cellar_8017FB3C, D_dryfield_night_cellar_8017FD04, D_dryfield_night_cellar_801802F4 },
+    { &_gDryfieldNightCellarCollisionGrid, D_dryfield_night_cellar_8017FB3C, D_dryfield_night_cellar_8017FFFC, D_dryfield_night_cellar_801802F4 },
 };
 
-u8 D_dryfield_night_cellar_8017DB20[8] = {
+/// Maps room 2's six logical views to the shared camera, image and sprite indices.
+///
+/// Only entries 0..5 are active: {1, 7, 8, 9, 10, 11}. The final two zero
+/// bytes are retained storage, not a terminator or selectable views. Borrowed
+/// through `gDryfieldNightCellarViewMaps` while this overlay is loaded.
+static u8 _gDryfieldNightCellarRoom2ViewMap[8] = {
     1,
     7,
     8,
@@ -100,9 +106,9 @@ u8 D_dryfield_night_cellar_8017DB20[8] = {
     0,
 };
 
-u8* D_dryfield_night_cellar_8017DB28[2] = {
+u8* gDryfieldNightCellarViewMaps[2] = {
     gViewIdentityMap,
-    D_dryfield_night_cellar_8017DB20,
+    _gDryfieldNightCellarRoom2ViewMap,
 };
 
 ViewCount D_dryfield_night_cellar_8017DB30[2] = { 11, 6 };
@@ -111,30 +117,59 @@ DirectionWarpEntry D_dryfield_night_cellar_8017DB34[1] = {
     { { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5611, 3, 3945 }, { 0, 0, 0, 0 }, 0x53220002, 0x53220001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 463 },
 };
 
-static SVECTOR _gDryfieldNightCellarCollision008A0Normals[7] = {
+/// Room-axis collision normals, with 4096 representing unit length.
+static SVECTOR _gDryfieldNightCellarCollisionGridNormals[7] = {
 #include "assets/dryfield_night_cellar_collision_008A0_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightCellarCollision008A0Verts[39] = {
+/// Collision vertices in signed integer room-coordinate units.
+static SVECTOR _gDryfieldNightCellarCollisionGridVerts[39] = {
 #include "assets/dryfield_night_cellar_collision_008A0_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightCellarCollision008A0Faces[20] = {
+/// Indexed collision quads using room-local surface classes 0 and 1.
+static WorldCollisionGridFace _gDryfieldNightCellarCollisionGridFaces[20] = {
 #include "assets/dryfield_night_cellar_collision_008A0_faces.inc"
 };
 
-static s16 _gDryfieldNightCellarCollision008A0Cells[62] = {
+/// Six face-index lists, each ending with `WORLD_COLLISION_GRID_CELL_END`.
+///
+/// Storage between lists is retained from the asset and is outside traversal.
+static s16 _gDryfieldNightCellarCollisionGridCells[62] = {
 #include "assets/dryfield_night_cellar_collision_008A0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightCellarCollision008A0Cells[i])
-static s16* _gDryfieldNightCellarCollision008A0Table[6] = {
+enum {
+    DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELLS_X   = 3,
+    DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELLS_Z   = 2,
+    DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELL_SIZE = 4000
+};
+
+#define GRID_CELL(i) (&_gDryfieldNightCellarCollisionGridCells[i])
+/// X-major cell directory for the cellar's 3 by 2 collision grid.
+static s16* _gDryfieldNightCellarCollisionGridTable[DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELLS_X * DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELLS_Z] = {
 #include "assets/dryfield_night_cellar_collision_008A0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_cellar_8017DE60[1] = {
-    { NULL, _gDryfieldNightCellarCollision008A0Normals, _gDryfieldNightCellarCollision008A0Verts, _gDryfieldNightCellarCollision008A0Faces, _gDryfieldNightCellarCollision008A0Table, 0, 0, 3, 2, 4000, 20 },
+/// Collision mesh shared by both nighttime cellar rooms.
+///
+/// The XZ grid starts at (0, 0), with 4000-unit square cells. Its 20 faces
+/// reference 39 vertices and seven normals; each cell list ends with -1.
+/// Room activation binds the view transform. The descriptor and pools remain
+/// writable and must stay loaded while borrowed by collision queries.
+static WorldCollisionGrid _gDryfieldNightCellarCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightCellarCollisionGridNormals,
+    .vertices    = _gDryfieldNightCellarCollisionGridVerts,
+    .faces       = _gDryfieldNightCellarCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightCellarCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 0,
+    .cellCountX  = DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELLS_X,
+    .cellCountZ  = DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELLS_Z,
+    .cellSize    = DRYFIELD_NIGHT_CELLAR_COLLISION_GRID_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightCellarCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_night_cellar_8017DE84[11] = {
@@ -151,425 +186,514 @@ ViewCamera D_dryfield_night_cellar_8017DE84[11] = {
     { { { { 1498, 0, -3812 }, { -671, 4031, -264 }, { 3752, 721, 1474 } }, { -9257, 1612, -1963 } }, 263 },
 };
 
-SpriteBatch D_dryfield_night_cellar_8017E010[2] = {
+/// Empty sprite list for mapped view 1, retaining the decoded background image.
+///
+/// The zero-count first record is skipped before `SPRITE_BATCH_END` is tested.
+/// The source slot retains this list's address but is never read as sprites.
+static SpriteBatch _gDryfieldNightCellarView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_cellar_8017E020[58] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 56, 500, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -24, 0, 900, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 8, 0, 900, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 40, 0, 900, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 72, 0, 900, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -24, 16, 750, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 8, 16, 750, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 40, 16, 750, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 72, 16, 750, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 16, 750, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, 32, 950, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 8, 32, 625, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 40, 32, 625, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, 72, 32, 625, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, 32, 625, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 40, 56, 500, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, 72, 56, 469, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 56, 500, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, 80, 500, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 72, 80, 500, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 8, -16, 850, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 8, 16, 850, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 16, 850, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 72, 812, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 88, -16, 875, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 80, 0, 875, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 56, 16, 875, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 56, 32, 875, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 80, 16, 875, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 80, 32, 875, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 112, 32, 750, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 32, 800, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 152, 16, 800, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 112, 64, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 64, 800, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -8, 875, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, 16, 875, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -24, 16, 600, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 0, 24, 625, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -24, 32, 750, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 0, 32, 625, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -24, 48, 750, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -32, 48, 875, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 48, 625, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 24, 48, 625, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 56, 500, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 24, 80, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 96, 500, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 0, 80, 625, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, 80, 750, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -72, -56, 1750, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -32, -56, 1750, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 8, -56, 1750, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -56, 1750, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -72, -24, 1750, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -32, -24, 1750, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 8, -24, 1750, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -24, 1750, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+/// Encoded 8-bit sprite pages at VRAM (896, 0)/(960, 0) and palette at (0, 255).
+///
+/// Texture UVs remain local to the selected page; opaque sprites do not use
+/// the pages' average semitransparency mode.
+enum {
+    DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0 = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1 = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT           = getClut(0, 255)
 };
 
-SpriteBatch D_dryfield_night_cellar_8017E4A8[7] = {
+/// Foreground texture rectangles and sorting depths for mapped view 2.
+///
+/// Contains 58 mutable sources, in pixels relative to the view centre with
+/// texture origins in texels and unscaled OT depths. Borrowed by this view's
+/// batches only while the room overlay is loaded.
+static SpriteSource _gDryfieldNightCellarView2SpriteSources[58] = {
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 56, 500, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -24, 0, 900, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 8, 0, 900, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 40, 0, 900, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, 72, 0, 900, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -24, 16, 750, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 8, 16, 750, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 40, 16, 750, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, 72, 16, 750, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 16, 750, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -24, 32, 950, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, 8, 32, 625, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, 40, 32, 625, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 24 } }, 72, 32, 625, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 24 } }, 112, 32, 625, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, 40, 56, 500, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 24 } }, 72, 56, 469, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 56, 500, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 40 } }, 56, 80, 500, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, 72, 80, 500, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 32 } }, 8, -16, 850, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 40 } }, 8, 16, 850, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, 48, 16, 850, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 104, 72, 812, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 88, -16, 875, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, 80, 0, 875, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, 16, 875, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, 56, 32, 875, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 80, 16, 875, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 80, 32, 875, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 112, 32, 750, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, 144, 32, 800, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, 152, 16, 800, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 112, 64, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, 144, 64, 800, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -40, -8, 875, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, 16, 875, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 16, 600, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, 24, 625, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 32, 750, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 32, 625, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -24, 48, 750, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 32 } }, -32, 48, 875, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, 0, 48, 625, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 24, 48, 625, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, 56, 56, 500, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 40 } }, 24, 80, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 96, 500, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 40 } }, 0, 80, 625, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 32 } }, -8, 80, 750, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 32 } }, -72, -56, 1750, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 32 } }, -32, -56, 1750, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 8, -56, 1750, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, 40, -56, 1750, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 40 } }, -72, -24, 1750, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 40 } }, -32, -24, 1750, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 40 } }, 8, -24, 1750, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, 40, -24, 1750, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+};
+
+/// Five foreground ranges covering all 58 sources for mapped view 2.
+///
+/// The first zero-count record retains the background; the final record ends
+/// traversal. Visibility and cached-packet exclusion remain mutable.
+static SpriteBatch _gDryfieldNightCellarView2SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 0, 0 } },
     { 20, 3, 0, 0, { 3, 0 } },
     { 23, 12, 0, 0, { 2, 0 } },
     { 35, 15, 0, 0, { 4, 0 } },
-    { 50, 8, 0, 0, { 1, 0 } },
+    { 50, ARRAY_SIZE(_gDryfieldNightCellarView2SpriteSources) - 50, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_cellar_8017E4E0[49] = {
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -64, 350, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -32, 350, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, 0, 350, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, 32, 350, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 64, 350, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -136, -24, 375, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 0, 375, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 32, 375, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 64, 375, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -16, 1250, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 8, 24, 1000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -72, 24, 1000, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -80, 8, 1000, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -48, 8, 1000, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -16, 8, 1000, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 8, 1000, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 24, 1250, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -72, 0, 1125, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -48, -8, 1125, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -16, -8, 1125, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, -8, 1125, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -16, -16, 1250, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, -16, 1250, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 24, 1000, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -64, -8, 1000, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 0, 1000, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -56, 16, 1000, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -40, 16, 1000, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 48, 1000, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -40, 48, 1000, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 24, 1125, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 32, 1125, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 8, 32, 850, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, 32, 925, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 40, 32, 1000, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, 16, 850, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, 0, 925, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 40, -8, 1000, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, -16, 1125, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 40, 1000, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, -16, 1125, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -16, 1125, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -24, 1250, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -32, -24, 1375, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 0, 1500, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -48, 16, 1250, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, 16, 1125, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, 16, 1375, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 16, 1500, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 3.
+///
+/// Contains 49 mutable sources. Positions and sizes use view-centred pixels,
+/// texture origins use texels, and depths are unscaled OT values. Storage
+/// remains borrowed only while the room overlay is loaded.
+static SpriteSource _gDryfieldNightCellarView3SpriteSources[49] = {
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, -64, 350, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, -32, 350, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, 0, 350, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, 32, 350, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 40 } }, -160, 64, 350, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -136, -24, 375, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -136, 0, 375, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -136, 32, 375, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, -136, 64, 375, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, -16, 1250, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 48 } }, 8, 24, 1000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -72, 24, 1000, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -80, 8, 1000, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -48, 8, 1000, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, -16, 8, 1000, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, 8, 1000, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 24, 1250, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 8 } }, -72, 0, 1125, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -48, -8, 1125, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, -16, -8, 1125, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, -8, 1125, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 8 } }, -16, -16, 1250, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 8 } }, 24, -16, 1250, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -8, 24, 1000, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 24 } }, -64, -8, 1000, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, -40, 0, 1000, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -56, 16, 1000, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, -40, 16, 1000, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, -56, 48, 1000, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, -40, 48, 1000, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, 24, 1125, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, 32, 1125, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, 8, 32, 850, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, 24, 32, 925, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, 40, 32, 1000, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, 16, 850, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, 24, 0, 925, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 40 } }, 40, -8, 1000, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, 56, -16, 1125, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, 40, 1000, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -80, -16, 1125, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -64, -16, 1125, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 40 } }, -48, -24, 1250, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 40 } }, -32, -24, 1375, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 0, 1500, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -48, 16, 1250, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -64, 16, 1125, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -32, 16, 1375, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 16, 1500, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_cellar_8017E8B4[7] = {
+/// Five foreground ranges covering all 49 sources for mapped view 3.
+///
+/// A zero-count background record precedes the ranges; `SPRITE_BATCH_END`
+/// follows them. Visibility and cached-packet exclusion remain mutable.
+static SpriteBatch _gDryfieldNightCellarView3SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 0, 0 } },
     { 9, 14, 0, 0, { 3, 0 } },
     { 23, 7, 0, 0, { 2, 0 } },
     { 30, 9, 0, 0, { 4, 0 } },
-    { 39, 10, 0, 0, { 1, 0 } },
+    { 39, ARRAY_SIZE(_gDryfieldNightCellarView3SpriteSources) - 39, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_cellar_8017E8EC[33] = {
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 178, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 80, 178, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, -80, 88, 178, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, -40, 88, 178, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 0, 96, 178, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 40, 96, 178, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, 104, 178, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, 56, 178, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, 32, 178, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -104, 500, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, -96, 600, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 450, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 24, 450, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 450, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 450, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -120, 450, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, 72, 525, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, 24, 525, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, -24, 525, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, -72, 525, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -112, -96, 525, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -72, 72, 650, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -72, 24, 650, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -72, -24, 650, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -72, -72, 650, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -72, -88, 650, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, 24, 750, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, -24, 750, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, -72, 750, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -24, 24, 800, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -24, -24, 800, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -24, -72, 800, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -40, -80, 750, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 4.
+///
+/// Contains 33 mutable sources in view-centred pixels, with texture origins
+/// in texels and unscaled OT depths. The room overlay owns their lifetime.
+static SpriteSource _gDryfieldNightCellarView4SpriteSources[33] = {
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 40 } }, -160, 80, 178, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 40 } }, -120, 80, 178, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 32 } }, -80, 88, 178, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 32 } }, -40, 88, 178, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 24 } }, 0, 96, 178, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, 40, 96, 178, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 72, 104, 178, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, 56, 178, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, 32, 178, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -112, -104, 500, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, -96, 600, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, 72, 450, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, 24, 450, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, -24, 450, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, -72, 450, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, -120, 450, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, 72, 525, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, 24, 525, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, -24, 525, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, -72, 525, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 24 } }, -112, -96, 525, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, -72, 72, 650, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 48 } }, -72, 24, 650, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 48 } }, -72, -24, 650, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 48 } }, -72, -72, 650, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -72, -88, 650, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 48 } }, -40, 24, 750, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 48 } }, -40, -24, 750, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 48 } }, -40, -72, 750, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 40 } }, -24, 24, 800, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 48 } }, -24, -24, 800, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 48 } }, -24, -72, 800, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 8 } }, -40, -80, 750, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_cellar_8017EB80[4] = {
+/// Two foreground ranges covering all 33 sources for mapped view 4.
+///
+/// The leading zero-count record retains the background; the sentinel ends
+/// traversal. Both ranges initially participate in cached packet drawing.
+static SpriteBatch _gDryfieldNightCellarView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 1, 0 } },
-    { 9, 24, 0, 0, { 0, 0 } },
+    { 9, ARRAY_SIZE(_gDryfieldNightCellarView4SpriteSources) - 9, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_cellar_8017EBA0[21] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, -72, 512, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 32, 875, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 88 } }, 128, 32, 512, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 96 } }, 128, -64, 512, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, 104, -64, 525, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, 104, 32, 525, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 88, 32, 550, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 88, -64, 550, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 72, 32, 575, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 72, -64, 575, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, -80, 575, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, -80, 550, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, -72, 525, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 64, -80, 625, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 64, 32, 625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 56, -80, 675, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 48, -80, 775, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, 32, 675, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 32, 775, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 40, -80, 875, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 32, -64, 950, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 5.
+///
+/// Contains 21 mutable sources in view-centred pixels, with texture origins
+/// in texels and unscaled OT depths. Retains storage separate from view 10
+/// even where the authored values agree; pointers expire with the overlay.
+static SpriteSource _gDryfieldNightCellarView5SpriteSources[21] = {
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 128, -72, 512, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, 32, 875, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 88 } }, 128, 32, 512, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 96 } }, 128, -64, 512, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 96 } }, 104, -64, 525, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 88 } }, 104, 32, 525, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 88 } }, 88, 32, 550, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 96 } }, 88, -64, 550, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 88 } }, 72, 32, 575, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 96 } }, 72, -64, 575, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, -80, 575, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, -80, 550, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, -72, 525, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 112 } }, 64, -80, 625, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 64 } }, 64, 32, 625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 112 } }, 56, -80, 675, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 112 } }, 48, -80, 775, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 40 } }, 56, 32, 675, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 32, 775, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 112 } }, 40, -80, 875, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 88 } }, 32, -64, 950, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_cellar_8017ED44[3] = {
+/// One foreground range covering all 21 sources for mapped view 5.
+///
+/// The zero-count first record retains the background, followed by the range
+/// and `SPRITE_BATCH_END`. The range's visibility remains mutable.
+static SpriteBatch _gDryfieldNightCellarView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightCellarView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_cellar_8017ED5C[2] = {
+/// Empty sprite list for mapped view 6, retaining the decoded background image.
+///
+/// The zero-count first record is skipped before `SPRITE_BATCH_END` is tested.
+/// The source slot retains this list's address but is never read as sprites.
+static SpriteBatch _gDryfieldNightCellarView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_cellar_8017ED6C[58] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 56, 500, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 16, 750, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 112, 32, 625, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 56, 500, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 72, 0, 900, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 72, 16, 750, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 72, 32, 625, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 72, 56, 469, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 40, 0, 900, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 40, 16, 750, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 40, 32, 625, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 40, 56, 500, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, 80, 500, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 72, 80, 500, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 8, 0, 900, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 8, 16, 750, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 8, 32, 625, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -24, 0, 900, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -24, 16, 750, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, 32, 950, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 8, -16, 850, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 8, 16, 850, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 16, 850, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 72, 834, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 64, 800, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 32, 800, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 152, 16, 800, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 112, 64, 750, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 112, 32, 750, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 80, 32, 875, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 80, 16, 875, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 80, 0, 875, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 88, -16, 875, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 56, 16, 728, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 56, 32, 875, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 96, 500, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 56, 500, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 24, 80, 625, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 24, 48, 625, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 0, 80, 625, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 48, 625, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 32, 625, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 0, 24, 625, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, 80, 0x9E59, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -24, 48, 750, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -32, 48, 875, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -24, 32, 750, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -24, 16, 600, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 16, 875, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -8, 875, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -56, 1750, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -24, 1750, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 8, -56, 1750, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 8, -24, 1750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -32, -56, 1750, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -32, -24, 1750, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -72, -56, 1750, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -72, -24, 1750, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 7.
+///
+/// Room 2's logical view 2 selects these 58 mutable sources. Positions and
+/// sizes use view-centred pixels, texture origins use texels, and depths are
+/// unscaled OT values. Storage remains live only with the room overlay.
+static SpriteSource _gDryfieldNightCellarView7SpriteSources[58] = {
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 56, 500, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 16, 750, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 24 } }, 112, 32, 625, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, 56, 500, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, 72, 0, 900, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, 72, 16, 750, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 24 } }, 72, 32, 625, { .fields = { 0, 56 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 24 } }, 72, 56, 469, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 40, 0, 900, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 40, 16, 750, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, 40, 32, 625, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, 40, 56, 500, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 40 } }, 56, 80, 500, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, 72, 80, 500, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 8, 0, 900, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 8, 16, 750, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, 8, 32, 625, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -24, 0, 900, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -24, 16, 750, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -24, 32, 950, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 32 } }, 8, -16, 850, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 40 } }, 8, 16, 850, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, 48, 16, 850, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 104, 72, 834, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, 144, 64, 800, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, 144, 32, 800, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, 152, 16, 800, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 112, 64, 750, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 112, 32, 750, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 80, 32, 875, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 80, 16, 875, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, 80, 0, 875, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 88, -16, 875, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, 16, 728, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, 56, 32, 875, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 96, 500, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, 56, 56, 500, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 40 } }, 24, 80, 625, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 24, 48, 625, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 40 } }, 0, 80, 625, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, 0, 48, 625, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 32, 625, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, 24, 625, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 32 } }, -8, 80, 0x9E59, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -24, 48, 750, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 32 } }, -32, 48, 875, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 32, 750, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 16, 600, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, 16, 875, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -40, -8, 875, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, 40, -56, 1750, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, 40, -24, 1750, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, 8, -56, 1750, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 40 } }, 8, -24, 1750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 32 } }, -32, -56, 1750, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 40 } }, -32, -24, 1750, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 32 } }, -72, -56, 1750, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 40 } }, -72, -24, 1750, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_cellar_8017F1F4[7] = {
+/// Five foreground ranges covering all 58 sources for mapped view 7.
+///
+/// Room 2's logical view 2 selects this list. A zero-count background record
+/// precedes the mutable ranges; `SPRITE_BATCH_END` follows them.
+static SpriteBatch _gDryfieldNightCellarView7SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 0, 0 } },
     { 20, 3, 0, 0, { 3, 0 } },
     { 23, 12, 0, 0, { 2, 0 } },
     { 35, 15, 0, 0, { 4, 0 } },
-    { 50, 8, 0, 0, { 1, 0 } },
+    { 50, ARRAY_SIZE(_gDryfieldNightCellarView7SpriteSources) - 50, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_cellar_8017F22C[49] = {
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -136, -24, 212, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 0, 375, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 32, 375, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 64, 375, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -64, 350, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -32, 350, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, 0, 350, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, 32, 350, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 64, 350, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -16, 1250, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 24, 1250, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 8, 1000, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, -8, 1125, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, -16, 1250, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -16, -16, 1250, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -16, -8, 1125, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -16, 8, 1000, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -48, -8, 1125, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -48, 8, 1000, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -72, 0, 1000, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -80, 8, 1000, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 8, 24, 1000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -72, 24, 1000, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 24, 987, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 0, 1000, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -40, 16, 1000, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -40, 48, 1000, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -64, -8, 1000, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -56, 16, 1000, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 48, 1000, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 24, 1125, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 32, 1125, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, 16, 850, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 8, 32, 850, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, 0, 925, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, 32, 925, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 40, 32, 1000, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 40, -8, 1000, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, -16, 1125, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 40, 1000, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 16, 1500, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 0, 1500, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -32, -24, 1375, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, 16, 1375, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -24, 1250, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -48, 16, 1250, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -16, 1125, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, 16, 1125, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, -16, 1125, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 8.
+///
+/// Room 2's logical view 3 selects these 49 mutable sources, in view-centred
+/// pixels with texel origins and unscaled OT depths. The room overlay owns
+/// their storage and lifetime.
+static SpriteSource _gDryfieldNightCellarView8SpriteSources[49] = {
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -136, -24, 212, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -136, 0, 375, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -136, 32, 375, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 16 } }, -136, 64, 375, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, -64, 350, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, -32, 350, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, 0, 350, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, 32, 350, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 40 } }, -160, 64, 350, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, -16, 1250, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 24, 1250, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, 8, 1000, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, -8, 1125, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 8 } }, 24, -16, 1250, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 8 } }, -16, -16, 1250, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, -16, -8, 1125, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 16 } }, -16, 8, 1000, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -48, -8, 1125, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -48, 8, 1000, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 8 } }, -72, 0, 1000, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -80, 8, 1000, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 48 } }, 8, 24, 1000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -72, 24, 1000, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -8, 24, 987, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, -40, 0, 1000, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 32 } }, -40, 16, 1000, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, -40, 48, 1000, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 24 } }, -64, -8, 1000, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -56, 16, 1000, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, -56, 48, 1000, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, 24, 1125, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, 32, 1125, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, 16, 850, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, 8, 32, 850, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, 24, 0, 925, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, 24, 32, 925, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, 40, 32, 1000, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 40 } }, 40, -8, 1000, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, 56, -16, 1125, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, 40, 1000, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 16, 1500, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 0, 1500, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 40 } }, -32, -24, 1375, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 24 } }, -32, 16, 1375, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 40 } }, -48, -24, 1250, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -48, 16, 1250, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -64, -16, 1125, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -64, 16, 1125, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -80, -16, 1125, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_cellar_8017F600[7] = {
+/// Five foreground ranges covering all 49 sources for mapped view 8.
+///
+/// Room 2's logical view 3 selects this list. A zero-count background record
+/// precedes the mutable ranges; `SPRITE_BATCH_END` follows them.
+static SpriteBatch _gDryfieldNightCellarView8SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 0, 0 } },
     { 9, 14, 0, 0, { 3, 0 } },
     { 23, 7, 0, 0, { 2, 0 } },
     { 30, 9, 0, 0, { 4, 0 } },
-    { 39, 10, 0, 0, { 1, 0 } },
+    { 39, ARRAY_SIZE(_gDryfieldNightCellarView8SpriteSources) - 39, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_cellar_8017F638[33] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, 80, 178, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -160, 88, 178, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -112, 88, 178, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -64, 88, 178, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -16, 96, 178, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 32, 96, 178, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 104, 178, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -160, 64, 178, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, 32, 178, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -104, 500, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, -96, 600, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 450, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 24, 450, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 450, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 450, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -120, 450, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, 72, 525, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, 24, 525, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, -24, 525, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -112, -72, 525, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -112, -96, 525, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -72, 72, 650, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -72, 24, 650, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -72, -24, 650, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -72, -72, 650, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -72, -88, 650, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, 24, 750, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, -24, 750, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -40, -72, 750, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -24, 24, 800, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -24, -24, 800, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -24, -72, 800, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, -80, 750, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 9.
+///
+/// Room 2's logical view 4 selects these 33 mutable sources, in view-centred
+/// pixels with texel origins and unscaled OT depths. The room overlay owns
+/// their storage and lifetime.
+static SpriteSource _gDryfieldNightCellarView9SpriteSources[33] = {
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -112, 80, 178, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 32 } }, -160, 88, 178, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 32 } }, -112, 88, 178, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 32 } }, -64, 88, 178, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 24 } }, -16, 96, 178, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 24 } }, 32, 96, 178, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 104, 178, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 24 } }, -160, 64, 178, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 32 } }, -160, 32, 178, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -112, -104, 500, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, -96, 600, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, 72, 450, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, 24, 450, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, -24, 450, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, -72, 450, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, -120, 450, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, 72, 525, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, 24, 525, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, -24, 525, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 48 } }, -112, -72, 525, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 40, 24 } }, -112, -96, 525, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_0, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 24 } }, -72, 72, 650, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 48 } }, -72, 24, 650, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 48 } }, -72, -24, 650, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 48 } }, -72, -72, 650, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 16 } }, -72, -88, 650, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 48 } }, -40, 24, 750, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 48 } }, -40, -24, 750, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 48 } }, -40, -72, 750, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 40 } }, -24, 24, 800, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 48 } }, -24, -24, 800, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 48 } }, -24, -72, 800, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 8 } }, -40, -80, 750, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_cellar_8017F8CC[4] = {
+/// Two foreground ranges covering all 33 sources for mapped view 9.
+///
+/// Room 2's logical view 4 selects this list. A zero-count background record
+/// precedes the mutable ranges; `SPRITE_BATCH_END` follows them.
+static SpriteBatch _gDryfieldNightCellarView9SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 1, 0 } },
-    { 9, 24, 0, 0, { 0, 0 } },
+    { 9, ARRAY_SIZE(_gDryfieldNightCellarView9SpriteSources) - 9, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_cellar_8017F8EC[21] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, -72, 512, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 32, 875, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 88 } }, 128, 32, 512, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 96 } }, 128, -64, 512, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, 104, -64, 525, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, -72, 525, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 88, 32, 550, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 88, -64, 550, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, -80, 550, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 72, 32, 575, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 72, -64, 575, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, -80, 575, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 64, 32, 625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 64, -80, 625, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, 32, 675, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 56, -80, 675, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 32, 775, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 48, -80, 775, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 40, -80, 875, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 32, -64, 950, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, 104, 32, 525, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+/// Foreground texture rectangles and sorting depths for mapped view 10.
+///
+/// Room 2's logical view 5 selects these 21 mutable sources, in view-centred
+/// pixels with texel origins and unscaled OT depths. Storage is separate from
+/// view 5's sources and stays live only while the room overlay is loaded.
+static SpriteSource _gDryfieldNightCellarView10SpriteSources[21] = {
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 128, -72, 512, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, 32, 875, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 88 } }, 128, 32, 512, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 32, 96 } }, 128, -64, 512, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 96 } }, 104, -64, 525, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 8 } }, 104, -72, 525, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 88 } }, 88, 32, 550, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 96 } }, 88, -64, 550, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, -80, 550, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 88 } }, 72, 32, 575, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 96 } }, 72, -64, 575, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, -80, 575, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 64 } }, 64, 32, 625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 112 } }, 64, -80, 625, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 40 } }, 56, 32, 675, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 112 } }, 56, -80, 675, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 24 } }, 48, 32, 775, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 112 } }, 48, -80, 775, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 112 } }, 40, -80, 875, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 8, 88 } }, 32, -64, 950, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { DRYFIELD_NIGHT_CELLAR_SPRITE_TEXTURE_PAGE_1, DRYFIELD_NIGHT_CELLAR_SPRITE_CLUT, { .fields = { 24, 88 } }, 104, 32, 525, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_cellar_8017FA90[3] = {
+/// One foreground range covering all 21 sources for mapped view 10.
+///
+/// Room 2's logical view 5 selects this list. A zero-count background record
+/// precedes the mutable range; `SPRITE_BATCH_END` follows it.
+static SpriteBatch _gDryfieldNightCellarView10SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightCellarView10SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -579,16 +703,16 @@ SpriteBatch D_dryfield_night_cellar_8017FAA8[2] = {
 };
 
 SpriteView D_dryfield_night_cellar_8017FAB8[11] = {
-    { { .empty = D_dryfield_night_cellar_8017E010 }, D_dryfield_night_cellar_8017E010, NULL },
-    { { .elements = D_dryfield_night_cellar_8017E020 }, D_dryfield_night_cellar_8017E4A8, NULL },
-    { { .elements = D_dryfield_night_cellar_8017E4E0 }, D_dryfield_night_cellar_8017E8B4, NULL },
-    { { .elements = D_dryfield_night_cellar_8017E8EC }, D_dryfield_night_cellar_8017EB80, NULL },
-    { { .elements = D_dryfield_night_cellar_8017EBA0 }, D_dryfield_night_cellar_8017ED44, NULL },
-    { { .empty = D_dryfield_night_cellar_8017ED5C }, D_dryfield_night_cellar_8017ED5C, NULL },
-    { { .elements = D_dryfield_night_cellar_8017ED6C }, D_dryfield_night_cellar_8017F1F4, NULL },
-    { { .elements = D_dryfield_night_cellar_8017F22C }, D_dryfield_night_cellar_8017F600, NULL },
-    { { .elements = D_dryfield_night_cellar_8017F638 }, D_dryfield_night_cellar_8017F8CC, NULL },
-    { { .elements = D_dryfield_night_cellar_8017F8EC }, D_dryfield_night_cellar_8017FA90, NULL },
+    { { .empty = _gDryfieldNightCellarView1SpriteBatches }, _gDryfieldNightCellarView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightCellarView2SpriteSources }, _gDryfieldNightCellarView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightCellarView3SpriteSources }, _gDryfieldNightCellarView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightCellarView4SpriteSources }, _gDryfieldNightCellarView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightCellarView5SpriteSources }, _gDryfieldNightCellarView5SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightCellarView6SpriteBatches }, _gDryfieldNightCellarView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightCellarView7SpriteSources }, _gDryfieldNightCellarView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightCellarView8SpriteSources }, _gDryfieldNightCellarView8SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightCellarView9SpriteSources }, _gDryfieldNightCellarView9SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightCellarView10SpriteSources }, _gDryfieldNightCellarView10SpriteBatches, NULL },
     { { .empty = D_dryfield_night_cellar_8017FAA8 }, D_dryfield_night_cellar_8017FAA8, NULL },
 };
 
@@ -712,8 +836,17 @@ static WorldCoordPointLight _gDryfieldNightCellarRoom1PointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_night_cellar_80180510[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldNightCellarRoom1PointLights), _gDryfieldNightCellarRoom1PointLights, 0, NULL },
+/// Five point lights for nighttime cellar room 1, with no directional or cone lights.
+///
+/// All views use this separate writable set. Coordinates and attenuation are
+/// updated in place; borrowed pointers expire when the room overlay unloads.
+static WorldCoordRoomLights _gDryfieldNightCellarRoom1Lights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightCellarRoom1PointLights),
+    .pointLights           = _gDryfieldNightCellarRoom1PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 /// Five warm point lights for nighttime cellar room variant 2.
@@ -797,8 +930,17 @@ static WorldCoordPointLight _gDryfieldNightCellarRoom2PointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_night_cellar_80180708[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldNightCellarRoom2PointLights), _gDryfieldNightCellarRoom2PointLights, 0, NULL },
+/// Five point lights for nighttime cellar room 2, with no directional or cone lights.
+///
+/// All views use this separate writable set. Coordinates and attenuation are
+/// updated in place; borrowed pointers expire when the room overlay unloads.
+static WorldCoordRoomLights _gDryfieldNightCellarRoom2Lights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightCellarRoom2PointLights),
+    .pointLights           = _gDryfieldNightCellarRoom2PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 AreaResource D_dryfield_night_cellar_80180720[2] = {
@@ -833,25 +975,45 @@ AreaVariant D_dryfield_night_cellar_80180780[12] = {
     { D_map_dryfield_full_8017CEA8, D_dryfield_night_cellar_8018075C },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_cellar_801807E0 = {
-    0x10000051,
-    0x10000053,
-    0x10000051,
+/// Cue-2 script bases in the loaded type-1 room bank; cue 1 uses the next entry.
+enum {
+    DRYFIELD_NIGHT_CELLAR_WALK_FOOTSTEP_SCRIPT = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_NIGHT_CELLAR_RUN_FOOTSTEP_SCRIPT  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_cellar_801807EC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_cellar_801807E0 },
+/// Paired walk, run and scripted-jump footstep cues for every cellar surface class.
+///
+/// Walking and scripted jumps share entries 0x51/0x52; running uses 0x53/0x54
+/// in the currently loaded type-1 bank. Surface policies borrow this record
+/// while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldNightCellarFootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_CELLAR_WALK_FOOTSTEP_SCRIPT,
+    .run          = DRYFIELD_NIGHT_CELLAR_RUN_FOOTSTEP_SCRIPT,
+    .scriptedJump = DRYFIELD_NIGHT_CELLAR_WALK_FOOTSTEP_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_cellar_801807F4[8] = {
-    D_dryfield_night_cellar_801807EC,
-    D_dryfield_night_cellar_801807EC,
-    D_dryfield_night_cellar_801807EC,
-    D_dryfield_night_cellar_801807EC,
-    D_dryfield_night_cellar_801807EC,
-    D_dryfield_night_cellar_801807EC,
-    D_dryfield_night_cellar_801807EC,
-    D_dryfield_night_cellar_801807EC,
+/// Blocking collision and footstep policy shared by surface classes 0..7.
+///
+/// Enables weapon impacts and pushback, with the cellar's paired footsteps.
+/// The first byte is retained as zero; its role remains unproven. Borrowed
+/// through the class directory only while this room overlay is loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightCellarSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightCellarFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightCellarSurfacePropertiesByClass[8] = {
+    &_gDryfieldNightCellarSurfaceProperties,
+    &_gDryfieldNightCellarSurfaceProperties,
+    &_gDryfieldNightCellarSurfaceProperties,
+    &_gDryfieldNightCellarSurfaceProperties,
+    &_gDryfieldNightCellarSurfaceProperties,
+    &_gDryfieldNightCellarSurfaceProperties,
+    &_gDryfieldNightCellarSurfaceProperties,
+    &_gDryfieldNightCellarSurfaceProperties,
 };
 
 static void _dryfieldNightCellarInitRoomTask(Task* task);
