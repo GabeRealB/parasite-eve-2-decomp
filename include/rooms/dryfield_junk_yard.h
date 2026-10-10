@@ -20,19 +20,50 @@ extern TmdSource gDryfieldJunkYardModel01378;
 // dryfield_junk_yard
 extern WorldCollisionRoomResources D_dryfield_junk_yard_8017ED04[];
 
-extern WorldCoordRoomLighting D_dryfield_junk_yard_8017ED14[];
+/// Lighting for the junk yard's sole room, indexed by room ID minus one.
+///
+/// Borrows eight point lights, two cone lights and seven per-view ambient
+/// minima. Keep this overlay loaded while its records or lights are in use.
+extern WorldCoordRoomLighting gDryfieldJunkYardRoomLighting[1];
 
-extern u8* D_dryfield_junk_yard_8017ED1C[];
+/// Logical-view map for the junk yard's sole room, indexed by room ID minus one.
+///
+/// Borrows gameplay's `gViewIdentityMap`: views 1..7 select the corresponding
+/// camera, image and sprite slots. The map has no terminator and is not owned
+/// by this overlay; the room directory remains valid only while it is loaded.
+extern u8* gDryfieldJunkYardRoomViewMaps[1];
 
-extern ViewCount D_dryfield_junk_yard_8017ED20[];
+/// Logical-view search count for the sole room, indexed by room ID minus one.
+///
+/// The signed-halfword count limits searches to seven bytes in the borrowed
+/// identity map, independently of that map's capacity.
+/// The directory has no terminator and belongs to this loaded overlay.
+extern ViewCount gDryfieldJunkYardRoomViewCounts[1];
 
 extern DirectionWarpEntry D_dryfield_junk_yard_8017ED24[];
 
-extern ViewCamera D_dryfield_junk_yard_8017F5C0[];
+/// Cameras for mapped junk-yard views 1..7, indexed by mapped view minus one.
+///
+/// Rotation uses 12 fractional bits, translation is the negated world-space
+/// camera origin, and projection distance is in pixels. Queued camera tasks
+/// borrow these overlay-owned records until application; there is no terminator.
+extern ViewCamera gDryfieldJunkYardViewCameras[7];
 
-extern SpriteView D_dryfield_junk_yard_80180C28[];
+/// Sprite resources for mapped junk-yard views 1..7, indexed by view minus one.
+///
+/// Views 1 and 6 retain empty batch-list addresses in the source slot. Every
+/// first batch has zero sprites, preserving decoded background strips; the
+/// other views add depth-sorted sprites. All clip-list pointers are NULL.
+/// These mutable records and their lists belong to this loaded overlay and
+/// must outlive cached-packet allocation and drawing. There is no terminator.
+extern SpriteView gDryfieldJunkYardSpriteViews[7];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_junk_yard_80181C28[];
+/// Collision policies for junk-yard surface classes 0..7, with no terminator.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Only class 1 supplies footstep cues; classes 0 and 2..7 share a silent record.
+/// The pointer directory, policy records and cues belong to this loaded overlay.
+extern WorldCollisionSurfaceProperties* gDryfieldJunkYardSurfacePropertiesByClass[8];
 
 /// Enables the junk yard's view effects, including dust from actor footsteps.
 ///
