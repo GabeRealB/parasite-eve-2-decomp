@@ -1064,136 +1064,250 @@ static AnimationSet _gM4a1PykeHitOtherBodyAnimation = {
     .poseBanks         = { NULL, _gM4a1PykeHitOtherBodyAnimationBank1, NULL, NULL, _gM4a1PykeHitOtherBodyAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation07410Bank1[18] = {
+/// Translation and rotation keyframes for the player's death pose.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeDeathAnimationBank1[18] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_07410_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation07410Bank4[184] = {
+/// Packed rotation keyframes for the player's death pose.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeDeathAnimationBank4[184] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_07410_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation07410Records[239] = {
+/// Keyframe durations and stop controls for the player's death pose.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeDeathAnimationRecords[239] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_07410_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation07410Indices[20] = {
+/// Absolute track-start record indices for the player's death pose.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeDeathAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_07410_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation07410 = {
-    _gM4a1PykeAnimation07410Records,
-    _gM4a1PykeAnimation07410Indices,
-    { NULL, _gM4a1PykeAnimation07410Bank1, NULL, NULL, _gM4a1PykeAnimation07410Bank4, NULL, NULL, NULL },
+/// Player death pose in the Pyke bank, ending with each part held in place.
+///
+/// Native-bank set 18 is selected at zero HP with movement and turning stopped.
+/// Borrows nineteen part tracks and their pose banks; keep this package loaded
+/// throughout playback. Child tracks may be reset or blended into this set.
+static AnimationSet _gM4a1PykeDeathAnimation = {
+    .records           = _gM4a1PykeDeathAnimationRecords,
+    .trackStartIndices = _gM4a1PykeDeathAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeDeathAnimationBank1, NULL, NULL, _gM4a1PykeDeathAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation086A8Bank1[29] = {
+/// Translation and rotation keyframes for the high-health idle.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeHighHealthIdleAnimationBank1[29] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_086A8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation086A8Bank4[450] = {
+/// Packed rotation keyframes for the high-health idle.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeHighHealthIdleAnimationBank4[450] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_086A8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation086A8Records[633] = {
+/// Keyframe durations, loop jumps and stop controls for the high-health idle.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Loop targets are absolute indices within the same part track.
+static const AnimationRecord _gM4a1PykeHighHealthIdleAnimationRecords[633] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_086A8_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation086A8Indices[20] = {
+/// Absolute track-start record indices for the high-health idle.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeHighHealthIdleAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_086A8_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation086A8 = {
-    _gM4a1PykeAnimation086A8Records,
-    _gM4a1PykeAnimation086A8Indices,
-    { NULL, _gM4a1PykeAnimation086A8Bank1, NULL, NULL, _gM4a1PykeAnimation086A8Bank4, NULL, NULL, NULL },
+/// Looping player idle for HP above half maximum in the Pyke bank.
+///
+/// Native-bank set 23 follows 300 idle ticks, with a five-frame child-track blend.
+/// Borrows nineteen part tracks and their pose banks; keep this package loaded
+/// throughout playback.
+static AnimationSet _gM4a1PykeHighHealthIdleAnimation = {
+    .records           = _gM4a1PykeHighHealthIdleAnimationRecords,
+    .trackStartIndices = _gM4a1PykeHighHealthIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeHighHealthIdleAnimationBank1, NULL, NULL, _gM4a1PykeHighHealthIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation09220Bank1[12] = {
+/// Translation and rotation keyframes for the low-health idle and paralysis.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeLowHealthIdleAnimationBank1[12] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09220_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation09220Bank4[266] = {
+/// Packed rotation keyframes for the low-health idle and paralysis.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeLowHealthIdleAnimationBank4[266] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09220_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation09220Records[412] = {
+/// Keyframe durations, loop jumps and stop controls for the low-health idle.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Loop targets are absolute indices within the same part track.
+static const AnimationRecord _gM4a1PykeLowHealthIdleAnimationRecords[412] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09220_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation09220Indices[20] = {
+/// Absolute track-start record indices for the low-health idle and paralysis.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeLowHealthIdleAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09220_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation09220 = {
-    _gM4a1PykeAnimation09220Records,
-    _gM4a1PykeAnimation09220Indices,
-    { NULL, _gM4a1PykeAnimation09220Bank1, NULL, NULL, _gM4a1PykeAnimation09220Bank4, NULL, NULL, NULL },
+/// Looping player idle for HP at or below one quarter maximum in the Pyke bank.
+///
+/// Native-bank set 25 follows 300 idle ticks, with a five-frame child-track blend.
+/// Paralysis also selects this set, blending all child tracks over six frames.
+/// Borrows nineteen part tracks and their pose banks; keep this package loaded
+/// throughout playback.
+static AnimationSet _gM4a1PykeLowHealthIdleAnimation = {
+    .records           = _gM4a1PykeLowHealthIdleAnimationRecords,
+    .trackStartIndices = _gM4a1PykeLowHealthIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeLowHealthIdleAnimationBank1, NULL, NULL, _gM4a1PykeLowHealthIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0993CBank1[9] = {
+/// Translation and rotation keyframes for the middle-health idle.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeMidHealthIdleAnimationBank1[9] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0993C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0993CBank4[144] = {
+/// Packed rotation keyframes for the middle-health idle.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeMidHealthIdleAnimationBank4[144] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0993C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0993CRecords[264] = {
+/// Keyframe durations, loop jumps and stop controls for the middle-health idle.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Loop targets are absolute indices within the same part track.
+static const AnimationRecord _gM4a1PykeMidHealthIdleAnimationRecords[264] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0993C_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0993CIndices[20] = {
+/// Absolute track-start record indices for the middle-health idle.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeMidHealthIdleAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0993C_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0993C = {
-    _gM4a1PykeAnimation0993CRecords,
-    _gM4a1PykeAnimation0993CIndices,
-    { NULL, _gM4a1PykeAnimation0993CBank1, NULL, NULL, _gM4a1PykeAnimation0993CBank4, NULL, NULL, NULL },
+/// Looping player idle for HP above one quarter and at most half maximum.
+///
+/// Native Pyke-bank set 24 follows 300 idle ticks, with a five-frame child-track
+/// blend. Borrows nineteen part tracks and their pose banks; keep this package
+/// loaded throughout playback.
+static AnimationSet _gM4a1PykeMidHealthIdleAnimation = {
+    .records           = _gM4a1PykeMidHealthIdleAnimationRecords,
+    .trackStartIndices = _gM4a1PykeMidHealthIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeMidHealthIdleAnimationBank1, NULL, NULL, _gM4a1PykeMidHealthIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation09DBCBank1[6] = {
+/// Translation and rotation keyframes for the player's CAP event entry.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeEventEntryAnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09DBC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation09DBCBank4[107] = {
+/// Packed rotation keyframes for the player's CAP event entry.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeEventEntryAnimationBank4[107] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09DBC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation09DBCRecords[143] = {
+/// Keyframe durations and stop controls for the player's CAP event entry.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeEventEntryAnimationRecords[143] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09DBC_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation09DBCIndices[20] = {
+/// Absolute track-start record indices for the player's CAP event entry.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeEventEntryAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09DBC_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation09DBC = {
-    _gM4a1PykeAnimation09DBCRecords,
-    _gM4a1PykeAnimation09DBCIndices,
-    { NULL, _gM4a1PykeAnimation09DBCBank1, NULL, NULL, _gM4a1PykeAnimation09DBCBank4, NULL, NULL, NULL },
+/// Player presentation before a CAP event in the Pyke bank.
+///
+/// Native-bank set 32 starts on the next scripted tick for presentation variant
+/// zero, then holds each part's final pose while the event runs. Slot 34 aliases
+/// the same clip. Borrows nineteen part tracks and their pose banks; keep this
+/// package loaded throughout playback.
+static AnimationSet _gM4a1PykeEventEntryAnimation = {
+    .records           = _gM4a1PykeEventEntryAnimationRecords,
+    .trackStartIndices = _gM4a1PykeEventEntryAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeEventEntryAnimationBank1, NULL, NULL, _gM4a1PykeEventEntryAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation09F94Bank1[3] = {
+/// Translation and rotation keyframes for the player's CAP event exit.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeEventExitAnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09F94_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation09F94Bank4[32] = {
+/// Packed rotation keyframes for the player's CAP event exit.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeEventExitAnimationBank4[32] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09F94_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation09F94Records[57] = {
+/// Keyframe durations and stop controls for the player's CAP event exit.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeEventExitAnimationRecords[57] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09F94_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation09F94Indices[20] = {
+/// Absolute track-start record indices for the player's CAP event exit.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeEventExitAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_09F94_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation09F94 = {
-    _gM4a1PykeAnimation09F94Records,
-    _gM4a1PykeAnimation09F94Indices,
-    { NULL, _gM4a1PykeAnimation09F94Bank1, NULL, NULL, _gM4a1PykeAnimation09F94Bank4, NULL, NULL, NULL },
+/// Player presentation after a CAP event in the Pyke bank.
+///
+/// Native-bank set 33 starts on the next scripted tick for a nonzero presentation
+/// variant; player control resumes after it finishes. Slot 35 aliases the same
+/// clip. Borrows nineteen part tracks and their pose banks; keep this package
+/// loaded throughout playback.
+static AnimationSet _gM4a1PykeEventExitAnimation = {
+    .records           = _gM4a1PykeEventExitAnimationRecords,
+    .trackStartIndices = _gM4a1PykeEventExitAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeEventExitAnimationBank1, NULL, NULL, _gM4a1PykeEventExitAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1PykeAnimation0A4F8Bank1[11] = {
@@ -1545,24 +1659,24 @@ AnimationBank D_m4a1_pyke_8012D500 = { { {
     &_gM4a1PykeAnimation0DC68,
     &_gM4a1PykeHitPart4Animation,
     &_gM4a1PykeHitOtherBodyAnimation,
-    &_gM4a1PykeAnimation07410,
+    &_gM4a1PykeDeathAnimation,
     &_gM4a1PykeUnarmedWalkAnimation,
     &_gM4a1PykeAnimation0CEC8,
     &_gM4a1PykeIdleAnimation,
     &_gM4a1PykeIdleAnimation,
-    &_gM4a1PykeAnimation086A8,
-    &_gM4a1PykeAnimation0993C,
-    &_gM4a1PykeAnimation09220,
+    &_gM4a1PykeHighHealthIdleAnimation,
+    &_gM4a1PykeMidHealthIdleAnimation,
+    &_gM4a1PykeLowHealthIdleAnimation,
     &_gM4a1PykeParasiteEnergyReleaseFamily0Animation,
     &_gM4a1PykeParasiteEnergyChargeFamily0Animation,
     &_gM4a1PykeParasiteEnergyCastFamily0Animation,
     &_gM4a1PykeParasiteEnergyReleaseFamily1Animation,
     &_gM4a1PykeParasiteEnergyChargeFamily1Animation,
     &_gM4a1PykeParasiteEnergyCastFamily1Animation,
-    &_gM4a1PykeAnimation09DBC,
-    &_gM4a1PykeAnimation09F94,
-    &_gM4a1PykeAnimation09DBC,
-    &_gM4a1PykeAnimation09F94,
+    &_gM4a1PykeEventEntryAnimation,
+    &_gM4a1PykeEventExitAnimation,
+    &_gM4a1PykeEventEntryAnimation,
+    &_gM4a1PykeEventExitAnimation,
     &_gM4a1PykeStairAscentAnimation,
     &_gM4a1PykeStairDescentAnimation,
     &_gM4a1PykeStairAscentFinishEvenAnimation,
