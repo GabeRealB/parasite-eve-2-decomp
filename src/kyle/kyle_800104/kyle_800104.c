@@ -430,136 +430,214 @@ static AnimationSet _gKyle800104KyleMadiganPart4HitAnimation = {
     },
 };
 
-static AnimationPackedPose _gKyle800104Animation09148Bank1[10] = {
+/// Other-body hit translation/rotation keys: integer positions and 1/4096-turn angles.
+static const AnimationPackedPose _gKyle800104KyleMadiganOtherBodyHitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_09148_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation09148Bank4[131] = {
+/// Other-body hit rotation-only keys, in eight-unit steps over 4096 units per turn.
+static const AnimationPackedRotation _gKyle800104KyleMadiganOtherBodyHitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_09148_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation09148Records[180] = {
+/// Other-body hit keyframes and stop controls; pose offsets count words, durations normal-rate frames.
+static const AnimationRecord _gKyle800104KyleMadiganOtherBodyHitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_09148_records.inc"
 };
 
-static u16 _gKyle800104Animation09148Indices[20] = {
+/// Absolute record-array starts for the other-body hit animation's twenty tracks (0..19).
+static const u16 _gKyle800104KyleMadiganOtherBodyHitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_09148_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800104KyleMadiganOtherBodyHitAnimationIndices) == ARRAY_SIZE(_gKyle800104KyleMadiganBodySkeleton), kyle800104_other_body_hit_track_count);
 
-static AnimationSet _gKyle800104Animation09148 = {
-    _gKyle800104Animation09148Records,
-    _gKyle800104Animation09148Indices,
-    { NULL, _gKyle800104Animation09148Bank1, NULL, NULL, _gKyle800104Animation09148Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's non-looping hit reaction for collision on body parts other than part 4.
+///
+/// Tracks 0 and 1 encode translation and rotation; 2..19 encode rotation only.
+/// Native damage playback blends child tracks 1..19, then returns to idle.
+/// Keep this package loaded while playback borrows the descriptor or its data.
+static AnimationSet _gKyle800104KyleMadiganOtherBodyHitAnimation = {
+    .records           = _gKyle800104KyleMadiganOtherBodyHitAnimationRecords,
+    .trackStartIndices = _gKyle800104KyleMadiganOtherBodyHitAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104KyleMadiganOtherBodyHitAnimationBank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104KyleMadiganOtherBodyHitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800104Animation096B8Bank1[11] = {
+/// Death translation/rotation keys: integer positions and 1/4096-turn angles.
+static const AnimationPackedPose _gKyle800104KyleMadiganDeathAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_096B8_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation096B8Bank4[127] = {
+/// Death rotation-only keys, in eight-unit steps over 4096 units per turn.
+static const AnimationPackedRotation _gKyle800104KyleMadiganDeathAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_096B8_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation096B8Records[168] = {
+/// Death keyframes and stop controls; pose offsets count words, durations normal-rate frames.
+static const AnimationRecord _gKyle800104KyleMadiganDeathAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_096B8_records.inc"
 };
 
-static u16 _gKyle800104Animation096B8Indices[20] = {
+/// Absolute record-array starts for the death animation's twenty tracks (0..19).
+static const u16 _gKyle800104KyleMadiganDeathAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_096B8_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800104KyleMadiganDeathAnimationIndices) == ARRAY_SIZE(_gKyle800104KyleMadiganBodySkeleton), kyle800104_death_track_count);
 
-static AnimationSet _gKyle800104Animation096B8 = {
-    _gKyle800104Animation096B8Records,
-    _gKyle800104Animation096B8Indices,
-    { NULL, _gKyle800104Animation096B8Bank1, NULL, NULL, _gKyle800104Animation096B8Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's non-looping death animation, retaining its final pose.
+///
+/// Tracks 0 and 1 encode translation and rotation; 2..19 encode rotation only.
+/// At zero HP, native or scripted behavior resets child tracks 1..19 to this
+/// clip and enters the stopped damage state. Keep this package loaded while
+/// playback borrows the descriptor or its data.
+static AnimationSet _gKyle800104KyleMadiganDeathAnimation = {
+    .records           = _gKyle800104KyleMadiganDeathAnimationRecords,
+    .trackStartIndices = _gKyle800104KyleMadiganDeathAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104KyleMadiganDeathAnimationBank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104KyleMadiganDeathAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800104Animation09EC4Bank1[10] = {
+/// Idle-variation translation/rotation keys: integer positions and 1/4096-turn angles.
+static const AnimationPackedPose _gKyle800104KyleMadiganIdleVariationAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_09EC4_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation09EC4Bank4[181] = {
+/// Idle-variation rotation-only keys, in eight-unit steps over 4096 units per turn.
+static const AnimationPackedRotation _gKyle800104KyleMadiganIdleVariationAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_09EC4_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation09EC4Records[284] = {
+/// Idle-variation keyframes and loop controls; pose offsets count words, durations normal-rate frames.
+static const AnimationRecord _gKyle800104KyleMadiganIdleVariationAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_09EC4_records.inc"
 };
 
-static u16 _gKyle800104Animation09EC4Indices[20] = {
+/// Absolute record-array starts for the idle variation's twenty tracks (0..19).
+static const u16 _gKyle800104KyleMadiganIdleVariationAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_09EC4_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800104KyleMadiganIdleVariationAnimationIndices) == ARRAY_SIZE(_gKyle800104KyleMadiganBodySkeleton), kyle800104_idle_variation_track_count);
 
-static AnimationSet _gKyle800104Animation09EC4 = {
-    _gKyle800104Animation09EC4Records,
-    _gKyle800104Animation09EC4Indices,
-    { NULL, _gKyle800104Animation09EC4Bank1, NULL, NULL, _gKyle800104Animation09EC4Bank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping variation of the native idle animation.
+///
+/// Tracks 0 and 1 encode translation and rotation; 2..19 encode rotation only.
+/// Idle decisions select this clip for child tracks 1..19 once per idle spell.
+/// Keep this package loaded while playback borrows the descriptor or its data.
+static AnimationSet _gKyle800104KyleMadiganIdleVariationAnimation = {
+    .records           = _gKyle800104KyleMadiganIdleVariationAnimationRecords,
+    .trackStartIndices = _gKyle800104KyleMadiganIdleVariationAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104KyleMadiganIdleVariationAnimationBank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104KyleMadiganIdleVariationAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800104Animation0A394Bank1[9] = {
+/// Slot-32 translation/rotation keys: integer positions and 1/4096-turn angles; clip role unproven.
+static const AnimationPackedPose _gKyle800104Animation0A394Bank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_0A394_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation0A394Bank4[113] = {
+/// Slot-32 rotation-only keys, in eight-unit steps over 4096 units per turn; clip role unproven.
+static const AnimationPackedRotation _gKyle800104Animation0A394Bank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0A394_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation0A394Records[148] = {
+/// Slot-32 keyframes and stop controls; word pose offsets and normal-rate frame durations; clip role unproven.
+static const AnimationRecord _gKyle800104Animation0A394Records[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0A394_records.inc"
 };
 
-static u16 _gKyle800104Animation0A394Indices[20] = {
+/// Absolute record-array starts for slot 32's twenty tracks (0..19); clip role unproven.
+static const u16 _gKyle800104Animation0A394Indices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0A394_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800104Animation0A394Indices) == ARRAY_SIZE(_gKyle800104KyleMadiganBodySkeleton), kyle800104_slot32_track_count);
 
+/// Non-looping clip in Kyle Madigan's bank slot 32; its role is unproven.
+///
+/// Tracks 0 and 1 encode translation and rotation; 2..19 encode rotation only.
+/// Keep this package loaded while playback borrows the descriptor or its data.
 static AnimationSet _gKyle800104Animation0A394 = {
-    _gKyle800104Animation0A394Records,
-    _gKyle800104Animation0A394Indices,
-    { NULL, _gKyle800104Animation0A394Bank1, NULL, NULL, _gKyle800104Animation0A394Bank4, NULL, NULL, NULL },
+    .records           = _gKyle800104Animation0A394Records,
+    .trackStartIndices = _gKyle800104Animation0A394Indices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104Animation0A394Bank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104Animation0A394Bank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800104Animation0A8ECBank1[8] = {
+/// Slot-33 translation/rotation keys: integer positions and 1/4096-turn angles; clip role unproven.
+static const AnimationPackedPose _gKyle800104Animation0A8ECBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_0A8EC_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation0A8ECBank4[129] = {
+/// Slot-33 rotation-only keys, in eight-unit steps over 4096 units per turn; clip role unproven.
+static const AnimationPackedRotation _gKyle800104Animation0A8ECBank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0A8EC_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation0A8ECRecords[169] = {
+/// Slot-33 keyframes and stop controls; word pose offsets and normal-rate frame durations; clip role unproven.
+static const AnimationRecord _gKyle800104Animation0A8ECRecords[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0A8EC_records.inc"
 };
 
-static u16 _gKyle800104Animation0A8ECIndices[20] = {
+/// Absolute record-array starts for slot 33's twenty tracks (0..19); clip role unproven.
+static const u16 _gKyle800104Animation0A8ECIndices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0A8EC_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800104Animation0A8ECIndices) == ARRAY_SIZE(_gKyle800104KyleMadiganBodySkeleton), kyle800104_slot33_track_count);
 
+/// Non-looping clip in Kyle Madigan's bank slot 33; its role is unproven.
+///
+/// Tracks 0 and 1 encode translation and rotation; 2..19 encode rotation only.
+/// Keep this package loaded while playback borrows the descriptor or its data.
 static AnimationSet _gKyle800104Animation0A8EC = {
-    _gKyle800104Animation0A8ECRecords,
-    _gKyle800104Animation0A8ECIndices,
-    { NULL, _gKyle800104Animation0A8ECBank1, NULL, NULL, _gKyle800104Animation0A8ECBank4, NULL, NULL, NULL },
+    .records           = _gKyle800104Animation0A8ECRecords,
+    .trackStartIndices = _gKyle800104Animation0A8ECIndices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104Animation0A8ECBank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104Animation0A8ECBank4,
+    },
 };
 
-static AnimationPackedPose _gKyle800104Animation0AADCBank1[2] = {
+/// Combat-hold translation/rotation keys: integer positions and 1/4096-turn angles.
+static const AnimationPackedPose _gKyle800104KyleMadiganCombatHoldAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/kyle_800104_animation_0AADC_bank1.inc"
 };
 
-static AnimationPackedRotation _gKyle800104Animation0AADCBank4[18] = {
+/// Combat-hold rotation-only keys, in eight-unit steps over 4096 units per turn.
+static const AnimationPackedRotation _gKyle800104KyleMadiganCombatHoldAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0AADC_bank4.inc"
 };
 
-static AnimationRecord _gKyle800104Animation0AADCRecords[80] = {
+/// Combat-hold keyframes and loop controls; pose offsets count words, durations normal-rate frames.
+static const AnimationRecord _gKyle800104KyleMadiganCombatHoldAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0AADC_records.inc"
 };
 
-static u16 _gKyle800104Animation0AADCIndices[20] = {
+/// Absolute record-array starts for the combat hold's twenty tracks (0..19).
+static const u16 _gKyle800104KyleMadiganCombatHoldAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/kyle_800104_animation_0AADC_indices.inc"
 };
+STATIC_ASSERT(ARRAY_SIZE(_gKyle800104KyleMadiganCombatHoldAnimationIndices) == ARRAY_SIZE(_gKyle800104KyleMadiganBodySkeleton), kyle800104_combat_hold_track_count);
 
-static AnimationSet _gKyle800104Animation0AADC = {
-    _gKyle800104Animation0AADCRecords,
-    _gKyle800104Animation0AADCIndices,
-    { NULL, _gKyle800104Animation0AADCBank1, NULL, NULL, _gKyle800104Animation0AADCBank4, NULL, NULL, NULL },
+/// Kyle Madigan's looping held-weapon pose between combat actions.
+///
+/// Tracks 0 and 1 encode translation and rotation; 2..19 encode rotation only.
+/// Child tracks 1..19 hold the ready pose after combat entry, between attacks
+/// and at the start of a rifle/Pyke attack. Keep this package loaded while
+/// playback borrows the descriptor or its data.
+static AnimationSet _gKyle800104KyleMadiganCombatHoldAnimation = {
+    .records           = _gKyle800104KyleMadiganCombatHoldAnimationRecords,
+    .trackStartIndices = _gKyle800104KyleMadiganCombatHoldAnimationIndices,
+    .poseBanks         = {
+        [KYLE_800104_ANIMATION_TRANSLATION_ROTATION_BANK] = _gKyle800104KyleMadiganCombatHoldAnimationBank1,
+        [KYLE_800104_ANIMATION_PACKED_ROTATION_BANK]      = _gKyle800104KyleMadiganCombatHoldAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gKyle800104Animation0B214Bank1[13] = {
@@ -792,7 +870,7 @@ AnimationBank D_kyle_800104_80176C1C = { { {
     &_gKyle800104KyleMadiganTurnRightAnimation,
     &_gKyle800104Animation0D07C,
     &_gKyle800104Animation0D5F0,
-    &_gKyle800104Animation0AADC,
+    &_gKyle800104KyleMadiganCombatHoldAnimation,
     &_gKyle800104Animation0C860,
     &_gKyle800104Animation0CB60,
     &_gKyle800104Animation0BC24,
@@ -800,13 +878,13 @@ AnimationBank D_kyle_800104_80176C1C = { { {
     &_gKyle800104Animation0C56C,
     &_gKyle800104KyleMadiganIdleAnimation,
     &_gKyle800104KyleMadiganPart4HitAnimation,
-    &_gKyle800104Animation09148,
-    &_gKyle800104Animation096B8,
+    &_gKyle800104KyleMadiganOtherBodyHitAnimation,
+    &_gKyle800104KyleMadiganDeathAnimation,
     &_gKyle800104KyleMadiganUnarmedWalkAnimation,
     &_gKyle800104Animation0C56C,
     &_gKyle800104KyleMadiganIdleAnimation,
     &_gKyle800104KyleMadiganIdleAnimation,
-    &_gKyle800104Animation09EC4,
+    &_gKyle800104KyleMadiganIdleVariationAnimation,
     &_gKyle800104KyleMadiganIdleAnimation,
     &_gKyle800104KyleMadiganIdleAnimation,
     NULL,
