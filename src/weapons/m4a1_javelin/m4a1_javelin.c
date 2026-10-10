@@ -1866,136 +1866,252 @@ static AnimationSet _gM4a1JavelinMidHealthIdleAnimation = {
     },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0AF6CBank1[6] = {
+/// Event-entry poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinEventEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0AF6C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0AF6CBank4[107] = {
+/// Event-entry rotations for tracks 2..18, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinEventEntryAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0AF6C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0AF6CRecords[143] = {
+/// Keyframes and stop controls for the nineteen-part event-entry clip.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Every track stops at its final pose. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinEventEntryAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0AF6C_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0AF6CIndices[20] = {
+/// Absolute record starts for the event-entry clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinEventEntryAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0AF6C_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0AF6C = {
-    _gM4a1JavelinAnimation0AF6CRecords,
-    _gM4a1JavelinAnimation0AF6CIndices,
-    { NULL, _gM4a1JavelinAnimation0AF6CBank1, NULL, NULL, _gM4a1JavelinAnimation0AF6CBank4, NULL, NULL, NULL },
+/// Player presentation entering an event with the M4A1 Javelin equipped.
+///
+/// Native bank entries 32 and 34 share this clip. Scripted presentation with
+/// selector zero starts child slots 1..18 without a timed blend, then stops
+/// at the event pose while the event runs.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinEventEntryAnimation = {
+    .records           = _gM4a1JavelinEventEntryAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinEventEntryAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinEventEntryAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinEventEntryAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0B144Bank1[3] = {
+/// Event-exit poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinEventExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0B144_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0B144Bank4[32] = {
+/// Event-exit rotations for tracks 2..18, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinEventExitAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0B144_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0B144Records[57] = {
+/// Keyframes and stop controls for the nineteen-part event-exit clip.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Every track stops at its final pose. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinEventExitAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0B144_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0B144Indices[20] = {
+/// Absolute record starts for the event-exit clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinEventExitAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0B144_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0B144 = {
-    _gM4a1JavelinAnimation0B144Records,
-    _gM4a1JavelinAnimation0B144Indices,
-    { NULL, _gM4a1JavelinAnimation0B144Bank1, NULL, NULL, _gM4a1JavelinAnimation0B144Bank4, NULL, NULL, NULL },
+/// Player presentation leaving an event with the M4A1 Javelin equipped.
+///
+/// Native bank entries 33 and 35 share this clip. Scripted presentation with
+/// a nonzero selector starts child slots 1..18 without a timed blend; event
+/// tasks wait for completion before restoring player control.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinEventExitAnimation = {
+    .records           = _gM4a1JavelinEventExitAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinEventExitAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinEventExitAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinEventExitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0B6A8Bank1[11] = {
+/// Family-2 Parasite Energy release poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinParasiteEnergyReleaseFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0B6A8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0B6A8Bank4[125] = {
+/// Family-2 Parasite Energy release rotations for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinParasiteEnergyReleaseFamily2AnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0B6A8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0B6A8Records[167] = {
+/// Keyframes and stop controls for the nineteen-part family-2 release clip.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Every track stops at its final pose. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinParasiteEnergyReleaseFamily2AnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0B6A8_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0B6A8Indices[20] = {
+/// Absolute record starts for the family-2 release clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinParasiteEnergyReleaseFamily2AnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0B6A8_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0B6A8 = {
-    _gM4a1JavelinAnimation0B6A8Records,
-    _gM4a1JavelinAnimation0B6A8Indices,
-    { NULL, _gM4a1JavelinAnimation0B6A8Bank1, NULL, NULL, _gM4a1JavelinAnimation0B6A8Bank4, NULL, NULL, NULL },
+/// Parasite Energy family 2 release clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 42, entered with a six-frame blend when release begins.
+/// The nineteen tracks stop at their final poses before charge playback.
+/// Family 2 selects attachment IDs below 601 whose decimal tens digit is 3.
+/// The borrowed arrays and word-aligned pose banks must remain loaded while
+/// any playback slot refers to them.
+static AnimationSet _gM4a1JavelinParasiteEnergyReleaseFamily2Animation = {
+    .records           = _gM4a1JavelinParasiteEnergyReleaseFamily2AnimationRecords,
+    .trackStartIndices = _gM4a1JavelinParasiteEnergyReleaseFamily2AnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinParasiteEnergyReleaseFamily2AnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinParasiteEnergyReleaseFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0B89CBank1[3] = {
+/// Family-2 Parasite Energy charge poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinParasiteEnergyChargeFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0B89C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0B89CBank4[20] = {
+/// Family-2 Parasite Energy charge rotations for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinParasiteEnergyChargeFamily2AnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0B89C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0B89CRecords[76] = {
+/// Keyframes and loop/stop controls for the nineteen-part family-2 charge clip.
+///
+/// Every track loops over two one-frame keyframes before its retained stop
+/// control. Pose offsets count four-byte words; jumps are absolute record
+/// indices. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinParasiteEnergyChargeFamily2AnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0B89C_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0B89CIndices[20] = {
+/// Absolute record starts for the family-2 charge clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinParasiteEnergyChargeFamily2AnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0B89C_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0B89C = {
-    _gM4a1JavelinAnimation0B89CRecords,
-    _gM4a1JavelinAnimation0B89CIndices,
-    { NULL, _gM4a1JavelinAnimation0B89CBank1, NULL, NULL, _gM4a1JavelinAnimation0B89CBank4, NULL, NULL, NULL },
+/// Parasite Energy family 2 charge clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 43, reset after release and replaced by the cast clip
+/// when the attachment countdown reaches zero. Its nineteen tracks loop.
+/// Family 2 selects attachment IDs below 601 whose decimal tens digit is 3.
+/// The borrowed arrays and word-aligned pose banks must remain loaded while
+/// any playback slot refers to them.
+static AnimationSet _gM4a1JavelinParasiteEnergyChargeFamily2Animation = {
+    .records           = _gM4a1JavelinParasiteEnergyChargeFamily2AnimationRecords,
+    .trackStartIndices = _gM4a1JavelinParasiteEnergyChargeFamily2AnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinParasiteEnergyChargeFamily2AnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinParasiteEnergyChargeFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0BD1CBank1[8] = {
+/// Family-2 Parasite Energy cast poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinParasiteEnergyCastFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0BD1C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0BD1CBank4[105] = {
+/// Family-2 Parasite Energy cast rotations for tracks 2..18, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinParasiteEnergyCastFamily2AnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0BD1C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0BD1CRecords[139] = {
+/// Keyframes and stop controls for the nineteen-part family-2 cast clip.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Every track stops at its final pose. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinParasiteEnergyCastFamily2AnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0BD1C_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0BD1CIndices[20] = {
+/// Absolute record starts for the family-2 cast clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinParasiteEnergyCastFamily2AnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0BD1C_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0BD1C = {
-    _gM4a1JavelinAnimation0BD1CRecords,
-    _gM4a1JavelinAnimation0BD1CIndices,
-    { NULL, _gM4a1JavelinAnimation0BD1CBank1, NULL, NULL, _gM4a1JavelinAnimation0BD1CBank4, NULL, NULL, NULL },
+/// Parasite Energy family 2 cast clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 44, reset when the attachment countdown reaches zero.
+/// The nineteen tracks stop at their final poses before control resumes.
+/// Family 2 selects attachment IDs below 601 whose decimal tens digit is 3.
+/// The borrowed arrays and word-aligned pose banks must remain loaded while
+/// any playback slot refers to them.
+static AnimationSet _gM4a1JavelinParasiteEnergyCastFamily2Animation = {
+    .records           = _gM4a1JavelinParasiteEnergyCastFamily2AnimationRecords,
+    .trackStartIndices = _gM4a1JavelinParasiteEnergyCastFamily2AnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinParasiteEnergyCastFamily2AnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinParasiteEnergyCastFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0BEF8Bank1[2] = {
+/// Fixed aim-hold poses for tracks 0 and 1, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1JavelinAimHoldAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0BEF8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0BEF8Bank4[17] = {
+/// Fixed aim-hold rotations for tracks 2..18, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1JavelinAimHoldAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0BEF8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0BEF8Records[76] = {
+/// Keyframes and loop/stop controls for the nineteen-part aim-hold clip.
+///
+/// Every track loops over two one-frame keyframes selecting the same pose,
+/// before its retained stop control. Pose offsets count four-byte words;
+/// jumps are absolute record indices. No cue flags are set.
+static const AnimationRecord _gM4a1JavelinAimHoldAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0BEF8_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0BEF8Indices[20] = {
+/// Absolute record starts for the aim-hold clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinAimHoldAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0BEF8_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0BEF8 = {
-    _gM4a1JavelinAnimation0BEF8Records,
-    _gM4a1JavelinAnimation0BEF8Indices,
-    { NULL, _gM4a1JavelinAnimation0BEF8Bank1, NULL, NULL, _gM4a1JavelinAnimation0BEF8Bank4, NULL, NULL, NULL },
+/// Stationary aim-hold and attack-ready clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 9. Aim entry blends child slots 1..18 over five frames;
+/// preparing either attack blends for one frame, or eight while moving or
+/// turning. All nineteen tracks loop at a fixed pose until replaced.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinAimHoldAnimation = {
+    .records           = _gM4a1JavelinAimHoldAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinAimHoldAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinAimHoldAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinAimHoldAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1JavelinAnimation0C69CBank1[13] = {
@@ -2228,7 +2344,7 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     &_gM4a1JavelinPositiveTurnAnimation,
     &_gM4a1JavelinAnimation0F4FC,
     &_gM4a1JavelinAnimation0FE0C,
-    &_gM4a1JavelinAnimation0BEF8,
+    &_gM4a1JavelinAimHoldAnimation,
     &_gM4a1JavelinAnimation0EADC,
     &_gM4a1JavelinAnimation0EE3C,
     &_gM4a1JavelinAnimation0D144,
@@ -2251,19 +2367,19 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     &_gM4a1JavelinParasiteEnergyReleaseFamily1Animation,
     &_gM4a1JavelinParasiteEnergyChargeFamily1Animation,
     &_gM4a1JavelinParasiteEnergyCastFamily1Animation,
-    &_gM4a1JavelinAnimation0AF6C,
-    &_gM4a1JavelinAnimation0B144,
-    &_gM4a1JavelinAnimation0AF6C,
-    &_gM4a1JavelinAnimation0B144,
+    &_gM4a1JavelinEventEntryAnimation,
+    &_gM4a1JavelinEventExitAnimation,
+    &_gM4a1JavelinEventEntryAnimation,
+    &_gM4a1JavelinEventExitAnimation,
     &_gM4a1JavelinStairAscentAnimation,
     &_gM4a1JavelinStairDescentAnimation,
     &_gM4a1JavelinStairAscentFinishEvenAnimation,
     &_gM4a1JavelinStairAscentFinishOddAnimation,
     &_gM4a1JavelinItemUseAnimation,
     &_gM4a1JavelinIdleAnimation,
-    &_gM4a1JavelinAnimation0B6A8,
-    &_gM4a1JavelinAnimation0B89C,
-    &_gM4a1JavelinAnimation0BD1C,
+    &_gM4a1JavelinParasiteEnergyReleaseFamily2Animation,
+    &_gM4a1JavelinParasiteEnergyChargeFamily2Animation,
+    &_gM4a1JavelinParasiteEnergyCastFamily2Animation,
     NULL,
     NULL,
     NULL,
