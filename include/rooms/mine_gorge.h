@@ -34,7 +34,13 @@ extern AreaVariant gMineGorgeAreaVariants[MINE_GORGE_AREA_VARIANT_COUNT];
 /// These descriptors and their resources remain valid while the gorge is loaded.
 extern WorldCoordRoomLighting gMineGorgeRoomLighting[2];
 
-extern WorldCollisionRoomResources D_mine_gorge_8017E7B8[];
+/// Collision resources before and after the oak board is laid, indexed by room minus one.
+///
+/// Room 1 borrows the original grid and eight action triggers; room 2 borrows
+/// the board-enabled grid and five action triggers. Both share view boundaries
+/// and have no sight occluders. Gameplay mutates the borrowed grids and trigger
+/// links; keep the gorge loaded until its active resources are retired.
+extern WorldCollisionRoomResources gMineGorgeRoomCollisionResources[MINE_GORGE_ROOM_COUNT];
 
 /// Logical-view maps for the gorge before and after the oak board is laid.
 ///
@@ -51,7 +57,15 @@ extern u8* gMineGorgeRoomViewMaps[2];
 /// independent of the retained trailing map byte and remain live while loaded.
 extern ViewCount gMineGorgeRoomViewCounts[MINE_GORGE_ROOM_COUNT];
 
-extern DirectionWarpEntry D_mine_gorge_8017E7F0[];
+/// Three gorge warp endpoints, indexed by the 1-based warp ID minus one.
+///
+/// IDs 1, 2 and 3 serve the tunnel, refuge and cavern respectively, arriving in
+/// logical views 2, 6 and 6. Each places player and companion at the same room
+/// position and yaw (4096 per turn). The cavern endpoint carries blocked-door
+/// sound 8 and map-marker nibble 448. No endpoint requests a departure fade.
+/// Consumers copy full entries; the array has no terminator and is borrowed
+/// from the loaded gorge by the Mine/Shelter stage map.
+extern DirectionWarpEntry gMineGorgeWarpEntries[3];
 
 /// Cameras indexed by the gorge's mapped resource view minus one, for views 1..11.
 ///

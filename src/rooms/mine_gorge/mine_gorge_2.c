@@ -27,6 +27,7 @@
 #include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
 
@@ -36,8 +37,8 @@
 static WorldCollisionGrid         _gMineGorgeRoom1Collision;
 static WorldCollisionGrid         _gMineGorgeRoom2Collision;
 static WorldCollisionTrigger      _gMineGorgeViewBoundaryTriggers[8];
-extern WorldCollisionTrigger      D_mine_gorge_80182D34[8];
-extern WorldCollisionTrigger      D_mine_gorge_80182F94[5];
+static WorldCollisionTrigger      _gMineGorgeRoom1ActionTriggers[8];
+static WorldCollisionTrigger      _gMineGorgeRoom2ActionTriggers[5];
 static WorldCoordRoomAmbientEntry _gMineGorgeViewAmbientTable[12];
 static WorldCoordRoomLights       _gMineGorgeRoomLights;
 
@@ -87,9 +88,9 @@ WorldCoordRoomLighting gMineGorgeRoomLighting[2] = {
     { &_gMineGorgeRoomLights, _gMineGorgeViewAmbientTable },
 };
 
-WorldCollisionRoomResources D_mine_gorge_8017E7B8[2] = {
-    { &_gMineGorgeRoom1Collision, _gMineGorgeViewBoundaryTriggers, D_mine_gorge_80182D34, NULL },
-    { &_gMineGorgeRoom2Collision, _gMineGorgeViewBoundaryTriggers, D_mine_gorge_80182F94, NULL },
+WorldCollisionRoomResources gMineGorgeRoomCollisionResources[MINE_GORGE_ROOM_COUNT] = {
+    { .grid = &_gMineGorgeRoom1Collision, .viewBoundaryTriggers = _gMineGorgeViewBoundaryTriggers, .actionTriggers = _gMineGorgeRoom1ActionTriggers, .occluders = NULL },
+    { .grid = &_gMineGorgeRoom2Collision, .viewBoundaryTriggers = _gMineGorgeViewBoundaryTriggers, .actionTriggers = _gMineGorgeRoom2ActionTriggers, .occluders = NULL },
 };
 
 /// Logical-view to camera/image/sprite indices after the oak board is laid.
@@ -119,10 +120,52 @@ u8* gMineGorgeRoomViewMaps[2] = {
 
 ViewCount gMineGorgeRoomViewCounts[MINE_GORGE_ROOM_COUNT] = { MINE_GORGE_VIEW_COUNT, MINE_GORGE_VIEW_COUNT };
 
-DirectionWarpEntry D_mine_gorge_8017E7F0[3] = {
-    { { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4588, 0, 1600 }, { 0, 0, 0, 0 }, 0x54050002, 0x54050001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 1731, 0, 3487 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1731, 0, 3487 }, { 0, 0, 0, 0 }, 0x54050004, 0x54050003, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, 300, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 300, 0, 1500 }, { 0, 0, 0, 0 }, 0x54050006, 0x54050005, 0x54050008, 6, DIRECTION_WARP_FLAG_NONE, 448 },
+/// Gorge endpoint IDs, map marker and room/CAP action selectors.
+///
+/// Warp IDs are 1-based; CAP slots are zero-based. Room action 1 starts the
+/// encounter. The three CAP interaction subjects are not established here.
+enum {
+    MINE_GORGE_WARP_TUNNEL           = 1,
+    MINE_GORGE_WARP_REFUGE           = 2,
+    MINE_GORGE_WARP_CAVERN           = 3,
+    MINE_GORGE_CAVERN_MAP_FLAG       = 448,
+    MINE_GORGE_ROOM_ACTION_ENCOUNTER = 1,
+    MINE_GORGE_CAP_INTERACTION_1     = 1,
+    MINE_GORGE_CAP_INTERACTION_6     = 6,
+    MINE_GORGE_CAP_INTERACTION_7     = 7
+};
+
+DirectionWarpEntry gMineGorgeWarpEntries[3] = {
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 0x4588, 0, 1600 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 0x4588, 0, 1600 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 2),
+      .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 1),
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 2,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 1731, 0, 3487 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 1731, 0, 3487 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 4),
+      .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 3),
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 6,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 300, 0, 1500 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 300, 0, 1500 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 6),
+      .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 5),
+      .blockedSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 8),
+      .initialView    = 6,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = MINE_GORGE_CAVERN_MAP_FLAG },
 };
 
 /// Room-1 mesh normals, with 4096 representing unit length.
@@ -1039,23 +1082,221 @@ static WorldCollisionTrigger _gMineGorgeViewBoundaryTriggers[8] = {
     { NULL, NULL, NULL, { 4513, -1408, 1857, 0 }, { { -16, -2768, -2704, 0 }, { 16, -2768, 2704, 0 }, { -16, 2768, -2704, 0 }, { 16, 2768, 2704, 0 } }, { 4102, 0, -25, 0 }, { 0, 0, ONE, 0 }, 3865, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mine_gorge_80182D34[8] = {
-    { NULL, NULL, NULL, { 0x45B0, -48, 1504, 0 }, { { -496, 0, -736, 0 }, { 496, 0, -736, 0 }, { -496, 0, 736, 0 }, { 496, 0, 736, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 886, WORLD_COLLISION_TRIGGER_ACTION_WARP, 4, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1408, -48, 3744, 0 }, { { 704, 0, -496, 0 }, { 704, 0, 496, 0 }, { -704, 0, -496, 0 }, { -704, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 861, WORLD_COLLISION_TRIGGER_ACTION_WARP, 6, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -96, -48, 1888, 0 }, { { 496, 0, 1536, 0 }, { -496, 0, 1536, 0 }, { 496, 0, -1536, 0 }, { -496, 0, -1536, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1614, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2DA0, -64, 1568, 0 }, { { -688, 0, -1024, 0 }, { 688, 0, -1024, 0 }, { -688, 0, 1024, 0 }, { 688, 0, 1024, 0 } }, { 0, 4105, 0, 0 }, { 4095, 0, 0, 0 }, 1227, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9888, -64, 1536, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4095, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 2752, -64, 3712, 0 }, { { 704, 0, -496, 0 }, { 704, 0, 496, 0 }, { -704, 0, -496, 0 }, { -704, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 861, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x42E0, -64, 3648, 0 }, { { -1840, 0, -1424, 0 }, { 1232, 0, -1424, 0 }, { -1840, 0, 624, 0 }, { 1232, 0, 624, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 2318, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x34D0, -64, 1568, 0 }, { { -2560, 0, -1024, 0 }, { 2560, 0, -1024, 0 }, { -2560, 0, 1024, 0 }, { 2560, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4095, 0, 0, 0 }, 2757, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action quads before the oak board is laid.
+///
+/// Three exits pack gorge endpoint / destination arrival IDs as 1/2 (tunnel),
+/// 2/1 (refuge) and 3/1 (cavern). CAP slots 1, 6 and 7 are interactions;
+/// automatic room action 1 starts the encounter, and room event 255 gates board
+/// use. The final live quad carries LAST. Coordinates and radii use room game
+/// units; normals use 4096 per unit. Setup binds and links this mutable storage,
+/// which must stay loaded until the active action list is cleared.
+static WorldCollisionTrigger _gMineGorgeRoom1ActionTriggers[8] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 0x45B0, -48, 1504, 0 },
+        .vertices     = { { -496, 0, -736, 0 }, { 496, 0, -736, 0 }, { -496, 0, 736, 0 }, { 496, 0, 736, 0 } },
+        .normal       = { 0, 4107, 0, 0 },
+        .facingNormal = { -ONE, 0, 0, 0 },
+        .radius       = 886,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_MINE_TUNNEL,
+        .parameter1   = (MINE_GORGE_WARP_TUNNEL << 4) | 2,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1408, -48, 3744, 0 },
+        .vertices     = { { 704, 0, -496, 0 }, { 704, 0, 496, 0 }, { -704, 0, -496, 0 }, { -704, 0, 496, 0 } },
+        .normal       = { 0, 4105, 0, 0 },
+        .facingNormal = { 0, 0, -ONE, 0 },
+        .radius       = 861,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_MINE_REFUGE,
+        .parameter1   = (MINE_GORGE_WARP_REFUGE << 4) | 1,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { -96, -48, 1888, 0 },
+        .vertices     = { { 496, 0, 1536, 0 }, { -496, 0, 1536, 0 }, { 496, 0, -1536, 0 }, { -496, 0, -1536, 0 } },
+        .normal       = { 0, 4097, 0, 0 },
+        .facingNormal = { ONE, 0, 0, 0 },
+        .radius       = 1614,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_MINE_CAVERN,
+        .parameter1   = (MINE_GORGE_WARP_CAVERN << 4) | 1,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 0x2DA0, -64, 1568, 0 },
+        .vertices     = { { -688, 0, -1024, 0 }, { 688, 0, -1024, 0 }, { -688, 0, 1024, 0 }, { 688, 0, 1024, 0 } },
+        .normal       = { 0, 4105, 0, 0 },
+        .facingNormal = { 4095, 0, 0, 0 },
+        .radius       = 1227,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = MINE_GORGE_CAP_INTERACTION_1,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 9888, -64, 1536, 0 },
+        .vertices     = { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } },
+        .normal       = { 0, 4097, 0, 0 },
+        .facingNormal = { 4095, 0, 0, 0 },
+        .radius       = 1137,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+        .parameter0   = MINE_GORGE_ROOM_ACTION_ENCOUNTER,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2752, -64, 3712, 0 },
+        .vertices     = { { 704, 0, -496, 0 }, { 704, 0, 496, 0 }, { -704, 0, -496, 0 }, { -704, 0, 496, 0 } },
+        .normal       = { 0, 4105, 0, 0 },
+        .facingNormal = { 0, 0, -ONE, 0 },
+        .radius       = 861,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = MINE_GORGE_CAP_INTERACTION_6,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 0x42E0, -64, 3648, 0 },
+        .vertices     = { { -1840, 0, -1424, 0 }, { 1232, 0, -1424, 0 }, { -1840, 0, 624, 0 }, { 1232, 0, 624, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { -ONE, 0, 0, 0 },
+        .radius       = 2318,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = MINE_GORGE_CAP_INTERACTION_7,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 0x34D0, -64, 1568, 0 },
+        .vertices     = { { -2560, 0, -1024, 0 }, { 2560, 0, -1024, 0 }, { -2560, 0, 1024, 0 }, { 2560, 0, 1024, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { 4095, 0, 0, 0 },
+        .radius       = 2757,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_ROOM,
+        .parameter0   = WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
-WorldCollisionTrigger D_mine_gorge_80182F94[5] = {
-    { NULL, NULL, NULL, { 0x45B0, -48, 1840, 0 }, { { -496, 0, -1968, 0 }, { 496, 0, -1968, 0 }, { -496, 0, 1968, 0 }, { 496, 0, 1968, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 2027, WORLD_COLLISION_TRIGGER_ACTION_WARP, 4, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1408, -48, 3744, 0 }, { { 704, 0, -496, 0 }, { 704, 0, 496, 0 }, { -704, 0, -496, 0 }, { -704, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 861, WORLD_COLLISION_TRIGGER_ACTION_WARP, 6, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -96, -48, 1888, 0 }, { { 496, 0, 1536, 0 }, { -496, 0, 1536, 0 }, { 496, 0, -1536, 0 }, { -496, 0, -1536, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1614, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8927, -64, 1536, 0 }, { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4095, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 2752, -64, 3712, 0 }, { { 704, 0, -496, 0 }, { 704, 0, 496, 0 }, { -704, 0, -496, 0 }, { -704, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 861, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Action quads after the oak board is laid.
+///
+/// Keeps the three exits, automatic encounter action 1 and CAP interaction 6.
+/// The tunnel exit expands and the encounter point moves; board event 255 and
+/// CAP interactions 1/7 are absent. The final interaction quad carries LAST.
+/// Coordinates and radii use room game units; normals use 4096 per unit. Setup
+/// mutates the view binding, links, enables and hits, so keep this storage loaded
+/// until the active action list is cleared.
+static WorldCollisionTrigger _gMineGorgeRoom2ActionTriggers[5] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 0x45B0, -48, 1840, 0 },
+        .vertices     = { { -496, 0, -1968, 0 }, { 496, 0, -1968, 0 }, { -496, 0, 1968, 0 }, { 496, 0, 1968, 0 } },
+        .normal       = { 0, 4102, 0, 0 },
+        .facingNormal = { -ONE, 0, 0, 0 },
+        .radius       = 2027,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_MINE_TUNNEL,
+        .parameter1   = (MINE_GORGE_WARP_TUNNEL << 4) | 2,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 1408, -48, 3744, 0 },
+        .vertices     = { { 704, 0, -496, 0 }, { 704, 0, 496, 0 }, { -704, 0, -496, 0 }, { -704, 0, 496, 0 } },
+        .normal       = { 0, 4105, 0, 0 },
+        .facingNormal = { 0, 0, -ONE, 0 },
+        .radius       = 861,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_MINE_REFUGE,
+        .parameter1   = (MINE_GORGE_WARP_REFUGE << 4) | 1,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { -96, -48, 1888, 0 },
+        .vertices     = { { 496, 0, 1536, 0 }, { -496, 0, 1536, 0 }, { 496, 0, -1536, 0 }, { -496, 0, -1536, 0 } },
+        .normal       = { 0, 4097, 0, 0 },
+        .facingNormal = { ONE, 0, 0, 0 },
+        .radius       = 1614,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_MINE_CAVERN,
+        .parameter1   = (MINE_GORGE_WARP_CAVERN << 4) | 1,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 8927, -64, 1536, 0 },
+        .vertices     = { { -496, 0, -1024, 0 }, { 496, 0, -1024, 0 }, { -496, 0, 1024, 0 }, { 496, 0, 1024, 0 } },
+        .normal       = { 0, 4097, 0, 0 },
+        .facingNormal = { 4095, 0, 0, 0 },
+        .radius       = 1137,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+        .parameter0   = MINE_GORGE_ROOM_ACTION_ENCOUNTER,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2752, -64, 3712, 0 },
+        .vertices     = { { 704, 0, -496, 0 }, { 704, 0, 496, 0 }, { -704, 0, -496, 0 }, { -704, 0, 496, 0 } },
+        .normal       = { 0, 4105, 0, 0 },
+        .facingNormal = { 0, 0, -ONE, 0 },
+        .radius       = 861,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = MINE_GORGE_CAP_INTERACTION_6,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
 enum {

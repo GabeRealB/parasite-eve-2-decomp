@@ -152,7 +152,7 @@ gDryfieldNightGRKitchenRoomLighting = 0x8017E2BC; // absolute:True owner=dryfiel
 gDryfieldNightGRKitchenRoomCollisionResources = 0x8017E2C4; // absolute:True owner=dryfield_night_g_r_kitchen
 gDryfieldNightGRKitchenViewMaps = 0x8017E2D4; // absolute:True owner=dryfield_night_g_r_kitchen
 gDryfieldNightGRKitchenViewCounts = 0x8017E2D8; // absolute:True owner=dryfield_night_g_r_kitchen
-gDryfieldNightGRKitchenWarpEntries = 0x8017E2DC; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
+gDryfieldNightGRKitchenWarpEntries = 0x8017E2DC; // absolute:True owner=dryfield_night_g_r_kitchen
 gDryfieldNightGRKitchenViewCameras = 0x8017E578; // absolute:True owner=dryfield_night_g_r_kitchen
 gDryfieldNightGRKitchenSpriteViews = 0x8017E6A8; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
 gDryfieldNightGRKitchenSurfacePropertiesByClass = 0x8017EC04; // absolute:True owner=dryfield_night_g_r_kitchen

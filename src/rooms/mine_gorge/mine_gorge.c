@@ -12,10 +12,12 @@
 #include "gameplay/gameflag.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/items.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/world_collision.h"
 #include "gameplay/world_targets.h"
@@ -34,17 +36,6 @@
 
 static void _mineGorgeOakBoardCutsceneTask(Task* task);
 
-/// The room's message table, installed by the room task's first state.
-extern TaskMessageEntry D_mine_gorge_8017E280[];
-
-/// The cutscene task `_mineGorgeUseOakBoardMessage` spawns: one descriptor and a
-/// terminator.
-extern TaskDesc D_mine_gorge_8017E2B0[];
-
-extern EvsCommand D_mine_gorge_8017E2F0[];
-extern EvsCommand D_mine_gorge_8017E500[];
-extern EvsCommand D_mine_gorge_8017E610[];
-
 static void _mineGorgeInitializeRoomTask(Task* task);
 static void _mineGorgeIdleRoomTask(Task* task);
 
@@ -58,10 +49,14 @@ static void _mineGorgeSetPlayerStatePaused(u8 paused);
 
 static AnimationSet _gMineGorgeAnimation00C98;
 
-extern AnimationPlayRequest     D_mine_gorge_8017E2DC;
-extern AnimationPlayRequest     D_mine_gorge_8017E5E8;
-extern AnimationBankCopyRequest D_mine_gorge_8017E5E0;
-static void                     _mineGorgeSetEnemyWave(s32 wave);
+static void _mineGorgeSetEnemyWave(s32 wave);
+
+/// CAP command slots and entrance-wave threshold used by the room's event scripts.
+enum {
+    MINE_GORGE_CAP_OAK_BOARD          = 2,
+    MINE_GORGE_CAP_ENCOUNTER          = 4,
+    MINE_GORGE_ENCOUNTER_RELEASE_WAVE = 20
+};
 
 static AnimationPackedPose _gMineGorgeAnimation00C98Bank1[10] = {
 #include "assets/mine_gorge_animation_00C98_bank1.inc"
@@ -86,7 +81,11 @@ static AnimationSet _gMineGorgeAnimation00C98 = {
     { NULL, _gMineGorgeAnimation00C98Bank1, NULL, NULL, _gMineGorgeAnimation00C98Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_mine_gorge_8017E280[6] = {
+/// Message dispatch for the registered gorge room task.
+///
+/// Five handlers followed by the unsupported-message sentinel. The task borrows
+/// this table while registered; all handlers consume their payloads synchronously.
+static TaskMessageEntry _gMineGorgeRoomMessageTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineGorgeResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _mineGorgeUseOakBoardMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mineGorgeHandleEncounterAction },
@@ -95,78 +94,148 @@ TaskMessageEntry D_mine_gorge_8017E280[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_mine_gorge_8017E2B0[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _mineGorgeOakBoardCutsceneTask, { .value = 0 } },
-    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
+/// Bodyless oak-board cutscene task at priority 32, followed by the table end.
+///
+/// The default-list spawner reads entry zero synchronously. The task uses no
+/// descriptor metadata or spawn payload and releases itself on its second tick.
+static TaskDesc _gMineGorgeOakBoardCutsceneTaskDescriptors[2] = {
+    { .header = { .fields = { TASK_BODY_NONE, 32 } }, .callback = _mineGorgeOakBoardCutsceneTask, .data = { .value = 0 } },
+    { .header = { .fields = { TASK_DESC_END, 0 } }, .callback = NULL, .data = { .model = NULL } },
 };
 
-AnimationPlayRequest D_mine_gorge_8017E2C8 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Weapon-bank clip 24 played after the oak-board scene restores the walking view.
+///
+/// Restarts without a blend and disables grid collision until scripted control
+/// ends. EVS overwrites the bank selector in its copy; the clip's visual role
+/// is unproven. The request is borrowed only through dispatch.
+static AnimationPlayRequest _gMineGorgeOakBoardAnimation24 = {
+    .source               = { .index = 1 },
+    .animationId          = 24,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_mine_gorge_8017E2DC = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Equipped-weapon idle pose shared by the oak-board and encounter scenes.
+///
+/// Blends into clip 1 over ten normal-rate frames with grid collision disabled.
+/// EVS resolves the equipped bank in a copy, ignoring the stored selector.
+static AnimationPlayRequest _gMineGorgeCutsceneIdleAnimation = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 10,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-EvsCommand D_mine_gorge_8017E2F0[22] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Normal oak-board placement scene, paced by the room's CAP command 2.
+///
+/// Resumes the held player state tick, reveals the display, hides then shows the
+/// player model and restores the walking view before ending scripted control.
+/// END terminates the interpreter; keep the room's script and CAP resources loaded.
+static EvsCommand _gMineGorgeOakBoardScript[22] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = MINE_GORGE_CAP_OAK_BOARD }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _mineGorgeSetPlayerStatePaused }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E2DC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineGorgeCutsceneIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54050009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 9) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E2C8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineGorgeOakBoardAnimation24 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mine_gorge_8017E500[9] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Oak-board skip path that fades around view restoration and scene cleanup.
+///
+/// Restores normal player control after the fade returns. The board's collection
+/// bit and room-state change belong to the spawning task and remain committed.
+/// END terminates the interpreter; the room owns this script through completion.
+static EvsCommand _gMineGorgeOakBoardSkipScript[9] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-AnimationSet* D_mine_gorge_8017E5D8[2] = {
+/// Two words installed at the player's weapon-bank extension: encounter clip and NULL.
+///
+/// Slots `ANIMATION_BANK_BASE_SET_COUNT` and the following slot receive these words;
+/// NULL is copied storage, not a terminator. The clip data stays borrowed while played.
+static AnimationSet* _gMineGorgeEncounterAnimationSets[2] = {
     &_gMineGorgeAnimation00C98,
     NULL,
 };
 
-AnimationBankCopyRequest D_mine_gorge_8017E5E0 = { { .sets = D_mine_gorge_8017E5D8 }, ARRAY_SIZE(D_mine_gorge_8017E5D8) };
+/// Installs both encounter-extension words in the equipped player animation bank.
+///
+/// The request and source table are read synchronously; the copied clip remains
+/// borrowed from the loaded gorge. No adjacent request or script bytes are copied.
+static AnimationBankCopyRequest _gMineGorgeEncounterAnimationBankCopy = {
+    .source    = { .sets = _gMineGorgeEncounterAnimationSets },
+    .wordCount = ARRAY_SIZE(_gMineGorgeEncounterAnimationSets)
+};
 
-AnimationPlayRequest D_mine_gorge_8017E5E8 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player encounter clip installed in the first weapon-bank extension slot.
+///
+/// Blends for seven normal-rate frames with grid collision enabled. The encounter
+/// script plays it at half rate before engaging battle; EVS replaces the selector.
+static AnimationPlayRequest _gMineGorgeEncounterAnimation = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 7,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE
+};
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_mine_gorge_8017E5FC = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 7, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Unreferenced playback request for bank 1, clip 48; its intended role is unproven.
+///
+/// Retained storage requests a seven-frame blend with grid collision enabled.
+/// The encounter extension installs NULL at this clip index; no script plays it.
+static AnimationPlayRequest _gMineGorgeUnusedAnimation48 = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 7,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE
+};
 
-EvsCommand D_mine_gorge_8017E610[14] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_gorge_8017E5E0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E2DC }, { .value = 0 } },
+/// One-time bat-wave entrance scene, paced by CAP command 4.
+///
+/// Installs the room clip, holds equipped idle, releases wave 20, plays the room
+/// clip at half rate and engages battle before restoring player control.
+/// No skip script is supplied. END terminates playback; keep the gorge loaded.
+static EvsCommand _gMineGorgeEncounterScript[14] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = MINE_GORGE_CAP_ENCOUNTER }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMineGorgeEncounterAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineGorgeCutsceneIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54050007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineGorgeSetEnemyWave }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_GORGE, 7) }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mineGorgeSetEnemyWave }, { .value = MINE_GORGE_ENCOUNTER_RELEASE_WAVE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_gorge_8017E5E8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_SET_RATE }, { .value = ANIMATION_RATE_ONE / 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineGorgeEncounterAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -204,7 +273,7 @@ static s32 _mineGorgeUseOakBoardMessage(Task* unusedTask, s32 messageId, s32 col
         if (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) == 0) {
             if (_mineGorgeRoomTriggerHit() != 0) {
                 gameFlagSetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE, 1);
-                taskSpawnFromTableOnDefaultList(D_mine_gorge_8017E2B0, 0, 0, 0);
+                taskSpawnFromTableOnDefaultList(_gMineGorgeOakBoardCutsceneTaskDescriptors, 0, 0, 0);
                 gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = MINE_GORGE_OAK_BOARD_EVENT_ROOM);
                 gGameSession->hideHud           = (gGameSession->roomObjsDirty = 1);
                 gGameSession->eventState        = 1;
@@ -268,7 +337,7 @@ static s32 _mineGorgeHandleEncounterAction(Task* unusedTask, s32 messageId, cons
 
     if (actionId == MINE_GORGE_ACTION_START_ENCOUNTER && gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
         gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN, 1);
-        evsStartScript(D_mine_gorge_8017E610, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(_gMineGorgeEncounterScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
@@ -303,7 +372,7 @@ static void _mineGorgeOakBoardCutsceneTask(Task* task)
         D_80115768 = 1;
         SetDispMask(0);
         gGameSession->hideHud = 1;
-        evsStartScriptWithSkip(D_mine_gorge_8017E2F0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_gorge_8017E500);
+        evsStartScriptWithSkip(_gMineGorgeOakBoardScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gMineGorgeOakBoardSkipScript);
     } else {
         taskKill(task);
         inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_OAK_BOARD);
@@ -352,7 +421,7 @@ static void _mineGorgeInitializeRoomTask(Task* task)
         MINE_GORGE_COUNTDOWN_MUSIC_ENTRY   = 1
     };
 
-    task->msgTable = D_mine_gorge_8017E280;
+    task->msgTable = _gMineGorgeRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == MINE_GORGE_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) != 0)) {
         gSceneCombatState.actor03700Wave = MINE_GORGE_ENCOUNTER_RESTORED_WAVE;
@@ -372,16 +441,17 @@ static void _mineGorgeIdleRoomTask(Task* task)
 {
 }
 
-/// State handlers of the room task `mineGorgeRoomTask` runs: the room's
-/// setup, an idle state, and `taskKill`.
-static const TaskFuncTable3 D_mine_gorge_8017D5C4 = {
-    { _mineGorgeInitializeRoomTask, _mineGorgeIdleRoomTask, taskKill }
+/// Gorge room-task states: 0 initialize, 1 receive messages, 2 release.
+///
+/// Copied by value before dispatch; the live task state must be in 0..2.
+static const TaskFuncTable3 _gMineGorgeRoomStateHandlers = {
+    .funcs = { _mineGorgeInitializeRoomTask, _mineGorgeIdleRoomTask, taskKill }
 };
 
 void mineGorgeRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_mine_gorge_8017D5C4;
+    stateHandlers = _gMineGorgeRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
