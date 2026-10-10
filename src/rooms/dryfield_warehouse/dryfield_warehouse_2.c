@@ -118,12 +118,10 @@ extern EvsCommand D_dryfield_warehouse_8017FA00[];
 /// circle, for the ring drawer, and prism corners for the prism drawer, which
 /// the room's only caller points at `[8..15]`.
 extern SVECTOR gGlowPrismCorners[];
-/// Ring radii, parallel to the centres.
-extern s16 D_dryfield_warehouse_8017FBAC[];
 
-extern WorldCollisionGrid D_dryfield_warehouse_801802A8[1];
-extern WorldCollisionGrid D_dryfield_warehouse_801809AC[1];
-extern WorldCollisionGrid D_dryfield_warehouse_80181038[1];
+static WorldCollisionGrid _gDryfieldWarehouseBeforeEventCollisionGrid;
+static WorldCollisionGrid _gDryfieldWarehouseAfterEventCollisionGrid;
+static WorldCollisionGrid _gDryfieldWarehouseRoom3CollisionGrid;
 
 static void _dryfieldWarehouseCutsceneTask(Task* task);
 static void _dryfieldWarehouseFadeOutTask(Task* task);
@@ -235,7 +233,12 @@ SVECTOR gGlowPrismCorners[16] = {
     { 4780, 0, -3030, 0 },
 };
 
-s16 D_dryfield_warehouse_8017FBAC[8] = {
+/// Local-space radii of the four light beams' lit/dark ring pairs.
+///
+/// Entries 0..7 parallel the ring centres in `gGlowPrismCorners`.
+/// Each even index starts a beam and the next index is its dark end;
+/// radii use the centres' game-coordinate units, without fixed-point scaling.
+static s16 _gDryfieldWarehouseBeamRadii[8] = {
     100,
     150,
     125,
@@ -247,12 +250,17 @@ s16 D_dryfield_warehouse_8017FBAC[8] = {
 };
 
 WorldCollisionRoomResources D_dryfield_warehouse_8017FBBC[3] = {
-    { D_dryfield_warehouse_801802A8, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_801817D4, NULL },
-    { D_dryfield_warehouse_801809AC, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_80181BB0, NULL },
-    { D_dryfield_warehouse_80181038, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_801817D4, NULL },
+    { &_gDryfieldWarehouseBeforeEventCollisionGrid, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_801817D4, NULL },
+    { &_gDryfieldWarehouseAfterEventCollisionGrid, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_80181BB0, NULL },
+    { &_gDryfieldWarehouseRoom3CollisionGrid, D_dryfield_warehouse_801816A4, D_dryfield_warehouse_801817D4, NULL },
 };
 
-u8 D_dryfield_warehouse_8017FBEC[12] = {
+/// Camera/image/sprite mapping for room 2, after the Monkey Wrench event.
+///
+/// Logical views 1..9 index bytes 0..8; views 3 and 4 select mapped
+/// indices 6 and 7. The last three zero bytes are retained storage, outside
+/// the room's logical-view domain; the map has no terminator.
+static u8 _gDryfieldWarehouseAfterEventViewMap[12] = {
     1,
     2,
     6,
@@ -267,7 +275,13 @@ u8 D_dryfield_warehouse_8017FBEC[12] = {
     0,
 };
 
-u8 D_dryfield_warehouse_8017FBF8[12] = {
+/// Camera/image/sprite mapping for the third configured warehouse room.
+///
+/// Logical views 1..9 index bytes 0..8; views 3 and 4 select mapped
+/// indices 9 and 8. The last three zero bytes are retained storage, outside
+/// the room's logical-view domain. The map has no terminator, and the
+/// gameplay condition selecting room 3 is unproven.
+static u8 _gDryfieldWarehouseRoom3ViewMap[12] = {
     1,
     2,
     9,
@@ -282,13 +296,19 @@ u8 D_dryfield_warehouse_8017FBF8[12] = {
     0,
 };
 
-u8* D_dryfield_warehouse_8017FC04[3] = {
+u8* gDryfieldWarehouseRoomViewMaps[3] = {
     gViewIdentityMap,
-    D_dryfield_warehouse_8017FBEC,
-    D_dryfield_warehouse_8017FBF8,
+    _gDryfieldWarehouseAfterEventViewMap,
+    _gDryfieldWarehouseRoom3ViewMap,
 };
 
-ViewCount D_dryfield_warehouse_8017FC10[3] = { 9, 9, 9 };
+enum { DRYFIELD_WAREHOUSE_LOGICAL_VIEW_COUNT = 9 };
+
+ViewCount gDryfieldWarehouseRoomViewCounts[3] = {
+    DRYFIELD_WAREHOUSE_LOGICAL_VIEW_COUNT,
+    DRYFIELD_WAREHOUSE_LOGICAL_VIEW_COUNT,
+    DRYFIELD_WAREHOUSE_LOGICAL_VIEW_COUNT,
+};
 
 WorldCoordRoomLighting D_dryfield_warehouse_8017FC18[3] = {
     { D_dryfield_warehouse_801820E8, NULL },
@@ -301,86 +321,135 @@ DirectionWarpEntry D_dryfield_warehouse_8017FC30[2] = {
     { { { .word = 3072 }, 5437, 2, -1084 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4856, 2, -2146 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldWarehouseCollision02CE8Normals[7] = {
+/// Side length of every warehouse collision cell, in game-coordinate units.
+enum { DRYFIELD_WAREHOUSE_COLLISION_CELL_SIZE = 4000 };
+
+static SVECTOR _gDryfieldWarehouseBeforeEventCollisionGridNormals[7] = {
 #include "assets/dryfield_warehouse_collision_02CE8_normals.inc"
 };
 
-static SVECTOR _gDryfieldWarehouseCollision02CE8Verts[90] = {
+static SVECTOR _gDryfieldWarehouseBeforeEventCollisionGridVerts[90] = {
 #include "assets/dryfield_warehouse_collision_02CE8_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldWarehouseCollision02CE8Faces[50] = {
+static WorldCollisionGridFace _gDryfieldWarehouseBeforeEventCollisionGridFaces[50] = {
 #include "assets/dryfield_warehouse_collision_02CE8_faces.inc"
 };
 
-static s16 _gDryfieldWarehouseCollision02CE8Cells[80] = {
+static s16 _gDryfieldWarehouseBeforeEventCollisionGridCells[80] = {
 #include "assets/dryfield_warehouse_collision_02CE8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWarehouseCollision02CE8Cells[i])
-static s16* _gDryfieldWarehouseCollision02CE8Table[2] = {
+#define GRID_CELL(i) (&_gDryfieldWarehouseBeforeEventCollisionGridCells[i])
+static s16* _gDryfieldWarehouseBeforeEventCollisionGridTable[2] = {
 #include "assets/dryfield_warehouse_collision_02CE8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_warehouse_801802A8[1] = {
-    { NULL, _gDryfieldWarehouseCollision02CE8Normals, _gDryfieldWarehouseCollision02CE8Verts, _gDryfieldWarehouseCollision02CE8Faces, _gDryfieldWarehouseCollision02CE8Table, 0, 4000, 2, 1, 4000, 50 },
+/// Warehouse collision mesh for room 1, before the Monkey Wrench event.
+///
+/// Two X cells and one Z cell cover room coordinates from (0, -4000),
+/// with 4000 game units per side. Activation borrows this mesh and binds
+/// its view coordinate; keep the overlay loaded while it is active.
+static WorldCollisionGrid _gDryfieldWarehouseBeforeEventCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldWarehouseBeforeEventCollisionGridNormals,
+    .vertices    = _gDryfieldWarehouseBeforeEventCollisionGridVerts,
+    .faces       = _gDryfieldWarehouseBeforeEventCollisionGridFaces,
+    .cellFaceIds = _gDryfieldWarehouseBeforeEventCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 4000,
+    .cellCountX  = 2,
+    .cellCountZ  = 1,
+    .cellSize    = DRYFIELD_WAREHOUSE_COLLISION_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gDryfieldWarehouseBeforeEventCollisionGridFaces),
 };
 
-static SVECTOR _gDryfieldWarehouseCollision033ECNormals[7] = {
+static SVECTOR _gDryfieldWarehouseAfterEventCollisionGridNormals[7] = {
 #include "assets/dryfield_warehouse_collision_033EC_normals.inc"
 };
 
-static SVECTOR _gDryfieldWarehouseCollision033ECVerts[99] = {
+static SVECTOR _gDryfieldWarehouseAfterEventCollisionGridVerts[99] = {
 #include "assets/dryfield_warehouse_collision_033EC_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldWarehouseCollision033ECFaces[56] = {
+static WorldCollisionGridFace _gDryfieldWarehouseAfterEventCollisionGridFaces[56] = {
 #include "assets/dryfield_warehouse_collision_033EC_faces.inc"
 };
 
-static s16 _gDryfieldWarehouseCollision033ECCells[112] = {
+static s16 _gDryfieldWarehouseAfterEventCollisionGridCells[112] = {
 #include "assets/dryfield_warehouse_collision_033EC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWarehouseCollision033ECCells[i])
-static s16* _gDryfieldWarehouseCollision033ECTable[4] = {
+#define GRID_CELL(i) (&_gDryfieldWarehouseAfterEventCollisionGridCells[i])
+static s16* _gDryfieldWarehouseAfterEventCollisionGridTable[4] = {
 #include "assets/dryfield_warehouse_collision_033EC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_warehouse_801809AC[1] = {
-    { NULL, _gDryfieldWarehouseCollision033ECNormals, _gDryfieldWarehouseCollision033ECVerts, _gDryfieldWarehouseCollision033ECFaces, _gDryfieldWarehouseCollision033ECTable, 0, 4100, 2, 2, 4000, 56 },
+/// Warehouse collision mesh for room 2, after the Monkey Wrench event.
+///
+/// Two X cells and two Z cells cover room coordinates from (0, -4100),
+/// with 4000 game units per side. Activation borrows this mesh and binds
+/// its view coordinate; keep the overlay loaded while it is active.
+static WorldCollisionGrid _gDryfieldWarehouseAfterEventCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldWarehouseAfterEventCollisionGridNormals,
+    .vertices    = _gDryfieldWarehouseAfterEventCollisionGridVerts,
+    .faces       = _gDryfieldWarehouseAfterEventCollisionGridFaces,
+    .cellFaceIds = _gDryfieldWarehouseAfterEventCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 4100,
+    .cellCountX  = 2,
+    .cellCountZ  = 2,
+    .cellSize    = DRYFIELD_WAREHOUSE_COLLISION_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gDryfieldWarehouseAfterEventCollisionGridFaces),
 };
 
-static SVECTOR _gDryfieldWarehouseCollision03A78Normals[7] = {
+static SVECTOR _gDryfieldWarehouseRoom3CollisionGridNormals[7] = {
 #include "assets/dryfield_warehouse_collision_03A78_normals.inc"
 };
 
-static SVECTOR _gDryfieldWarehouseCollision03A78Verts[91] = {
+static SVECTOR _gDryfieldWarehouseRoom3CollisionGridVerts[91] = {
 #include "assets/dryfield_warehouse_collision_03A78_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldWarehouseCollision03A78Faces[52] = {
+static WorldCollisionGridFace _gDryfieldWarehouseRoom3CollisionGridFaces[52] = {
 #include "assets/dryfield_warehouse_collision_03A78_faces.inc"
 };
 
-static s16 _gDryfieldWarehouseCollision03A78Cells[108] = {
+static s16 _gDryfieldWarehouseRoom3CollisionGridCells[108] = {
 #include "assets/dryfield_warehouse_collision_03A78_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldWarehouseCollision03A78Cells[i])
-static s16* _gDryfieldWarehouseCollision03A78Table[4] = {
+#define GRID_CELL(i) (&_gDryfieldWarehouseRoom3CollisionGridCells[i])
+static s16* _gDryfieldWarehouseRoom3CollisionGridTable[4] = {
 #include "assets/dryfield_warehouse_collision_03A78_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_warehouse_80181038[1] = {
-    { NULL, _gDryfieldWarehouseCollision03A78Normals, _gDryfieldWarehouseCollision03A78Verts, _gDryfieldWarehouseCollision03A78Faces, _gDryfieldWarehouseCollision03A78Table, 0, 4100, 2, 2, 4000, 52 },
+/// Collision mesh for the third configured warehouse room.
+///
+/// Two X cells and two Z cells cover room coordinates from (0, -4100),
+/// with 4000 game units per side. Activation borrows this mesh and binds
+/// its view coordinate; keep the overlay loaded while it is active.
+/// The gameplay condition selecting room 3 is unproven.
+static WorldCollisionGrid _gDryfieldWarehouseRoom3CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldWarehouseRoom3CollisionGridNormals,
+    .vertices    = _gDryfieldWarehouseRoom3CollisionGridVerts,
+    .faces       = _gDryfieldWarehouseRoom3CollisionGridFaces,
+    .cellFaceIds = _gDryfieldWarehouseRoom3CollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 4100,
+    .cellCountX  = 2,
+    .cellCountZ  = 2,
+    .cellSize    = DRYFIELD_WAREHOUSE_COLLISION_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gDryfieldWarehouseRoom3CollisionGridFaces),
 };
 
-ViewCamera D_dryfield_warehouse_8018105C[9] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3000, 7700, 2000 } }, 230 },
+ViewCamera gDryfieldWarehouseViewCameras[9] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -3000, 7700, 2000 } }, 230 },
     { { { { -981, 0, 3976 }, { -168, 4092, -41 }, { -3972, -173, -981 } }, { -5338, 1066, 1266 } }, 207 },
     { { { { -832, 0, -4010 }, { -256, 4087, 53 }, { 4002, 262, -831 } }, { -288, 1366, 916 } }, 207 },
     { { { { 1114, 0, -3941 }, { -1359, 3844, -384 }, { 3699, 1413, 1046 } }, { -2338, 2116, 2216 } }, 257 },
@@ -391,93 +460,100 @@ ViewCamera D_dryfield_warehouse_8018105C[9] = {
     { { { { -832, 0, -4010 }, { -256, 4087, 53 }, { 4002, 262, -831 } }, { -288, 1366, 916 } }, 207 },
 };
 
-SpriteBatch D_dryfield_warehouse_801811A0[2] = {
+/// Texture placement and neutral modulation shared by the warehouse's foreground sprites.
+enum {
+    DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE  = getTPage(1, GPU_BLEND_AVERAGE, 960, 0), // 8-bit textures
+    DRYFIELD_WAREHOUSE_SPRITE_CLUT          = getClut(0, 255),
+    DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR = 128,
+};
+
+SpriteBatch gDryfieldWarehouseView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_warehouse_801811B0[21] = {
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, 16, 1012, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 8, 24, 1025, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 48 } }, -112, 64, 450, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, -160, 64, 425, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 56, 650, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 88, 480, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 104, 399, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 88, 64, 650, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, 80, 559, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 88, 32, 650, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 96, 64, 553, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 104, 80, 349, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 88, 481, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, 88, 346, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, 32, 616, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 144, 32, 564, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, 32, 521, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -160, 72, 612, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 96, 612, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, -160, 0, 600, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -160, 56, 612, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
+SpriteSource gDryfieldWarehouseView2SpriteSources[21] = {
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 16, 48 } }, -8, 16, 1012, { .fields = { 104, 0 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 32 } }, 8, 24, 1025, { .fields = { 48, 216 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 56, 48 } }, -112, 64, 450, { .fields = { 64, 168 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 48, 56 } }, -160, 64, 425, { .fields = { 80, 56 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 16 } }, 80, 56, 650, { .fields = { 80, 32 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 24 } }, 104, 88, 480, { .fields = { 96, 32 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 104, 399, { .fields = { 56, 40 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 32 } }, 88, 64, 650, { .fields = { 72, 64 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 16 } }, 96, 80, 559, { .fields = { 88, 32 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 48, 32 } }, 88, 32, 650, { .fields = { 80, 216 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 48, 16 } }, 96, 64, 553, { .fields = { 24, 72 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 48, 8 } }, 104, 80, 349, { .fields = { 80, 248 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 88, 481, { .fields = { 56, 56 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 32 } }, 128, 88, 346, { .fields = { 72, 0 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 32 } }, 136, 32, 616, { .fields = { 72, 32 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 48 } }, 144, 32, 564, { .fields = { 120, 168 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 56 } }, 152, 32, 521, { .fields = { 120, 0 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 56, 24 } }, -160, 72, 612, { .fields = { 16, 0 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, 96, 612, { .fields = { 40, 24 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 56, 56 } }, -160, 0, 600, { .fields = { 72, 112 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 56, 16 } }, -160, 56, 612, { .fields = { 24, 96 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_warehouse_80181354[6] = {
+SpriteBatch gDryfieldWarehouseView2SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 2, 0, 0, { 0, 0 } },
     { 4, 13, 0, 0, { 2, 0 } },
-    { 17, 4, 0, 0, { 1, 0 } },
+    { 17, ARRAY_SIZE(gDryfieldWarehouseView2SpriteSources) - 17, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_warehouse_80181384[25] = {
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 32, 962, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 32, 875, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, 48, 32, 825, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 32, 750, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 80, 600, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -120, 96, 550, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -88, 96, 550, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -120, 72, 550, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -88, 72, 550, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 72, 600, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 56, 625, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 56, 625, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 56, 700, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 40, 725, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, 40, 725, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 40, 725, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 32, 725, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -104, 24, 750, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 24, 750, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 32, 725, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 96, 48, 625, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 120, 48, 625, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 96, 16, 625, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 120, 16, 625, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 0, 625, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+SpriteSource gDryfieldWarehouseView3And6SpriteSources[25] = {
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 16, 32 } }, 56, 32, 962, { .fields = { 112, 200 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 16, 32 } }, 72, 32, 875, { .fields = { 112, 136 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 56, 40 } }, 48, 32, 825, { .fields = { 72, 0 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 8 } }, -56, 32, 750, { .fields = { 104, 224 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 8 } }, -48, 80, 600, { .fields = { 104, 160 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 24 } }, -120, 96, 550, { .fields = { 80, 136 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 24 } }, -88, 96, 550, { .fields = { 80, 200 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 24 } }, -120, 72, 550, { .fields = { 72, 40 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 24 } }, -88, 72, 550, { .fields = { 88, 232 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 24 } }, -56, 72, 600, { .fields = { 120, 232 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 40, 16 } }, -128, 56, 625, { .fields = { 56, 96 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 16 } }, -88, 56, 625, { .fields = { 72, 176 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, 56, 700, { .fields = { 88, 64 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 40, 16 } }, -128, 40, 725, { .fields = { 56, 80 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 16 } }, -88, 40, 725, { .fields = { 72, 160 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, 40, 725, { .fields = { 96, 104 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 24, 8 } }, -112, 32, 725, { .fields = { 80, 224 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 16, 8 } }, -104, 24, 750, { .fields = { 88, 192 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 16, 8 } }, -88, 24, 750, { .fields = { 80, 112 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 8 } }, -88, 32, 725, { .fields = { 56, 64 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 24, 32 } }, 96, 48, 625, { .fields = { 104, 168 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 32, 32 } }, 120, 48, 625, { .fields = { 96, 72 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 24, 32 } }, 96, 16, 625, { .fields = { 104, 104 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 24, 32 } }, 120, 16, 625, { .fields = { 104, 40 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, 0, 625, { .fields = { 88, 120 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_warehouse_80181578[6] = {
+SpriteBatch gDryfieldWarehouseView3And6SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 1, 0, 0, { 0, 0 } },
     { 3, 17, 0, 0, { 2, 0 } },
-    { 20, 5, 0, 0, { 1, 0 } },
+    { 20, ARRAY_SIZE(gDryfieldWarehouseView3And6SpriteSources) - 20, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_warehouse_801815A8[2] = {
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 80, 500, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -136, 96, 550, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
+SpriteSource gDryfieldWarehouseView4And7SpriteSources[2] = {
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 24, 40 } }, -160, 80, 500, { .fields = { 104, 0 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_WAREHOUSE_SPRITE_TEXTURE_PAGE, DRYFIELD_WAREHOUSE_SPRITE_CLUT, { .fields = { 24, 24 } }, -136, 96, 550, { .fields = { 104, 40 } }, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, DRYFIELD_WAREHOUSE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_warehouse_801815D0[3] = {
+SpriteBatch gDryfieldWarehouseView4And7SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 2, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(gDryfieldWarehouseView4And7SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_warehouse_801815E8[2] = {
+SpriteBatch gDryfieldWarehouseView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -963,34 +1039,34 @@ static void _dryfieldWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing
 
     // Generate the local XZ ring pair, then place each corner in camera space.
     for (angle = startAngle; angle < startAngle + angleStep * segmentCount; angle = nextAngle) {
-        block->vertices[0].vx = gGlowPrismCorners[firstRing].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[firstRing]) >> GLOW_TRIG_SHIFT);
+        block->vertices[0].vx = gGlowPrismCorners[firstRing].vx + ((rsin(angle) * _gDryfieldWarehouseBeamRadii[firstRing]) >> GLOW_TRIG_SHIFT);
         block->vertices[0].vy = gGlowPrismCorners[firstRing].vy;
-        block->vertices[0].vz = gGlowPrismCorners[firstRing].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[firstRing]) >> GLOW_TRIG_SHIFT);
+        block->vertices[0].vz = gGlowPrismCorners[firstRing].vz + ((rcos(angle) * _gDryfieldWarehouseBeamRadii[firstRing]) >> GLOW_TRIG_SHIFT);
         DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER(0);
         block->vertices[0].vx += coord->workm.t[0];
         block->vertices[0].vy += coord->workm.t[1];
         nextAngle              = angle + angleStep;
         block->vertices[0].vz += coord->workm.t[2];
 
-        block->vertices[1].vx = gGlowPrismCorners[firstRing].vx + ((rsin(nextAngle) * D_dryfield_warehouse_8017FBAC[firstRing]) >> GLOW_TRIG_SHIFT);
+        block->vertices[1].vx = gGlowPrismCorners[firstRing].vx + ((rsin(nextAngle) * _gDryfieldWarehouseBeamRadii[firstRing]) >> GLOW_TRIG_SHIFT);
         block->vertices[1].vy = gGlowPrismCorners[firstRing].vy;
-        block->vertices[1].vz = gGlowPrismCorners[firstRing].vz + ((rcos(nextAngle) * D_dryfield_warehouse_8017FBAC[firstRing]) >> GLOW_TRIG_SHIFT);
+        block->vertices[1].vz = gGlowPrismCorners[firstRing].vz + ((rcos(nextAngle) * _gDryfieldWarehouseBeamRadii[firstRing]) >> GLOW_TRIG_SHIFT);
         DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER(1);
         block->vertices[1].vx += coord->workm.t[0];
         block->vertices[1].vy += coord->workm.t[1];
         block->vertices[1].vz += coord->workm.t[2];
 
-        block->vertices[2].vx = gGlowPrismCorners[firstRing + 1].vx + ((rsin(angle) * D_dryfield_warehouse_8017FBAC[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        block->vertices[2].vx = gGlowPrismCorners[firstRing + 1].vx + ((rsin(angle) * _gDryfieldWarehouseBeamRadii[firstRing + 1]) >> GLOW_TRIG_SHIFT);
         block->vertices[2].vy = gGlowPrismCorners[firstRing + 1].vy;
-        block->vertices[2].vz = gGlowPrismCorners[firstRing + 1].vz + ((rcos(angle) * D_dryfield_warehouse_8017FBAC[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        block->vertices[2].vz = gGlowPrismCorners[firstRing + 1].vz + ((rcos(angle) * _gDryfieldWarehouseBeamRadii[firstRing + 1]) >> GLOW_TRIG_SHIFT);
         DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER(2);
         block->vertices[2].vx += coord->workm.t[0];
         block->vertices[2].vy += coord->workm.t[1];
         block->vertices[2].vz += coord->workm.t[2];
 
-        block->vertices[3].vx = gGlowPrismCorners[firstRing + 1].vx + ((rsin(nextAngle) * D_dryfield_warehouse_8017FBAC[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        block->vertices[3].vx = gGlowPrismCorners[firstRing + 1].vx + ((rsin(nextAngle) * _gDryfieldWarehouseBeamRadii[firstRing + 1]) >> GLOW_TRIG_SHIFT);
         block->vertices[3].vy = gGlowPrismCorners[firstRing + 1].vy;
-        block->vertices[3].vz = gGlowPrismCorners[firstRing + 1].vz + ((rcos(nextAngle) * D_dryfield_warehouse_8017FBAC[firstRing + 1]) >> GLOW_TRIG_SHIFT);
+        block->vertices[3].vz = gGlowPrismCorners[firstRing + 1].vz + ((rcos(nextAngle) * _gDryfieldWarehouseBeamRadii[firstRing + 1]) >> GLOW_TRIG_SHIFT);
         DRYFIELD_WAREHOUSE_ROTATE_BEAM_CORNER(3);
         block->vertices[3].vx += coord->workm.t[0];
         block->vertices[3].vy += coord->workm.t[1];

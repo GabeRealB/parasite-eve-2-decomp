@@ -58,13 +58,13 @@ SpriteBatch D_dryfield_warehouse_80181628[2] = {
 };
 
 SpriteView D_dryfield_warehouse_80181638[9] = {
-    { { .empty = D_dryfield_warehouse_801811A0 }, D_dryfield_warehouse_801811A0, NULL },
-    { { .elements = D_dryfield_warehouse_801811B0 }, D_dryfield_warehouse_80181354, NULL },
-    { { .elements = D_dryfield_warehouse_80181384 }, D_dryfield_warehouse_80181578, NULL },
-    { { .elements = D_dryfield_warehouse_801815A8 }, D_dryfield_warehouse_801815D0, NULL },
-    { { .empty = D_dryfield_warehouse_801815E8 }, D_dryfield_warehouse_801815E8, NULL },
-    { { .elements = D_dryfield_warehouse_80181384 }, D_dryfield_warehouse_80181578, NULL },
-    { { .elements = D_dryfield_warehouse_801815A8 }, D_dryfield_warehouse_801815D0, NULL },
+    { { .empty = gDryfieldWarehouseView1SpriteBatches }, gDryfieldWarehouseView1SpriteBatches, NULL },
+    { { .elements = gDryfieldWarehouseView2SpriteSources }, gDryfieldWarehouseView2SpriteBatches, NULL },
+    { { .elements = gDryfieldWarehouseView3And6SpriteSources }, gDryfieldWarehouseView3And6SpriteBatches, NULL },
+    { { .elements = gDryfieldWarehouseView4And7SpriteSources }, gDryfieldWarehouseView4And7SpriteBatches, NULL },
+    { { .empty = gDryfieldWarehouseView5SpriteBatches }, gDryfieldWarehouseView5SpriteBatches, NULL },
+    { { .elements = gDryfieldWarehouseView3And6SpriteSources }, gDryfieldWarehouseView3And6SpriteBatches, NULL },
+    { { .elements = gDryfieldWarehouseView4And7SpriteSources }, gDryfieldWarehouseView4And7SpriteBatches, NULL },
     { { .empty = D_dryfield_warehouse_80181618 }, D_dryfield_warehouse_80181618, NULL },
     { { .empty = D_dryfield_warehouse_80181628 }, D_dryfield_warehouse_80181628, NULL },
 };
