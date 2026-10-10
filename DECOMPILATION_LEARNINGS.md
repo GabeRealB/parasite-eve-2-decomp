@@ -92894,11 +92894,11 @@ reproduces the target exactly:
 
 ```c
 if (gGameSession->location.loc.view == DRYFIELD_G_R_KITCHEN_BRIGHT_BEAM_VIEW) {
-    _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[1], &D_dryfield_g_r_kitchen_8017EBE8[0], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
-    _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[3], &D_dryfield_g_r_kitchen_8017EBE8[2], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+    _glowDrawTaperedBeam(coord, &_gDryfieldGRKitchenLightBeamEndpoints[1], &_gDryfieldGRKitchenLightBeamEndpoints[0], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+    _glowDrawTaperedBeam(coord, &_gDryfieldGRKitchenLightBeamEndpoints[3], &_gDryfieldGRKitchenLightBeamEndpoints[2], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
 } else if (gGameSession->location.loc.view == DRYFIELD_G_R_KITCHEN_DIM_BEAM_VIEW) {
-    _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[4], &D_dryfield_g_r_kitchen_8017EBE8[5], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
-    _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[6], &D_dryfield_g_r_kitchen_8017EBE8[7], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+    _dryfieldGRKitchenDrawDimTaperedBeam(coord, &_gDryfieldGRKitchenLightBeamEndpoints[4], &_gDryfieldGRKitchenLightBeamEndpoints[5], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+    _dryfieldGRKitchenDrawDimTaperedBeam(coord, &_gDryfieldGRKitchenLightBeamEndpoints[6], &_gDryfieldGRKitchenLightBeamEndpoints[7], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
 }
 ```
 

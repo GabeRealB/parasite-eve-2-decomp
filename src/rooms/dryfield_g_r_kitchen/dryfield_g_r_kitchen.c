@@ -64,23 +64,12 @@ extern RoomEventReq gRoomEventReq;
 /// Descriptor of the event task `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// The room's message table, installed on the room task by its entry state.
-extern TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[];
-
-/// Endpoints of the two beams drawn in view 2. The code forms this address,
-/// but the table starts one entry earlier, so the beams run from `[0]` to
-/// `[-1]` and from `[2]` to `[1]`.
-
-/// Endpoints of the two beams drawn in view 3: `[0]` to `[1]` and `[2]` to
-/// `[3]`.
-
 static s32 _roomVariantGRKitchenMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
 static void _dryfieldGRKitchenInitRoomTask(Task* task);
 static void _dryfieldGRKitchenIdleRoomTask(Task* task);
 static void _dryfieldGRKitchenDrawDimTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale);
 
-// Indexed views below share one contiguous table.
 static s32 _dryfieldGRKitchenRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldGRKitchenIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandMode);
 static s32 _dryfieldGRKitchenIgnoreActionRequest(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -88,22 +77,32 @@ static s32 _dryfieldGRKitchenIgnoreActionRequest(Task* task, s32 messageId, cons
 /// Inventory request to use a key item in this room.
 enum { DRYFIELD_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-extern WorldCollisionGrid    D_dryfield_g_r_kitchen_8017EEC0[1];
-extern WorldCollisionTrigger D_dryfield_g_r_kitchen_8017F038[2];
-extern WorldCollisionTrigger D_dryfield_g_r_kitchen_8017F0D0[7];
-extern WorldCoordRoomLights  D_dryfield_g_r_kitchen_8017F464[1];
+static WorldCollisionGrid    _gDryfieldGRKitchenCollisionGrid;
+static WorldCollisionTrigger _gDryfieldGRKitchenViewBoundaryTriggers[2];
+static WorldCollisionTrigger _gDryfieldGRKitchenActionTriggers[7];
+static WorldCoordRoomLights  _gDryfieldGRKitchenRoomLights;
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[5] = {
+/// The room receiver's four message bindings and final unsupported-message marker.
+///
+/// Resolves departures, refuses key items and ignores action/command requests.
+/// Borrowed by the room task for its lifetime; never dispatch the end-marker ID.
+static const TaskMessageEntry _gDryfieldGRKitchenMessageTable[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGRKitchenMsg },
-    { DRYFIELD_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM, _dryfieldGRKitchenRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldGRKitchenRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldGRKitchenIgnoreActionRequest },
     { ROOM_MESSAGE_COMMAND, _dryfieldGRKitchenIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_dryfield_g_r_kitchen_8017EBE8[8] = {
+/// Local-space endpoints of the kitchen's four view-selected light beams.
+///
+/// Brighter view-2 beams run 1->0 and 3->2; dimmer view-3 beams run 4->5 and
+/// 6->7. XYZ uses the room coordinate's game units. Preserve endpoint order:
+/// it selects cap orientation, clipping and depth sorting. Each complete
+/// word-aligned SVECTOR is borrowed only during drawing.
+static const SVECTOR _gDryfieldGRKitchenLightBeamEndpoints[8] SECTION(".data") = {
     { -1473, -2181, 2023, 0 },
     { -1473, -2181, 2416, 0 },
     { -197, -2161, 2973, 0 },
@@ -114,121 +113,199 @@ SVECTOR D_dryfield_g_r_kitchen_8017EBE8[8] = {
     { 70, -2790, 370, 0 },
 };
 
-WorldCollisionRoomResources D_dryfield_g_r_kitchen_8017EC28[1] = {
-    { D_dryfield_g_r_kitchen_8017EEC0, D_dryfield_g_r_kitchen_8017F038, D_dryfield_g_r_kitchen_8017F0D0, NULL },
+WorldCollisionRoomResources gDryfieldGRKitchenRoomCollisionResources[1] = {
+    { &_gDryfieldGRKitchenCollisionGrid, _gDryfieldGRKitchenViewBoundaryTriggers, _gDryfieldGRKitchenActionTriggers, NULL },
 };
 
-u8* D_dryfield_g_r_kitchen_8017EC38[1] = {
+u8* gDryfieldGRKitchenViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_g_r_kitchen_8017EC3C[1] = { 3 };
+ViewCount gDryfieldGRKitchenViewCounts[1] = { DRYFIELD_G_R_KITCHEN_VIEW_COUNT };
 
-WorldCoordRoomLighting D_dryfield_g_r_kitchen_8017EC40[1] = {
-    { D_dryfield_g_r_kitchen_8017F464, NULL },
+WorldCoordRoomLighting gDryfieldGRKitchenRoomLighting[1] = {
+    { &_gDryfieldGRKitchenRoomLights, NULL },
 };
 
-DirectionWarpEntry D_dryfield_g_r_kitchen_8017EC48[2] = {
-    { { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, 0x52130002, 0x52130001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 478 },
-    { { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 2512 }, { 0, 0, 0, 0 }, 0x52130002, 0x52130001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 477 },
+/// Door sounds, map-marker IDs, and packed departure/arrival warp slots.
+enum {
+    DRYFIELD_G_R_KITCHEN_ARRIVAL_SOUND          = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_G_R_KITCHEN, 2),
+    DRYFIELD_G_R_KITCHEN_DEPARTURE_SOUND        = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_G_R_KITCHEN, 1),
+    DRYFIELD_G_R_KITCHEN_SALOON_MAP_FLAG        = 478,
+    DRYFIELD_G_R_KITCHEN_WATER_TOWER_MAP_FLAG   = 477,
+    DRYFIELD_G_R_KITCHEN_SALOON_WARP_SLOTS      = (1 << 4) | 2,
+    DRYFIELD_G_R_KITCHEN_WATER_TOWER_WARP_SLOTS = (2 << 4) | 1,
 };
 
-static SVECTOR _gDryfieldGRKitchenCollision01900Normals[6] = {
+DirectionWarpEntry gDryfieldGRKitchenWarpEntries[2] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -1168, 0, 2135 }, { 0, 0, 0, 0 }, DRYFIELD_G_R_KITCHEN_ARRIVAL_SOUND, DRYFIELD_G_R_KITCHEN_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DRYFIELD_G_R_KITCHEN_SALOON_MAP_FLAG },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0, 0, 2512 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0, 0, 2512 }, { 0, 0, 0, 0 }, DRYFIELD_G_R_KITCHEN_ARRIVAL_SOUND, DRYFIELD_G_R_KITCHEN_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DRYFIELD_G_R_KITCHEN_WATER_TOWER_MAP_FLAG },
+};
+
+/// Room-grid normal pool; six vectors with 4096 representing unit length.
+static SVECTOR _gDryfieldGRKitchenCollisionGridNormals[6] = {
 #include "assets/dryfield_g_r_kitchen_collision_01900_normals.inc"
 };
 
-static SVECTOR _gDryfieldGRKitchenCollision01900Verts[26] = {
+/// Room-grid vertex pool; 26 signed-halfword positions in room-local game units.
+static SVECTOR _gDryfieldGRKitchenCollisionGridVerts[26] = {
 #include "assets/dryfield_g_r_kitchen_collision_01900_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldGRKitchenCollision01900Faces[16] = {
+/// Sixteen room-grid quads indexing the vertex/normal pools and surface classes 0/1.
+static WorldCollisionGridFace _gDryfieldGRKitchenCollisionGridFaces[16] = {
 #include "assets/dryfield_g_r_kitchen_collision_01900_faces.inc"
 };
 
-static s16 _gDryfieldGRKitchenCollision01900Cells[32] = {
+/// Two terminated face-index lists in the grid's retained 32-halfword storage.
+///
+/// The lists start at 0 and 18 and end at 16 and 31; entry 17 is an unreferenced
+/// authored zero. Their indices stay within the 16-face pool.
+static s16 _gDryfieldGRKitchenCollisionGridCells[32] = {
 #include "assets/dryfield_g_r_kitchen_collision_01900_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldGRKitchenCollision01900Cells[i])
-static s16* _gDryfieldGRKitchenCollision01900Table[2] = {
+#define GRID_CELL(i) (&_gDryfieldGRKitchenCollisionGridCells[i])
+/// X-major pointers to the grid's two Z-cell face lists.
+static s16* _gDryfieldGRKitchenCollisionGridTable[2] = {
 #include "assets/dryfield_g_r_kitchen_collision_01900_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_g_r_kitchen_8017EEC0[1] = {
-    { NULL, _gDryfieldGRKitchenCollision01900Normals, _gDryfieldGRKitchenCollision01900Verts, _gDryfieldGRKitchenCollision01900Faces, _gDryfieldGRKitchenCollision01900Table, 1800, 3000, 1, 2, 4000, 16 },
+/// Kitchen floor/wall collision mesh, indexed by one X cell and two Z cells.
+///
+/// The origin is (-1800, -3000) in room X/Z and cells span 4000 game units.
+/// Room activation binds the view coordinate; the mutable mesh pools and cell
+/// lists remain borrowed with the grid until this overlay is unloaded.
+static WorldCollisionGrid _gDryfieldGRKitchenCollisionGrid = {
+    NULL,
+    _gDryfieldGRKitchenCollisionGridNormals,
+    _gDryfieldGRKitchenCollisionGridVerts,
+    _gDryfieldGRKitchenCollisionGridFaces,
+    _gDryfieldGRKitchenCollisionGridTable,
+    1800,
+    3000,
+    1,
+    ARRAY_SIZE(_gDryfieldGRKitchenCollisionGridTable),
+    4000,
+    ARRAY_SIZE(_gDryfieldGRKitchenCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_g_r_kitchen_8017EEE4[3] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 1053 },
+ViewCamera gDryfieldGRKitchenViewCameras[DRYFIELD_G_R_KITCHEN_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 30000, 0 } }, 1053 },
     { { { { 3955, 0, 1064 }, { 591, 3405, -2198 }, { -885, 2276, 3288 } }, { -400, 2700, 1000 } }, 230 },
     { { { { -3988, 0, 933 }, { -276, 3911, -1183 }, { -891, -1215, -3808 } }, { -500, 400, -2700 } }, 230 },
 };
 
-SpriteBatch D_dryfield_g_r_kitchen_8017EF50[2] = {
+/// Empty view-1 sprite list: keep decoded background strips, then stop.
+static SpriteBatch _gDryfieldGRKitchenView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_g_r_kitchen_8017EF60[7] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, -88, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -120, -40, 675, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -112, -16, 725, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -104, 0, 750, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -96, 16, 750, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -56, 32, 700, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -88, 40, 675, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+/// View-2 sprite texture addresses and neutral modulation for opaque emission.
+enum {
+    DRYFIELD_G_R_KITCHEN_VIEW2_TEXTURE_PAGE      = getTPage(1, 0, 960, 0), // 8-bit texture at VRAM (960, 0)
+    DRYFIELD_G_R_KITCHEN_VIEW2_PALETTE           = getClut(0, 255),
+    DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR    = 128,
+    DRYFIELD_G_R_KITCHEN_SPRITE_OPAQUE_MODULATED = 0,
 };
 
-SpriteBatch D_dryfield_g_r_kitchen_8017EFEC[3] = {
+/// View 2's seven depth-sorted texture rectangles in drawing-origin pixels.
+///
+/// Uses the view's texture page and row-255 palette with neutral modulation.
+/// Mutable source geometry and depths are borrowed by sprite packet builders.
+static SpriteSource _gDryfieldGRKitchenView2Sprites[7] = {
+    { DRYFIELD_G_R_KITCHEN_VIEW2_TEXTURE_PAGE, DRYFIELD_G_R_KITCHEN_VIEW2_PALETTE, { .fields = { 48, 48 } }, -136, -88, 625, { .fields = { 80, 0 } }, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_G_R_KITCHEN_VIEW2_TEXTURE_PAGE, DRYFIELD_G_R_KITCHEN_VIEW2_PALETTE, { .fields = { 40, 24 } }, -120, -40, 675, { .fields = { 88, 152 } }, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_G_R_KITCHEN_VIEW2_TEXTURE_PAGE, DRYFIELD_G_R_KITCHEN_VIEW2_PALETTE, { .fields = { 40, 16 } }, -112, -16, 725, { .fields = { 88, 176 } }, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_G_R_KITCHEN_VIEW2_TEXTURE_PAGE, DRYFIELD_G_R_KITCHEN_VIEW2_PALETTE, { .fields = { 40, 16 } }, -104, 0, 750, { .fields = { 88, 192 } }, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_G_R_KITCHEN_VIEW2_TEXTURE_PAGE, DRYFIELD_G_R_KITCHEN_VIEW2_PALETTE, { .fields = { 40, 24 } }, -96, 16, 750, { .fields = { 88, 128 } }, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_G_R_KITCHEN_VIEW2_TEXTURE_PAGE, DRYFIELD_G_R_KITCHEN_VIEW2_PALETTE, { .fields = { 24, 40 } }, -56, 32, 700, { .fields = { 104, 88 } }, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_OPAQUE_MODULATED },
+    { DRYFIELD_G_R_KITCHEN_VIEW2_TEXTURE_PAGE, DRYFIELD_G_R_KITCHEN_VIEW2_PALETTE, { .fields = { 32, 40 } }, -88, 40, 675, { .fields = { 96, 48 } }, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_NEUTRAL_COLOR, DRYFIELD_G_R_KITCHEN_SPRITE_OPAQUE_MODULATED },
+};
+
+/// View 2 keeps decoded background strips, draws all seven sprites, then stops.
+static SpriteBatch _gDryfieldGRKitchenView2SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldGRKitchenView2Sprites), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_g_r_kitchen_8017F004[2] = {
+/// Empty view-3 sprite list: keep decoded background strips, then stop.
+static SpriteBatch _gDryfieldGRKitchenView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_g_r_kitchen_8017F014[3] = {
-    { { .empty = D_dryfield_g_r_kitchen_8017EF50 }, D_dryfield_g_r_kitchen_8017EF50, NULL },
-    { { .elements = D_dryfield_g_r_kitchen_8017EF60 }, D_dryfield_g_r_kitchen_8017EFEC, NULL },
-    { { .empty = D_dryfield_g_r_kitchen_8017F004 }, D_dryfield_g_r_kitchen_8017F004, NULL },
+SpriteView gDryfieldGRKitchenSpriteViews[DRYFIELD_G_R_KITCHEN_VIEW_COUNT] = {
+    { { .empty = _gDryfieldGRKitchenView1SpriteBatches }, _gDryfieldGRKitchenView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldGRKitchenView2Sprites }, _gDryfieldGRKitchenView2SpriteBatches, NULL },
+    { { .empty = _gDryfieldGRKitchenView3SpriteBatches }, _gDryfieldGRKitchenView3SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_g_r_kitchen_8017F038[2] = {
-    { NULL, NULL, NULL, { -2, -1167, 381, 0 }, { { 1974, -1520, 391, 0 }, { -1973, -1520, -390, 0 }, { 1974, 1520, 391, 0 }, { -1973, 1520, -390, 0 } }, { -796, 0, 4017, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1, -1152, 479, 0 }, { { -1973, -1520, -390, 0 }, { 1974, -1520, 391, 0 }, { -1973, 1520, -390, 0 }, { 1974, 1520, 391, 0 } }, { 794, 0, -4019, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed view boundaries 2->3 and 3->2, including the LAST-marked second quad.
+///
+/// Origins and relative vertices use room-local game units; normals use `ONE`
+/// per unit. Room setup supplies coordinates, list links and enable flags.
+/// Writable records must stay loaded until the view-boundary list is cleared.
+static WorldCollisionTrigger _gDryfieldGRKitchenViewBoundaryTriggers[2] = {
+    { NULL, NULL, NULL, { -2, -1167, 381, 0 }, { { 1974, -1520, 391, 0 }, { -1973, -1520, -390, 0 }, { 1974, 1520, 391, 0 }, { -1973, 1520, -390, 0 } }, { -796, 0, 4017, 0 }, { 0, 0, ONE, 0 }, 2521, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1, -1152, 479, 0 }, { { -1973, -1520, -390, 0 }, { 1974, -1520, 391, 0 }, { -1973, 1520, -390, 0 }, { 1974, 1520, 391, 0 } }, { 794, 0, -4019, 0 }, { 0, 0, ONE, 0 }, 2521, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_g_r_kitchen_8017F0D0[7] = {
-    { NULL, NULL, NULL, { -1248, -48, 2336, 0 }, { { -320, 0, -576, 0 }, { 320, 0, -576, 0 }, { -320, 0, 576, 0 }, { 320, 0, 576, 0 } }, { 0, 4104, 0, 0 }, { 4096, 0, 0, 0 }, 658, WORLD_COLLISION_TRIGGER_ACTION_WARP, 18, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 96, -48, 2784, 0 }, { { 736, 0, -320, 0 }, { 736, 0, 320, 0 }, { -736, 0, -320, 0 }, { -736, 0, 320, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -640, -64, -415, 0 }, { { -320, 0, -576, 0 }, { 320, 0, -576, 0 }, { -320, 0, 576, 0 }, { 320, 0, 576, 0 } }, { 0, 4104, 0, 0 }, { 4096, 0, 0, 0 }, 658, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Two door warps followed by five CAP interactions, all requiring facing-quad contact.
+///
+/// Warps use kitchen departure slots 1/2 and saloon/water-tower arrival slots
+/// 2/1. CAP slots are 2, 1, 6, 5 and 4 with zero presentation flags. The final
+/// record carries LAST and participates in the list. Geometry is room-local;
+/// runtime binding, links, flags and hit latches stay writable while loaded.
+static WorldCollisionTrigger _gDryfieldGRKitchenActionTriggers[7] = {
+    { NULL, NULL, NULL, { -1248, -48, 2336, 0 }, { { -320, 0, -576, 0 }, { 320, 0, -576, 0 }, { -320, 0, 576, 0 }, { 320, 0, 576, 0 } }, { 0, 4104, 0, 0 }, { ONE, 0, 0, 0 }, 658, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_SALOON_G_R, DRYFIELD_G_R_KITCHEN_SALOON_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 96, -48, 2784, 0 }, { { 736, 0, -320, 0 }, { 736, 0, 320, 0 }, { -736, 0, -320, 0 }, { -736, 0, 320, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -ONE, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_WATER_TOWER, DRYFIELD_G_R_KITCHEN_WATER_TOWER_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -640, -64, -415, 0 }, { { -320, 0, -576, 0 }, { 320, 0, -576, 0 }, { -320, 0, 576, 0 }, { 320, 0, 576, 0 } }, { 0, 4104, 0, 0 }, { ONE, 0, 0, 0 }, 658, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 416, -64, -2400, 0 }, { { -608, 0, -576, 0 }, { 608, 0, -576, 0 }, { -608, 0, 576, 0 }, { 608, 0, 576, 0 } }, { 0, 4099, 0, 0 }, { -401, 0, 4076, 0 }, 836, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -544, -64, 944, 0 }, { { -320, 0, -592, 0 }, { 320, 0, -592, 0 }, { -320, 0, 592, 0 }, { 320, 0, 592, 0 } }, { 0, 4106, 0, 0 }, { 4096, 0, 0, 0 }, 671, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -640, -64, -1696, 0 }, { { -320, 0, -592, 0 }, { 320, 0, -592, 0 }, { -320, 0, 592, 0 }, { 320, 0, 592, 0 } }, { 0, 4106, 0, 0 }, { 4096, 0, 0, 0 }, 671, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 736, -64, -1024, 0 }, { { -416, 0, -1232, 0 }, { 416, 0, -1232, 0 }, { -416, 0, 1232, 0 }, { 416, 0, 1232, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { -544, -64, 944, 0 }, { { -320, 0, -592, 0 }, { 320, 0, -592, 0 }, { -320, 0, 592, 0 }, { 320, 0, 592, 0 } }, { 0, 4106, 0, 0 }, { ONE, 0, 0, 0 }, 671, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -640, -64, -1696, 0 }, { { -320, 0, -592, 0 }, { 320, 0, -592, 0 }, { -320, 0, 592, 0 }, { 320, 0, 592, 0 } }, { 0, 4106, 0, 0 }, { ONE, 0, 0, 0 }, 671, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 736, -64, -1024, 0 }, { { -416, 0, -1232, 0 }, { 416, 0, -1232, 0 }, { -416, 0, 1232, 0 }, { 416, 0, 1232, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_g_r_kitchen_8017F2E4[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2400, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 3200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1800, 2800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3686, 3686 }, { 0, 0 } }, 300, 1200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1300, -1800, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3686, 3686 }, { 0, 0 } }, 300, 1200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 0x186A0, 0x186A0 },
+/// Four white point lights contributing in every view, with mutable transform caches.
+///
+/// Positions and inner/outer falloff radii use room game units; RGB has 12
+/// fractional bits. The fourth light has equal 100000-unit radii. Room-light
+/// updates bind the view parent and shading overwrites attenuation.
+static WorldCoordPointLight _gDryfieldGRKitchenPointLights[4] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2400, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 1000, 3200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1800, 2800 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3686, 3686 }, { 0, 0 } }, 300, 1200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1300, -1800, 2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3686, 3686 }, { 0, 0 } }, 300, 1200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, 1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 100000, 100000 },
 };
 
-WorldCoordRoomLights D_dryfield_g_r_kitchen_8017F464[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_g_r_kitchen_8017F2E4), D_dryfield_g_r_kitchen_8017F2E4, 0, NULL },
+/// The kitchen's four mutable point lights, with no directional or cone sources.
+static WorldCoordRoomLights _gDryfieldGRKitchenRoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gDryfieldGRKitchenPointLights),
+    _gDryfieldGRKitchenPointLights,
+    0,
+    NULL,
 };
 
-AreaResource D_dryfield_g_r_kitchen_8017F47C[2] = {
+/// Variant 1's Mind Suckler file and spawn descriptor, followed by the resource terminator.
+///
+/// Placement key 15 selects decimal actor file 101500 and its first task
+/// descriptor. The borrowed actor overlay must be loaded before spawning.
+static AreaResource _gDryfieldGRKitchenVariant1Resources[2] = {
     { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_g_r_kitchen_8017F494[3] = {
+/// Variant 2's Mind Suckler and rat resources, followed by the resource terminator.
+///
+/// Placement keys 15/7 select decimal files 101500/200700 and their first task
+/// descriptors. The borrowed actor overlays must be loaded before spawning.
+static AreaResource _gDryfieldGRKitchenVariant2Resources[3] = {
     { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor200700RatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -236,8 +313,8 @@ AreaResource D_dryfield_g_r_kitchen_8017F494[3] = {
 
 AreaVariant D_dryfield_g_r_kitchen_8017F4B8[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B474, D_dryfield_g_r_kitchen_8017F47C },
-    { D_map_dryfield_8017B4B4, D_dryfield_g_r_kitchen_8017F494 },
+    { D_map_dryfield_8017B474, _gDryfieldGRKitchenVariant1Resources },
+    { D_map_dryfield_8017B4B4, _gDryfieldGRKitchenVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -250,29 +327,49 @@ AreaVariant D_dryfield_g_r_kitchen_8017F4B8[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_dryfield_g_r_kitchen_8017F520 = {
-    0x10000035,
-    0x10000037,
-    0x10000035,
+/// Cue-2 bases in the loaded type-1 footstep bank; cue 1 uses the next entry.
+enum {
+    DRYFIELD_G_R_KITCHEN_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x35,
+    DRYFIELD_G_R_KITCHEN_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x37,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_g_r_kitchen_8017F52C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 1's walking, running and scripted stair-climb footstep bases.
+///
+/// Walking/stair climbing share entries 0x35/0x36; running uses 0x37/0x38. Companion
+/// playback adds 100 to the entry. Borrowed without modification while loaded.
+static const WorldCollisionFootstepSounds _gDryfieldGRKitchenClass1FootstepSounds SECTION(".data") = {
+    DRYFIELD_G_R_KITCHEN_WALK_SOUND,
+    DRYFIELD_G_R_KITCHEN_RUN_SOUND,
+    DRYFIELD_G_R_KITCHEN_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_g_r_kitchen_8017F534[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_g_r_kitchen_8017F520 },
+/// Classes 0 and 2..7 block probes, allow weapon impacts and apply pushback without footsteps.
+static WorldCollisionSurfaceProperties _gDryfieldGRKitchenSilentSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_g_r_kitchen_8017F53C[8] = {
-    D_dryfield_g_r_kitchen_8017F52C,
-    D_dryfield_g_r_kitchen_8017F534,
-    D_dryfield_g_r_kitchen_8017F52C,
-    D_dryfield_g_r_kitchen_8017F52C,
-    D_dryfield_g_r_kitchen_8017F52C,
-    D_dryfield_g_r_kitchen_8017F52C,
-    D_dryfield_g_r_kitchen_8017F52C,
-    D_dryfield_g_r_kitchen_8017F52C,
+/// Class 1 blocks probes, allows weapon impacts and applies pushback with footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldGRKitchenClass1SurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gDryfieldGRKitchenClass1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldGRKitchenSurfacePropertiesByClass[8] = {
+    &_gDryfieldGRKitchenSilentSurfaceProperties,
+    &_gDryfieldGRKitchenClass1SurfaceProperties,
+    &_gDryfieldGRKitchenSilentSurfaceProperties,
+    &_gDryfieldGRKitchenSilentSurfaceProperties,
+    &_gDryfieldGRKitchenSilentSurfaceProperties,
+    &_gDryfieldGRKitchenSilentSurfaceProperties,
+    &_gDryfieldGRKitchenSilentSurfaceProperties,
+    &_gDryfieldGRKitchenSilentSurfaceProperties,
 };
 
 /// Snapshot of the accepted transition for the deferred room event.
@@ -290,11 +387,11 @@ RoomEventReq gRoomEventReq;
 
 #include "../../shared/room_event_task.inc.c"
 
-/// The room task's three-state table, run from a stack copy by
-/// `dryfieldGRKitchenRoomTask`: the entry state
-/// `_dryfieldGRKitchenInitRoomTask`, the idle state
-/// `_dryfieldGRKitchenIdleRoomTask`, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_g_r_kitchen_8017D5DC = {
+/// Room-task states 0 (register receiver), 1 (idle) and 2 (kill).
+///
+/// Copied to the dispatcher's stack before indexing by the live task state;
+/// the state must stay within these three slots while this overlay is loaded.
+static const TaskFuncTable3 _gDryfieldGRKitchenRoomTaskStates = {
     { _dryfieldGRKitchenInitRoomTask, _dryfieldGRKitchenIdleRoomTask, taskKill },
 };
 
@@ -335,7 +432,7 @@ static s32 _dryfieldGRKitchenIgnoreActionRequest(Task* task, s32 messageId, cons
 /// borrowed for the room task's lifetime.
 static void _dryfieldGRKitchenInitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_g_r_kitchen_8017EBC0;
+    task->msgTable = _gDryfieldGRKitchenMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state += 1;
 }
@@ -352,7 +449,7 @@ void dryfieldGRKitchenRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_g_r_kitchen_8017D5DC;
+    stateHandlers = _gDryfieldGRKitchenRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -497,10 +594,10 @@ void dryfieldGRKitchenDrawLightBeamsTask(Task* task)
     coord = task->extra.coordBody->coord;
     // Endpoint order controls cap orientation, clipping and band sorting.
     if (gGameSession->location.loc.view == DRYFIELD_G_R_KITCHEN_BRIGHT_BEAM_VIEW) {
-        _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[1], &D_dryfield_g_r_kitchen_8017EBE8[0], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
-        _glowDrawTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[3], &D_dryfield_g_r_kitchen_8017EBE8[2], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+        _glowDrawTaperedBeam(coord, &_gDryfieldGRKitchenLightBeamEndpoints[1], &_gDryfieldGRKitchenLightBeamEndpoints[0], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+        _glowDrawTaperedBeam(coord, &_gDryfieldGRKitchenLightBeamEndpoints[3], &_gDryfieldGRKitchenLightBeamEndpoints[2], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
     } else if (gGameSession->location.loc.view == DRYFIELD_G_R_KITCHEN_DIM_BEAM_VIEW) {
-        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[4], &D_dryfield_g_r_kitchen_8017EBE8[5], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
-        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &D_dryfield_g_r_kitchen_8017EBE8[6], &D_dryfield_g_r_kitchen_8017EBE8[7], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &_gDryfieldGRKitchenLightBeamEndpoints[4], &_gDryfieldGRKitchenLightBeamEndpoints[5], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
+        _dryfieldGRKitchenDrawDimTaperedBeam(coord, &_gDryfieldGRKitchenLightBeamEndpoints[6], &_gDryfieldGRKitchenLightBeamEndpoints[7], DRYFIELD_G_R_KITCHEN_BEAM_RADIUS_SCALE);
     }
 }
