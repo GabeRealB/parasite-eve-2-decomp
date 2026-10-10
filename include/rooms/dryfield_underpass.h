@@ -11,16 +11,35 @@
 
 #include "main/task_types.h"
 
+/// Extents of the underpass's room directories and collision-surface directory.
+enum {
+    DRYFIELD_UNDERPASS_ROOM_COUNT          = 6,
+    DRYFIELD_UNDERPASS_SURFACE_CLASS_COUNT = 8,
+};
+
 extern AreaVariant D_dryfield_underpass_8017F868[13];
 
 // dryfield_underpass
 extern WorldCollisionRoomResources D_dryfield_underpass_8017EB20[];
 
-extern u8* D_dryfield_underpass_8017EBBC[];
+/// Logical-view maps for underpass rooms 1..6, indexed by room minus one.
+///
+/// Each byte at view minus one selects a 1-based camera, image and sprite view.
+/// Room 1 borrows the gameplay identity map for 26 views; rooms 2..6 each use
+/// eleven entries of a twelve-byte room-owned map. The retained final zero is
+/// outside those logical-view ranges, not a terminator. Borrowed room maps
+/// remain valid only while the underpass overlay is loaded.
+extern u8* gDryfieldUnderpassRoomViewMaps[DRYFIELD_UNDERPASS_ROOM_COUNT];
 
 extern ViewCount D_dryfield_underpass_8017EBD4[];
 
-extern WorldCoordRoomLighting D_dryfield_underpass_8017EBE0[];
+/// Light collections for underpass rooms 1..6, indexed by room minus one.
+///
+/// Rooms 2 and 4 use the alternate six-point collection; the other rooms use
+/// nine points. All entries use the default ambient minima. Gameplay borrows
+/// the records and mutates light transforms and attenuation while this overlay
+/// is loaded; no pointers may survive unloading it.
+extern WorldCoordRoomLighting gDryfieldUnderpassRoomLighting[DRYFIELD_UNDERPASS_ROOM_COUNT];
 
 extern DirectionWarpEntry D_dryfield_underpass_8017EC10[];
 
@@ -28,7 +47,13 @@ extern ViewCamera D_dryfield_underpass_8017F4A8[];
 
 extern SpriteView D_dryfield_underpass_80180250[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_underpass_80181164[];
+/// Underpass collision and footstep properties indexed by surface class 0..7.
+///
+/// Every class blocks probes, accepts weapon impacts and applies pushback.
+/// Classes 3 and 4 supply distinct footstep cue sets; the other classes are
+/// silent. Class 2 retains its own record despite matching the default values
+/// used by classes 0, 1 and 5..7. The loaded room overlay owns all records.
+extern WorldCollisionSurfaceProperties* gDryfieldUnderpassSurfacePropertiesByClass[DRYFIELD_UNDERPASS_SURFACE_CLASS_COUNT];
 
 /// Draws the underpass's local-space flares for the current view.
 ///

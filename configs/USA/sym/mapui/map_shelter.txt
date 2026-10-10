@@ -232,7 +232,7 @@ gShelterB2PodBottomSurfaceProperties = 0x80188770; // absolute:True owner=shelte
 shelterB1PodServiceGantryRoomTask = 0x8017D89C; // type:func absolute:True owner=shelter_b1_pod_service_gantry
 D_shelter_b1_pod_service_gantry_8017FB1C = 0x8017FB1C; // absolute:True owner=shelter_b1_pod_service_gantry
 D_shelter_b1_pod_service_gantry_8017FB20 = 0x8017FB20; // absolute:True owner=shelter_b1_pod_service_gantry
-D_shelter_b1_pod_service_gantry_8017FB24 = 0x8017FB24; // absolute:True owner=shelter_b1_pod_service_gantry shared=rooms
+D_shelter_b1_pod_service_gantry_8017FB24 = 0x8017FB24; // absolute:True owner=shelter_b1_pod_service_gantry
 D_shelter_b1_pod_service_gantry_801801C4 = 0x801801C4; // absolute:True owner=shelter_b1_pod_service_gantry
 D_shelter_b1_pod_service_gantry_801801E8 = 0x801801E8; // absolute:True owner=shelter_b1_pod_service_gantry
 D_shelter_b1_pod_service_gantry_80181BA0 = 0x80181BA0; // absolute:True owner=shelter_b1_pod_service_gantry

@@ -37,6 +37,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -59,13 +60,13 @@ extern EvsCommand       D_dryfield_underpass_8017E8D8[];
 extern SVECTOR          D_dryfield_underpass_8017EAD0[8];
 extern s16              D_dryfield_underpass_8017EB10[8];
 
-extern WorldCollisionGrid     D_dryfield_underpass_8017F484[1];
+static WorldCollisionGrid     _gDryfieldUnderpassCollisionGrid;
 extern WorldCollisionOccluder D_dryfield_underpass_80180AA8[3];
 extern WorldCollisionTrigger  D_dryfield_underpass_80180388[16];
 extern WorldCollisionTrigger  D_dryfield_underpass_80180848[2];
 extern WorldCollisionTrigger  D_dryfield_underpass_801808E0[6];
-extern WorldCoordRoomLights   D_dryfield_underpass_80180EBC[1];
-extern WorldCoordRoomLights   D_dryfield_underpass_80181114[1];
+static WorldCoordRoomLights   _gDryfieldUnderpassDefaultRoomLights;
+static WorldCoordRoomLights   _gDryfieldUnderpassAlternateRoomLights;
 
 extern AnimationPlayRequest     D_dryfield_underpass_8017E870;
 extern AnimationPlayRequest     D_dryfield_underpass_8017E884;
@@ -212,15 +213,16 @@ s16 D_dryfield_underpass_8017EB10[8] = {
 };
 
 WorldCollisionRoomResources D_dryfield_underpass_8017EB20[6] = {
-    { D_dryfield_underpass_8017F484, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { D_dryfield_underpass_8017F484, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { D_dryfield_underpass_8017F484, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { D_dryfield_underpass_8017F484, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { D_dryfield_underpass_8017F484, D_dryfield_underpass_80180848, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
-    { D_dryfield_underpass_8017F484, D_dryfield_underpass_80180848, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
+    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
+    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
+    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
+    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180388, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
+    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180848, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
+    { &_gDryfieldUnderpassCollisionGrid, D_dryfield_underpass_80180848, D_dryfield_underpass_801808E0, D_dryfield_underpass_80180AA8 },
 };
 
-u8 D_dryfield_underpass_8017EB80[12] = {
+/// Room 2's eleven logical-view resource indices, followed by a retained zero byte.
+static u8 _gDryfieldUnderpassRoom2ViewMap[12] = {
     1,
     12,
     13,
@@ -235,7 +237,8 @@ u8 D_dryfield_underpass_8017EB80[12] = {
     0,
 };
 
-u8 D_dryfield_underpass_8017EB8C[12] = {
+/// Room 3's eleven logical-view resource indices, followed by a retained zero byte.
+static u8 _gDryfieldUnderpassRoom3ViewMap[12] = {
     1,
     11,
     3,
@@ -250,7 +253,8 @@ u8 D_dryfield_underpass_8017EB8C[12] = {
     0,
 };
 
-u8 D_dryfield_underpass_8017EB98[12] = {
+/// Room 4's eleven logical-view resource indices, followed by a retained zero byte.
+static u8 _gDryfieldUnderpassRoom4ViewMap[12] = {
     1,
     21,
     13,
@@ -265,7 +269,8 @@ u8 D_dryfield_underpass_8017EB98[12] = {
     0,
 };
 
-u8 D_dryfield_underpass_8017EBA4[12] = {
+/// Room 5's eleven logical-view resource indices, followed by a retained zero byte.
+static u8 _gDryfieldUnderpassRoom5ViewMap[12] = {
     1,
     22,
     23,
@@ -280,7 +285,8 @@ u8 D_dryfield_underpass_8017EBA4[12] = {
     0,
 };
 
-u8 D_dryfield_underpass_8017EBB0[12] = {
+/// Room 6's eleven logical-view resource indices, followed by a retained zero byte.
+static u8 _gDryfieldUnderpassRoom6ViewMap[12] = {
     1,
     24,
     25,
@@ -295,24 +301,24 @@ u8 D_dryfield_underpass_8017EBB0[12] = {
     0,
 };
 
-u8* D_dryfield_underpass_8017EBBC[6] = {
+u8* gDryfieldUnderpassRoomViewMaps[DRYFIELD_UNDERPASS_ROOM_COUNT] = {
     gViewIdentityMap,
-    D_dryfield_underpass_8017EB80,
-    D_dryfield_underpass_8017EB8C,
-    D_dryfield_underpass_8017EB98,
-    D_dryfield_underpass_8017EBA4,
-    D_dryfield_underpass_8017EBB0,
+    _gDryfieldUnderpassRoom2ViewMap,
+    _gDryfieldUnderpassRoom3ViewMap,
+    _gDryfieldUnderpassRoom4ViewMap,
+    _gDryfieldUnderpassRoom5ViewMap,
+    _gDryfieldUnderpassRoom6ViewMap,
 };
 
 ViewCount D_dryfield_underpass_8017EBD4[6] = { 26, 11, 11, 11, 11, 11 };
 
-WorldCoordRoomLighting D_dryfield_underpass_8017EBE0[6] = {
-    { D_dryfield_underpass_80180EBC, NULL },
-    { D_dryfield_underpass_80181114, NULL },
-    { D_dryfield_underpass_80180EBC, NULL },
-    { D_dryfield_underpass_80181114, NULL },
-    { D_dryfield_underpass_80180EBC, NULL },
-    { D_dryfield_underpass_80180EBC, NULL },
+WorldCoordRoomLighting gDryfieldUnderpassRoomLighting[DRYFIELD_UNDERPASS_ROOM_COUNT] = {
+    { &_gDryfieldUnderpassDefaultRoomLights, NULL },
+    { &_gDryfieldUnderpassAlternateRoomLights, NULL },
+    { &_gDryfieldUnderpassDefaultRoomLights, NULL },
+    { &_gDryfieldUnderpassAlternateRoomLights, NULL },
+    { &_gDryfieldUnderpassDefaultRoomLights, NULL },
+    { &_gDryfieldUnderpassDefaultRoomLights, NULL },
 };
 
 DirectionWarpEntry D_dryfield_underpass_8017EC10[3] = {
@@ -321,30 +327,51 @@ DirectionWarpEntry D_dryfield_underpass_8017EC10[3] = {
     { { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 1212, -1000, -7543 }, { 0, 0, 0, 0 }, 0x52260001, 0x52260001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldUnderpassCollision01EC4Normals[12] = {
+/// Collision-grid face normals in room axes, with `ONE` units per unit length.
+static SVECTOR _gDryfieldUnderpassCollisionGridNormals[12] = {
 #include "assets/dryfield_underpass_collision_01EC4_normals.inc"
 };
 
-static SVECTOR _gDryfieldUnderpassCollision01EC4Verts[70] = {
+/// Collision-grid vertex positions in signed room-coordinate units.
+static SVECTOR _gDryfieldUnderpassCollisionGridVerts[70] = {
 #include "assets/dryfield_underpass_collision_01EC4_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldUnderpassCollision01EC4Faces[46] = {
+/// Indexed collision triangles and quads, with room-local surface classes.
+static WorldCollisionGridFace _gDryfieldUnderpassCollisionGridFaces[46] = {
 #include "assets/dryfield_underpass_collision_01EC4_faces.inc"
 };
 
-static s16 _gDryfieldUnderpassCollision01EC4Cells[346] = {
+/// Serialized cell face-index lists ending at `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gDryfieldUnderpassCollisionGridCells[346] = {
 #include "assets/dryfield_underpass_collision_01EC4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldUnderpassCollision01EC4Cells[i])
-static s16* _gDryfieldUnderpassCollision01EC4Table[24] = {
+// The generated table supplies element offsets into the cell-list pool.
+#define GRID_CELL(i) (&_gDryfieldUnderpassCollisionGridCells[i])
+/// X-major cell-list pointers for the grid's six-by-four XZ cells.
+static s16* _gDryfieldUnderpassCollisionGridTable[24] = {
 #include "assets/dryfield_underpass_collision_01EC4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_underpass_8017F484[1] = {
-    { NULL, _gDryfieldUnderpassCollision01EC4Normals, _gDryfieldUnderpassCollision01EC4Verts, _gDryfieldUnderpassCollision01EC4Faces, _gDryfieldUnderpassCollision01EC4Table, 3000, 0x32C8, 6, 4, 4000, 46 },
+/// Collision mesh shared by all six underpass rooms.
+///
+/// The XZ index has six-by-four cells, each 4000 game units wide, with origin
+/// (-3000, -13000). Gameplay binds the borrowed view coordinate on activation;
+/// the descriptor and all mesh pools remain writable while the room is loaded.
+static WorldCollisionGrid _gDryfieldUnderpassCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldUnderpassCollisionGridNormals,
+    .vertices    = _gDryfieldUnderpassCollisionGridVerts,
+    .faces       = _gDryfieldUnderpassCollisionGridFaces,
+    .cellFaceIds = _gDryfieldUnderpassCollisionGridTable,
+    .xBias       = 3000,
+    .zBias       = 13000,
+    .cellCountX  = 6,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldUnderpassCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_underpass_8017F4A8[26] = {
@@ -397,17 +424,20 @@ AreaVariant D_dryfield_underpass_8017F868[13] = {
     { NULL, NULL },
 };
 
-SpriteBatch D_dryfield_underpass_8017F8D0[2] = {
+/// Mapped view 1's empty sprite list, retaining decoded-image background strips.
+static SpriteBatch _gDryfieldUnderpassView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_underpass_8017F8E0[2] = {
+/// Mapped view 2's empty sprite list, retaining decoded-image background strips.
+static SpriteBatch _gDryfieldUnderpassView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_underpass_8017F8F0[16] = {
+/// Mapped view 3's sixteen textured rectangles, positioned in view-centred pixels.
+static SpriteSource _gDryfieldUnderpassView3SpriteSources[16] = {
     { 143, 0x3FC0, { .fields = { 40, 56 } }, 48, -120, 1016, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, 80, 964, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 56 } }, 88, -120, 1000, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
@@ -426,13 +456,15 @@ SpriteSource D_dryfield_underpass_8017F8F0[16] = {
     { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 8, 1014, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_underpass_8017FA30[3] = {
+/// Mapped view 3's complete sprite range over decoded-image background strips.
+static SpriteBatch _gDryfieldUnderpassView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 16, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldUnderpassView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_underpass_8017FA48[11] = {
+/// Mapped view 4's eleven textured rectangles, positioned in view-centred pixels.
+static SpriteSource _gDryfieldUnderpassView4SpriteSources[11] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 96, 2125, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 40 } }, -16, -24, 2129, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 0, 56, 1860, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
@@ -446,13 +478,15 @@ SpriteSource D_dryfield_underpass_8017FA48[11] = {
     { 143, 0x3FC0, { .fields = { 64, 80 } }, -160, -40, 2125, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_underpass_8017FB24[3] = {
+/// Mapped view 4's complete sprite range over decoded-image background strips.
+static SpriteBatch _gDryfieldUnderpassView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldUnderpassView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_underpass_8017FB3C[10] = {
+/// Mapped view 5's ten textured rectangles, positioned in view-centred pixels.
+static SpriteSource _gDryfieldUnderpassView5SpriteSources[10] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, -120, 910, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 56 } }, -112, -48, 913, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, -96, 995, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
@@ -465,10 +499,14 @@ SpriteSource D_dryfield_underpass_8017FB3C[10] = {
     { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 96, 897, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_underpass_8017FC04[4] = {
+/// Mapped view 5's complete sprite range over decoded-image background strips.
+///
+/// Retains a zero-count range at the source end. The full range stores 1 in
+/// the first serialized field_6 byte; that byte's role remains unproven.
+static SpriteBatch _gDryfieldUnderpassView5SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 1, 0 } },
-    { 10, 0, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldUnderpassView5SpriteSources), 0, 0, { 1, 0 } },
+    { ARRAY_SIZE(_gDryfieldUnderpassView5SpriteSources), 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -660,11 +698,11 @@ SpriteBatch D_dryfield_underpass_80180240[2] = {
 };
 
 SpriteView D_dryfield_underpass_80180250[26] = {
-    { { .empty = D_dryfield_underpass_8017F8D0 }, D_dryfield_underpass_8017F8D0, NULL },
-    { { .empty = D_dryfield_underpass_8017F8E0 }, D_dryfield_underpass_8017F8E0, NULL },
-    { { .elements = D_dryfield_underpass_8017F8F0 }, D_dryfield_underpass_8017FA30, NULL },
-    { { .elements = D_dryfield_underpass_8017FA48 }, D_dryfield_underpass_8017FB24, NULL },
-    { { .elements = D_dryfield_underpass_8017FB3C }, D_dryfield_underpass_8017FC04, NULL },
+    { { .empty = _gDryfieldUnderpassView1SpriteBatches }, _gDryfieldUnderpassView1SpriteBatches, NULL },
+    { { .empty = _gDryfieldUnderpassView2SpriteBatches }, _gDryfieldUnderpassView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldUnderpassView3SpriteSources }, _gDryfieldUnderpassView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldUnderpassView4SpriteSources }, _gDryfieldUnderpassView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldUnderpassView5SpriteSources }, _gDryfieldUnderpassView5SpriteBatches, NULL },
     { { .empty = D_dryfield_underpass_8017FC24 }, D_dryfield_underpass_8017FC24, NULL },
     { { .empty = D_dryfield_underpass_8017FC34 }, D_dryfield_underpass_8017FC34, NULL },
     { { .empty = D_dryfield_underpass_8017FC44 }, D_dryfield_underpass_8017FC44, NULL },
@@ -727,72 +765,124 @@ WorldCollisionOccluder D_dryfield_underpass_80180AA8[3] = {
     { NULL, NULL, { 8992, -3328, -4416, 0 }, { { -5840, -2848, 2496, 0 }, { 5840, -2848, -2496, 0 }, { -5840, 2848, 2496, 0 }, { 5840, 2848, -2496, 0 } }, { -1614, 0, -3777, 0 }, 6945, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_underpass_80180B5C[9] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3214, -1973, -3920 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1966, 2621, 3276 }, { 0, 0 } }, 2500, 5000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x44C0, -3483, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3C28, -3483, -6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x44C0, -3483, -8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9300, -3483, -9600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x34BC, -3483, -7400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6200, -3483, -0x2904 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 500, -3483, -9500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4850, -3423, -7400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
+/// Nine room-space point lights shared by rooms 1, 3, 5 and 6.
+///
+/// Positions and falloff radii use game units; colours use `ONE` per unit
+/// intensity. Every point admits all logical views. Gameplay parents and
+/// composes the writable transforms and updates attenuation during shading.
+static WorldCoordPointLight _gDryfieldUnderpassDefaultPointLights[9] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3214, -1973, -3920 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1966, 2621, 3276 }, { 0, 0 } }, 2500, 5000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x44C0, -3483, -1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3C28, -3483, -6000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x44C0, -3483, -8500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9300, -3483, -9600 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x34BC, -3483, -7400 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6200, -3483, -0x2904 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 500, -3483, -9500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4850, -3423, -7400 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 2000, 4000 },
 };
 
-WorldCoordRoomLights D_dryfield_underpass_80180EBC[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_underpass_80180B5C), D_dryfield_underpass_80180B5C, 0, NULL },
+/// Point-light collection shared by rooms 1, 3, 5 and 6, without directional or cone lights.
+static WorldCoordRoomLights _gDryfieldUnderpassDefaultRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldUnderpassDefaultPointLights),
+    .pointLights           = _gDryfieldUnderpassDefaultPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCoordPointLight D_dryfield_underpass_80180ED4[6] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x4268, -2483, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 500, -2483, -8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3F48, -2483, -8000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2AF8, -2483, -8300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5850, -2423, -9100 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x314C, -1973, -3920 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 4096, 4096 }, { 0, 0 } }, 0, 8000 },
+/// Six room-space point lights shared by rooms 2 and 4.
+///
+/// Positions and falloff radii use game units; colours use `ONE` per unit
+/// intensity. Every point admits all logical views. Gameplay parents and
+/// composes the writable transforms and updates attenuation during shading.
+static WorldCoordPointLight _gDryfieldUnderpassAlternatePointLights[6] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x4268, -2483, -2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 500, -2483, -8500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3F48, -2483, -8000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2AF8, -2483, -8300 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5850, -2423, -9100 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 2088, 2457 }, { 0, 0 } }, 0, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x314C, -1973, -3920 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, ONE, ONE }, { 0, 0 } }, 0, 8000 },
 };
 
-WorldCoordRoomLights D_dryfield_underpass_80181114[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_underpass_80180ED4), D_dryfield_underpass_80180ED4, 0, NULL },
+/// Point-light collection shared by rooms 2 and 4, without directional or cone lights.
+static WorldCoordRoomLights _gDryfieldUnderpassAlternateRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldUnderpassAlternatePointLights),
+    .pointLights           = _gDryfieldUnderpassAlternatePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionFootstepSounds D_dryfield_underpass_8018112C = {
-    0x10000039,
-    0x1000003B,
-    0x10000039,
+/// Cue-2 footstep requests in the loaded type-1 sound bank; cue 1 uses the next entry.
+enum {
+    DRYFIELD_UNDERPASS_SURFACE_CLASS4_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x39,
+    DRYFIELD_UNDERPASS_SURFACE_CLASS4_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3B,
+    DRYFIELD_UNDERPASS_SURFACE_CLASS3_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x35,
+    DRYFIELD_UNDERPASS_SURFACE_CLASS3_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x37,
 };
 
-WorldCollisionFootstepSounds D_dryfield_underpass_80181138 = {
-    0x10000035,
-    0x10000037,
-    0x10000035,
+/// Surface class 4's loaded-bank walk/run cues, with scripted jumps using the walk pair.
+static WorldCollisionFootstepSounds _gDryfieldUnderpassSurfaceClass4FootstepSounds = {
+    .walk         = DRYFIELD_UNDERPASS_SURFACE_CLASS4_WALK_SOUND,
+    .run          = DRYFIELD_UNDERPASS_SURFACE_CLASS4_RUN_SOUND,
+    .scriptedJump = DRYFIELD_UNDERPASS_SURFACE_CLASS4_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_underpass_80181144[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 3's loaded-bank walk/run cues, with scripted jumps using the walk pair.
+static WorldCollisionFootstepSounds _gDryfieldUnderpassSurfaceClass3FootstepSounds = {
+    .walk         = DRYFIELD_UNDERPASS_SURFACE_CLASS3_WALK_SOUND,
+    .run          = DRYFIELD_UNDERPASS_SURFACE_CLASS3_RUN_SOUND,
+    .scriptedJump = DRYFIELD_UNDERPASS_SURFACE_CLASS3_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_underpass_8018114C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_underpass_8018112C },
+/// Silent blocking surface properties shared by classes 0, 1 and 5..7.
+static WorldCollisionSurfaceProperties _gDryfieldUnderpassDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_underpass_80181154[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 4's blocking properties and footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldUnderpassSurfaceClass4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldUnderpassSurfaceClass4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_underpass_8018115C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_underpass_80181138 },
+/// Surface class 2's separate silent blocking record.
+static WorldCollisionSurfaceProperties _gDryfieldUnderpassSurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_underpass_80181164[8] = {
-    D_dryfield_underpass_80181144,
-    D_dryfield_underpass_80181144,
-    D_dryfield_underpass_80181154,
-    D_dryfield_underpass_8018115C,
-    D_dryfield_underpass_8018114C,
-    D_dryfield_underpass_80181144,
-    D_dryfield_underpass_80181144,
-    D_dryfield_underpass_80181144,
+/// Surface class 3's blocking properties and footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldUnderpassSurfaceClass3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldUnderpassSurfaceClass3FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldUnderpassSurfacePropertiesByClass[DRYFIELD_UNDERPASS_SURFACE_CLASS_COUNT] = {
+    &_gDryfieldUnderpassDefaultSurfaceProperties,
+    &_gDryfieldUnderpassDefaultSurfaceProperties,
+    &_gDryfieldUnderpassSurfaceClass2Properties,
+    &_gDryfieldUnderpassSurfaceClass3Properties,
+    &_gDryfieldUnderpassSurfaceClass4Properties,
+    &_gDryfieldUnderpassDefaultSurfaceProperties,
+    &_gDryfieldUnderpassDefaultSurfaceProperties,
+    &_gDryfieldUnderpassDefaultSurfaceProperties,
 };
 
 static void _dryfieldUnderpassInitializeRoomTask(Task* task);

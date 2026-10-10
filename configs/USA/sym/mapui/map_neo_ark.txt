@@ -73,7 +73,7 @@ gNeoArkEveAccessTunnelCollisionRooms = 0x8017EB78; // absolute:True owner=neo_ar
 gNeoArkEveAccessTunnelRoomLighting = 0x8017EB88; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 gNeoArkEveAccessTunnelViewMaps = 0x8017EB90; // absolute:True owner=neo_ark_eve_access_tunnel
 gNeoArkEveAccessTunnelViewCounts = 0x8017EB94; // absolute:True owner=neo_ark_eve_access_tunnel
-gNeoArkEveAccessTunnelWarpEntries = 0x8017EB98; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
+gNeoArkEveAccessTunnelWarpEntries = 0x8017EB98; // absolute:True owner=neo_ark_eve_access_tunnel
 gNeoArkEveAccessTunnelViewCameras = 0x8017F080; // absolute:True owner=neo_ark_eve_access_tunnel
 D_neo_ark_eve_access_tunnel_801800A0 = 0x801800A0; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 gNeoArkEveAccessTunnelSurfaceProperties = 0x80180780; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
