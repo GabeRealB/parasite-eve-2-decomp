@@ -49,14 +49,14 @@ gDryfieldNightSouvenirShopViewCameras = 0x8017E628; // absolute:True owner=dryfi
 gDryfieldNightSouvenirShopSpriteViews = 0x8017EF08; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
 gDryfieldNightSouvenirShopSurfacePropertiesByClass = 0x8017F6CC; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
 dryfieldNightWarehouseRoomTask = 0x8017D65C; // type:func absolute:True owner=dryfield_night_warehouse shared=rooms
-D_dryfield_night_warehouse_8017E8E8 = 0x8017E8E8; // absolute:True owner=dryfield_night_warehouse
+gDryfieldNightWarehouseRoomLighting = 0x8017E8E8; // absolute:True owner=dryfield_night_warehouse
 D_dryfield_night_warehouse_8017E900 = 0x8017E900; // absolute:True owner=dryfield_night_warehouse shared=rooms
-D_dryfield_night_warehouse_8017E930 = 0x8017E930; // absolute:True owner=dryfield_night_warehouse shared=rooms
-D_dryfield_night_warehouse_8017E93C = 0x8017E93C; // absolute:True owner=dryfield_night_warehouse shared=rooms
+gDryfieldNightWarehouseViewMaps = 0x8017E930; // absolute:True owner=dryfield_night_warehouse shared=rooms
+gDryfieldNightWarehouseRoomViewCounts = 0x8017E93C; // absolute:True owner=dryfield_night_warehouse shared=rooms
 D_dryfield_night_warehouse_8017E944 = 0x8017E944; // absolute:True owner=dryfield_night_warehouse shared=rooms
-D_dryfield_night_warehouse_8017EF2C = 0x8017EF2C; // absolute:True owner=dryfield_night_warehouse
-D_dryfield_night_warehouse_8017F46C = 0x8017F46C; // absolute:True owner=dryfield_night_warehouse
-D_dryfield_night_warehouse_8017FC24 = 0x8017FC24; // absolute:True owner=dryfield_night_warehouse shared=rooms
+gDryfieldNightWarehouseViewCameras = 0x8017EF2C; // absolute:True owner=dryfield_night_warehouse
+gDryfieldNightWarehouseSpriteViews = 0x8017F46C; // absolute:True owner=dryfield_night_warehouse
+gDryfieldNightWarehouseSurfacePropertiesByClass = 0x8017FC24; // absolute:True owner=dryfield_night_warehouse shared=rooms
 dryfieldNightR08RoomTask = 0x8017D6C0; // type:func absolute:True owner=dryfield_night_r08
 gDryfieldNightR08RoomLighting = 0x8018067C; // absolute:True owner=dryfield_night_r08 shared=rooms
 gDryfieldNightR08RoomCollisionResources = 0x80180684; // absolute:True owner=dryfield_night_r08
