@@ -63,49 +63,13 @@ extern EvsCommand D_actor_460200_80137890[];
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Captions of the telephone menu's rows ("Save", "Play Data", "Weapon Data",
-/// "PE Data").
-static u8 Telephone_Data_801819F8[];
-static u8 Telephone_Data_80181A00[];
+/// Captions of the remaining weapon and PE usage menu choices.
 static u8 Telephone_Data_80181A0C[];
 static u8 Telephone_Data_80181A18[];
 
-/// Row captions of the play-data panel, one per row.
-static u8 Telephone_Data_80181A20[];
-static u8 Telephone_Data_80181A50[];
-static u8 Telephone_Data_80181A28[];
-static u8 Telephone_Data_80181A2C[];
-static u8 Telephone_Data_80181A34[];
-static u8 Telephone_Data_80181A40[];
-static u8 Telephone_Data_80181A58[];
-static u8 Telephone_Data_80181A60[];
-static u8 Telephone_Data_80181A68[];
-
-/// Suffix appended after a plain count on rows 1, 2, 3 and 6 of the play-data
-/// panel.
-static u8 Telephone_Data_80181A70[];
-
-/// Help strings handed to the UI holder while the cursor rests on a row of
-/// the play-data panel, one per row.
-static u8 Telephone_Data_80181A7C[];
-static u8 Telephone_Data_80181AA8[];
-static u8 Telephone_Data_80181ACC[];
-static u8 Telephone_Data_80181AFC[];
-static u8 Telephone_Data_80181B30[];
-static u8 Telephone_Data_80181B64[];
-static u8 Telephone_Data_80181B9C[];
-static u8 Telephone_Data_80181BD0[];
-static u8 Telephone_Data_80181C08[];
-
-/// Lists of the play-data panel, the usage panel and the telephone menu, and
-/// the descriptors of the panels they spawn.
-static UiList       Telephone_Data_80181C44;
+/// List and descriptor of the remaining usage panel.
 static UiList       Telephone_Data_80181C6C;
-static UiObjectDesc Telephone_Data_80181C90;
-static UiObjectDesc Telephone_Data_80181CAC;
 static UiObjectDesc Telephone_Data_80181CC8;
-static UiList       Telephone_Data_80181CF4;
-
 /// Task table the cutscene and its sound task are spawned from.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 

@@ -879,39 +879,11 @@ static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT] = {
 /// rows omit the Amount caption. Each room image owns one active selection.
 static s32 _gShopPreviewRowId = SHOP_PREVIEW_NONE;
 
-static u8 Shop_Data_801819F0[20] = {
-    80,
-    117,
-    114,
-    99,
-    104,
-    97,
-    115,
-    101,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated caption of the shop purchase action.
+static const u8 _gShopPurchaseLabel[20] SECTION(".data") = "Purchase";
 
-static u8 Shop_Data_80181A04[8] = {
-    80,
-    97,
-    115,
-    115,
-    0,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated Pass caption for leaving a category or purchase prompt.
+static const u8 _gShopPassLabel[8] SECTION(".data") = "Pass";
 
 static u8 Shop_Data_80181A0C[16] = {
     66,
@@ -1045,82 +1017,14 @@ static u8 Shop_Data_80181A78[8] = {
     0,
 };
 
-static u8 Shop_Data_80181A80[20] = {
-    73,
-    110,
-    115,
-    117,
-    102,
-    102,
-    105,
-    99,
-    105,
-    101,
-    110,
-    116,
-    32,
-    66,
-    80,
-    46,
-    0,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated purchase notice shown when BP is below the pack price.
+static const u8 _gShopInsufficientBpText[20] SECTION(".data") = "Insufficient BP.";
 
-static u8 Shop_Data_80181A94[16] = {
-    73,
-    110,
-    118,
-    101,
-    110,
-    116,
-    111,
-    114,
-    121,
-    32,
-    102,
-    117,
-    108,
-    108,
-    46,
-    0,
-};
+/// NUL-terminated purchase notice shown when the carried inventory cannot accept the item.
+static const u8 _gShopInventoryFullText[16] SECTION(".data") = "Inventory full.";
 
-static u8 Shop_Data_80181AA4[32] = {
-    65,
-    109,
-    109,
-    117,
-    110,
-    105,
-    116,
-    105,
-    111,
-    110,
-    32,
-    99,
-    97,
-    112,
-    97,
-    99,
-    105,
-    116,
-    121,
-    32,
-    114,
-    101,
-    97,
-    99,
-    104,
-    101,
-    100,
-    46,
-    0,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated purchase notice shown when an existing consumable stack cannot accept another pack.
+static const u8 _gShopAmmunitionCapacityText[32] SECTION(".data") = "Ammunition capacity reached.";
 
 static u8 Shop_Data_80181AC4[12] = {
     65,
@@ -1137,12 +1041,8 @@ static u8 Shop_Data_80181AC4[12] = {
     0,
 };
 
-static u8 Shop_Data_80181AD0[4] = {
-    120,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated multiplication marker beside the number of packs to purchase.
+static const u8 _gShopPackMultiplierText[4] SECTION(".data") = "x";
 
 static u16 Shop_Data_80181AD4[2] = {
     0xFFFF,

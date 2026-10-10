@@ -79,55 +79,15 @@ static void _roomCutsceneSoundTask(Task* task);
 /// Task descriptor of the held-object reflections the mirror spawns.
 static TaskDesc D_acropolis_square_80183468[];
 
-/// Labels of the four menu entries of the play-data menu panel: "Save",
-/// "Play Data", "Weapon Data" and "PE Data".
-static u8 Telephone_Data_801819F8[];
-static u8 Telephone_Data_80181A00[];
+/// Captions of the remaining weapon and PE usage menu choices.
 static u8 Telephone_Data_80181A0C[];
 static u8 Telephone_Data_80181A18[];
-
-/// Row labels of the play-data statistics panel, one per row
-/// `func_acropolis_square_8017F46C` draws.
-static u8 Telephone_Data_80181A20[];
-static u8 Telephone_Data_80181A50[];
-static u8 Telephone_Data_80181A28[];
-static u8 Telephone_Data_80181A2C[];
-static u8 Telephone_Data_80181A34[];
-static u8 Telephone_Data_80181A40[];
-static u8 Telephone_Data_80181A58[];
-static u8 Telephone_Data_80181A60[];
-static u8 Telephone_Data_80181A68[];
-
-/// The suffix appended to that panel's count rows.
-static u8 Telephone_Data_80181A70[];
-
-/// Help texts of the statistics panel's nine rows, handed to the UI holder for
-/// the selected row.
-static u8 Telephone_Data_80181A7C[];
-static u8 Telephone_Data_80181AA8[];
-static u8 Telephone_Data_80181ACC[];
-static u8 Telephone_Data_80181AFC[];
-static u8 Telephone_Data_80181B30[];
-static u8 Telephone_Data_80181B64[];
-static u8 Telephone_Data_80181B9C[];
-static u8 Telephone_Data_80181BD0[];
-static u8 Telephone_Data_80181C08[];
-
-/// The play-data menu panel's list.
-static UiList Telephone_Data_80181C44;
 
 /// The usage panel's list.
 static UiList Telephone_Data_80181C6C;
 
-/// UI descriptor the play-data panels spawn when they first open.
-static UiObjectDesc Telephone_Data_80181C90;
-
-/// UI descriptors the "Play Data" entry and the two usage entries open.
-static UiObjectDesc Telephone_Data_80181CAC;
+/// Descriptor of the remaining weapon and PE usage panel.
 static UiObjectDesc Telephone_Data_80181CC8;
-
-/// The telephone menu panel's list.
-static UiList Telephone_Data_80181CF4;
 
 /// Task descriptor table of the room's cutscenes: entry 0 is the cutscene
 /// runner, spawned with a cutscene record as its argument, and entry 1 the

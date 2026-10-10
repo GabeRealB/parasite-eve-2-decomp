@@ -208,9 +208,6 @@ extern RoomDeparture gRoomDeparture;
 /// is the scene's sub-task.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 
-/// Descriptor of the play-data panels' shared frame.
-static UiObjectDesc Telephone_Data_80181C90;
-
 static s32 _gShopPreviewRowId;
 
 /// Flag tested as zero / non-zero when drawing the room's view-dependent
@@ -220,47 +217,14 @@ extern u16 D_shelter_b1_underground_parking_8018D78C;
 
 extern SVECTOR D_shelter_b1_underground_parking_8018771C[13];
 
-/// Labels of the nine play-data rows, and the help line each row shows while
-/// it is selected.
-static u8 Telephone_Data_80181A20[];
-static u8 Telephone_Data_80181A28[];
-static u8 Telephone_Data_80181A2C[];
-static u8 Telephone_Data_80181A34[];
-static u8 Telephone_Data_80181A40[];
-static u8 Telephone_Data_80181A50[];
-static u8 Telephone_Data_80181A58[];
-static u8 Telephone_Data_80181A60[];
-static u8 Telephone_Data_80181A68[];
-static u8 Telephone_Data_80181A7C[];
-static u8 Telephone_Data_80181AA8[];
-static u8 Telephone_Data_80181ACC[];
-static u8 Telephone_Data_80181AFC[];
-static u8 Telephone_Data_80181B30[];
-static u8 Telephone_Data_80181B64[];
-static u8 Telephone_Data_80181B9C[];
-static u8 Telephone_Data_80181BD0[];
-static u8 Telephone_Data_80181C08[];
-
-/// The unit suffix appended to the play-data counts.
-static u8 Telephone_Data_80181A70[];
-
 /// The list the weapon and PE usage panels fill.
 static UiList Telephone_Data_80181C6C;
 
-/// List of the telephone menu.
-static UiList Telephone_Data_80181CF4;
-
-/// List of the menu `func_shelter_b1_underground_parking_8017F2A0` runs.
-static UiList Telephone_Data_80181C44;
-
-/// Texts the menu's four row handlers draw.
-static u8 Telephone_Data_801819F8[];
-static u8 Telephone_Data_80181A00[];
+/// Captions of the remaining weapon and PE usage menu choices.
 static u8 Telephone_Data_80181A0C[];
 static u8 Telephone_Data_80181A18[];
 
-/// Descriptors of the panels the rows open.
-static UiObjectDesc Telephone_Data_80181CAC;
+/// Descriptor of the remaining weapon and PE usage panel.
 static UiObjectDesc Telephone_Data_80181CC8;
 
 static const u16 _gShopStandardDefaultWeaponsStock[];
@@ -326,15 +290,9 @@ static UiObjectDesc Shop_Data_80181B4C;
 static UiList       Shop_Data_80181AE0;
 static UiObjectDesc Shop_Data_80181B68;
 
-/// The purchase confirmation: its text and the panels it answers with.
-static u8           Shop_Data_801819F0[];
+/// Remaining panel descriptors of the purchase confirmation.
 static UiObjectDesc Shop_Data_80181BA0;
 static UiObjectDesc Shop_Data_80181C10;
-
-/// The three messages the notice panel picks from.
-static u8 Shop_Data_80181A80[];
-static u8 Shop_Data_80181A94[];
-static u8 Shop_Data_80181AA4[];
 
 /// The quantity and supply of the slot the charge panel is animating.
 static s32                          _gShopRefillDisplayQuantityFixed;
@@ -342,12 +300,6 @@ static const EquipmentWeaponSupply* _gShopRefillSupply;
 
 /// Label of the held-quantity line.
 static u8 Shop_Data_80181AC4[];
-
-/// Text the quantity picker draws beside the item.
-static u8 Shop_Data_80181AD0[];
-
-/// Text of the row that closes its panel.
-static u8 Shop_Data_80181A04[];
 
 /// The list `func_shelter_b1_underground_parking_80181D88` drives.
 static UiList Shop_Data_80181B0C;

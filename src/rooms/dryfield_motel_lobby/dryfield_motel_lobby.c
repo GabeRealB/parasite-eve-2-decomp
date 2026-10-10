@@ -36,57 +36,15 @@
 
 #include "rooms/room_common.h"
 
-/// Labels the four menu-entry handlers `func_dryfield_motel_lobby_8017F094` to
-/// `func_dryfield_motel_lobby_8017F308` draw: "Save", "Play Data", "Weapon
-/// Data" and "PE Data".
-static u8 Telephone_Data_801819F8[];
-static u8 Telephone_Data_80181A00[];
+/// Captions of the remaining weapon and PE usage menu choices.
 static u8 Telephone_Data_80181A0C[];
 static u8 Telephone_Data_80181A18[];
-
-/// Row labels of the play-data statistics panel, one per row
-/// `func_dryfield_motel_lobby_8017D650` draws.
-static u8 Telephone_Data_80181A20[];
-static u8 Telephone_Data_80181A50[];
-static u8 Telephone_Data_80181A28[];
-static u8 Telephone_Data_80181A2C[];
-static u8 Telephone_Data_80181A34[];
-static u8 Telephone_Data_80181A40[];
-static u8 Telephone_Data_80181A58[];
-static u8 Telephone_Data_80181A60[];
-static u8 Telephone_Data_80181A68[];
-
-/// The " times" suffix appended to that panel's count rows.
-static u8 Telephone_Data_80181A70[];
-
-/// Help texts of the panel's nine rows, handed to the UI holder for the
-/// selected row.
-static u8 Telephone_Data_80181A7C[];
-static u8 Telephone_Data_80181AA8[];
-static u8 Telephone_Data_80181ACC[];
-static u8 Telephone_Data_80181AFC[];
-static u8 Telephone_Data_80181B30[];
-static u8 Telephone_Data_80181B64[];
-static u8 Telephone_Data_80181B9C[];
-static u8 Telephone_Data_80181BD0[];
-static u8 Telephone_Data_80181C08[];
-
-/// The "Play Data" panel's row list.
-static UiList Telephone_Data_80181C44;
 
 /// The usage panel's row list.
 static UiList Telephone_Data_80181C6C;
 
-/// UI descriptor the "Play Data" panel and the usage panel spawn when they
-/// first open.
-static UiObjectDesc Telephone_Data_80181C90;
-
-/// UI descriptors the "Play Data" entry and the two usage entries open.
-static UiObjectDesc Telephone_Data_80181CAC;
+/// Descriptor of the remaining weapon and PE usage panel.
 static UiObjectDesc Telephone_Data_80181CC8;
-
-/// The telephone menu's entry list.
-static UiList Telephone_Data_80181CF4;
 
 /// The room's message table, which `_dryfieldMotelLobbyInitRoomTask`
 /// installs on the room task.

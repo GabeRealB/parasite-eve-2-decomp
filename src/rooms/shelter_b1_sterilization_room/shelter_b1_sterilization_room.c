@@ -67,10 +67,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-/// UI descriptor of the help-line box the "Play Data" panels open beside their
-/// lists.
-static UiObjectDesc Telephone_Data_80181C90;
-
 /// Task descriptor table used by the cutscene runner
 /// `_roomCutsceneTask`, which spawns entry 1 and
 /// waits on it while the cutscene plays. The room's event handler spawns
@@ -87,49 +83,15 @@ typedef struct {
     s8 placementIndex; // Entry of the room's door placement table the player is placed at
 } _ShelterB1SterilizationRoomDoorDestination;
 
-/// Row labels drawn by the statistics rows of `func_shelter_b1_sterilization_room_8017D794`.
-static u8 Telephone_Data_80181A20[];
-static u8 Telephone_Data_80181A50[];
-static u8 Telephone_Data_80181A28[];
-static u8 Telephone_Data_80181A2C[];
-static u8 Telephone_Data_80181A34[];
-static u8 Telephone_Data_80181A40[];
-static u8 Telephone_Data_80181A58[];
-static u8 Telephone_Data_80181A60[];
-static u8 Telephone_Data_80181A68[];
-
-/// Unit suffix appended to the counted rows.
-static u8 Telephone_Data_80181A70[];
-
-/// Help lines shown for each statistics row while it is selected.
-static u8 Telephone_Data_80181A7C[];
-static u8 Telephone_Data_80181AA8[];
-static u8 Telephone_Data_80181ACC[];
-static u8 Telephone_Data_80181AFC[];
-static u8 Telephone_Data_80181B30[];
-static u8 Telephone_Data_80181B64[];
-static u8 Telephone_Data_80181B9C[];
-static u8 Telephone_Data_80181BD0[];
-static u8 Telephone_Data_80181C08[];
-
-/// Prompt lines drawn by the dialog handlers.
-static u8 Telephone_Data_801819F8[];
-static u8 Telephone_Data_80181A00[];
+/// Captions of the remaining weapon and PE usage menu choices.
 static u8 Telephone_Data_80181A0C[];
 static u8 Telephone_Data_80181A18[];
-
-/// List state of the "Play Data" menu `func_shelter_b1_sterilization_room_8017EFE4` runs.
-static UiList Telephone_Data_80181C44;
 
 /// List state of the weapon- and PE-usage panels.
 static UiList Telephone_Data_80181C6C;
 
-/// UI descriptors the dialog handlers open on confirm.
-static UiObjectDesc Telephone_Data_80181CAC;
+/// Descriptor of the remaining weapon and PE usage panel.
 static UiObjectDesc Telephone_Data_80181CC8;
-
-/// List state of the menu `shelterB1SterilizationRoomTelephoneMenuTask` runs.
-static UiList Telephone_Data_80181CF4;
 
 // Message-table callbacks use the argument views required by this TU.
 

@@ -88,12 +88,12 @@ static void _telephonePlayDataTask(Task* task)
     UiObject* object;
     UiList*   list;
 
-    list           = &Telephone_Data_80181C44;
+    list           = &_gTelephonePlayDataList;
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     uiDrawPanelLabel(&(object)->panel, _gTelephonePlayDataTitle);
     if (task->state == TELEPHONE_PANEL_INITIALIZE) {
-        uiSpawnObject(&Telephone_Data_80181C90, 0, USER_INTERFACE_PANEL_INACTIVE, 1, object);
+        uiSpawnObject(&_gTelephoneHelpPanelDescriptor, 0, USER_INTERFACE_PANEL_INACTIVE, 1, object);
         uiFitPanelToList(list, &(object)->panel);
         object->panel.bounds.unsignedRect.h += 5;
         list->flags                          = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
@@ -161,7 +161,7 @@ static void _telephoneSaveMenuRow(UiList* list, UiObject* object)
 {
     s32 rowInputEnabled;
 
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_801819F8, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, _gTelephoneSaveMenuLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     rowInputEnabled = list->rowInputEnabled;
     if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0 && cdCmdIsIdle() != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
@@ -180,10 +180,10 @@ static void _telephoneSaveMenuRow(UiList* list, UiObject* object)
 /// owner waits for statistics dismissal, which reopens the telephone menu.
 static void _telephonePlayDataMenuRow(UiList* list, UiObject* object)
 {
-    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_80181A00, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, _gTelephonePlayDataMenuLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-        uiSpawnObject(&Telephone_Data_80181CAC, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+        uiSpawnObject(&_gTelephonePlayDataPanelDescriptor, 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
         object->result             = USER_INTERFACE_RESULT_CONFIRM;
         object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         object->owner->state       = TELEPHONE_MENU_WAIT_STATISTICS;

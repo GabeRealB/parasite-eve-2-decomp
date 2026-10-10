@@ -743,7 +743,7 @@ static void _shopDrawCategoryRow(UiList* list, UiObject* object)
     s32       panelControl;
 
     if ((list->itemCount - 1) == list->currentItemIndex) {
-        textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Shop_Data_80181A04, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, _gShopPassLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
@@ -934,7 +934,7 @@ static void _shopDrawPurchaseRow(UiList* list, UiObject* object)
     request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     request.alignment  = TEXT_ALIGNMENT_LEFT;
     request.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&request, Shop_Data_801819F0);
+    textDrawString(&request, _gShopPurchaseLabel);
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         playerStatus = &gPlayerStatus;
@@ -985,13 +985,13 @@ static void _shopNoticeTask(Task* task)
     object   = task->spawnArg2.pointer;
     switch (noticeId) {
         case SHOP_NOTICE_INVENTORY_FULL:
-            message = Shop_Data_80181A94;
+            message = _gShopInventoryFullText;
             break;
         case SHOP_NOTICE_AMMUNITION_CAPACITY:
-            message = Shop_Data_80181AA4;
+            message = _gShopAmmunitionCapacityText;
             break;
         default:
-            message = Shop_Data_80181A80;
+            message = _gShopInsufficientBpText;
             break;
     }
 
@@ -1256,7 +1256,7 @@ static void _shopPurchaseQuantityTask(Task* task)
     }
 
     purchasePacks = task->extraState.value;
-    textDrawUiLine(object, contentLeft + 0x98, lineY, Shop_Data_80181AD0, SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textDrawUiLine(object, contentLeft + 0x98, lineY, _gShopPackMultiplierText, SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     textDrawUiLine(object, -rowLeft, lineY, textItoaSigned(numberText, purchasePacks), SHOP_TEXT_COLOR_RGB, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     uiDrawHorizontalSeparator(&object->panel, contentLeft, -rowLeft + 2, contentTop + 0x12);
 
@@ -1310,7 +1310,7 @@ static void _shopDrawPassRow(UiList* list, UiObject* object)
     request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     request.alignment  = TEXT_ALIGNMENT_LEFT;
     request.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&request, Shop_Data_80181A04);
+    textDrawString(&request, _gShopPassLabel);
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);

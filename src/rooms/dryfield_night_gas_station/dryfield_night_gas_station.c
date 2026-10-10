@@ -92,53 +92,15 @@ extern Task* D_dryfield_night_gas_station_801907A4;
 /// `D_dryfield_night_gas_station_801888A0`, or NULL while none runs.
 extern Task* D_dryfield_night_gas_station_801907A8;
 
-/// UI descriptor of the help-line box (`func_dryfield_night_gas_station_8017ECF0`)
-/// that the "Play Data" and usage panels open beside their lists.
-static UiObjectDesc Telephone_Data_80181C90;
-
-/// Prompt texts: "Save", "Play Data", "Weapon Data" and "PE Data".
-static u8 Telephone_Data_801819F8[];
-static u8 Telephone_Data_80181A00[];
+/// Captions of the remaining weapon and PE usage menu choices.
 static u8 Telephone_Data_80181A0C[];
 static u8 Telephone_Data_80181A18[];
-
-/// Row labels of the "Play Data" statistics list, one per row index.
-static u8 Telephone_Data_80181A20[];
-static u8 Telephone_Data_80181A50[];
-static u8 Telephone_Data_80181A28[];
-static u8 Telephone_Data_80181A2C[];
-static u8 Telephone_Data_80181A34[];
-static u8 Telephone_Data_80181A40[];
-static u8 Telephone_Data_80181A58[];
-static u8 Telephone_Data_80181A60[];
-static u8 Telephone_Data_80181A68[];
-
-/// The " times" suffix appended to the statistics rows that count events.
-static u8 Telephone_Data_80181A70[];
-
-/// Help lines shown for the selected statistics row, one per row index.
-static u8 Telephone_Data_80181A7C[];
-static u8 Telephone_Data_80181AA8[];
-static u8 Telephone_Data_80181ACC[];
-static u8 Telephone_Data_80181AFC[];
-static u8 Telephone_Data_80181B30[];
-static u8 Telephone_Data_80181B64[];
-static u8 Telephone_Data_80181B9C[];
-static u8 Telephone_Data_80181BD0[];
-static u8 Telephone_Data_80181C08[];
-
-/// The "Play Data" statistics list.
-static UiList Telephone_Data_80181C44;
 
 /// The usage list shown by `func_dryfield_night_gas_station_8017E844`.
 static UiList Telephone_Data_80181C6C;
 
-/// UI descriptors the "Play Data" and usage prompts open.
-static UiObjectDesc Telephone_Data_80181CAC;
+/// Descriptor of the remaining weapon and PE usage panel.
 static UiObjectDesc Telephone_Data_80181CC8;
-
-/// The list shown by `dryfieldNightGasStationTelephoneMenuTask`.
-static UiList Telephone_Data_80181CF4;
 
 // Message-table callbacks use the argument views required by this TU.
 

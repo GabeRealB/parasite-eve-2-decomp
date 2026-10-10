@@ -145,16 +145,16 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
     formatBuffer = valueText;
     if (((object->panel.control.word >> TELEPHONE_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
         if (list->selectedItemIndex == list->currentItemIndex) {
-            u8* helpTextByRow[TELEPHONE_PLAY_DATA_ROW_COUNT] = {
-                Telephone_Data_80181A7C,
-                Telephone_Data_80181AA8,
-                Telephone_Data_80181ACC,
-                Telephone_Data_80181AFC,
-                Telephone_Data_80181B30,
-                Telephone_Data_80181B64,
-                Telephone_Data_80181B9C,
-                Telephone_Data_80181BD0,
-                Telephone_Data_80181C08,
+            const u8* helpTextByRow[TELEPHONE_PLAY_DATA_ROW_COUNT] = {
+                _gTelephonePlayTimeHelpText,
+                _gTelephoneSaveCountHelpText,
+                _gTelephoneBattlesWonHelpText,
+                _gTelephoneBattlesEscapedHelpText,
+                _gTelephoneWinPercentageHelpText,
+                _gTelephoneExterminationPercentageHelpText,
+                _gTelephoneClearCountHelpText,
+                _gTelephoneMaxExpHelpText,
+                _gTelephoneMaxBpHelpText,
             };
 
             uiSetPromptText(helpTextByRow[list->currentItemIndex], 0, 0);
@@ -167,7 +167,7 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             TextDrawReq captionRequest;
             s32         captionBaseY;
 
-            TELEPHONE_DRAW_PLAY_DATA_CAPTION(Telephone_Data_80181A20);
+            TELEPHONE_DRAW_PLAY_DATA_CAPTION(_gTelephonePlayTimeLabel);
             textFormatPlayTime(formatBuffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.playTime);
             textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, valueText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
@@ -176,9 +176,9 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             TextDrawReq captionRequest;
             s32         captionBaseY;
 
-            TELEPHONE_DRAW_PLAY_DATA_CAPTION(Telephone_Data_80181A50);
+            TELEPHONE_DRAW_PLAY_DATA_CAPTION(_gTelephoneSaveCountLabel);
             textItoaUnsigned(formatBuffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.saveCount);
-            textAppendString(formatBuffer, Telephone_Data_80181A70);
+            textAppendString(formatBuffer, _gTelephoneTimesSuffix);
             textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, valueText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
@@ -186,9 +186,9 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             TextDrawReq captionRequest;
             s32         captionBaseY;
 
-            TELEPHONE_DRAW_PLAY_DATA_CAPTION(Telephone_Data_80181A28);
+            TELEPHONE_DRAW_PLAY_DATA_CAPTION(_gTelephoneBattlesWonLabel);
             textItoaUnsigned(formatBuffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon);
-            textAppendString(formatBuffer, Telephone_Data_80181A70);
+            textAppendString(formatBuffer, _gTelephoneTimesSuffix);
             textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, valueText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
@@ -196,9 +196,9 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             TextDrawReq captionRequest;
             s32         captionBaseY;
 
-            TELEPHONE_DRAW_PLAY_DATA_CAPTION(Telephone_Data_80181A2C);
+            TELEPHONE_DRAW_PLAY_DATA_CAPTION(_gTelephoneBattlesEscapedLabel);
             textItoaUnsigned(formatBuffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped);
-            textAppendString(formatBuffer, Telephone_Data_80181A70);
+            textAppendString(formatBuffer, _gTelephoneTimesSuffix);
             textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, valueText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
@@ -211,7 +211,7 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             s32         shiftIndex;
             u8*         digitEnd;
 
-            TELEPHONE_DRAW_PLAY_DATA_CAPTION(Telephone_Data_80181A34);
+            TELEPHONE_DRAW_PLAY_DATA_CAPTION(_gTelephoneWinPercentageLabel);
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon == 0) {
                 percentHundredths = 0;
             } else {
@@ -242,7 +242,7 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             u8*         digitEnd;
 
             killCount = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon;
-            TELEPHONE_DRAW_PLAY_DATA_CAPTION(Telephone_Data_80181A40);
+            TELEPHONE_DRAW_PLAY_DATA_CAPTION(_gTelephoneExterminationPercentageLabel);
             enemyTotal = TELEPHONE_EXTERMINATION_TOTAL;
             killCount  = killCount + (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B) + gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A));
             if (killCount == 0) {
@@ -269,9 +269,9 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             TextDrawReq captionRequest;
             s32         captionBaseY;
 
-            TELEPHONE_DRAW_PLAY_DATA_CAPTION(Telephone_Data_80181A58);
+            TELEPHONE_DRAW_PLAY_DATA_CAPTION(_gTelephoneClearCountLabel);
             textItoaUnsigned(formatBuffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount);
-            textAppendString(formatBuffer, Telephone_Data_80181A70);
+            textAppendString(formatBuffer, _gTelephoneTimesSuffix);
             textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, valueText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
         }
@@ -279,7 +279,7 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             TextDrawReq captionRequest;
             s32         captionBaseY;
 
-            TELEPHONE_DRAW_PLAY_DATA_CAPTION(Telephone_Data_80181A60);
+            TELEPHONE_DRAW_PLAY_DATA_CAPTION(_gTelephoneMaxExpLabel);
             textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, textItoaUnsigned(formatBuffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxExp),
                            list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
@@ -288,7 +288,7 @@ static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object)
             TextDrawReq captionRequest;
             s32         captionBaseY;
 
-            TELEPHONE_DRAW_PLAY_DATA_CAPTION(Telephone_Data_80181A68);
+            TELEPHONE_DRAW_PLAY_DATA_CAPTION(_gTelephoneMaxBpLabel);
             textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, textItoaUnsigned(formatBuffer, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.maxBp),
                            list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
             break;
@@ -689,7 +689,7 @@ static void _telephoneUsageTask(Task* task)
             return;
         }
         task->work = work;
-        uiSpawnObject(&Telephone_Data_80181C90, 0, USER_INTERFACE_PANEL_INACTIVE, 1, object);
+        uiSpawnObject(&_gTelephoneHelpPanelDescriptor, 0, USER_INTERFACE_PANEL_INACTIVE, 1, object);
         if (task->spawnArg1.value == TELEPHONE_USAGE_WEAPONS) {
             _telephoneBuildWeaponUsageList(list, object);
         } else {
@@ -749,7 +749,7 @@ static inline void _telephoneMenuTask(Task* task)
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     showStatistics = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == TELEPHONE_STATISTICS_DEMO_SCENE;
-    list           = &Telephone_Data_80181CF4;
+    list           = &_gTelephoneMenuList;
     activeControl  = USER_INTERFACE_PANEL_ACTIVE;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) {
         showStatistics = activeControl;

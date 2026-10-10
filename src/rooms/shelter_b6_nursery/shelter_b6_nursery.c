@@ -121,46 +121,13 @@ extern EvsCommand D_actor_450800_8013BA84[];
 
 /// View saved when the cutscene starts and restored when it ends.
 
-/// Row labels of the play-data statistics list, one per row.
-static u8 Telephone_Data_80181A20[];
-static u8 Telephone_Data_80181A50[];
-static u8 Telephone_Data_80181A28[];
-static u8 Telephone_Data_80181A2C[];
-static u8 Telephone_Data_80181A34[];
-static u8 Telephone_Data_80181A40[];
-static u8 Telephone_Data_80181A58[];
-static u8 Telephone_Data_80181A60[];
-static u8 Telephone_Data_80181A68[];
-
-/// Suffix appended to the plain counts.
-static u8 Telephone_Data_80181A70[];
-
-/// Help lines shown while the matching row is selected.
-static u8 Telephone_Data_80181A7C[];
-static u8 Telephone_Data_80181AA8[];
-static u8 Telephone_Data_80181ACC[];
-static u8 Telephone_Data_80181AFC[];
-static u8 Telephone_Data_80181B30[];
-static u8 Telephone_Data_80181B64[];
-static u8 Telephone_Data_80181B9C[];
-static u8 Telephone_Data_80181BD0[];
-static u8 Telephone_Data_80181C08[];
-
-/// Lines of the four confirm prompts, and the panels two of them open.
-static u8           Telephone_Data_801819F8[];
-static u8           Telephone_Data_80181A00[];
-static UiObjectDesc Telephone_Data_80181CAC;
+/// Remaining usage-menu captions and usage-panel descriptor.
 static u8           Telephone_Data_80181A0C[];
 static u8           Telephone_Data_80181A18[];
 static UiObjectDesc Telephone_Data_80181CC8;
 
-/// The play-data menu's list, the usage list, the child-panel descriptor both
-/// spawn, and the telephone menu's list.
-static UiList       Telephone_Data_80181C44;
-static UiList       Telephone_Data_80181C6C;
-static UiObjectDesc Telephone_Data_80181C90;
-static UiList       Telephone_Data_80181CF4;
-
+/// Mutable list of the remaining weapon and PE usage panel.
+static UiList Telephone_Data_80181C6C;
 /// Task tables: the cutscene and its sound task; the ambient sound task.
 extern TaskDesc gRoomCutsceneTaskDescs[];
 extern TaskDesc D_shelter_b6_nursery_80185000;

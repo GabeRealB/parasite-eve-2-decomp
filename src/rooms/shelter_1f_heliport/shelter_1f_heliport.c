@@ -104,8 +104,6 @@ static u16       Shop_Data_80181944[];
 static u16       Shop_Data_80181AD4[];
 
 /// Messages and labels of the shop's panels.
-static u8 Shop_Data_801819F0[];
-static u8 Shop_Data_80181A04[];
 static u8 Shop_Data_80181A0C[];
 static u8 Shop_Data_80181A1C[];
 static u8 Shop_Data_80181A20[];
@@ -113,12 +111,7 @@ static u8 Shop_Data_80181A5C[];
 static u8 Shop_Data_80181A64[];
 static u8 Shop_Data_80181A70[];
 static u8 Shop_Data_80181A78[];
-static u8 Shop_Data_80181A80[];
-static u8 Shop_Data_80181A94[];
-static u8 Shop_Data_80181AA4[];
 static u8 Shop_Data_80181AC4[];
-static u8 Shop_Data_80181AD0[];
-
 /// The shop's tier ladder.
 static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
 

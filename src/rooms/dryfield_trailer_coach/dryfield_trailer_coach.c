@@ -1590,10 +1590,6 @@ static UiObjectDesc Shop_Data_80181B84;
 static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
 
 /// Messages and labels of the shop's panels.
-static u8 Shop_Data_801819F0[];
-
-static u8 Shop_Data_80181A04[];
-
 static u8 Shop_Data_80181A5C[];
 
 static u8 Shop_Data_80181A64[];
@@ -1602,15 +1598,7 @@ static u8 Shop_Data_80181A70[];
 
 static u8 Shop_Data_80181A78[];
 
-static u8 Shop_Data_80181A80[];
-
-static u8 Shop_Data_80181A94[];
-
-static u8 Shop_Data_80181AA4[];
-
 static u8 Shop_Data_80181AC4[];
-
-static u8 Shop_Data_80181AD0[];
 
 /// Row handlers, lists and panel descriptors of the shop's panels.
 static UiListRowCallback Shop_Data_80181AD8[];
@@ -1632,65 +1620,13 @@ static UiObjectDesc Shop_Data_80181C10;
 /// Descriptor of the panel `func_dryfield_trailer_coach_8017FE98` opens.
 static UiObjectDesc Shop_Data_80181B30;
 
-static u8 Telephone_Data_80181A20[];
-
-static u8 Telephone_Data_80181A28[];
-
-static u8 Telephone_Data_80181A2C[];
-
-static u8 Telephone_Data_80181A34[];
-
-static u8 Telephone_Data_80181A40[];
-
-static u8 Telephone_Data_80181A50[];
-
-static u8 Telephone_Data_80181A58[];
-
-static u8 Telephone_Data_80181A60[];
-
-static u8 Telephone_Data_80181A68[];
-
-static u8 Telephone_Data_80181A70[];
-
-static u8 Telephone_Data_80181A7C[];
-
-static u8 Telephone_Data_80181AA8[];
-
-static u8 Telephone_Data_80181ACC[];
-
-static u8 Telephone_Data_80181AFC[];
-
-static u8 Telephone_Data_80181B30[];
-
-static u8 Telephone_Data_80181B64[];
-
-static u8 Telephone_Data_80181B9C[];
-
-static u8 Telephone_Data_80181BD0[];
-
-static u8 Telephone_Data_80181C08[];
-
-/// Lists of the usage panel and of the play-data menu, and the descriptor of
-/// the frame the usage panel spawns.
+/// Mutable list of the weapon and Parasite Energy usage panel.
 static UiList Telephone_Data_80181C6C;
 
-static UiList Telephone_Data_80181CF4;
-
-static UiObjectDesc Telephone_Data_80181C90;
-
-/// List of the menu panel `func_dryfield_trailer_coach_8018181C` draws.
-static UiList Telephone_Data_80181C44;
-
-/// Texts of the four menu rows below, and the panels two of them open.
-static u8 Telephone_Data_801819F8[];
-
-static u8 Telephone_Data_80181A00[];
-
+/// Remaining usage-menu captions and usage-panel descriptor.
 static u8 Telephone_Data_80181A0C[];
 
 static u8 Telephone_Data_80181A18[];
-
-static UiObjectDesc Telephone_Data_80181CAC;
 
 static UiObjectDesc Telephone_Data_80181CC8;
 

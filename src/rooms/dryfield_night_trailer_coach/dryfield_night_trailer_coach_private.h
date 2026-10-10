@@ -14,7 +14,13 @@
 
 extern ActorTransform D_dryfield_night_trailer_coach_80187988;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_801879D0;
+/// Equipped-bank player idle request used by the nighttime trailer dialogue scripts.
+///
+/// Event playback copies the request and replaces its bank seed from the
+/// current equipment. It resets clip 1 without blending and requests world
+/// collision participation. The request is borrowed only for dispatch; the
+/// selected bank must remain loaded throughout playback.
+extern const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerIdleAnimation;
 
 extern AnimationPlayRequest D_dryfield_night_trailer_coach_801879F8;
 

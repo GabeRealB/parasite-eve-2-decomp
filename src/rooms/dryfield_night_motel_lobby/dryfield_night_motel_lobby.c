@@ -61,52 +61,14 @@ static void _dryfieldNightMotelLobbyCashRegisterOwnerTask(Task* task);
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType` (ally present). A distinct symbol so the restore
 /// path does not share the `gMcSaveData` address with case 0.
 
-/// Row labels of the play-data statistics panel, one per row
-/// `func_dryfield_night_motel_lobby_8017D748` draws.
-static u8 Telephone_Data_80181A20[];
-static u8 Telephone_Data_80181A50[];
-static u8 Telephone_Data_80181A28[];
-static u8 Telephone_Data_80181A2C[];
-static u8 Telephone_Data_80181A34[];
-static u8 Telephone_Data_80181A40[];
-static u8 Telephone_Data_80181A58[];
-static u8 Telephone_Data_80181A60[];
-static u8 Telephone_Data_80181A68[];
-
-/// The " times" suffix appended to that panel's count rows.
-static u8 Telephone_Data_80181A70[];
-
-/// Help texts of the panel's nine rows, handed to the UI holder for the
-/// selected row.
-static u8 Telephone_Data_80181A7C[];
-static u8 Telephone_Data_80181AA8[];
-static u8 Telephone_Data_80181ACC[];
-static u8 Telephone_Data_80181AFC[];
-static u8 Telephone_Data_80181B30[];
-static u8 Telephone_Data_80181B64[];
-static u8 Telephone_Data_80181B9C[];
-static u8 Telephone_Data_80181BD0[];
-static u8 Telephone_Data_80181C08[];
-
 /// The usage panel's row list.
 static UiList Telephone_Data_80181C6C;
 
-/// The telephone menu's entry list.
-static UiList Telephone_Data_80181CF4;
-
-/// The "Play Data" panel's row list.
-static UiList Telephone_Data_80181C44;
-
-/// Labels the four menu-entry handlers `func_dryfield_night_motel_lobby_8017F18C`
-/// to `func_dryfield_night_motel_lobby_8017F400` draw: "Save", "Play Data",
-/// "Weapon Data" and "PE Data".
-static u8 Telephone_Data_801819F8[];
-static u8 Telephone_Data_80181A00[];
+/// Captions of the remaining weapon and PE usage menu choices.
 static u8 Telephone_Data_80181A0C[];
 static u8 Telephone_Data_80181A18[];
 
-/// UI descriptors the "Play Data" entry and the two usage entries open.
-static UiObjectDesc Telephone_Data_80181CAC;
+/// Descriptor of the remaining weapon and PE usage panel.
 static UiObjectDesc Telephone_Data_80181CC8;
 
 /// The room's task descriptor table: entry 0 is the cap (cutscene) task,
@@ -118,10 +80,6 @@ extern TaskDesc gRoomCutsceneTaskDescs[];
 extern TaskMessageEntry D_dryfield_night_motel_lobby_801827CC[6];
 
 extern TaskDesc D_dryfield_night_motel_lobby_801827FC[];
-
-/// UI descriptor the "Play Data" panel and the usage panel spawn when they
-/// first open.
-static UiObjectDesc Telephone_Data_80181C90;
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\1\x0E"
 #include "../../shared/telephone.h"

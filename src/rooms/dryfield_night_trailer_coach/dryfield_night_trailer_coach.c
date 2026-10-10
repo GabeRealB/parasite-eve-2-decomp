@@ -450,7 +450,15 @@ ActorTransform D_dryfield_night_trailer_coach_801879A0 = { { 4600, 0, -1300, 0 }
 
 ActorTransform D_dryfield_night_trailer_coach_801879B8 = { { 4400, 0, -2400, 0 }, { 0, 512, 0, 0 } };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_801879D0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+enum { DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_IDLE_CLIP = 1 };
+
+const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerIdleAnimation SECTION(".data") = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_IDLE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_trailer_coach_801879E4 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -568,7 +576,7 @@ EvsCommand D_dryfield_night_trailer_coach_80187D00[25] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187988 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187C78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x531B0008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -594,7 +602,7 @@ EvsCommand D_dryfield_night_trailer_coach_80187F58[14] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187988 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187B24 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -610,7 +618,7 @@ EvsCommand D_dryfield_night_trailer_coach_80187F58[14] = {
 EvsCommand D_dryfield_night_trailer_coach_801880A8[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187B4C } }, { .value = 0 } },
@@ -626,7 +634,7 @@ EvsCommand D_dryfield_night_trailer_coach_801880A8[14] = {
 
 EvsCommand D_dryfield_night_trailer_coach_801881F8[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackResult = shopOpenSession }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187B74 } }, { .value = 0 } },
@@ -643,7 +651,7 @@ EvsCommand D_dryfield_night_trailer_coach_801881F8[14] = {
 
 EvsCommand D_dryfield_night_trailer_coach_80188348[19] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187B4C } }, { .value = 0 } },
@@ -665,7 +673,7 @@ EvsCommand D_dryfield_night_trailer_coach_80188348[19] = {
 
 EvsCommand D_dryfield_night_trailer_coach_80188510[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 24 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_801879D0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187BC4 } }, { .value = 0 } },
@@ -702,10 +710,6 @@ static UiObjectDesc Shop_Data_80181B84;
 static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
 
 /// Messages and labels of the shop's panels.
-static u8 Shop_Data_801819F0[];
-
-static u8 Shop_Data_80181A04[];
-
 static u8 Shop_Data_80181A5C[];
 
 static u8 Shop_Data_80181A64[];
@@ -714,15 +718,7 @@ static u8 Shop_Data_80181A70[];
 
 static u8 Shop_Data_80181A78[];
 
-static u8 Shop_Data_80181A80[];
-
-static u8 Shop_Data_80181A94[];
-
-static u8 Shop_Data_80181AA4[];
-
 static u8 Shop_Data_80181AC4[];
-
-static u8 Shop_Data_80181AD0[];
 
 /// Row handlers, lists and panel descriptors of the shop's panels.
 static UiListRowCallback Shop_Data_80181AD8[];
@@ -744,65 +740,13 @@ static UiObjectDesc Shop_Data_80181C10;
 /// Descriptor of the panel `func_dryfield_night_trailer_coach_8017FEC0` opens.
 static UiObjectDesc Shop_Data_80181B30;
 
-static u8 Telephone_Data_80181A20[];
-
-static u8 Telephone_Data_80181A28[];
-
-static u8 Telephone_Data_80181A2C[];
-
-static u8 Telephone_Data_80181A34[];
-
-static u8 Telephone_Data_80181A40[];
-
-static u8 Telephone_Data_80181A50[];
-
-static u8 Telephone_Data_80181A58[];
-
-static u8 Telephone_Data_80181A60[];
-
-static u8 Telephone_Data_80181A68[];
-
-static u8 Telephone_Data_80181A70[];
-
-static u8 Telephone_Data_80181A7C[];
-
-static u8 Telephone_Data_80181AA8[];
-
-static u8 Telephone_Data_80181ACC[];
-
-static u8 Telephone_Data_80181AFC[];
-
-static u8 Telephone_Data_80181B30[];
-
-static u8 Telephone_Data_80181B64[];
-
-static u8 Telephone_Data_80181B9C[];
-
-static u8 Telephone_Data_80181BD0[];
-
-static u8 Telephone_Data_80181C08[];
-
-/// Lists of the usage panel and of the play-data menu, and the descriptor of
-/// the frame the usage panel spawns.
+/// Mutable list of the weapon and Parasite Energy usage panel.
 static UiList Telephone_Data_80181C6C;
 
-static UiList Telephone_Data_80181CF4;
-
-static UiObjectDesc Telephone_Data_80181C90;
-
-/// List of the menu panel `func_dryfield_night_trailer_coach_80181844` draws.
-static UiList Telephone_Data_80181C44;
-
-/// Texts of the four menu rows below, and the panels two of them open.
-static u8 Telephone_Data_801819F8[];
-
-static u8 Telephone_Data_80181A00[];
-
+/// Remaining usage-menu captions and usage-panel descriptor.
 static u8 Telephone_Data_80181A0C[];
 
 static u8 Telephone_Data_80181A18[];
-
-static UiObjectDesc Telephone_Data_80181CAC;
 
 static UiObjectDesc Telephone_Data_80181CC8;
 
