@@ -13,22 +13,54 @@
 
 extern AreaVariant D_shelter_1f_bulwark_80180DA8[12];
 
-// shelter_1f_bulwark
-extern WorldCollisionRoomResources D_shelter_1f_bulwark_801803B0[];
+/// Collision resources for room 1: the grid, view boundaries, actions and sight quads.
+///
+/// Indexed by room - 1 through the Neo Ark map directory. Setup binds and
+/// links the mutable resources; keep this overlay loaded until they are unlinked.
+extern WorldCollisionRoomResources gShelter1fBulwarkCollisionResources[1];
 
-extern WorldCoordRoomLighting D_shelter_1f_bulwark_801803C0[];
+/// Room 1's seven point lights, with the default ambient minima.
+///
+/// Indexed by room - 1. Light transforms and attenuation remain writable;
+/// the collection and all referenced light storage belong to this overlay.
+extern WorldCoordRoomLighting gShelter1fBulwarkRoomLighting[1];
 
-extern u8* D_shelter_1f_bulwark_801803C8[];
+/// Room 1's logical-view map, borrowing gameplay's shared identity map.
+///
+/// Indexed by room - 1; logical views 1..3 select matching camera, image and
+/// sprite indices. Keep both gameplay and this room overlay loaded.
+extern u8* gShelter1fBulwarkRoomViewMaps[1];
 
-extern ViewCount D_shelter_1f_bulwark_801803CC[];
+/// Reverse-lookup limit of three logical views for room 1, indexed by room - 1.
+extern ViewCount gShelter1fBulwarkRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_1f_bulwark_801803D0[];
+/// Bulwark arrival placements and departure cues for the airlock and heliport exits.
+///
+/// Indexed by warp - 1: endpoint 1 starts in view 2 at the vehicular airlock,
+/// endpoint 2 in view 3 at the heliport. The first updates the airlock map marker.
+/// The stage directory borrows these entries while this overlay is loaded.
+/// Positions are world units and yaw uses 4096 per turn.
+extern DirectionWarpEntry gShelter1fBulwarkWarpEntries[2];
 
-extern ViewCamera D_shelter_1f_bulwark_8018066C[];
+/// Cameras for mapped views 1..3, indexed by mapped view - 1.
+///
+/// Rotation coefficients use 4096 for 1.0, translation uses world units and
+/// projection distances are pixels. Keep this overlay loaded until application.
+extern ViewCamera gShelter1fBulwarkCameras[3];
 
-extern SpriteView D_shelter_1f_bulwark_801807B0[];
+/// Sprite resources for mapped views 1..3, indexed by mapped view - 1.
+///
+/// Views 1 and 2 have no sprites; view 3 has eight depth-sorted rectangles.
+/// All three retain decoded background strips and have no clipping-area list.
+/// Sources and mutable batches belong to this overlay and stay live while drawing.
+extern SpriteView gShelter1fBulwarkSpriteViews[3];
 
-extern WorldCollisionSurfaceProperties* D_shelter_1f_bulwark_80180E9C[];
+/// Collision policies indexed by room-local surface class, 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Class 1
+/// is the grid's floor and supplies footstep cues; other classes are silent.
+/// All pointers borrow storage from this room overlay.
+extern WorldCollisionSurfaceProperties* gShelter1fBulwarkSurfaceProperties[8];
 
 /// Runs the Shelter 1F Bulwark room controller for one tick.
 ///

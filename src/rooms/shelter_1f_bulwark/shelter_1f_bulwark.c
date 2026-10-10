@@ -68,25 +68,20 @@
 
 extern s8 D_shelter_1f_bulwark_80180ECC;
 
-extern TaskDesc         D_shelter_1f_bulwark_80180320;
 extern TaskMessageEntry D_shelter_1f_bulwark_8018032C[];
 extern TaskDesc         D_shelter_1f_bulwark_80180354;
-extern TaskDesc         D_shelter_1f_bulwark_80180360[];
-extern SVECTOR          D_shelter_1f_bulwark_80180378[];
-extern SVECTOR          D_shelter_1f_bulwark_80180398[];
 extern ScreenFade       gRoomEventFade;
-extern ScreenFade       D_shelter_1f_bulwark_80180EC0;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void _shelter1fBulwarkInitializeRoom(Task* task);
 static void _shelter1fBulwarkIdle(Task* task);
 
-extern WorldCollisionGrid     D_shelter_1f_bulwark_80180648[1];
-extern WorldCollisionOccluder D_shelter_1f_bulwark_80180E08[2];
-extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180A8C[2];
-extern WorldCollisionTrigger  D_shelter_1f_bulwark_80180B24[8];
-extern WorldCoordRoomLights   D_shelter_1f_bulwark_80180A74[1];
+static WorldCollisionGrid     _gShelter1fBulwarkCollisionGrid;
+static WorldCollisionOccluder _gShelter1fBulwarkOccluders[2];
+static WorldCollisionTrigger  _gShelter1fBulwarkViewBoundaries[2];
+static WorldCollisionTrigger  _gShelter1fBulwarkActionTriggers[8];
+static WorldCoordRoomLights   _gShelter1fBulwarkRoomLights;
 
 static s32  _shelter1fBulwarkResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _shelter1fBulwarkRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
@@ -96,7 +91,19 @@ static void _shelter1fBulwarkHeliportDepartureTask(Task* task);
 static void _shelter1fBulwarkPlayDepartureMovieTask(Task* movieTask);
 static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task);
 
-TaskDesc D_shelter_1f_bulwark_80180320 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Execution priorities for the room's staged transition and movie handoff tasks.
+enum {
+    SHELTER_1F_BULWARK_STAGED_EVENT_PRIORITY    = 0x20,
+    SHELTER_1F_BULWARK_DEPARTURE_MOVIE_PRIORITY = 0xC0,
+};
+
+/// Bodyless recipe for the latched CAP/sound/fade transition and saved-location reload.
+///
+/// Spawn entry 0 with zero payloads after filling the room's staged message and
+/// latched event. The room globals and callback must remain live through reload.
+static TaskDesc _gShelter1fBulwarkStagedEventTaskDesc = {
+    { { TASK_BODY_NONE, SHELTER_1F_BULWARK_STAGED_EVENT_PRIORITY } }, roomEventStagedTask, { .value = 0 }
+};
 
 /// Room message sent by the inventory's key-item use prompt.
 enum { SHELTER_1F_BULWARK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -111,139 +118,208 @@ TaskMessageEntry D_shelter_1f_bulwark_8018032C[5] = {
 
 TaskDesc D_shelter_1f_bulwark_80180354 = { { { TASK_BODY_NONE, 32 } }, _shelter1fBulwarkHeliportDepartureTask, { .value = 0 } };
 
-TaskDesc D_shelter_1f_bulwark_80180360[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _shelter1fBulwarkReloadAfterDepartureMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _shelter1fBulwarkPlayDepartureMovieTask, { .value = 0 } },
+/// Bodyless recipes for the departure coordinator (0) and its display movie task (1).
+///
+/// Both start with zero payloads. The coordinator hands presentation to entry 1,
+/// then reloads at Neo Ark area 26 after playback and game-resource restoration.
+/// There is no terminator; keep this room's callback code loaded while they run.
+static TaskDesc _gShelter1fBulwarkDepartureMovieTaskDescs[2] = {
+    { { { TASK_BODY_NONE, SHELTER_1F_BULWARK_DEPARTURE_MOVIE_PRIORITY } }, _shelter1fBulwarkReloadAfterDepartureMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_1F_BULWARK_DEPARTURE_MOVIE_PRIORITY } }, _shelter1fBulwarkPlayDepartureMovieTask, { .value = 0 } },
 };
 
-SVECTOR D_shelter_1f_bulwark_80180378[4] = {
+/// Fixed world-space glow centres for mapped view 2, in world-coordinate units.
+///
+/// Entries 0..1 use red/green factors 2:1; entries 2..3 use equal RGB factors.
+/// Read-only positions retain their original data-section placement.
+static const SVECTOR _gShelter1fBulwarkView2GlowPoints[4] SECTION(".data") = {
     { 3560, -6380, 2770, 0 },
     { 3560, -5130, -2810, 0 },
     { 2910, -4050, 1890, 0 },
     { 2910, -4050, -1930, 0 },
 };
 
-SVECTOR D_shelter_1f_bulwark_80180398[1] = {
-    { -4180, -1940, 2720, 0 },
-};
+/// Fixed world-space red glow centre for mapped view 3, in world-coordinate units.
+static const SVECTOR _gShelter1fBulwarkView3GlowPoint SECTION(".data") = { -4180, -1940, 2720, 0 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_shelter_1f_bulwark_801803B0[1] = {
-    { D_shelter_1f_bulwark_80180648, D_shelter_1f_bulwark_80180A8C, D_shelter_1f_bulwark_80180B24, D_shelter_1f_bulwark_80180E08 },
+WorldCollisionRoomResources gShelter1fBulwarkCollisionResources[1] = {
+    { &_gShelter1fBulwarkCollisionGrid, _gShelter1fBulwarkViewBoundaries, _gShelter1fBulwarkActionTriggers, _gShelter1fBulwarkOccluders },
 };
 
-WorldCoordRoomLighting D_shelter_1f_bulwark_801803C0[1] = {
-    { D_shelter_1f_bulwark_80180A74, NULL },
+WorldCoordRoomLighting gShelter1fBulwarkRoomLighting[1] = {
+    { &_gShelter1fBulwarkRoomLights, NULL },
 };
 
-u8* D_shelter_1f_bulwark_801803C8[1] = {
+u8* gShelter1fBulwarkRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_1f_bulwark_801803CC[1] = { 3 };
+ViewCount gShelter1fBulwarkRoomViewCounts[1] = { ARRAY_SIZE(gShelter1fBulwarkCameras) };
 
-DirectionWarpEntry D_shelter_1f_bulwark_801803D0[2] = {
-    { { { .word = 3072 }, 4000, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3130, 0, 0 }, { 0, 0, 0, 0 }, 0x55030002, 0x55030001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 428 },
-    { { { .word = 1024 }, -3800, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3800, 0, 0 }, { 0, 0, 0, 0 }, 0x55030004, 0x55030003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Map-marker nibble shared by the two sides of the vehicular-airlock exit.
+enum { SHELTER_1F_BULWARK_AIRLOCK_MAP_FLAG_ID = 0x1AC };
+
+DirectionWarpEntry gShelter1fBulwarkWarpEntries[2] = {
+    { { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 4000, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 3130, 0, 0 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_BULWARK, 2), SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_BULWARK, 1), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, SHELTER_1F_BULWARK_AIRLOCK_MAP_FLAG_ID },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -3800, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -3800, 0, 0 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_BULWARK, 4), SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelter1fBulwarkCollision03088Normals[6] = {
+/// Room-space unit normals of the Bulwark collision grid, with ONE for 1.0.
+static SVECTOR _gShelter1fBulwarkCollisionGridNormals[6] = {
 #include "assets/shelter_1f_bulwark_collision_03088_normals.inc"
 };
 
-static SVECTOR _gShelter1fBulwarkCollision03088Verts[22] = {
+/// Room-space collision-grid vertices, in signed world-coordinate units.
+static SVECTOR _gShelter1fBulwarkCollisionGridVerts[22] = {
 #include "assets/shelter_1f_bulwark_collision_03088_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelter1fBulwarkCollision03088Faces[12] = {
+/// Indexed collision faces; class 1 is the floor and class 0 has no footstep cues.
+static WorldCollisionGridFace _gShelter1fBulwarkCollisionGridFaces[12] = {
 #include "assets/shelter_1f_bulwark_collision_03088_faces.inc"
 };
 
-static s16 _gShelter1fBulwarkCollision03088Cells[64] = {
+/// Serialized signed face-index lists for six cells, each ending with -1.
+static s16 _gShelter1fBulwarkCollisionGridCells[64] = {
 #include "assets/shelter_1f_bulwark_collision_03088_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fBulwarkCollision03088Cells[i])
-static s16* _gShelter1fBulwarkCollision03088Table[6] = {
+#define GRID_CELL(i) (&_gShelter1fBulwarkCollisionGridCells[i])
+/// X-major 3-by-2 cell directory borrowing the grid's face-index lists.
+static s16* _gShelter1fBulwarkCollisionGridTable[6] = {
 #include "assets/shelter_1f_bulwark_collision_03088_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_1f_bulwark_80180648[1] = {
-    { NULL, _gShelter1fBulwarkCollision03088Normals, _gShelter1fBulwarkCollision03088Verts, _gShelter1fBulwarkCollision03088Faces, _gShelter1fBulwarkCollision03088Table, 4250, 3500, 3, 2, 4000, 12 },
+/// Bulwark collision mesh with six 4000-unit XZ cells and twelve quad faces.
+///
+/// Grid origin is (-4250, -3500) in room X/Z. Setup binds the mutable descriptor
+/// to the current view; its pools and cell lists stay live while the grid is active.
+static WorldCollisionGrid _gShelter1fBulwarkCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelter1fBulwarkCollisionGridNormals,
+    .vertices    = _gShelter1fBulwarkCollisionGridVerts,
+    .faces       = _gShelter1fBulwarkCollisionGridFaces,
+    .cellFaceIds = _gShelter1fBulwarkCollisionGridTable,
+    .xBias       = 4250,
+    .zBias       = 3500,
+    .cellCountX  = 3,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelter1fBulwarkCollisionGridFaces),
 };
 
-ViewCamera D_shelter_1f_bulwark_8018066C[3] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x38D6, 0 } }, 257 },
+ViewCamera gShelter1fBulwarkCameras[3] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x38D6, 0 } }, 257 },
     { { { { 888, 0, -3998 }, { 1332, 3861, 296 }, { 3769, -1364, 837 } }, { 2810, 260, 870 } }, 257 },
     { { { { 902, 0, 3995 }, { 3827, 1174, -864 }, { -1145, 3924, 258 } }, { 1110, 5890, 370 } }, 207 },
 };
 
-SpriteBatch D_shelter_1f_bulwark_801806D8[2] = {
+/// Empty sprite list for mapped view 1, retaining decoded background strips.
+static SpriteBatch _gShelter1fBulwarkView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_bulwark_801806E8[2] = {
+/// Empty sprite list for mapped view 2, retaining decoded background strips.
+static SpriteBatch _gShelter1fBulwarkView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_bulwark_801806F8[8] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, 32, 1225, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -104, 40, 1225, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -120, 48, 1225, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 48, 1400, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -56, 64, 1400, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, 96, 1425, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, -112, 64, 1225, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 24 } }, -112, 96, 1425, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+/// Neutral colour modulation copied into directly emitted sprite packets.
+enum { SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB = 128 };
+
+/// Eight opaque sprite rectangles for mapped view 3, in view-centred pixels.
+///
+/// Texture coordinates are texels; sorting depths are unscaled OT values.
+/// Sources remain writable for the sprite system while this overlay is loaded.
+static SpriteSource _gShelter1fBulwarkView3SpriteSources[8] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -80, 32, 1225, { .fields = { 120, 152 } }, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -104, 40, 1225, { .fields = { 72, 144 } }, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, -120, 48, 1225, { .fields = { 64, 112 } }, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -56, 48, 1400, { .fields = { 112, 128 } }, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -56, 64, 1400, { .fields = { 112, 32 } }, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -48, 96, 1425, { .fields = { 112, 88 } }, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 32 } }, -112, 64, 1225, { .fields = { 72, 0 } }, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 24 } }, -112, 96, 1425, { .fields = { 64, 64 } }, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, SHELTER_1F_BULWARK_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_shelter_1f_bulwark_80180798[3] = {
+/// View 3's eight-sprite range after an empty batch retaining background strips.
+static SpriteBatch _gShelter1fBulwarkView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelter1fBulwarkView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_1f_bulwark_801807B0[3] = {
-    { { .empty = D_shelter_1f_bulwark_801806D8 }, D_shelter_1f_bulwark_801806D8, NULL },
-    { { .empty = D_shelter_1f_bulwark_801806E8 }, D_shelter_1f_bulwark_801806E8, NULL },
-    { { .elements = D_shelter_1f_bulwark_801806F8 }, D_shelter_1f_bulwark_80180798, NULL },
+SpriteView gShelter1fBulwarkSpriteViews[3] = {
+    { { .empty = _gShelter1fBulwarkView1SpriteBatches }, _gShelter1fBulwarkView1SpriteBatches, NULL },
+    { { .empty = _gShelter1fBulwarkView2SpriteBatches }, _gShelter1fBulwarkView2SpriteBatches, NULL },
+    { { .elements = _gShelter1fBulwarkView3SpriteSources }, _gShelter1fBulwarkView3SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_1f_bulwark_801807D4[7] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3994, -1930, 2718 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 0, 0 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2500, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 2500, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2500, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 2500, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -3000, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -3000, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -6000, -2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 1638, 1228 }, { 0, 0 } }, 6000, 7000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -6000, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 1638, 1228 }, { 0, 0 } }, 6000, 7000 },
+/// Seven authored point lights contributing in every view of the Bulwark.
+///
+/// Positions and falloff radii are world units, RGB uses ONE for 1.0. Setup
+/// parents their transforms to the view; composition and shading mutate caches.
+static WorldCoordPointLight _gShelter1fBulwarkPointLights[7] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3994, -1930, 2718 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 0, 0 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2500, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 2500, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2500, -1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 2500, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2000, -3000, -1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2000, -3000, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2293, 2048 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -6000, -2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 1638, 1228 }, { 0, 0 } }, 6000, 7000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -6000, 2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 1638, 1228 }, { 0, 0 } }, 6000, 7000 },
 };
 
-WorldCoordRoomLights D_shelter_1f_bulwark_80180A74[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_1f_bulwark_801807D4), D_shelter_1f_bulwark_801807D4, 0, NULL },
+/// Room light collection containing seven point lights and no directional or cone lights.
+static WorldCoordRoomLights _gShelter1fBulwarkRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelter1fBulwarkPointLights),
+    .pointLights           = _gShelter1fBulwarkPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_1f_bulwark_80180A8C[2] = {
-    { NULL, NULL, NULL, { -620, -3248, 96, 0 }, { { -313, -3712, -2468, 0 }, { 310, -3712, 2465, 0 }, { -313, 3712, -2468, 0 }, { 310, 3712, 2465, 0 } }, { 4075, 0, -516, 0 }, { 0, 0, 4096, 0 }, 4463, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -478, -3312, 191, 0 }, { { 291, -3712, 2444, 0 }, { -302, -3712, -2455, 0 }, { 291, 3712, 2444, 0 }, { -302, 3712, -2455, 0 } }, { -4074, 0, 492, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed view boundaries between logical views 2 and 3, ending with LAST.
+///
+/// Room setup binds and links both mutable quads. Positions and radii are world
+/// units, normals use ONE for 1.0; runtime links and hit latches start clear.
+static WorldCollisionTrigger _gShelter1fBulwarkViewBoundaries[2] = {
+    { NULL, NULL, NULL, { -620, -3248, 96, 0 }, { { -313, -3712, -2468, 0 }, { 310, -3712, 2465, 0 }, { -313, 3712, -2468, 0 }, { 310, 3712, 2465, 0 } }, { 4075, 0, -516, 0 }, { 0, 0, ONE, 0 }, 4463, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -478, -3312, 191, 0 }, { { 291, -3712, 2444, 0 }, { -302, -3712, -2455, 0 }, { 291, 3712, 2444, 0 }, { -302, 3712, -2455, 0 } }, { -4074, 0, 492, 0 }, { 0, 0, ONE, 0 }, 4434, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_1f_bulwark_80180B24[8] = {
-    { NULL, NULL, NULL, { 3696, -53, 0, 0 }, { { -496, 0, -1408, 0 }, { 496, 0, -1408, 0 }, { -496, 0, 1408, 0 }, { 496, 0, 1408, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3776, -53, 112, 0 }, { { -496, 0, -1776, 0 }, { 496, 0, -1776, 0 }, { -496, 0, 1776, 0 }, { 496, 0, 1776, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 1841, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 656, -64, -1200, 0 }, { { -3552, 0, -368, 0 }, { 3552, 0, -368, 0 }, { -3552, 0, 368, 0 }, { 3552, 0, 368, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4096, 0 }, 3565, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -304, -64, 992, 0 }, { { -1744, 0, -368, 0 }, { 1744, 0, -368, 0 }, { -1744, 0, 368, 0 }, { 1744, 0, 368, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, -4096, 0 }, 1778, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1600, -64, 2144, 0 }, { { -496, 0, -1408, 0 }, { 496, 0, -1408, 0 }, { -496, 0, 1408, 0 }, { 496, 0, 1408, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2656, -64, -2176, 0 }, { { -496, 0, -1408, 0 }, { 496, 0, -1408, 0 }, { -496, 0, 1408, 0 }, { 496, 0, 1408, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3808, -64, -2704, 0 }, { { -496, 0, -496, 0 }, { 496, 0, -496, 0 }, { -496, 0, 496, 0 }, { 496, 0, 496, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_WARP, 4, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2848, -64, 1024, 0 }, { { -1328, 0, -368, 0 }, { 1328, 0, -368, 0 }, { -1328, 0, 368, 0 }, { 1328, 0, 368, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed departure/arrival slots for the room's two warp actions.
+enum {
+    SHELTER_1F_BULWARK_WARP_TO_AIRLOCK  = (1 << 4) | 3,
+    SHELTER_1F_BULWARK_WARP_TO_HELIPORT = (2 << 4) | 1,
 };
 
-AreaResource D_shelter_1f_bulwark_80180D84[3] = {
+/// Eight facing-gated action quads: two exits and six CAP interactions.
+///
+/// Warps use Bulwark endpoint 1 to airlock arrival 3 and endpoint 2 to heliport
+/// arrival 1. CAP entries select commands 2..5 with zero presentation flags.
+/// Setup binds and links the mutable records; the final included quad carries LAST.
+static WorldCollisionTrigger _gShelter1fBulwarkActionTriggers[8] = {
+    { NULL, NULL, NULL, { 3696, -53, 0, 0 }, { { -496, 0, -1408, 0 }, { 496, 0, -1408, 0 }, { -496, 0, 1408, 0 }, { 496, 0, 1408, 0 } }, { 0, 4105, 0, 0 }, { -ONE, 0, 0, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, SHELTER_1F_BULWARK_WARP_TO_AIRLOCK, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3776, -53, 112, 0 }, { { -496, 0, -1776, 0 }, { 496, 0, -1776, 0 }, { -496, 0, 1776, 0 }, { 496, 0, 1776, 0 } }, { 0, 4101, 0, 0 }, { ONE, 0, 0, 0 }, 1841, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 656, -64, -1200, 0 }, { { -3552, 0, -368, 0 }, { 3552, 0, -368, 0 }, { -3552, 0, 368, 0 }, { 3552, 0, 368, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, ONE, 0 }, 3565, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -304, -64, 992, 0 }, { { -1744, 0, -368, 0 }, { 1744, 0, -368, 0 }, { -1744, 0, 368, 0 }, { 1744, 0, 368, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, -ONE, 0 }, 1778, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1600, -64, 2144, 0 }, { { -496, 0, -1408, 0 }, { 496, 0, -1408, 0 }, { -496, 0, 1408, 0 }, { 496, 0, 1408, 0 } }, { 0, 4105, 0, 0 }, { -ONE, 0, 0, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2656, -64, -2176, 0 }, { { -496, 0, -1408, 0 }, { 496, 0, -1408, 0 }, { -496, 0, 1408, 0 }, { 496, 0, 1408, 0 } }, { 0, 4105, 0, 0 }, { -ONE, 0, 0, 0 }, 1492, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3808, -64, -2704, 0 }, { { -496, 0, -496, 0 }, { 496, 0, -496, 0 }, { -496, 0, 496, 0 }, { 496, 0, 496, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_1F_HELIPORT, SHELTER_1F_BULWARK_WARP_TO_HELIPORT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2848, -64, 1024, 0 }, { { -1328, 0, -368, 0 }, { 1328, 0, -368, 0 }, { -1328, 0, 368, 0 }, { 1328, 0, 368, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -ONE, 0 }, 1372, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Default variant's two Rook Golem resource recipes, followed by AREA_PLACEMENT_END.
+///
+/// Placement IDs 23 and 57 use actor packages 102300 and 205700 respectively,
+/// selecting task entry 0. The loader borrows these recipes and their task tables.
+static AreaResource _gShelter1fBulwarkVariant1Resources[3] = {
     { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102300RookGolemTasks },
     { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -251,7 +327,7 @@ AreaResource D_shelter_1f_bulwark_80180D84[3] = {
 
 AreaVariant D_shelter_1f_bulwark_80180DA8[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AF00, D_shelter_1f_bulwark_80180D84 },
+    { D_map_neo_ark_8017AF00, _gShelter1fBulwarkVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -264,39 +340,71 @@ AreaVariant D_shelter_1f_bulwark_80180DA8[12] = {
     { NULL, NULL },
 };
 
-WorldCollisionOccluder D_shelter_1f_bulwark_80180E08[2] = {
+/// Two room-space quads blocking sight, ending with LAST on the second record.
+///
+/// Setup links and enables both records; keep them loaded until unlinked.
+/// The retained low flag bit and final byte have no established interpretation.
+static WorldCollisionOccluder _gShelter1fBulwarkOccluders[2] = {
     { NULL, NULL, { 1840, -16, 2576, 0 }, { { -2864, 1936, -1104, 0 }, { 2864, 1936, 1104, 0 }, { -2864, -1936, -1104, 0 }, { 2864, -1936, 1104, 0 } }, { -1477, 0, 3827, 0 }, 3620, 1, 0 },
     { NULL, NULL, { 2624, 0, -3120, 0 }, { { -3216, 1936, 896, 0 }, { 3216, 1936, -896, 0 }, { -3216, -1936, 896, 0 }, { 3216, -1936, -896, 0 } }, { 1102, 0, 3957, 0 }, 3857, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_shelter_1f_bulwark_80180E80 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Loaded type-1-bank cue bases for walking/scripted jumps and running on the floor.
+enum {
+    SHELTER_1F_BULWARK_FLOOR_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    SHELTER_1F_BULWARK_FLOOR_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_bulwark_80180E8C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Floor footstep pairs, with scripted jumps sharing the walking pair.
+///
+/// Cue 2 uses the base, cue 1 base+1; companions add 100. The surface borrows
+/// this immutable record while the room is loaded; retain its data-section position.
+static const WorldCollisionFootstepSounds _gShelter1fBulwarkFloorFootstepSounds SECTION(".data") = {
+    .walk         = SHELTER_1F_BULWARK_FLOOR_WALK_CUE_BASE,
+    .run          = SHELTER_1F_BULWARK_FLOOR_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_1F_BULWARK_FLOOR_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_bulwark_80180E94[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_bulwark_80180E80 },
+/// Blocking surface policy without footstep cues, shared by classes 0 and 2..7.
+///
+/// field_0 is retained as zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gShelter1fBulwarkSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_1f_bulwark_80180E9C[8] = {
-    D_shelter_1f_bulwark_80180E8C,
-    D_shelter_1f_bulwark_80180E94,
-    D_shelter_1f_bulwark_80180E8C,
-    D_shelter_1f_bulwark_80180E8C,
-    D_shelter_1f_bulwark_80180E8C,
-    D_shelter_1f_bulwark_80180E8C,
-    D_shelter_1f_bulwark_80180E8C,
-    D_shelter_1f_bulwark_80180E8C,
+/// Blocking floor policy for class 1, with paired walking and running footstep cues.
+///
+/// field_0 is retained as zero; its role is unproven.
+static WorldCollisionSurfaceProperties _gShelter1fBulwarkFloorSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelter1fBulwarkFloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelter1fBulwarkSurfaceProperties[8] = {
+    &_gShelter1fBulwarkSilentSurface,
+    &_gShelter1fBulwarkFloorSurface,
+    &_gShelter1fBulwarkSilentSurface,
+    &_gShelter1fBulwarkSilentSurface,
+    &_gShelter1fBulwarkSilentSurface,
+    &_gShelter1fBulwarkSilentSurface,
+    &_gShelter1fBulwarkSilentSurface,
+    &_gShelter1fBulwarkSilentSurface,
 };
 
 ScreenFade gRoomEventFade = { 0 };
 
-ScreenFade D_shelter_1f_bulwark_80180EC0 = { 0 };
+/// Mutable 30-frame departure blackout lent to the fade task before the heliport movie.
+///
+/// This is separate from the ordinary staged-event fade. Keep the room overlay
+/// loaded and the record intact until session reload discards the old task list.
+static ScreenFade _gShelter1fBulwarkHeliportFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
@@ -339,7 +447,7 @@ static __inline__ s32 _shelter1fBulwarkStartEvent(const RoomEventMsg* transition
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
-            taskSpawnFromTable(&D_shelter_1f_bulwark_80180320, 0, 0, 0);
+            taskSpawnFromTable(&_gShelter1fBulwarkStagedEventTaskDesc, 0, 0, 0);
             D_shelter_1f_bulwark_80180ECC = ROOM_EVENT_STARTED;
         }
         return ROOM_EVENT_ELIGIBLE;
@@ -418,10 +526,10 @@ static inline void _shelter1fBulwarkStartHeliportFade(Task* task)
         SHELTER_1F_BULWARK_FADE_TASK_SLOT = 0x31,
     };
 
-    D_shelter_1f_bulwark_80180EC0.blend      = SCREEN_FADE_SUBTRACT;
-    D_shelter_1f_bulwark_80180EC0.phase      = SCREEN_FADE_RUNNING;
-    D_shelter_1f_bulwark_80180EC0.rampFrames = SHELTER_1F_BULWARK_FADE_FRAMES;
-    taskSpawn(SHELTER_1F_BULWARK_FADE_TASK_BANK, SHELTER_1F_BULWARK_FADE_TASK_SLOT, 0, &D_shelter_1f_bulwark_80180EC0);
+    _gShelter1fBulwarkHeliportFade.blend      = SCREEN_FADE_SUBTRACT;
+    _gShelter1fBulwarkHeliportFade.phase      = SCREEN_FADE_RUNNING;
+    _gShelter1fBulwarkHeliportFade.rampFrames = SHELTER_1F_BULWARK_FADE_FRAMES;
+    taskSpawn(SHELTER_1F_BULWARK_FADE_TASK_BANK, SHELTER_1F_BULWARK_FADE_TASK_SLOT, 0, &_gShelter1fBulwarkHeliportFade);
     task->killCountdown = 0;
     sndEvtRequestScriptStart(SOUND_SHELTER_1F_BULWARK_TO_HELIPORT, 0, 0);
 }
@@ -479,7 +587,7 @@ static void _shelter1fBulwarkHeliportDepartureTask(Task* task)
         case SHELTER_1F_BULWARK_DEPARTURE_START_MOVIE:
             // The coordinator owns the movie and the eventual saved-location reload.
             gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, SHELTER_1F_BULWARK_DEPARTURE_CHAPTER);
-            taskSpawnFromTable(D_shelter_1f_bulwark_80180360, 0, 0, 0);
+            taskSpawnFromTable(_gShelter1fBulwarkDepartureMovieTaskDescs, 0, 0, 0);
             /* fallthrough */
         case SHELTER_1F_BULWARK_DEPARTURE_BEFORE_MOVIE:
         case SHELTER_1F_BULWARK_DEPARTURE_AFTER_MOVIE_START:
@@ -626,7 +734,7 @@ static void _shelter1fBulwarkReloadAfterDepartureMovieTask(Task* task)
     switch (task->state) {
         case DEPARTURE_START_MOVIE:
             // Give the movie sole presentation ownership until its restore completes.
-            displaySpawnTaskFromTable(D_shelter_1f_bulwark_80180360, DEPARTURE_MOVIE_TASK_INDEX, 0, 0);
+            displaySpawnTaskFromTable(_gShelter1fBulwarkDepartureMovieTaskDescs, DEPARTURE_MOVIE_TASK_INDEX, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             viewQueueCurrentCameraAndPackets();
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
@@ -675,7 +783,7 @@ void shelter1fBulwarkDrawGlowsTask(Task* task)
     mappedViewIndex = viewGetMappedIndex();
     switch (mappedViewIndex) {
         case 2: {
-            const SVECTOR* glowPoints = D_shelter_1f_bulwark_80180378;
+            const SVECTOR* glowPoints = _gShelter1fBulwarkView2GlowPoints;
             _glowDrawFactorDisc(&glowPoints[0], GLOW_VIEW_2_RADIUS, GLOW_RED_GREEN_FACTORS);
             _glowDrawFactorDisc(&glowPoints[1], GLOW_VIEW_2_RADIUS, GLOW_RED_GREEN_FACTORS);
             _glowDrawFactorDisc(&glowPoints[2], GLOW_VIEW_2_RADIUS, GLOW_EQUAL_RGB_FACTORS);
@@ -683,7 +791,7 @@ void shelter1fBulwarkDrawGlowsTask(Task* task)
             break;
         }
         case 3:
-            _glowDrawFactorDisc(&D_shelter_1f_bulwark_80180398[0], GLOW_VIEW_3_RADIUS, GLOW_RED_FACTOR);
+            _glowDrawFactorDisc(&_gShelter1fBulwarkView3GlowPoint, GLOW_VIEW_3_RADIUS, GLOW_RED_FACTOR);
             break;
     }
 }
