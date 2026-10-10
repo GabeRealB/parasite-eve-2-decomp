@@ -16,22 +16,65 @@ extern AreaVariant D_acropolis_hallway_8017EA3C[13];
 
 extern TmdSource gAcropolisHallwayModel01AE0;
 
-// acropolis_hallway
-extern WorldCollisionRoomResources D_acropolis_hallway_8017E258[];
+/// Collision resources for hallway room 1: mesh, view boundaries and action quads.
+///
+/// The stage map borrows this one-record room directory. Activation binds and
+/// links its mutable grid and triggers; there are no sight occluders. Keep the
+/// hallway overlay loaded until the grid is retired and its lists are unlinked.
+extern WorldCollisionRoomResources gAcropolisHallwayRoomCollisionResources[1];
 
-extern u8* D_acropolis_hallway_8017E268[];
+/// Hallway room 1's logical-view map, borrowing gameplay's identity map.
+///
+/// Logical views 1..5 map directly to camera, image and sprite indices 1..5.
+/// The shared map's capacity is independent of this room's five-view limit.
+/// The directory requires the hallway overlay; the bytes require gameplay.
+extern u8* gAcropolisHallwayViewMaps[1];
 
-extern ViewCount D_acropolis_hallway_8017E26C[];
+/// Hallway room 1's five logical views, limiting reverse map searches.
+///
+/// The signed-halfword element is indexed by room - 1, with no terminator.
+/// It counts logical entries rather than the shared identity map's capacity;
+/// the stage map borrows it while the hallway overlay is loaded.
+extern ViewCount gAcropolisHallwayViewCounts[1];
 
-extern WorldCoordRoomLighting D_acropolis_hallway_8017E270[];
+/// Hallway room 1's three point lights and default ambient minima.
+///
+/// Indexed by room - 1. The NULL ambient table selects gameplay's defaults.
+/// The descriptor and its writable light records require the hallway overlay
+/// to remain loaded throughout coordinate updates and shading queries.
+extern WorldCoordRoomLighting gAcropolisHallwayRoomLightingTable[1];
 
-extern DirectionWarpEntry D_acropolis_hallway_8017E278[];
+/// Four hallway warp endpoints, indexed by the 1-based warp ID minus one.
+///
+/// Slots 1..4 connect to the fountain, security room and the two cafeteria
+/// exits. Player and companion share each room-space placement; yaw uses
+/// 4096 per turn. Arrival views are 4, 4, 3 and 2, with map-marker nibbles
+/// 497..500 and no blocked sound or departure fade. Retain the hallway
+/// overlay while departure queries or arrival placement copy these records.
+extern DirectionWarpEntry gAcropolisHallwayWarpEntries[4];
 
-extern SpriteView D_acropolis_hallway_8017EC2C[];
+/// Hallway mapped views 1..5, selecting decoded backgrounds without source sprites.
+///
+/// Indexed by mapped view - 1. Each view keeps its own zero-count batch and
+/// end marker, with the batch address retained in sources.empty and no clip
+/// list. Keep the hallway overlay loaded while these descriptors are borrowed.
+extern SpriteView gAcropolisHallwaySpriteViews[5];
 
-extern ViewCamera D_acropolis_hallway_8017EC68[];
+/// Hallway cameras for mapped views 1..5, indexed by mapped view minus one.
+///
+/// Rotations use 4096 per unit; translations are negated world-space camera
+/// origins in game units. Projection distances are 911 pixels for view 1 and
+/// 207 for views 2..5. Queued camera tasks borrow these records until application;
+/// the hallway overlay must remain loaded through that copy.
+extern ViewCamera gAcropolisHallwayViewCameras[5];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_hallway_8017ED40[];
+/// Hallway surface responses for collision classes 0..7, with no terminator.
+///
+/// Class 1 passes probes and suppresses weapon impacts; class 4 blocks probes
+/// and permits impacts. Both supply footstep cues. Other classes block, permit
+/// impacts and have no footstep sounds. All classes apply pushback. The stage
+/// map borrows the directory and its records while the hallway overlay is loaded.
+extern WorldCollisionSurfaceProperties* gAcropolisHallwaySurfacePropertiesByClass[8];
 
 /// Inert task callback for the hallway's effect-bank-6 slot 0x84.
 ///
