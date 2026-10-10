@@ -694,7 +694,7 @@ u16 D_map_akropolis_8017AA0C[14] = {
 
 WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
     D_acropolis_square_80183BB4,
-    D_acropolis_east_elevator_hall_80186338,
+    gAcropolisEastElevatorHallRoomLightingTable,
     gAcropolisPatioRoomLightingTable,
     gAcropolisCafeteriaRoomLightingTable,
     gAcropolisPlazaRoomLightingTable,
@@ -742,7 +742,7 @@ WorldCollisionStageResources D_map_akropolis_8017AAC8 = { D_map_akropolis_8017AA
 
 static SpriteView* D_map_akropolis_8017AACC[20] = {
     D_acropolis_square_8018857C,
-    D_acropolis_east_elevator_hall_80187870,
+    gAcropolisEastElevatorHallSpriteViews,
     D_acropolis_patio_80186360,
     D_acropolis_cafeteria_8018C48C,
     gAcropolisPlazaSpriteViews,
@@ -790,7 +790,7 @@ DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
 
 static ViewCount* D_map_akropolis_8017AB70[20] = {
     D_acropolis_square_80183BB0,
-    D_acropolis_east_elevator_hall_80186334,
+    gAcropolisEastElevatorHallViewCounts,
     D_acropolis_patio_80182ECC,
     gAcropolisCafeteriaViewCounts,
     gAcropolisPlazaViewCounts,
@@ -815,7 +815,7 @@ ViewCountTable D_map_akropolis_8017ABC0 = { D_map_akropolis_8017AB70 };
 
 static ViewCamera* D_map_akropolis_8017ABC4[20] = {
     D_acropolis_square_80188630,
-    D_acropolis_east_elevator_hall_80187A5C,
+    gAcropolisEastElevatorHallViewCameras,
     D_acropolis_patio_80186D5C,
     D_acropolis_cafeteria_8018C5AC,
     gAcropolisPlazaViewCameras,
@@ -840,7 +840,7 @@ ViewCameraTable D_map_akropolis_8017AC14 = { D_map_akropolis_8017ABC4 };
 
 static u8** D_map_akropolis_8017AC18[20] = {
     D_acropolis_square_80183BAC,
-    D_acropolis_east_elevator_hall_80186330,
+    gAcropolisEastElevatorHallViewMaps,
     gAcropolisPatioViewMaps,
     gAcropolisCafeteriaViewMaps,
     gAcropolisPlazaViewMaps,
@@ -865,7 +865,7 @@ ViewIndexTable D_map_akropolis_8017AC68 = { D_map_akropolis_8017AC18 };
 
 WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[20] = {
     D_acropolis_square_80188868,
-    D_acropolis_east_elevator_hall_80187B74,
+    gAcropolisEastElevatorHallSurfacePropertiesByClass,
     gAcropolisPatioSurfacePropertiesByClass,
     gAcropolisCafeteriaSurfacePropertiesByClass,
     gAcropolisPlazaSurfacePropertiesByClass,

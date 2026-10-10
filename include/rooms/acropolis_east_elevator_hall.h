@@ -11,24 +11,57 @@
 
 #include "main/task_types.h"
 
+/// Extents of the hall's room directory and mapped camera/sprite resources.
+enum {
+    ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT = 1,
+    ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_COUNT = 7,
+};
+
 extern AreaVariant D_acropolis_east_elevator_hall_80186C50[3];
 
 // acropolis_east_elevator_hall
 extern WorldCollisionRoomResources D_acropolis_east_elevator_hall_80186320[];
 
-extern u8* D_acropolis_east_elevator_hall_80186330[];
+/// Logical-view map directory for the hall's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..7 select resources 1..7.
+/// The map overlay borrows this directory while the room overlay is loaded.
+extern u8* gAcropolisEastElevatorHallViewMaps[ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT];
 
-extern ViewCount D_acropolis_east_elevator_hall_80186334[];
+/// Room 1's logical-view count, limiting reverse searches to seven map entries.
+extern ViewCount gAcropolisEastElevatorHallViewCounts[ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT];
 
-extern WorldCoordRoomLighting D_acropolis_east_elevator_hall_80186338[];
+/// Room-1 model lighting: four point lights and default ambient minima.
+///
+/// Indexed by room minus one. The stage map borrows this record and its mutable
+/// light collection while the room overlay is loaded; no per-view ambient table
+/// is supplied. The lights contribute in every view.
+extern WorldCoordRoomLighting gAcropolisEastElevatorHallRoomLightingTable[ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT];
 
 extern DirectionWarpEntry D_acropolis_east_elevator_hall_80186340[];
 
-extern SpriteView D_acropolis_east_elevator_hall_80187870[];
+/// Sprite resources for mapped hall views 1..7, indexed by view minus one.
+///
+/// Views 2..5 have source sprites; views 1, 6 and 7 have empty batch lists.
+/// Every view retains decoded background strips and has no draw-area override.
+/// Descriptors, source elements and batch lists remain borrowed and writable
+/// while the room overlay is loaded.
+extern SpriteView gAcropolisEastElevatorHallSpriteViews[ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_COUNT];
 
-extern ViewCamera D_acropolis_east_elevator_hall_80187A5C[];
+/// Cameras for mapped hall views 1..7, indexed by view minus one.
+///
+/// Rotation coefficients use Q12, translations are negated world-space camera
+/// origins in game units, and projection distances are pixels. Keep the overlay
+/// loaded until a queued camera-application task has copied its selected record.
+extern ViewCamera gAcropolisEastElevatorHallViewCameras[ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_east_elevator_hall_80187B74[];
+/// Collision policies and footstep cues indexed by hall surface class 0..7.
+///
+/// Class 1 blocks probes and applies pushback, without weapon impacts or footsteps.
+/// The other seven classes share the ordinary impact and footstep policy. The
+/// grid uses classes 0, 1 and 3; setup reads all eight entries. Records and sound
+/// data remain borrowed while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gAcropolisEastElevatorHallSurfacePropertiesByClass[8];
 
 /// Starts floor/mirror player reflections and refreshes the hall's six red beacons.
 ///

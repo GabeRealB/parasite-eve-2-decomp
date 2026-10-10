@@ -32,6 +32,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -44,6 +45,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd.h"
@@ -60,20 +62,15 @@
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
-extern AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C;
-extern EvsCommand           D_acropolis_east_elevator_hall_80185D54[];
-extern EvsCommand           D_acropolis_east_elevator_hall_801860B4[];
-extern EvsCommand           D_acropolis_east_elevator_hall_8018621C[];
-extern TaskMessageEntry     D_acropolis_east_elevator_hall_801862F4[];
-extern s32                  D_acropolis_east_elevator_hall_8018631C;
+extern EvsCommand       D_acropolis_east_elevator_hall_80185D54[];
+extern EvsCommand       D_acropolis_east_elevator_hall_801860B4[];
+extern EvsCommand       D_acropolis_east_elevator_hall_8018621C[];
+extern TaskMessageEntry D_acropolis_east_elevator_hall_801862F4[];
+extern s32              D_acropolis_east_elevator_hall_8018631C;
 
 /// Name word handed to `func_80724608`: `"Player"`, followed by one
 /// retained nonzero byte, preserved in the C initializer.
 static const char D_acropolis_east_elevator_hall_8017D5E0[];
-
-/// The mirror task's descriptors: entry 0 spawns the mirror itself, entry 1
-/// one reflection of a held object.
-static TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
 
 /// Keeps the reflection scale at this room's earlier rodata position.
 ///
@@ -108,13 +105,12 @@ extern AnimationPlayRequest  D_acropolis_east_elevator_hall_80185C3C;
 extern AnimationPlayRequest  D_acropolis_east_elevator_hall_80185C50;
 extern AnimationPlayRequest  D_acropolis_east_elevator_hall_80185C64;
 extern AnimationPlayRequest  D_acropolis_east_elevator_hall_80185C78;
-extern AnimationPlayRequest  D_acropolis_east_elevator_hall_80185C8C;
 extern AnimationPlayRequest  D_acropolis_east_elevator_hall_80185CA0;
-extern WorldCollisionGrid    D_acropolis_east_elevator_hall_80186838[1];
-extern WorldCollisionTrigger D_acropolis_east_elevator_hall_8018685C[6];
-extern WorldCollisionTrigger D_acropolis_east_elevator_hall_80186A24[7];
+static WorldCollisionGrid    _gAcropolisEastElevatorHallCollisionGrid;
+static WorldCollisionTrigger _gAcropolisEastElevatorHallViewBoundaryTriggers[];
+static WorldCollisionTrigger _gAcropolisEastElevatorHallActionTriggers[];
 extern EvsSceneKey           D_acropolis_east_elevator_hall_80185CB4;
-extern WorldCoordRoomLights  D_acropolis_east_elevator_hall_80187A44[1];
+static WorldCoordRoomLights  _gAcropolisEastElevatorHallRoomLights;
 static s32                   _acropolisEastElevatorHallResolveTransitionMessage(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32                   _acropolisEastElevatorHallRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32                   _acropolisEastElevatorHallStartOpeningEvent(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedSecondArg);
@@ -126,9 +122,19 @@ enum { ACROPOLIS_EAST_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 #include "../../shared/planar_reflection_data.inc.c"
 
-static TaskDesc D_acropolis_east_elevator_hall_8017FC90[2] = {
-    { { { TASK_BODY_NONE, 112 } }, acropolisEastElevatorHallPlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
+/// Execution priority shared by the player and attachment reflection tasks.
+enum { ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_PRIORITY = 112 };
+
+/// Task recipes for the hall's player reflection (slot 0) and held models (slot 1).
+///
+/// Both start bodyless at the same priority and attach their cloned models during
+/// initialization. Slot 1 is used by the shared reflection implementation; the
+/// hall starts player reflections through gameplay's task bank. There is no
+/// terminator. Descriptors are borrowed during spawning; callbacks and source
+/// geometry must stay loaded for the spawned tasks' lifetimes.
+static TaskDesc _gAcropolisEastElevatorHallReflectionTaskDescriptors[2] = {
+    { { { TASK_BODY_NONE, ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_PRIORITY } }, acropolisEastElevatorHallPlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACROPOLIS_EAST_ELEVATOR_HALL_REFLECTION_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// Borrows this overlay's two reflection task descriptors.
@@ -138,7 +144,7 @@ static TaskDesc D_acropolis_east_elevator_hall_8017FC90[2] = {
 /// while the overlay is loaded; the caller neither owns nor copies the table.
 static inline TaskDesc* _planarReflectionGetTaskTable(void)
 {
-    return D_acropolis_east_elevator_hall_8017FC90;
+    return _gAcropolisEastElevatorHallReflectionTaskDescriptors;
 }
 
 static AnimationPackedPose _gAcropolisEastElevatorHallAnimation02EB8Bank1[4] = {
@@ -236,7 +242,22 @@ AnimationPlayRequest D_acropolis_east_elevator_hall_80185C64 = { { .index = 0 },
 
 AnimationPlayRequest D_acropolis_east_elevator_hall_80185C78 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_acropolis_east_elevator_hall_80185C8C = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Body clip restored on entry and after the hall's scripted figure sequences.
+enum { ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_FIGURE_DEFAULT_ANIMATION = 4 };
+
+/// Restarts placed view figure 0's default body clip (animation 4).
+///
+/// Entry, opening completion/skip and the command-2 scene use the same request.
+/// The figure reads only `animationId`, resetting its body tracks synchronously;
+/// bank, blend and collision words are ignored. The request belongs to this room
+/// overlay and is borrowed only during message dispatch.
+static AnimationPlayRequest _gAcropolisEastElevatorHallViewFigureDefaultAnimationRequest = {
+    .source               = { .index = 0 },
+    .animationId          = ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_FIGURE_DEFAULT_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_acropolis_east_elevator_hall_80185CA0 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -286,7 +307,7 @@ EvsCommand D_acropolis_east_elevator_hall_80185D54[36] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1012 }, { .message = { .pointer = &D_acropolis_east_elevator_hall_80185C28 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_east_elevator_hall_80185C78 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 80 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_east_elevator_hall_80185C8C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallViewFigureDefaultAnimationRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_east_elevator_hall_80185C3C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_east_elevator_hall_80185D3C } }, { .value = 0 } },
@@ -300,7 +321,7 @@ EvsCommand D_acropolis_east_elevator_hall_801860B4[15] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_east_elevator_hall_80185D3C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_east_elevator_hall_80185C3C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_east_elevator_hall_80185C8C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallViewFigureDefaultAnimationRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -320,7 +341,7 @@ EvsCommand D_acropolis_east_elevator_hall_8018621C[9] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_east_elevator_hall_80185CA0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_east_elevator_hall_80185C8C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisEastElevatorHallViewFigureDefaultAnimationRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -336,50 +357,76 @@ TaskMessageEntry D_acropolis_east_elevator_hall_801862F4[5] = {
 s32 D_acropolis_east_elevator_hall_8018631C = 0;
 
 WorldCollisionRoomResources D_acropolis_east_elevator_hall_80186320[1] = {
-    { D_acropolis_east_elevator_hall_80186838, D_acropolis_east_elevator_hall_8018685C, D_acropolis_east_elevator_hall_80186A24, NULL },
+    { &_gAcropolisEastElevatorHallCollisionGrid, _gAcropolisEastElevatorHallViewBoundaryTriggers, _gAcropolisEastElevatorHallActionTriggers, NULL },
 };
 
-u8* D_acropolis_east_elevator_hall_80186330[1] = {
+u8* gAcropolisEastElevatorHallViewMaps[ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT] = {
     gViewIdentityMap,
 };
 
-ViewCount D_acropolis_east_elevator_hall_80186334[1] = { 7 };
+ViewCount gAcropolisEastElevatorHallViewCounts[ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT] = { ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_COUNT };
 
-WorldCoordRoomLighting D_acropolis_east_elevator_hall_80186338[1] = {
-    { D_acropolis_east_elevator_hall_80187A44, NULL },
+WorldCoordRoomLighting gAcropolisEastElevatorHallRoomLightingTable[ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT] = {
+    { &_gAcropolisEastElevatorHallRoomLights, NULL },
 };
 
 DirectionWarpEntry D_acropolis_east_elevator_hall_80186340[1] = {
     { { { .word = 1024 }, -5248, -31, 1068 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -5248, -31, 1068 }, { 0, 0, 0, 0 }, 0x51020002, 0x51020001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 502 },
 };
 
-static SVECTOR _gAcropolisEastElevatorHallCollision09278Normals[10] = {
+/// Grid-local face normals, using 4096 for unit length.
+static SVECTOR _gAcropolisEastElevatorHallCollisionGridNormals[] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_normals.inc"
 };
 
-static SVECTOR _gAcropolisEastElevatorHallCollision09278Verts[66] = {
+/// Collision-mesh vertex pool in signed grid-local game coordinates.
+static SVECTOR _gAcropolisEastElevatorHallCollisionGridVerts[] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisEastElevatorHallCollision09278Faces[33] = {
+/// Indexed collision quads using the hall's surface classes 0, 1 and 3.
+static WorldCollisionGridFace _gAcropolisEastElevatorHallCollisionGridFaces[] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_faces.inc"
 };
 
-static s16 _gAcropolisEastElevatorHallCollision09278Cells[90] = {
+/// Signed face-index lists for the grid cells, each ending with -1.
+static s16 _gAcropolisEastElevatorHallCollisionGridCells[] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisEastElevatorHallCollision09278Cells[i])
-static s16* _gAcropolisEastElevatorHallCollision09278Table[8] = {
+#define GRID_CELL(i) (&_gAcropolisEastElevatorHallCollisionGridCells[i])
+/// X-major 4-by-2 cell directory; each pointer selects a terminated face list.
+static s16* _gAcropolisEastElevatorHallCollisionGridTable[] = {
 #include "assets/acropolis_east_elevator_hall_collision_09278_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_east_elevator_hall_80186838[1] = {
-    { NULL, _gAcropolisEastElevatorHallCollision09278Normals, _gAcropolisEastElevatorHallCollision09278Verts, _gAcropolisEastElevatorHallCollision09278Faces, _gAcropolisEastElevatorHallCollision09278Table, 6390, 3090, 4, 2, 4000, 33 },
+/// The hall's collision mesh and its 4-by-2 XZ spatial index.
+///
+/// Contains 33 quads, 66 vertices and 10 normals. Cell coordinates are
+/// (x + 6390) / 4000 and (z + 3090) / 4000 in room game units; cells are
+/// indexed x * 2 + z. Room setup borrows this mutable descriptor and binds its
+/// view coordinate. The mesh pools and face lists remain live with the overlay.
+static WorldCollisionGrid _gAcropolisEastElevatorHallCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisEastElevatorHallCollisionGridNormals,
+    .vertices    = _gAcropolisEastElevatorHallCollisionGridVerts,
+    .faces       = _gAcropolisEastElevatorHallCollisionGridFaces,
+    .cellFaceIds = _gAcropolisEastElevatorHallCollisionGridTable,
+    .xBias       = 6390,
+    .zBias       = 3090,
+    .cellCountX  = 4,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisEastElevatorHallCollisionGridFaces),
 };
 
-WorldCollisionTrigger D_acropolis_east_elevator_hall_8018685C[6] = {
+/// Six directed view boundaries: 4 to 3, 3 to 4, 3 to 2, 2 to 3, 2 to 5, 5 to 2.
+///
+/// Room setup binds their coordinates, links and enables every record through
+/// the final LAST flag. Positions/radii use room game units and normals use Q12.
+/// Links and hit latches stay writable; keep the overlay loaded until unlinked.
+static WorldCollisionTrigger _gAcropolisEastElevatorHallViewBoundaryTriggers[] = {
     { NULL, NULL, NULL, { -2977, -1024, 783, 0 }, { { -889, -1664, -2485, 0 }, { -889, 1664, -2485, 0 }, { 890, -1664, 2486, 0 }, { 890, 1664, 2486, 0 } }, { -3862, 0, 1381, 0 }, { 0, 0, 0, 0 }, 3114, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -3649, -992, 799, 0 }, { { -889, 1664, -2485, 0 }, { -889, -1664, -2485, 0 }, { 890, 1664, 2486, 0 }, { 890, -1664, 2486, 0 } }, { 3860, 0, -1383, 0 }, { 0, 0, 0, 0 }, 3114, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1311, -960, 480, 0 }, { { 0, -1664, -2640, 0 }, { 0, 1664, -2640, 0 }, { 0, -1664, 2640, 0 }, { 0, 1664, 2640, 0 } }, { -4102, 0, 0, 0 }, { 0, 0, 0, 0 }, 3114, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -388,234 +435,301 @@ WorldCollisionTrigger D_acropolis_east_elevator_hall_8018685C[6] = {
     { NULL, NULL, NULL, { 3838, -1088, 222, 0 }, { { -1244, 1664, -2328, 0 }, { -1244, -1664, -2328, 0 }, { 1245, 1664, 2329, 0 }, { 1245, -1664, 2329, 0 } }, { 3616, 0, -1935, 0 }, { 0, 0, 0, 0 }, 3114, 0, 5, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_east_elevator_hall_80186A24[7] = {
-    { NULL, NULL, NULL, { -5232, -32, 992, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, 1, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2996, -128, 2774, 0 }, { { 1024, 0, -400, 0 }, { 1024, 0, 400, 0 }, { -1024, 0, -400, 0 }, { -1024, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1216, -160, 1888, 0 }, { { 800, 0, -400, 0 }, { 800, 0, 400, 0 }, { -800, 0, -400, 0 }, { -800, 0, 400, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3696, -128, 1888, 0 }, { { 656, 0, -400, 0 }, { 656, 0, 400, 0 }, { -656, 0, -400, 0 }, { -656, 0, 400, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3920, -96, -1472, 0 }, { { 832, 0, -624, 0 }, { 448, 0, 624, 0 }, { -896, 0, -624, 0 }, { -384, 0, 624, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1664, -96, 312, 0 }, { { -1840, 0, -2392, 0 }, { 1776, 0, -2488, 0 }, { -1744, 0, 2440, 0 }, { 1808, 0, 2440, 0 } }, { 0, 4109, 0, 0 }, { 4096, 0, 0, 0 }, 3050, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+/// One-based endpoint slots packed into the departure action's two nibbles.
+enum {
+    ACROPOLIS_EAST_ELEVATOR_HALL_DEPARTURE_WARP_SLOT = 1,
+    ACROPOLIS_EAST_ELEVATOR_HALL_SQUARE_ARRIVAL_SLOT = 2,
+};
+
+/// Hall interactions: one departure warp, five CAP commands and the opening event.
+///
+/// The warp requests area 1, departure slot 1 and arrival slot 2. CAP indices
+/// are 3, 4, 5, 6 and 2; automatic room action 0 starts the opening event.
+/// Room setup binds, links and enables all seven records through LAST. Positions
+/// and radii use game units, normals use Q12, and live links/hits remain writable.
+/// Keep the overlay loaded until the triggers are unlinked.
+static WorldCollisionTrigger _gAcropolisEastElevatorHallActionTriggers[] = {
+    { NULL, NULL, NULL, { -5232, -32, 992, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { ONE, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_SQUARE, (ACROPOLIS_EAST_ELEVATOR_HALL_DEPARTURE_WARP_SLOT << 4) | ACROPOLIS_EAST_ELEVATOR_HALL_SQUARE_ARRIVAL_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2996, -128, 2774, 0 }, { { 1024, 0, -400, 0 }, { 1024, 0, 400, 0 }, { -1024, 0, -400, 0 }, { -1024, 0, 400, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1216, -160, 1888, 0 }, { { 800, 0, -400, 0 }, { 800, 0, 400, 0 }, { -800, 0, -400, 0 }, { -800, 0, 400, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, -ONE, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3696, -128, 1888, 0 }, { { 656, 0, -400, 0 }, { 656, 0, 400, 0 }, { -656, 0, -400, 0 }, { -656, 0, 400, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, -ONE, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3920, -96, -1472, 0 }, { { 832, 0, -624, 0 }, { 448, 0, 624, 0 }, { -896, 0, -624, 0 }, { -384, 0, 624, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, ONE, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1664, -96, 312, 0 }, { { -1840, 0, -2392, 0 }, { 1776, 0, -2488, 0 }, { -1744, 0, 2440, 0 }, { 1808, 0, 2440, 0 } }, { 0, 4109, 0, 0 }, { ONE, 0, 0, 0 }, 3050, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
     { NULL, NULL, NULL, { 4911, 0, -689, 0 }, { { -569, 0, -56, 0 }, { -209, 0, -1293, 0 }, { -174, 0, 942, 0 }, { 954, 0, 409, 0 } }, { 0, 4099, 0, 0 }, { -2276, 0, 3406, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_acropolis_east_elevator_hall_80186C38[2] = {
+/// Default-layout resource for placed entry 110: actor 110300's view figure.
+///
+/// File number 103 with the base-10 selector loads base file 110300; the paired
+/// placement has low file component 0 and selects the body task. One live record
+/// precedes AREA_PLACEMENT_END. Borrow the table during loading and spawning;
+/// the actor package owns the task callbacks and model/animation data.
+static AreaResource _gAcropolisEastElevatorHallAreaResources[] = {
     { 110, 103, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, VIEW_FIGURE_TASK_BODY, { 0, 0 }, gActor110300ViewFigureTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_acropolis_east_elevator_hall_80186C50[3] = {
     { NULL, NULL },
-    { D_map_akropolis_8017ACDC, D_acropolis_east_elevator_hall_80186C38 },
+    { D_map_akropolis_8017ACDC, _gAcropolisEastElevatorHallAreaResources },
     { NULL, NULL },
 };
 
-SpriteBatch D_acropolis_east_elevator_hall_80186C68[2] = {
+/// View 1's empty sprite list; the zero first count retains background image strips.
+///
+/// The separate terminal record is required after the renderer skips that header.
+static SpriteBatch _gAcropolisEastElevatorHallView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_east_elevator_hall_80186C78[39] = {
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -88, 8, 1104, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -88, 32, 1151, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 0, 1246, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, 24, 1175, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 48, 1175, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 0, 1306, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 16, 1325, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -56, 32, 1325, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, -48, 1209, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, -16, 1243, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, 16, 1279, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -48, 1184, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, -32, 1208, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, -8, 1241, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, -16, 1475, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 8, 1452, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 32, 1330, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, -16, 1253, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, 8, 1280, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, 32, 1301, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 88, -48, 1475, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, -48, 1300, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -16, -88, 1803, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -16, -56, 1851, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, -32, 1800, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, -88, 1639, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, -64, 1667, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, -48, 1718, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, -32, 1727, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -16, 1832, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 0, 1936, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, -16, 1933, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 0, 1937, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 0, -8, 1889, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 24, -8, 1842, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -8, 1775, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 72, -8, 1734, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 16, 1791, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 16, 1765, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+/// View 2's 39 depth-sorted foreground texture rectangles.
+///
+/// Positions and sizes use pixels relative to the view centre; depth is unscaled
+/// OT depth. Batches select contiguous source-element ranges. Room storage stays
+/// writable and live through cached packet allocation and drawing.
+static SpriteSource _gAcropolisEastElevatorHallView2SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -88, 8, 1104, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -88, 32, 1151, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -72, 0, 1246, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -72, 24, 1175, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -72, 48, 1175, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -56, 0, 1306, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -56, 16, 1325, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -56, 32, 1325, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 104, -48, 1209, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 104, -16, 1243, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 104, 16, 1279, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 120, -48, 1184, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 120, -32, 1208, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 120, -8, 1241, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 88, -16, 1475, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 88, 8, 1452, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 88, 32, 1330, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 96, -16, 1253, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 96, 8, 1280, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 96, 32, 1301, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 88, -48, 1475, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 96, -48, 1300, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -16, -88, 1803, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -16, -56, 1851, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -16, -32, 1800, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 80, -88, 1639, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 80, -64, 1667, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 72, -48, 1718, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 72, -32, 1727, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -32, -16, 1832, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -32, 0, 1936, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -16, -16, 1933, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -16, 0, 1937, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 0, -8, 1889, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 24, -8, 1842, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 48, -8, 1775, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 72, -8, 1734, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, 16, 1791, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 80, 16, 1765, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_east_elevator_hall_80186F84[4] = {
+/// Source-element boundary between view 2's two authored sprite batches.
+enum { ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_2_FIRST_BATCH_COUNT = 22 };
+
+/// View 2's background header, 22-sprite range, remaining 17-sprite range and end.
+///
+/// Both ranges participate in cached drawing; the first range's serialized byte
+/// field_6[0] is 1, with its role unproven. Keep the mutable list loaded for drawing.
+static SpriteBatch _gAcropolisEastElevatorHallView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 22, 0, 0, { 1, 0 } },
-    { 22, 17, 0, 0, { 0, 0 } },
+    { 0, ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_2_FIRST_BATCH_COUNT, 0, 0, { 1, 0 } },
+    { ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_2_FIRST_BATCH_COUNT, ARRAY_SIZE(_gAcropolisEastElevatorHallView2SpriteSources) - ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_2_FIRST_BATCH_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_east_elevator_hall_80186FA4[41] = {
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, 64, -48, 1650, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, 80, -56, 1250, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, 96, -56, 1225, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -160, 88, 651, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -152, 88, 679, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -144, 80, 731, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -136, 72, 792, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -128, 64, 865, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -120, 64, 942, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -112, 48, 1067, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -104, 40, 1209, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -96, 32, 1398, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -88, 24, 1659, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -80, 16, 2050, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, -152, 40, 733, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -160, 48, 647, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, -144, 40, 769, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, -136, 32, 777, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, -128, 32, 919, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 40 } }, -120, 24, 971, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -112, 24, 1132, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -104, 16, 1285, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -96, 8, 1487, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -88, 0, 1722, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -80, 0, 2066, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -112, 0, 1137, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -112, -24, 1141, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -112, -48, 1088, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -104, 0, 1151, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -88, -24, 2073, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -88, -40, 2085, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 24 } }, -96, -64, 1660, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -112, -64, 1203, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 24 } }, -120, -64, 1021, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -96, -88, 1488, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -112, -96, 1075, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -128, -96, 858, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -144, -104, 740, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, -160, -112, 655, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -120, -120, 975, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -136, -120, 857, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+/// View 3's 41 foreground rectangles, with separate palette rows for its two ranges.
+///
+/// Positions/sizes use view-centred pixels and depth is unscaled OT depth; the
+/// loaded room owns the writable sources borrowed for packet allocation/drawing.
+static SpriteSource _gAcropolisEastElevatorHallView3SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 104 } }, 64, -48, 1650, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 120 } }, 80, -56, 1250, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 120 } }, 96, -56, 1225, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -160, 88, 651, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -152, 88, 679, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -144, 80, 731, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -136, 72, 792, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -128, 64, 865, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -120, 64, 942, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -112, 48, 1067, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -104, 40, 1209, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -96, 32, 1398, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -88, 24, 1659, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -80, 16, 2050, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 48 } }, -152, 40, 733, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -160, 48, 647, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, -144, 40, 769, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, -136, 32, 777, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, -128, 32, 919, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 40 } }, -120, 24, 971, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -112, 24, 1132, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -104, 16, 1285, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -96, 8, 1487, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -88, 0, 1722, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -80, 0, 2066, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -112, 0, 1137, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -112, -24, 1141, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -112, -48, 1088, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, -104, 0, 1151, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -88, -24, 2073, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, -88, -40, 2085, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 24, 24 } }, -96, -64, 1660, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, -112, -64, 1203, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, -120, -64, 1021, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -96, -88, 1488, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, -112, -96, 1075, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, -128, -96, 858, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, -144, -104, 740, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, -160, -112, 655, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -120, -120, 975, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, -136, -120, 857, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_east_elevator_hall_801872D8[4] = {
+/// Source-element boundary between view 3's two authored sprite batches.
+enum { ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_3_FIRST_BATCH_COUNT = 3 };
+
+/// View 3's background header, 3-sprite range, remaining 38-sprite range and end.
+///
+/// Both ranges participate in cached drawing; the first range's serialized byte
+/// field_6[0] is 1, with its role unproven. Keep the mutable list loaded for drawing.
+static SpriteBatch _gAcropolisEastElevatorHallView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 3, 0, 0, { 1, 0 } },
-    { 3, 38, 0, 0, { 0, 0 } },
+    { 0, ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_3_FIRST_BATCH_COUNT, 0, 0, { 1, 0 } },
+    { ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_3_FIRST_BATCH_COUNT, ARRAY_SIZE(_gAcropolisEastElevatorHallView3SpriteSources) - ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_3_FIRST_BATCH_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_east_elevator_hall_801872F8[38] = {
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -16, 32, 1604, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1576, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 40, 1474, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 40, 1389, { .fields = { 24, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, 8, 1348, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -128, -16, 1312, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -128, -40, 1297, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -136, -88, 1207, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -96, -88, 1304, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -56, -88, 1363, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -16, -88, 1420, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 16, -88, 1507, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, 16, 1548, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, 0, 1514, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, -16, 1483, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -40, 1442, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -24, -40, 1398, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -40, 1522, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -24, 1552, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, -8, 1584, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, 8, 1617, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -16, 24, 1603, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, 8, 1559, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, -16, 1532, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, -40, 1569, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -40, 1495, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -16, 1583, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, 8, 1622, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, -40, 1350, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, -40, 1370, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, -24, 1393, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 8, 1360, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -64, 32, 1522, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 24, 1465, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, 16, 1370, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, -8, 1377, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, -40, 1397, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, -8, 1328, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+/// View 4's 38 depth-sorted foreground texture rectangles.
+///
+/// Positions/sizes use view-centred pixels and depth is unscaled OT depth; the
+/// loaded room owns the writable sources borrowed for packet allocation/drawing.
+static SpriteSource _gAcropolisEastElevatorHallView4SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -16, 32, 1604, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -40, 32, 1576, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -88, 40, 1474, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -120, 40, 1389, { .fields = { 24, 8 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -120, 8, 1348, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -128, -16, 1312, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -128, -40, 1297, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, -136, -88, 1207, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, -96, -88, 1304, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, -56, -88, 1363, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, -16, -88, 1420, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, 16, -88, 1507, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -40, 16, 1548, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -40, 0, 1514, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -40, -16, 1483, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -40, -40, 1442, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -24, -40, 1398, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 0, -40, 1522, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 0, -24, 1552, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 0, -8, 1584, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 0, 8, 1617, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -16, 24, 1603, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 16, 8, 1559, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 16, -16, 1532, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 16, -40, 1569, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 32, -40, 1495, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 32, -16, 1583, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 32, 8, 1622, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -64, -40, 1350, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -80, -40, 1370, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -80, -24, 1393, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -80, 8, 1360, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -64, 32, 1522, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -80, 24, 1465, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -96, 16, 1370, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -96, -8, 1377, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -96, -40, 1397, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -80, -8, 1328, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_east_elevator_hall_801875F0[3] = {
+/// View 4's background header, one range covering every source sprite, and end.
+///
+/// The range is initially visible and included in cached drawing; the room owns
+/// the writable list for the duration of allocation and drawing.
+static SpriteBatch _gAcropolisEastElevatorHallView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 38, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisEastElevatorHallView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_east_elevator_hall_80187608[28] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 32, 1056, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 48, 1002, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -80, 750, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -56, 775, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 88, 56, 875, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, -88, 650, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 72, -48, 800, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 72, -8, 850, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 72 } }, 96, -80, 800, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 64 } }, 96, -8, 800, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 16, 1000, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 32, 950, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 32, 1000, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 48, 935, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 56, 900, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 72, 912, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 64, 948, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, -32, 800, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, -16, 875, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 0, 941, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -32, 800, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -16, 850, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 0, 888, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, -32, 760, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, -16, 812, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 0, 820, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 16, 927, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 16, 880, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+/// View 5's 28 depth-sorted foreground texture rectangles.
+///
+/// Positions/sizes use view-centred pixels and depth is unscaled OT depth; the
+/// loaded room owns the writable sources borrowed for packet allocation/drawing.
+static SpriteSource _gAcropolisEastElevatorHallView5SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 32, 32, 1056, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 48, 48, 1002, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 48, -80, 750, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 48, -56, 775, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 88, 56, 875, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 72, -88, 650, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 72, -48, 800, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 64 } }, 72, -8, 850, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 72 } }, 96, -80, 800, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 64 } }, 96, -8, 800, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 32, 16, 1000, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 56, 32, 950, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 40, 32, 1000, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 56, 48, 935, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 72, 56, 900, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 72, 72, 912, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 56, 64, 948, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 40, -32, 800, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 40, -16, 875, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 40, 0, 941, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 48, -32, 800, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 48, -16, 850, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 48, 0, 888, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 56, -32, 760, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 56, -16, 812, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 56, 0, 820, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 48, 16, 927, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 56, 16, 880, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_east_elevator_hall_80187838[3] = {
+/// View 5's background header, one range covering every source sprite, and end.
+///
+/// The range is initially visible and included in cached drawing; the room owns
+/// the writable list for the duration of allocation and drawing.
+static SpriteBatch _gAcropolisEastElevatorHallView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 28, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisEastElevatorHallView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_east_elevator_hall_80187850[2] = {
+/// View 6's empty sprite list, retaining background image strips before its end.
+///
+/// The separate terminal record is required after the renderer skips the header.
+static SpriteBatch _gAcropolisEastElevatorHallView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_east_elevator_hall_80187860[2] = {
+/// View 7's empty sprite list, retaining background image strips before its end.
+///
+/// The separate terminal record is required after the renderer skips the header.
+static SpriteBatch _gAcropolisEastElevatorHallView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_east_elevator_hall_80187870[7] = {
-    { { .empty = D_acropolis_east_elevator_hall_80186C68 }, D_acropolis_east_elevator_hall_80186C68, NULL },
-    { { .elements = D_acropolis_east_elevator_hall_80186C78 }, D_acropolis_east_elevator_hall_80186F84, NULL },
-    { { .elements = D_acropolis_east_elevator_hall_80186FA4 }, D_acropolis_east_elevator_hall_801872D8, NULL },
-    { { .elements = D_acropolis_east_elevator_hall_801872F8 }, D_acropolis_east_elevator_hall_801875F0, NULL },
-    { { .elements = D_acropolis_east_elevator_hall_80187608 }, D_acropolis_east_elevator_hall_80187838, NULL },
-    { { .empty = D_acropolis_east_elevator_hall_80187850 }, D_acropolis_east_elevator_hall_80187850, NULL },
-    { { .empty = D_acropolis_east_elevator_hall_80187860 }, D_acropolis_east_elevator_hall_80187860, NULL },
+SpriteView gAcropolisEastElevatorHallSpriteViews[ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_COUNT] = {
+    { { .empty = _gAcropolisEastElevatorHallView1SpriteBatches }, _gAcropolisEastElevatorHallView1SpriteBatches, NULL },
+    { { .elements = _gAcropolisEastElevatorHallView2SpriteSources }, _gAcropolisEastElevatorHallView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisEastElevatorHallView3SpriteSources }, _gAcropolisEastElevatorHallView3SpriteBatches, NULL },
+    { { .elements = _gAcropolisEastElevatorHallView4SpriteSources }, _gAcropolisEastElevatorHallView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisEastElevatorHallView5SpriteSources }, _gAcropolisEastElevatorHallView5SpriteBatches, NULL },
+    { { .empty = _gAcropolisEastElevatorHallView6SpriteBatches }, _gAcropolisEastElevatorHallView6SpriteBatches, NULL },
+    { { .empty = _gAcropolisEastElevatorHallView7SpriteBatches }, _gAcropolisEastElevatorHallView7SpriteBatches, NULL },
 };
 
 /// Four authored point lights for model shading in every east elevator hall view.
@@ -695,12 +809,21 @@ static WorldCoordPointLight _gAcropolisEastElevatorHallPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_east_elevator_hall_80187A44[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisEastElevatorHallPointLights), _gAcropolisEastElevatorHallPointLights, 0, NULL },
+/// The hall's light collection: four all-view point lights, no directional or cone lights.
+///
+/// The room-lighting table borrows this one collection. Coordinate updates and
+/// queries mutate the referenced lights; keep the collection and overlay loaded.
+static WorldCoordRoomLights _gAcropolisEastElevatorHallRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisEastElevatorHallPointLights),
+    .pointLights           = _gAcropolisEastElevatorHallPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-ViewCamera D_acropolis_east_elevator_hall_80187A5C[7] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 100, 0x7530, -500 } }, 617 },
+ViewCamera gAcropolisEastElevatorHallViewCameras[ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 100, 30000, -500 } }, 617 },
     { { { { 952, 0, -3983 }, { -880, 3994, -210 }, { 3885, 905, 928 } }, { 1724, 2100, 547 } }, 230 },
     { { { { 1225, 0, 3908 }, { 221, 4089, -69 }, { -3901, 232, 1223 } }, { -3673, 1410, 858 } }, 230 },
     { { { { 1157, 0, 3928 }, { 1144, 3918, -337 }, { -3758, 1192, 1107 } }, { 274, 2690, -202 } }, 230 },
@@ -709,27 +832,55 @@ ViewCamera D_acropolis_east_elevator_hall_80187A5C[7] = {
     { { { { -869, 0, 4002 }, { 3549, 1892, 771 }, { -1849, 3632, -401 } }, { -5320, 2510, 990 } }, 230 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_east_elevator_hall_80187B58 = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+/// Loaded-bank script bases for the hall's paired walking and running cues.
+enum {
+    ACROPOLIS_EAST_ELEVATOR_HALL_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 17,
+    ACROPOLIS_EAST_ELEVATOR_HALL_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 19,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_east_elevator_hall_80187B64[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_east_elevator_hall_80187B58 },
+/// Footstep cue bases for ordinary hall surfaces; scripted jumps reuse walking.
+///
+/// Cue 2 uses the base and cue 1 adds 1; companion playback adds 100. Surface
+/// records borrow this room-owned storage while the overlay is loaded.
+static WorldCollisionFootstepSounds _gAcropolisEastElevatorHallFootstepSounds = {
+    .walk         = ACROPOLIS_EAST_ELEVATOR_HALL_FOOTSTEP_WALK,
+    .run          = ACROPOLIS_EAST_ELEVATOR_HALL_FOOTSTEP_RUN,
+    .scriptedJump = ACROPOLIS_EAST_ELEVATOR_HALL_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_east_elevator_hall_80187B6C[1] = { 0 };
+/// Ordinary hall surface policy: block probes, allow weapon impacts and apply pushback.
+///
+/// All classes except 1 share this record and its footstep cues while the room
+/// overlay is loaded. The first byte's role is unproven and retains zero.
+static WorldCollisionSurfaceProperties _gAcropolisEastElevatorHallDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisEastElevatorHallFootstepSounds,
+};
 
-WorldCollisionSurfaceProperties* D_acropolis_east_elevator_hall_80187B74[8] = {
-    D_acropolis_east_elevator_hall_80187B64,
-    D_acropolis_east_elevator_hall_80187B6C,
-    D_acropolis_east_elevator_hall_80187B64,
-    D_acropolis_east_elevator_hall_80187B64,
-    D_acropolis_east_elevator_hall_80187B64,
-    D_acropolis_east_elevator_hall_80187B64,
-    D_acropolis_east_elevator_hall_80187B64,
-    D_acropolis_east_elevator_hall_80187B64,
+/// Hall class 1's policy: block probes and apply pushback, without impacts or footstep cues.
+///
+/// The surface directory borrows this room-owned record; its first byte's role
+/// is unproven and retains zero.
+static WorldCollisionSurfaceProperties _gAcropolisEastElevatorHallClass1SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisEastElevatorHallSurfacePropertiesByClass[8] = {
+    &_gAcropolisEastElevatorHallDefaultSurfaceProperties,
+    &_gAcropolisEastElevatorHallClass1SurfaceProperties,
+    &_gAcropolisEastElevatorHallDefaultSurfaceProperties,
+    &_gAcropolisEastElevatorHallDefaultSurfaceProperties,
+    &_gAcropolisEastElevatorHallDefaultSurfaceProperties,
+    &_gAcropolisEastElevatorHallDefaultSurfaceProperties,
+    &_gAcropolisEastElevatorHallDefaultSurfaceProperties,
+    &_gAcropolisEastElevatorHallDefaultSurfaceProperties,
 };
 
 #include "../../shared/planar_reflection.inc.c"
@@ -850,7 +1001,7 @@ static void _acropolisEastElevatorHallInitializeRoomTask(Task* task)
     task->msgTable = D_acropolis_east_elevator_hall_801862F4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sceneSetPlacedActorDrawMode(ACROPOLIS_EAST_ELEVATOR_HALL_INITIAL_PLACED_ACTOR, ACROPOLIS_EAST_ELEVATOR_HALL_PLACED_ACTOR_DRAW_ENABLED);
-    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_EAST_ELEVATOR_HALL_INITIAL_PLACED_ACTOR), ACTOR_MESSAGE_PLAY_ANIMATION, &D_acropolis_east_elevator_hall_80185C8C, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_EAST_ELEVATOR_HALL_INITIAL_PLACED_ACTOR), ACTOR_MESSAGE_PLAY_ANIMATION, &_gAcropolisEastElevatorHallViewFigureDefaultAnimationRequest, 0);
     task->state++;
 }
 
