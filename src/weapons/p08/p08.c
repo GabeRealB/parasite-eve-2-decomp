@@ -1261,136 +1261,190 @@ static AnimationSet _gMongooseRunAnimation = {
     .poseBanks         = { [1] = _gMongooseRunAnimationBank1, [4] = _gMongooseRunAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation03184Bank1[19] = {
+/// Negative-turn encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseNegativeTurnAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_03184_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation03184Bank4[169] = {
+/// Negative-turn encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseNegativeTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_03184_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation03184Records[290] = {
+/// Negative-turn keyframes and loop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseNegativeTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_03184_records.inc"
 };
 
-static u16 _gMongooseAnimation03184Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseNegativeTurnAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseNegativeTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_03184_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation03184 = {
-    _gMongooseAnimation03184Records,
-    _gMongooseAnimation03184Indices,
-    { NULL, _gMongooseAnimation03184Bank1, NULL, NULL, _gMongooseAnimation03184Bank4, NULL, NULL, NULL },
+/// Player's negative-yaw turn while using the Mongoose animation bank.
+///
+/// Native-bank set 5 supplies nineteen player-part tracks. Moving tracks
+/// repeat 32-frame loops after their initial keyframes; fixed tracks repeat
+/// two-frame holds. This set's private arrays stay loaded during playback.
+static AnimationSet _gMongooseNegativeTurnAnimation = {
+    .records           = _gMongooseNegativeTurnAnimationRecords,
+    .trackStartIndices = _gMongooseNegativeTurnAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseNegativeTurnAnimationBank1, [4] = _gMongooseNegativeTurnAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation039E8Bank1[19] = {
+/// Positive-turn encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongoosePositiveTurnAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_039E8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation039E8Bank4[170] = {
+/// Positive-turn encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongoosePositiveTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_039E8_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation039E8Records[290] = {
+/// Positive-turn keyframes and loop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongoosePositiveTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_039E8_records.inc"
 };
 
-static u16 _gMongooseAnimation039E8Indices[20] = {
+/// Nineteen part-track starts in `_gMongoosePositiveTurnAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongoosePositiveTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_039E8_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation039E8 = {
-    _gMongooseAnimation039E8Records,
-    _gMongooseAnimation039E8Indices,
-    { NULL, _gMongooseAnimation039E8Bank1, NULL, NULL, _gMongooseAnimation039E8Bank4, NULL, NULL, NULL },
+/// Player's positive-yaw turn while using the Mongoose animation bank.
+///
+/// Native-bank set 6 supplies nineteen player-part tracks. Moving tracks
+/// repeat 32-frame loops after their initial keyframes; fixed tracks repeat
+/// two-frame holds. This set's private arrays stay loaded during playback.
+static AnimationSet _gMongoosePositiveTurnAnimation = {
+    .records           = _gMongoosePositiveTurnAnimationRecords,
+    .trackStartIndices = _gMongoosePositiveTurnAnimationIndices,
+    .poseBanks         = { [1] = _gMongoosePositiveTurnAnimationBank1, [4] = _gMongoosePositiveTurnAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation03CFCBank1[3] = {
+/// Item-use encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseItemUseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_03CFC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation03CFCBank4[69] = {
+/// Item-use encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseItemUseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_03CFC_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation03CFCRecords[99] = {
+/// Item-use keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_03CFC_records.inc"
 };
 
-static u16 _gMongooseAnimation03CFCIndices[20] = {
+/// Nineteen part-track starts in `_gMongooseItemUseAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_03CFC_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation03CFC = {
-    _gMongooseAnimation03CFCRecords,
-    _gMongooseAnimation03CFCIndices,
-    { NULL, _gMongooseAnimation03CFCBank1, NULL, NULL, _gMongooseAnimation03CFCBank4, NULL, NULL, NULL },
+/// Player's item-use presentation while using the Mongoose animation bank.
+///
+/// Native-bank set 40 supplies nineteen player-part tracks ending in stop
+/// controls. Playback presents the action; item effects are applied separately.
+/// This set's private arrays stay loaded during playback.
+static AnimationSet _gMongooseItemUseAnimation = {
+    .records           = _gMongooseItemUseAnimationRecords,
+    .trackStartIndices = _gMongooseItemUseAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseItemUseAnimationBank1, [4] = _gMongooseItemUseAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation04458Bank1[14] = {
+/// Stair-ascent encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseStairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04458_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation04458Bank4[156] = {
+/// Stair-ascent encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseStairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04458_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation04458Records[253] = {
+/// Stair-ascent keyframes, footstep cues and loop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseStairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04458_records.inc"
 };
 
-static u16 _gMongooseAnimation04458Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseStairAscentAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseStairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04458_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation04458 = {
-    _gMongooseAnimation04458Records,
-    _gMongooseAnimation04458Indices,
-    { NULL, _gMongooseAnimation04458Bank1, NULL, NULL, _gMongooseAnimation04458Bank4, NULL, NULL, NULL },
+/// Player's repeating stair-ascent stride while using the Mongoose animation bank.
+///
+/// Native-bank set 36 supplies nineteen player-part tracks. Moving tracks
+/// repeat 32-frame loops; fixed tracks repeat two-frame holds. Track 1 carries
+/// footstep cues that gate stair motion. The private arrays stay loaded during playback.
+static AnimationSet _gMongooseStairAscentAnimation = {
+    .records           = _gMongooseStairAscentAnimationRecords,
+    .trackStartIndices = _gMongooseStairAscentAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseStairAscentAnimationBank1, [4] = _gMongooseStairAscentAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation04BE0Bank1[16] = {
+/// Stair-descent encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseStairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04BE0_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation04BE0Bank4[167] = {
+/// Stair-descent encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseStairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04BE0_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation04BE0Records[247] = {
+/// Stair-descent keyframes, footstep cues and loop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseStairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04BE0_records.inc"
 };
 
-static u16 _gMongooseAnimation04BE0Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseStairDescentAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseStairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04BE0_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation04BE0 = {
-    _gMongooseAnimation04BE0Records,
-    _gMongooseAnimation04BE0Indices,
-    { NULL, _gMongooseAnimation04BE0Bank1, NULL, NULL, _gMongooseAnimation04BE0Bank4, NULL, NULL, NULL },
+/// Player's repeating stair-descent stride while using the Mongoose animation bank.
+///
+/// Native-bank set 37 supplies nineteen player-part tracks. Moving tracks
+/// repeat 30-frame loops; fixed tracks repeat two-frame holds. Track 1 carries
+/// footstep cues that gate stair motion. The private arrays stay loaded during playback.
+static AnimationSet _gMongooseStairDescentAnimation = {
+    .records           = _gMongooseStairDescentAnimationRecords,
+    .trackStartIndices = _gMongooseStairDescentAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseStairDescentAnimationBank1, [4] = _gMongooseStairDescentAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation04EB4Bank1[6] = {
+/// Odd-count ascent-finish encoding-1 poses in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gMongooseStairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04EB4_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation04EB4Bank4[52] = {
+/// Odd-count ascent-finish encoding-4 rotations, packed in eight-unit angular steps.
+static const AnimationPackedRotation _gMongooseStairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04EB4_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation04EB4Records[91] = {
+/// Odd-count ascent-finish keyframes, footstep cue and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gMongooseStairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04EB4_records.inc"
 };
 
-static u16 _gMongooseAnimation04EB4Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseStairAscentFinishOddAnimationRecords`, plus a retained final halfword.
+static const u16 _gMongooseStairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mongoose_animation_04EB4_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation04EB4 = {
-    _gMongooseAnimation04EB4Records,
-    _gMongooseAnimation04EB4Indices,
-    { NULL, _gMongooseAnimation04EB4Bank1, NULL, NULL, _gMongooseAnimation04EB4Bank4, NULL, NULL, NULL },
+/// Player's ascent finish after an odd-count stair flight with the Mongoose bank.
+///
+/// Native-bank set 39 supplies nineteen player-part tracks ending in stop
+/// controls. Track 1 carries the final footstep cue. This set's private arrays
+/// stay loaded during playback.
+static AnimationSet _gMongooseStairAscentFinishOddAnimation = {
+    .records           = _gMongooseStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gMongooseStairAscentFinishOddAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseStairAscentFinishOddAnimationBank1, [4] = _gMongooseStairAscentFinishOddAnimationBank4 },
 };
 
 static AnimationPackedPose _gMongooseAnimation05244Bank1[7] = {
@@ -1949,8 +2003,8 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     &_gMongooseWalkAnimation,
     &_gMongooseBackwardWalkAnimation,
     &_gMongooseRunAnimation,
-    &_gMongooseAnimation03184,
-    &_gMongooseAnimation039E8,
+    &_gMongooseNegativeTurnAnimation,
+    &_gMongoosePositiveTurnAnimation,
     &_gMongooseAnimation0D20C,
     &_gMongooseAnimation0D7D8,
     &_gMongooseAnimation0AA68,
@@ -1980,11 +2034,11 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     &_gMongooseAnimation09CB4,
     &_gMongooseAnimation09ADC,
     &_gMongooseAnimation09CB4,
-    &_gMongooseAnimation04458,
-    &_gMongooseAnimation04BE0,
+    &_gMongooseStairAscentAnimation,
+    &_gMongooseStairDescentAnimation,
     &_gMongooseAnimation05244,
-    &_gMongooseAnimation04EB4,
-    &_gMongooseAnimation03CFC,
+    &_gMongooseStairAscentFinishOddAnimation,
+    &_gMongooseItemUseAnimation,
     &_gMongooseIdleAnimation,
     &_gMongooseAnimation0A218,
     &_gMongooseAnimation0A40C,
