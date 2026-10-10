@@ -18,10 +18,21 @@
 /// The callbacks and their room resources require this overlay to stay loaded.
 extern TaskDesc gNeoArkObservatoryReflectionTaskDescs[2];
 
-extern AreaVariant D_neo_ark_observatory_8018786C[13];
+/// Placement variants indexed directly by the saved `GameLocationKey.variant` (0..12).
+///
+/// Only variant 1 is present: its map-owned placements select the room's
+/// scene-stop recipe. Slot 0 and slots 2..12 are absent, with both pointers
+/// NULL. Keep the Neo Ark map, room and scene-actor overlays loaded while
+/// loading, spawning or retaining references from the populated variant.
+extern AreaVariant gNeoArkObservatoryAreaVariants[13];
 
-// neo_ark_observatory
-extern WorldCollisionRoomResources D_neo_ark_observatory_80181594[];
+/// Collision resources for room configurations 1 and 2, indexed by room ID minus one.
+///
+/// Both borrow the same complete grid, 18 view boundaries, 14 action triggers
+/// and four sight occluders. Setup links and enables the trigger/occluder arrays;
+/// the grid's leading obstacle slots remain mutable. Keep this room overlay
+/// loaded until its resources are inactive and its linked records are removed.
+extern WorldCollisionRoomResources gNeoArkObservatoryRoomCollisionResources[2];
 
 /// Lighting for room configurations 1 and 2, indexed by the room ID minus one.
 ///
@@ -37,11 +48,28 @@ extern WorldCoordRoomLighting gNeoArkObservatoryRoomLighting[2];
 /// the gameplay identity map. Room-owned pointers require this overlay loaded.
 extern u8* gNeoArkObservatoryViewMaps[2];
 
-extern ViewCount D_neo_ark_observatory_801815E4[];
+/// Logical-view counts for room configurations 1 and 2, indexed by room ID minus one.
+///
+/// Each exposes 21 logical slots through `gNeoArkObservatoryViewMaps`.
+/// The map overlay borrows this array while the room overlay is loaded.
+extern ViewCount gNeoArkObservatoryViewCounts[2];
 
-extern DirectionWarpEntry D_neo_ark_observatory_801815E8[];
+/// Three arrival/departure recipes, indexed by the area's 1-based warp slot minus one.
+///
+/// Slots 1..3 arrive in logical views 2, 11 and 10. Slot 1 supplies room-bank
+/// arrival/departure sounds and a map-marker flag; slots 2 and 3 are silent.
+/// Positions use room units and yaw uses 4096 units per turn. There is no
+/// terminator; lookups borrow the entries while this room overlay is loaded.
+extern DirectionWarpEntry gNeoArkObservatoryWarpEntries[3];
 
-extern ViewCamera D_neo_ark_observatory_80181FC8[];
+/// Cameras for mapped views 1..21, indexed by mapped view minus one.
+///
+/// Logical views select them through `gNeoArkObservatoryViewMaps`. Matrices
+/// rotate world axes into camera axes with 4096 per unit; translations are
+/// negated world origins, and perspective distances are pixels. There is no
+/// terminator. The room overlay must remain loaded until a queued view applies
+/// its borrowed camera.
+extern ViewCamera gNeoArkObservatoryViewCameras[21];
 
 /// Sprite resources for mapped camera views 1..21, indexed by mapped view minus one.
 ///

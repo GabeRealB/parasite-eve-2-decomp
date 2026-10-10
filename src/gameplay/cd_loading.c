@@ -582,7 +582,7 @@ AreaRecord D_8010D0AC[34] = {
     { D_shelter_1f_heliport_80182BF4, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
     { D_shelter_1f_airlock_8017F758, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },
     { NULL, NULL },
-    { D_neo_ark_observatory_8018786C, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
+    { gNeoArkObservatoryAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
     { D_neo_ark_eve_access_tunnel_801806B8, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
     { NULL, NULL },
     { D_neo_ark_north_promenade_8018305C, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },

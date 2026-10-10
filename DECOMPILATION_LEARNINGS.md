@@ -89168,15 +89168,15 @@ sh  v0, %lo(D_neo_ark_observatory_8018136A)(v1)
 `D_neo_ark_observatory_8018136A` is `0x80181368 + 2`, auto-named by splat
 because the code names the address directly (it is why the symbol is also in
 `linkers/USA/undefined_syms_auto.<overlay>.txt`), while the data segment labels
-it separately: `D_neo_ark_observatory_80181368` is a 2-byte `dlabel` and
+it separately: `_gNeoArkObservatoryCompanionObstacleOffset` is a 2-byte `dlabel` and
 `D_neo_ark_observatory_8018136A` the 6 bytes after it.
 
 The natural C — one `SVECTOR` and a field write — is **byte-identical** to the
 target:
 
 ```c
-extern SVECTOR D_neo_ark_observatory_80181368;
-D_neo_ark_observatory_80181368.vy = 0x2710;   /* 99.242%, regs=5 */
+extern SVECTOR _gNeoArkObservatoryCompanionObstacleOffset;
+_gNeoArkObservatoryCompanionObstacleOffset.vy = 0x2710;   /* 99.242%, regs=5 */
 ```
 
 Symptom: `dist.py` reports a `regs` penalty and the only differing lines are
@@ -89191,8 +89191,8 @@ check whether the diff lines carry a symbol before opening `.lreg`.
 Fix: declare the auto-labelled address as its own object and assign to it:
 
 ```c
-extern SVECTOR D_neo_ark_observatory_80181368;
-extern s16     D_neo_ark_observatory_8018136A; /* D_neo_ark_observatory_80181368.vy */
+extern SVECTOR _gNeoArkObservatoryCompanionObstacleOffset;
+extern s16     D_neo_ark_observatory_8018136A; /* _gNeoArkObservatoryCompanionObstacleOffset.vy */
 D_neo_ark_observatory_8018136A = 0x2710;       /* 100% */
 ```
 

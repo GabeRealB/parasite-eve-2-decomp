@@ -60,12 +60,12 @@ gShelter1fGuardroomViewCameras = 0x8017DC14; // absolute:True owner=shelter_1f_g
 gShelter1fGuardroomSpriteViews = 0x8017DCE0; // absolute:True owner=shelter_1f_guardroom
 gShelter1fGuardroomSurfaceProperties = 0x8017DFF4; // absolute:True owner=shelter_1f_guardroom shared=rooms
 neoArkObservatoryRoomTask = 0x8017FDDC; // type:func absolute:True owner=neo_ark_observatory shared=rooms
-D_neo_ark_observatory_80181594 = 0x80181594; // absolute:True owner=neo_ark_observatory
+gNeoArkObservatoryRoomCollisionResources = 0x80181594; // absolute:True owner=neo_ark_observatory
 gNeoArkObservatoryRoomLighting = 0x801815B4; // absolute:True owner=neo_ark_observatory
 gNeoArkObservatoryViewMaps = 0x801815DC; // absolute:True owner=neo_ark_observatory
-D_neo_ark_observatory_801815E4 = 0x801815E4; // absolute:True owner=neo_ark_observatory
-D_neo_ark_observatory_801815E8 = 0x801815E8; // absolute:True owner=neo_ark_observatory shared=rooms
-D_neo_ark_observatory_80181FC8 = 0x80181FC8; // absolute:True owner=neo_ark_observatory
+gNeoArkObservatoryViewCounts = 0x801815E4; // absolute:True owner=neo_ark_observatory
+gNeoArkObservatoryWarpEntries = 0x801815E8; // absolute:True owner=neo_ark_observatory shared=rooms
+gNeoArkObservatoryViewCameras = 0x80181FC8; // absolute:True owner=neo_ark_observatory
 gNeoArkObservatorySpriteViews = 0x801860E8; // absolute:True owner=neo_ark_observatory
 gNeoArkObservatorySurfaceProperties = 0x80187A08; // absolute:True owner=neo_ark_observatory
 neoArkEveAccessTunnelRoomTask = 0x8017E038; // type:func absolute:True owner=neo_ark_eve_access_tunnel

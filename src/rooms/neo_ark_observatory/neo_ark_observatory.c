@@ -74,24 +74,8 @@ extern EvsCommand D_actor_450200_8013CAEC[];
 extern EvsCommand D_actor_450200_8013FC58[];
 extern EvsCommand D_actor_450200_80140078[];
 
-/// The departure task's descriptor.
-extern TaskDesc D_neo_ark_observatory_80180DD4;
-
-extern EvsCommand D_neo_ark_observatory_801812C0[];
-
-/// Descriptor of the CAP playback task `_neoArkObservatoryCapEventTask`.
-extern TaskDesc D_neo_ark_observatory_801811AC;
-
-/// Messages the room task answers, terminated by id `TASK_MESSAGE_TABLE_END`.
-extern TaskMessageEntry D_neo_ark_observatory_801811B8[];
-
-/// Room-axis offset passed by `neoArkObservatoryUpdateCompanionObstacle`.
-extern SVECTOR D_neo_ark_observatory_80181368;
-
-extern WorldCollisionGrid gFollowCollisionSource;
 static WorldCollisionGrid _gNeoArkObservatoryCollisionGrid;
 
-extern AreaApplyRec  D_neo_ark_observatory_80187A28[];
 extern RoomDeparture gRoomDeparture;
 
 /// Signed base grey intensity for the room's light beams, reset on the glow task's first tick.
@@ -136,9 +120,9 @@ static inline void _neoArkObservatoryProjectBeamSegment(EffectQuadScratch* quadS
 
 enum { NEO_ARK_OBSERVATORY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-extern WorldCollisionOccluder D_neo_ark_observatory_801878D4[4];
-extern WorldCollisionTrigger  D_neo_ark_observatory_80186ED4[18];
-extern WorldCollisionTrigger  D_neo_ark_observatory_8018742C[14];
+static WorldCollisionOccluder _gNeoArkObservatorySightOccluders[4];
+static WorldCollisionTrigger  _gNeoArkObservatoryViewBoundaryTriggers[18];
+static WorldCollisionTrigger  _gNeoArkObservatoryActionTriggers[14];
 static WorldCoordRoomLights   _gNeoArkObservatoryRoom1Lights;
 static WorldCoordRoomLights   _gNeoArkObservatoryRoom2Lights;
 
@@ -168,7 +152,17 @@ static inline TaskDesc* _planarReflectionGetTaskTable(void)
     return gNeoArkObservatoryReflectionTaskDescs;
 }
 
-TaskDesc D_neo_ark_observatory_80180DD4 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
+enum {
+    NEO_ARK_OBSERVATORY_DEPARTURE_PRIORITY = 32,
+    NEO_ARK_OBSERVATORY_CAP_EVENT_PRIORITY = 192,
+    NEO_ARK_OBSERVATORY_SCENE_CAP_COMMAND  = 12,
+};
+
+/// Bodyless departure recipe consuming the room's staged destination at priority 32.
+///
+/// Spawning uses descriptor index 0 and no payload. The departure record and
+/// room overlay must remain live until the departure task completes.
+static TaskDesc _gNeoArkObservatoryDepartureTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_OBSERVATORY_DEPARTURE_PRIORITY } }, roomEventDepartureTask, { .value = 0 } };
 
 static AnimationPackedPose _gNeoArkObservatoryAnimation03BC4Bank1[6] = {
 #include "assets/neo_ark_observatory_animation_03BC4_bank1.inc"
@@ -192,9 +186,19 @@ static AnimationSet _gNeoArkObservatoryAnimation03BC4 = {
     { NULL, _gNeoArkObservatoryAnimation03BC4Bank1, NULL, NULL, _gNeoArkObservatoryAnimation03BC4Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_neo_ark_observatory_801811AC = { { { TASK_BODY_NONE, 192 } }, _neoArkObservatoryCapEventTask, { .value = 0 } };
+/// Bodyless alternate-CAP playback recipe at priority 192.
+///
+/// Descriptor index 0 accepts the command index in spawn argument 1. Playback
+/// uses the room's second CAP resource, then restores player control and the
+/// default CAP resources. Keep the room loaded through completion.
+static TaskDesc _gNeoArkObservatoryCapEventTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_OBSERVATORY_CAP_EVENT_PRIORITY } }, _neoArkObservatoryCapEventTask, { .value = 0 } };
 
-TaskMessageEntry D_neo_ark_observatory_801811B8[5] = {
+/// Message routes installed by the room task, including the end marker.
+///
+/// Resolve borrows request/reply room-event records; room action borrows a
+/// DirectionActionRequest; key-item and command payloads are integers.
+/// The receiver borrows this table and its callbacks while the room is loaded.
+static TaskMessageEntry _gNeoArkObservatoryRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkObservatoryResolveRoomEventMessage },
     { NEO_ARK_OBSERVATORY_MESSAGE_USE_KEY_ITEM, _neoArkObservatoryRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkObservatoryRoomActionMessage },
@@ -202,76 +206,101 @@ TaskMessageEntry D_neo_ark_observatory_801811B8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Player clip for extended id 47.
+/// Player animation-set table for the one-time observatory scene, installed at id 47.
 ///
-/// The scene script sends the player its copy request before it plays the
-/// clip. `D_neo_ark_observatory_801811E4` copies
-/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
-/// player's bank, which is 31 words past the end of this array: the read runs
-/// on through `D_neo_ark_observatory_801811E4`,
-/// `D_neo_ark_observatory_801811EC` and the first 24 words of
-/// `D_neo_ark_observatory_80181200`, that script's first four commands. That
-/// overrun is the original's and is kept as it is: the request carries the
-/// bank's fixed capacity, while the table was stored with only its own entry.
-/// The play request selects id 47 only, so none of the words installed after
-/// the table is played as a clip.
-AnimationSet* D_neo_ark_observatory_801811E0[1] = { &_gNeoArkObservatoryAnimation03BC4 };
+/// The fixed 32-word bank copy reads this pointer, the following copy request
+/// and play request, and the first four commands of the scene script: 31 words
+/// beyond this table's end. Keep those objects in their stored order and retain
+/// the original transfer length. Only id 47 is played; the copied request and
+/// script words are not clips. The room overlay owns the borrowed clip data.
+static AnimationSet* _gNeoArkObservatoryScenePlayerAnimationSets[1] = { &_gNeoArkObservatoryAnimation03BC4 };
 
-// Installs the player's clip; the count is the bank's capacity, not the one entry of its source.
-AnimationBankCopyRequest D_neo_ark_observatory_801811E4 = { { .sets = D_neo_ark_observatory_801811E0 }, ANIMATION_BANK_EXTENSION_CAPACITY };
+/// Installs the scene's player clip and adjacent raw words into the 32-word bank extension.
+///
+/// The count is the bank capacity, not the playable set count. The source span
+/// continues through the next play request and four scene commands; the player
+/// consumes the request synchronously and borrows the clip through playback.
+static AnimationBankCopyRequest _gNeoArkObservatoryScenePlayerAnimationBankCopyRequest = { { .sets = _gNeoArkObservatoryScenePlayerAnimationSets }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
-// Blends the player into extended id 47 over 15 frames.
-AnimationPlayRequest D_neo_ark_observatory_801811EC = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Blends the player into scene clip 47 over 15 frames with world collision enabled.
+///
+/// The event interpreter resolves bank selector 1 for the equipped weapon.
+/// The preceding bank copy must complete before this borrowed request is used.
+static AnimationPlayRequest _gNeoArkObservatoryScenePlayerAnimationRequest = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE };
 
-// The room's one-time event scene: starts CAP sequence 12, installs and plays
-// the clip, waits for the CAP cue and ends the player's scripted control. It
-// is not animation-bank data.
-EvsCommand D_neo_ark_observatory_80181200[8] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_observatory_801811E4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_observatory_801811EC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55070009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// One-time observatory scene after Power Plant 1 is cleared, terminated by END.
+///
+/// Starts CAP command 12, installs and plays player clip 47, starts the room
+/// sound, waits for a CAP cue and three frames, then releases scripted control.
+/// The first four commands also lie in the animation copy's raw source span.
+/// The interpreter borrows the script and payloads through completion or skip.
+static EvsCommand _gNeoArkObservatorySceneScript[8] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = NEO_ARK_OBSERVATORY_SCENE_CAP_COMMAND }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gNeoArkObservatoryScenePlayerAnimationBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkObservatoryScenePlayerAnimationRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 9) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_neo_ark_observatory_801812C0[7] = {
+/// Skip cleanup for the one-time observatory scene, terminated by END.
+///
+/// Fades out, waits eight frames, cleans up the scene, fades back in, waits
+/// eight frames and releases player scripted control. The interpreter borrows
+/// this script while the room overlay remains loaded.
+static EvsCommand _gNeoArkObservatorySceneSkipScript[7] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_neo_ark_observatory_80181368 = { 0, 0, -200, 0 };
+/// Companion-obstacle displacement in room axes and signed game units.
+///
+/// X stays zero and Z stays -200. Y is zero while the companion blocks movement,
+/// otherwise +10000 moves the obstacle out of the playable room. The rebuild
+/// borrows XYZ for its call; the fourth halfword is unused.
+static SVECTOR _gNeoArkObservatoryCompanionObstacleOffset = { 0, 0, -200, 0 };
 
-static SVECTOR _gNeoArkObservatoryCollision03E50Normals[4] = {
+/// Four model-local obstacle normals, with 4096 representing unit length.
+static SVECTOR _gNeoArkObservatoryCompanionObstacleTemplateNormals[4] = {
 #include "assets/neo_ark_observatory_collision_03E50_normals.inc"
 };
 
-static SVECTOR _gNeoArkObservatoryCollision03E50Verts[8] = {
+/// Eight model-local obstacle corners in signed game-coordinate units.
+static SVECTOR _gNeoArkObservatoryCompanionObstacleTemplateVerts[8] = {
 #include "assets/neo_ark_observatory_collision_03E50_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkObservatoryCollision03E50Faces[4] = {
+/// Four side quads using vertices 0..7, normals 0..3 and room surface class 0.
+static WorldCollisionGridFace _gNeoArkObservatoryCompanionObstacleTemplateFaces[4] = {
 #include "assets/neo_ark_observatory_collision_03E50_faces.inc"
 };
 
-static s16 _gNeoArkObservatoryCollision03E50Cells[6] = {
+/// Single-cell face list (0..3, END) and the final retained zero halfword.
+static s16 _gNeoArkObservatoryCompanionObstacleTemplateCells[6] = {
 #include "assets/neo_ark_observatory_collision_03E50_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkObservatoryCollision03E50Cells[i])
-static s16* _gNeoArkObservatoryCollision03E50Table[1] = {
+#define GRID_CELL(i) (&_gNeoArkObservatoryCompanionObstacleTemplateCells[i])
+/// One-cell directory retained with the obstacle template; the rebuild uses only its mesh.
+static s16* _gNeoArkObservatoryCompanionObstacleTemplateTable[1] = {
 #include "assets/neo_ark_observatory_collision_03E50_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFollowCollisionSource = { NULL, _gNeoArkObservatoryCollision03E50Normals, _gNeoArkObservatoryCollision03E50Verts, _gNeoArkObservatoryCollision03E50Faces, _gNeoArkObservatoryCollision03E50Table, 399, 500, 1, 1, 4000, 4 };
+/// Model-local companion obstacle template restored into the room grid's leading slots.
+///
+/// Four normals, eight vertices and four quads remain unchanged by rebuilding.
+/// The single 4000-unit cell has origin (-399, -500); its directory and lists
+/// are retained asset data, unused by the rebuild. This template is never the
+/// active room grid. The room overlay owns the record and all five pools.
+static WorldCollisionGrid _gNeoArkObservatoryCompanionObstacleTemplate = { NULL, _gNeoArkObservatoryCompanionObstacleTemplateNormals, _gNeoArkObservatoryCompanionObstacleTemplateVerts, _gNeoArkObservatoryCompanionObstacleTemplateFaces, _gNeoArkObservatoryCompanionObstacleTemplateTable, 399, 500, 1, 1, 4000, ARRAY_SIZE(_gNeoArkObservatoryCompanionObstacleTemplateFaces) };
 
 enum {
     NEO_ARK_OBSERVATORY_HIGH_GLOW_FIRST = 22,
@@ -335,9 +364,9 @@ static SVECTOR _gNeoArkObservatoryLightPositions[44] = {
     { 4120, -70, 0x3D0E, 0 },
 };
 
-WorldCollisionRoomResources D_neo_ark_observatory_80181594[2] = {
-    { &_gNeoArkObservatoryCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
-    { &_gNeoArkObservatoryCollisionGrid, D_neo_ark_observatory_80186ED4, D_neo_ark_observatory_8018742C, D_neo_ark_observatory_801878D4 },
+WorldCollisionRoomResources gNeoArkObservatoryRoomCollisionResources[2] = {
+    { &_gNeoArkObservatoryCollisionGrid, _gNeoArkObservatoryViewBoundaryTriggers, _gNeoArkObservatoryActionTriggers, _gNeoArkObservatorySightOccluders },
+    { &_gNeoArkObservatoryCollisionGrid, _gNeoArkObservatoryViewBoundaryTriggers, _gNeoArkObservatoryActionTriggers, _gNeoArkObservatorySightOccluders },
 };
 
 WorldCoordRoomLighting gNeoArkObservatoryRoomLighting[2] = {
@@ -381,12 +410,12 @@ u8* gNeoArkObservatoryViewMaps[2] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_observatory_801815E4[2] = { 21, 21 };
+ViewCount gNeoArkObservatoryViewCounts[2] = { ARRAY_SIZE(gNeoArkObservatoryViewCameras), ARRAY_SIZE(gNeoArkObservatoryViewCameras) };
 
-DirectionWarpEntry D_neo_ark_observatory_801815E8[3] = {
-    { { { .word = 3072 }, 0x34BC, 0, 0x2EE0 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 0x2D82, 0, 0x316A }, { 0, 0, 0, 0 }, 0x55070006, 0x55070005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR },
-    { { { .word = 3072 }, 6700, 0, 0x37DC }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6700, 0, 0x37DC }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gNeoArkObservatoryWarpEntries[3] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 0x34BC, 0, 0x2EE0 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 5 / 8 }, 0x2D82, 0, 0x316A }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 6), SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 5), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 6700, 0, 0x37DC }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 6700, 0, 0x37DC }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 6490, 0, 1700 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 enum { NEO_ARK_OBSERVATORY_COLLISION_CELLS_X = 4,
@@ -427,7 +456,7 @@ static s16* _gNeoArkObservatoryCollisionGridTable[NEO_ARK_OBSERVATORY_COLLISION_
 /// the current view coordinate; the record and pools live with this overlay.
 static WorldCollisionGrid _gNeoArkObservatoryCollisionGrid = { NULL, _gNeoArkObservatoryCollisionGridNormals, _gNeoArkObservatoryCollisionGridVerts, _gNeoArkObservatoryCollisionGridFaces, _gNeoArkObservatoryCollisionGridTable, 0, 0, NEO_ARK_OBSERVATORY_COLLISION_CELLS_X, NEO_ARK_OBSERVATORY_COLLISION_CELLS_Z, 4000, ARRAY_SIZE(_gNeoArkObservatoryCollisionGridFaces) };
 
-ViewCamera D_neo_ark_observatory_80181FC8[21] = {
+ViewCamera gNeoArkObservatoryViewCameras[21] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x61A8, -8000 } }, 329 },
     { { { { -972, 0, -3978 }, { 543, 4057, -133 }, { 3941, -559, -963 } }, { -6480, 550, -0x305C } }, 289 },
     { { { { 3999, 0, -882 }, { -171, 4018, -775 }, { 865, 794, 3923 } }, { -7450, 2250, -5570 } }, 289 },
@@ -1640,7 +1669,12 @@ static WorldCoordPointLight _gNeoArkObservatoryRoom2PointLights[17] = {
 /// Point-light collection for room configuration 2; no directional or cone lights.
 static WorldCoordRoomLights _gNeoArkObservatoryRoom2Lights = { 0, NULL, ARRAY_SIZE(_gNeoArkObservatoryRoom2PointLights), _gNeoArkObservatoryRoom2PointLights, 0, NULL };
 
-WorldCollisionTrigger D_neo_ark_observatory_80186ED4[18] = {
+/// Eighteen directed view boundaries, shared by both room configurations.
+///
+/// Parameters name source/destination logical views 2..11. The final boundary
+/// carries LAST and is included in the scan. Room setup binds coordinates and
+/// links/enables the mutable records; unlink them before unloading the overlay.
+static WorldCollisionTrigger _gNeoArkObservatoryViewBoundaryTriggers[18] = {
     { NULL, NULL, NULL, { 8851, -1408, 0x2EEF, 0 }, { { 506, -1872, -1859, 0 }, { -506, -1872, 1859, 0 }, { 506, 1872, -1859, 0 }, { -506, 1872, 1859, 0 } }, { 3953, 0, 1076, 0 }, { 0, 0, 4096, 0 }, 2684, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 8955, -1440, 0x2F0C, 0 }, { { -524, -1840, 1842, 0 }, { 524, -1840, -1841, 0 }, { -524, 1840, 1842, 0 }, { 524, 1840, -1841, 0 } }, { -3946, 0, -1124, 0 }, { 0, 0, 4096, 0 }, 2648, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 8047, -1440, 9136, 0 }, { { -1596, -1840, 162, 0 }, { 1596, -1840, -161, 0 }, { -1596, 1840, 162, 0 }, { 1596, 1840, -161, 0 } }, { -415, 0, -4088, 0 }, { 0, 0, 4096, 0 }, 2428, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1661,31 +1695,64 @@ WorldCollisionTrigger D_neo_ark_observatory_80186ED4[18] = {
     { NULL, NULL, NULL, { 4576, -1440, 0x3AE1, 0 }, { { -924, -1840, 1861, 0 }, { 924, -1840, -1861, 0 }, { -924, 1840, 1861, 0 }, { 924, 1840, -1861, 0 } }, { -3674, 0, -1825, 0 }, { 0, 0, 4096, 0 }, 2769, 0, 9, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_observatory_8018742C[14] = {
-    { NULL, NULL, NULL, { 0x3540, -48, 0x2EC0, 0 }, { { -544, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { -544, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7584, -256, 0x3780, 0 }, { { 0, 1232, -960, 0 }, { 0, -1232, -960, 0 }, { 0, 1232, 960, 0 }, { 0, -1232, 960, 0 } }, { 4105, 0, 0, 0 }, { -4096, 0, 0, 0 }, 1557, WORLD_COLLISION_TRIGGER_ACTION_WARP, 10, 33, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 7552, -272, 1728, 0 }, { { 0, 1184, -1280, 0 }, { 0, -1184, -1280, 0 }, { 0, 1184, 1280, 0 }, { 0, -1184, 1280, 0 } }, { 4106, 0, 0, 0 }, { -4096, 0, 0, 0 }, 1740, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 50, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2B60, -64, 0x2EE0, 0 }, { { 0, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { 0, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, 201, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 5504, -64, 4096, 0 }, { { -544, 0, -1504, 0 }, { 544, 0, -1504, 0 }, { -544, 0, 1504, 0 }, { 544, 0, 1504, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+/// Room-action IDs interpreted by this room's direction-message receiver.
+enum {
+    NEO_ARK_OBSERVATORY_TRIGGER_COMPANION_ARRIVAL      = 1,
+    NEO_ARK_OBSERVATORY_TRIGGER_COMPANION_SECOND_SCENE = 2,
+    NEO_ARK_OBSERVATORY_TRIGGER_COMPANION_TALK         = 3,
+    NEO_ARK_OBSERVATORY_TRIGGER_SCENE                  = 4,
+    NEO_ARK_OBSERVATORY_TRIGGER_SHELTER_DEPARTURE      = 10,
+};
+
+/// Packed warp slots and stair settings stored in the interaction triggers.
+enum {
+    NEO_ARK_OBSERVATORY_NORTH_PROMENADE_WARP    = (2 << 4) | 1,
+    NEO_ARK_OBSERVATORY_SOUTH_PROMENADE_WARP    = (3 << 4) | 2,
+    NEO_ARK_OBSERVATORY_STAIR_DESCEND           = 0x100,
+    NEO_ARK_OBSERVATORY_STAIR_SURFACE_AND_STEPS = (2 << 4) | 8,
+    NEO_ARK_OBSERVATORY_STAIR_YAW_STEPS         = (ACTOR_TRANSFORM_ANGLE_TURN / 4) / 16,
+};
+
+/// Fourteen interaction quads shared by both room configurations, ending with LAST.
+///
+/// Includes Shelter departure, promenade warps, automatic story gates, CAP
+/// interactions and two eight-step descents on surface class 2. Positions and
+/// radii use room units; normals use 4096 per unit. Room setup binds and links
+/// the writable records, whose storage must remain loaded until unlinked.
+static WorldCollisionTrigger _gNeoArkObservatoryActionTriggers[14] = {
+    { NULL, NULL, NULL, { 0x3540, -48, 0x2EC0, 0 }, { { -544, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { -544, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_ROOM, NEO_ARK_OBSERVATORY_TRIGGER_SHELTER_DEPARTURE, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7584, -256, 0x3780, 0 }, { { 0, 1232, -960, 0 }, { 0, -1232, -960, 0 }, { 0, 1232, 960, 0 }, { 0, -1232, 960, 0 } }, { 4105, 0, 0, 0 }, { -4096, 0, 0, 0 }, 1557, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_NORTH_PROMENADE, NEO_ARK_OBSERVATORY_NORTH_PROMENADE_WARP, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 7552, -272, 1728, 0 }, { { 0, 1184, -1280, 0 }, { 0, -1184, -1280, 0 }, { 0, 1184, 1280, 0 }, { 0, -1184, 1280, 0 } }, { 4106, 0, 0, 0 }, { -4096, 0, 0, 0 }, 1740, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SOUTH_PROMENADE, NEO_ARK_OBSERVATORY_SOUTH_PROMENADE_WARP, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2B60, -64, 0x2EE0, 0 }, { { 0, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { 0, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, 201, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_OBSERVATORY_TRIGGER_COMPANION_ARRIVAL, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 5504, -64, 4096, 0 }, { { -544, 0, -1504, 0 }, { 544, 0, -1504, 0 }, { -544, 0, 1504, 0 }, { 544, 0, 1504, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 1598, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_OBSERVATORY_TRIGGER_COMPANION_SECOND_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
     { NULL, NULL, NULL, { 512, -64, 7008, 0 }, { { -544, 0, -1024, 0 }, { 544, 0, -1024, 0 }, { -544, 0, 1024, 0 }, { 544, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 2495, -64, 0x34AF, 0 }, { { -2561, 0, -1893, 0 }, { -1033, 0, -2838, 0 }, { 1034, 0, 2839, 0 }, { 2562, 0, 1894, 0 } }, { 0, 4108, 0, 0 }, { 2896, 0, -2896, 0 }, 3176, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 2175, -64, 3008, 0 }, { { 920, 0, -3050, 0 }, { 2325, 0, -1929, 0 }, { -2324, 0, 1930, 0 }, { -920, 0, 3050, 0 } }, { 0, 4112, 0, 0 }, { 3702, 0, 1751, 0 }, 3176, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5600, -64, 7968, 0 }, { { -3488, 0, -2080, 0 }, { -384, 0, -2080, 0 }, { -3488, 0, 2400, 0 }, { -384, 0, 2400, 0 } }, { 0, 4106, 0, 0 }, { -4096, 0, 0, 0 }, 4222, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5568, -64, 7968, 0 }, { { -2208, 0, -2912, 0 }, { 1056, 0, -2912, 0 }, { -2208, 0, 3584, 0 }, { 1056, 0, 3584, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 4190, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6864, -64, 0x37B0, 0 }, { { -208, 0, -624, 0 }, { 208, 0, -624, 0 }, { -208, 0, 624, 0 }, { 208, 0, 624, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 655, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 40, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6880, -64, 1760, 0 }, { { -224, 0, -608, 0 }, { 224, 0, -608, 0 }, { -224, 0, 608, 0 }, { 224, 0, 608, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 40, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9824, -64, 0x2BC0, 0 }, { { -448, 0, -192, 0 }, { 1056, 0, -192, 0 }, { -1024, 0, 1728, 0 }, { 1056, 0, 1728, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 2023, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5728, -64, 1152, 0 }, { { -768, 0, -1504, 0 }, { 768, 0, -1504, 0 }, { -768, 0, 1504, 0 }, { 768, 0, 1504, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 1688, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 4, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { 6864, -64, 0x37B0, 0 }, { { -208, 0, -624, 0 }, { 208, 0, -624, 0 }, { -208, 0, 624, 0 }, { 208, 0, 624, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 655, WORLD_COLLISION_TRIGGER_ACTION_FACING | NEO_ARK_OBSERVATORY_STAIR_DESCEND, NEO_ARK_OBSERVATORY_STAIR_SURFACE_AND_STEPS, NEO_ARK_OBSERVATORY_STAIR_YAW_STEPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6880, -64, 1760, 0 }, { { -224, 0, -608, 0 }, { 224, 0, -608, 0 }, { -224, 0, 608, 0 }, { 224, 0, 608, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_FACING | NEO_ARK_OBSERVATORY_STAIR_DESCEND, NEO_ARK_OBSERVATORY_STAIR_SURFACE_AND_STEPS, NEO_ARK_OBSERVATORY_STAIR_YAW_STEPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9824, -64, 0x2BC0, 0 }, { { -448, 0, -192, 0 }, { 1056, 0, -192, 0 }, { -1024, 0, 1728, 0 }, { 1056, 0, 1728, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 2023, WORLD_COLLISION_TRIGGER_ACTION_ROOM, NEO_ARK_OBSERVATORY_TRIGGER_COMPANION_TALK, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5728, -64, 1152, 0 }, { { -768, 0, -1504, 0 }, { 768, 0, -1504, 0 }, { -768, 0, 1504, 0 }, { 768, 0, 1504, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 1688, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_OBSERVATORY_TRIGGER_SCENE, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_observatory_80187854[2] = {
-    { 101, 502, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor450200SceneTaskDescs },
+enum { NEO_ARK_OBSERVATORY_RESOURCE_SCENE_STOP   = 101,
+       NEO_ARK_OBSERVATORY_SCENE_STOP_TASK_INDEX = 0 };
+
+/// Variant 1's scene-stop resource recipe, followed by the placement END marker.
+///
+/// Entry 101 loads actor450200 via base group 40 and file number 502, then
+/// selects descriptor 0: a bodyless task that kills itself. The paired
+/// placements belong to the Neo Ark map; the task descriptors are borrowed
+/// from the loaded scene-actor overlay.
+static AreaResource _gNeoArkObservatoryVariant1Resources[2] = {
+    { NEO_ARK_OBSERVATORY_RESOURCE_SCENE_STOP, 502, AREA_RESOURCE_FILE_GROUP_BASE_40, NEO_ARK_OBSERVATORY_SCENE_STOP_TASK_INDEX, { 0, 0 }, gActor450200SceneTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaVariant D_neo_ark_observatory_8018786C[13] = {
+AreaVariant gNeoArkObservatoryAreaVariants[13] = {
     { NULL, NULL },
-    { gMapNeoArkObservatoryDefaultPlacements, D_neo_ark_observatory_80187854 },
+    { gMapNeoArkObservatoryDefaultPlacements, _gNeoArkObservatoryVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1699,7 +1766,12 @@ AreaVariant D_neo_ark_observatory_8018786C[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionOccluder D_neo_ark_observatory_801878D4[4] = {
+/// Four room-space sight-blocking quads shared by both room configurations.
+///
+/// The final quad carries LAST and is included in the scan. Linking and
+/// enabling mutate these records; unlink them before unloading the room.
+/// The stored low flag bit is retained without an established interpretation.
+static WorldCollisionOccluder _gNeoArkObservatorySightOccluders[4] = {
     { NULL, NULL, { 6336, -1664, 9200, 0 }, { { 32, 2688, 4016, 0 }, { -32, 2688, -4016, 0 }, { 32, -2688, 4016, 0 }, { -32, -2688, -4016, 0 } }, { 4114, 0, -33, 0 }, 4830, 1, 0 },
     { NULL, NULL, { 9248, -1440, 6720, 0 }, { { 32, 2688, 4016, 0 }, { -32, 2688, -4016, 0 }, { 32, -2688, 4016, 0 }, { -32, -2688, -4016, 0 } }, { 4114, 0, -33, 0 }, 4830, 1, 0 },
     { NULL, NULL, { 9312, -1376, 2656, 0 }, { { 4016, 2688, -32, 0 }, { -4016, 2688, 32, 0 }, { 4016, -2688, -32, 0 }, { -4016, -2688, 32, 0 } }, { -33, 0, -4115, 0 }, 4830, 1, 0 },
@@ -1756,9 +1828,14 @@ WorldCollisionSurfaceProperties* gNeoArkObservatorySurfaceProperties[8] = {
     &_gNeoArkObservatorySilentSurface,
 };
 
-AreaApplyRec D_neo_ark_observatory_80187A28[2] = {
-    { 5, 7, 2, 0 },
-    { 255, 0, 0, 0 },
+/// Saved-area changes committed when the companion departs for either promenade.
+///
+/// In every save mode, selects observatory placement variant 2, removes its
+/// saved enemy poses and clears its map mark. AREA_APPLY_END terminates the
+/// synchronously borrowed list; variant 2 is an absent placement slot.
+static AreaApplyRec _gNeoArkObservatoryCompanionDepartureAreaUpdates[2] = {
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 2, AREA_APPLY_MODE_ALWAYS },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 RoomDeparture gRoomDeparture;
@@ -1823,7 +1900,7 @@ static inline void _neoArkObservatoryQueueDeparture(RoomDeparture* departure, Ro
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     _neoArkObservatoryResolveDeparture(departure, resolve);
     gRoomDeparture = *departure;
-    taskSpawnFromTable(&D_neo_ark_observatory_80180DD4, DEPARTURE_TASK, 0, 0);
+    taskSpawnFromTable(&_gNeoArkObservatoryDepartureTaskDesc, DEPARTURE_TASK, 0, 0);
 }
 
 /// Handles the observatory's room-action triggers and their one-time story scenes.
@@ -1918,7 +1995,7 @@ static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessa
     }
     if (actionRequest->actionId == ACTION_OBSERVATORY_SCENE && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && gameFlagGetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
         gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN, true);
-        evsStartScriptWithSkip(D_neo_ark_observatory_80181200, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_observatory_801812C0);
+        evsStartScriptWithSkip(_gNeoArkObservatorySceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gNeoArkObservatorySceneSkipScript);
     }
     return 0;
 }
@@ -1937,11 +2014,11 @@ void neoArkObservatoryUpdateCompanionObstacle(s32 unusedEventArg)
     }
     // Move disabled companion collision out of the playable room.
     if (companionTask != NULL && gameFlagGetNibble(GAME_FLAG_0D7) != 0) {
-        D_neo_ark_observatory_80181368.vy = 0;
+        _gNeoArkObservatoryCompanionObstacleOffset.vy = 0;
     } else {
-        D_neo_ark_observatory_80181368.vy = NEO_ARK_OBSERVATORY_DISABLED_OBSTACLE_Y_OFFSET;
+        _gNeoArkObservatoryCompanionObstacleOffset.vy = NEO_ARK_OBSERVATORY_DISABLED_OBSTACLE_Y_OFFSET;
     }
-    _followCollisionRebuildObstacle(obstacleActorTask->extra.tmd->coords, &D_neo_ark_observatory_80181368);
+    _followCollisionRebuildObstacle(obstacleActorTask->extra.tmd->coords, &_gNeoArkObservatoryCompanionObstacleOffset);
 }
 
 /// Plays a command from the observatory's second loaded CAP data resource.
@@ -2012,7 +2089,7 @@ static s32 _neoArkObservatoryResolveRoomEventMessage(Task* unusedTask, s32 unuse
     if ((gameFlagGetNibble(GAME_FLAG_0D1) == COMPANION_ROUTE_AT_OBSERVATORY) && (gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) == COMPANION_PROMENADE_SCHEDULE) &&
         ((request->areaId == GAME_AREA_NEO_ARK_NORTH_PROMENADE) || (request->areaId == GAME_AREA_NEO_ARK_SOUTH_PROMENADE)) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_SCHEDULE_CLEARED);
-        areaApplySavedUpdates(D_neo_ark_observatory_80187A28);
+        areaApplySavedUpdates(_gNeoArkObservatoryCompanionDepartureAreaUpdates);
     }
     return TRANSITION_ALLOWED;
 }
@@ -2029,7 +2106,7 @@ static s32 _neoArkObservatoryCommandMessage(Task* unusedTask, s32 unusedMessageI
 
     if (commandIndex == ALTERNATE_CAP_COMMAND) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        taskSpawnFromTable(&D_neo_ark_observatory_801811AC, CAP_EVENT_TASK, ALTERNATE_CAP_COMMAND, 0);
+        taskSpawnFromTable(&_gNeoArkObservatoryCapEventTaskDesc, CAP_EVENT_TASK, ALTERNATE_CAP_COMMAND, 0);
     }
     return 0;
 }
@@ -2045,7 +2122,7 @@ static void _neoArkObservatoryInitializeRoom(Task* task)
     enum { COMPANION_ENTRY_VARIANT    = 1,
            SAVED_SCENE_BEAM_INTENSITY = 160 };
 
-    task->msgTable = D_neo_ark_observatory_801811B8;
+    task->msgTable = _gNeoArkObservatoryRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.variant == COMPANION_ENTRY_VARIANT)) {
         actor450200InitializeObservatoryCompanion();
@@ -2083,10 +2160,12 @@ static void _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask)
     companionSetDrawMode(drawMode);
 }
 
-/// State handlers of the room entry task `neoArkObservatoryRoomTask`,
-/// indexed by `Task::state`: the set-up tick, the companion-visibility tick, and
-/// `taskKill`.
-static const TaskFuncTable3 D_neo_ark_observatory_8017D698 = {
+/// Room-task dispatch value for states 0 initialize, 1 update companion visibility, 2 kill.
+///
+/// Copied as three callback pointers before dispatch. The live task's state
+/// must be in 0..2; there is no terminator or bounds check. Keep the room
+/// overlay loaded through the selected callback.
+static const TaskFuncTable3 _gNeoArkObservatoryRoomTaskStates = {
     {
         _neoArkObservatoryInitializeRoom,
         _neoArkObservatoryUpdateCompanionVisibility,
@@ -2098,12 +2177,14 @@ void neoArkObservatoryRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_observatory_8017D698;
+    handlers = _gNeoArkObservatoryRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 
-#define FOLLOW_COLLISION_ROOM_GRID _gNeoArkObservatoryCollisionGrid
+#define FOLLOW_COLLISION_ROOM_GRID       _gNeoArkObservatoryCollisionGrid
+#define FOLLOW_COLLISION_OBSTACLE_SOURCE _gNeoArkObservatoryCompanionObstacleTemplate
 #include "../../shared/follow_collision_rebuild.inc.c"
+#undef FOLLOW_COLLISION_OBSTACLE_SOURCE
 #undef FOLLOW_COLLISION_ROOM_GRID
 
 void neoArkObservatoryGlowTask(Task* effectTask)

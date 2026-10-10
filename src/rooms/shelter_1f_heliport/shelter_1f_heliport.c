@@ -97,8 +97,6 @@ extern TaskMessageEntry D_shelter_1f_heliport_801811A0[];
 
 extern u8 D_shelter_1f_heliport_801811D4[][4];
 
-/// The mesh's pristine source and the working copy rebuilt from it.
-extern WorldCollisionGrid gFollowCollisionSource;
 static WorldCollisionGrid _gShelter1fHeliportCollisionGrid;
 
 static s32                          _gShopRefillDisplayQuantityFixed;
@@ -201,29 +199,40 @@ u8 D_shelter_1f_heliport_801811D4[12][4] = {
 /// the call; this persistent vector stays in the room overlay.
 static SVECTOR _gShelter1fHeliportCompanionObstacleOffset = { 0 };
 
-static SVECTOR _gShelter1fHeliportCollision03CECNormals[4] = {
+/// Four model-local obstacle normals, with 4096 representing unit length.
+static SVECTOR _gShelter1fHeliportCompanionObstacleTemplateNormals[4] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_normals.inc"
 };
 
-static SVECTOR _gShelter1fHeliportCollision03CECVerts[8] = {
+/// Eight model-local obstacle corners in signed game-coordinate units.
+static SVECTOR _gShelter1fHeliportCompanionObstacleTemplateVerts[8] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelter1fHeliportCollision03CECFaces[4] = {
+/// Four side quads using vertices 0..7, normals 0..3 and room surface class 0.
+static WorldCollisionGridFace _gShelter1fHeliportCompanionObstacleTemplateFaces[4] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_faces.inc"
 };
 
-static s16 _gShelter1fHeliportCollision03CECCells[6] = {
+/// Single-cell face list (0..3, END) and the final retained zero halfword.
+static s16 _gShelter1fHeliportCompanionObstacleTemplateCells[6] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fHeliportCollision03CECCells[i])
-static s16* _gShelter1fHeliportCollision03CECTable[1] = {
+#define GRID_CELL(i) (&_gShelter1fHeliportCompanionObstacleTemplateCells[i])
+/// One-cell directory retained with the obstacle template; the rebuild uses only its mesh.
+static s16* _gShelter1fHeliportCompanionObstacleTemplateTable[1] = {
 #include "assets/shelter_1f_heliport_collision_03CEC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid gFollowCollisionSource = { NULL, _gShelter1fHeliportCollision03CECNormals, _gShelter1fHeliportCollision03CECVerts, _gShelter1fHeliportCollision03CECFaces, _gShelter1fHeliportCollision03CECTable, 131, 227, 1, 1, 4000, 4 };
+/// Model-local companion obstacle template restored into the room grid's leading slots.
+///
+/// Four normals, eight vertices and four quads remain unchanged by rebuilding.
+/// The single 4000-unit cell has origin (-131, -227); its directory and lists
+/// are retained asset data, unused by the rebuild. This template is never the
+/// active room grid. The room overlay owns the record and all five pools.
+static WorldCollisionGrid _gShelter1fHeliportCompanionObstacleTemplate = { NULL, _gShelter1fHeliportCompanionObstacleTemplateNormals, _gShelter1fHeliportCompanionObstacleTemplateVerts, _gShelter1fHeliportCompanionObstacleTemplateFaces, _gShelter1fHeliportCompanionObstacleTemplateTable, 131, 227, 1, 1, 4000, ARRAY_SIZE(_gShelter1fHeliportCompanionObstacleTemplateFaces) };
 
 WorldCollisionRoomResources D_shelter_1f_heliport_801812D0[1] = {
     { &_gShelter1fHeliportCollisionGrid, _gShelter1fHeliportViewBoundaryTriggers, _gShelter1fHeliportActionTriggers, NULL },
@@ -964,8 +973,10 @@ static void _shelter1fHeliportUpdatePlacedActorVisibility(void)
     }
 }
 
-#define FOLLOW_COLLISION_ROOM_GRID _gShelter1fHeliportCollisionGrid
+#define FOLLOW_COLLISION_ROOM_GRID       _gShelter1fHeliportCollisionGrid
+#define FOLLOW_COLLISION_OBSTACLE_SOURCE _gShelter1fHeliportCompanionObstacleTemplate
 #include "../../shared/follow_collision_rebuild.inc.c"
+#undef FOLLOW_COLLISION_OBSTACLE_SOURCE
 #undef FOLLOW_COLLISION_ROOM_GRID
 
 void shelter1fHeliportNoOpEffectTask(Task* unusedTask)

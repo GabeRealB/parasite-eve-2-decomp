@@ -1565,7 +1565,7 @@ D_neo_ark_island_80183F48 = 0x80183F48; // absolute:True owner=neo_ark_island sh
 
 D_neo_ark_north_promenade_8018305C = 0x8018305C; // absolute:True owner=neo_ark_north_promenade shared=rooms
 
-D_neo_ark_observatory_8018786C = 0x8018786C; // absolute:True owner=neo_ark_observatory
+gNeoArkObservatoryAreaVariants = 0x8018786C; // absolute:True owner=neo_ark_observatory
 
 D_neo_ark_pavilion_801876C4 = 0x801876C4; // absolute:True owner=neo_ark_pavilion shared=rooms
 
