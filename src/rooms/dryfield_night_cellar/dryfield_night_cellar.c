@@ -707,7 +707,7 @@ static SpriteBatch _gDryfieldNightCellarView11SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_cellar_8017FAB8[11] = {
+SpriteView gDryfieldNightCellarSpriteViews[11] = {
     { { .empty = _gDryfieldNightCellarView1SpriteBatches }, _gDryfieldNightCellarView1SpriteBatches, NULL },
     { { .elements = _gDryfieldNightCellarView2SpriteSources }, _gDryfieldNightCellarView2SpriteBatches, NULL },
     { { .elements = _gDryfieldNightCellarView3SpriteSources }, _gDryfieldNightCellarView3SpriteBatches, NULL },

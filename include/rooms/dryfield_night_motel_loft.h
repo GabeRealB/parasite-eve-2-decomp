@@ -56,7 +56,15 @@ extern DirectionWarpEntry gDryfieldNightMotelLoftWarpEntries[1];
 /// extend this camera array. The stage map borrows it while the overlay is loaded.
 extern ViewCamera gDryfieldNightMotelLoftViewCameras[11];
 
-extern SpriteView D_dryfield_night_motel_loft_8017FBE4[];
+/// Dryfield night motel loft's sprite resources, indexed by mapped view minus one.
+///
+/// Views 1, 2, 9 and 12..14 have no sources. Slots 9/10/11 reuse the
+/// source/batch bindings of 2/3/7; both logical rooms use this directory.
+/// Every slot retains decoded image strips and has no clipping list. Empty
+/// source slots retain batch addresses without supplying SpriteSource elements.
+/// Descriptors and mutable source/batch lists stay borrowed while the owning
+/// room overlay is loaded; selectors must be nonzero and within this array.
+extern SpriteView gDryfieldNightMotelLoftSpriteViews[14];
 
 /// Nighttime motel loft collision and footstep policies for surface classes 0..7.
 ///

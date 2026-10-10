@@ -1199,7 +1199,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB1SouthMaintenanceWalkwaySpriteViews,
     gShelterB1StoreroomSpriteViews,
     gShelterB1NorthMaintenanceWalkwaySpriteViews,
-    D_shelter_b1_armory_80184220,
+    gShelterB1ArmorySpriteViews,
     D_shelter_b1_sleeping_quarters_80182E70,
     D_shelter_b1_main_corridor_80185128,
     gShelterB1SterilizationRoomSpriteViews,

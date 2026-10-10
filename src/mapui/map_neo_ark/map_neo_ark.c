@@ -835,7 +835,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     gShelter1fAirlockSpriteViews,
     gShelter1fGuardroomSpriteViews,
     D_neo_ark_observatory_801860E8,
-    D_neo_ark_eve_access_tunnel_801800A0,
+    gNeoArkEveAccessTunnelSpriteViews,
     gNeoArkEveElevatorSpriteViews,
     gNeoArkNorthPromenadeSpriteViews,
     gNeoArkForestZoneSpriteViews,
@@ -858,7 +858,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     gShelter1fTentSpriteViews,
     D_neo_ark_woodland_path_80183C6C,
     gNeoArkSubmarineGallerySpriteViews,
-    D_neo_ark_r31_8017DAF8,
+    gNeoArkR31SpriteViews,
     gNeoArkPyramidSpriteViews,
     gNeoArkSubstationSpriteViews,
 };

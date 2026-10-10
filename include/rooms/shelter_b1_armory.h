@@ -37,7 +37,15 @@ extern WorldCollisionGrid gShelterB1ArmoryCollisionGrid;
 
 extern ViewCamera D_shelter_b1_armory_80182EF4[];
 
-extern SpriteView D_shelter_b1_armory_80184220[];
+/// Shelter b1 armory's sprite resources, indexed by mapped view minus one.
+///
+/// Views 1 and 9..13 have no sources; views 2..8 borrow sprite pools.
+/// The room uses an identity logical-view map.
+/// Every slot retains decoded image strips and has no clipping list. Empty
+/// source slots retain batch addresses without supplying SpriteSource elements.
+/// Descriptors and mutable source/batch lists stay borrowed while the owning
+/// room overlay is loaded; selectors must be nonzero and within this array.
+extern SpriteView gShelterB1ArmorySpriteViews[13];
 
 /// The armory's 22 point lights for model shading and room-light queries.
 ///

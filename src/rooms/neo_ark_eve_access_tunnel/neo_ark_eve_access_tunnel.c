@@ -332,7 +332,7 @@ static SpriteBatch _gNeoArkEveAccessTunnelView7SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_eve_access_tunnel_801800A0[7] = {
+SpriteView gNeoArkEveAccessTunnelSpriteViews[NEO_ARK_EVE_ACCESS_TUNNEL_VIEW_COUNT] = {
     { { .empty = gNeoArkEveAccessTunnelView1SpriteBatches }, gNeoArkEveAccessTunnelView1SpriteBatches, NULL },
     { { .elements = _gNeoArkEveAccessTunnelView2SpriteSources }, _gNeoArkEveAccessTunnelView2SpriteBatches, NULL },
     { { .elements = _gNeoArkEveAccessTunnelView3SpriteSources }, _gNeoArkEveAccessTunnelView3SpriteBatches, NULL },

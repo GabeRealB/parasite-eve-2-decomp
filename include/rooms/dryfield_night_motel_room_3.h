@@ -35,7 +35,15 @@ extern DirectionWarpEntry D_dryfield_night_motel_room_3_8017DABC[];
 
 extern ViewCamera D_dryfield_night_motel_room_3_8017E1A4[];
 
-extern SpriteView D_dryfield_night_motel_room_3_80180118[];
+/// Dryfield night motel room 3's sprite resources, indexed by mapped view minus one.
+///
+/// Views 1..5 have no sources; views 6..11 borrow sprite pools.
+/// The room uses an identity logical-view map.
+/// Every slot retains decoded image strips and has no clipping list. Empty
+/// source slots retain batch addresses without supplying SpriteSource elements.
+/// Descriptors and mutable source/batch lists stay borrowed while the owning
+/// room overlay is loaded; selectors must be nonzero and within this array.
+extern SpriteView gDryfieldNightMotelRoom3SpriteViews[11];
 
 /// Night motel room 3's collision and footstep policies, indexed by class 0..7.
 ///

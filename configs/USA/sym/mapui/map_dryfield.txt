@@ -35,7 +35,7 @@ gDryfieldR04ViewMaps = 0x8017D5D4; // absolute:True owner=dryfield_r04
 D_dryfield_r04_8017D5D8 = 0x8017D5D8; // absolute:True owner=dryfield_r04
 D_dryfield_r04_8017D5E4 = 0x8017D5E4; // absolute:True owner=dryfield_r04
 D_dryfield_r04_8017E218 = 0x8017E218; // absolute:True owner=dryfield_r04
-D_dryfield_r04_8017E280 = 0x8017E280; // absolute:True owner=dryfield_r04
+gDryfieldR04SpriteViews = 0x8017E280; // absolute:True owner=dryfield_r04
 gDryfieldR04SurfacePropertiesByClass = 0x8017E2AC; // absolute:True owner=dryfield_r04
 dryfieldBackStreetRoomTask = 0x8017D918; // type:func absolute:True owner=dryfield_back_street shared=rooms
 gDryfieldBackStreetRoomCollisionResources = 0x8017F9B4; // absolute:True owner=dryfield_back_street
@@ -289,7 +289,7 @@ D_dryfield_cellar_8017DC0C = 0x8017DC0C; // absolute:True owner=dryfield_cellar
 gDryfieldCellarRoomLighting = 0x8017DC10; // absolute:True owner=dryfield_cellar shared=rooms
 D_dryfield_cellar_8017DC20 = 0x8017DC20; // absolute:True owner=dryfield_cellar shared=rooms
 D_dryfield_cellar_8017DF78 = 0x8017DF78; // absolute:True owner=dryfield_cellar
-D_dryfield_cellar_8017FE40 = 0x8017FE40; // absolute:True owner=dryfield_cellar
+gDryfieldCellarSpriteViews = 0x8017FE40; // absolute:True owner=dryfield_cellar
 gDryfieldCellarSurfacePropertiesByClass = 0x80180B40; // absolute:True owner=dryfield_cellar
 dryfieldUnderpassRoomTask = 0x8017DAC8; // type:func absolute:True owner=dryfield_underpass shared=rooms
 D_dryfield_underpass_8017EB20 = 0x8017EB20; // absolute:True owner=dryfield_underpass

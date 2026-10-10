@@ -92,7 +92,7 @@ SpriteBatch D_dryfield_night_factory_80189A14[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_factory_80189A24[19] = {
+SpriteView gDryfieldNightFactorySpriteViews[19] = {
     { { .empty = gDryfieldNightFactoryView1SpriteBatches }, gDryfieldNightFactoryView1SpriteBatches, NULL },
     { { .elements = gDryfieldNightFactoryView2SpriteSources }, gDryfieldNightFactoryView2SpriteBatches, NULL },
     { { .elements = gDryfieldNightFactoryView3SpriteSources }, gDryfieldNightFactoryView3SpriteBatches, NULL },

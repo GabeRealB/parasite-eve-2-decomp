@@ -36,7 +36,15 @@ extern DirectionWarpEntry D_dryfield_night_cellar_8017DB34[];
 
 extern ViewCamera D_dryfield_night_cellar_8017DE84[];
 
-extern SpriteView D_dryfield_night_cellar_8017FAB8[];
+/// Dryfield night cellar's sprite resources, indexed by mapped view minus one.
+///
+/// Mapped views 1, 6 and 11 have no sources; all others borrow sprite pools.
+/// The two logical-room maps select this same directory.
+/// Every slot retains decoded image strips and has no clipping list. Empty
+/// source slots retain batch addresses without supplying SpriteSource elements.
+/// Descriptors and mutable source/batch lists stay borrowed while the owning
+/// room overlay is loaded; selectors must be nonzero and within this array.
+extern SpriteView gDryfieldNightCellarSpriteViews[11];
 
 /// Collision and footstep policies for the nighttime cellar's surface classes 0..7.
 ///

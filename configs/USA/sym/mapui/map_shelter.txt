@@ -123,7 +123,7 @@ D_shelter_b1_armory_80182584 = 0x80182584; // absolute:True owner=shelter_b1_arm
 D_shelter_b1_armory_80182588 = 0x80182588; // absolute:True owner=shelter_b1_armory
 gShelterB1ArmoryCollisionGrid = 0x80182ED0; // absolute:True owner=shelter_b1_armory
 D_shelter_b1_armory_80182EF4 = 0x80182EF4; // absolute:True owner=shelter_b1_armory
-D_shelter_b1_armory_80184220 = 0x80184220; // absolute:True owner=shelter_b1_armory
+gShelterB1ArmorySpriteViews = 0x80184220; // absolute:True owner=shelter_b1_armory
 gShelterB1ArmoryRoomLights = 0x80184AFC; // absolute:True owner=shelter_b1_armory
 D_shelter_b1_armory_80184B14 = 0x80184B14; // absolute:True owner=shelter_b1_armory
 D_shelter_b1_armory_80184E0C = 0x80184E0C; // absolute:True owner=shelter_b1_armory shared=rooms

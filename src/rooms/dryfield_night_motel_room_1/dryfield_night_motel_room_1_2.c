@@ -662,7 +662,7 @@ static SpriteBatch _gDryfieldNightMotelRoom1View9SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_dryfield_night_motel_room_1_8017FE98[9] = {
+SpriteView gDryfieldNightMotelRoom1SpriteViews[9] = {
     { { .empty = _gDryfieldNightMotelRoom1View1SpriteBatches }, _gDryfieldNightMotelRoom1View1SpriteBatches, NULL },
     { { .empty = _gDryfieldNightMotelRoom1View2SpriteBatches }, _gDryfieldNightMotelRoom1View2SpriteBatches, NULL },
     { { .empty = _gDryfieldNightMotelRoom1View3SpriteBatches }, _gDryfieldNightMotelRoom1View3SpriteBatches, NULL },

@@ -24,7 +24,15 @@ extern DirectionWarpEntry D_dryfield_r04_8017D5E4[];
 
 extern ViewCamera D_dryfield_r04_8017E218[];
 
-extern SpriteView D_dryfield_r04_8017E280[];
+/// Dryfield r04's sprite resources, indexed by mapped view minus one.
+///
+/// Both views retain decoded backgrounds without source sprites.
+/// Their distinct empty batch-list addresses also occupy sources.empty.
+/// Every slot retains decoded image strips and has no clipping list. Empty
+/// source slots retain batch addresses without supplying SpriteSource elements.
+/// Descriptors and mutable source/batch lists stay borrowed while the owning
+/// room overlay is loaded; selectors must be nonzero and within this array.
+extern SpriteView gDryfieldR04SpriteViews[2];
 
 /// Dryfield R04 collision and footstep policies for surface classes 0..7.
 ///

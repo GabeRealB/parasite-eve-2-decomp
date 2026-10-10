@@ -51,7 +51,15 @@ extern DirectionWarpEntry D_dryfield_night_factory_80186F58[];
 
 extern ViewCamera D_dryfield_night_factory_80187C14[];
 
-extern SpriteView D_dryfield_night_factory_80189A24[];
+/// Dryfield night factory's sprite resources, indexed by mapped view minus one.
+///
+/// Views 1, 5, 10..14 and 17 have no sources. Views 18 and 19 share
+/// one source pool and batch list; both logical rooms use this directory.
+/// Every slot retains decoded image strips and has no clipping list. Empty
+/// source slots retain batch addresses without supplying SpriteSource elements.
+/// Descriptors and mutable source/batch lists stay borrowed while the owning
+/// room overlay is loaded; selectors must be nonzero and within this array.
+extern SpriteView gDryfieldNightFactorySpriteViews[19];
 
 /// Surface-class directory for the nighttime factory, indexed by class 0..7.
 ///

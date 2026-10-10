@@ -68,25 +68,40 @@ ViewCamera D_neo_ark_r31_8017DA5C[3] = {
     { { { { -3243, 0, 2501 }, { 1904, 2655, 2469 }, { -1621, 3118, -2102 } }, { -8340, 1050, -7830 } }, 289 },
 };
 
-SpriteBatch D_neo_ark_r31_8017DAC8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded image strips without source sprites for mapped view 1.
+///
+/// A zero-count prefix selects the background; SPRITE_BATCH_END terminates
+/// the list. The descriptor also retains this list in sources.empty, which
+/// is never dereferenced as a SpriteSource pool.
+static SpriteBatch _gNeoArkR31View1SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_r31_8017DAD8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded image strips without source sprites for mapped view 2.
+///
+/// A zero-count prefix selects the background; SPRITE_BATCH_END terminates
+/// the list. The descriptor also retains this list in sources.empty, which
+/// is never dereferenced as a SpriteSource pool.
+static SpriteBatch _gNeoArkR31View2SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_r31_8017DAE8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded image strips without source sprites for mapped view 3.
+///
+/// A zero-count prefix selects the background; SPRITE_BATCH_END terminates
+/// the list. The descriptor also retains this list in sources.empty, which
+/// is never dereferenced as a SpriteSource pool.
+static SpriteBatch _gNeoArkR31View3SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteView D_neo_ark_r31_8017DAF8[3] = {
-    { { .empty = D_neo_ark_r31_8017DAC8 }, D_neo_ark_r31_8017DAC8, NULL },
-    { { .empty = D_neo_ark_r31_8017DAD8 }, D_neo_ark_r31_8017DAD8, NULL },
-    { { .empty = D_neo_ark_r31_8017DAE8 }, D_neo_ark_r31_8017DAE8, NULL },
+SpriteView gNeoArkR31SpriteViews[3] = {
+    { { .empty = _gNeoArkR31View1SpriteBatches }, _gNeoArkR31View1SpriteBatches, NULL },
+    { { .empty = _gNeoArkR31View2SpriteBatches }, _gNeoArkR31View2SpriteBatches, NULL },
+    { { .empty = _gNeoArkR31View3SpriteBatches }, _gNeoArkR31View3SpriteBatches, NULL },
 };
 
 /// Authored point lights for the room, eligible in every logical view.

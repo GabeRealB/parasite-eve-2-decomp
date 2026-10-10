@@ -80,7 +80,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_ShelterB1PodServiceGantrySpinScratch, 0x1C);
 
 extern s32 D_actor_560800_801752EC;
-extern s8  D_shelter_b1_pod_service_gantry_8018256C[];
 
 static void _shelterB1PodServiceGantryDrawBankedDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
 static void _shelterB1PodServiceGantryDrawAlternateDriftSprite(const GfxCoord* coord, u16 frameAndPalette, s16 size, s16 angle);
@@ -127,7 +126,12 @@ AreaApplyRec D_shelter_b1_pod_service_gantry_80182540[11] = {
     { 255, 0, 0, 0 },
 };
 
-s8 D_shelter_b1_pod_service_gantry_8018256C[8] = { 0 };
+/// Persistent random byte offsets for the eight chain-glow flicker phases.
+///
+/// Seeding replaces each byte with LCG bits 16..23. Drawing selects chain
+/// number modulo eight and adds only the low bit to the chain controller's
+/// tick parity. The room overlay owns the bytes until its next initialization.
+static u8 _gShelterB1PodServiceGantryGlowFlickerOffsets[8] = { 0 };
 
 /// Writes the signed pixel offset to one rotated drift-sprite corner.
 ///
@@ -634,7 +638,7 @@ void shelterB1PodServiceGantryDrawChainGlow(const GfxCoord* coord, s32 chainNumb
         // Size the projected disc and expand RGB with its alternating increment.
         screenRadius             = ((s16)radiusScale * SHELTER_B1_POD_SERVICE_GANTRY_GLOW_PERSPECTIVE_SCALE) / projection->depth;
         startAngle               = 0;
-        flickerIncrement         = (D_actor_560800_801752EC + (u8)D_shelter_b1_pod_service_gantry_8018256C[chainNumber & (ARRAY_SIZE(D_shelter_b1_pod_service_gantry_8018256C) - 1)]) & 1;
+        flickerIncrement         = (D_actor_560800_801752EC + _gShelterB1PodServiceGantryGlowFlickerOffsets[chainNumber & (ARRAY_SIZE(_gShelterB1PodServiceGantryGlowFlickerOffsets) - 1)]) & 1;
         channels                 = colorBits;
         flickerIncrement       <<= channels >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_FLICKER_SHIFT;
         red                      = flickerIncrement + ((channels >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_NIBBLE_BITS) & SHELTER_B1_POD_SERVICE_GANTRY_GLOW_CHANNEL_BYTE_MASK);
@@ -696,8 +700,8 @@ static inline void _shelterB1PodServiceGantrySeedGlowFlicker(void)
     };
     s32 flickerSlot;
 
-    for (flickerSlot = 0; flickerSlot < ARRAY_SIZE(D_shelter_b1_pod_service_gantry_8018256C); flickerSlot++) {
-        D_shelter_b1_pod_service_gantry_8018256C[flickerSlot] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_RANDOM_BYTE_SHIFT;
+    for (flickerSlot = 0; flickerSlot < ARRAY_SIZE(_gShelterB1PodServiceGantryGlowFlickerOffsets); flickerSlot++) {
+        _gShelterB1PodServiceGantryGlowFlickerOffsets[flickerSlot] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_RANDOM_BYTE_SHIFT;
     }
 }
 

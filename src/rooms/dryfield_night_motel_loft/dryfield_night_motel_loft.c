@@ -81,7 +81,7 @@ static SpriteBatch _gDryfieldNightMotelLoftView14SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_motel_loft_8017FBE4[14] = {
+SpriteView gDryfieldNightMotelLoftSpriteViews[14] = {
     { { .empty = gDryfieldNightMotelLoftView1SpriteBatches }, gDryfieldNightMotelLoftView1SpriteBatches, NULL },
     { { .empty = gDryfieldNightMotelLoftView2SpriteBatches }, gDryfieldNightMotelLoftView2SpriteBatches, NULL },
     { { .elements = gDryfieldNightMotelLoftView3SpriteSources }, gDryfieldNightMotelLoftView3SpriteBatches, NULL },

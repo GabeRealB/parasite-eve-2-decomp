@@ -813,7 +813,7 @@ static SpriteBatch _gDryfieldNightJunkYardView10SpriteBatches[] = {
     { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_junk_yard_80183700[10] = {
+SpriteView gDryfieldNightJunkYardSpriteViews[10] = {
     { { .empty = _gDryfieldNightJunkYardView1SpriteBatches }, _gDryfieldNightJunkYardView1SpriteBatches, NULL },
     { { .elements = _gDryfieldNightJunkYardView2SpriteSources }, _gDryfieldNightJunkYardView2SpriteBatches, NULL },
     { { .elements = _gDryfieldNightJunkYardView3SpriteSources }, _gDryfieldNightJunkYardView3SpriteBatches, NULL },

@@ -27,6 +27,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -49,22 +50,35 @@ typedef struct {
 } _DryfieldNightMotelRoom2SpotLightStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldNightMotelRoom2SpotLightStorage, 432);
 
-/// The room's message table, which the event task installs in state 0.
-extern TaskMessageEntry D_dryfield_night_motel_room_2_8017DA1C[];
-
 static s32 _dryfieldNightMotelRoom2RejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _dryfieldNightMotelRoom2IgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _dryfieldNightMotelRoom2IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 enum { DRYFIELD_NIGHT_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-extern WorldCollisionGrid     D_dryfield_night_motel_room_2_8017E184[1];
-extern WorldCollisionOccluder D_dryfield_night_motel_room_2_80180580[2];
-extern WorldCollisionTrigger  D_dryfield_night_motel_room_2_80180158[8];
-extern WorldCollisionTrigger  D_dryfield_night_motel_room_2_801803B8[6];
+enum {
+    DRYFIELD_NIGHT_MOTEL_ROOM_2_TASK_STATE_NEW  = 0,
+    DRYFIELD_NIGHT_MOTEL_ROOM_2_TASK_STATE_IDLE = 1,
+    DRYFIELD_NIGHT_MOTEL_ROOM_2_TASK_STATE_EXIT = 2,
+    DRYFIELD_NIGHT_MOTEL_ROOM_2_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_2, 2),
+    DRYFIELD_NIGHT_MOTEL_ROOM_2_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_ROOM_2, 1),
+    DRYFIELD_NIGHT_MOTEL_ROOM_2_MAP_FLAG        = 485,
+    // This area's departure slot 1 and main street's arrival slot 4.
+    DRYFIELD_NIGHT_MOTEL_ROOM_2_MAIN_STREET_WARP_ENDPOINTS = 0x14,
+};
+
+static WorldCollisionGrid     _gDryfieldNightMotelRoom2CollisionGrid;
+static WorldCollisionOccluder _gDryfieldNightMotelRoom2SightOccluders[2];
+static WorldCollisionTrigger  _gDryfieldNightMotelRoom2ViewBoundaryTriggers[8];
+static WorldCollisionTrigger  _gDryfieldNightMotelRoom2ActionTriggers[6];
 static WorldCoordRoomLights   _gDryfieldNightMotelRoom2RoomLights;
 
-TaskMessageEntry D_dryfield_night_motel_room_2_8017DA1C[5] = {
+/// Synchronous room messages: resolve transitions, reject key items and ignore actions and commands.
+///
+/// The room task borrows this read-only table while the overlay is loaded.
+/// The terminal record makes unsupported message IDs return zero. Authored
+/// storage remains in the overlay's data section.
+static const TaskMessageEntry _gDryfieldNightMotelRoom2RoomMessages[5] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMainStreetMsg },
     { DRYFIELD_NIGHT_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM, _dryfieldNightMotelRoom2RejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightMotelRoom2IgnoreRoomAction },
@@ -91,8 +105,13 @@ WorldCoordRoomLighting gDryfieldNightMotelRoom2RoomLighting[1] = {
     { .lights = &_gDryfieldNightMotelRoom2RoomLights, .ambientTable = NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_motel_room_2_8017DA64[1] = {
-    { D_dryfield_night_motel_room_2_8017E184, D_dryfield_night_motel_room_2_80180158, D_dryfield_night_motel_room_2_801803B8, D_dryfield_night_motel_room_2_80180580 },
+WorldCollisionRoomResources gDryfieldNightMotelRoom2RoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldNightMotelRoom2CollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightMotelRoom2ViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightMotelRoom2ActionTriggers,
+        .occluders            = _gDryfieldNightMotelRoom2SightOccluders,
+    },
 };
 
 u8* gDryfieldNightMotelRoom2RoomViewMaps[1] = {
@@ -101,34 +120,68 @@ u8* gDryfieldNightMotelRoom2RoomViewMaps[1] = {
 
 ViewCount gDryfieldNightMotelRoom2RoomViewCounts[1] = { DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_COUNT };
 
-DirectionWarpEntry D_dryfield_night_motel_room_2_8017DA7C[1] = {
-    { { { .word = 3072 }, 4666, 0, 2610 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4666, 0, 2610 }, { 0, 0, 0, 0 }, 0x530C0002, 0x530C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 485 },
+DirectionWarpEntry gDryfieldNightMotelRoom2WarpEntries[1] = {
+    {
+        .player         = { { .word = 3 * ONE / 4 }, 4666, 0, 2610 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3 * ONE / 4 }, 4666, 0, 2610 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_NIGHT_MOTEL_ROOM_2_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_NIGHT_MOTEL_ROOM_2_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_MOTEL_ROOM_2_MAP_FLAG,
+    },
 };
 
-static SVECTOR _gDryfieldNightMotelRoom2Collision00BC4Normals[13] = {
+/// Grid-local normals, with 4096 units per unit length.
+static SVECTOR _gDryfieldNightMotelRoom2CollisionGridNormals[13] = {
 #include "assets/dryfield_night_motel_room_2_collision_00BC4_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightMotelRoom2Collision00BC4Verts[105] = {
+/// Collision-mesh vertices in signed grid-local game units.
+static SVECTOR _gDryfieldNightMotelRoom2CollisionGridVerts[105] = {
 #include "assets/dryfield_night_motel_room_2_collision_00BC4_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightMotelRoom2Collision00BC4Faces[43] = {
+/// Indexed room quads using surface classes 0..4.
+static WorldCollisionGridFace _gDryfieldNightMotelRoom2CollisionGridFaces[43] = {
 #include "assets/dryfield_night_motel_room_2_collision_00BC4_faces.inc"
 };
 
-static s16 _gDryfieldNightMotelRoom2Collision00BC4Cells[134] = {
+/// Four signed face-index lists terminated by WORLD_COLLISION_GRID_CELL_END.
+///
+/// Lists end at halfword elements 43, 81, 112 and 132. Elements 113 and 133
+/// retain authored zeros outside every cell scan.
+static s16 _gDryfieldNightMotelRoom2CollisionGridCells[134] = {
 #include "assets/dryfield_night_motel_room_2_collision_00BC4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightMotelRoom2Collision00BC4Cells[i])
-static s16* _gDryfieldNightMotelRoom2Collision00BC4Table[4] = {
+// Generated initializers select cell lists by offsets in halfword elements.
+#define GRID_CELL(i) (&_gDryfieldNightMotelRoom2CollisionGridCells[i])
+/// X-major 2-by-2 cell table, with list starts at elements 0, 44, 82 and 114.
+static s16* _gDryfieldNightMotelRoom2CollisionGridTable[4] = {
 #include "assets/dryfield_night_motel_room_2_collision_00BC4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_motel_room_2_8017E184[1] = {
-    { NULL, _gDryfieldNightMotelRoom2Collision00BC4Normals, _gDryfieldNightMotelRoom2Collision00BC4Verts, _gDryfieldNightMotelRoom2Collision00BC4Faces, _gDryfieldNightMotelRoom2Collision00BC4Table, 0, 0, 2, 2, 4000, 43 },
+/// Room 1's collision mesh and 2-by-2 XZ index of 4000-unit cells.
+///
+/// The room owns this mutable descriptor and its pools. Activation binds the
+/// current view coordinate; keep the overlay loaded while the grid is active.
+static WorldCollisionGrid _gDryfieldNightMotelRoom2CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightMotelRoom2CollisionGridNormals,
+    .vertices    = _gDryfieldNightMotelRoom2CollisionGridVerts,
+    .faces       = _gDryfieldNightMotelRoom2CollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightMotelRoom2CollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 0,
+    .cellCountX  = 2,
+    .cellCountZ  = ARRAY_SIZE(_gDryfieldNightMotelRoom2CollisionGridTable) / 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightMotelRoom2CollisionGridFaces),
 };
 
 ViewCamera gDryfieldNightMotelRoom2ViewCameras[DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_COUNT] = {
@@ -648,7 +701,12 @@ SpriteView gDryfieldNightMotelRoom2SpriteViews[DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_
     { { .elements = _gDryfieldNightMotelRoom2View6SpriteSources }, _gDryfieldNightMotelRoom2View6SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_room_2_80180158[8] = {
+/// Directed camera boundaries joining views 2/3, 3/4, 3/5 and 5/6.
+///
+/// Origins, relative corners and radii use room-local game units; normals
+/// use 4096 per unit. Setup binds and links all eight mutable records, including
+/// the LAST-marked final boundary. Keep the room loaded until they are unlinked.
+static WorldCollisionTrigger _gDryfieldNightMotelRoom2ViewBoundaryTriggers[8] = {
     { NULL, NULL, NULL, { 2590, -1168, 2061, 0 }, { { 783, -2192, 2008, 0 }, { -789, -2192, -2014, 0 }, { 783, 2192, 2008, 0 }, { -789, 2192, -2014, 0 } }, { -3826, 0, 1494, 0 }, { 0, 0, 4096, 0 }, 3072, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 2495, -1280, 2079, 0 }, { { -791, -2192, -2016, 0 }, { 781, -2192, 2006, 0 }, { -791, 2192, -2016, 0 }, { 781, 2192, 2006, 0 } }, { 3824, 0, -1496, 0 }, { 0, 0, 4096, 0 }, 3072, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 847, -1184, 3966, 0 }, { { -838, -2192, 18, 0 }, { 839, -2192, -17, 0 }, { -838, 2192, 18, 0 }, { 839, 2192, -17, 0 } }, { -87, 0, -4102, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -659,8 +717,14 @@ WorldCollisionTrigger D_dryfield_night_motel_room_2_80180158[8] = {
     { NULL, NULL, NULL, { 3424, -1248, 4927, 0 }, { { 267, -2192, -1057, 0 }, { -267, -2192, 1058, 0 }, { 267, 2192, -1057, 0 }, { -267, 2192, 1058, 0 } }, { 3973, 0, 1002, 0 }, { 0, 0, 4096, 0 }, 2442, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_motel_room_2_801803B8[6] = {
-    { NULL, NULL, NULL, { 4416, -74, 2576, 0 }, { { -416, 0, -944, 0 }, { 416, 0, -944, 0 }, { -416, 0, 944, 0 }, { 416, 0, 944, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Room interaction quads: one main-street warp and five CAP command regions.
+///
+/// CAP indices are 5, 1, 8, 10 and 11; presentation flags are zero. The final
+/// region accepts proximity or facing and also carries LAST. Positions and
+/// radii use room-local game units, normals use 4096 per unit. Setup binds,
+/// links and enables all six writable records for the loaded room's lifetime.
+static WorldCollisionTrigger _gDryfieldNightMotelRoom2ActionTriggers[6] = {
+    { NULL, NULL, NULL, { 4416, -74, 2576, 0 }, { { -416, 0, -944, 0 }, { 416, 0, -944, 0 }, { -416, 0, 944, 0 }, { 416, 0, 944, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_MAIN_STREET, DRYFIELD_NIGHT_MOTEL_ROOM_2_MAIN_STREET_WARP_ENDPOINTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 400, -64, 2928, 0 }, { { -336, 0, -480, 0 }, { 336, 0, -480, 0 }, { -336, 0, 480, 0 }, { 336, 0, 480, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 583, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 736, -64, 5152, 0 }, { { -560, 0, -256, 0 }, { 560, 0, -256, 0 }, { -560, 0, 256, 0 }, { 560, 0, 256, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, -4097, 0 }, 613, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 2272, -64, 4896, 0 }, { { -464, 0, -320, 0 }, { 464, 0, -320, 0 }, { -464, 0, 320, 0 }, { 464, 0, 320, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 561, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -668,7 +732,13 @@ WorldCollisionTrigger D_dryfield_night_motel_room_2_801803B8[6] = {
     { NULL, NULL, NULL, { 3392, -64, 3904, 0 }, { { -1168, 0, 160, 0 }, { 880, 0, 160, 0 }, { -912, 0, 928, 0 }, { 432, 0, 928, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_night_motel_room_2_80180580[2] = {
+/// Two room-space quads blocking line of sight, with LAST on the second record.
+///
+/// Origins, relative corners and radii use game units; normals use 4096 per
+/// unit. Setup links and enables both mutable records. Retain their storage
+/// until unlinked and the room overlay is released. Authored flag bit 0 has
+/// no established meaning and is preserved.
+static WorldCollisionOccluder _gDryfieldNightMotelRoom2SightOccluders[2] = {
     { NULL, NULL, { 4000, -1280, 3904, 0 }, { { -1024, -1952, 0, 0 }, { 1024, -1952, 0, 0 }, { -1024, 1952, 0, 0 }, { 1024, 1952, 0, 0 } }, { 0, 0, -4101, 0 }, 2202, 1, 0 },
     { NULL, NULL, { 1600, -1312, 4896, 0 }, { { 0, -1952, 1024, 0 }, { 0, -1952, -1024, 0 }, { 0, 1952, 1024, 0 }, { 0, 1952, -1024, 0 } }, { -4101, 0, 0, 0 }, 2202, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -1318,7 +1388,7 @@ static s32 _dryfieldNightMotelRoom2IgnoreRoomAction(Task* task, s32 messageId, c
 /// receive messages. Registration does not retain the task or clear on teardown.
 static void _dryfieldNightMotelRoom2InitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_motel_room_2_8017DA1C;
+    task->msgTable = _gDryfieldNightMotelRoom2RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -1331,19 +1401,21 @@ static void _dryfieldNightMotelRoom2IdleRoomTask(Task* task)
 {
 }
 
-/// The event task's three states: set-up, the idle per-frame state, and the
-/// kill.
-static const TaskFuncTable3 D_dryfield_night_motel_room_2_8017D5C4 = {
-    {
-        _dryfieldNightMotelRoom2InitRoomTask,
-        _dryfieldNightMotelRoom2IdleRoomTask,
-        taskKill,
+/// Room-task callbacks for states 0 initialize, 1 idle and 2 release.
+///
+/// The dispatcher copies all three function pointers and indexes the copy
+/// without a bounds check. Callbacks remain valid while this overlay is loaded.
+static const TaskFuncTable3 _gDryfieldNightMotelRoom2RoomTaskStates = {
+    .funcs = {
+        [DRYFIELD_NIGHT_MOTEL_ROOM_2_TASK_STATE_NEW]  = _dryfieldNightMotelRoom2InitRoomTask,
+        [DRYFIELD_NIGHT_MOTEL_ROOM_2_TASK_STATE_IDLE] = _dryfieldNightMotelRoom2IdleRoomTask,
+        [DRYFIELD_NIGHT_MOTEL_ROOM_2_TASK_STATE_EXIT] = taskKill,
     },
 };
 
 void dryfieldNightMotelRoom2RoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_dryfield_night_motel_room_2_8017D5C4;
+    TaskFuncTable3 stateHandlers = _gDryfieldNightMotelRoom2RoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

@@ -35,7 +35,15 @@ extern DirectionWarpEntry D_dryfield_night_junk_yard_801807CC[];
 
 extern ViewCamera D_dryfield_night_junk_yard_801811DC[];
 
-extern SpriteView D_dryfield_night_junk_yard_80183700[];
+/// Dryfield night junk yard's sprite resources, indexed by mapped view minus one.
+///
+/// Views 1 and 6 have no sources; the other slots borrow sprite pools.
+/// Both logical rooms select this directory through their separate maps.
+/// Every slot retains decoded image strips and has no clipping list. Empty
+/// source slots retain batch addresses without supplying SpriteSource elements.
+/// Descriptors and mutable source/batch lists stay borrowed while the owning
+/// room overlay is loaded; selectors must be nonzero and within this array.
+extern SpriteView gDryfieldNightJunkYardSpriteViews[10];
 
 /// Collision and footstep policies for junk-yard surface classes 0..7.
 ///

@@ -469,12 +469,17 @@ static SpriteBatch _gShelterB1ArmoryView12SpriteBatches[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_armory_80184210[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded image strips without source sprites for mapped view 13.
+///
+/// A zero-count prefix selects the background; SPRITE_BATCH_END terminates
+/// the list. The descriptor also retains this list in sources.empty, which
+/// is never dereferenced as a SpriteSource pool.
+static SpriteBatch _gShelterB1ArmoryView13SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_armory_80184220[13] = {
+SpriteView gShelterB1ArmorySpriteViews[13] = {
     { { .empty = _gShelterB1ArmoryView1SpriteBatches }, _gShelterB1ArmoryView1SpriteBatches, NULL },
     { { .elements = _gShelterB1ArmoryView2SpriteSources }, _gShelterB1ArmoryView2SpriteBatches, NULL },
     { { .elements = _gShelterB1ArmoryView3SpriteSources }, _gShelterB1ArmoryView3SpriteBatches, NULL },
@@ -487,7 +492,7 @@ SpriteView D_shelter_b1_armory_80184220[13] = {
     { { .empty = _gShelterB1ArmoryView10SpriteBatches }, _gShelterB1ArmoryView10SpriteBatches, NULL },
     { { .empty = _gShelterB1ArmoryView11SpriteBatches }, _gShelterB1ArmoryView11SpriteBatches, NULL },
     { { .empty = _gShelterB1ArmoryView12SpriteBatches }, _gShelterB1ArmoryView12SpriteBatches, NULL },
-    { { .empty = D_shelter_b1_armory_80184210 }, D_shelter_b1_armory_80184210, NULL },
+    { { .empty = _gShelterB1ArmoryView13SpriteBatches }, _gShelterB1ArmoryView13SpriteBatches, NULL },
 };
 
 /// Authored point lights in room coordinates, active in every view.

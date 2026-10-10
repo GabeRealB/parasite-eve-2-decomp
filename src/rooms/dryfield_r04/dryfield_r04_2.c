@@ -15,19 +15,29 @@ ViewCamera D_dryfield_r04_8017E218[2] = {
     { { { { 0x1000, 0, 0 }, { 0, 0, -0x1000 }, { 0, 0x1000, 0 } }, { -0x3A98, 0x7530, -0x3E80 } }, 0xCF },
 };
 
-static SpriteBatch D_dryfield_r04_8017E260[2] = {
-    { 0, 0, 0, 0, { 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0 } },
+/// Keeps decoded image strips without source sprites for mapped view 1.
+///
+/// A zero-count prefix selects the background; SPRITE_BATCH_END terminates
+/// the list. The descriptor also retains this list in sources.empty, which
+/// is never dereferenced as a SpriteSource pool.
+static SpriteBatch _gDryfieldR04View1SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-static SpriteBatch D_dryfield_r04_8017E270[2] = {
-    { 0, 0, 0, 0, { 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0 } },
+/// Keeps decoded image strips without source sprites for mapped view 2.
+///
+/// A zero-count prefix selects the background; SPRITE_BATCH_END terminates
+/// the list. The descriptor also retains this list in sources.empty, which
+/// is never dereferenced as a SpriteSource pool.
+static SpriteBatch _gDryfieldR04View2SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteView D_dryfield_r04_8017E280[2] = {
-    { { .empty = D_dryfield_r04_8017E260 }, D_dryfield_r04_8017E260, NULL },
-    { { .empty = D_dryfield_r04_8017E270 }, D_dryfield_r04_8017E270, NULL },
+SpriteView gDryfieldR04SpriteViews[2] = {
+    { { .empty = _gDryfieldR04View1SpriteBatches }, _gDryfieldR04View1SpriteBatches, NULL },
+    { { .empty = _gDryfieldR04View2SpriteBatches }, _gDryfieldR04View2SpriteBatches, NULL },
 };
 
 /// Three sound IDs with the layout of `WorldCollisionFootstepSounds`.

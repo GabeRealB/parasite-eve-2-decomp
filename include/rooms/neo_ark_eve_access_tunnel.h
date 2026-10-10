@@ -65,7 +65,15 @@ extern DirectionWarpEntry gNeoArkEveAccessTunnelWarpEntries[NEO_ARK_EVE_ACCESS_T
 /// this array at area 8; keep the overlay loaded through queued application.
 extern ViewCamera gNeoArkEveAccessTunnelViewCameras[NEO_ARK_EVE_ACCESS_TUNNEL_VIEW_COUNT];
 
-extern SpriteView D_neo_ark_eve_access_tunnel_801800A0[];
+/// Neo Ark eve access tunnel's sprite resources, indexed by mapped view minus one.
+///
+/// Views 1, 6 and 7 have no sources; views 2..5 borrow sprite pools.
+/// The room uses an identity logical-view map.
+/// Every slot retains decoded image strips and has no clipping list. Empty
+/// source slots retain batch addresses without supplying SpriteSource elements.
+/// Descriptors and mutable source/batch lists stay borrowed while the owning
+/// room overlay is loaded; selectors must be nonzero and within this array.
+extern SpriteView gNeoArkEveAccessTunnelSpriteViews[NEO_ARK_EVE_ACCESS_TUNNEL_VIEW_COUNT];
 
 /// Collision policy and footstep records indexed by tunnel surface class 0..7.
 ///

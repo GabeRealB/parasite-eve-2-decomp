@@ -23,7 +23,12 @@ enum { DRYFIELD_NIGHT_MOTEL_ROOM_2_VIEW_COUNT = 6 };
 /// remain writable. Borrow the record and its lights only while this overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldNightMotelRoom2RoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_motel_room_2_8017DA64[];
+/// Room 1's collision mesh, eight camera boundaries, six actions and two sight quads.
+///
+/// Index by room minus one; only room 1 is valid. The descriptor borrows mutable
+/// overlay-owned resources. Keep the overlay loaded while its grid is active
+/// or its trigger and occluder records remain linked.
+extern WorldCollisionRoomResources gDryfieldNightMotelRoom2RoomCollisionResources[1];
 
 /// Night motel room 2's room-1 mapping from logical views to camera/image/sprite slots.
 ///
@@ -39,7 +44,14 @@ extern u8* gDryfieldNightMotelRoom2RoomViewMaps[1];
 /// the overlay loaded while the stage directory borrows this count array.
 extern ViewCount gDryfieldNightMotelRoom2RoomViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_motel_room_2_8017DA7C[];
+/// Warp endpoint 1 for night motel room 2's door to main street.
+///
+/// Index by warp ID minus one; only ID 1 is valid. Arrival places both actors
+/// at (4666, 0, 2610) in world units with yaw 3072 (4096 per turn), selecting
+/// view 2. Arrival/departure use this area's sound entries 2/1, with no blocked
+/// sound or spawn flags. Map-marker nibble 485 records later arrivals. Consumers
+/// copy the full entry; borrow it only while the room overlay is loaded.
+extern DirectionWarpEntry gDryfieldNightMotelRoom2WarpEntries[1];
 
 /// Night motel room 2's six cameras, indexed by mapped view minus one.
 ///

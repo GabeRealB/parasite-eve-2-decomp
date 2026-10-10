@@ -31,7 +31,15 @@ extern DirectionWarpEntry D_neo_ark_r31_8017DA24[];
 
 extern ViewCamera D_neo_ark_r31_8017DA5C[];
 
-extern SpriteView D_neo_ark_r31_8017DAF8[];
+/// Neo Ark r31's sprite resources, indexed by mapped view minus one.
+///
+/// All three views retain decoded backgrounds without source sprites.
+/// Their distinct empty batch-list addresses also occupy sources.empty.
+/// Every slot retains decoded image strips and has no clipping list. Empty
+/// source slots retain batch addresses without supplying SpriteSource elements.
+/// Descriptors and mutable source/batch lists stay borrowed while the owning
+/// room overlay is loaded; selectors must be nonzero and within this array.
+extern SpriteView gNeoArkR31SpriteViews[3];
 
 /// The room's point-light collection.
 ///

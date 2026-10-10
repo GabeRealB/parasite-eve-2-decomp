@@ -659,13 +659,17 @@ static SpriteSource _gDryfieldNightMotelRoom3View11SpriteSources[] = {
     { DRYFIELD_NIGHT_MOTEL_ROOM_3_SPRITE_TPAGE_960, DRYFIELD_NIGHT_MOTEL_ROOM_3_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, 96, -64, 950, { .fields = { 56, 152 } }, DRYFIELD_NIGHT_MOTEL_ROOM_3_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MOTEL_ROOM_3_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_MOTEL_ROOM_3_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_motel_room_3_80180100[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 28, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Keeps decoded image strips and draws the complete sprite pool for mapped view 11.
+///
+/// A zero-count prefix selects the background; SPRITE_BATCH_END terminates
+/// the list. The middle range spans all source elements.
+static SpriteBatch _gDryfieldNightMotelRoom3View11SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gDryfieldNightMotelRoom3View11SpriteSources), .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_motel_room_3_80180118[11] = {
+SpriteView gDryfieldNightMotelRoom3SpriteViews[11] = {
     { { .empty = _gDryfieldNightMotelRoom3View1SpriteBatches }, _gDryfieldNightMotelRoom3View1SpriteBatches, NULL },
     { { .empty = _gDryfieldNightMotelRoom3View2SpriteBatches }, _gDryfieldNightMotelRoom3View2SpriteBatches, NULL },
     { { .empty = _gDryfieldNightMotelRoom3View3SpriteBatches }, _gDryfieldNightMotelRoom3View3SpriteBatches, NULL },
@@ -676,7 +680,7 @@ SpriteView D_dryfield_night_motel_room_3_80180118[11] = {
     { { .elements = _gDryfieldNightMotelRoom3View8SpriteSources }, _gDryfieldNightMotelRoom3View8SpriteBatches, NULL },
     { { .elements = _gDryfieldNightMotelRoom3View9SpriteSources }, _gDryfieldNightMotelRoom3View9SpriteBatches, NULL },
     { { .elements = _gDryfieldNightMotelRoom3View10SpriteSources }, _gDryfieldNightMotelRoom3View10SpriteBatches, NULL },
-    { { .elements = _gDryfieldNightMotelRoom3View11SpriteSources }, D_dryfield_night_motel_room_3_80180100, NULL },
+    { { .elements = _gDryfieldNightMotelRoom3View11SpriteSources }, _gDryfieldNightMotelRoom3View11SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_motel_room_3_8018019C[11] = {
