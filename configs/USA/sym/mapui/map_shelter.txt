@@ -15,13 +15,13 @@ D_mine_mesa_80188744 = 0x80188744; // absolute:True owner=mine_mesa
 gMineMesaSurfacePropertiesByClass = 0x80189A60; // absolute:True owner=mine_mesa
 mineCavernRoomTask = 0x8017DF54; // type:func absolute:True owner=mine_cavern
 D_mine_cavern_80188FE0 = 0x80188FE0; // absolute:True owner=mine_cavern
-D_mine_cavern_80189010 = 0x80189010; // absolute:True owner=mine_cavern
-D_mine_cavern_80189060 = 0x80189060; // absolute:True owner=mine_cavern
+gMineCavernRoomLighting = 0x80189010; // absolute:True owner=mine_cavern
+gMineCavernRoomViewMaps = 0x80189060; // absolute:True owner=mine_cavern
 D_mine_cavern_8018906C = 0x8018906C; // absolute:True owner=mine_cavern
 D_mine_cavern_80189074 = 0x80189074; // absolute:True owner=mine_cavern shared=rooms
 D_mine_cavern_80189840 = 0x80189840; // absolute:True owner=mine_cavern
 D_mine_cavern_8018CD10 = 0x8018CD10; // absolute:True owner=mine_cavern
-D_mine_cavern_8018E30C = 0x8018E30C; // absolute:True owner=mine_cavern
+gMineCavernSurfacePropertiesByClass = 0x8018E30C; // absolute:True owner=mine_cavern
 mineTunnelEntranceRoomTask = 0x8017D6BC; // type:func absolute:True owner=mine_tunnel_entrance shared=rooms
 D_mine_tunnel_entrance_8017DB58 = 0x8017DB58; // absolute:True owner=mine_tunnel_entrance
 D_mine_tunnel_entrance_8017DB60 = 0x8017DB60; // absolute:True owner=mine_tunnel_entrance
@@ -411,7 +411,7 @@ D_shelter_1f_heliport_s4_8017DE84 = 0x8017DE84; // absolute:True owner=shelter_1
 D_shelter_1f_heliport_s4_8017E060 = 0x8017E060; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 shelterB3DumpingHoleRoomTask = 0x8017D9A8; // type:func absolute:True owner=shelter_b3_dumping_hole shared=rooms
 gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 = 0x80187550; // absolute:True owner=shelter_b3_dumping_hole
-D_shelter_b3_dumping_hole_8018B678 = 0x8018B678; // absolute:True owner=shelter_b3_dumping_hole shared=rooms
+D_shelter_b3_dumping_hole_8018B678 = 0x8018B678; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleViewMaps = 0x8018B698; // absolute:True owner=shelter_b3_dumping_hole
 D_shelter_b3_dumping_hole_8018B6A0 = 0x8018B6A0; // absolute:True owner=shelter_b3_dumping_hole
 D_shelter_b3_dumping_hole_8018B6A4 = 0x8018B6A4; // absolute:True owner=shelter_b3_dumping_hole

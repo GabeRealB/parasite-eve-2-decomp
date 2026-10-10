@@ -743,7 +743,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AEBC[1] = {
 
 WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
     [GAME_AREA_MINE_MESA - 1]                             = gMineMesaRoomLighting,
-    [GAME_AREA_MINE_CAVERN - 1]                           = D_mine_cavern_80189010,
+    [GAME_AREA_MINE_CAVERN - 1]                           = gMineCavernRoomLighting,
     [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = D_mine_tunnel_entrance_8017DB58,
     [GAME_AREA_MINE_TUNNEL - 1]                           = D_mine_tunnel_8017E154,
     [GAME_AREA_MINE_GORGE - 1]                            = D_mine_gorge_8017E7A8,
@@ -1130,7 +1130,7 @@ ViewCameraTable D_map_shelter_8017B480 = { D_map_shelter_8017B3BC };
 /// NULL entries have no maps. Room pointers stay valid only while that room is loaded.
 static u8** _gMapShelterAreaViewMaps[49] = {
     gMineMesaRoomViewMaps,
-    D_mine_cavern_80189060,
+    gMineCavernRoomViewMaps,
     D_mine_tunnel_entrance_8017DB70,
     D_mine_tunnel_8017E16C,
     D_mine_gorge_8017E7E4,
@@ -1242,7 +1242,7 @@ SpriteAreaTable gMapShelterSpriteAreaTable = { _gMapShelterAreaSpriteViews };
 
 WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gMineMesaSurfacePropertiesByClass,
-    D_mine_cavern_8018E30C,
+    gMineCavernSurfacePropertiesByClass,
     D_mine_tunnel_entrance_8017F3E8,
     D_mine_tunnel_8018032C,
     D_mine_gorge_80183644,

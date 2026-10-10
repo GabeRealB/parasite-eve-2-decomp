@@ -16,9 +16,20 @@ extern AreaVariant D_mine_cavern_8018E238[22];
 // mine_cavern
 extern WorldCollisionRoomResources D_mine_cavern_80188FE0[];
 
-extern WorldCoordRoomLighting D_mine_cavern_80189010[];
+/// Lighting for cavern rooms 1..3, indexed by room minus one.
+///
+/// All rooms borrow the same eight point lights and use the default minimum
+/// ambient colour. The directory and mutable lights remain live only while
+/// the cavern overlay is loaded.
+extern WorldCoordRoomLighting gMineCavernRoomLighting[3];
 
-extern u8* D_mine_cavern_80189060[];
+/// Logical-view maps for cavern rooms 1..3, indexed by room minus one.
+///
+/// Each map accepts logical views 1..25 at index view minus one and returns a
+/// 1-based camera/image/sprite index in 1..25. Room 1 borrows the gameplay
+/// identity map; rooms 2 and 3 borrow cavern-owned byte maps. These are counted
+/// maps with no terminator. Cavern-owned storage requires this overlay loaded.
+extern u8* gMineCavernRoomViewMaps[3];
 
 extern ViewCount D_mine_cavern_8018906C[];
 
@@ -28,7 +39,13 @@ extern ViewCamera D_mine_cavern_80189840[];
 
 extern SpriteView D_mine_cavern_8018CD10[];
 
-extern WorldCollisionSurfaceProperties* D_mine_cavern_8018E30C[];
+/// Cavern collision policies indexed directly by surface class 0..7.
+///
+/// Class 1 blocks probes and supplies footstep cues; class 2 passes probes and
+/// supplies the same cues. Classes 0 and 3..7 share a blocking, silent policy.
+/// Every class allows weapon impacts and applies pushback. Borrowed records
+/// and cues require the cavern overlay to remain loaded.
+extern WorldCollisionSurfaceProperties* gMineCavernSurfacePropertiesByClass[8];
 
 /// Runs the cavern's expanding orange disc, layered glow and fading ring effect.
 ///
