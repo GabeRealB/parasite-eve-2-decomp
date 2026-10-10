@@ -169,7 +169,17 @@ extern DirectionWarpEntry gAcropolisPlazaWarpEntries[ACROPOLIS_PLAZA_WARP_COUNT]
 /// The map directory borrows these writable records while the plaza is loaded.
 extern WorldCollisionSurfaceProperties* gAcropolisPlazaSurfacePropertiesByClass[ACROPOLIS_PLAZA_SURFACE_CLASS_COUNT];
 
-extern AreaVariant D_acropolis_plaza_80199390[3];
+/// Slots in the plaza's area-layout table, including the absent variants 0 and 2.
+enum { ACROPOLIS_PLAZA_AREA_VARIANT_COUNT = 3 };
+
+/// Area layouts for Acropolis Plaza, indexed directly by placement variant 0..2.
+///
+/// Only variant 1 is present: it pairs the map's two police-officer placements
+/// with their actor files and controller recipes. Slots 0 and 2 are absent;
+/// the table has no terminator. Gameplay borrows this table for Acropolis area 5.
+/// Keep the plaza, map and actor overlays loaded during resource loading,
+/// spawning and actor use; placements and recipes belong to those overlays.
+extern AreaVariant gAcropolisPlazaAreaVariants[ACROPOLIS_PLAZA_AREA_VARIANT_COUNT];
 
 /// Spawns the plaza's ambient glows, flares and siren beams on the first tick.
 ///
