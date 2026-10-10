@@ -25,9 +25,28 @@ typedef struct {
 } AcropolisCafeteriaSpotLightStorage;
 STATIC_ASSERT_SIZEOF(AcropolisCafeteriaSpotLightStorage, 1620);
 
-extern TaskDesc D_acropolis_cafeteria_80184178[];
+/// Descriptor indices for the cafeteria movie transition; there is no end marker.
+enum {
+    ACROPOLIS_CAFETERIA_MOVIE_TASK_LAUNCH   = 0,
+    ACROPOLIS_CAFETERIA_MOVIE_TASK_BLACKOUT = 1,
+    ACROPOLIS_CAFETERIA_MOVIE_TASK_PLAYBACK = 2,
+    ACROPOLIS_CAFETERIA_MOVIE_TASK_COUNT    = 3,
+};
 
-extern TaskMessageEntry D_acropolis_cafeteria_80184CEC[2];
+/// Bodyless priority-192 movie launcher, blackout and playback spawn recipes.
+///
+/// Select one descriptor by the indices above; the table has no terminator.
+/// Launcher and playback are selected from separate translation units, while
+/// the blackout recipe has no current spawn site. Descriptors are consumed
+/// synchronously, but callback code and movie resources must remain loaded.
+extern TaskDesc gAcropolisCafeteriaMovieTasks[ACROPOLIS_CAFETERIA_MOVIE_TASK_COUNT];
+
+/// Cafeteria room-effect dispatch for puff control, followed by its end marker.
+///
+/// The effect task borrows both read-only entries while the overlay is loaded.
+/// The first integer payload stores the puff gate verbatim (0 disables,
+/// nonzero enables); unsupported message IDs return zero.
+extern const TaskMessageEntry gAcropolisCafeteriaRoomEffectMessages[2];
 
 /// Shared cafeteria puff gate (0 disabled, any nonzero signed word enabled).
 ///

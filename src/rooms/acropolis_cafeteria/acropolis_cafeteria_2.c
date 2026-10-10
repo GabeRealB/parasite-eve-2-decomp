@@ -1277,9 +1277,7 @@ void acropolisCafeteriaBlackoutTask(Task* task)
 
 void acropolisCafeteriaStartMovieTask(Task* task)
 {
-    enum { MOVIE_PLAYBACK_DESCRIPTOR = 2 };
-
-    displaySpawnTaskFromTable(D_acropolis_cafeteria_80184178, MOVIE_PLAYBACK_DESCRIPTOR, 0, 0);
+    displaySpawnTaskFromTable(gAcropolisCafeteriaMovieTasks, ACROPOLIS_CAFETERIA_MOVIE_TASK_PLAYBACK, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     taskKill(task);
@@ -1299,7 +1297,7 @@ void acropolisCafeteriaInitRoomEffectsTask(Task* task)
     if (task->state != ROOM_EFFECTS_INITIALIZE) {
         return;
     }
-    task->msgTable = D_acropolis_cafeteria_80184CEC;
+    task->msgTable = gAcropolisCafeteriaRoomEffectMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
     spawnOffset                    = &work->move;
     gAcropolisCafeteriaPuffEnabled = 0;

@@ -21,7 +21,15 @@ extern TaskDesc gAcropolisCafeteriaSceneTasks[4];
 
 extern TmdSource gAcropolisCafeteriaModel077D8;
 
-extern AreaVariant D_acropolis_cafeteria_80189DCC[11];
+/// Cafeteria actor layouts indexed directly by saved placement variant 0..10.
+///
+/// Variants 1 and 2 supply the opening and battle/follow-up scenes; 3 and 4
+/// supply one and two Odd Strangers; variant 5 supplies five Bone Sucklers,
+/// and variant 7 a Rook Golem.
+/// Slots 0, 6 and 8..10 are absent (both pointers NULL). There is no terminator
+/// or index check. The gameplay area directory borrows this table and its
+/// placement/resource lists while the cafeteria and actor overlays are loaded.
+extern AreaVariant gAcropolisCafeteriaAreaVariants[11];
 
 /// Models those descriptors attach.
 extern TmdSource gAcropolisCafeteriaModel07CA8;

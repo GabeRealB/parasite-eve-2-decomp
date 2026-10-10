@@ -500,7 +500,7 @@ gAcropolisPlazaAreaVariants = 0x80199390; // absolute:True owner=acropolis_plaza
 
 gDryfieldMotelRoom6ReflectionTaskDescs = 0x80182D0C; // absolute:True owner=dryfield_motel_room_6
 
-gDryfieldNightMotelRoom6ReflectionTaskDescs = 0x80182E74; // absolute:True owner=dryfield_night_motel_room_6 shared=rooms
+gDryfieldNightMotelRoom6ReflectionTaskDescs = 0x80182E74; // absolute:True owner=dryfield_night_motel_room_6
 
 D_neo_ark_bridge_80181F18 = 0x80181F18; // absolute:True owner=neo_ark_bridge
 
@@ -1393,7 +1393,7 @@ D_shelter_1f_heliport_80181188 = 0x80181188; // absolute:True owner=shelter_1f_h
 
 D_shelter_b1_armory_801824D0 = 0x801824D0; // absolute:True owner=shelter_b1_armory
 
-D_acropolis_cafeteria_80189DCC = 0x80189DCC; // absolute:True owner=acropolis_cafeteria
+gAcropolisCafeteriaAreaVariants = 0x80189DCC; // absolute:True owner=acropolis_cafeteria
 
 D_acropolis_east_elevator_hall_80186C50 = 0x80186C50; // absolute:True owner=acropolis_east_elevator_hall
 
