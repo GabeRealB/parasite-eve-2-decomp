@@ -2,6 +2,14 @@
 #define INCLUDE_WEAPONS_M249_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Single-part model of the player's equipped M249.
+///
+/// Weapon tasks borrow this source and its geometry; keep the M249 overlay
+/// loaded until every referring model is released. First creation resolves
+/// draw-handler addresses in the writable command stream.
+extern TmdSource gM249WeaponModel;
 
 /// Runs the M249 fire cycle and tracks the lock target on every dispatch.
 ///

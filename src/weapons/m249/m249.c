@@ -1,5 +1,7 @@
 #include "weapons/m249.h"
 
+#include <psyq/libgpu.h>
+
 #include "common.h"
 
 #include "gameplay/animation.h"
@@ -16,7 +18,6 @@
 #include "main/sound.h"
 #include "main/session_types.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
 
 /// Scratch-stack block for the M249's attack handler.
 ///
@@ -152,146 +153,218 @@ void m249AttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BLOCK(_M249AttackScratch);
 }
 
-static TmdBone _gM249Model0060CSkeleton[1] = {
+/// Initial root transform copied into each held-weapon model's coordinate.
+///
+/// Read-only skeleton and count tables retain their serialized .data positions.
+static const TmdBone _gM249WeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/m249_model_0060C_skeleton.inc"
 };
 
-static u32 _gM249Model0060CPartVerts[1] = {
+/// Vertex count for the weapon's single skeletal part: all 58 vertices.
+static const u32 _gM249WeaponModelPartVerts[ARRAY_SIZE(_gM249WeaponModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/m249_model_0060C_partVerts.inc"
 };
 
-static SVECTOR _gM249Model0060CVerts[58] = {
+/// Weapon vertices in integer coordinates local to the held model's root.
+static SVECTOR _gM249WeaponModelVerts[] = {
 #include "assets/m249_model_0060C_verts.inc"
 };
 
-static SVECTOR _gM249Model0060CNormals[47] = {
+/// Lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gM249WeaponModelNormals[] = {
 #include "assets/m249_model_0060C_normals.inc"
 };
 
-static u32 _gM249Model0060CStream[426] = {
+/// Writable commands for ten textured triangles and 51 textured quads under one root.
+///
+/// Creation resolves handler slots in place; the final word is `TMD_STREAM_END`.
+static u32 _gM249WeaponModelStream[] = {
 #include "assets/m249_model_0060C_stream.inc"
 };
 
-TmdSource D_m249_8011DE74 = {
-    0,
-    3052,
-    0,
-    1,
-    _gM249Model0060CPartVerts,
-    _gM249Model0060CVerts,
-    _gM249Model0060CNormals,
-    _gM249Model0060CSkeleton,
-    _gM249Model0060CStream,
+TmdSource gM249WeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (10 * sizeof(POLY_GT3)) + (51 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM249WeaponModelSkeleton),
+    .partVertexCounts    = _gM249WeaponModelPartVerts,
+    .verts               = _gM249WeaponModelVerts,
+    .normals             = _gM249WeaponModelNormals,
+    .skeleton            = _gM249WeaponModelSkeleton,
+    .stream              = _gM249WeaponModelStream,
 };
 
-static AnimationPackedPose _gM249Animation00E68Bank1[2] = {
+/// Pose encodings used as bank indices by the M249's nineteen-track clips.
+enum {
+    M249_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    M249_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
+/// Translation and full-resolution Euler poses for the M249 standing idle (encoding 1).
+///
+/// Read-only clip payloads retain their serialized .data positions.
+static const AnimationPackedPose _gM249IdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_00E68_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation00E68Bank4[8] = {
+/// Packed Euler rotations for the M249 standing idle (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249IdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_00E68_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation00E68Records[76] = {
+/// Keyframes and loop/stop controls for the M249's fixed standing pose.
+static const AnimationRecord _gM249IdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_00E68_records.inc"
 };
 
-static u16 _gM249Animation00E68Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249IdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_00E68_indices.inc"
 };
 
-static AnimationSet _gM249Animation00E68 = {
-    _gM249Animation00E68Records,
-    _gM249Animation00E68Indices,
-    { NULL, _gM249Animation00E68Bank1, NULL, NULL, _gM249Animation00E68Bank4, NULL, NULL, NULL },
+/// Standing idle for the player carrying the M249, native-bank set 1.
+///
+/// Also reused by sets 21, 22 and 41. Tracks 0..18 belong to the player's rig;
+/// ordinary child playback uses 1..18. The clip data must stay loaded during playback.
+static AnimationSet _gM249IdleAnimation = {
+    .records           = _gM249IdleAnimationRecords,
+    .trackStartIndices = _gM249IdleAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249IdleAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249IdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation0150CBank1[12] = {
+/// Translation and full-resolution Euler poses for walking without the M249 model (encoding 1).
+static const AnimationPackedPose _gM249UnarmedWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0150C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation0150CBank4[151] = {
+/// Packed Euler rotations for walking without the M249 model (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249UnarmedWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0150C_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation0150CRecords[218] = {
+/// Keyframes and loop/stop controls for the M249 bank's walk without a held weapon model.
+static const AnimationRecord _gM249UnarmedWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0150C_records.inc"
 };
 
-static u16 _gM249Animation0150CIndices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249UnarmedWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0150C_indices.inc"
 };
 
-static AnimationSet _gM249Animation0150C = {
-    _gM249Animation0150CRecords,
-    _gM249Animation0150CIndices,
-    { NULL, _gM249Animation0150CBank1, NULL, NULL, _gM249Animation0150CBank4, NULL, NULL, NULL },
+/// Forward walk while the M249 bank is bound and the held weapon task is absent, set 19.
+///
+/// The nineteen player-rig tracks repeat their walk poses; child playback uses
+/// tracks 1..18. Keep the clip data loaded while any slot refers to it.
+static AnimationSet _gM249UnarmedWalkAnimation = {
+    .records           = _gM249UnarmedWalkAnimationRecords,
+    .trackStartIndices = _gM249UnarmedWalkAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249UnarmedWalkAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249UnarmedWalkAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation01D6CBank1[19] = {
+/// Translation and full-resolution Euler poses for the M249 left turn (encoding 1).
+static const AnimationPackedPose _gM249TurnLeftAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_01D6C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation01D6CBank4[169] = {
+/// Packed Euler rotations for the M249 left turn (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249TurnLeftAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_01D6C_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation01D6CRecords[290] = {
+/// Keyframes and loop/stop controls for the M249 left-turn cycle.
+static const AnimationRecord _gM249TurnLeftAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_01D6C_records.inc"
 };
 
-static u16 _gM249Animation01D6CIndices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249TurnLeftAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_01D6C_indices.inc"
 };
 
-static AnimationSet _gM249Animation01D6C = {
-    _gM249Animation01D6CRecords,
-    _gM249Animation01D6CIndices,
-    { NULL, _gM249Animation01D6CBank1, NULL, NULL, _gM249Animation01D6CBank4, NULL, NULL, NULL },
+/// Stationary left turn with the M249, native-bank set 5.
+///
+/// Used for left input and scripted negative-yaw turns. Nineteen player-rig
+/// tracks provide a repeating turn cycle; keep their data loaded during playback.
+static AnimationSet _gM249TurnLeftAnimation = {
+    .records           = _gM249TurnLeftAnimationRecords,
+    .trackStartIndices = _gM249TurnLeftAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249TurnLeftAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249TurnLeftAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation025D0Bank1[19] = {
+/// Translation and full-resolution Euler poses for the M249 right turn (encoding 1).
+static const AnimationPackedPose _gM249TurnRightAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_025D0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation025D0Bank4[170] = {
+/// Packed Euler rotations for the M249 right turn (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249TurnRightAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_025D0_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation025D0Records[290] = {
+/// Keyframes and loop/stop controls for the M249 right-turn cycle.
+static const AnimationRecord _gM249TurnRightAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_025D0_records.inc"
 };
 
-static u16 _gM249Animation025D0Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249TurnRightAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_025D0_indices.inc"
 };
 
-static AnimationSet _gM249Animation025D0 = {
-    _gM249Animation025D0Records,
-    _gM249Animation025D0Indices,
-    { NULL, _gM249Animation025D0Bank1, NULL, NULL, _gM249Animation025D0Bank4, NULL, NULL, NULL },
+/// Stationary right turn with the M249, native-bank set 6.
+///
+/// Used for right input and scripted nonnegative-yaw turns. Nineteen player-rig
+/// tracks provide a repeating turn cycle; keep their data loaded during playback.
+static AnimationSet _gM249TurnRightAnimation = {
+    .records           = _gM249TurnRightAnimationRecords,
+    .trackStartIndices = _gM249TurnRightAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249TurnRightAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249TurnRightAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation028E4Bank1[3] = {
+/// Translation and full-resolution Euler poses for M249-bank item use (encoding 1).
+static const AnimationPackedPose _gM249ItemUseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_028E4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation028E4Bank4[69] = {
+/// Packed Euler rotations for M249-bank item use (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249ItemUseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_028E4_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation028E4Records[99] = {
+/// Keyframes and terminal stop controls for the M249 bank's item-use gesture.
+static const AnimationRecord _gM249ItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_028E4_records.inc"
 };
 
-static u16 _gM249Animation028E4Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249ItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_028E4_indices.inc"
 };
 
-static AnimationSet _gM249Animation028E4 = {
-    _gM249Animation028E4Records,
-    _gM249Animation028E4Indices,
-    { NULL, _gM249Animation028E4Bank1, NULL, NULL, _gM249Animation028E4Bank4, NULL, NULL, NULL },
+/// Item-use gesture for the player with the M249 bank bound, native-bank set 40.
+///
+/// Its nineteen rig tracks stop at their final poses; ordinary child playback
+/// uses tracks 1..18. Keep the clip data loaded while any slot refers to it.
+static AnimationSet _gM249ItemUseAnimation = {
+    .records           = _gM249ItemUseAnimationRecords,
+    .trackStartIndices = _gM249ItemUseAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249ItemUseAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249ItemUseAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM249Animation03040Bank1[14] = {
@@ -978,12 +1051,12 @@ static AnimationSet _gM249Animation0FD70 = {
 
 AnimationBank D_m249_8012CF58 = { { {
     NULL,
-    &_gM249Animation00E68,
+    &_gM249IdleAnimation,
     &_gM249Animation0EBFC,
     &_gM249Animation0F39C,
     &_gM249Animation0FD70,
-    &_gM249Animation01D6C,
-    &_gM249Animation025D0,
+    &_gM249TurnLeftAnimation,
+    &_gM249TurnRightAnimation,
     &_gM249Animation0DC30,
     &_gM249Animation0E344,
     &_gM249Animation0964C,
@@ -996,10 +1069,10 @@ AnimationBank D_m249_8012CF58 = { { {
     &_gM249Animation05234,
     &_gM249Animation05554,
     &_gM249Animation05D18,
-    &_gM249Animation0150C,
+    &_gM249UnarmedWalkAnimation,
     &_gM249Animation0CC20,
-    &_gM249Animation00E68,
-    &_gM249Animation00E68,
+    &_gM249IdleAnimation,
+    &_gM249IdleAnimation,
     &_gM249Animation06FB0,
     &_gM249Animation08244,
     &_gM249Animation07B28,
@@ -1017,8 +1090,8 @@ AnimationBank D_m249_8012CF58 = { { {
     &_gM249Animation037C8,
     &_gM249Animation03E2C,
     &_gM249Animation03A9C,
-    &_gM249Animation028E4,
-    &_gM249Animation00E68,
+    &_gM249ItemUseAnimation,
+    &_gM249IdleAnimation,
     &_gM249Animation08E00,
     &_gM249Animation08FF4,
     &_gM249Animation09474,
