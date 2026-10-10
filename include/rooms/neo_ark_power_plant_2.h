@@ -13,8 +13,12 @@
 
 extern AreaVariant D_neo_ark_power_plant_2_80182DE0[19];
 
-// neo_ark_power_plant_2
-extern WorldCollisionRoomResources D_neo_ark_power_plant_2_80180690[];
+/// Collision resources for the plant's single room, indexed by room minus one.
+///
+/// Borrows the grid, eight view boundaries, eight action quads and one sight
+/// occluder. Setup mutates and links those room-owned records; keep this overlay
+/// loaded until collision teardown. The directory has no terminator.
+extern WorldCollisionRoomResources gNeoArkPowerPlant2CollisionRooms[1];
 
 /// Lighting for the plant's single room, indexed by room minus one.
 ///
@@ -29,13 +33,37 @@ extern WorldCoordRoomLighting gNeoArkPowerPlant2RoomLighting[1];
 /// terminator; the room directory and gameplay-owned map must remain loaded.
 extern u8* gNeoArkPowerPlant2ViewMaps[1];
 
-extern ViewCount D_neo_ark_power_plant_2_801806AC[];
+/// Number of camera and sprite entries selected by the plant's identity view map.
+enum { NEO_ARK_POWER_PLANT_2_VIEW_COUNT = 9 };
 
-extern DirectionWarpEntry D_neo_ark_power_plant_2_801806B0[];
+/// Nine logical views for room 1, followed by an unqueried zero halfword.
+///
+/// Counts are signed elements indexed by room minus one, not a sentinel list.
+/// The second halfword's role is unproven. The map directory borrows this
+/// room-owned storage while the overlay is loaded.
+extern ViewCount gNeoArkPowerPlant2ViewCounts[2];
 
-extern ViewCamera D_neo_ark_power_plant_2_80180DE8[];
+/// The plant's sole warp endpoint, selected by 1-based warp slot 1.
+///
+/// Places player and companion at (4000, -5000, -400), yaw 3072 in 4096 units
+/// per turn, and starts logical view 2. No sounds, arrival flags or map mark
+/// are requested. The map borrows the entry from this loaded room overlay.
+extern DirectionWarpEntry gNeoArkPowerPlant2WarpEntries[1];
 
-extern SpriteView D_neo_ark_power_plant_2_8018205C[];
+/// Cameras for mapped views 1..9, indexed by mapped view minus one.
+///
+/// Rotation coefficients use Q12, translation is the negated world-space
+/// camera origin, and projection distance is in pixels. There is no terminator;
+/// queued camera applications require this overlay to remain loaded.
+extern ViewCamera gNeoArkPowerPlant2ViewCameras[NEO_ARK_POWER_PLANT_2_VIEW_COUNT];
+
+/// Sprite resources for mapped views 1..9, indexed by mapped view minus one.
+///
+/// Views 1, 7 and 8 contain only decoded background strips; the others add
+/// cached source sprites. Each batch list ends at SPRITE_BATCH_END, and no
+/// view has draw-area clipping. The directory borrows mutable room-owned
+/// sources and batches for the lifetime of the loaded overlay.
+extern SpriteView gNeoArkPowerPlant2SpriteViews[NEO_ARK_POWER_PLANT_2_VIEW_COUNT];
 
 /// Number of room-local collision surface classes in the plant's directory.
 enum { NEO_ARK_POWER_PLANT_2_SURFACE_CLASS_COUNT = 8 };

@@ -31,6 +31,7 @@
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -41,6 +42,7 @@
 #include "gameplay/world_coords.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
@@ -66,34 +68,20 @@
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
-extern WorldCollisionOccluder           D_neo_ark_power_plant_2_80182E78[1];
+static WorldCollisionOccluder           _gNeoArkPowerPlant2Occluders[1];
 static const WorldCoordRoomAmbientEntry _gNeoArkPowerPlant2AmbientTable[10];
-
-extern TaskMessageEntry D_neo_ark_power_plant_2_801801F8[];
-extern EvsCommand       D_neo_ark_power_plant_2_801802A8[];
-extern EvsCommand       D_neo_ark_power_plant_2_80180560[];
-extern SVECTOR          D_neo_ark_power_plant_2_80180668;
-extern SVECTOR          D_neo_ark_power_plant_2_80180678;
-extern AreaApplyRec     D_neo_ark_power_plant_2_80182F70[];
-extern AreaApplyRec     D_neo_ark_power_plant_2_80182F94[];
 
 static void _neoArkPowerPlant2InitializeRoom(Task* task);
 static void _neoArkPowerPlant2UpdateRoom(Task* unusedTask);
 
-/// State table of the room's message-driven task, indexed by `Task::state`:
-/// install the message table, watch for the room's event trigger, then kill
-/// the task.
-static const TaskFuncTable3 D_neo_ark_power_plant_2_8017D5C4 = {
+/// Room-controller callbacks indexed by task state: 0 initialize, 1 update, 2 kill.
+static const TaskFuncTable3 _gNeoArkPowerPlant2RoomStateHandlers = {
     { _neoArkPowerPlant2InitializeRoom, _neoArkPowerPlant2UpdateRoom, taskKill },
 };
 
-extern AreaResource D_neo_ark_power_plant_2_80182D80[3];
-extern AreaResource D_neo_ark_power_plant_2_80182DA4[3];
-extern AreaResource D_neo_ark_power_plant_2_80182DC8[2];
-
 static WorldCollisionGrid    _gNeoArkPowerPlant2CollisionGrid;
-extern WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8];
-extern WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8];
+static WorldCollisionTrigger _gNeoArkPowerPlant2ViewBoundaryTriggers[8];
+static WorldCollisionTrigger _gNeoArkPowerPlant2ActionTriggers[8];
 static WorldCoordRoomLights  _gNeoArkPowerPlant2RoomLights;
 
 enum { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -149,7 +137,11 @@ static AnimationSet _gNeoArkPowerPlant2Animation02C10 = {
     { NULL, _gNeoArkPowerPlant2Animation02C10Bank1, NULL, NULL, _gNeoArkPowerPlant2Animation02C10Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_neo_ark_power_plant_2_801801F8[5] = {
+/// Room-controller message routes, ending at TASK_MESSAGE_TABLE_END.
+///
+/// Resolves departures, rejects key items, ignores room actions and selects
+/// progress-dependent CAP dialogue. The live room task borrows this table.
+static TaskMessageEntry _gNeoArkPowerPlant2RoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPowerPlant2ResolveRoomVariant },
     { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM, _neoArkPowerPlant2RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPowerPlant2IgnoreRoomAction },
@@ -157,27 +149,90 @@ TaskMessageEntry D_neo_ark_power_plant_2_801801F8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationPlayRequest D_neo_ark_power_plant_2_80180220 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Generator command bits sent by this room's clear scene.
+enum {
+    NEO_ARK_POWER_PLANT_2_GENERATOR_RELEASE_DEATH       = 1,
+    NEO_ARK_POWER_PLANT_2_GENERATOR_RELEASE_BATTLE_EXIT = 2,
+};
 
-ActorCommand D_neo_ark_power_plant_2_80180234 = { { .loc = { 5, 16 } }, 1 };
+/// Equipped-weapon idle request used at the start of the generator-clear scene.
+///
+/// Clip 1 blends over 20 frames with world collision enabled. The interpreter
+/// resolves the equipped bank in a copy, so the stored bank selector is unused.
+static const AnimationPlayRequest _gNeoArkPowerPlant2GeneratorClearWeaponIdle __attribute__((section(".data"))) = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-ActorCommand D_neo_ark_power_plant_2_80180238 = { { .loc = { 5, 16 } }, 2 };
+/// Releases the defeated generator's death-animation wait at the CAP cue.
+static ActorCommand _gNeoArkPowerPlant2GeneratorReleaseDeathCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2 } },
+    .command = NEO_ARK_POWER_PLANT_2_GENERATOR_RELEASE_DEATH,
+};
 
-ActorCommand D_neo_ark_power_plant_2_8018023C = { { .loc = { 5, 16 } }, 3 };
+/// Releases the generator's battle-exit wait after the scene returns to view 4.
+static ActorCommand _gNeoArkPowerPlant2GeneratorReleaseBattleCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2 } },
+    .command = NEO_ARK_POWER_PLANT_2_GENERATOR_RELEASE_BATTLE_EXIT,
+};
 
-AnimationSet* D_neo_ark_power_plant_2_80180240[3] = {
+/// Releases both generator waits when the clear scene is skipped.
+static ActorCommand _gNeoArkPowerPlant2GeneratorReleaseBothCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2 } },
+    .command = NEO_ARK_POWER_PLANT_2_GENERATOR_RELEASE_DEATH | NEO_ARK_POWER_PLANT_2_GENERATOR_RELEASE_BATTLE_EXIT,
+};
+
+/// Player animation sets for the generator-clear scene: empty slot 0, clips 1 and 2.
+///
+/// Installed as a direct bank by both requests below. The player borrows the
+/// table and packed clip data until scripted control restores its weapon bank.
+static AnimationSet* _gNeoArkPowerPlant2GeneratorClearAnimationSets[] = {
     NULL,
     &_gNeoArkPowerPlant2Animation02A4C,
     &_gNeoArkPowerPlant2Animation02C10,
 };
 
-AnimationPlayRequest D_neo_ark_power_plant_2_8018024C = { { .sets = D_neo_ark_power_plant_2_80180240 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Installs and resets the first player clip in the generator-clear scene.
+///
+/// World collision stays enabled; the installed animation data remains borrowed
+/// from this overlay until the script restores ordinary player control.
+static AnimationPlayRequest _gNeoArkPowerPlant2GeneratorClearPlayerAnimation1 = {
+    .source               = { .sets = _gNeoArkPowerPlant2GeneratorClearAnimationSets },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_neo_ark_power_plant_2_80180260 = { { .sets = D_neo_ark_power_plant_2_80180240 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Installs and resets the second player clip at the next generator-clear CAP cue.
+///
+/// Uses the same borrowed direct bank and enabled world collision as clip 1.
+static AnimationPlayRequest _gNeoArkPowerPlant2GeneratorClearPlayerAnimation2 = {
+    .source               = { .sets = _gNeoArkPowerPlant2GeneratorClearAnimationSets },
+    .animationId          = 2,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-ActorTransform D_neo_ark_power_plant_2_80180274 = { { 4000, -5000, -1540, 0 }, { 0, -2275, 0, 0 } };
+/// Player placement shared by normal and skipped generator-clear presentation.
+///
+/// Position is in world units; Euler angles use 4096 units per turn. Placement
+/// consumes the complete transform synchronously while this overlay is loaded.
+static ActorTransform _gNeoArkPowerPlant2GeneratorClearPlayerTransform = {
+    .pos = { 4000, -5000, -1540, 0 },
+    .rot = { 0, -2275, 0, 0 },
+};
 
-PadScriptCmd D_neo_ark_power_plant_2_8018028C[5] = {
+/// Two-motor vibration loop for the generator-clear scene, ending with both lanes stopped.
+///
+/// Both lanes visit steps 0..4. Binary vibration uses segment 1 and a one-frame
+/// gap; variable vibration uses segment 0 and a five-frame gap. Their loop
+/// counters are 40 and 15. The vibration task borrows both arrays until teardown.
+static PadScriptCmd _gNeoArkPowerPlant2GeneratorClearVibrationCommands[] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 5) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 40), PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 15) },
@@ -185,67 +240,98 @@ PadScriptCmd D_neo_ark_power_plant_2_8018028C[5] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_neo_ark_power_plant_2_801802A0[2] = {
-    { 236, 77, 4, 1 },
-    { 0, 0, 2, 0 },
+/// Generator-clear motor segments: four-frame intensity ramp and two-frame binary hold.
+///
+/// Variable intensity ramps from 236 to 77 on the 0..255 scale. The binary
+/// lane ignores intensity. The retained fourth byte's role is unproven.
+static PadScriptVibrationSegment _gNeoArkPowerPlant2GeneratorClearVibrationSegments[] = {
+    { .startIntensity = 236, .endIntensity = 77, .durationFrames = 4, .field_3 = 1 },
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 2, .field_3 = 0 },
 };
 
-EvsCommand D_neo_ark_power_plant_2_801802A8[29] = {
+/// Room-bank sound-script slots started together during generator clearance.
+enum {
+    NEO_ARK_POWER_PLANT_2_GENERATOR_CLEAR_SOUND_6 = 0x55100006,
+    NEO_ARK_POWER_PLANT_2_GENERATOR_CLEAR_SOUND_7 = 0x55100007,
+};
+
+/// CAP-synchronized generator-clear presentation, ending at EVENT_SCRIPT_OPCODE_END.
+///
+/// Cancels effects, starts CAP command 1, hides and replaces the player animation,
+/// runs sound and vibration, and releases generator death and battle exit at
+/// separate cues. Returns to view 4 and restores player control. The interpreter
+/// and player borrow this overlay's records and animation data through completion.
+static EvsCommand _gNeoArkPowerPlant2GeneratorClearScript[] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _neoArkPowerPlant2PrepareGeneratorClearScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_power_plant_2_80180220 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gNeoArkPowerPlant2GeneratorClearWeaponIdle }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55100006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55100007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_neo_ark_power_plant_2_8018028C }, { .vibrationSegments = D_neo_ark_power_plant_2_801802A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = NEO_ARK_POWER_PLANT_2_GENERATOR_CLEAR_SOUND_6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = NEO_ARK_POWER_PLANT_2_GENERATOR_CLEAR_SOUND_7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gNeoArkPowerPlant2GeneratorClearVibrationCommands }, { .vibrationSegments = _gNeoArkPowerPlant2GeneratorClearVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_2_80180234 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gNeoArkPowerPlant2GeneratorReleaseDeathCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_power_plant_2_80180274 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1012 }, { .message = { .pointer = &D_neo_ark_power_plant_2_8018024C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gNeoArkPowerPlant2GeneratorClearPlayerTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_INSTALL_AND_PLAY }, { .message = { .animation = &_gNeoArkPowerPlant2GeneratorClearPlayerAnimation1 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1012 }, { .message = { .pointer = &D_neo_ark_power_plant_2_80180260 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_INSTALL_AND_PLAY }, { .message = { .animation = &_gNeoArkPowerPlant2GeneratorClearPlayerAnimation2 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_2_80180238 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gNeoArkPowerPlant2GeneratorReleaseBattleCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_neo_ark_power_plant_2_80180560[11] = {
+/// Skip path that restores the clear scene's final placement, view and generator releases.
+///
+/// Fades around scene cleanup, stops vibration, selects view 4, releases both
+/// generator waits and ends player scripting. Ends at EVENT_SCRIPT_OPCODE_END;
+/// the interpreter borrows this overlay's commands until completion.
+static EvsCommand _gNeoArkPowerPlant2GeneratorClearSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_power_plant_2_80180274 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gNeoArkPowerPlant2GeneratorClearPlayerTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _neoArkPowerPlant2StopSkippedSceneVibration }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_2_8018023C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gNeoArkPowerPlant2GeneratorReleaseBothCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_neo_ark_power_plant_2_80180668 = { 4000, -7000, -4400, 0 };
+/// Fixed world-space position of view 8's transient blue point light, in game units.
+///
+/// Coordinates are copied into the lighting slot each eligible frame.
+static SVECTOR _gNeoArkPowerPlant2View8BlueLightPosition = { 4000, -7000, -4400, 0 };
 
 SVECTOR D_neo_ark_power_plant_2_80180670 = { 4000, -5000, -1540, 0 };
 
-SVECTOR D_neo_ark_power_plant_2_80180678 = { 6140, -6085, -8500, 0 };
+/// Fixed world point of view 6's generator glow and damaged-support flashes, in game units.
+///
+/// Flash tasks retain this emitter address; keep the room overlay loaded until
+/// their teardown. Glow projection only borrows it for the draw call.
+static SVECTOR _gNeoArkPowerPlant2GeneratorGlowPosition = { 6140, -6085, -8500, 0 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_neo_ark_power_plant_2_80180690[1] = {
-    { &_gNeoArkPowerPlant2CollisionGrid, D_neo_ark_power_plant_2_801828C0, D_neo_ark_power_plant_2_80182B20, D_neo_ark_power_plant_2_80182E78 },
+WorldCollisionRoomResources gNeoArkPowerPlant2CollisionRooms[1] = {
+    { .grid                 = &_gNeoArkPowerPlant2CollisionGrid,
+      .viewBoundaryTriggers = _gNeoArkPowerPlant2ViewBoundaryTriggers,
+      .actionTriggers       = _gNeoArkPowerPlant2ActionTriggers,
+      .occluders            = _gNeoArkPowerPlant2Occluders },
 };
 
 WorldCoordRoomLighting gNeoArkPowerPlant2RoomLighting[1] = {
@@ -256,9 +342,9 @@ u8* gNeoArkPowerPlant2ViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_power_plant_2_801806AC[2] = { 9, 0 };
+ViewCount gNeoArkPowerPlant2ViewCounts[2] = { ARRAY_SIZE(gNeoArkPowerPlant2ViewCameras), 0 };
 
-DirectionWarpEntry D_neo_ark_power_plant_2_801806B0[1] = {
+DirectionWarpEntry gNeoArkPowerPlant2WarpEntries[1] = {
     { { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
@@ -310,7 +396,7 @@ static WorldCollisionGrid _gNeoArkPowerPlant2CollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gNeoArkPowerPlant2CollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_power_plant_2_80180DE8[9] = {
+ViewCamera gNeoArkPowerPlant2ViewCameras[NEO_ARK_POWER_PLANT_2_VIEW_COUNT] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x55F0, 6000 } }, 289 },
     { { { { -1159, 0, -3928 }, { -2285, 3331, 674 }, { 3195, 2382, -943 } }, { -791, 8408, 1169 } }, 230 },
     { { { { -875, 0, 4001 }, { 1486, 3802, 325 }, { -3714, 1522, -812 } }, { -6791, 7658, 1319 } }, 257 },
@@ -650,25 +736,38 @@ static SpriteBatch _gNeoArkPowerPlant2View7SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_power_plant_2_80181FE4[2] = {
+/// View 8's background-only batch list, with no source sprites.
+///
+/// Zero count keeps decoded image strips; SPRITE_BATCH_END ends traversal.
+/// The source slot retains this list's address without reading it as sprites.
+static SpriteBatch _gNeoArkPowerPlant2View8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_power_plant_2_80181FF4[4] = {
-    { 143, 0x3FC0, { .fields = { 80, 48 } }, -160, 72, 525, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 48 } }, 80, 72, 525, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 80 } }, -80, 40, 475, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 80 } }, 0, 40, 475, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+/// Four opaque texture rectangles layered over view 9's decoded background.
+///
+/// Positions and dimensions are pixels relative to the view centre; UV is in
+/// texels and depth is the unscaled ordering value. RGB 128 is neutral.
+/// The sprite renderer borrows these mutable records while the room is loaded.
+static SpriteSource _gNeoArkPowerPlant2View9SpriteSources[] = {
+    { 143, 0x3FC0, { .fields = { 80, 48 } }, -160, 72, 525, { .fields = { 48, 160 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 48 } }, 80, 72, 525, { .fields = { 48, 208 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 80 } }, -80, 40, 475, { .fields = { 48, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { 143, 0x3FC0, { .fields = { 80, 80 } }, 0, 40, 475, { .fields = { 48, 80 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_power_plant_2_80182044[3] = {
+/// View 9's background strip selector and complete four-source sprite range.
+///
+/// Zero count keeps decoded image strips. The next range selects every source
+/// rectangle; SPRITE_BATCH_END ends traversal. Records remain room-owned.
+static SpriteBatch _gNeoArkPowerPlant2View9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkPowerPlant2View9SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_power_plant_2_8018205C[9] = {
+SpriteView gNeoArkPowerPlant2SpriteViews[NEO_ARK_POWER_PLANT_2_VIEW_COUNT] = {
     { { .empty = _gNeoArkPowerPlant2View1SpriteBatches }, _gNeoArkPowerPlant2View1SpriteBatches, NULL },
     { { .elements = _gNeoArkPowerPlant2View2SpriteSources }, _gNeoArkPowerPlant2View2SpriteBatches, NULL },
     { { .elements = _gNeoArkPowerPlant2View3SpriteSources }, _gNeoArkPowerPlant2View3SpriteBatches, NULL },
@@ -676,8 +775,8 @@ SpriteView D_neo_ark_power_plant_2_8018205C[9] = {
     { { .elements = _gNeoArkPowerPlant2View5SpriteSources }, _gNeoArkPowerPlant2View5SpriteBatches, NULL },
     { { .elements = _gNeoArkPowerPlant2View6SpriteSources }, _gNeoArkPowerPlant2View6SpriteBatches, NULL },
     { { .empty = _gNeoArkPowerPlant2View7SpriteBatches }, _gNeoArkPowerPlant2View7SpriteBatches, NULL },
-    { { .empty = D_neo_ark_power_plant_2_80181FE4 }, D_neo_ark_power_plant_2_80181FE4, NULL },
-    { { .elements = D_neo_ark_power_plant_2_80181FF4 }, D_neo_ark_power_plant_2_80182044, NULL },
+    { { .empty = _gNeoArkPowerPlant2View8SpriteBatches }, _gNeoArkPowerPlant2View8SpriteBatches, NULL },
+    { { .elements = _gNeoArkPowerPlant2View9SpriteSources }, _gNeoArkPowerPlant2View9SpriteBatches, NULL },
 };
 
 /// Twenty-one authored point lights admitted in every logical view.
@@ -722,7 +821,12 @@ static WorldCoordRoomLights _gNeoArkPowerPlant2RoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8] = {
+/// Eight directed boundaries connecting ordinary views 2 through 6 in both directions.
+///
+/// Origins, corner offsets and radii use game coordinates; normals use Q12.
+/// The last boundary includes LAST. Room setup binds, links and enables these
+/// mutable records until collision teardown; views 1, 7, 8 and 9 have no boundary here.
+static WorldCollisionTrigger _gNeoArkPowerPlant2ViewBoundaryTriggers[8] = {
     { NULL, NULL, NULL, { 3040, -7040, 128, 0 }, { { 3, -2256, -1209, 0 }, { -2, -2256, 1209, 0 }, { 3, 2256, -1209, 0 }, { -2, 2256, 1209, 0 } }, { 4099, 0, 7, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3135, -7104, 96, 0 }, { { -2, -2256, 1209, 0 }, { 3, -2256, -1209, 0 }, { -2, 2256, 1209, 0 }, { 3, 2256, -1209, 0 } }, { -4102, 0, -10, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 4096, -7104, -2272, 0 }, { { -2, -2256, 1209, 0 }, { 3, -2256, -1209, 0 }, { -2, 2256, 1209, 0 }, { 3, 2256, -1209, 0 } }, { -4102, 0, -10, 0 }, { 0, 0, 4096, 0 }, 2547, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -733,9 +837,18 @@ WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8] = {
     { NULL, NULL, NULL, { 7839, -7040, -4705, 0 }, { { -2024, -2256, -139, 0 }, { 2024, -2256, 140, 0 }, { -2024, 2256, -139, 0 }, { 2024, 2256, 140, 0 } }, { 281, 0, -4092, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8] = {
+/// Descending stair direction in the second action quad's control word.
+enum { NEO_ARK_POWER_PLANT_2_STAIR_DESCEND = 0x100 };
+
+/// Eight room interactions: paired stairs, automatic room/warp actions and CAP checks.
+///
+/// Warp parameters pack departure/arrival slots 1 and 2. CAP IDs 2 and 3 route
+/// through the room message handler. Game-coordinate quads and Q12 normals are
+/// bound and linked at room setup; the last record includes LAST. Storage stays
+/// mutable and room-owned until collision teardown.
+static WorldCollisionTrigger _gNeoArkPowerPlant2ActionTriggers[8] = {
     { NULL, NULL, NULL, { 3744, -64, -1616, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 590, WORLD_COLLISION_TRIGGER_ACTION_FACING, 5, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4064, -5056, -480, 0 }, { { -336, 0, -496, 0 }, { 336, 0, -496, 0 }, { -336, 0, 496, 0 }, { 336, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 596, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 37, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4064, -5056, -480, 0 }, { { -336, 0, -496, 0 }, { 336, 0, -496, 0 }, { -336, 0, 496, 0 }, { 336, 0, 496, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 596, WORLD_COLLISION_TRIGGER_ACTION_FACING | NEO_ARK_POWER_PLANT_2_STAIR_DESCEND, 37, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4607, -769, -1600, 0 }, { { -16, -1391, -496, 0 }, { 17, 1392, -496, 0 }, { -16, -1391, 496, 0 }, { 17, 1392, 496, 0 } }, { -4101, 42, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4927, -4673, -480, 0 }, { { -17, 1392, 496, 0 }, { 16, -1391, 496, 0 }, { -17, 1392, -496, 0 }, { 16, -1391, -496, 0 } }, { -4101, -49, 0, 0 }, { -4096, 0, 0, 0 }, 1476, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 33, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 256, -48, -1120, 0 }, { { -320, 0, -496, 0 }, { 320, 0, -496, 0 }, { -320, 0, 496, 0 }, { 320, 0, 496, 0 } }, { 0, 4113, 0, 0 }, { 4096, 0, 0, 0 }, 590, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -744,26 +857,38 @@ WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8] = {
     { NULL, NULL, NULL, { 6864, -5120, -4256, 0 }, { { -400, 0, -2352, 0 }, { 400, 0, -2352, 0 }, { -400, 0, 2352, 0 }, { 400, 0, 2352, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 2374, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_power_plant_2_80182D80[3] = {
+/// Variant 1's Beta Generator and Watcher resource recipes, ending at AREA_PLACEMENT_END.
+///
+/// Placement IDs 53 and 21 select decimal actor files 105300 and 202100.
+/// The loader borrows the resource list and loaded actor task descriptors.
+static AreaResource _gNeoArkPowerPlant2GeneratorResources[] = {
     { 53, 53, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, GENERATOR_BODY_TASK_INDEX, { 0, 0 }, gActor105300GeneratorTasks },
     { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor202100WatcherTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_power_plant_2_80182DA4[3] = {
+/// Variant 11's Rook GOLEM and Watcher resource recipes, ending at AREA_PLACEMENT_END.
+///
+/// Placement IDs 57 and 21 select decimal actor files 105700 and 202100.
+/// The loader borrows this room list and the loaded actors' task descriptors.
+static AreaResource _gNeoArkPowerPlant2RookResources[] = {
     { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { 21, 21, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor202100WatcherTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_power_plant_2_80182DC8[2] = {
+/// Variant 17's Bishop GOLEM resource recipe, ending at AREA_PLACEMENT_END.
+///
+/// Placement ID 39 selects decimal actor file 403900 and its first task recipe.
+/// The room list and loaded actor descriptor stay borrowed through spawning.
+static AreaResource _gNeoArkPowerPlant2BishopResources[] = {
     { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B7D0, D_neo_ark_power_plant_2_80182D80 },
+    { D_map_neo_ark_8017B7D0, _gNeoArkPowerPlant2GeneratorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -773,17 +898,22 @@ AreaVariant D_neo_ark_power_plant_2_80182DE0[19] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017B850, D_neo_ark_power_plant_2_80182DA4 },
+    { D_map_neo_ark_8017B850, _gNeoArkPowerPlant2RookResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017B8B0, D_neo_ark_power_plant_2_80182DC8 },
+    { D_map_neo_ark_8017B8B0, _gNeoArkPowerPlant2BishopResources },
     { NULL, NULL },
 };
 
-WorldCollisionOccluder D_neo_ark_power_plant_2_80182E78[1] = {
+/// The plant's single room-space line-of-sight blocking quad.
+///
+/// Origin, corner offsets and radius use game units; the normal uses Q12.
+/// LAST includes this record before stopping setup. The low flag bit's role
+/// is unproven. Linking mutates the room-owned node until collision teardown.
+static WorldCollisionOccluder _gNeoArkPowerPlant2Occluders[1] = {
     { NULL, NULL, { 6064, -6976, -6944, 0 }, { { 208, 2944, 1760, 0 }, { -208, 2944, -1760, 0 }, { 208, -2944, 1760, 0 }, { -208, -2944, -1760, 0 } }, { 4068, 0, -481, 0 }, 3434, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
@@ -915,23 +1045,37 @@ WorldCollisionSurfaceProperties* gNeoArkPowerPlant2SurfaceProperties[NEO_ARK_POW
     &_gNeoArkPowerPlant2DefaultSurfaceProperties,
 };
 
-AreaApplyRec D_neo_ark_power_plant_2_80182F70[9] = {
-    { 5, 8, 11, 1 },
-    { 5, 11, 4, 1 },
-    { 5, 13, 4, 1 },
-    { 5, 21, 4, 17 },
-    { 5, 21, 7, 33 },
-    { 5, 29, 3, 1 },
-    { 5, 32, 3, 1 },
-    { 4, 18, 11, 0 },
-    { 255, 0, 0, 0 },
+/// Low policy nibble requesting a saved map mark after an area-layout update.
+enum { NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK = 1 };
+
+/// Saved-area layouts and map marks committed after the Beta Generator is defeated.
+///
+/// Eight updates precede AREA_APPLY_END. Shrine layouts differ between replay/
+/// Scavenger and Bounty/Nightmare modes; the B1 control-room update clears its
+/// map mark. Applying the list also removes saved enemy poses in accepted areas.
+/// The synchronous updater borrows these records only for the call.
+static const AreaApplyRec _gNeoArkPowerPlant2GeneratorClearAreaUpdates[] __attribute__((section(".data"))) = {
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL, 11, AREA_APPLY_MODE_ALWAYS | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 4, AREA_APPLY_MODE_ALWAYS | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PAVILION, 4, AREA_APPLY_MODE_ALWAYS | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 4, AREA_APPLY_MODE_REPLAY_SCAVENGER | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SHRINE, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 3, AREA_APPLY_MODE_ALWAYS | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_PYRAMID, 3, AREA_APPLY_MODE_ALWAYS | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_CONTROL_ROOM, 11, AREA_APPLY_MODE_ALWAYS },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
-AreaApplyRec D_neo_ark_power_plant_2_80182F94[4] = {
-    { 5, 12, 2, 1 },
-    { 5, 14, 2, 1 },
-    { 5, 30, 2, 1 },
-    { 255, 0, 0, 0 },
+/// Additional submarine-tunnel, island and gallery layouts after generator clearance.
+///
+/// Applied only when GAME_FLAG_0F3 is nonzero; that flag's story meaning is
+/// unproven. All three updates set layout 2 and a map mark in every save mode,
+/// remove saved enemy poses, then end at AREA_APPLY_END. Borrowed synchronously.
+static const AreaApplyRec _gNeoArkPowerPlant2GeneratorClearExtraAreaUpdates[] __attribute__((section(".data"))) = {
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL, 2, AREA_APPLY_MODE_ALWAYS | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ISLAND, 2, AREA_APPLY_MODE_ALWAYS | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, 2, AREA_APPLY_MODE_ALWAYS | NEO_ARK_POWER_PLANT_2_AREA_UPDATE_MARK },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 /// Rejects key-item use in this room, returning the menu's unusable result.
@@ -1036,7 +1180,7 @@ static void _neoArkPowerPlant2InitializeRoom(Task* task)
     enum { NEO_ARK_POWER_PLANT_2_SKIP_ENDING_MUSIC_VARIANT = 1 };
     u8 variant;
 
-    task->msgTable = D_neo_ark_power_plant_2_801801F8;
+    task->msgTable = _gNeoArkPowerPlant2RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     // Keep the selected variant as the byte written to the music flags.
     variant = gGameSession->location.loc.variant;
@@ -1069,15 +1213,15 @@ static void _neoArkPowerPlant2UpdateRoom(Task* unusedTask)
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED, 1);
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_2, 0);
-            areaApplySavedUpdates(D_neo_ark_power_plant_2_80182F70);
+            areaApplySavedUpdates(_gNeoArkPowerPlant2GeneratorClearAreaUpdates);
             if (gameFlagGetNibble(GAME_FLAG_0F3) != 0) {
-                areaApplySavedUpdates(D_neo_ark_power_plant_2_80182F94);
+                areaApplySavedUpdates(_gNeoArkPowerPlant2GeneratorClearExtraAreaUpdates);
             }
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = GENERATOR_CLEAR_SCENE_EVENT;
             gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_CLEAR);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, FOLLOW_UP_RESET);
             gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, DIALOGUE_AFTER_CLEAR);
-            evsStartScriptWithSkip(D_neo_ark_power_plant_2_801802A8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_power_plant_2_80180560);
+            evsStartScriptWithSkip(_gNeoArkPowerPlant2GeneratorClearScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gNeoArkPowerPlant2GeneratorClearSkipScript);
         }
     }
 }
@@ -1086,7 +1230,7 @@ void neoArkPowerPlant2RoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_neo_ark_power_plant_2_8017D5C4;
+    stateHandlers = _gNeoArkPowerPlant2RoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -1106,7 +1250,7 @@ static inline void _neoArkPowerPlant2EmitGeneratorFlash(void)
         randomWord      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = randomWord;
         if (((randomWord >> 16) & GENERATOR_FLASH_MASK) == 0) {
-            effectSpawn(EFFECT_FLASH_BURST, NULL, GENERATOR_FLASH_BASE_SIZE, &D_neo_ark_power_plant_2_80180678);
+            effectSpawn(EFFECT_FLASH_BURST, NULL, GENERATOR_FLASH_BASE_SIZE, &_gNeoArkPowerPlant2GeneratorGlowPosition);
         }
     }
 }
@@ -1142,7 +1286,7 @@ void neoArkPowerPlant2UpdateViewLightingTask(Task* task)
             if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_2_GENERATOR_PART_DOWN) != 0) {
                 _neoArkPowerPlant2EmitGeneratorFlash();
             } else {
-                glowDrawDisc(&D_neo_ark_power_plant_2_80180678, GENERATOR_GLOW_RADIUS_SCALE, GENERATOR_GLOW_RGB444);
+                glowDrawDisc(&_gNeoArkPowerPlant2GeneratorGlowPosition, GENERATOR_GLOW_RADIUS_SCALE, GENERATOR_GLOW_RGB444);
             }
             break;
         case BLUE_LIGHT_VIEW:
@@ -1159,9 +1303,9 @@ void neoArkPowerPlant2UpdateViewLightingTask(Task* task)
             pointLight->head.color.b                           = blueIntensityQ12;
             pointLight->head.color.r                           = blueIntensityQ12 >> 1;
             pointLight->head.color.g                           = blueIntensityQ12 >> 1;
-            pointLight->head.transform.lighting.local.t[0]     = D_neo_ark_power_plant_2_80180668.vx;
-            pointLight->head.transform.lighting.local.t[1]     = D_neo_ark_power_plant_2_80180668.vy;
-            pointLight->head.transform.lighting.local.t[2]     = D_neo_ark_power_plant_2_80180668.vz;
+            pointLight->head.transform.lighting.local.t[0]     = _gNeoArkPowerPlant2View8BlueLightPosition.vx;
+            pointLight->head.transform.lighting.local.t[1]     = _gNeoArkPowerPlant2View8BlueLightPosition.vy;
+            pointLight->head.transform.lighting.local.t[2]     = _gNeoArkPowerPlant2View8BlueLightPosition.vz;
             break;
     }
 }
