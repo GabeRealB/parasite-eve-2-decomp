@@ -115,7 +115,7 @@ acropolisSanctuaryRoomTask = 0x8017D9E8; // type:func absolute:True owner=acropo
 acropolisSanctuaryItemVisibilityTask = 0x80180264; // type:func absolute:True owner=acropolis_sanctuary
 D_acropolis_sanctuary_801827EC = 0x801827EC; // absolute:True owner=acropolis_sanctuary shared=rooms
 D_acropolis_sanctuary_801827FC = 0x801827FC; // absolute:True owner=acropolis_sanctuary shared=rooms
-D_acropolis_sanctuary_80182800 = 0x80182800; // absolute:True owner=acropolis_sanctuary shared=rooms
+D_acropolis_sanctuary_80182800 = 0x80182800; // absolute:True owner=acropolis_sanctuary
 D_acropolis_sanctuary_80182804 = 0x80182804; // absolute:True owner=acropolis_sanctuary shared=rooms
 D_acropolis_sanctuary_8018280C = 0x8018280C; // absolute:True owner=acropolis_sanctuary shared=rooms
 D_acropolis_sanctuary_801860C8 = 0x801860C8; // absolute:True owner=acropolis_sanctuary shared=rooms
