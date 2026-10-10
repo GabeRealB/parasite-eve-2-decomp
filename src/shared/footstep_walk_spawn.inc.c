@@ -4,7 +4,7 @@
 ///
 /// `model` must be a live nineteen-part object returned by `tmdCreateModel`,
 /// and `_gFootstepWalkWork` must name its writable `FootstepWalkWork`. The
-/// carrier's `gFootstepWalkAnims` supplies a word-aligned native set-pointer
+/// carrier's `_gFootstepWalkAnimationSets` supplies a word-aligned native set-pointer
 /// table with clip 1 loaded and tracks 1 through 18 available. The context
 /// borrows the model allocation's coordinates, table, slots and encoded-pose
 /// buffer; keep their storage and the clip data live throughout playback.
@@ -16,7 +16,7 @@ static __inline__ void _footstepWalkPrepareAnimation(TmdObject* model)
 {
     enum { FOOTSTEP_WALK_STARTUP_ANIM_ID = 1 };
 
-    animationInitContext(&_gFootstepWalkWork->rig.anim, (AnimationSet**)gFootstepWalkAnims, model,
+    animationInitContext(&_gFootstepWalkWork->rig.anim, _gFootstepWalkAnimationSets, model,
                          _gFootstepWalkWork->rig.poses, _gFootstepWalkWork->rig.slots);
     _gFootstepWalkWork->st.animId     = FOOTSTEP_WALK_STARTUP_ANIM_ID;
     _gFootstepWalkWork->st.state      = ACTOR_ENEMY_ANIM_RESET;
@@ -78,13 +78,13 @@ static void _footstepWalkSpawn(Enemy* enemy, Task* task)
     // Sample all light rows at the existing cached root position, offset in Y.
     lightSamplePosition.vx = rootCoord->workm.t[0];
     lightSamplePosition.vy = rootCoord->workm.t[1] + FOOTSTEP_WALK_LIGHT_SAMPLE_Y_OFFSET;
-    gFootstepWalkTask      = task;
+    _gFootstepWalkTask     = task;
     lightSamplePosition.vz = rootCoord->workm.t[2];
     worldCoordSetModelLighting(model, &lightSamplePosition, 0, ARRAY_SIZE(model->colorMtx->m[0]));
 
     // Bind borrowed playback storage, then reset the driven slots without ticking.
     _footstepWalkPrepareAnimation(model);
-    task->msgTable = gFootstepWalkMsgTable;
+    task->msgTable = _gFootstepWalkMessageTable;
     _footstepWalkUpdate(task);
     task->state += 1;
 }

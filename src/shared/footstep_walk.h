@@ -16,7 +16,7 @@
  * its allocated work type (FootstepWalkWork or FootstepWalkQuietWork). That
  * fragment uses the selected type at
  * Task::work. This binding is a type name, with no argument evaluation.
- * The walker's state belongs to the package, which defines it at
+ * The sound-enabled walker's state belongs to its carrier, which defines it at
  * its own positions under these names:
  *
  *   FootstepWalkWork* _gFootstepWalkWork        the borrowed task-owned block; a
@@ -24,13 +24,16 @@
  *                                               step sounds carries the quiet
  *                                               update and declares this a
  *                                               FootstepWalkQuietWork*
- *   Task*             gFootstepWalkTask         the walker's task
+ *   Task*             _gFootstepWalkTask        the borrowed live task; teardown
+ *                                               leaves this pointer unchanged
  *   s16               _gFootstepWalkMode       last walk's signed-halfword mode
  *   s16               _gFootstepWalkBlendFrames whole frames for the next blend
- *   the native animation-set pointer table and message table the spawn state
- *   installs, as gFootstepWalkAnims and gFootstepWalkMsgTable
+ *   AnimationSet*     _gFootstepWalkAnimationSets[35] the sound walker's native
+ *                                               clip-index table; loaded keys
+ *                                               1..8, 10 and 13..19 only
+ *   TaskMessageEntry  _gFootstepWalkMessageTable[6]   five messages and sentinel
  *
- * These three state objects are static per-carrier instances. Early work and
+ * These state objects and tables are static per-carrier instances. Early task, work and
  * mode declarations retain the BSS first-declaration order; the initialized
  * duration stays at its data position. Document each at its definition.
  * Spawn and task dispatch publish the work borrowed by singleton message

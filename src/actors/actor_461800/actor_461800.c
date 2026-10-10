@@ -61,9 +61,12 @@ extern Task* D_actor_461800_80143898;
 
 static FootstepWalkWork* _gFootstepWalkWork;
 
-/// The second variant's task, published by its spawn routine
-/// `_footstepWalkSpawn` so the handlers can reach its model.
-extern Task* gFootstepWalkTask;
+/// Borrowed task pointer of this carrier's singleton sound walker.
+///
+/// Spawn publishes it for synchronous animation and model-draw messages.
+/// The pointer confers no ownership; teardown leaves it unchanged, so those
+/// messages require the original task and model to remain live.
+static Task* _gFootstepWalkTask;
 
 extern Task* D_actor_461800_80133EB8;
 
@@ -80,9 +83,6 @@ extern s32 D_actor_461800_80143884;
 extern s32 D_actor_461800_80143888;
 extern s32 D_actor_461800_8014388C;
 extern s32 D_actor_461800_80143890;
-
-extern TaskMessageEntry gFootstepWalkMsgTable[6];
-extern AnimationSet*    gFootstepWalkAnims[35];
 
 static s16 _gFootstepWalkMode;
 
@@ -854,7 +854,13 @@ static AnimationSet _gActor461800Animation11970 = {
 /// validation; this latch is a duration, never a remaining-frame count.
 static s16 _gFootstepWalkBlendFrames = FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES;
 
-TaskMessageEntry gFootstepWalkMsgTable[6] = {
+/// Synchronous messages of this carrier's sound-enabled scene walker.
+///
+/// Playback and drawing use the published singleton; placement and approach
+/// use the receiver. The command handler enables steps or schedules turning.
+/// The final sentinel makes unknown IDs return zero. The task borrows this
+/// table and its callbacks for its entire lifetime.
+static TaskMessageEntry _gFootstepWalkMessageTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _footstepWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor461800SetFootstepWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
@@ -865,7 +871,13 @@ TaskMessageEntry gFootstepWalkMsgTable[6] = {
 
 TaskDesc D_actor_461800_801437EC = { { { TASK_BODY_TMD, 192 } }, _actor461800FootstepWalkerTask, { .model = &_gActor461800AyaBreaBody } };
 
-AnimationSet* gFootstepWalkAnims[35] = {
+/// Native clip-index table borrowed by the sound walker's animation context.
+///
+/// Loaded keys are 1..8, 10 and 13..19; every other entry is NULL. The
+/// play handler's exclusive bound of 35 does not validate loaded entries.
+/// Each selected set must provide tracks 1..18, and both this table and its
+/// clip data must remain loaded throughout playback.
+static AnimationSet* _gFootstepWalkAnimationSets[35] = {
     NULL,
     &_gActor461800Animation0EDB0,
     &_gActor461800Animation0F1B8,
@@ -935,8 +947,6 @@ u16 D_actor_461800_8014389E = 0xC9A8;
 /// and poses. Task teardown releases the block without clearing this
 /// pointer; it confers no ownership and must not be used after teardown.
 static FootstepWalkWork* _gFootstepWalkWork;
-
-Task* gFootstepWalkTask;
 
 /// Travel mode selected by the last walk-target request.
 ///
@@ -1521,7 +1531,7 @@ static void _footstepWalkExit(Task* task)
 
 /// Replaces the published footstep walker's model draw flags.
 ///
-/// Requires a live TMD model in `gFootstepWalkTask`.
+/// Requires a live TMD model in `_gFootstepWalkTask`.
 /// Bit 0 permits active drawing; bit 1 suppresses automatic primitive-buffer
 /// allocation. All other model flags are cleared and other request bits ignored.
 /// No buffers are allocated or released. Receiver, message ID and second payload
@@ -1530,7 +1540,7 @@ static s32 _actor461800SetFootstepWalkerModelDraw(Task* unusedTask, s32 messageI
 {
     TmdObject* model;
 
-    model = gFootstepWalkTask->extra.tmd;
+    model = _gFootstepWalkTask->extra.tmd;
     if (drawFlags & ACTOR_461800_WALKER_DRAW_SHOW) {
         model->flags = 0;
     } else {

@@ -11,6 +11,7 @@
 
 #include "neo_ark_garden_private.h"
 
+#include "actors/actor_151000.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
@@ -50,9 +51,6 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
 extern AreaApplyRec D_neo_ark_garden_80182BF8[];
 
-extern EvsCommand D_actor_151000_801334EC[];
-extern EvsCommand D_actor_151000_80133954[];
-
 extern AreaResource D_neo_ark_garden_80182AE8[2];
 extern AreaResource D_neo_ark_garden_80182B00[2];
 extern AreaResource D_neo_ark_garden_80182B18[3];
@@ -64,7 +62,7 @@ AreaResource D_neo_ark_garden_80182AE8[2] = {
 };
 
 AreaResource D_neo_ark_garden_80182B00[2] = {
-    { 132, 510, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_151000_8013D2E0 },
+    { 132, 510, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor151000WalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -235,7 +233,7 @@ static void _neoArkGardenInitializeRoom(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     // Match arrival warp 3 and placement variant 2 as one halfword.
     if (*(u16*)&gGameSession->location.loc.warp == NEO_ARK_GARDEN_ARRIVAL_KEY) {
-        evsStartScriptWithSkip(D_actor_151000_801334EC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_151000_80133954);
+        evsStartScriptWithSkip(gActor151000GardenArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor151000GardenArrivalSkipScript);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, NEO_ARK_GARDEN_ARRIVAL_OBJECTIVE);
     }
     task->state = task->state + 1;

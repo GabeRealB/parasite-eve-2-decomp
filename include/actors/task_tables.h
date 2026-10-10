@@ -305,7 +305,14 @@ enum {
 /// The actor overlay and the body's borrowed model data must remain loaded.
 extern TaskDesc gActor105400GeneratorTasks[GENERATOR_TASK_DESC_COUNT];
 
-extern TaskDesc D_actor_151000_8013D2E0;
+/// Garden variant-2 spawn recipe for the sound-enabled nineteen-part scene walker.
+///
+/// Creates a TMD body from the Aya Brea model at priority 192 with automatic
+/// primitive buffers. Spawn at index 0 through the enemy spawner: argument 2
+/// must be its live `Enemy`. The task owns its model and work and publishes
+/// singleton message state. Keep actor_151000 code, model and clip data loaded
+/// until teardown; singleton messages must stop when that task is released.
+extern TaskDesc gActor151000WalkerTaskDesc;
 
 extern TaskDesc D_actor_121300_8013D390[];
 

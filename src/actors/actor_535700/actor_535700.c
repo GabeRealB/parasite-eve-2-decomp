@@ -60,22 +60,17 @@ extern s32 D_actor_535700_80146840;
 
 static FootstepWalkWork* _gFootstepWalkWork;
 
-/// The first enemy's task, published by its spawn handler so the message
-/// handlers can reach its model.
-extern Task* gFootstepWalkTask;
+/// Borrowed task pointer of this carrier's singleton sound walker.
+///
+/// Spawn publishes it for synchronous animation and model-draw messages.
+/// The pointer confers no ownership; teardown leaves it unchanged, so those
+/// messages require the original task and model to remain live.
+static Task* _gFootstepWalkTask;
 
 static s16 _gFootstepWalkMode;
 
 /// Descriptor of the blackout task `_actor535700BlackoutTask`.
 extern TaskDesc D_actor_535700_8013346C;
-
-/// The first enemy's message table and the animation data its work block's
-/// slots are seeded from.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry gFootstepWalkMsgTable[];
-extern u8               gFootstepWalkAnims[];
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
@@ -733,7 +728,13 @@ static AnimationSet _gActor535700Animation0BC60 = {
 /// validation; this latch is a duration, never a remaining-frame count.
 static s16 _gFootstepWalkBlendFrames = FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES;
 
-TaskMessageEntry gFootstepWalkMsgTable[6] = {
+/// Synchronous messages of this carrier's sound-enabled scene walker.
+///
+/// Playback and drawing use the published singleton; placement and approach
+/// use the receiver. The command handler enables steps or schedules turning.
+/// The final sentinel makes unknown IDs return zero. The task borrows this
+/// table and its callbacks for its entire lifetime.
+static TaskMessageEntry _gFootstepWalkMessageTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _footstepWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor535700SetWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
@@ -744,147 +745,48 @@ TaskMessageEntry gFootstepWalkMsgTable[6] = {
 
 TaskDesc D_actor_535700_8013DADC = { { { TASK_BODY_TMD, 192 } }, _actor535700FootstepWalkerTask, { .model = &_gActor535700AyaBreaBody } };
 
-u8 gFootstepWalkAnims[140] = {
-    0,
-    0,
-    0,
-    0,
-    192,
-    174,
-    19,
-    128,
-    200,
-    178,
-    19,
-    128,
-    212,
-    182,
-    19,
-    128,
-    228,
-    185,
-    19,
-    128,
-    60,
-    188,
-    19,
-    128,
-    204,
-    190,
-    19,
-    128,
-    180,
-    194,
-    19,
-    128,
-    100,
-    197,
-    19,
-    128,
-    0,
-    0,
-    0,
-    0,
-    32,
-    199,
-    19,
-    128,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    124,
-    156,
-    19,
-    128,
-    116,
-    160,
-    19,
-    128,
-    88,
-    172,
-    19,
-    128,
-    8,
-    203,
-    19,
-    128,
-    184,
-    212,
-    19,
-    128,
-    128,
-    218,
-    19,
-    128,
-    52,
-    216,
-    19,
-    128,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// Native clip-index table borrowed by the sound walker's animation context.
+///
+/// Loaded keys are 1..8, 10 and 13..19; every other entry is NULL. The
+/// play handler's exclusive bound of 35 does not validate loaded entries.
+/// Each selected set must provide tracks 1..18, and both this table and its
+/// clip data must remain loaded throughout playback.
+static AnimationSet* _gFootstepWalkAnimationSets[35] = {
+    NULL,
+    &_gActor535700Animation090A0,
+    &_gActor535700Animation094A8,
+    &_gActor535700Animation098B4,
+    &_gActor535700Animation09BC4,
+    &_gActor535700Animation09E1C,
+    &_gActor535700Animation0A0AC,
+    &_gActor535700Animation0A494,
+    &_gActor535700Animation0A744,
+    NULL,
+    &_gActor535700Animation0A900,
+    NULL,
+    NULL,
+    &_gActor535700Animation07E5C,
+    &_gActor535700Animation08254,
+    &_gActor535700Animation08E38,
+    &_gActor535700Animation0ACE8,
+    &_gActor535700Animation0B698,
+    &_gActor535700Animation0BC60,
+    &_gActor535700Animation0BA14,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
 };
 
 static TmdBone _gActor535700PawnGolemBodySkeleton[19] = {
@@ -1106,8 +1008,6 @@ s32 D_actor_535700_80146840;
 /// pointer; it confers no ownership and must not be used after teardown.
 static FootstepWalkWork* _gFootstepWalkWork;
 
-Task* gFootstepWalkTask;
-
 /// Travel mode selected by the last walk-target request.
 ///
 /// Stored as a signed halfword: 0 moves forward 60, 1 backward 15, and
@@ -1279,7 +1179,7 @@ static void _footstepWalkExit(Task* task)
 
 /// Replaces the published walker's model flags for `ACTOR_MESSAGE_SET_MODEL_DRAW`.
 ///
-/// Requires a live TMD model in `gFootstepWalkTask`. Bit 0 permits active drawing;
+/// Requires a live TMD model in `_gFootstepWalkTask`. Bit 0 permits active drawing;
 /// without it the model is excluded. Bit 1 suppresses automatic buffer allocation.
 /// All other model flags are cleared and other request bits are ignored. No buffer
 /// is allocated or released. The receiver, message ID and second payload are
@@ -1293,7 +1193,7 @@ static s32 _actor535700SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 f
 
     TmdObject* model;
 
-    model = gFootstepWalkTask->extra.tmd;
+    model = _gFootstepWalkTask->extra.tmd;
     if (flags & ACTOR_535700_WALKER_DRAW_SHOW) {
         model->flags = 0;
     } else {

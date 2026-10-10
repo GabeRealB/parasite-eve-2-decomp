@@ -1,3 +1,5 @@
+#include "actors/actor_151000.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -8,23 +10,27 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/captions.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
-#include "gameplay/evs.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_coords.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
+#include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
 #include "main/sound.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -41,28 +47,21 @@ static s32  _footstepWalkPlayAnimation(Task* unusedTask, s32 messageId, const An
 static s32  _footstepWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
 static s32  _footstepWalkSetWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
-/// The scripts switch `_actor151000BlackoutTask` on and off through
-/// `_actor151000SetBlackout`.
-extern s32 D_actor_151000_8013D378;
+/// Script-controlled opaque-black cover switch (zero off, any nonzero word on).
+///
+/// The setter stores the full signed word; the drawing task only tests for zero.
+static s32 _gActor151000BlackoutEnabled;
 
 static FootstepWalkWork* _gFootstepWalkWork;
 
-/// The enemy's task, published by its spawn handler so the visibility opcode
-/// can reach its model.
-extern Task* gFootstepWalkTask;
+/// Borrowed task pointer of this carrier's singleton sound walker.
+///
+/// Spawn publishes it for synchronous animation and model-draw messages.
+/// The pointer confers no ownership; teardown leaves it unchanged, so those
+/// messages require the original task and model to remain live.
+static Task* _gFootstepWalkTask;
 
 static s16 _gFootstepWalkMode;
-
-/// Descriptor of the blackout task `_actor151000BlackoutTask`.
-extern TaskDesc D_actor_151000_80133360;
-
-/// The enemy's message table and the animation data its work block's slots
-/// are seeded from.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry gFootstepWalkMsgTable[];
-extern u8               gFootstepWalkAnims[];
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
@@ -73,11 +72,37 @@ static void      _actor151000WalkerTask(Task* task);
 static s32 _actor151000SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 flags, s32 unusedArgument);
 static s32 _actor151000ApplyWalkerCommand(Task* unusedTask, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 
-extern AnimationPlayRequest D_actor_151000_801333F0;
-extern AnimationPlayRequest D_actor_151000_80133404;
-static void                 _actor151000SetBlackout(s32 enabled);
+static void _actor151000SetBlackout(s32 enabled);
 
 static void _actor151000BlackoutTask(Task* task);
+
+/// Selectors and flags used by the garden arrival data.
+enum {
+    ACTOR_151000_GARDEN_TASK_PRIORITY      = 192,
+    ACTOR_151000_GARDEN_CAP_ARRIVAL        = 2,
+    ACTOR_151000_GARDEN_RETURN_VIEW        = 3,
+    ACTOR_151000_GARDEN_ENABLE_FOOTSTEPS   = 1,
+    ACTOR_151000_GARDEN_WALKER_DRAW_HIDE   = 0,
+    ACTOR_151000_GARDEN_WALKER_DRAW_SHOW   = 1,
+    ACTOR_151000_GARDEN_WEAPONS_PLAYER     = 0,
+    ACTOR_151000_GARDEN_BLACKOUT_OFF       = 0,
+    ACTOR_151000_GARDEN_BLACKOUT_ON        = 1,
+    ACTOR_151000_GARDEN_PLAYER_FIRST_CLIP  = ANIMATION_BANK_BASE_SET_COUNT,
+    ACTOR_151000_GARDEN_PLAYER_SECOND_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    ACTOR_151000_GARDEN_PLAYER_THIRD_CLIP  = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    ACTOR_151000_GARDEN_PLAYER_RETURN_CLIP = 1,
+    ACTOR_151000_GARDEN_WALKER_BASE_CLIP   = 16,
+    ACTOR_151000_GARDEN_WALKER_CUE_CLIP    = 17,
+    ACTOR_151000_GARDEN_WALKER_BLEND_CLIP  = 19,
+};
+
+/// Garden-bank sound cues played together during the arrival scene.
+///
+/// Their audible roles are unproven.
+enum {
+    ACTOR_151000_GARDEN_SOUND_CUE_7 = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 7),
+    ACTOR_151000_GARDEN_SOUND_CUE_8 = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN, 8),
+};
 
 static AnimationPackedPose _gActor151000Animation00ED8Bank1[2] = {
 #include "assets/actor_151000_animation_00ED8_bank1.inc"
@@ -145,131 +170,177 @@ static AnimationSet _gActor151000Animation01518 = {
     { NULL, _gActor151000Animation01518Bank1, NULL, NULL, _gActor151000Animation01518Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_151000_80133360 = { { { TASK_BODY_NONE, 192 } }, _actor151000BlackoutTask, { .value = 0 } };
-
-/// Player clips for extended ids 47-49.
+/// Bodyless, priority-192 task that covers the scene while the blackout switch is nonzero.
 ///
-/// The longer of the package's two event scripts sends the player its copy
-/// request before it plays any of these clips. `D_actor_151000_801334E4` copies
-/// `ANIMATION_BANK_EXTENSION_CAPACITY` (32) words starting here into the
-/// player's bank, which is 29 words past the end of this array: the read runs
-/// on through `D_actor_151000_80133378`, `D_actor_151000_8013338C`,
-/// `D_actor_151000_801333A0`, `D_actor_151000_801333B4`,
-/// `D_actor_151000_801333C8` and the first four words of
-/// `D_actor_151000_801333DC`. That overrun is the original's and is kept as it
-/// is: the request carries the bank's fixed capacity, while the table was
-/// stored with only its own entries. The scripts' requests to the player select
-/// ids 47-49 and the bank's own id 1 only, so none of the words installed after
-/// the three clips is played as one.
-AnimationSet* D_actor_151000_8013336C[3] = { &_gActor151000Animation00ED8, &_gActor151000Animation012A0, &_gActor151000Animation01518 };
+/// Spawn arguments and descriptor metadata are unused. The actor package's
+/// callback must remain loaded until the switch is cleared and the task exits.
+static TaskDesc _gActor151000BlackoutTaskDesc = { { { TASK_BODY_NONE, ACTOR_151000_GARDEN_TASK_PRIORITY } }, _actor151000BlackoutTask, { .value = 0 } };
 
-// The run of requests the package keeps for its scripts starts here; it mixes the two receivers. This one is not referenced.
-AnimationPlayRequest D_actor_151000_80133378 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Three player clips installed at equipped-bank indices 47..49 for the garden scene.
+///
+/// The copy request transfers 32 words, reading 29 words beyond this array:
+/// all five following play requests, then the first four words of
+/// `_gActor151000WalkerAnimation16`. Preserve that original overread and the
+/// adjacency of these objects. Only the first three copied words are clips;
+/// the remaining extension words must never be selected for playback.
+/// The player borrows the clips while actor_151000 remains loaded.
+static AnimationSet* _gActor151000PlayerAnimationBankExtension[3] = { &_gActor151000Animation00ED8, &_gActor151000Animation012A0, &_gActor151000Animation01518 };
 
-AnimationPlayRequest D_actor_151000_8013338C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unaddressed bank-1 clip-47 reset request included in the raw extension copy.
+///
+/// Its intended playback receiver and visual role are unproven.
+static AnimationPlayRequest _gActor151000UnusedBank1Animation47 = { { .index = 1 }, ACTOR_151000_GARDEN_PLAYER_FIRST_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_151000_801333A0 = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// First player scene clip, reset without world collision after the opening CAP cue.
+///
+/// The event interpreter replaces the stored bank selector with the equipped bank.
+static AnimationPlayRequest _gActor151000PlayerAnimation47 = { { .index = 1 }, ACTOR_151000_GARDEN_PLAYER_FIRST_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_151000_801333B4 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Second player scene clip, reset without world collision at a later CAP cue.
+///
+/// The event interpreter replaces the stored bank selector with the equipped bank.
+static AnimationPlayRequest _gActor151000PlayerAnimation48 = { { .index = 1 }, ACTOR_151000_GARDEN_PLAYER_SECOND_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-// Not referenced.
-AnimationPlayRequest D_actor_151000_801333C8 = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Third player scene clip, reset without world collision at the return placement.
+///
+/// The event interpreter replaces the stored bank selector with the equipped bank.
+static AnimationPlayRequest _gActor151000PlayerAnimation49 = { { .index = 1 }, ACTOR_151000_GARDEN_PLAYER_THIRD_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-// Sent to the package's walker, the character the scripts walk around, which reads the animation id as an index into its own clip table and ignores the bank selector.
-AnimationPlayRequest D_actor_151000_801333DC = { { .index = 1 }, 16, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unaddressed bank-1 clip-0 reset request included in the raw extension copy.
+///
+/// Its intended playback receiver and visual role are unproven.
+static AnimationPlayRequest _gActor151000UnusedBank1Animation0 = { { .index = 1 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_151000_801333F0 = { { .index = 1 }, 17, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets walker clip 16 at scene opening, completion and skip cleanup.
+///
+/// The walker ignores the bank selector and world-collision option.
+static AnimationPlayRequest _gActor151000WalkerAnimation16 = { { .index = 1 }, ACTOR_151000_GARDEN_WALKER_BASE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_151000_80133404 = { { .index = 1 }, 19, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets walker clip 17 at its later CAP cue; bank and collision words are ignored.
+static AnimationPlayRequest _gActor151000WalkerAnimation17 = { { .index = 1 }, ACTOR_151000_GARDEN_WALKER_CUE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_151000_80133418[2] = {
+/// Blends the walker to clip 19 over eight frames after the blackout clears.
+///
+/// The walker ignores the bank selector and world-collision option.
+static AnimationPlayRequest _gActor151000WalkerAnimation19 = { { .index = 1 }, ACTOR_151000_GARDEN_WALKER_BLEND_CLIP, ANIMATION_BLEND_INTERPOLATE, FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// Unaddressed bank-0 reset requests for clips 13 and 14.
+///
+/// Their intended receiver and scene role are unproven.
+static AnimationPlayRequest _gActor151000UnusedBank0Animations13And14[2] = {
     { { .index = 0 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_actor_151000_80133440 = { { .index = 0 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets the walker's forward-travel clip before its departure-target message.
+///
+/// The walker ignores the bank selector and world-collision option.
+static AnimationPlayRequest _gActor151000WalkerAnimation15 = { { .index = 0 }, FOOTSTEP_WALK_ANIM_WALK_15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_151000_80133454 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets player clip 1 without collision during normal and skipped scene cleanup.
+///
+/// The event interpreter replaces the stored bank selector with the equipped bank.
+static AnimationPlayRequest _gActor151000PlayerAnimation1 = { { .index = 1 }, ACTOR_151000_GARDEN_PLAYER_RETURN_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-ActorCommand D_actor_151000_80133468 = { { .loc = { 5, 15 } }, 1 };
+/// Enables walker footstep sounds for the rest of its task lifetime.
+///
+/// The garden stage/area tags are stored but ignored by this walker.
+static ActorCommand _gActor151000EnableWalkerFootstepsCommand = { { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_GARDEN } }, ACTOR_151000_GARDEN_ENABLE_FOOTSTEPS };
 
-ActorTransform D_actor_151000_8013346C = { { -7700, 0, -0x46B4, 0 }, { 0, 0, 0, 0 } };
+/// Player's opening garden placement in world units, with zero Euler angles.
+static ActorTransform _gActor151000PlayerArrivalPlacement = { { -7700, 0, -18100, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_151000_80133484 = { { -6300, 0, -0x4330, 0 }, { 0, 227, 0, 0 } };
+/// Player's return placement for normal and skip paths; yaw is 227/4096 turns.
+static ActorTransform _gActor151000PlayerReturnPlacement = { { -6300, 0, -17200, 0 }, { 0, 227, 0, 0 } };
 
-ActorTransform D_actor_151000_8013349C = { { -7480, 0, -0x44B6, 0 }, { 0, 0, 0, 0 } };
+/// Walker's opening garden placement in world units, with zero yaw.
+static ActorTransform _gActor151000WalkerArrivalPlacement = { { -7480, 0, -17590, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_151000_801334B4 = { { -4900, 0, -0x3CBE, 0 }, { 0, 0, 0, 0 } };
+/// Walker's placement before its forward departure, in world units with zero yaw.
+static ActorTransform _gActor151000WalkerDeparturePlacement = { { -4900, 0, -15550, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_actor_151000_801334CC = { { -3600, 0, -0x30D4, 0 }, { 0, 0, 0, 0 } };
+/// Walker's departure destination in world units.
+///
+/// Only the position's X/Z components are consumed; the orientation is unused.
+static ActorTransform _gActor151000WalkerDepartureTarget = { { -3600, 0, -12500, 0 }, { 0, 0, 0, 0 } };
 
-AnimationBankCopyRequest D_actor_151000_801334E4 = { { .sets = D_actor_151000_8013336C }, ANIMATION_BANK_EXTENSION_CAPACITY };
+/// Installs three player clips and 29 following raw words in the equipped-bank extension.
+///
+/// The fixed 32-word transfer intentionally includes adjacent requests, as
+/// documented on `_gActor151000PlayerAnimationBankExtension`. This request is
+/// borrowed through dispatch; the copied clip pointers remain borrowed afterwards.
+static AnimationBankCopyRequest _gActor151000PlayerAnimationBankCopy = { { .sets = _gActor151000PlayerAnimationBankExtension }, ANIMATION_BANK_EXTENSION_CAPACITY };
 
-EvsCommand D_actor_151000_801334EC[47] = {
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_151000_801334E4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_151000_8013346C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_151000_8013349C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_151000_80133468 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gActor151000GardenArrivalScript[47] = {
+    // Set up the player bank and both actors while the scene is covered.
+    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_151000_GARDEN_CAP_ARRIVAL }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gActor151000PlayerAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor151000PlayerArrivalPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor151000WalkerArrivalPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor151000EnableWalkerFootstepsCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = ACTOR_151000_GARDEN_BLACKOUT_ON }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // CAP cues coordinate the clips, sound pair and two fade ramps.
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_8013338C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_801333DC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = ACTOR_151000_GARDEN_WEAPONS_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_151000_GARDEN_WALKER_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor151000PlayerAnimation47 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor151000WalkerAnimation16 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x550F0007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x550F0008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACTOR_151000_GARDEN_SOUND_CUE_7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = ACTOR_151000_GARDEN_SOUND_CUE_8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 1 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_ADD }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = ACTOR_151000_GARDEN_BLACKOUT_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_80133404 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor151000WalkerAnimation19 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_801333F0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor151000WalkerAnimation17 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_801333A0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor151000PlayerAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_151000_80133484 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_801333B4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_151000_801334B4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_80133440 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_actor_151000_801334CC } }, { .value = 0 } },
+    // Reposition both actors and start the walker's forward departure.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor151000PlayerReturnPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor151000PlayerAnimation49 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor151000WalkerDeparturePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor151000WalkerAnimation15 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor151000WalkerDepartureTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_FORWARD } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Restore the room view and actor presentation before releasing control.
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_151000_GARDEN_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_801333DC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_80133454 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor151000WalkerAnimation16 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_151000_GARDEN_WALKER_DRAW_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor151000PlayerAnimation1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = ACTOR_151000_GARDEN_WEAPONS_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_151000_80133954[15] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gActor151000GardenArrivalSkipScript[15] = {
+    // Fade over scene cleanup and restore the same player/view endpoint.
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_151000_801333DC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = ACTOR_151000_GARDEN_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor151000SetBlackout }, { .value = ACTOR_151000_GARDEN_BLACKOUT_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor151000WalkerAnimation16 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = ACTOR_151000_GARDEN_WEAPONS_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_151000_80133454 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_151000_80133484 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor151000PlayerAnimation1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACTOR_151000_GARDEN_WALKER_DRAW_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor151000PlayerReturnPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -665,7 +736,13 @@ static AnimationSet _gActor151000Animation0B464 = {
 /// validation; this latch is a duration, never a remaining-frame count.
 static s16 _gFootstepWalkBlendFrames = FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES;
 
-TaskMessageEntry gFootstepWalkMsgTable[6] = {
+/// Synchronous messages of this carrier's sound-enabled scene walker.
+///
+/// Playback and drawing use the published singleton; placement and approach
+/// use the receiver. The command handler enables steps or schedules turning.
+/// The final sentinel makes unknown IDs return zero. The task borrows this
+/// table and its callbacks for its entire lifetime.
+static TaskMessageEntry _gFootstepWalkMessageTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _footstepWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor151000SetWalkerModelDraw },
     { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
@@ -674,152 +751,51 @@ TaskMessageEntry gFootstepWalkMsgTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_151000_8013D2E0 = { { { TASK_BODY_TMD, 192 } }, _actor151000WalkerTask, { .model = &_gActor151000AyaBreaBody } };
+TaskDesc gActor151000WalkerTaskDesc = { { { TASK_BODY_TMD, ACTOR_151000_GARDEN_TASK_PRIORITY } }, _actor151000WalkerTask, { .model = &_gActor151000AyaBreaBody } };
 
-u8 gFootstepWalkAnims[140] = {
-    0,
-    0,
-    0,
-    0,
-    196,
-    166,
-    19,
-    128,
-    204,
-    170,
-    19,
-    128,
-    216,
-    174,
-    19,
-    128,
-    232,
-    177,
-    19,
-    128,
-    64,
-    180,
-    19,
-    128,
-    208,
-    182,
-    19,
-    128,
-    184,
-    186,
-    19,
-    128,
-    104,
-    189,
-    19,
-    128,
-    0,
-    0,
-    0,
-    0,
-    36,
-    191,
-    19,
-    128,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    128,
-    148,
-    19,
-    128,
-    120,
-    152,
-    19,
-    128,
-    92,
-    164,
-    19,
-    128,
-    12,
-    195,
-    19,
-    128,
-    188,
-    204,
-    19,
-    128,
-    132,
-    210,
-    19,
-    128,
-    56,
-    208,
-    19,
-    128,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// Native clip-index table borrowed by the sound walker's animation context.
+///
+/// Loaded keys are 1..8, 10 and 13..19; every other entry is NULL. The
+/// play handler's exclusive bound of 35 does not validate loaded entries.
+/// Each selected set must provide tracks 1..18, and both this table and its
+/// clip data must remain loaded throughout playback.
+static AnimationSet* _gFootstepWalkAnimationSets[35] = {
+    NULL,
+    &_gActor151000Animation088A4,
+    &_gActor151000Animation08CAC,
+    &_gActor151000Animation090B8,
+    &_gActor151000Animation093C8,
+    &_gActor151000Animation09620,
+    &_gActor151000Animation098B0,
+    &_gActor151000Animation09C98,
+    &_gActor151000Animation09F48,
+    NULL,
+    &_gActor151000Animation0A104,
+    NULL,
+    NULL,
+    &_gActor151000Animation07660,
+    &_gActor151000Animation07A58,
+    &_gActor151000Animation0863C,
+    &_gActor151000Animation0A4EC,
+    &_gActor151000Animation0AE9C,
+    &_gActor151000Animation0B464,
+    &_gActor151000Animation0B218,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
 };
-
-s32 D_actor_151000_8013D378;
 
 /// Borrowed pointer to the sound walker's task-owned work block.
 ///
@@ -830,8 +806,6 @@ s32 D_actor_151000_8013D378;
 /// and poses. Task teardown releases the block without clearing this
 /// pointer; it confers no ownership and must not be used after teardown.
 static FootstepWalkWork* _gFootstepWalkWork;
-
-Task* gFootstepWalkTask;
 
 /// Travel mode selected by the last walk-target request.
 ///
@@ -876,7 +850,7 @@ static __inline__ void _actor151000DrawBlackoutTile(void)
 /// or countdown. The first disabled update kills this live task without drawing.
 static void _actor151000BlackoutTask(Task* task)
 {
-    if (D_actor_151000_8013D378 != 0) {
+    if (_gActor151000BlackoutEnabled != 0) {
         _actor151000DrawBlackoutTile();
     } else {
         taskKill(task);
@@ -891,9 +865,9 @@ static void _actor151000BlackoutTask(Task* task)
 /// The package and task descriptor must remain loaded while cover tasks are live.
 static void _actor151000SetBlackout(s32 enabled)
 {
-    D_actor_151000_8013D378 = enabled;
+    _gActor151000BlackoutEnabled = enabled;
     if (enabled != 0) {
-        taskSpawnFromTable(&D_actor_151000_80133360, 0, 0, 0);
+        taskSpawnFromTable(&_gActor151000BlackoutTaskDesc, 0, 0, 0);
     }
 }
 
@@ -970,7 +944,7 @@ static void _footstepWalkExit(Task* task)
 
 /// Replaces the published walker's model flags for `ACTOR_MESSAGE_SET_MODEL_DRAW`.
 ///
-/// Requires a live TMD model in `gFootstepWalkTask`. Bit 0 permits active drawing;
+/// Requires a live TMD model in `_gFootstepWalkTask`. Bit 0 permits active drawing;
 /// without it the model is excluded. Bit 1 suppresses automatic buffer allocation.
 /// All other model flags are cleared and other request bits are ignored. No buffer
 /// is allocated or released. The receiver, message ID and second payload are
@@ -984,7 +958,7 @@ static s32 _actor151000SetWalkerModelDraw(Task* unusedTask, s32 messageId, s32 f
 
     TmdObject* model;
 
-    model = gFootstepWalkTask->extra.tmd;
+    model = _gFootstepWalkTask->extra.tmd;
     if (flags & ACTOR_151000_WALKER_DRAW_SHOW) {
         model->flags = 0;
     } else {

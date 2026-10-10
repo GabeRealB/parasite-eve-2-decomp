@@ -2,7 +2,7 @@
 
 /// Starts the published walker's requested animation synchronously.
 ///
-/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` through `gFootstepWalkTask` and
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` through `_gFootstepWalkTask` and
 /// `_gFootstepWalkWork`; the receiver argument, message ID and second payload
 /// are ignored. A nonzero blend uses `request->blendFrames` in whole frames
 /// (0..2047); reset ignores that duration. The request is borrowed only for
@@ -25,7 +25,7 @@ static s32 _footstepWalkPlayAnimation(Task* unusedTask, s32 messageId, const Ani
             _gFootstepWalkWork->st.state = ACTOR_ENEMY_ANIM_RESET;
         }
         _gFootstepWalkWork->st.field_6 = 0;
-        _footstepWalkUpdate(gFootstepWalkTask);
+        _footstepWalkUpdate(_gFootstepWalkTask);
         return 0;
     }
     return -1;
