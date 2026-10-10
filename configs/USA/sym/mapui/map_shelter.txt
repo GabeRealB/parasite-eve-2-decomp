@@ -503,13 +503,13 @@ gShelterB4WaterSupplyRoomAmbient = 0x80184D7C; // absolute:True owner=shelter_b4
 gShelterB4WaterSupplySurfacePropertiesByClass = 0x80184E14; // absolute:True owner=shelter_b4_water_supply
 shelterR47RoomTask = 0x801807B4; // type:func absolute:True owner=shelter_r47
 gShelterR47ViewMaps = 0x80187674; // absolute:True owner=shelter_r47
-D_shelter_r47_80187678 = 0x80187678; // absolute:True owner=shelter_r47 shared=rooms
-D_shelter_r47_8018767C = 0x8018767C; // absolute:True owner=shelter_r47 shared=rooms
-D_shelter_r47_801876B4 = 0x801876B4; // absolute:True owner=shelter_r47
-D_shelter_r47_8018787C = 0x8018787C; // absolute:True owner=shelter_r47
+gShelterR47ViewCounts = 0x80187678; // absolute:True owner=shelter_r47 shared=rooms
+gShelterR47WarpEntries = 0x8018767C; // absolute:True owner=shelter_r47 shared=rooms
+gShelterR47ViewBoundaryTriggers = 0x801876B4; // absolute:True owner=shelter_r47
+gShelterR47ActionTriggers = 0x8018787C; // absolute:True owner=shelter_r47
 gShelterR47CollisionGrid = 0x8018828C; // absolute:True owner=shelter_r47
-D_shelter_r47_801882B0 = 0x801882B0; // absolute:True owner=shelter_r47
-D_shelter_r47_80189C68 = 0x80189C68; // absolute:True owner=shelter_r47
+gShelterR47ViewCameras = 0x801882B0; // absolute:True owner=shelter_r47
+gShelterR47SpriteViews = 0x80189C68; // absolute:True owner=shelter_r47
 gShelterR47RoomLights = 0x8018A5BC; // absolute:True owner=shelter_r47
 gShelterR47SurfaceProperties = 0x8018A618; // absolute:True owner=shelter_r47
 shelterR48RoomTask = 0x8017E224; // type:func absolute:True owner=shelter_r48

@@ -396,10 +396,10 @@ static void _shelterR47ConsoleHandleCommandTask(Task* task)
                     task->state = SHELTER_R47_CONSOLE_STATE_CHANGE_VIEW;
                     return;
                 }
-                if (D_shelter_r47_8018A695 == 0) {
+                if (gShelterR47ConsoleRowFirstUseStarted == false) {
                     capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_ROW_FIRST_USE, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
-                    D_shelter_r47_8018A695 = 1;
-                    task->state            = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
+                    gShelterR47ConsoleRowFirstUseStarted = true;
+                    task->state                          = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
                     return;
                 }
                 work->previousRow = work->row;
@@ -415,10 +415,10 @@ static void _shelterR47ConsoleHandleCommandTask(Task* task)
             return;
         }
         if (hotspotKind == SHELTER_R47_CONSOLE_HOTSPOT_SWITCH_BUTTON) {
-            if (D_shelter_r47_8018A694 == 0) {
+            if (gShelterR47ConsoleButtonFirstUseStarted == false) {
                 capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_BUTTON_FIRST_USE, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
-                D_shelter_r47_8018A694 = hotspotKind;
-                task->state            = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
+                gShelterR47ConsoleButtonFirstUseStarted = hotspotKind;
+                task->state                             = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
                 return;
             }
             task->state = SHELTER_R47_CONSOLE_STATE_BUTTON_PRESS;
@@ -1036,10 +1036,10 @@ static void _shelterR47ConsoleOpenCommandsTask(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     // An unplayed first-use event takes precedence over the hotspot's command kind.
     if (work->guideStep == SHELTER_R47_CONSOLE_GUIDE_FREE_USE &&
-        ((u16)work->selection >> SHELTER_R47_CONSOLE_HOTSPOT_KIND_SHIFT) == SHELTER_R47_CONSOLE_HOTSPOT_ROW && D_shelter_r47_8018A695 == 0) {
+        ((u16)work->selection >> SHELTER_R47_CONSOLE_HOTSPOT_KIND_SHIFT) == SHELTER_R47_CONSOLE_HOTSPOT_ROW && gShelterR47ConsoleRowFirstUseStarted == false) {
         work->promptKind = SHELTER_R47_CONSOLE_COMMAND_EXAMINE;
     }
-    if ((work->selection >> SHELTER_R47_CONSOLE_HOTSPOT_KIND_SHIFT) == SHELTER_R47_CONSOLE_HOTSPOT_SWITCH_BUTTON && D_shelter_r47_8018A694 == 0) {
+    if ((work->selection >> SHELTER_R47_CONSOLE_HOTSPOT_KIND_SHIFT) == SHELTER_R47_CONSOLE_HOTSPOT_SWITCH_BUTTON && gShelterR47ConsoleButtonFirstUseStarted == false) {
         work->promptKind = SHELTER_R47_CONSOLE_COMMAND_EXAMINE;
     }
     itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
@@ -1207,10 +1207,10 @@ static void _shelterR47ConsoleBeginFadeOutTask(Task* task)
 
 void shelterR47ResetTerminalFirstUseEvents(void)
 {
-    D_shelter_r47_8018A694 = false;
-    D_shelter_r47_8018A695 = false;
-    D_shelter_r47_8018A696 = false;
-    D_shelter_r47_8018A697 = false;
+    gShelterR47ConsoleButtonFirstUseStarted = false;
+    gShelterR47ConsoleRowFirstUseStarted    = false;
+    gShelterR47MapPreviousFirstUseStarted   = false;
+    gShelterR47MapNextFirstUseStarted       = false;
 }
 
 void shelterR47ConsolePromptTask(Task* task)

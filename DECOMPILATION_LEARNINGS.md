@@ -47153,7 +47153,7 @@ its own `Task::work` block") settles the *dispatched* states, but a room's
 `.text` is mostly helpers that appear in no state table at all, and two families
 in one room routinely use the same low offsets. `shelter_r47` has two:
 `_gShelterR47ConsoleStateHandlers` (state 0 `shelterR47ConsoleInitializeTask`, `memCalloc(0x54)`)
-and `D_shelter_r47_8017D7DC` (state 0 `_shelterR47MapTerminalInitTask`,
+and `_gShelterR47MapTerminalStateHandlers` (state 0 `_shelterR47MapTerminalInitTask`,
 `memCalloc(0x30)`). Both read `work` fields `0x18` and `0x1C` as `s16`, so the
 access pattern alone cannot tell them apart, and picking the wrong struct still
 scores 100% because the two spellings emit the same `lh`.
@@ -61928,7 +61928,7 @@ carries both blocks, in address order.
 
 A chunker that attaches comments and declarations forward, to the function they
 introduce, keeps a mid-file `extern` with whichever half that function lands
-in - so the other half loses it. `extern SVECTOR D_shelter_r47_80187624[];`
+in - so the other half loses it. `extern SVECTOR _gShelterR47ViewGlowCenters[];`
 sat two thirds down `shelter_r47_4.c` and the split left it in the head while
 its only user moved to the tail. That one is a compile error, which is the good
 case; the same accident on a *prototype* is silent and costs the K&R argument

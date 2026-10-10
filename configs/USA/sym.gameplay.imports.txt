@@ -1679,7 +1679,7 @@ D_shelter_b6_training_room_801859DC = 0x801859DC; // absolute:True owner=shelter
 
 D_shelter_r36_8017FA40 = 0x8017FA40; // absolute:True owner=shelter_r36
 
-D_shelter_r47_80187CB8 = 0x80187CB8; // absolute:True owner=shelter_r47
+gShelterR47AreaVariants = 0x80187CB8; // absolute:True owner=shelter_r47
 
 gShelterR48AreaVariants = 0x8018BC10; // absolute:True owner=shelter_r48
 

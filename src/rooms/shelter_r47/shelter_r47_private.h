@@ -1,6 +1,8 @@
 #ifndef SRC_ROOMS_SHELTER_R47_SHELTER_R47_PRIVATE_H
 #define SRC_ROOMS_SHELTER_R47_SHELTER_R47_PRIVATE_H
 
+#include "rooms/shelter_r47.h"
+
 #include "common.h"
 
 #include "main/task_types.h"
@@ -95,12 +97,8 @@ enum {
     SHELTER_R47_MAP_PAGE_COUNT   = 5,
 };
 
-/// How the terminal was opened. Copied from the task's spawn argument;
-/// `SHELTER_R47_MAP_MODE_TOUR_DONE` is stored later, once the tour shows Neo Ark.
+/// Internal terminal mode once the guided tour has opened Neo Ark.
 enum {
-    SHELTER_R47_MAP_MODE_USE       = 0, // player at the terminal; cancel closes it and restores `savedView`
-    SHELTER_R47_MAP_MODE_TIMED     = 1, // unattended viewing; fades in, holds, then fades out
-    SHELTER_R47_MAP_MODE_TOUR      = 2, // event tour; previous page is refused, and only previous/next hotspots are installed
     SHELTER_R47_MAP_MODE_TOUR_DONE = 3, // Neo Ark has opened during the tour; the idle state closes the terminal
 };
 
@@ -174,19 +172,37 @@ typedef struct {
 } ShelterR47MapTerminalWork;
 STATIC_ASSERT_SIZEOF(ShelterR47MapTerminalWork, 0x30);
 
-/// Task spawned by the room's cap script; polled and cleared by
-/// `_shelterR47RestoreActorsAfterTerminalTask`.
-extern Task* D_shelter_r47_8018A690;
+/// Active console or map-terminal handle handed from the room spawner to exit polling.
+///
+/// NULL before a successful spawn or after polling dispatches teardown. While
+/// non-NULL it borrows a live task, including its stopped completion state;
+/// serialize terminal sessions and clear the handle after releasing the task.
+/// Event-script-only timed terminals do not publish their handles here.
+extern Task* gShelterR47TerminalTask;
 
-extern u8 D_shelter_r47_8018A694;
+/// Console switch-button first-use CAP request latch for this room visit.
+///
+/// Zero permits Examine; one means the request was issued, not that playback
+/// completed. Cleared on room entry; independent of the saved console switches.
+extern u8 gShelterR47ConsoleButtonFirstUseStarted;
 
-extern u8 D_shelter_r47_8018A695;
+/// Console row-selection first-use CAP request latch for this room visit.
+///
+/// Zero permits the free-use Examine event; one means it was requested.
+/// Cleared on room entry; guided row selection does not set this latch.
+extern u8 gShelterR47ConsoleRowFirstUseStarted;
 
-/// Set the first time the map terminal's previous-page hotspot plays its one-off cap event.
-extern u8 D_shelter_r47_8018A696;
+/// Map previous-page first-use CAP request latch for this room visit.
+///
+/// Zero offers Examine in player use; one permits later page changes.
+/// Set when the request is issued and cleared on room entry.
+extern u8 gShelterR47MapPreviousFirstUseStarted;
 
-/// Set the first time the map terminal's next-page hotspot plays its one-off cap event.
-extern u8 D_shelter_r47_8018A697;
+/// Map next-page first-use CAP request latch for this room visit.
+///
+/// Zero offers Examine in player use; one permits later page changes.
+/// Set when the request is issued and cleared on room entry; tours leave it alone.
+extern u8 gShelterR47MapNextFirstUseStarted;
 
 extern RoomCutsceneRec D_shelter_r47_8018A698;
 

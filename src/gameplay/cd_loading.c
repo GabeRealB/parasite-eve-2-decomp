@@ -568,7 +568,7 @@ AreaRecord D_8010CF14[50] = {
     { gShelterB4UpperSewerAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[43].state },
     { gShelterB4ReservoirAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[44].state },
     { gShelterB4WaterSupplyPlacementVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[45].state },
-    { D_shelter_r47_80187CB8, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[46].state },
+    { gShelterR47AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[46].state },
     { gShelterR48AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[47].state },
     { gShelterR49AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
 };

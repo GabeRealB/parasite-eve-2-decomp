@@ -932,7 +932,7 @@ static void _actor143400SelectSceneCaptions(s32 enable)
 /// records synchronously, clearing affected saved enemy poses; queues no reload.
 static void _actor143400ApplySceneAreaUpdates(void)
 {
-    areaApplySavedUpdates(D_shelter_r47_8018A638);
+    areaApplySavedUpdates(gShelterR47SavedAreaUpdates);
 }
 
 /// Sets the live save's scene-event selector for stage music.

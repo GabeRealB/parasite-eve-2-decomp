@@ -962,7 +962,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b4_upper_sewer_80186598,
     gShelterB4ReservoirWarpEntries,
     gShelterB4WaterSupplyWarpEntries,
-    D_shelter_r47_8018767C,
+    gShelterR47WarpEntries,
     gShelterR48WarpEntries,
     gShelterR49WarpEntries,
 };
@@ -1014,7 +1014,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     gShelterB4UpperSewerViewCounts,
     gShelterB4ReservoirRoomViewCounts,
     gShelterB4WaterSupplyViewCounts,
-    D_shelter_r47_80187678,
+    gShelterR47ViewCounts,
     gShelterR48ViewCounts,
     gShelterR49RoomViewCounts,
 };
@@ -1135,7 +1135,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B2D4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2E4[1] = {
-    { &gShelterR47CollisionGrid, D_shelter_r47_801876B4, D_shelter_r47_8018787C, NULL },
+    { &gShelterR47CollisionGrid, gShelterR47ViewBoundaryTriggers, gShelterR47ActionTriggers, NULL },
 };
 
 static WorldCollisionRoomResources* D_map_shelter_8017B2F4[49] = {
@@ -1239,7 +1239,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     gShelterB4UpperSewerViewCameras,
     gShelterB4ReservoirViewCameras,
     gShelterB4WaterSupplyViewCameras,
-    D_shelter_r47_801882B0,
+    gShelterR47ViewCameras,
     gShelterR48ViewCameras,
     gShelterR49ViewCameras,
 };
@@ -1355,7 +1355,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB4UpperSewerSpriteViews,
     gShelterB4ReservoirSpriteViews,
     gShelterB4WaterSupplySpriteViews,
-    D_shelter_r47_80189C68,
+    gShelterR47SpriteViews,
     gShelterR48SpriteViews,
     gShelterR49SpriteViews,
 };

@@ -23,6 +23,7 @@
 #include "gameplay/room_effects.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -52,10 +53,8 @@
 #include "../../shared/room_cutscene.h"
 #include "../../shared/action_prompt.h"
 
-static TaskDesc D_shelter_r47_8018760C;
-static SVECTOR  D_shelter_r47_80187624[10];
-static void     _shelterR47MapTerminalTask(Task* task);
-static void     _shelterR47MapTerminalPromptTask(Task* task);
+static void _shelterR47MapTerminalTask(Task* task);
+static void _shelterR47MapTerminalPromptTask(Task* task);
 
 static void _shelterR47MapTerminalInitTask(Task* task);
 static void _shelterR47MapTerminalSelectHotspotTask(Task* task);
@@ -77,13 +76,54 @@ static void _actionPromptReset(Task* task);
 
 /// Destinations in the terminal's eleven-entry task state table.
 enum {
+    SHELTER_R47_MAP_STATE_INIT           = 0,
+    SHELTER_R47_MAP_STATE_OPEN           = 1,
     SHELTER_R47_MAP_STATE_SELECT_HOTSPOT = 2,
     SHELTER_R47_MAP_STATE_OPEN_COMMANDS  = 3,
     SHELTER_R47_MAP_STATE_HANDLE_HOTSPOT = 4,
     SHELTER_R47_MAP_STATE_RESTORE_ROOM   = 5,
+    SHELTER_R47_MAP_STATE_SWITCH_PAGE    = 6,
+    SHELTER_R47_MAP_STATE_REOPEN_PAGE    = 7,
     SHELTER_R47_MAP_STATE_TIMED_VIEW     = 8,
     SHELTER_R47_MAP_STATE_BEGIN_FADE_OUT = 9,
+    SHELTER_R47_MAP_STATE_FADE_OUT       = 10,
 };
+
+/// Scheduling priority shared by the terminal and its separately spawned cursor.
+enum { SHELTER_R47_MAP_TASK_PRIORITY = 192 };
+
+/// Room-bank sounds of the sole warp endpoint.
+enum {
+    SHELTER_R47_WARP_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 0xB),
+    SHELTER_R47_WARP_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 0xA),
+};
+
+/// Action payloads of the room's trigger table.
+///
+/// The warp byte packs departure slot 1 and destination slot 2. Stair
+/// parameter 0 packs surface class 3 and five steps; control bit 8 descends.
+enum {
+    SHELTER_R47_TRIGGER_POD_ACCESS_WARP        = 0x12,
+    SHELTER_R47_TRIGGER_STAIR_STEPS_CLASS_3    = (3 << 4) | 5,
+    SHELTER_R47_TRIGGER_STAIR_DESCEND          = 0x100,
+    SHELTER_R47_TRIGGER_ACTION_COMPANION_ENTRY = 1,
+    SHELTER_R47_TRIGGER_ACTION_POINT_2_SOUND   = 2,
+    SHELTER_R47_TRIGGER_ACTION_BEGIN_TOUR      = 3,
+    SHELTER_R47_TRIGGER_ACTION_MAP_OR_FOLLOWUP = 4,
+    SHELTER_R47_TRIGGER_ACTION_OPEN_MAP        = 5,
+    SHELTER_R47_TRIGGER_ACTION_OPEN_CONSOLE    = 6,
+    SHELTER_R47_TRIGGER_COMMAND_CUTSCENE       = 1,
+    SHELTER_R47_TRIGGER_COMMAND_REPEAT_ENTRY   = 8,
+};
+
+/// Low-nibble map-mark policies in this room's saved-area update list.
+enum {
+    SHELTER_R47_SAVED_AREA_MARK_CLEAR = 0,
+    SHELTER_R47_SAVED_AREA_MARK_SET   = 1,
+};
+
+/// Placement/resource key of the tour's Pierce actor.
+enum { SHELTER_R47_PIERCE_ENTRY_ID = 143 };
 
 /// Subtractive overlay intensity, in byte levels per task tick.
 ///
@@ -131,29 +171,50 @@ enum {
     SHELTER_R47_SURFACE_CLASS_3_JUMP_SOUND = 0x10000019,
 };
 
-/// State handlers of the room's map terminal, run by
-/// `_shelterR47MapTerminalTask`.
-static const TaskFuncTable11 D_shelter_r47_8017D7DC = {
-    {
-        _shelterR47MapTerminalInitTask,
-        _shelterR47MapTerminalOpenTask,
-        _shelterR47MapTerminalSelectHotspotTask,
-        _shelterR47MapTerminalOpenCommandsTask,
-        _shelterR47MapTerminalHandleHotspotTask,
-        _shelterR47MapTerminalRestoreRoomTask,
-        _shelterR47MapTerminalSwitchPageTask,
-        _shelterR47MapTerminalReopenPageTask,
-        _shelterR47MapTerminalTimedViewTask,
-        _shelterR47MapTerminalBeginFadeOutTask,
-        _shelterR47MapTerminalFadeOutTask,
+/// Eleven map-terminal handlers indexed by task state 0..10.
+///
+/// The dispatcher copies all eleven callback pointers by value before calling
+/// one. Slots cover setup, opening, interaction, restoration, page changes and
+/// timed/fade exits. The room overlay must remain loaded through dispatch.
+static const TaskFuncTable11 _gShelterR47MapTerminalStateHandlers = {
+    .funcs = {
+        [SHELTER_R47_MAP_STATE_INIT]           = _shelterR47MapTerminalInitTask,
+        [SHELTER_R47_MAP_STATE_OPEN]           = _shelterR47MapTerminalOpenTask,
+        [SHELTER_R47_MAP_STATE_SELECT_HOTSPOT] = _shelterR47MapTerminalSelectHotspotTask,
+        [SHELTER_R47_MAP_STATE_OPEN_COMMANDS]  = _shelterR47MapTerminalOpenCommandsTask,
+        [SHELTER_R47_MAP_STATE_HANDLE_HOTSPOT] = _shelterR47MapTerminalHandleHotspotTask,
+        [SHELTER_R47_MAP_STATE_RESTORE_ROOM]   = _shelterR47MapTerminalRestoreRoomTask,
+        [SHELTER_R47_MAP_STATE_SWITCH_PAGE]    = _shelterR47MapTerminalSwitchPageTask,
+        [SHELTER_R47_MAP_STATE_REOPEN_PAGE]    = _shelterR47MapTerminalReopenPageTask,
+        [SHELTER_R47_MAP_STATE_TIMED_VIEW]     = _shelterR47MapTerminalTimedViewTask,
+        [SHELTER_R47_MAP_STATE_BEGIN_FADE_OUT] = _shelterR47MapTerminalBeginFadeOutTask,
+        [SHELTER_R47_MAP_STATE_FADE_OUT]       = _shelterR47MapTerminalFadeOutTask,
     },
 };
 
-static TaskDesc D_shelter_r47_8018760C = { { { TASK_BODY_NONE, 192 } }, _shelterR47MapTerminalPromptTask, { .value = 0 } };
+/// Bodyless cursor-task recipe owned and killed by its map-terminal session.
+///
+/// Index 0 starts at state 0. Argument 1 selects port 0 with 1, port 1 with 2,
+/// and both otherwise. Runs at the terminal's priority with zero metadata;
+/// its returned handle is retained in the terminal's spawn argument 2.
+static TaskDesc _gShelterR47MapTerminalPromptTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, SHELTER_R47_MAP_TASK_PRIORITY } },
+    .callback = _shelterR47MapTerminalPromptTask,
+    .data     = { .value = 0 },
+};
 
-TaskDesc D_shelter_r47_80187618 = { { { TASK_BODY_NONE, 192 } }, _shelterR47MapTerminalTask, { .value = 0 } };
+TaskDesc gShelterR47MapTerminalTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, SHELTER_R47_MAP_TASK_PRIORITY } },
+    .callback = _shelterR47MapTerminalTask,
+    .data     = { .value = 0 },
+};
 
-static SVECTOR D_shelter_r47_80187624[10] = {
+/// Ten fixed world-space glow centres, in signed game-coordinate units.
+///
+/// View 5 draws all ten, view 13 the pair at 8..9, view 14 entries 0, 6 and
+/// 8..9, and view 44 entries 0 and 6. Drawers borrow these points for the call;
+/// the pair requires two adjacent elements. Physical fixture identities are unproven.
+static SVECTOR _gShelterR47ViewGlowCenters[10] = {
     { 0x3098, -2480, 7430, 0 },
     { 0x38AE, -4330, 6120, 0 },
     { 0x38AE, -4330, 7040, 0 },
@@ -170,13 +231,22 @@ u8* gShelterR47ViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_r47_80187678[1] = { 46 };
+ViewCount gShelterR47ViewCounts[1] = { 46 };
 
-DirectionWarpEntry D_shelter_r47_8018767C[1] = {
-    { { { .word = 1024 }, 400, 0, 3300 }, { 0, 0, 0, 0 }, { { .word = 1792 }, 2800, 0, 3700 }, { 0, 0, 0, 0 }, 0x542F000B, 0x542F000A, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_B2_LABORATORY },
+DirectionWarpEntry gShelterR47WarpEntries[1] = {
+    {
+        .player         = { { .word = 1024 }, 400, 0, 3300 },
+        .companion      = { { .word = 1792 }, 2800, 0, 3700 },
+        .arrivalSound   = SHELTER_R47_WARP_ARRIVAL_SOUND,
+        .departureSound = SHELTER_R47_WARP_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_B2_LABORATORY,
+    },
 };
 
-WorldCollisionTrigger D_shelter_r47_801876B4[6] = {
+WorldCollisionTrigger gShelterR47ViewBoundaryTriggers[6] = {
     { NULL, NULL, NULL, { 4491, -1712, 2957, 0 }, { { -546, -2576, -2563, 0 }, { 546, -2576, 2564, 0 }, { -546, 2576, -2563, 0 }, { 546, 2576, 2564, 0 } }, { 4014, 0, -856, 0 }, { 0, 0, 4096, 0 }, 3674, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 4698, -1680, 2971, 0 }, { { 539, -2544, 2477, 0 }, { -539, -2544, -2477, 0 }, { 539, 2544, 2477, 0 }, { -539, 2544, -2477, 0 } }, { -4006, 0, 871, 0 }, { 0, 0, 4096, 0 }, 3584, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x3241, -1344, 3296, 0 }, { { -901, -2544, 2605, 0 }, { 901, -2544, -2605, 0 }, { -901, 2544, 2605, 0 }, { 901, 2544, -2605, 0 } }, { -3881, 0, -1343, 0 }, { 0, 0, 4096, 0 }, 3744, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -185,56 +255,57 @@ WorldCollisionTrigger D_shelter_r47_801876B4[6] = {
     { NULL, NULL, NULL, { 0x3541, -1313, 4961, 0 }, { { -2434, -2576, 13, 0 }, { 2434, -2576, -12, 0 }, { -2434, 2576, 13, 0 }, { 2434, 2576, -12, 0 } }, { -22, 0, -4097, 0 }, { 0, 0, 4096, 0 }, 3537, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-/// The room's action triggers; `flags` bit 0x40 enables collision testing.
-/// The room switches the enabled state of entries 3 and 12.
-WorldCollisionTrigger D_shelter_r47_8018787C[13] = {
-    { NULL, NULL, NULL, { 304, -48, 3232, 0 }, { { -528, 0, -928, 0 }, { 528, 0, -928, 0 }, { -528, 0, 928, 0 }, { 528, 0, 928, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, 17, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x34A0, -64, 4645, 0 }, { { 928, 0, -528, 0 }, { 928, 0, 528, 0 }, { -928, 0, -528, 0 }, { -928, 0, 528, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_FACING, 53, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x33F0, -1056, 5440, 0 }, { { 752, 0, -528, 0 }, { 752, 0, 528, 0 }, { -752, 0, -528, 0 }, { -752, 0, 528, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, 4091, 0 }, 918, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 53, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7040, -64, 2688, 0 }, { { 928, 0, -2416, 0 }, { 928, 0, 2416, 0 }, { -928, 0, -2416, 0 }, { -928, 0, 2416, 0 } }, { 0, 4099, 0, 0 }, { 201, 0, 4091, 0 }, 2585, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3780, -64, 2703, 0 }, { { 1536, 0, -1760, 0 }, { 320, 0, 1760, 0 }, { -320, 0, -1760, 0 }, { -1536, 0, 1760, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, 4091, 0 }, 2332, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x369F, -1056, 6319, 0 }, { { 2009, 0, -1407, 0 }, { -1726, 0, 1658, 0 }, { 1727, 0, -1657, 0 }, { -2008, 0, 1408, 0 } }, { 0, 4099, 0, 0 }, { 201, 0, 4091, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 3, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3F80, -1043, 6048, 0 }, { { -528, 0, -928, 0 }, { 528, 0, -928, 0 }, { -528, 0, 928, 0 }, { 528, 0, 928, 0 } }, { 0, 4096, 0, 0 }, { -4017, 0, -799, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3F60, -1056, 7568, 0 }, { { -528, 0, -528, 0 }, { 528, 0, -528, 0 }, { -528, 0, 528, 0 }, { 528, 0, 528, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, -201, 0 }, 746, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3F0F, -1056, 9135, 0 }, { { 49, 0, -954, 0 }, { 923, 0, -15, 0 }, { -922, 0, 17, 0 }, { -47, 0, 955, 0 } }, { 0, 4103, 0, 0 }, { -2897, 0, -2897, 0 }, 955, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x32E0, -1056, 8096, 0 }, { { -528, 0, -528, 0 }, { 528, 0, -528, 0 }, { -528, 0, 528, 0 }, { 528, 0, 528, 0 } }, { 0, 4102, 0, 0 }, { 4052, 0, 601, 0 }, 746, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+WorldCollisionTrigger gShelterR47ActionTriggers[13] = {
+    { NULL, NULL, NULL, { 304, -48, 3232, 0 }, { { -528, 0, -928, 0 }, { 528, 0, -928, 0 }, { -528, 0, 928, 0 }, { 528, 0, 928, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, SHELTER_R47_TRIGGER_POD_ACCESS_WARP, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x34A0, -64, 4645, 0 }, { { 928, 0, -528, 0 }, { 928, 0, 528, 0 }, { -928, 0, -528, 0 }, { -928, 0, 528, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_FACING, SHELTER_R47_TRIGGER_STAIR_STEPS_CLASS_3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x33F0, -1056, 5440, 0 }, { { 752, 0, -528, 0 }, { 752, 0, 528, 0 }, { -752, 0, -528, 0 }, { -752, 0, 528, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, 4091, 0 }, 918, WORLD_COLLISION_TRIGGER_ACTION_FACING | SHELTER_R47_TRIGGER_STAIR_DESCEND, SHELTER_R47_TRIGGER_STAIR_STEPS_CLASS_3, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7040, -64, 2688, 0 }, { { 928, 0, -2416, 0 }, { 928, 0, 2416, 0 }, { -928, 0, -2416, 0 }, { -928, 0, 2416, 0 } }, { 0, 4099, 0, 0 }, { 201, 0, 4091, 0 }, 2585, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, SHELTER_R47_TRIGGER_ACTION_COMPANION_ENTRY, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3780, -64, 2703, 0 }, { { 1536, 0, -1760, 0 }, { 320, 0, 1760, 0 }, { -320, 0, -1760, 0 }, { -1536, 0, 1760, 0 } }, { 0, 4098, 0, 0 }, { 201, 0, 4091, 0 }, 2332, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, SHELTER_R47_TRIGGER_ACTION_POINT_2_SOUND, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x369F, -1056, 6319, 0 }, { { 2009, 0, -1407, 0 }, { -1726, 0, 1658, 0 }, { 1727, 0, -1657, 0 }, { -2008, 0, 1408, 0 } }, { 0, 4099, 0, 0 }, { 201, 0, 4091, 0 }, 2442, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, SHELTER_R47_TRIGGER_ACTION_BEGIN_TOUR, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3F80, -1043, 6048, 0 }, { { -528, 0, -928, 0 }, { 528, 0, -928, 0 }, { -528, 0, 928, 0 }, { 528, 0, 928, 0 } }, { 0, 4096, 0, 0 }, { -4017, 0, -799, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_R47_TRIGGER_ACTION_MAP_OR_FOLLOWUP, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3F60, -1056, 7568, 0 }, { { -528, 0, -528, 0 }, { 528, 0, -528, 0 }, { -528, 0, 528, 0 }, { 528, 0, 528, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, -201, 0 }, 746, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_R47_TRIGGER_ACTION_OPEN_MAP, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3F0F, -1056, 9135, 0 }, { { 49, 0, -954, 0 }, { 923, 0, -15, 0 }, { -922, 0, 17, 0 }, { -47, 0, 955, 0 } }, { 0, 4103, 0, 0 }, { -2897, 0, -2897, 0 }, 955, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_R47_TRIGGER_ACTION_OPEN_CONSOLE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x32E0, -1056, 8096, 0 }, { { -528, 0, -528, 0 }, { 528, 0, -528, 0 }, { -528, 0, 528, 0 }, { 528, 0, 528, 0 } }, { 0, 4102, 0, 0 }, { 4052, 0, 601, 0 }, 746, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_R47_TRIGGER_COMMAND_CUTSCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 0x32E0, -1056, 6512, 0 }, { { -528, 0, -1056, 0 }, { 528, 0, -1056, 0 }, { -528, 0, 1056, 0 }, { 528, 0, 1056, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, 39, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 0x36C0, -1056, 9136, 0 }, { { -1584, 0, -464, 0 }, { 1584, 0, -464, 0 }, { -1584, 0, 464, 0 }, { 1584, 0, 464, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1649, WORLD_COLLISION_TRIGGER_ACTION_CAP, 40, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7072, -64, 4704, 0 }, { { 2144, 0, -688, 0 }, { 2144, 0, 688, 0 }, { -2144, 0, -688, 0 }, { -2144, 0, 688, 0 } }, { 0, 4104, 0, 0 }, { -201, 0, -4091, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { 7072, -64, 4704, 0 }, { { 2144, 0, -688, 0 }, { 2144, 0, 688, 0 }, { -2144, 0, -688, 0 }, { -2144, 0, 688, 0 } }, { 0, 4104, 0, 0 }, { -201, 0, -4091, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_R47_TRIGGER_COMMAND_REPEAT_ENTRY, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_r47_80187C58[2] = {
-    { 143, 435, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor443500PierceTaskDescs },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Pierce's load/spawn resource for placement variant 1, followed by its sentinel.
+///
+/// File 435 at group base 40 loads actor_443500; placement entry 143 selects
+/// descriptor 0. The room layout borrows this list while its overlay is loaded.
+static AreaResource _gShelterR47Variant1Resources[2] = {
+    { .entryId = SHELTER_R47_PIERCE_ENTRY_ID, .fileNumber = 435, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskTable = gActor443500PierceTaskDescs },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_r47_80187C70[2] = {
-    { 143, 0, 0, 0x3E80, -1000, 5910, 0, 0, 4, 6, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Pierce's initial placement for variant 1, followed by the ending record.
+///
+/// Position is in world game units and yaw is zero. The actor borrows this
+/// record for texture offsets: four 64-word pages and six CLUT rows.
+static AreaPlacement _gShelterR47Variant1Placements[2] = {
+    { .entryId = SHELTER_R47_PIERCE_ENTRY_ID, .x = 0x3E80, .y = -1000, .z = 5910, .texturePageOffset = 4, .clutRowOffset = 6 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_r47_80187C90[2] = {
-    { 100, 434, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, NULL },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Loading-only companion-entry scene resource for placement variant 2.
+///
+/// File 434 at group base 10 loads actor_143400. It has no spawn descriptors;
+/// the second record terminates the list. Storage belongs to the room overlay.
+static AreaResource _gShelterR47Variant2Resources[2] = {
+    { .entryId = 100, .fileNumber = 434, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_r47_80187CA8[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Empty placement list for variant 2; its resource is used by event scripts.
+static AreaPlacement _gShelterR47Variant2Placements[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_r47_80187CB8[12] = {
-    { NULL, NULL },
-    { D_shelter_r47_80187C70, D_shelter_r47_80187C58 },
-    { D_shelter_r47_80187CA8, D_shelter_r47_80187C90 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterR47AreaVariants[12] = {
+    [1] = { .placements = _gShelterR47Variant1Placements, .resources = _gShelterR47Variant1Resources },
+    [2] = { .placements = _gShelterR47Variant2Placements, .resources = _gShelterR47Variant2Resources },
 };
 
 SVECTOR gShelterR47CollisionGridNormals[13] = {
@@ -276,7 +347,7 @@ WorldCollisionGrid gShelterR47CollisionGrid = {
     .faceCount   = ARRAY_SIZE(gShelterR47CollisionGridFaces),
 };
 
-ViewCamera D_shelter_r47_801882B0[46] = {
+ViewCamera gShelterR47ViewCameras[46] = {
     { { { { 1403, 0, 3848 }, { 2757, 2857, -1005 }, { -2684, 2934, 978 } }, { -0x2DC3, 4293, -2180 } }, 207 },
     { { { { 693, 0, 4036 }, { 392, 4076, -67 }, { -4017, 398, 690 } }, { -7410, 1510, -2610 } }, 289 },
     { { { { 1395, 0, -3850 }, { -456, 4067, -165 }, { 3823, 485, 1386 } }, { -2490, 1520, -2540 } }, 207 },
@@ -970,70 +1041,125 @@ static SpriteBatch _gShelterR47View36SpriteBatches[2] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189B0C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 37.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View37SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189B1C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 38.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View38SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189B2C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 39.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View39SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189B3C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 40.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View40SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189B4C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 41.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View41SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189B5C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 42.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View42SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189B6C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 43.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View43SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189B7C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 44.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View44SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_r47_80189B8C[9] = {
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 0, 902, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 915, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -128, 96, 875, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 24 } }, -72, 96, 875, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, -96, 625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, -24, 625, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 112, 24, 625, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 56 } }, 72, 64, 625, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 24 } }, 0, 96, 875, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+/// Nine texture rectangles and sorting depths for mapped room view 45.
+///
+/// Positions are display-centred pixels; depths are unscaled OT sorting values.
+/// The view's batch selects the complete source range in elements, without a
+/// sentinel. Sources and textures remain borrowed while the room is loaded.
+static SpriteSource _gShelterR47View45SpriteSources[9] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, 0, 902, { .fields = { 96, 224 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 48 } }, -160, 72, 915, { .fields = { 96, 176 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 56, 24 } }, -128, 96, 875, { .fields = { 40, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 72, 24 } }, -72, 96, 875, { .fields = { 24, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 72 } }, 120, -96, 625, { .fields = { 88, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 48 } }, 136, -24, 625, { .fields = { 104, 128 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 40 } }, 112, 24, 625, { .fields = { 56, 128 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 88, 56 } }, 72, 64, 625, { .fields = { 40, 72 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 72, 24 } }, 0, 96, 875, { .fields = { 24, 168 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_80189C40[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Image background and one nine-source batch for mapped room view 45.
+///
+/// The first zero-count record keeps decoded image strips; the next selects
+/// all nine source elements. The terminal record ends the list. Consumers
+/// borrow the mutable records while the room overlay is loaded.
+static SpriteBatch _gShelterR47View45SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterR47View45SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189C58[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 46.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View46SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_shelter_r47_80189C68[46] = {
+SpriteView gShelterR47SpriteViews[46] = {
     { { .elements = _gShelterR47View1SpriteSources }, _gShelterR47View1SpriteBatches, NULL },
     { { .elements = _gShelterR47View2SpriteSources }, _gShelterR47View2SpriteBatches, NULL },
     { { .elements = _gShelterR47View3SpriteSources }, _gShelterR47View3SpriteBatches, _gShelterR47View3DrawAreas },
@@ -1070,16 +1196,16 @@ SpriteView D_shelter_r47_80189C68[46] = {
     { { .empty = _gShelterR47View34SpriteBatches }, _gShelterR47View34SpriteBatches, NULL },
     { { .empty = _gShelterR47View35SpriteBatches }, _gShelterR47View35SpriteBatches, NULL },
     { { .empty = _gShelterR47View36SpriteBatches }, _gShelterR47View36SpriteBatches, NULL },
-    { { .empty = D_shelter_r47_80189B0C }, D_shelter_r47_80189B0C, NULL },
-    { { .empty = D_shelter_r47_80189B1C }, D_shelter_r47_80189B1C, NULL },
-    { { .empty = D_shelter_r47_80189B2C }, D_shelter_r47_80189B2C, NULL },
-    { { .empty = D_shelter_r47_80189B3C }, D_shelter_r47_80189B3C, NULL },
-    { { .empty = D_shelter_r47_80189B4C }, D_shelter_r47_80189B4C, NULL },
-    { { .empty = D_shelter_r47_80189B5C }, D_shelter_r47_80189B5C, NULL },
-    { { .empty = D_shelter_r47_80189B6C }, D_shelter_r47_80189B6C, NULL },
-    { { .empty = D_shelter_r47_80189B7C }, D_shelter_r47_80189B7C, NULL },
-    { { .elements = D_shelter_r47_80189B8C }, D_shelter_r47_80189C40, NULL },
-    { { .empty = D_shelter_r47_80189C58 }, D_shelter_r47_80189C58, NULL },
+    { { .empty = _gShelterR47View37SpriteBatches }, _gShelterR47View37SpriteBatches, NULL },
+    { { .empty = _gShelterR47View38SpriteBatches }, _gShelterR47View38SpriteBatches, NULL },
+    { { .empty = _gShelterR47View39SpriteBatches }, _gShelterR47View39SpriteBatches, NULL },
+    { { .empty = _gShelterR47View40SpriteBatches }, _gShelterR47View40SpriteBatches, NULL },
+    { { .empty = _gShelterR47View41SpriteBatches }, _gShelterR47View41SpriteBatches, NULL },
+    { { .empty = _gShelterR47View42SpriteBatches }, _gShelterR47View42SpriteBatches, NULL },
+    { { .empty = _gShelterR47View43SpriteBatches }, _gShelterR47View43SpriteBatches, NULL },
+    { { .empty = _gShelterR47View44SpriteBatches }, _gShelterR47View44SpriteBatches, NULL },
+    { { .elements = _gShelterR47View45SpriteSources }, _gShelterR47View45SpriteBatches, NULL },
+    { { .empty = _gShelterR47View46SpriteBatches }, _gShelterR47View46SpriteBatches, NULL },
 };
 
 /// Nine room-owned point lights, composed and attenuated by gameplay in place.
@@ -1945,41 +2071,41 @@ WorldCollisionSurfaceProperties* gShelterR47SurfaceProperties[8] = {
     &_gShelterR47SilentSurfaceProperties,
 };
 
-AreaApplyRec D_shelter_r47_8018A638[21] = {
-    { 4, 9, 3, 1 },
-    { 4, 10, 3, 1 },
-    { 4, 11, 3, 1 },
-    { 4, 14, 3, 1 },
-    { 4, 15, 3, 17 },
-    { 4, 15, 7, 33 },
-    { 4, 17, 4, 17 },
-    { 4, 17, 7, 33 },
-    { 4, 19, 11, 33 },
-    { 4, 28, 2, 1 },
-    { 4, 29, 3, 1 },
-    { 4, 30, 4, 1 },
-    { 4, 32, 4, 1 },
-    { 4, 33, 4, 0 },
-    { 4, 34, 4, 1 },
-    { 4, 35, 4, 17 },
-    { 4, 35, 7, 33 },
-    { 4, 42, 2, 1 },
-    { 4, 43, 3, 1 },
-    { 4, 44, 3, 1 },
-    { 255, 0, 0, 0 },
+AreaApplyRec gShelterR47SavedAreaUpdates[21] = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STOREROOM, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 3, AREA_APPLY_MODE_REPLAY_SCAVENGER | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 4, AREA_APPLY_MODE_REPLAY_SCAVENGER | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 11, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, 2, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 4, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 4, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, 4, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_CLEAR },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 4, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 4, AREA_APPLY_MODE_REPLAY_SCAVENGER | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, 7, AREA_APPLY_MODE_BOUNTY_NIGHTMARE | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 2, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_LOWER_SEWER, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 3, AREA_APPLY_MODE_ALWAYS | SHELTER_R47_SAVED_AREA_MARK_SET },
+    { .stage = AREA_APPLY_END },
 };
 
 Task* gRoomCutsceneSoundTask = NULL;
 
-Task* D_shelter_r47_8018A690;
+Task* gShelterR47TerminalTask;
 
-u8 D_shelter_r47_8018A694;
+u8 gShelterR47ConsoleButtonFirstUseStarted;
 
-u8 D_shelter_r47_8018A695;
+u8 gShelterR47ConsoleRowFirstUseStarted;
 
-u8 D_shelter_r47_8018A696;
+u8 gShelterR47MapPreviousFirstUseStarted;
 
-u8 D_shelter_r47_8018A697;
+u8 gShelterR47MapNextFirstUseStarted;
 
 RoomCutsceneRec D_shelter_r47_8018A698;
 
@@ -2010,7 +2136,7 @@ static void _shelterR47MapTerminalInitTask(Task* task)
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer = taskSpawnFromTable(&D_shelter_r47_8018760C, 0, SHELTER_R47_MAP_CURSOR_PORT_0, 0);
+    task->spawnArg2.pointer = taskSpawnFromTable(&_gShelterR47MapTerminalPromptTaskDesc, 0, SHELTER_R47_MAP_CURSOR_PORT_0, 0);
     task->work              = work;
     task->state            += 1;
     displayAcquireMenuHold();
@@ -2206,19 +2332,19 @@ static void _shelterR47MapTerminalHandleHotspotTask(Task* task)
                     task->state = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
                     return;
                 }
-                if (D_shelter_r47_8018A696 == 0) {
+                if (gShelterR47MapPreviousFirstUseStarted == false) {
                     capStartSequenceSlot(SHELTER_R47_MAP_PREVIOUS_FIRST_USE_CAP_SLOT, 0, 0);
-                    D_shelter_r47_8018A696 = 1;
-                    task->state            = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
+                    gShelterR47MapPreviousFirstUseStarted = true;
+                    task->state                           = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
                     return;
                 }
                 _shelterR47MapTerminalLeavePage(task, work);
                 return;
             case SHELTER_R47_MAP_HOTSPOT_NEXT:
-                if (work->openMode == SHELTER_R47_MAP_MODE_USE && D_shelter_r47_8018A697 == 0) {
+                if (work->openMode == SHELTER_R47_MAP_MODE_USE && gShelterR47MapNextFirstUseStarted == false) {
                     capStartSequenceSlot(SHELTER_R47_MAP_NEXT_FIRST_USE_CAP_SLOT, 0, 0);
-                    D_shelter_r47_8018A697 = 1;
-                    task->state            = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
+                    gShelterR47MapNextFirstUseStarted = true;
+                    task->state                       = SHELTER_R47_MAP_STATE_SELECT_HOTSPOT;
                     return;
                 }
                 _shelterR47MapTerminalLeavePage(task, work);
@@ -2370,7 +2496,7 @@ static void _shelterR47MapTerminalTask(Task* task)
 {
     TaskFuncTable11 stateHandlers;
 
-    stateHandlers = D_shelter_r47_8017D7DC;
+    stateHandlers = _gShelterR47MapTerminalStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -2446,10 +2572,10 @@ static void _shelterR47MapTerminalOpenCommandsTask(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (work->openMode == SHELTER_R47_MAP_MODE_USE) {
-        if (work->hotspotId == SHELTER_R47_MAP_HOTSPOT_PREV && D_shelter_r47_8018A696 == 0) {
+        if (work->hotspotId == SHELTER_R47_MAP_HOTSPOT_PREV && gShelterR47MapPreviousFirstUseStarted == false) {
             work->promptKind = SHELTER_R47_MAP_COMMAND_EXAMINE;
         }
-        if (work->hotspotId == SHELTER_R47_MAP_HOTSPOT_NEXT && D_shelter_r47_8018A697 == 0) {
+        if (work->hotspotId == SHELTER_R47_MAP_HOTSPOT_NEXT && gShelterR47MapNextFirstUseStarted == false) {
             work->promptKind = SHELTER_R47_MAP_COMMAND_EXAMINE;
         }
     }
@@ -2632,27 +2758,27 @@ void shelterR47DrawViewGlowsTask(Task* unusedTask)
     mappedView = viewGetMappedIndex();
     switch (mappedView) {
         case SHELTER_R47_GLOW_VIEW_FULL:
-            _glowDrawDiamond(&D_shelter_r47_80187624[0], SHELTER_R47_GLOW_PULSE_RATE, SHELTER_R47_GLOW_PULSE_RADIUS_SCALE);
-            glowDrawDisc(&D_shelter_r47_80187624[1], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
-            glowDrawDisc(&D_shelter_r47_80187624[2], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
-            glowDrawDisc(&D_shelter_r47_80187624[3], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
-            glowDrawDisc(&D_shelter_r47_80187624[4], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
-            glowDrawDisc(&D_shelter_r47_80187624[5], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
-            glowDrawDisc(&D_shelter_r47_80187624[6], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL, SHELTER_R47_GLOW_COLOR_COOL_GREY);
-            glowDrawDisc(&D_shelter_r47_80187624[7], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_EXTRA_LARGE, SHELTER_R47_GLOW_COLOR_COOL_GREY);
-            _shelterR47DrawViewGlowPair(&D_shelter_r47_80187624[8]);
+            _glowDrawDiamond(&_gShelterR47ViewGlowCenters[0], SHELTER_R47_GLOW_PULSE_RATE, SHELTER_R47_GLOW_PULSE_RADIUS_SCALE);
+            glowDrawDisc(&_gShelterR47ViewGlowCenters[1], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&_gShelterR47ViewGlowCenters[2], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&_gShelterR47ViewGlowCenters[3], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&_gShelterR47ViewGlowCenters[4], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&_gShelterR47ViewGlowCenters[5], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_LARGE, SHELTER_R47_GLOW_COLOR_GREY);
+            glowDrawDisc(&_gShelterR47ViewGlowCenters[6], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+            glowDrawDisc(&_gShelterR47ViewGlowCenters[7], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_EXTRA_LARGE, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+            _shelterR47DrawViewGlowPair(&_gShelterR47ViewGlowCenters[8]);
             break;
         case SHELTER_R47_GLOW_VIEW_PAIR:
-            _shelterR47DrawViewGlowPair(&D_shelter_r47_80187624[8]);
+            _shelterR47DrawViewGlowPair(&_gShelterR47ViewGlowCenters[8]);
             break;
         case SHELTER_R47_GLOW_VIEW_PARTIAL:
-            _glowDrawDiamond(&D_shelter_r47_80187624[0], SHELTER_R47_GLOW_PULSE_RATE, SHELTER_R47_GLOW_PULSE_RADIUS_SCALE);
-            glowDrawDisc(&D_shelter_r47_80187624[6], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL, SHELTER_R47_GLOW_COLOR_COOL_GREY);
-            _shelterR47DrawViewGlowPair(&D_shelter_r47_80187624[8]);
+            _glowDrawDiamond(&_gShelterR47ViewGlowCenters[0], SHELTER_R47_GLOW_PULSE_RATE, SHELTER_R47_GLOW_PULSE_RADIUS_SCALE);
+            glowDrawDisc(&_gShelterR47ViewGlowCenters[6], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+            _shelterR47DrawViewGlowPair(&_gShelterR47ViewGlowCenters[8]);
             break;
         case SHELTER_R47_GLOW_VIEW_PULSING:
-            _glowDrawPulsingDisc(&D_shelter_r47_80187624[0], SHELTER_R47_GLOW_PULSE_RATE, SHELTER_R47_GLOW_PULSE_RADIUS_SCALE);
-            glowDrawDisc(&D_shelter_r47_80187624[6], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL, SHELTER_R47_GLOW_COLOR_COOL_GREY);
+            _glowDrawPulsingDisc(&_gShelterR47ViewGlowCenters[0], SHELTER_R47_GLOW_PULSE_RATE, SHELTER_R47_GLOW_PULSE_RADIUS_SCALE);
+            glowDrawDisc(&_gShelterR47ViewGlowCenters[6], SHELTER_R47_GLOW_DISC_RADIUS_SCALE_SMALL, SHELTER_R47_GLOW_COLOR_COOL_GREY);
             break;
     }
 }

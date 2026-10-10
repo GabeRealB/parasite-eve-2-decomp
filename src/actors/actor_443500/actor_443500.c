@@ -2658,8 +2658,7 @@ static void _actor443500RunPowerPlantProgressCap(void)
 /// The player is hidden and held even if the terminal task cannot be allocated.
 static void _actor443500OpenTimedMapTerminal(void)
 {
-    enum { ACTOR_443500_MAP_TERMINAL_TIMED = 1 };
-    taskSpawnFromTable(&D_shelter_r47_80187618, 0, ACTOR_443500_MAP_TERMINAL_TIMED, 0);
+    taskSpawnFromTable(&gShelterR47MapTerminalTaskDesc, 0, SHELTER_R47_MAP_MODE_TIMED, 0);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
 }
@@ -2713,7 +2712,7 @@ static void _actor443500StartCapCommand5(s16 variantKey)
 /// the appropriate layouts. Used by both normal and skip event scripts.
 static void _actor443500ApplyShelterAreaUpdates(void)
 {
-    areaApplySavedUpdates(D_shelter_r47_8018A638);
+    areaApplySavedUpdates(gShelterR47SavedAreaUpdates);
 }
 
 /// Stores the saved scene-event byte used to select stage music.

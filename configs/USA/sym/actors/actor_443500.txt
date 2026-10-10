@@ -454,11 +454,11 @@ _gActor443500TourOpeningPlayerAnimationSets = 0x80140E44; // size:0x2C defined:T
 _gActor443500TourOpeningPlayerBankExtension = 0x80140E70; // size:0x8 defined:True
 D_actor_443500_80140E78 = 0x80140E78; // size:0x14 defined:True
 
-D_shelter_r47_80187618 = 0x80187618; // absolute:True owner=shelter_r47
+gShelterR47MapTerminalTaskDesc = 0x80187618; // absolute:True owner=shelter_r47
 
 gShelterR47CollisionGrid = 0x8018828C; // absolute:True owner=shelter_r47
 
-D_shelter_r47_8018A638 = 0x8018A638; // absolute:True owner=shelter_r47
+gShelterR47SavedAreaUpdates = 0x8018A638; // absolute:True owner=shelter_r47
 _modelPlacementAttachChild = 0x80132594; // type:func
 actorMsgPlaceEuler = 0x80132900; // type:func
 _modelPlacementMirrorParentDrawFlags = 0x801326A0; // type:func

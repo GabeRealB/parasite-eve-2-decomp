@@ -591,16 +591,16 @@ static void _shelterR47InitializeRoomTask(Task* task)
         companionWriteAnimationBankIndex(&D_shelter_r47_80186F5C.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(companion, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
     }
-    D_shelter_r47_8018A690 = NULL;
+    gShelterR47TerminalTask = NULL;
     shelterR47ResetTerminalFirstUseEvents();
     taskSpawnFromTable(D_shelter_r47_80186F70, SHELTER_R47_AMBIENCE_TASK_INDEX, 0, 0);
     // Only one entry event should remain available for this story branch.
     if (gameFlagGetNibble(GAME_FLAG_083) == 1 || gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 1) {
-        WorldCollisionTrigger* initialEntryTrigger = &D_shelter_r47_8018787C[SHELTER_R47_INITIAL_ENTRY_TRIGGER];
+        WorldCollisionTrigger* initialEntryTrigger = &gShelterR47ActionTriggers[SHELTER_R47_INITIAL_ENTRY_TRIGGER];
 
         initialEntryTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     } else {
-        WorldCollisionTrigger* repeatEntryTrigger = &D_shelter_r47_8018787C[SHELTER_R47_REPEAT_ENTRY_TRIGGER];
+        WorldCollisionTrigger* repeatEntryTrigger = &gShelterR47ActionTriggers[SHELTER_R47_REPEAT_ENTRY_TRIGGER];
 
         repeatEntryTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
@@ -632,7 +632,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
         // Let each terminal release its hold before starting the next scripted phase.
         case SHELTER_R47_TOUR_OPEN_CONSOLE:
             if (gGameSession->eventState == 0) {
-                D_shelter_r47_8018A690 = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 1, 0);
+                gShelterR47TerminalTask = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 1, 0);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 sceneSetPlacedActorDrawMode(0, 0);
@@ -647,7 +647,7 @@ static void _shelterR47AdvanceTerminalTour(Task* unusedTask)
             break;
         case SHELTER_R47_TOUR_OPEN_MAP:
             if (gGameSession->eventState == 0) {
-                D_shelter_r47_8018A690 = taskSpawnFromTable(&D_shelter_r47_80187618, 0, SHELTER_R47_MAP_MODE_TOUR, 0);
+                gShelterR47TerminalTask = taskSpawnFromTable(&gShelterR47MapTerminalTaskDesc, 0, SHELTER_R47_MAP_MODE_TOUR, 0);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 sceneSetPlacedActorDrawMode(0, 0);
@@ -674,8 +674,8 @@ static inline void _shelterR47EnableRepeatEntryTrigger(void)
     WorldCollisionTrigger* initialEntryTrigger;
     WorldCollisionTrigger* repeatEntryTrigger;
 
-    initialEntryTrigger         = &D_shelter_r47_8018787C[SHELTER_R47_INITIAL_ENTRY_TRIGGER];
-    repeatEntryTrigger          = &D_shelter_r47_8018787C[SHELTER_R47_REPEAT_ENTRY_TRIGGER];
+    initialEntryTrigger         = &gShelterR47ActionTriggers[SHELTER_R47_INITIAL_ENTRY_TRIGGER];
+    repeatEntryTrigger          = &gShelterR47ActionTriggers[SHELTER_R47_REPEAT_ENTRY_TRIGGER];
     initialEntryTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     repeatEntryTrigger->flags  |= WORLD_COLLISION_TRIGGER_ENABLED;
 }
@@ -789,15 +789,15 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                 }
                 break;
             case SHELTER_R47_ACTION_OPEN_MAP:
-                tourMapTask            = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
-                D_shelter_r47_8018A690 = tourMapTask;
+                tourMapTask             = taskSpawnFromTable(&gShelterR47MapTerminalTaskDesc, 0, SHELTER_R47_MAP_MODE_USE, 0);
+                gShelterR47TerminalTask = tourMapTask;
                 if (tourMapTask != NULL) {
                     _shelterR47HideActorsForTourTerminal();
                 }
                 break;
             case SHELTER_R47_ACTION_OPEN_CONSOLE:
-                tourConsoleTask        = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
-                D_shelter_r47_8018A690 = tourConsoleTask;
+                tourConsoleTask         = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                gShelterR47TerminalTask = tourConsoleTask;
                 if (tourConsoleTask != NULL) {
                     _shelterR47HideActorsForTourTerminal();
                 }
@@ -822,15 +822,15 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                 break;
             case SHELTER_R47_ACTION_MAP_OR_TOUR_FOLLOWUP:
             case SHELTER_R47_ACTION_OPEN_MAP:
-                companionMapTask       = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
-                D_shelter_r47_8018A690 = companionMapTask;
+                companionMapTask        = taskSpawnFromTable(&gShelterR47MapTerminalTaskDesc, 0, SHELTER_R47_MAP_MODE_USE, 0);
+                gShelterR47TerminalTask = companionMapTask;
                 if (companionMapTask != NULL) {
                     _shelterR47HoldTerminalActors();
                 }
                 break;
             case SHELTER_R47_ACTION_OPEN_CONSOLE:
-                companionConsoleTask   = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
-                D_shelter_r47_8018A690 = companionConsoleTask;
+                companionConsoleTask    = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                gShelterR47TerminalTask = companionConsoleTask;
                 if (companionConsoleTask != NULL) {
                     _shelterR47HoldTerminalActors();
                 }
@@ -840,15 +840,15 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
         switch (request->actionId) {
             case SHELTER_R47_ACTION_MAP_OR_TOUR_FOLLOWUP:
             case SHELTER_R47_ACTION_OPEN_MAP:
-                mapTask                = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
-                D_shelter_r47_8018A690 = mapTask;
+                mapTask                 = taskSpawnFromTable(&gShelterR47MapTerminalTaskDesc, 0, SHELTER_R47_MAP_MODE_USE, 0);
+                gShelterR47TerminalTask = mapTask;
                 if (mapTask != NULL) {
                     _shelterR47HoldTerminalActors();
                 }
                 break;
             case SHELTER_R47_ACTION_OPEN_CONSOLE:
-                consoleTask            = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
-                D_shelter_r47_8018A690 = consoleTask;
+                consoleTask             = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                gShelterR47TerminalTask = consoleTask;
                 if (consoleTask != NULL) {
                     _shelterR47HoldTerminalActors();
                 }
@@ -1045,7 +1045,7 @@ static void _shelterR47PlayCapCommandTask(Task* task)
 
 /// Restores actors and player control after a terminal requests its exit.
 ///
-/// Requires a live non-NULL terminal in `D_shelter_r47_8018A690` with its exit
+/// Requires a live non-NULL terminal in `gShelterR47TerminalTask` with its exit
 /// handler loaded. Successful polling dispatches that exit before restoring the
 /// actors, clears the borrowed handle and kills this polling task. Variant 1
 /// also restores placed actor 0; a live companion is shown and released too.
@@ -1053,7 +1053,7 @@ static void _shelterR47RestoreActorsAfterTerminalTask(Task* task)
 {
     s32 terminalResult;
 
-    if (taskPollKill(D_shelter_r47_8018A690, &terminalResult) != 0) {
+    if (taskPollKill(gShelterR47TerminalTask, &terminalResult) != 0) {
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         if (gGameSession->location.loc.variant == 1) {
@@ -1063,7 +1063,7 @@ static void _shelterR47RestoreActorsAfterTerminalTask(Task* task)
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         }
-        D_shelter_r47_8018A690 = NULL;
+        gShelterR47TerminalTask = NULL;
         taskKill(task);
     }
 }
