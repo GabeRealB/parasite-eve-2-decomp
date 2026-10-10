@@ -78,10 +78,10 @@ enum {
     NEO_ARK_SUBSTATION_KEY_ITEM_UNUSABLE    = 0,
 };
 
-extern WorldCollisionGrid    D_neo_ark_substation_8017E8A4[1];
+static WorldCollisionGrid    _gNeoArkSubstationCollisionGrid;
 extern WorldCollisionTrigger D_neo_ark_substation_8017FC5C[12];
 extern WorldCollisionTrigger D_neo_ark_substation_8017FFEC[10];
-extern WorldCoordRoomLights  D_neo_ark_substation_8017FC44[1];
+static WorldCoordRoomLights  _gNeoArkSubstationRoomLights;
 
 TaskMessageEntry D_neo_ark_substation_8017E294[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSubstationResolveRoomEvent },
@@ -151,14 +151,14 @@ SVECTOR D_neo_ark_substation_8017E380[14] = {
 };
 
 WorldCollisionRoomResources D_neo_ark_substation_8017E3F0[1] = {
-    { D_neo_ark_substation_8017E8A4, D_neo_ark_substation_8017FC5C, D_neo_ark_substation_8017FFEC, NULL },
+    { &_gNeoArkSubstationCollisionGrid, D_neo_ark_substation_8017FC5C, D_neo_ark_substation_8017FFEC, NULL },
 };
 
-WorldCoordRoomLighting D_neo_ark_substation_8017E400[1] = {
-    { D_neo_ark_substation_8017FC44, NULL },
+WorldCoordRoomLighting gNeoArkSubstationRoomLighting[1] = {
+    { &_gNeoArkSubstationRoomLights, NULL },
 };
 
-u8* D_neo_ark_substation_8017E408[1] = {
+u8* gNeoArkSubstationViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -169,30 +169,52 @@ DirectionWarpEntry D_neo_ark_substation_8017E410[2] = {
     { { { .word = 3072 }, 3720, 0, -1580 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3720, 0, -1580 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkSubstationCollision012E4Normals[8] = {
+/// Room-space face normals for `_gNeoArkSubstationCollisionGrid`, with ONE for unit length.
+static SVECTOR _gNeoArkSubstationCollisionGridNormals[8] = {
 #include "assets/neo_ark_substation_collision_012E4_normals.inc"
 };
 
-static SVECTOR _gNeoArkSubstationCollision012E4Verts[42] = {
+/// Room-space vertices for `_gNeoArkSubstationCollisionGrid`, in signed game coordinates.
+static SVECTOR _gNeoArkSubstationCollisionGridVerts[42] = {
 #include "assets/neo_ark_substation_collision_012E4_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkSubstationCollision012E4Faces[25] = {
+/// Indexed room floor and wall faces, using surface classes 0, 3 and 4.
+static WorldCollisionGridFace _gNeoArkSubstationCollisionGridFaces[25] = {
 #include "assets/neo_ark_substation_collision_012E4_faces.inc"
 };
 
-static s16 _gNeoArkSubstationCollision012E4Cells[156] = {
+/// Packed cell face-index lists ending in WORLD_COLLISION_GRID_CELL_END.
+///
+/// Retains all 156 serialized halfwords, including words outside the indexed lists.
+static s16 _gNeoArkSubstationCollisionGridCells[156] = {
 #include "assets/neo_ark_substation_collision_012E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkSubstationCollision012E4Cells[i])
-static s16* _gNeoArkSubstationCollision012E4Table[12] = {
+// Bind the generated table's word offsets to this grid's cell-list storage.
+#define GRID_CELL(i) (&_gNeoArkSubstationCollisionGridCells[i])
+/// X-major 3-by-4 directory of face-index lists for the room collision grid.
+static s16* _gNeoArkSubstationCollisionGridTable[12] = {
 #include "assets/neo_ark_substation_collision_012E4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_substation_8017E8A4[1] = {
-    { NULL, _gNeoArkSubstationCollision012E4Normals, _gNeoArkSubstationCollision012E4Verts, _gNeoArkSubstationCollision012E4Faces, _gNeoArkSubstationCollision012E4Table, 100, 0x2EE0, 3, 4, 4000, 25 },
+/// The substation's floor and wall mesh and its 4000-unit XZ collision cells.
+///
+/// The grid origin is (-100, -12000) in room XZ. Activation borrows the current
+/// view coordinate; the descriptor and all mesh pools stay live with this overlay.
+static WorldCollisionGrid _gNeoArkSubstationCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkSubstationCollisionGridNormals,
+    .vertices    = _gNeoArkSubstationCollisionGridVerts,
+    .faces       = _gNeoArkSubstationCollisionGridFaces,
+    .cellFaceIds = _gNeoArkSubstationCollisionGridTable,
+    .xBias       = 100,
+    .zBias       = 12000,
+    .cellCountX  = 3,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkSubstationCollisionGridFaces),
 };
 
 ViewCamera D_neo_ark_substation_8017E8C8[8] = {
@@ -206,240 +228,271 @@ ViewCamera D_neo_ark_substation_8017E8C8[8] = {
     { { { { -3921, 0, 1182 }, { 817, 2960, 2710 }, { -854, 2830, -2834 } }, { -8751, 2868, 4999 } }, 246 },
 };
 
-SpriteBatch D_neo_ark_substation_8017E9E8[2] = {
+/// Encoded VRAM locations and neutral RGB modulation for the room's 8-bit sprite textures.
+enum {
+    NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE   = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE  = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    NEO_ARK_SUBSTATION_SPRITE_CLUT        = getClut(0, 255),
+    NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB = 128,
+};
+
+/// Empty view-1 drawing list; the zero first count keeps decoded background strips.
+static SpriteBatch _gNeoArkSubstationView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_substation_8017E9F8[45] = {
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -120, 304, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -88, 334, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -56, 391, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 120, -16, 478, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 120, 16, 379, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -120, 509, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -96, 531, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, -56, 407, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -24, 477, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 80, 56, 458, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, 16, 405, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 80, 88, 431, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 48, 470, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 56, 72, 443, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 48, 104, 423, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 64, 0, 403, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 48, -32, 554, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 56, -72, 615, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 56, -104, 532, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 40, 0, 435, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 32, 48, 470, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 32, 64, 451, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 24, 88, 434, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, 104, 422, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 24, 0, 413, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 0, -8, 412, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -32, -16, 431, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -56, -24, 428, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -72, -32, 439, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -88, -32, 445, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -104, -40, 452, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -120, -40, 460, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -136, -48, 453, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -48, 782, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 24, -104, 546, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 8, -112, 557, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -16, -112, 566, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -40, -120, 578, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -56, -120, 587, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -96, -120, 601, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -120, -120, 704, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -152, -120, 705, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -88, 632, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, -88, 648, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -160, 104, 425, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+/// View-2 texture rectangles in screen pixels, with unscaled sorting depths.
+static SpriteSource _gNeoArkSubstationView2SpriteSources[45] = {
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 40, 32 } }, 120, -120, 304, { .fields = { 0, 160 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 40, 32 } }, 120, -88, 334, { .fields = { 24, 192 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, -56, 391, { .fields = { 88, 144 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 32 } }, 120, -16, 478, { .fields = { 32, 128 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 40, 48 } }, 120, 16, 379, { .fields = { 88, 96 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, -120, 509, { .fields = { 8, 136 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, -96, 531, { .fields = { 72, 48 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 32 } }, 88, -56, 407, { .fields = { 40, 40 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, -24, 477, { .fields = { 64, 184 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 40, 32 } }, 80, 56, 458, { .fields = { 88, 224 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, 16, 405, { .fields = { 48, 88 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 32 } }, 80, 88, 431, { .fields = { 56, 224 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 64, 48, 470, { .fields = { 0, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, 56, 72, 443, { .fields = { 40, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 16 } }, 48, 104, 423, { .fields = { 88, 64 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 48 } }, 64, 0, 403, { .fields = { 112, 48 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, 48, -32, 554, { .fields = { 32, 224 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 40 } }, 56, -72, 615, { .fields = { 64, 128 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, 56, -104, 532, { .fields = { 8, 224 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 48 } }, 40, 0, 435, { .fields = { 104, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 16 } }, 32, 48, 470, { .fields = { 96, 24 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 32, 64, 451, { .fields = { 112, 88 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 16 } }, 24, 88, 434, { .fields = { 64, 168 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 16 } }, 16, 104, 422, { .fields = { 48, 72 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 24, 0, 413, { .fields = { 32, 104 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 0, -8, 412, { .fields = { 120, 64 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 32 } }, -32, -16, 431, { .fields = { 0, 104 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -56, -24, 428, { .fields = { 112, 136 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 32 } }, -72, -32, 439, { .fields = { 8, 32 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, -88, -32, 445, { .fields = { 120, 24 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 32 } }, -104, -40, 452, { .fields = { 24, 32 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, -120, -40, 460, { .fields = { 112, 112 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, -136, -48, 453, { .fields = { 112, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, -48, 782, { .fields = { 16, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 24 } }, 24, -104, 546, { .fields = { 96, 160 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 32 } }, 8, -112, 557, { .fields = { 8, 192 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -16, -112, 566, { .fields = { 112, 216 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, -40, -120, 578, { .fields = { 40, 160 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, -56, -120, 587, { .fields = { 120, 192 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 40, 16 } }, -96, -120, 601, { .fields = { 96, 48 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 40 } }, -120, -120, 704, { .fields = { 80, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 32 } }, -152, -120, 705, { .fields = { 16, 72 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, -88, 632, { .fields = { 64, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 40 } }, -144, -88, 648, { .fields = { 104, 184 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 16 } }, -160, 104, 425, { .fields = { 104, 240 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_substation_8017ED7C[3] = {
+/// View-2 drawing ranges: background strips, the full sprite array, then the end marker.
+static SpriteBatch _gNeoArkSubstationView2SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 45, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkSubstationView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_substation_8017ED94[75] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, -24, 300, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, -120, 303, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, -120, 309, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -120, -120, 313, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -96, -120, 305, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -104, 304, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -152, -80, 300, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -120, -80, 303, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, -88, 300, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, -64, 314, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, -64, 300, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -144, -64, 311, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, -64, 303, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -40, 322, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -40, 314, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, -40, 300, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, -16, 300, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 0, 315, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, 0, 321, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, 24, 309, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, 56, 301, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -144, 56, 292, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 64, 289, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 280, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 88, 367, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, 48, 299, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -72, 48, 309, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -48, 40, 313, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -24, 40, 318, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 32, 315, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 24, 32, 327, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 48, 24, 330, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, 24, 332, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 88, 16, 329, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, 16, 343, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 136, 8, 339, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -72, -120, 306, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, -112, 317, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -48, -120, 316, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, -112, 315, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -24, -120, 309, { .fields = { 80, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, -112, 309, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 0, -120, 301, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, -112, 317, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 24, -120, 745, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, -104, 755, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 56, -120, 300, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 80, -120, 757, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 104, -120, 307, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 128, -120, 311, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -72, -96, 314, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -72, -72, 312, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -48, -96, 300, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -48, -72, 306, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -24, -96, 300, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -24, -72, 493, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 0, -72, 324, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 0, -96, 300, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 24, -96, 317, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 24, -72, 314, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -96, 310, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 72, -96, 315, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, -96, 300, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 120, -96, 311, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 144, -96, 300, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 48, -72, 529, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, -72, 310, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 96, -72, 315, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 104, -56, 315, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 120, -72, 300, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 144, -72, 300, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 120, -48, 300, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -48, 300, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 0, 300, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -24, 300, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
+/// View-3 texture rectangles in screen pixels, with unscaled sorting depths.
+static SpriteSource _gNeoArkSubstationView3SpriteSources[75] = {
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 8 } }, 128, -24, 300, { .fields = { 96, 72 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 16 } }, -160, -120, 303, { .fields = { 88, 184 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 40 } }, -144, -120, 309, { .fields = { 104, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 40 } }, -120, -120, 313, { .fields = { 104, 120 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 16 } }, -96, -120, 305, { .fields = { 88, 240 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, -104, 304, { .fields = { 120, 240 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 16 } }, -152, -80, 300, { .fields = { 88, 240 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 16 } }, -120, -80, 303, { .fields = { 88, 112 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, -88, 300, { .fields = { 0, 72 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, -64, 314, { .fields = { 8, 48 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -120, -64, 300, { .fields = { 0, 120 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -144, -64, 311, { .fields = { 40, 232 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, -64, 303, { .fields = { 32, 56 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 40 } }, -160, -40, 322, { .fields = { 88, 200 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 40 } }, -136, -40, 314, { .fields = { 88, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -120, -40, 300, { .fields = { 16, 224 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 40 } }, -112, -16, 300, { .fields = { 96, 80 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 40 } }, -160, 0, 315, { .fields = { 104, 40 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 40 } }, -136, 0, 321, { .fields = { 112, 80 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, -120, 24, 309, { .fields = { 64, 184 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, -120, 56, 301, { .fields = { 64, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, -144, 56, 292, { .fields = { 64, 216 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, 64, 289, { .fields = { 8, 96 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, 88, 280, { .fields = { 48, 136 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 32 } }, -128, 88, 367, { .fields = { 48, 104 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, -96, 48, 299, { .fields = { 56, 32 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, -72, 48, 309, { .fields = { 80, 120 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 40 } }, -48, 40, 313, { .fields = { 104, 160 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, -24, 40, 318, { .fields = { 80, 152 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, 0, 32, 315, { .fields = { 72, 72 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, 24, 32, 327, { .fields = { 80, 40 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 40 } }, 48, 24, 330, { .fields = { 112, 200 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, 64, 24, 332, { .fields = { 40, 200 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, 88, 16, 329, { .fields = { 48, 64 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, 112, 16, 343, { .fields = { 40, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 32 } }, 136, 8, 339, { .fields = { 40, 168 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 8 } }, -72, -120, 306, { .fields = { 48, 96 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, -112, 317, { .fields = { 40, 152 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, -120, 316, { .fields = { 80, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, -112, 315, { .fields = { 112, 240 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 8 } }, -24, -120, 309, { .fields = { 80, 8 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, -112, 309, { .fields = { 80, 104 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, -120, 301, { .fields = { 16, 248 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, -112, 317, { .fields = { 64, 168 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 24, -120, 745, { .fields = { 24, 200 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, -104, 755, { .fields = { 0, 192 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, -120, 300, { .fields = { 120, 144 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, -120, 757, { .fields = { 120, 168 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 104, -120, 307, { .fields = { 96, 168 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 128, -120, 311, { .fields = { 88, 48 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -72, -96, 314, { .fields = { 96, 144 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -72, -72, 312, { .fields = { 120, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -48, -96, 300, { .fields = { 120, 224 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -48, -72, 306, { .fields = { 112, 48 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -24, -96, 300, { .fields = { 104, 72 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, -24, -72, 493, { .fields = { 120, 24 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 0, -72, 324, { .fields = { 112, 96 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 0, -96, 300, { .fields = { 24, 104 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 24, -96, 317, { .fields = { 24, 128 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 24, -72, 314, { .fields = { 16, 152 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 48, -96, 310, { .fields = { 32, 32 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 72, -96, 315, { .fields = { 16, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 96, -96, 300, { .fields = { 0, 200 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 120, -96, 311, { .fields = { 104, 192 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 144, -96, 300, { .fields = { 104, 216 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 16 } }, 48, -72, 529, { .fields = { 80, 128 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 8 } }, 80, -72, 310, { .fields = { 72, 248 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 16 } }, 96, -72, 315, { .fields = { 88, 96 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 104, -56, 315, { .fields = { 104, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 120, -72, 300, { .fields = { 96, 24 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_LEFT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 144, -72, 300, { .fields = { 112, 120 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 120, -48, 300, { .fields = { 16, 176 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 24 } }, 144, -48, 300, { .fields = { 16, 24 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 0, 300, { .fields = { 0, 248 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, -24, 300, { .fields = { 24, 80 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_substation_8017F370[3] = {
+/// View-3 drawing ranges: background strips, the full sprite array, then the end marker.
+static SpriteBatch _gNeoArkSubstationView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 75, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkSubstationView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_substation_8017F388[19] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -64, 555, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, -32, 666, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -112, -104, 581, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, -88, 547, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, -96, 548, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -112, -80, 611, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, -120, 575, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, -104, 807, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -48, -72, 898, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, -72, 675, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -40, -56, 1003, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, -32, 811, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, -48, 700, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, -32, 550, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -112, -40, 721, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -112, -48, 705, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -112, -56, 659, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, -64, 588, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -112, -72, 651, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+/// View-4 texture rectangles in screen pixels, with unscaled sorting depths.
+static SpriteSource _gNeoArkSubstationView4SpriteSources[19] = {
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 8 } }, -112, -64, 555, { .fields = { 112, 104 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 8 } }, -64, -32, 666, { .fields = { 112, 112 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 56, 8 } }, -112, -104, 581, { .fields = { 64, 48 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 8 } }, -88, -88, 547, { .fields = { 88, 40 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 32, 8 } }, -88, -96, 548, { .fields = { 88, 32 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 56, 8 } }, -112, -80, 611, { .fields = { 64, 24 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 48 } }, -56, -120, 575, { .fields = { 120, 104 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 32 } }, -48, -104, 807, { .fields = { 120, 192 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 40 } }, -48, -72, 898, { .fields = { 120, 152 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 24 } }, -56, -72, 675, { .fields = { 112, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 56 } }, -40, -56, 1003, { .fields = { 120, 0 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 32 } }, -48, -32, 811, { .fields = { 120, 224 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 8, 48 } }, -56, -48, 700, { .fields = { 120, 56 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 8 } }, -112, -32, 550, { .fields = { 96, 56 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 56, 8 } }, -112, -40, 721, { .fields = { 64, 64 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 56, 8 } }, -112, -48, 705, { .fields = { 64, 72 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 56, 8 } }, -112, -56, 659, { .fields = { 64, 80 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 24, 8 } }, -80, -64, 588, { .fields = { 96, 88 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_SUBSTATION_SPRITE_RIGHT_PAGE, NEO_ARK_SUBSTATION_SPRITE_CLUT, { .fields = { 56, 8 } }, -112, -72, 651, { .fields = { 64, 96 } }, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, NEO_ARK_SUBSTATION_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_substation_8017F504[3] = {
+/// View-4 drawing ranges: background strips, the full sprite array, then the end marker.
+static SpriteBatch _gNeoArkSubstationView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 19, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkSubstationView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_substation_8017F51C[2] = {
+/// Empty view-5 drawing list retaining decoded background strips independently of clipping.
+static SpriteBatch _gNeoArkSubstationView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_neo_ark_substation_8017F52C[2] = {
+/// View-5 scene clip in draw-buffer pixels, restoring full-screen drawing at depth 975.
+static SpriteDrawArea _gNeoArkSubstationView5DrawAreas[2] = {
     { { 0, 0, 194, 186 }, 975 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteBatch D_neo_ark_substation_8017F540[2] = {
+/// Empty view-6 drawing list retaining decoded background strips independently of clipping.
+static SpriteBatch _gNeoArkSubstationView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_neo_ark_substation_8017F550[2] = {
+/// View-6 scene clip in draw-buffer pixels, restoring full-screen drawing at depth 1075.
+static SpriteDrawArea _gNeoArkSubstationView6DrawAreas[2] = {
     { { 136, 0, 184, 172 }, 1075 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteBatch D_neo_ark_substation_8017F564[2] = {
+/// Empty view-7 drawing list; the zero first count keeps decoded background strips.
+static SpriteBatch _gNeoArkSubstationView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_substation_8017F574[2] = {
+/// Empty view-8 drawing list; the zero first count keeps decoded background strips.
+static SpriteBatch _gNeoArkSubstationView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_substation_8017F584[8] = {
-    { { .empty = D_neo_ark_substation_8017E9E8 }, D_neo_ark_substation_8017E9E8, NULL },
-    { { .elements = D_neo_ark_substation_8017E9F8 }, D_neo_ark_substation_8017ED7C, NULL },
-    { { .elements = D_neo_ark_substation_8017ED94 }, D_neo_ark_substation_8017F370, NULL },
-    { { .elements = D_neo_ark_substation_8017F388 }, D_neo_ark_substation_8017F504, NULL },
-    { { .empty = D_neo_ark_substation_8017F51C }, D_neo_ark_substation_8017F51C, D_neo_ark_substation_8017F52C },
-    { { .empty = D_neo_ark_substation_8017F540 }, D_neo_ark_substation_8017F540, D_neo_ark_substation_8017F550 },
-    { { .empty = D_neo_ark_substation_8017F564 }, D_neo_ark_substation_8017F564, NULL },
-    { { .empty = D_neo_ark_substation_8017F574 }, D_neo_ark_substation_8017F574, NULL },
+SpriteView gNeoArkSubstationSpriteViews[8] = {
+    { { .empty = _gNeoArkSubstationView1SpriteBatches }, _gNeoArkSubstationView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubstationView2SpriteSources }, _gNeoArkSubstationView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubstationView3SpriteSources }, _gNeoArkSubstationView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubstationView4SpriteSources }, _gNeoArkSubstationView4SpriteBatches, NULL },
+    { { .empty = _gNeoArkSubstationView5SpriteBatches }, _gNeoArkSubstationView5SpriteBatches, _gNeoArkSubstationView5DrawAreas },
+    { { .empty = _gNeoArkSubstationView6SpriteBatches }, _gNeoArkSubstationView6SpriteBatches, _gNeoArkSubstationView6DrawAreas },
+    { { .empty = _gNeoArkSubstationView7SpriteBatches }, _gNeoArkSubstationView7SpriteBatches, NULL },
+    { { .empty = _gNeoArkSubstationView8SpriteBatches }, _gNeoArkSubstationView8SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_substation_8017F5E4[17] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7420, -220, -60 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 1001, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5500, -220, -60 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 1021, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3500, -220, -60 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -220, -60 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3500, -2370, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2252, 2867, 3276 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4000, -1300, -0x2904 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1925, 2048 }, { 0, 0 } }, 1500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1690, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3891, 3686 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7500, -1690, -6500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3891, 3686 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8560, -2060, -7500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8560, -2060, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -2370, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2252, 2867, 3276 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8920, -220, -1386 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 1038, 1600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8920, -220, -3500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 580, 2261 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8920, -220, -5500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8920, -220, -7320 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 1882, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8560, -2060, -3500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 3891, 4096 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8560, -2060, -5500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, 4096 }, { 0, 0 } }, 500, 1000 },
+/// Authored world-space point lights shared by every substation view.
+///
+/// RGB uses ONE for full intensity; inner/outer falloff distances use world units.
+/// Gameplay binds and composes these mutable transforms and overwrites attenuation.
+static WorldCoordPointLight _gNeoArkSubstationPointLights[17] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7420, -220, -60 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 1001, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5500, -220, -60 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 1021, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3500, -220, -60 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1500, -220, -60 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3500, -2370, -1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2252, 2867, 3276 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4000, -1300, -0x2904 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1925, 2048 }, { 0, 0 } }, 1500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1690, -1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3891, 3686 }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7500, -1690, -6500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3891, 3686 }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8560, -2060, -7500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8560, -2060, -1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1500, -2370, -1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2252, 2867, 3276 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8920, -220, -1386 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 1038, 1600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8920, -220, -3500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 580, 2261 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8920, -220, -5500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8920, -220, -7320 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 1882, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8560, -2060, -3500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 3891, ONE }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8560, -2060, -5500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3072, 3686, ONE }, { 0, 0 } }, 500, 1000 },
 };
 
-WorldCoordRoomLights D_neo_ark_substation_8017FC44[1] = {
-    { 0, NULL, ARRAY_SIZE(D_neo_ark_substation_8017F5E4), D_neo_ark_substation_8017F5E4, 0, NULL },
+/// The room's complete 17-point-light collection, with no directional or cone lights.
+static WorldCoordRoomLights _gNeoArkSubstationRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkSubstationPointLights),
+    .pointLights           = _gNeoArkSubstationPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_neo_ark_substation_8017FC5C[12] = {
@@ -470,49 +523,86 @@ WorldCollisionTrigger D_neo_ark_substation_8017FFEC[10] = {
     { NULL, NULL, NULL, { 1936, -64, -2720, 0 }, { { -2064, 0, -336, 0 }, { 2064, 0, -336, 0 }, { -2064, 0, 336, 0 }, { 2064, 0, 336, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 2079, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_substation_801802E4 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Cue-2 type-1 script bases; cue 1 uses the following entry in the loaded bank.
+enum {
+    NEO_ARK_SUBSTATION_SURFACE_3_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    NEO_ARK_SUBSTATION_SURFACE_3_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
+    NEO_ARK_SUBSTATION_SURFACE_4_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    NEO_ARK_SUBSTATION_SURFACE_4_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
+    NEO_ARK_SUBSTATION_SURFACE_2_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    NEO_ARK_SUBSTATION_SURFACE_2_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    NEO_ARK_SUBSTATION_SURFACE_2_JUMP_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_substation_801802F0 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Footstep cues for grid surface class 3; scripted jumps reuse the walking pair.
+static WorldCollisionFootstepSounds _gNeoArkSubstationSurface3FootstepSounds = {
+    .walk         = NEO_ARK_SUBSTATION_SURFACE_3_WALK_CUE_BASE,
+    .run          = NEO_ARK_SUBSTATION_SURFACE_3_RUN_CUE_BASE,
+    .scriptedJump = NEO_ARK_SUBSTATION_SURFACE_3_WALK_CUE_BASE,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_substation_801802FC = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Footstep cues for grid surface class 4; scripted jumps reuse the walking pair.
+static WorldCollisionFootstepSounds _gNeoArkSubstationSurface4FootstepSounds = {
+    .walk         = NEO_ARK_SUBSTATION_SURFACE_4_WALK_CUE_BASE,
+    .run          = NEO_ARK_SUBSTATION_SURFACE_4_RUN_CUE_BASE,
+    .scriptedJump = NEO_ARK_SUBSTATION_SURFACE_4_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_substation_80180308[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep cues for surface class 2, selected by the ascending stair trigger.
+///
+/// Scripted stair movement uses the jump pair; walking and running retain their
+/// authored cue bases for any non-scripted movement while class 2 is current.
+static WorldCollisionFootstepSounds _gNeoArkSubstationSurface2FootstepSounds = {
+    .walk         = NEO_ARK_SUBSTATION_SURFACE_2_WALK_CUE_BASE,
+    .run          = NEO_ARK_SUBSTATION_SURFACE_2_RUN_CUE_BASE,
+    .scriptedJump = NEO_ARK_SUBSTATION_SURFACE_2_JUMP_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_substation_80180310[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_substation_801802FC },
+/// Shared blocking surface policy for classes 0, 1 and 5..7, with no footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkSubstationSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_substation_80180318[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_substation_801802E4 },
+/// Blocking surface policy and stair footstep cues for surface class 2.
+static WorldCollisionSurfaceProperties _gNeoArkSubstationSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkSubstationSurface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_substation_80180320[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_substation_801802F0 },
+/// Probe-passable surface policy and footstep cues for grid surface class 3.
+static WorldCollisionSurfaceProperties _gNeoArkSubstationSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkSubstationSurface3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[8] = {
-    D_neo_ark_substation_80180308,
-    D_neo_ark_substation_80180308,
-    D_neo_ark_substation_80180310,
-    D_neo_ark_substation_80180318,
-    D_neo_ark_substation_80180320,
-    D_neo_ark_substation_80180308,
-    D_neo_ark_substation_80180308,
-    D_neo_ark_substation_80180308,
+/// Blocking surface policy and footstep cues for grid surface class 4.
+static WorldCollisionSurfaceProperties _gNeoArkSubstationSurface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkSubstationSurface4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkSubstationSurfaceProperties[8] = {
+    &_gNeoArkSubstationSilentSurfaceProperties,
+    &_gNeoArkSubstationSilentSurfaceProperties,
+    &_gNeoArkSubstationSurface2Properties,
+    &_gNeoArkSubstationSurface3Properties,
+    &_gNeoArkSubstationSurface4Properties,
+    &_gNeoArkSubstationSilentSurfaceProperties,
+    &_gNeoArkSubstationSilentSurfaceProperties,
+    &_gNeoArkSubstationSilentSurfaceProperties,
 };
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);

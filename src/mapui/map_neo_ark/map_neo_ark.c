@@ -600,7 +600,7 @@ WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[33] = {
     D_map_neo_ark_8017A9EC,
     D_map_neo_ark_8017A9F4,
     gNeoArkPyramidRoomLighting,
-    D_neo_ark_substation_8017E400,
+    gNeoArkSubstationRoomLighting,
 };
 
 DirectionWarpEntry* D_map_neo_ark_8017AA80[33] = {
@@ -822,7 +822,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
     gNeoArkSubmarineGalleryViewMaps,
     gNeoArkR31ViewMaps,
     gNeoArkPyramidViewMaps,
-    D_neo_ark_substation_8017E408,
+    gNeoArkSubstationViewMaps,
 };
 
 ViewIndexTable D_map_neo_ark_8017ADB0 = { D_map_neo_ark_8017AD2C };
@@ -860,7 +860,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     gNeoArkSubmarineGallerySpriteViews,
     D_neo_ark_r31_8017DAF8,
     gNeoArkPyramidSpriteViews,
-    D_neo_ark_substation_8017F584,
+    gNeoArkSubstationSpriteViews,
 };
 
 SpriteAreaTable D_map_neo_ark_8017AE38 = { D_map_neo_ark_8017ADB4 };
@@ -898,7 +898,7 @@ WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     gNeoArkSubmarineGallerySurfacePropertiesByClass,
     gNeoArkR31SurfacePropertiesByClass,
     gNeoArkPyramidSurfaceProperties,
-    D_neo_ark_substation_80180328,
+    gNeoArkSubstationSurfaceProperties,
 };
 
 AreaPlacement D_map_neo_ark_8017AEC0[1] = {

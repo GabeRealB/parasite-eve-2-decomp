@@ -13,9 +13,20 @@
 // neo_ark_substation
 extern WorldCollisionRoomResources D_neo_ark_substation_8017E3F0[];
 
-extern WorldCoordRoomLighting D_neo_ark_substation_8017E400[];
+/// Lighting for the substation's sole room, indexed by room ID minus one.
+///
+/// Borrows 17 mutable point lights in every view; no directional or cone lights.
+/// A NULL ambient table selects the gameplay default ambient minima.
+/// The record and its lights remain valid only while this overlay is loaded.
+extern WorldCoordRoomLighting gNeoArkSubstationRoomLighting[1];
 
-extern u8* D_neo_ark_substation_8017E408[];
+/// Logical-view map directory for the substation's sole room.
+///
+/// Entry zero borrows `gViewIdentityMap`: logical views 1..8 select the same
+/// camera, image and sprite indices. The shared map has a larger capacity;
+/// this room's count and resource arrays limit valid views to 1..8.
+/// The directory remains valid only while this overlay is loaded.
+extern u8* gNeoArkSubstationViewMaps[1];
 
 extern ViewCount D_neo_ark_substation_8017E40C[];
 
@@ -23,9 +34,22 @@ extern DirectionWarpEntry D_neo_ark_substation_8017E410[];
 
 extern ViewCamera D_neo_ark_substation_8017E8C8[];
 
-extern SpriteView D_neo_ark_substation_8017F584[];
+/// Sprite and clipping resources for the substation's eight mapped views.
+///
+/// Index by mapped view minus one. Views 2..4 supply 45, 75 and 19 sprites;
+/// all first batches have zero count, preserving the decoded background strips.
+/// Views 5 and 6 clip scene drawing despite having no source sprites.
+/// Records and borrowed lists remain valid only while this overlay is loaded.
+extern SpriteView gNeoArkSubstationSpriteViews[8];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[];
+/// Collision and footstep policies indexed by the substation's surface class 0..7.
+///
+/// Classes 0, 1 and 5..7 share a blocking record without footstep cues.
+/// Class 2 supplies stair cues, class 3 passes probes, and class 4 blocks them.
+/// Every class allows weapon impacts and applies pushback. Grid faces use
+/// classes 0, 3 and 4; the ascending stair trigger selects class 2.
+/// The directory and borrowed records require this overlay to remain loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkSubstationSurfaceProperties[8];
 
 /// Draws the substation's flickering light glows for the current mapped view.
 ///
