@@ -11,24 +11,53 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_south_maintenance_walkway_80183598[12];
+/// Saved placement variants for this room, indexed directly by variant (0..11).
+///
+/// Live slots are 1 (Watchers/Rats), 2 (Mossbacks/Amoebas), 3 (Amoebas/Caterpillars)
+/// and 11 (Watchers/Pawn GOLEM); all other slots contain two NULL pointers.
+/// Placements and resource recipes belong to this room overlay and must remain
+/// loaded while actors borrow them. Gameplay associates these variants with
+/// this area's saved spawn state.
+extern AreaVariant gShelterB1SouthMaintenanceWalkwayAreaVariants[12];
 
-// shelter_b1_south_maintenance_walkway
-extern WorldCoordRoomLighting D_shelter_b1_south_maintenance_walkway_801823F4[];
+/// Room 1's six point lights, with the default minimum ambient colours.
+///
+/// Indexed by room minus one. The map borrows this descriptor; lighting updates
+/// its room-owned light transforms and attenuation while this overlay is loaded.
+extern WorldCoordRoomLighting gShelterB1SouthMaintenanceWalkwayRoomLighting[1];
 
 extern WorldCollisionRoomResources D_shelter_b1_south_maintenance_walkway_801823FC[];
 
-extern u8* D_shelter_b1_south_maintenance_walkway_8018240C[];
+/// Room 1's logical-view map, borrowing gameplay's identity mapping.
+///
+/// Indexed by room minus one, then logical view minus one. Views 1..5 map to
+/// camera/image/sprite indices 1..5; the shared map's capacity is independent
+/// of this room's five-view count. The directory stays live with this overlay.
+extern u8* gShelterB1SouthMaintenanceWalkwayRoomViewMaps[1];
 
 extern ViewCount D_shelter_b1_south_maintenance_walkway_80182410[];
 
 extern DirectionWarpEntry D_shelter_b1_south_maintenance_walkway_80182414[];
 
-extern ViewCamera D_shelter_b1_south_maintenance_walkway_801827DC[];
+/// The five mapped-view cameras, indexed by mapped view minus one.
+///
+/// Rotations use ONE (4096) per unit, translations are negated world origins,
+/// and each projection distance is 235 pixels. Borrowed while this room is loaded.
+extern ViewCamera gShelterB1SouthMaintenanceWalkwayViewCameras[5];
 
-extern SpriteView D_shelter_b1_south_maintenance_walkway_80182E18[];
+/// Sprite lists for mapped views 1..5, indexed by mapped view minus one.
+///
+/// View 4 selects 66 source sprites; the other views select none. Every view
+/// keeps decoded backdrop strips and has no clipping-area list. The records
+/// and their mutable batches and sources stay live with this room overlay.
+extern SpriteView gShelterB1SouthMaintenanceWalkwaySpriteViews[5];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_south_maintenance_walkway_80183614[];
+/// Collision policies for surface classes 0..7, indexed directly by class.
+///
+/// All classes block probes, apply pushback and allow weapon impacts. Only
+/// class 1, used by the two floor faces, supplies footstep cues. The map borrows
+/// this directory and its room-owned records while the overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB1SouthMaintenanceWalkwaySurfacePropertiesByClass[8];
 
 /// Runs this room's persistent message receiver.
 ///

@@ -67,20 +67,16 @@ extern TaskDesc D_shelter_b1_south_maintenance_walkway_801822FC;
 /// The room's message table.
 extern TaskMessageEntry D_shelter_b1_south_maintenance_walkway_80182308[];
 
-/// Points the room task draws its glows and discs at, depending on the view:
-/// ten pairs of glow end points followed by the centre of the red disc.
-extern SVECTOR D_shelter_b1_south_maintenance_walkway_80182330[];
-
 /// Spawn payload of the task 0x31 the event task may start.
 extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-extern WorldCollisionGrid     D_shelter_b1_south_maintenance_walkway_801827B8[1];
+static WorldCollisionGrid     _gShelterB1SouthMaintenanceWalkwayCollisionGrid;
 extern WorldCollisionOccluder D_shelter_b1_south_maintenance_walkway_80183274[1];
 extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801830AC[6];
 extern WorldCollisionTrigger  D_shelter_b1_south_maintenance_walkway_801832B0[2];
-extern WorldCoordRoomLights   D_shelter_b1_south_maintenance_walkway_80183094[1];
+static WorldCoordRoomLights   _gShelterB1SouthMaintenanceWalkwayRoomLights;
 static s32                    _shelterB1SouthMaintenanceWalkwayResolveDepartureMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32                    _shelterB1SouthMaintenanceWalkwayRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32                    _shelterB1SouthMaintenanceWalkwayIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
@@ -98,27 +94,26 @@ TaskMessageEntry D_shelter_b1_south_maintenance_walkway_80182308[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_b1_south_maintenance_walkway_80182330[21] = {
-    { 894, -196, 3102, 0 },
-    { 894, -196, 2264, 0 },
-    { 894, -196, 404, 0 },
-    { 894, -196, -385, 0 },
-    { 894, -196, -2032, 0 },
-    { 894, -196, -2645, 0 },
-    { 3102, -196, 3102, 0 },
-    { 3102, -196, 2264, 0 },
-    { 3102, -196, 404, 0 },
-    { 3102, -196, -385, 0 },
-    { 3102, -196, -2032, 0 },
-    { 3102, -196, -2645, 0 },
-    { 650, -196, -2895, 0 },
-    { -31, -196, -2895, 0 },
-    { 600, -196, -5113, 0 },
-    { -45, -196, -5113, 0 },
-    { -1556, -196, -2895, 0 },
-    { -2498, -196, -2895, 0 },
-    { -1556, -196, -5113, 0 },
-    { -2498, -196, -5113, 0 },
+/// World-space anchors for the room's view-selected capsule glows and red disc.
+///
+/// Capsule endpoints use signed game-coordinate units. The drawers borrow
+/// these positions without modifying them; storage lasts with the room overlay.
+static struct {
+    SVECTOR capsuleEndpoints[10][2]; // Two world points per capsule
+    SVECTOR redDiscCenter;           // Disc position, visible in views 4 and 5
+} _gShelterB1SouthMaintenanceWalkwayGlowGeometry = {
+    {
+        { { 894, -196, 3102, 0 }, { 894, -196, 2264, 0 } },
+        { { 894, -196, 404, 0 }, { 894, -196, -385, 0 } },
+        { { 894, -196, -2032, 0 }, { 894, -196, -2645, 0 } },
+        { { 3102, -196, 3102, 0 }, { 3102, -196, 2264, 0 } },
+        { { 3102, -196, 404, 0 }, { 3102, -196, -385, 0 } },
+        { { 3102, -196, -2032, 0 }, { 3102, -196, -2645, 0 } },
+        { { 650, -196, -2895, 0 }, { -31, -196, -2895, 0 } },
+        { { 600, -196, -5113, 0 }, { -45, -196, -5113, 0 } },
+        { { -1556, -196, -2895, 0 }, { -2498, -196, -2895, 0 } },
+        { { -1556, -196, -5113, 0 }, { -2498, -196, -5113, 0 } },
+    },
     { 763, -1283, -2117, 0 },
 };
 
@@ -126,15 +121,15 @@ SVECTOR D_shelter_b1_south_maintenance_walkway_80182330[21] = {
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-WorldCoordRoomLighting D_shelter_b1_south_maintenance_walkway_801823F4[1] = {
-    { D_shelter_b1_south_maintenance_walkway_80183094, NULL },
+WorldCoordRoomLighting gShelterB1SouthMaintenanceWalkwayRoomLighting[1] = {
+    { &_gShelterB1SouthMaintenanceWalkwayRoomLights, NULL },
 };
 
 WorldCollisionRoomResources D_shelter_b1_south_maintenance_walkway_801823FC[1] = {
-    { D_shelter_b1_south_maintenance_walkway_801827B8, D_shelter_b1_south_maintenance_walkway_801830AC, D_shelter_b1_south_maintenance_walkway_801832B0, D_shelter_b1_south_maintenance_walkway_80183274 },
+    { &_gShelterB1SouthMaintenanceWalkwayCollisionGrid, D_shelter_b1_south_maintenance_walkway_801830AC, D_shelter_b1_south_maintenance_walkway_801832B0, D_shelter_b1_south_maintenance_walkway_80183274 },
 };
 
-u8* D_shelter_b1_south_maintenance_walkway_8018240C[1] = {
+u8* gShelterB1SouthMaintenanceWalkwayRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -145,155 +140,198 @@ DirectionWarpEntry D_shelter_b1_south_maintenance_walkway_80182414[2] = {
     { { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, 0x540A0004, 0x540A0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1AE },
 };
 
-static SVECTOR _gShelterB1SouthMaintenanceWalkwayCollision051F8Normals[14] = {
+/// Room-local collision normals, with ONE representing unit length.
+static SVECTOR _gShelterB1SouthMaintenanceWalkwayCollisionGridNormals[14] = {
 #include "assets/shelter_b1_south_maintenance_walkway_collision_051F8_normals.inc"
 };
 
-static SVECTOR _gShelterB1SouthMaintenanceWalkwayCollision051F8Verts[38] = {
+/// Room-local collision vertices in signed game-coordinate units.
+static SVECTOR _gShelterB1SouthMaintenanceWalkwayCollisionGridVerts[38] = {
 #include "assets/shelter_b1_south_maintenance_walkway_collision_051F8_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1SouthMaintenanceWalkwayCollision051F8Faces[18] = {
+/// Indexed room mesh: class 1 is the floor; the other faces use class 0.
+static WorldCollisionGridFace _gShelterB1SouthMaintenanceWalkwayCollisionGridFaces[18] = {
 #include "assets/shelter_b1_south_maintenance_walkway_collision_051F8_faces.inc"
 };
 
-static s16 _gShelterB1SouthMaintenanceWalkwayCollision051F8Cells[82] = {
+/// Six signed face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB1SouthMaintenanceWalkwayCollisionGridCells[82] = {
 #include "assets/shelter_b1_south_maintenance_walkway_collision_051F8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1SouthMaintenanceWalkwayCollision051F8Cells[i])
-static s16* _gShelterB1SouthMaintenanceWalkwayCollision051F8Table[6] = {
+#define GRID_CELL(i) (&_gShelterB1SouthMaintenanceWalkwayCollisionGridCells[i])
+/// X-major directory for the grid's two X cells and three Z cells.
+static s16* _gShelterB1SouthMaintenanceWalkwayCollisionGridTable[6] = {
 #include "assets/shelter_b1_south_maintenance_walkway_collision_051F8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_south_maintenance_walkway_801827B8[1] = {
-    { NULL, _gShelterB1SouthMaintenanceWalkwayCollision051F8Normals, _gShelterB1SouthMaintenanceWalkwayCollision051F8Verts, _gShelterB1SouthMaintenanceWalkwayCollision051F8Faces, _gShelterB1SouthMaintenanceWalkwayCollision051F8Table, 2872, 5300, 2, 3, 4000, 18 },
+/// The room's collision mesh and six-cell XZ index, bound to the view on entry.
+///
+/// Cell coordinates add (2872, 5300) to room X/Z and divide by 4000 game units.
+/// The loaded room owns the descriptor and its writable mesh/index pools.
+static WorldCollisionGrid _gShelterB1SouthMaintenanceWalkwayCollisionGrid = {
+    NULL,
+    _gShelterB1SouthMaintenanceWalkwayCollisionGridNormals,
+    _gShelterB1SouthMaintenanceWalkwayCollisionGridVerts,
+    _gShelterB1SouthMaintenanceWalkwayCollisionGridFaces,
+    _gShelterB1SouthMaintenanceWalkwayCollisionGridTable,
+    2872,
+    5300,
+    2,
+    3,
+    4000,
+    ARRAY_SIZE(_gShelterB1SouthMaintenanceWalkwayCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b1_south_maintenance_walkway_801827DC[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x35D2, 0 } }, 235 },
+ViewCamera gShelterB1SouthMaintenanceWalkwayViewCameras[5] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x35D2, 0 } }, 235 },
     { { { { 3964, 0, 1030 }, { 222, 3999, -857 }, { -1006, 885, 3870 } }, { -2760, 1734, -200 } }, 235 },
     { { { { 4064, 0, 509 }, { 89, 4032, -715 }, { -501, 721, 4000 } }, { -2760, 1952, 4026 } }, 235 },
     { { { { -3922, 0, 1178 }, { 415, 3832, 1384 }, { -1102, 1445, -3670 } }, { -2962, 1986, -667 } }, 235 },
     { { { { 1594, 0, 3772 }, { 1049, 3934, -443 }, { -3623, 1139, 1531 } }, { -2935, 1592, 4947 } }, 235 },
 };
 
-SpriteBatch D_shelter_b1_south_maintenance_walkway_80182890[2] = {
+/// View 1 keeps the decoded backdrop and selects no source sprites.
+static SpriteBatch _gShelterB1SouthMaintenanceWalkwayView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_south_maintenance_walkway_801828A0[2] = {
+/// View 2 keeps the decoded backdrop and selects no source sprites.
+static SpriteBatch _gShelterB1SouthMaintenanceWalkwayView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_south_maintenance_walkway_801828B0[2] = {
+/// View 3 keeps the decoded backdrop and selects no source sprites.
+static SpriteBatch _gShelterB1SouthMaintenanceWalkwayView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_south_maintenance_walkway_801828C0[66] = {
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, -120, 753, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, 104, 16, 936, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, 104, -8, 920, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, 104, -32, 936, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, 104, -56, 861, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, 104, -80, 800, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, 104, -120, 703, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 32, -120, 776, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, -120, 703, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, 8, 1122, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 8, 1050, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, 0, 1063, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, -104, 1490, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, -104, 745, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -96, 857, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, -40, 925, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, -40, 925, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, -32, 935, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, -32, 925, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, -24, 951, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, -24, 920, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, -48, 915, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, -48, 893, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, -56, 903, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, -56, 925, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, -64, 893, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, -64, 887, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -72, 939, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, -72, 877, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -80, 914, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, -80, 768, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -88, 854, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, -88, 777, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -96, 837, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -104, 821, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, -104, 727, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, -96, 631, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -16, 997, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, -16, 936, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, -8, 1014, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, -8, 925, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 56, 0, 1002, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, 0, 925, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, 8, 1009, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 8, 1000, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 8, 1000, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, 16, 1037, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 16, 1000, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 16, 1000, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 32, 24, 1075, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 24, 1050, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 24, 939, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, 24, 1050, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 32, 32, 1050, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 32, 1050, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 32, 1050, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 80, 32, 1050, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 40 } }, 128, 32, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 40 } }, 104, 32, 829, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 88, 32, 863, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 72, 32, 864, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 88, 56, 812, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 72, 56, 812, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 56, 56, 853, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, 56, 32, 925, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 48, 32, 963, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
+/// View 4's 66 screen-space sprite rectangles, with neutral RGB modulation.
+///
+/// The first 57 use CLUT row 255 and the last nine row 256 of the 8-bit page
+/// at VRAM (960, 0). Positions/dimensions are pixels; depth is the OT sort value.
+static SpriteSource _gShelterB1SouthMaintenanceWalkwayView4SpriteSources[66] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 24, -120, 753, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, 104, 16, 936, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, 104, -8, 920, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, 104, -32, 936, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, 104, -56, 861, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, 104, -80, 800, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 40 } }, 104, -120, 703, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, 32, -120, 776, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 72, -120, 703, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 32, 8, 1122, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 40, 8, 1050, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 48, 0, 1063, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 56, -104, 1490, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 40, -104, 745, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 48, -96, 857, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, -40, 925, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 88, -40, 925, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, -32, 935, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 88, -32, 925, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, -24, 951, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 88, -24, 920, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, -48, 915, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 88, -48, 893, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, -56, 903, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 88, -56, 925, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 88, -64, 893, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, -64, 887, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, -72, 939, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, -72, 877, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, -80, 914, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, -80, 768, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, -88, 854, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, -88, 777, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, -96, 837, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, -104, 821, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, -104, 727, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, -96, 631, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, -16, 997, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, -16, 936, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 56, -8, 1014, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, -8, 925, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 56, 0, 1002, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, 0, 925, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 56, 8, 1009, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, 8, 1000, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 88, 8, 1000, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 56, 16, 1037, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 72, 16, 1000, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 88, 16, 1000, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 32, 24, 1075, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 48, 24, 1050, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, 24, 939, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, 24, 1050, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 32, 32, 1050, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 48, 32, 1050, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, 32, 1050, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, 32, 1050, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 32, 40 } }, 128, 32, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 24, 40 } }, 104, 32, 829, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, 88, 32, 863, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, 72, 32, 864, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, 88, 56, 812, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, 72, 56, 812, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 16 } }, 56, 56, 853, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, 56, 32, 925, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 48, 32, 963, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_south_maintenance_walkway_80182DE8[4] = {
+enum { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VIEW4_FIRST_SPRITE_COUNT = 57 };
+
+/// View 4 keeps the backdrop and draws source ranges 0..56 and 57..65.
+///
+/// The zero-count leading record selects decoded image strips; the final
+/// SPRITE_BATCH_END record ends the list. The two ranges cover every source.
+static SpriteBatch _gShelterB1SouthMaintenanceWalkwayView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 57, 0, 0, { 1, 0 } },
-    { 57, 9, 0, 0, { 0, 0 } },
+    { 0, SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VIEW4_FIRST_SPRITE_COUNT, 0, 0, { 1, 0 } },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VIEW4_FIRST_SPRITE_COUNT, ARRAY_SIZE(_gShelterB1SouthMaintenanceWalkwayView4SpriteSources) - SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VIEW4_FIRST_SPRITE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_south_maintenance_walkway_80182E08[2] = {
+/// View 5 keeps the decoded backdrop and selects no source sprites.
+static SpriteBatch _gShelterB1SouthMaintenanceWalkwayView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_south_maintenance_walkway_80182E18[5] = {
-    { { .empty = D_shelter_b1_south_maintenance_walkway_80182890 }, D_shelter_b1_south_maintenance_walkway_80182890, NULL },
-    { { .empty = D_shelter_b1_south_maintenance_walkway_801828A0 }, D_shelter_b1_south_maintenance_walkway_801828A0, NULL },
-    { { .empty = D_shelter_b1_south_maintenance_walkway_801828B0 }, D_shelter_b1_south_maintenance_walkway_801828B0, NULL },
-    { { .elements = D_shelter_b1_south_maintenance_walkway_801828C0 }, D_shelter_b1_south_maintenance_walkway_80182DE8, NULL },
-    { { .empty = D_shelter_b1_south_maintenance_walkway_80182E08 }, D_shelter_b1_south_maintenance_walkway_80182E08, NULL },
+SpriteView gShelterB1SouthMaintenanceWalkwaySpriteViews[5] = {
+    { { .empty = _gShelterB1SouthMaintenanceWalkwayView1SpriteBatches }, _gShelterB1SouthMaintenanceWalkwayView1SpriteBatches, NULL },
+    { { .empty = _gShelterB1SouthMaintenanceWalkwayView2SpriteBatches }, _gShelterB1SouthMaintenanceWalkwayView2SpriteBatches, NULL },
+    { { .empty = _gShelterB1SouthMaintenanceWalkwayView3SpriteBatches }, _gShelterB1SouthMaintenanceWalkwayView3SpriteBatches, NULL },
+    { { .elements = _gShelterB1SouthMaintenanceWalkwayView4SpriteSources }, _gShelterB1SouthMaintenanceWalkwayView4SpriteBatches, NULL },
+    { { .empty = _gShelterB1SouthMaintenanceWalkwayView5SpriteBatches }, _gShelterB1SouthMaintenanceWalkwayView5SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b1_south_maintenance_walkway_80182E54[6] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1622, -223, -3869 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2555, 2518, 2578 }, { 0, 0 } }, 1550, 2671 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 524, -224, -3732 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2429, 2417, 2416 }, { 0, 0 } }, 1899, 2620 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2187, -303, -4148 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1526, 1617, 1737 }, { 0, 0 } }, 1500, 3411 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1972, -223, 2267 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2568, 2676, 2615 }, { 0, 0 } }, 1961, 3743 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1987, -223, -206 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2549, 2539, 2597 }, { 0, 0 } }, 1701, 2461 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2025, -223, -1515 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2588, 2641, 2677 }, { 0, 0 } }, 1923, 3843 },
+/// Six point lights contributing in every view, with world-unit falloff radii.
+///
+/// Lighting setup parents and composes their transforms; queries overwrite
+/// attenuation. RGB intensities use 12 fractional bits. Room-owned and writable.
+static WorldCoordPointLight _gShelterB1SouthMaintenanceWalkwayPointLights[6] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1622, -223, -3869 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2555, 2518, 2578 }, { 0, 0 } }, 1550, 2671 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 524, -224, -3732 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2429, 2417, 2416 }, { 0, 0 } }, 1899, 2620 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2187, -303, -4148 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1526, 1617, 1737 }, { 0, 0 } }, 1500, 3411 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1972, -223, 2267 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2568, 2676, 2615 }, { 0, 0 } }, 1961, 3743 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1987, -223, -206 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2549, 2539, 2597 }, { 0, 0 } }, 1701, 2461 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2025, -223, -1515 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2588, 2641, 2677 }, { 0, 0 } }, 1923, 3843 },
 };
 
-WorldCoordRoomLights D_shelter_b1_south_maintenance_walkway_80183094[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_b1_south_maintenance_walkway_80182E54), D_shelter_b1_south_maintenance_walkway_80182E54, 0, NULL },
+/// The room's six point lights, with no directional or cone lights.
+static WorldCoordRoomLights _gShelterB1SouthMaintenanceWalkwayRoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gShelterB1SouthMaintenanceWalkwayPointLights),
+    _gShelterB1SouthMaintenanceWalkwayPointLights,
+    0,
+    NULL,
 };
 
 WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801830AC[6] = {
@@ -314,108 +352,177 @@ WorldCollisionTrigger D_shelter_b1_south_maintenance_walkway_801832B0[2] = {
     { NULL, NULL, NULL, { 1984, -48, 4480, 0 }, { { -1024, 0, 432, 0 }, { -1024, 0, -432, 0 }, { 1024, 0, 432, 0 }, { 1024, 0, -432, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b1_south_maintenance_walkway_80183348[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor200700RatTaskDesc },
+/// Room-local resource keys shared by recipes and actor placements.
+enum {
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_RAT         = 7,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_MOSSBACK    = 11,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_PAWN_GOLEM  = 20,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_WATCHER     = 21,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA      = 24,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_CATERPILLAR = 26,
+};
+
+/// Watcher and Rat loading and spawn recipes for placement variant 1.
+///
+/// The two live entries load `actor_102100` and `actor_200700`.
+/// Each spawns descriptor 0; `AREA_PLACEMENT_END` terminates the table.
+static AreaResource _gShelterB1SouthMaintenanceWalkwayVariant1Resources[3] = {
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_RAT, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor200700RatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_south_maintenance_walkway_8018336C[3] = {
-    { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202400Tasks },
+/// Mossback and Amoeba loading and spawn recipes for placement variant 2.
+///
+/// The two live entries load `actor_101100` and `actor_202400`.
+/// Each spawns descriptor 0; `AREA_PLACEMENT_END` terminates the table.
+static AreaResource _gShelterB1SouthMaintenanceWalkwayVariant2Resources[3] = {
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_MOSSBACK, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_south_maintenance_walkway_80183390[3] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
-    { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor202600MaggotCaterpillarBodyTask },
+/// Amoeba and Caterpillar loading and spawn recipes for placement variant 3.
+///
+/// The two live entries load `actor_102400` and `actor_202600`.
+/// Each spawns descriptor 0; `AREA_PLACEMENT_END` terminates the table.
+static AreaResource _gShelterB1SouthMaintenanceWalkwayVariant3Resources[3] = {
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_CATERPILLAR, 26, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor202600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_south_maintenance_walkway_801833B4[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202000PawnGolemTasks },
+/// Watcher and Pawn GOLEM loading and spawn recipes for placement variant 11.
+///
+/// The two live entries load `actor_102100` and `actor_202000`.
+/// Each spawns descriptor 0; `AREA_PLACEMENT_END` terminates the table.
+static AreaResource _gShelterB1SouthMaintenanceWalkwayVariant11Resources[3] = {
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_PAWN_GOLEM, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202000PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b1_south_maintenance_walkway_801833D8[9] = {
-    { 21, 0, 0, 2700, -2000, 5000, 2048, 0, 0, 2, 6 },
-    { 21, 0, 0, 1300, -2000, 5000, 2048, 0, 0, 2, 6 },
-    { 7, 0, 0, 2300, 0, -2500, -200, 0, 2, 4, 4 },
-    { 7, 0, 0, 1700, 0, -2500, 200, 0, 2, 4, 4 },
-    { 7, 0, 0, 2300, 0, -2200, 0, 0, 2, 4, 4 },
-    { 7, 0, 0, 1700, 0, -2200, -500, 0, 2, 4, 4 },
-    { 7, 0, 0, 2300, 0, -1900, 2600, 0, 2, 4, 4 },
-    { 7, 0, 0, 1700, 0, -1900, 1600, 0, 2, 4, 4 },
+/// Variant 1 spawns two Watchers and six Rats.
+///
+/// 8 live placements precede AREA_PLACEMENT_END. Positions are world units,
+/// yaw is 4096 per turn; texture offsets place the two resource groups separately.
+static AreaPlacement _gShelterB1SouthMaintenanceWalkwayVariant1Placements[9] = {
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_WATCHER, 0, 0, 2700, -2000, 5000, 2048, 0, 0, 2, 6 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_WATCHER, 0, 0, 1300, -2000, 5000, 2048, 0, 0, 2, 6 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_RAT, 0, 0, 2300, 0, -2500, -200, 0, 2, 4, 4 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_RAT, 0, 0, 1700, 0, -2500, 200, 0, 2, 4, 4 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_RAT, 0, 0, 2300, 0, -2200, 0, 0, 2, 4, 4 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_RAT, 0, 0, 1700, 0, -2200, -500, 0, 2, 4, 4 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_RAT, 0, 0, 2300, 0, -1900, 2600, 0, 2, 4, 4 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_RAT, 0, 0, 1700, 0, -1900, 1600, 0, 2, 4, 4 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_south_maintenance_walkway_80183468[6] = {
-    { 11, 0, 0, 2000, 0, 800, 0, 0, 0, 2, 0 },
-    { 11, 0, 0, 2400, 0, -4000, 3072, 0, 0, 2, 0 },
-    { 24, 0, 0, 2550, 0, 0, 3600, 0, 2, 4, 0 },
-    { 24, 0, 0, 1750, 0, -600, 3072, 0, 2, 4, 0 },
-    { 24, 0, 0, 1550, 0, -1600, 1024, 0, 2, 4, 0 },
+/// Variant 2 spawns two Mossbacks and three Amoebas.
+///
+/// 5 live placements precede AREA_PLACEMENT_END. Positions are world units,
+/// yaw is 4096 per turn; texture offsets place the two resource groups separately.
+static AreaPlacement _gShelterB1SouthMaintenanceWalkwayVariant2Placements[6] = {
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_MOSSBACK, 0, 0, 2000, 0, 800, 0, 0, 0, 2, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_MOSSBACK, 0, 0, 2400, 0, -4000, 3072, 0, 0, 2, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 0, 0, 2550, 0, 0, 3600, 0, 2, 4, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 0, 0, 1750, 0, -600, 3072, 0, 2, 4, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 0, 0, 1550, 0, -1600, 1024, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_south_maintenance_walkway_801834C8[9] = {
-    { 24, 0, 1, 2000, 0, -800, 0, 0, 0, 2, 0 },
-    { 24, 0, 0, 1500, 0, 2400, 450, 0, 0, 2, 0 },
-    { 24, 0, 0, 2350, 0, 400, 3400, 0, 0, 2, 0 },
-    { 24, 0, 0, 900, 0, -4500, 3100, 0, 0, 2, 0 },
-    { 24, 0, 0, 750, 0, -3500, 2750, 0, 0, 2, 0 },
-    { 26, 0, 0, 2500, 0, -4500, 3400, 0, 2, 4, 0 },
-    { 26, 0, 0, 2450, 0, -3400, 0, 0, 2, 4, 0 },
-    { 26, 0, 0, 1500, 0, -3300, 1600, 0, 2, 4, 0 },
+enum { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_AMOEBA_SECOND_PARAMETER_SET = 1 };
+
+/// Variant 3 spawns five Amoebas and three Caterpillars.
+///
+/// 8 live placements precede AREA_PLACEMENT_END. Positions are world units,
+/// yaw is 4096 per turn; texture offsets place the two resource groups separately.
+static AreaPlacement _gShelterB1SouthMaintenanceWalkwayVariant3Placements[9] = {
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 0, SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_AMOEBA_SECOND_PARAMETER_SET, 2000, 0, -800, 0, 0, 0, 2, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 0, 0, 1500, 0, 2400, 450, 0, 0, 2, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 0, 0, 2350, 0, 400, 3400, 0, 0, 2, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 0, 0, 900, 0, -4500, 3100, 0, 0, 2, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_AMOEBA, 0, 0, 750, 0, -3500, 2750, 0, 0, 2, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_CATERPILLAR, 0, 0, 2500, 0, -4500, 3400, 0, 2, 4, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_CATERPILLAR, 0, 0, 2450, 0, -3400, 0, 0, 2, 4, 0 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_CATERPILLAR, 0, 0, 1500, 0, -3300, 1600, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_south_maintenance_walkway_80183558[4] = {
-    { 21, 4, 0, 2700, -2000, 5000, 2048, 0, 0, 2, 6 },
-    { 21, 4, 0, 1300, -2000, 5000, 2048, 0, 0, 2, 6 },
-    { 20, 0, 0, 2000, 0, 3500, 2048, 0, 2, 4, 0 },
+enum { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_WATCHER_GUN_VARIANT = 4 };
+
+/// Variant 11 spawns two Watchers and one Pawn GOLEM.
+///
+/// 3 live placements precede AREA_PLACEMENT_END. Positions are world units,
+/// yaw is 4096 per turn; texture offsets place the two resource groups separately.
+static AreaPlacement _gShelterB1SouthMaintenanceWalkwayVariant11Placements[4] = {
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_WATCHER, SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_WATCHER_GUN_VARIANT, 0, 2700, -2000, 5000, 2048, 0, 0, 2, 6 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_WATCHER, SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_WATCHER_GUN_VARIANT, 0, 1300, -2000, 5000, 2048, 0, 0, 2, 6 },
+    { SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_RESOURCE_PAWN_GOLEM, 0, 0, 2000, 0, 3500, 2048, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b1_south_maintenance_walkway_80183598[12] = {
-    { NULL, NULL },
-    { D_shelter_b1_south_maintenance_walkway_801833D8, D_shelter_b1_south_maintenance_walkway_80183348 },
-    { D_shelter_b1_south_maintenance_walkway_80183468, D_shelter_b1_south_maintenance_walkway_8018336C },
-    { D_shelter_b1_south_maintenance_walkway_801834C8, D_shelter_b1_south_maintenance_walkway_80183390 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_south_maintenance_walkway_80183558, D_shelter_b1_south_maintenance_walkway_801833B4 },
+/// Saved placement-variant indices; the other table slots are absent.
+enum {
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VARIANT_WATCHERS_AND_RATS        = 1,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VARIANT_MOSSBACKS_AND_AMOEBAS    = 2,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VARIANT_AMOEBAS_AND_CATERPILLARS = 3,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VARIANT_WATCHERS_AND_GOLEM       = 11,
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_south_maintenance_walkway_801835F8 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+AreaVariant gShelterB1SouthMaintenanceWalkwayAreaVariants[12] = {
+    [SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VARIANT_WATCHERS_AND_RATS]        = { _gShelterB1SouthMaintenanceWalkwayVariant1Placements, _gShelterB1SouthMaintenanceWalkwayVariant1Resources },
+    [SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VARIANT_MOSSBACKS_AND_AMOEBAS]    = { _gShelterB1SouthMaintenanceWalkwayVariant2Placements, _gShelterB1SouthMaintenanceWalkwayVariant2Resources },
+    [SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VARIANT_AMOEBAS_AND_CATERPILLARS] = { _gShelterB1SouthMaintenanceWalkwayVariant3Placements, _gShelterB1SouthMaintenanceWalkwayVariant3Resources },
+    [SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_VARIANT_WATCHERS_AND_GOLEM]       = { _gShelterB1SouthMaintenanceWalkwayVariant11Placements, _gShelterB1SouthMaintenanceWalkwayVariant11Resources },
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_south_maintenance_walkway_80183604[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+enum {
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SOUND_FLOOR_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SOUND_FLOOR_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_south_maintenance_walkway_8018360C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_south_maintenance_walkway_801835F8 },
+/// Floor footstep cue bases in the currently loaded type-1 sound bank.
+///
+/// Walk and scripted jump use entry 0x5D; running uses 0x5F. Animation cue 2
+/// uses the base, cue 1 adds one. This record belongs to collision surface class 1.
+static WorldCollisionFootstepSounds _gShelterB1SouthMaintenanceWalkwayFloorFootstepSounds = {
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SOUND_FLOOR_WALK,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SOUND_FLOOR_RUN,
+    SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY_SOUND_FLOOR_WALK,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_south_maintenance_walkway_80183614[8] = {
-    D_shelter_b1_south_maintenance_walkway_80183604,
-    D_shelter_b1_south_maintenance_walkway_8018360C,
-    D_shelter_b1_south_maintenance_walkway_80183604,
-    D_shelter_b1_south_maintenance_walkway_80183604,
-    D_shelter_b1_south_maintenance_walkway_80183604,
-    D_shelter_b1_south_maintenance_walkway_80183604,
-    D_shelter_b1_south_maintenance_walkway_80183604,
-    D_shelter_b1_south_maintenance_walkway_80183604,
+/// Blocking surfaces with pushback and weapon impacts, but no footstep cues.
+///
+/// Classes 0 and 2..7 share this record; the stored first byte is uninterpreted.
+static WorldCollisionSurfaceProperties _gShelterB1SouthMaintenanceWalkwaySilentSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
+};
+
+/// Class-1 floor surfaces with pushback, weapon impacts and paired footstep cues.
+///
+/// Segment probes are blocked. The stored first byte is uninterpreted.
+static WorldCollisionSurfaceProperties _gShelterB1SouthMaintenanceWalkwayFloorSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gShelterB1SouthMaintenanceWalkwayFloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB1SouthMaintenanceWalkwaySurfacePropertiesByClass[8] = {
+    &_gShelterB1SouthMaintenanceWalkwaySilentSurfaceProperties,
+    &_gShelterB1SouthMaintenanceWalkwayFloorSurfaceProperties,
+    &_gShelterB1SouthMaintenanceWalkwaySilentSurfaceProperties,
+    &_gShelterB1SouthMaintenanceWalkwaySilentSurfaceProperties,
+    &_gShelterB1SouthMaintenanceWalkwaySilentSurfaceProperties,
+    &_gShelterB1SouthMaintenanceWalkwaySilentSurfaceProperties,
+    &_gShelterB1SouthMaintenanceWalkwaySilentSurfaceProperties,
+    &_gShelterB1SouthMaintenanceWalkwaySilentSurfaceProperties,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
@@ -585,8 +692,7 @@ void shelterB1SouthMaintenanceWalkwayDrawGlowsTask(Task* task)
 {
     enum { GLOWS_INITIALIZE,
            GLOWS_DRAW,
-           GLOW_RADIUS_SCALE = 0x200,
-           RED_DISC_POINT    = 20 };
+           GLOW_RADIUS_SCALE = 0x200 };
 
     if (task->state == GLOWS_INITIALIZE) {
         _shelterB1SouthMaintenanceWalkwayBindEffects();
@@ -596,28 +702,28 @@ void shelterB1SouthMaintenanceWalkwayDrawGlowsTask(Task* task)
     // Select the visible endpoint pairs by the saved room view; view 1 draws none.
     switch (gGameSession->location.loc.view) {
         case 2:
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[0], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[6], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[0][0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[3][0], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
             break;
         case 3:
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[0], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[2], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[6], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[8], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[0][0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[1][0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[3][0], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[4][0], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
             break;
         case 4:
-            glowDrawRedDisc(&D_shelter_b1_south_maintenance_walkway_80182330[RED_DISC_POINT], GLOW_RADIUS_SCALE);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[4], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[10], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[14], GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawRedDisc(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.redDiscCenter, GLOW_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[2][0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[5][0], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[7][0], GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
             break;
         case 5:
-            glowDrawRedDisc(&D_shelter_b1_south_maintenance_walkway_80182330[RED_DISC_POINT], GLOW_RADIUS_SCALE);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[4], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[12], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[14], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[16], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b1_south_maintenance_walkway_80182330[18], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawRedDisc(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.redDiscCenter, GLOW_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[2][0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[6][0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[7][0], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[8][0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB1SouthMaintenanceWalkwayGlowGeometry.capsuleEndpoints[9][0], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
     }
 }
