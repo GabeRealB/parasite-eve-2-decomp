@@ -91,27 +91,6 @@ typedef struct {
 } _ShelterB4UpperSewerWaterSurface;
 STATIC_ASSERT_SIZEOF(_ShelterB4UpperSewerWaterSurface, 0xC);
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b4_upper_sewer_80188D2C[4];
-
-extern EvsCommand       D_shelter_b4_upper_sewer_80186318[];
-extern TaskDesc         D_shelter_b4_upper_sewer_80186300[];
-extern TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[];
-
-extern TaskDesc D_shelter_b4_upper_sewer_8018643C[];
-/// Save location filled from the outgoing location just before a table task is
-/// spawned: `field_2` / `field_4` / `field_1` take its `field_0` / `field_2` /
-/// `field_3`.
-extern RoomEventMsg D_shelter_b4_upper_sewer_80188D24;
-/// Spawn argument for the task `_shelterB4UpperSewerExitTransitTask` starts
-/// with `taskSpawn(1, 0x31, ...)`.
-extern RoomFadeStorage D_shelter_b4_upper_sewer_80188D1C;
-
-extern _ShelterB4UpperSewerWaterSurface D_shelter_b4_upper_sewer_80186448[];
-extern _ShelterB4UpperSewerWaterSurface D_shelter_b4_upper_sewer_80186454[];
-extern u8*                              D_shelter_b4_upper_sewer_80188D30;
-
 static void _shelterB4UpperSewerInitializeRoom(Task* task);
 static void _shelterB4UpperSewerIdleRoom(Task* task);
 static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4UpperSewerWaterSurface* surface, s16 waterY, u8 blueIntensity);
@@ -119,11 +98,10 @@ static void _shelterB4UpperSewerInitializeWater(Task* task);
 static void _shelterB4UpperSewerSetView13SpriteHidden(s32 hidden);
 #include "../../shared/room_visual_effects.h"
 
-/// State handlers of the task `shelterB4UpperSewerRoomTask` runs,
-/// which copies the table to the stack and calls the entry for the task's
-/// state: the room's setup (message table, pointer slot, water level), an idle
-/// state, and `taskKill`.
-static const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
+/// Room lifecycle callbacks indexed by task state (0 setup, 1 idle, 2 teardown).
+///
+/// Copied by value for dispatch; all three slots are live, with no terminator.
+static const TaskFuncTable3 _gShelterB4UpperSewerRoomStates = {
     { _shelterB4UpperSewerInitializeRoom, _shelterB4UpperSewerIdleRoom, taskKill }
 };
 
@@ -140,7 +118,11 @@ static void _shelterB4UpperSewerRestoreSavedView(void);
 
 enum { SHELTER_B4_UPPER_SEWER_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[6] = {
+/// Synchronous room messages for transitions, key items, actions, commands and sound.
+///
+/// Installed on the room task; the final entry is `TASK_MESSAGE_TABLE_END`.
+/// Transition records and action requests are borrowed only for dispatch.
+static TaskMessageEntry _gShelterB4UpperSewerRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB4UpperSewerResolveRoomTransition },
     { SHELTER_B4_UPPER_SEWER_MESSAGE_USE_KEY_ITEM, _shelterB4UpperSewerRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4UpperSewerIgnoreRoomActionMessage },
@@ -149,41 +131,63 @@ TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b4_upper_sewer_80186300[2] = {
+/// Bodyless priority-32 tasks for the water-hole scene (0) and exit transit (1).
+///
+/// Indexed directly without a terminator. Exit transit takes its confirmation
+/// CAP command in spawn argument 1; the opening scene ignores both arguments.
+static TaskDesc _gShelterB4UpperSewerInteractionTasks[2] = {
     { { { TASK_BODY_NONE, 32 } }, _shelterB4UpperSewerOpenWaterHoleTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterB4UpperSewerExitTransitTask, { .value = 0 } },
 };
 
-EvsCommand D_shelter_b4_upper_sewer_80186318[12] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+enum {
+    SHELTER_B4_UPPER_SEWER_WATER_HOLE_EVENT_CAP_COMMAND    = 2,
+    SHELTER_B4_UPPER_SEWER_WATER_HOLE_RESTORE_DELAY_FRAMES = 3,
+};
+
+/// Water-hole opening script, ending at `EVENT_SCRIPT_OPCODE_END`.
+///
+/// Starts CAP 2, waits for its two cues around room sound 5, restores the saved
+/// view and shows both actors, then releases scripted control after a
+/// three-update countdown.
+/// The interpreter borrows this stream and its callback until completion.
+static EvsCommand _gShelterB4UpperSewerWaterHoleScript[12] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = SHELTER_B4_UPPER_SEWER_WATER_HOLE_EVENT_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x542C0005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 5) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4UpperSewerRestoreSavedView }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B4_UPPER_SEWER_WATER_HOLE_RESTORE_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-s16 D_shelter_b4_upper_sewer_80186438 = -1600;
+s16 gShelterB4UpperSewerWaterY = -1600;
 
-TaskDesc D_shelter_b4_upper_sewer_8018643C[1] = {
+/// Single bodyless priority-96 water task recipe, indexed at zero without a terminator.
+static TaskDesc _gShelterB4UpperSewerWaterTasks[1] = {
     { { { TASK_BODY_NONE, 96 } }, _shelterB4UpperSewerWaterTask, { .value = 0 } },
 };
 
-_ShelterB4UpperSewerWaterSurface D_shelter_b4_upper_sewer_80186448[1] = {
-    { -9700, 5600, 1720, 1800, 16, 0 },
+enum {
+    SHELTER_B4_UPPER_SEWER_WATER_STRIP_ALONG_X = 0,
+    SHELTER_B4_UPPER_SEWER_WATER_STRIP_ALONG_Z = 1,
 };
 
-_ShelterB4UpperSewerWaterSurface D_shelter_b4_upper_sewer_80186454[5] = {
-    { -8000, 5000, 7120, 2900, 32, 0 },
-    { -900, 3100, 2800, 4800, 32, 1 },
-    { -900, -5900, 1800, 9000, 32, 1 },
-    { 900, -5900, 3000, 3800, 32, 1 },
+/// Five water patches and their shared `WATER_SURFACE_LIST_END` record.
+///
+/// View 12 starts at entry 1; every other view starts at entry 0. World-space
+/// rectangles draw 16, 32, 32, 32 and 32 quads at the supplied water height.
+static _ShelterB4UpperSewerWaterSurface _gShelterB4UpperSewerWaterSurfaces[6] = {
+    { -9700, 5600, 1720, 1800, 16, SHELTER_B4_UPPER_SEWER_WATER_STRIP_ALONG_X },
+    { -8000, 5000, 7120, 2900, 32, SHELTER_B4_UPPER_SEWER_WATER_STRIP_ALONG_X },
+    { -900, 3100, 2800, 4800, 32, SHELTER_B4_UPPER_SEWER_WATER_STRIP_ALONG_Z },
+    { -900, -5900, 1800, 9000, 32, SHELTER_B4_UPPER_SEWER_WATER_STRIP_ALONG_Z },
+    { 900, -5900, 3000, 3800, 32, SHELTER_B4_UPPER_SEWER_WATER_STRIP_ALONG_Z },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END, 0 },
 };
 
@@ -249,15 +253,18 @@ u8* gShelterB4UpperSewerViewMaps[1] = {
 
 ViewCount gShelterB4UpperSewerViewCounts[1] = { ARRAY_SIZE(gShelterB4UpperSewerViewCameras) };
 
-DirectionWarpEntry D_shelter_b4_upper_sewer_80186598[4] = {
-    { { { .word = 1024 }, -9200, 0, 6080 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9200, 0, 6850 }, { 0, 0, 0, 0 }, 0x542C0002, 0x542C0001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 3344, 0, -3054 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 3350, 0, -3930 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x542C0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, GAME_FLAG_MAP_MARK_RESERVOIR_1BE },
-    { { { .word = 3072 }, 3360, -2000, 9000 }, { 0, 0, 0, 0 }, { { .word = 2816 }, 3360, -2000, 8300 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x542C0003, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, -8960, -2000, 5600 }, { 0, 0, 0, 0 }, { { .word = 512 }, -9600, -2000, 6200 }, { 0, 0, 0, 0 }, 0x542C0007, 0x542C0006, DIRECTION_WARP_SOUND_NONE, 12, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterB4UpperSewerWarpEntries[4] = {
+    { { { .word = 1024 }, -9200, 0, 6080 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9200, 0, 6850 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 2), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 1), DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 3344, 0, -3054 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 3350, 0, -3930 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 3), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, GAME_FLAG_MAP_MARK_RESERVOIR_1BE },
+    { { { .word = 3072 }, 3360, -2000, 9000 }, { 0, 0, 0, 0 }, { { .word = 2816 }, 3360, -2000, 8300 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 3), DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -8960, -2000, 5600 }, { 0, 0, 0, 0 }, { { .word = 512 }, -9600, -2000, 6200 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 7), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 6), DIRECTION_WARP_SOUND_NONE, 12, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_shelter_b4_upper_sewer_80186678[8] = {
+/// Eight-point Bog Diver patrol ring selected by spawn ring indices 0, 2 and 3.
+///
+/// X/Z use world units; Y is depth relative to the water height sampled at spawn.
+/// Indices wrap at eight with no terminator; divers borrow the loaded room's ring.
+static SVECTOR _gShelterB4UpperSewerDiverPatrolRing0[8] = {
     { 200, 1000, -3000, 0 },
     { 200, 1000, 1000, 0 },
     { 200, 1000, 5000, 0 },
@@ -268,8 +275,11 @@ SVECTOR D_shelter_b4_upper_sewer_80186678[8] = {
     { 400, 1000, -3200, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_shelter_b4_upper_sewer_801866B8[8] = {
+/// Eight-point Bog Diver patrol ring selected by spawn ring index 1.
+///
+/// X/Z use world units; Y is depth relative to the water height sampled at spawn.
+/// Indices wrap at eight with no terminator; divers borrow the loaded room's ring.
+static SVECTOR _gShelterB4UpperSewerDiverPatrolRing1[8] = {
     { 160, 500, 6300, 0 },
     { -3680, 500, 6300, 0 },
     { -6500, 500, 6300, 0 },
@@ -280,25 +290,28 @@ SVECTOR D_shelter_b4_upper_sewer_801866B8[8] = {
     { 0, 500, 1200, 0 },
 };
 
-// Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR* D_shelter_b4_upper_sewer_801866F8[4] = {
-    D_shelter_b4_upper_sewer_80186678,
-    D_shelter_b4_upper_sewer_801866B8,
-    D_shelter_b4_upper_sewer_80186678,
-    D_shelter_b4_upper_sewer_80186678,
+SVECTOR* gShelterB4UpperSewerDiverPatrolRings[4] = {
+    _gShelterB4UpperSewerDiverPatrolRing0,
+    _gShelterB4UpperSewerDiverPatrolRing1,
+    _gShelterB4UpperSewerDiverPatrolRing0,
+    _gShelterB4UpperSewerDiverPatrolRing0,
 };
 
-// Retained data: Adjacent retained point data, ending with fourth halfword -1; no runtime owner found.
-SVECTOR D_shelter_b4_upper_sewer_80186708[9] = {
-    { 0, 0, 0, 0 },
-    { 0, 1000, -2300, 0 },
-    { 0, 1000, 700, 0 },
-    { 200, 1000, 4000, 0 },
-    { 500, 1000, 6600, 0 },
-    { -2000, 1000, 6600, 0 },
-    { -4500, 1000, 6600, 0 },
-    { -6600, 1000, 6600, 0 },
-    { 0, 0, 0, -1 },
+enum {
+    SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_FREE = 0,
+    SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_END  = -1,
+};
+
+SVECTOR gShelterB4UpperSewerDiverSurfaceSpots[9] = {
+    { 0, 0, 0, SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_FREE },
+    { 0, 1000, -2300, SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_FREE },
+    { 0, 1000, 700, SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_FREE },
+    { 200, 1000, 4000, SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_FREE },
+    { 500, 1000, 6600, SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_FREE },
+    { -2000, 1000, 6600, SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_FREE },
+    { -4500, 1000, 6600, SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_FREE },
+    { -6600, 1000, 6600, SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_FREE },
+    { 0, 0, 0, SHELTER_B4_UPPER_SEWER_DIVER_SURFACE_SPOT_END },
 };
 
 /// Room-space collision normals, with ONE (4096) representing unit length.
@@ -760,11 +773,11 @@ WorldCollisionTrigger gShelterB4UpperSewerViewBoundaryTriggers[18] = {
     { NULL, NULL, NULL, { -9825, -6240, 6816, 0 }, { { 1855, -4304, -352, 0 }, { -1855, -4304, 352, 0 }, { 1855, 4304, -352, 0 }, { -1855, 4304, 352, 0 } }, { 763, 0, 4025, 0 }, { 0, 0, ONE, 0 }, 4692, 0, 11, 12, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b4_upper_sewer_801886F4[8] = {
-    { NULL, NULL, NULL, { 3744, -2096, 9024, 0 }, { { -448, 0, -736, 0 }, { 448, 0, -736, 0 }, { -448, 0, 736, 0 }, { 448, 0, 736, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 861, WORLD_COLLISION_TRIGGER_ACTION_WARP, 46, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3712, -48, -3008, 0 }, { { -448, 0, -464, 0 }, { 448, 0, -464, 0 }, { -448, 0, 464, 0 }, { 448, 0, 464, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 643, WORLD_COLLISION_TRIGGER_ACTION_WARP, 45, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -9408, -48, 6496, 0 }, { { -448, 0, -1008, 0 }, { 448, 0, -1008, 0 }, { -448, 0, 1008, 0 }, { 448, 0, 1008, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 43, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -9024, -2080, 5632, 0 }, { { 1008, 0, -448, 0 }, { 1008, 0, 448, 0 }, { -1008, 0, -448, 0 }, { -1008, 0, 448, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 43, 68, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+WorldCollisionTrigger gShelterB4UpperSewerActionTriggers[8] = {
+    { NULL, NULL, NULL, { 3744, -2096, 9024, 0 }, { { -448, 0, -736, 0 }, { 448, 0, -736, 0 }, { -448, 0, 736, 0 }, { 448, 0, 736, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 861, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_WATER_SUPPLY, (3 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3712, -48, -3008, 0 }, { { -448, 0, -464, 0 }, { 448, 0, -464, 0 }, { -448, 0, 464, 0 }, { 448, 0, 464, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 643, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_RESERVOIR, (2 << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -9408, -48, 6496, 0 }, { { -448, 0, -1008, 0 }, { 448, 0, -1008, 0 }, { -448, 0, 1008, 0 }, { 448, 0, 1008, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_LOWER_SEWER, (1 << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -9024, -2080, 5632, 0 }, { { 1008, 0, -448, 0 }, { 1008, 0, 448, 0 }, { -1008, 0, -448, 0 }, { -1008, 0, 448, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_LOWER_SEWER, (4 << 4) | 4, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 3344, -2080, -384, 0 }, { { -528, 0, -1008, 0 }, { 528, 0, -1008, 0 }, { -528, 0, 1008, 0 }, { 528, 0, 1008, 0 } }, { 0, 4119, 0, 0 }, { -4096, 0, 0, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 208, -64, -5663, 0 }, { { -944, 0, -1008, 0 }, { 944, 0, -1008, 0 }, { -944, 0, 1008, 0 }, { 944, 0, 1008, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1378, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -9568, -2080, 6400, 0 }, { { -448, 0, -656, 0 }, { 448, 0, -656, 0 }, { -448, 0, 656, 0 }, { 448, 0, 656, 0 } }, { 0, 4106, 0, 0 }, { 4096, 0, 0, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -969,7 +982,7 @@ AreaVariant gShelterB4UpperSewerAreaVariants[12] = {
     [11] = { _gShelterB4UpperSewerVariant11Placements, _gShelterB4UpperSewerVariant11Resources },
 };
 
-WorldCollisionOccluder D_shelter_b4_upper_sewer_80188BFC[3] = {
+WorldCollisionOccluder gShelterB4UpperSewerOccluders[3] = {
     { NULL, NULL, { -4928, -3088, 208, 0 }, { { -3680, 4656, -4624, 0 }, { 3680, 4656, 4624, 0 }, { -3680, -4656, -4624, 0 }, { 3680, -4656, 4624, 0 } }, { -3206, 0, 2551, 0 }, 7507, 1, 0 },
     { NULL, NULL, { 4464, -176, 2784, 0 }, { { -3216, 1920, -4624, 0 }, { 3216, 1920, 4624, 0 }, { -3216, -1920, -4624, 0 }, { 3216, -1920, 4624, 0 } }, { -3368, 0, 2342, 0 }, 5948, 1, 0 },
     { NULL, NULL, { -9041, -1824, 6399, 0 }, { { -1056, 8, -992, 0 }, { -1056, -7, 993, 0 }, { 1056, 8, -992, 0 }, { 1056, -7, 993, 0 } }, { 0, -4096, -32, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
@@ -1081,18 +1094,35 @@ WorldCollisionSurfaceProperties* gShelterB4UpperSewerSurfacePropertiesByClass[8]
     &_gShelterB4UpperSewerBlockingSilentSurface,
 };
 
-RoomFadeStorage D_shelter_b4_upper_sewer_80188D1C = { 0 };
+/// Persistent subtractive screen-fade storage for an accepted exit transit.
+///
+/// The fade task borrows `fade` for its 16-frame ramp before room reload.
+/// The trailing word stays zero and has no established consumer.
+static RoomFadeStorage _gShelterB4UpperSewerExitFade = { 0 };
 
-RoomEventMsg D_shelter_b4_upper_sewer_80188D24 = { 0 };
+/// Resolved destination selectors held while exit confirmation and transit run.
+///
+/// Only `loc.room`, `loc.area` and `loc.warp` are staged and committed;
+/// the remaining five bytes stay zero and are not consumed. A new exit replaces
+/// the selectors. Retains the eight-byte allocation and its two-byte alignment.
+static GameLoc _gShelterB4UpperSewerExitDestination __attribute__((aligned(2))) = { 0 };
 
-u8 D_shelter_b4_upper_sewer_80188D2C[4] = {
-    0,
-    162,
-    51,
-    44,
-};
+/// Interrupted view selector restored after the water-hole scene.
+///
+/// Scene entry replaces `view`; cancellation and script completion restore it.
+/// The three following nonzero image bytes have no recovered access or role.
+static struct {
+    u8 view;         // Saved 1-based room view before the scene selects view 13
+    u8 unknown_1[3]; // Retained image bytes; role and grouping unproven
+} _gShelterB4UpperSewerSavedViewStorage = { 0, { 162, 51, 44 } };
 
-u8* D_shelter_b4_upper_sewer_80188D30;
+/// Next free byte in the current frame's borrowed water GPU packet arena.
+///
+/// Reset each draw to the unused actor buffer's display half (0xC000 bytes).
+/// Each emitted quad advances through a 24-byte `POLY_F4` and a 12-byte
+/// `DR_MODE`; at most 144 pairs use 5184 bytes. These mixed packet views need
+/// word-aligned storage and remain borrowed until that frame's GPU work ends.
+static u8* _gShelterB4UpperSewerWaterPacketCursor;
 
 static void _shelterB4UpperSewerUpdateWater(Task* task);
 
@@ -1139,7 +1169,7 @@ static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task)
         case SHELTER_B4_UPPER_SEWER_WATER_HOLE_CHOOSE:
             if (capGetVariantKey() == SHELTER_B4_UPPER_SEWER_WATER_HOLE_CANCEL_KEY) {
                 taskKill(task);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gShelterB4UpperSewerSavedViewStorage.view;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -1151,7 +1181,7 @@ static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task)
                 break;
             }
             // The event script restores the view and releases the held actors.
-            evsStartScript(D_shelter_b4_upper_sewer_80186318, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gShelterB4UpperSewerWaterHoleScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             gameFlagSetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 0);
             task->state++;
@@ -1213,10 +1243,10 @@ static void _shelterB4UpperSewerExitTransitTask(Task* task)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             // Freeze the battle result before fading the outgoing room.
             sceneQueueBattleEscapeResult();
-            D_shelter_b4_upper_sewer_80188D1C.fade.blend      = SCREEN_FADE_SUBTRACT;
-            D_shelter_b4_upper_sewer_80188D1C.fade.phase      = SCREEN_FADE_RUNNING;
-            D_shelter_b4_upper_sewer_80188D1C.fade.rampFrames = SHELTER_B4_UPPER_SEWER_EXIT_FADE_TICKS;
-            taskSpawn(SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_BANK, SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_TYPE, 0, &D_shelter_b4_upper_sewer_80188D1C.fade);
+            _gShelterB4UpperSewerExitFade.fade.blend      = SCREEN_FADE_SUBTRACT;
+            _gShelterB4UpperSewerExitFade.fade.phase      = SCREEN_FADE_RUNNING;
+            _gShelterB4UpperSewerExitFade.fade.rampFrames = SHELTER_B4_UPPER_SEWER_EXIT_FADE_TICKS;
+            taskSpawn(SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_BANK, SHELTER_B4_UPPER_SEWER_SCREEN_FADE_TASK_TYPE, 0, &_gShelterB4UpperSewerExitFade.fade);
             task->killCountdown = SHELTER_B4_UPPER_SEWER_EXIT_FADE_TICKS;
             task->state++;
             break;
@@ -1232,10 +1262,11 @@ static void _shelterB4UpperSewerExitTransitTask(Task* task)
             }
             break;
         case SHELTER_B4_UPPER_SEWER_EXIT_RELOAD:
+            // Publish the staged destination after the fade and transit sound finish.
             gDisplayState.spriteVariant                                = SHELTER_B4_UPPER_SEWER_DEFAULT_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_upper_sewer_80188D24.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_upper_sewer_80188D24.field_4;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1];
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gShelterB4UpperSewerExitDestination.loc.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gShelterB4UpperSewerExitDestination.loc.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gShelterB4UpperSewerExitDestination.loc.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -1254,18 +1285,18 @@ static s32 _shelterB4UpperSewerRejectKeyItemMessage(Task* task, s32 messageId, s
 
 /// Saves a resolved exit selector and starts the room's confirmation/transit task.
 ///
-/// Borrows the reply for this call. Area narrows to a byte, warp stays unsigned
-/// and room retains its byte encoding in the saved selector's second byte.
+/// Borrows the reply for this call. Area and room narrow to their unsigned
+/// saved-location bytes; warp stays unsigned.
 /// The loaded room owns that selector until transit consumes it; another start
 /// overwrites it. `capCommand` selects the exit confirmation script.
 static inline void _shelterB4UpperSewerStageExit(const RoomEventMsg* reply, s32 capCommand)
 {
     enum { SHELTER_B4_UPPER_SEWER_EXIT_TASK_INDEX = 1 };
 
-    D_shelter_b4_upper_sewer_80188D24.warp              = (u8)reply->areaId;
-    D_shelter_b4_upper_sewer_80188D24.field_4           = reply->warp;
-    ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1] = reply->room;
-    taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, SHELTER_B4_UPPER_SEWER_EXIT_TASK_INDEX, capCommand, 0);
+    _gShelterB4UpperSewerExitDestination.loc.area = (u8)reply->areaId;
+    _gShelterB4UpperSewerExitDestination.loc.warp = reply->warp;
+    _gShelterB4UpperSewerExitDestination.loc.room = reply->room;
+    taskSpawnFromTable(_gShelterB4UpperSewerInteractionTasks, SHELTER_B4_UPPER_SEWER_EXIT_TASK_INDEX, capCommand, 0);
 }
 
 /// Resolves departures and handles the reservoir and water-supply exits locally.
@@ -1324,8 +1355,8 @@ static s32 _shelterB4UpperSewerHandleWaterHoleCommand(Task* task, s32 messageId,
             // Preserve the interrupted camera view before the opening scene takes it.
             savedView                                                  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B4_UPPER_SEWER_WATER_HOLE_SCENE_VIEW;
-            D_shelter_b4_upper_sewer_80188D2C[0]                       = savedView;
-            taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, SHELTER_B4_UPPER_SEWER_WATER_HOLE_OPEN_TASK_INDEX, 0, 0);
+            _gShelterB4UpperSewerSavedViewStorage.view                 = savedView;
+            taskSpawnFromTable(_gShelterB4UpperSewerInteractionTasks, SHELTER_B4_UPPER_SEWER_WATER_HOLE_OPEN_TASK_INDEX, 0, 0);
         } else {
             capRunCommandWithTransition(SHELTER_B4_UPPER_SEWER_WATER_HOLE_OPEN_CAP_COMMAND);
         }
@@ -1366,7 +1397,7 @@ static s32 _shelterB4UpperSewerHandleSoundCue(Task* task, s32 messageId, s32 cue
 /// callback changes only the saved view selector; it does not load a camera.
 static void _shelterB4UpperSewerRestoreSavedView(void)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gShelterB4UpperSewerSavedViewStorage.view;
 }
 
 /// Publishes the room task and restores water rendering after the reservoir event.
@@ -1381,13 +1412,13 @@ static void _shelterB4UpperSewerInitializeRoom(Task* task)
     enum { WATER_INITIAL_Y = -1800,
            WATER_ABSENT_Y  = 0 };
 
-    task->msgTable = D_shelter_b4_upper_sewer_801862D0;
+    task->msgTable = _gShelterB4UpperSewerRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
-        D_shelter_b4_upper_sewer_80186438 = WATER_INITIAL_Y;
-        taskSpawnFromTable(D_shelter_b4_upper_sewer_8018643C, 0, 0, 0);
+        gShelterB4UpperSewerWaterY = WATER_INITIAL_Y;
+        taskSpawnFromTable(_gShelterB4UpperSewerWaterTasks, 0, 0, 0);
     } else {
-        D_shelter_b4_upper_sewer_80186438 = WATER_ABSENT_Y;
+        gShelterB4UpperSewerWaterY = WATER_ABSENT_Y;
     }
     task->state++;
 }
@@ -1401,7 +1432,7 @@ static void _shelterB4UpperSewerIdleRoom(Task* task)
 
 void shelterB4UpperSewerRoomTask(Task* task)
 {
-    TaskFuncTable3 handlers = D_shelter_b4_upper_sewer_8017D5C4;
+    TaskFuncTable3 handlers = _gShelterB4UpperSewerRoomStates;
 
     handlers.funcs[task->state](task);
 }
@@ -1425,23 +1456,23 @@ static void _shelterB4UpperSewerUpdateWater(Task* task)
 
     // Borrow the unused actor-load buffer, with one packet area per display buffer.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b4_upper_sewer_80188D30 = gFsActorBuffer2Base + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
+        _gShelterB4UpperSewerWaterPacketCursor = gFsActorBuffer2Base + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
     } else {
-        D_shelter_b4_upper_sewer_80188D30 = gFsActorBuffer1Base + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
+        _gShelterB4UpperSewerWaterPacketCursor = gFsActorBuffer1Base + gDisplayState.otBuffer * SHELTER_B4_UPPER_SEWER_WATER_PACKET_HALF_BYTES;
     }
-    if (D_shelter_b4_upper_sewer_80186438 < SHELTER_B4_UPPER_SEWER_WATER_MIN_Y) {
-        D_shelter_b4_upper_sewer_80186438 = SHELTER_B4_UPPER_SEWER_WATER_MIN_Y;
-    } else if (D_shelter_b4_upper_sewer_80186438 > SHELTER_B4_UPPER_SEWER_WATER_MAX_Y) {
-        D_shelter_b4_upper_sewer_80186438 = SHELTER_B4_UPPER_SEWER_WATER_MAX_Y;
+    if (gShelterB4UpperSewerWaterY < SHELTER_B4_UPPER_SEWER_WATER_MIN_Y) {
+        gShelterB4UpperSewerWaterY = SHELTER_B4_UPPER_SEWER_WATER_MIN_Y;
+    } else if (gShelterB4UpperSewerWaterY > SHELTER_B4_UPPER_SEWER_WATER_MAX_Y) {
+        gShelterB4UpperSewerWaterY = SHELTER_B4_UPPER_SEWER_WATER_MAX_Y;
     }
-    clampedWaterY        = D_shelter_b4_upper_sewer_80186438;
+    clampedWaterY        = gShelterB4UpperSewerWaterY;
     gGameSession->waterY = clampedWaterY;
     waterY               = clampedWaterY;
     blueIntensity        = (-waterY * 16) / 225;
     if (gGameSession->location.loc.view != SHELTER_B4_UPPER_SEWER_WATER_VIEW_SKIP_FIRST_PATCH) {
-        _shelterB4UpperSewerDrawWaterSurfaces(task, D_shelter_b4_upper_sewer_80186448, waterY, blueIntensity);
+        _shelterB4UpperSewerDrawWaterSurfaces(task, _gShelterB4UpperSewerWaterSurfaces, waterY, blueIntensity);
     } else {
-        _shelterB4UpperSewerDrawWaterSurfaces(task, D_shelter_b4_upper_sewer_80186454, waterY, blueIntensity);
+        _shelterB4UpperSewerDrawWaterSurfaces(task, &_gShelterB4UpperSewerWaterSurfaces[1], waterY, blueIntensity);
     }
 }
 
@@ -1471,8 +1502,8 @@ static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4Up
     /// after a valid projection inside braces; expands to a statement list that
     /// updates the cursor and links both packets, with no additional control flow.
 #define SHELTER_B4_UPPER_SEWER_EMIT_WATER_QUAD()                                                                                                                                                   \
-    waterQuad                         = (POLY_F4*)D_shelter_b4_upper_sewer_80188D30;                                                                                                               \
-    D_shelter_b4_upper_sewer_80188D30 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    waterQuad                              = (POLY_F4*)_gShelterB4UpperSewerWaterPacketCursor;                                                                                                     \
+    _gShelterB4UpperSewerWaterPacketCursor = (u8*)(waterQuad + 1);                                                                                                                                 \
     setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                       \
     setcode(waterQuad, SHELTER_B4_UPPER_SEWER_WATER_QUAD_CODE);                                                                                                                                    \
     GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                               \
@@ -1484,8 +1515,8 @@ static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4Up
     waterQuad->b0                       = blueIntensity;                                                                                                                                           \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_UPPER_SEWER_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
             waterQuad);                                                                                                                                                                            \
-    drawMode                          = (DR_MODE*)D_shelter_b4_upper_sewer_80188D30;                                                                                                               \
-    D_shelter_b4_upper_sewer_80188D30 = (u8*)(drawMode + 1);                                                                                                                                       \
+    drawMode                               = (DR_MODE*)_gShelterB4UpperSewerWaterPacketCursor;                                                                                                     \
+    _gShelterB4UpperSewerWaterPacketCursor = (u8*)(drawMode + 1);                                                                                                                                  \
     setlen(drawMode, SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE_WORDS);                                                                                                                                \
     drawMode->code[0] = SHELTER_B4_UPPER_SEWER_WATER_DRAW_MODE;                                                                                                                                    \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_UPPER_SEWER_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
@@ -1579,7 +1610,7 @@ static void _shelterB4UpperSewerWaterTask(Task* task)
     TaskFunc states[] = { _shelterB4UpperSewerInitializeWater, _shelterB4UpperSewerUpdateWater };
 
     states[task->state](task);
-    gGameSession->waterY = D_shelter_b4_upper_sewer_80186438;
+    gGameSession->waterY = gShelterB4UpperSewerWaterY;
 }
 
 /// Clears the selected actor-buffer session marker before water rendering begins.

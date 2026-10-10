@@ -352,9 +352,9 @@ gShelterB4ReservoirMainWaterY = 0x80184F80; // absolute:True owner=shelter_b4_re
 gShelterB2SepticTankDiverPatrolRings = 0x801836A4; // absolute:True owner=shelter_b2_septic_tank
 gShelterB2SepticTankDiverSurfaceSpots = 0x801836B4; // absolute:True owner=shelter_b2_septic_tank
 gShelterB2SepticTankWaterY = 0x801832BC; // absolute:True owner=shelter_b2_septic_tank
-D_shelter_b4_upper_sewer_801866F8 = 0x801866F8; // absolute:True owner=shelter_b4_upper_sewer
-D_shelter_b4_upper_sewer_80186708 = 0x80186708; // absolute:True owner=shelter_b4_upper_sewer
-D_shelter_b4_upper_sewer_80186438 = 0x80186438; // absolute:True owner=shelter_b4_upper_sewer
+gShelterB4UpperSewerDiverPatrolRings = 0x801866F8; // absolute:True owner=shelter_b4_upper_sewer
+gShelterB4UpperSewerDiverSurfaceSpots = 0x80186708; // absolute:True owner=shelter_b4_upper_sewer
+gShelterB4UpperSewerWaterY = 0x80186438; // absolute:True owner=shelter_b4_upper_sewer
 gNeoArkBridgeDiverPatrolRings = 0x801820BC; // absolute:True owner=neo_ark_bridge shared=rooms
 gNeoArkBridgeDiverSurfaceSpots = 0x801820CC; // absolute:True owner=neo_ark_bridge
 gNeoArkBridgeDiverWaterY = 0x80181FF8; // absolute:True owner=neo_ark_bridge

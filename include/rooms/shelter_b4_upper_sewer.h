@@ -17,12 +17,28 @@
 
 #include "main/task_types.h"
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_shelter_b4_upper_sewer_801866F8[4];
+/// Four patrol-ring selections borrowed by the upper sewer's Bog Divers.
+///
+/// Spawn bits 4..5 select index 0..3; indices 0, 2 and 3 share a ring, and
+/// index 1 selects the other. Each ring has eight points without a terminator.
+/// X/Z use world units; swimming adds the water Y sampled at spawn to waypoint Y.
+/// The room and rings must outlive every borrowing diver.
+extern SVECTOR* gShelterB4UpperSewerDiverPatrolRings[4];
 
-extern SVECTOR D_shelter_b4_upper_sewer_80186708[9];
+/// Writable emergence spots shared by the upper sewer's Bog Divers.
+///
+/// Entry 0 is the fallback claim; entries 1..7 are searched by XZ distance.
+/// The fourth halfword is 0 free, 1 claimed or -1 end (entry 8). Searches use
+/// world-unit X/Z and ignore Y. Divers release claims when moved or torn down;
+/// keep the list loaded and writable until every borrowing diver releases it.
+extern SVECTOR gShelterB4UpperSewerDiverSurfaceSpots[9];
 
-extern s16 D_shelter_b4_upper_sewer_80186438;
+/// Upper-sewer water-surface Y in world units, also sampled by Bog Diver spawns.
+///
+/// Room setup seeds -1800 after the reservoir event, or 0 without water drawing.
+/// The first water-task tick publishes that seed; later drawing clamps to -1600..0.
+/// Storage belongs to the loaded room and must outlive its borrowing divers.
+extern s16 gShelterB4UpperSewerWaterY;
 
 /// Placement/resource layouts for the upper sewer, indexed by the saved variant.
 ///
@@ -46,7 +62,13 @@ extern u8* gShelterB4UpperSewerViewMaps[1];
 /// Shelter map only while this room overlay is loaded.
 extern ViewCount gShelterB4UpperSewerViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b4_upper_sewer_80186598[];
+/// Upper-sewer warp endpoints 1..4, indexed by warp ID minus one without a terminator.
+///
+/// Endpoints 1 and 4 lead to the lower sewer; 2 leads to the reservoir and
+/// requests a departure fade and map marker; 3 leads to the water supply.
+/// Arrival views are 7, 2, 10 and 12. Positions use world units and yaw uses
+/// 4096 per turn. The stage directory borrows these records while the room is loaded.
+extern DirectionWarpEntry gShelterB4UpperSewerWarpEntries[4];
 
 /// The upper sewer's collision mesh and 6-by-5 XZ cell index.
 ///
@@ -89,9 +111,21 @@ extern WorldCoordRoomLights gShelterB4UpperSewerRoomLights;
 /// the runtime view-boundary list is cleared.
 extern WorldCollisionTrigger gShelterB4UpperSewerViewBoundaryTriggers[18];
 
-extern WorldCollisionTrigger D_shelter_b4_upper_sewer_801886F4[];
+/// Eight upper-sewer interaction quads, ending at the final live trigger's LAST bit.
+///
+/// Four resolve warps to water supply, reservoir and lower sewer; the others
+/// run the water-hole command outside battle or CAP commands 3, 5 and 4.
+/// Positions use world units and normals use 4096 per unit. Room setup binds
+/// the view coordinate, links and enables these mutable records. Keep them
+/// loaded until the runtime action list is cleared.
+extern WorldCollisionTrigger gShelterB4UpperSewerActionTriggers[8];
 
-extern WorldCollisionOccluder D_shelter_b4_upper_sewer_80188BFC[];
+/// Three upper-sewer line-of-sight blocking quads, ending at the final live LAST bit.
+///
+/// Positions and radii use world units; normals use 4096 per unit. Room setup
+/// links and enables the mutable records. Their low flag bit has no established
+/// interpretation. Keep the room loaded until the runtime occluder list is cleared.
+extern WorldCollisionOccluder gShelterB4UpperSewerOccluders[3];
 
 /// Collision policies and footstep cues indexed by the upper sewer's surface class.
 ///

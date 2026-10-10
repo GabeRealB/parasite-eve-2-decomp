@@ -1117,7 +1117,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     gShelterB3IncineratorControlRoomWarpEntries,
     gShelterB3ElevatorHallWarpEntries,
     gShelterB4LowerSewerWarpEntries,
-    D_shelter_b4_upper_sewer_80186598,
+    gShelterB4UpperSewerWarpEntries,
     gShelterB4ReservoirWarpEntries,
     gShelterB4WaterSupplyWarpEntries,
     gShelterR47WarpEntries,
@@ -1285,7 +1285,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B2B4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2C4[1] = {
-    { &gShelterB4UpperSewerCollisionGrid, gShelterB4UpperSewerViewBoundaryTriggers, D_shelter_b4_upper_sewer_801886F4, D_shelter_b4_upper_sewer_80188BFC },
+    { &gShelterB4UpperSewerCollisionGrid, gShelterB4UpperSewerViewBoundaryTriggers, gShelterB4UpperSewerActionTriggers, gShelterB4UpperSewerOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2D4[1] = {

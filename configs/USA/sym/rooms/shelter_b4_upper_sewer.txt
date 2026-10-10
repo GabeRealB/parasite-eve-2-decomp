@@ -1,22 +1,21 @@
 // Overlay-local symbols for shelter_b4_upper_sewer.
-D_shelter_b4_upper_sewer_80186448 = 0x80186448; // size:0xC defined:True
-D_shelter_b4_upper_sewer_80186454 = 0x80186454; // size:0x3C defined:True
+_gShelterB4UpperSewerWaterSurfaces = 0x80186448; // size:0x48 defined:True
 _gShelterB4UpperSewerGlowPoints = 0x80186490; // size:0xD0 defined:True
-D_shelter_b4_upper_sewer_80186438 = 0x80186438; // size:0x2 defined:True
-D_shelter_b4_upper_sewer_8018643C = 0x8018643C; // size:0xC defined:True
+gShelterB4UpperSewerWaterY = 0x80186438; // size:0x2 defined:True
+_gShelterB4UpperSewerWaterTasks = 0x8018643C; // size:0xC defined:True
 _gRoomVisualEffectsHaloShades = 0x80186560; // size:0x12 defined:True
 _gRoomVisualEffectsGlowDiscShades = 0x80186584; // size:0xC defined:True
 gShelterB4UpperSewerViewMaps = 0x80186590; // size:0x4 defined:True
 gShelterB4UpperSewerViewCounts = 0x80186594; // size:0x2 defined:True
-D_shelter_b4_upper_sewer_801862D0 = 0x801862D0; // size:0x30 defined:True
-D_shelter_b4_upper_sewer_80186300 = 0x80186300; // size:0x18 defined:True
-D_shelter_b4_upper_sewer_80186318 = 0x80186318; // size:0x120 defined:True
-D_shelter_b4_upper_sewer_80186598 = 0x80186598; // size:0xE0 defined:True
+_gShelterB4UpperSewerRoomMessages = 0x801862D0; // size:0x30 defined:True
+_gShelterB4UpperSewerInteractionTasks = 0x80186300; // size:0x18 defined:True
+_gShelterB4UpperSewerWaterHoleScript = 0x80186318; // size:0x120 defined:True
+gShelterB4UpperSewerWarpEntries = 0x80186598; // size:0xE0 defined:True
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80186574; // size:0x10 defined:True
-D_shelter_b4_upper_sewer_80186678 = 0x80186678; // size:0x40 defined:True
-D_shelter_b4_upper_sewer_801866B8 = 0x801866B8; // size:0x40 defined:True
-D_shelter_b4_upper_sewer_801866F8 = 0x801866F8; // size:0x10 defined:True
-D_shelter_b4_upper_sewer_80186708 = 0x80186708; // size:0x48 defined:True
+_gShelterB4UpperSewerDiverPatrolRing0 = 0x80186678; // size:0x40 defined:True
+_gShelterB4UpperSewerDiverPatrolRing1 = 0x801866B8; // size:0x40 defined:True
+gShelterB4UpperSewerDiverPatrolRings = 0x801866F8; // size:0x10 defined:True
+gShelterB4UpperSewerDiverSurfaceSpots = 0x80186708; // size:0x48 defined:True
 _gShelterB4UpperSewerCollisionGridNormals = 0x80186750; // size:0x38 defined:True
 _gShelterB4UpperSewerCollisionGridVerts = 0x80186788; // size:0x2B8 defined:True
 _gShelterB4UpperSewerCollisionGridFaces = 0x80186A40; // size:0x1F8 defined:True
@@ -51,7 +50,7 @@ gShelterB4UpperSewerSpriteViews = 0x801879BC; // size:0xA8 defined:True
 _gShelterB4UpperSewerPointLights = 0x80187A64; // size:0x720 defined:True
 gShelterB4UpperSewerRoomLights = 0x80188184; // size:0x18 defined:True
 gShelterB4UpperSewerViewBoundaryTriggers = 0x8018819C; // size:0x558 defined:True
-D_shelter_b4_upper_sewer_801886F4 = 0x801886F4; // size:0x260 defined:True
+gShelterB4UpperSewerActionTriggers = 0x801886F4; // size:0x260 defined:True
 _gShelterB4UpperSewerVariant1Resources = 0x80188954; // size:0x24 defined:True
 _gShelterB4UpperSewerVariant2Resources = 0x80188978; // size:0x18 defined:True
 _gShelterB4UpperSewerVariant3Resources = 0x80188990; // size:0x24 defined:True
@@ -67,7 +66,7 @@ _gShelterB4UpperSewerVariant7Placements = 0x80188B2C; // size:0x20 defined:True
 _gShelterB4UpperSewerVariant8Placements = 0x80188B4C; // size:0x20 defined:True
 _gShelterB4UpperSewerVariant11Placements = 0x80188B6C; // size:0x30 defined:True
 gShelterB4UpperSewerAreaVariants = 0x80188B9C; // size:0x60 defined:True
-D_shelter_b4_upper_sewer_80188BFC = 0x80188BFC; // size:0xB4 defined:True
+gShelterB4UpperSewerOccluders = 0x80188BFC; // size:0xB4 defined:True
 _gShelterB4UpperSewerClass5FootstepSounds = 0x80188CB0; // size:0xC defined:True
 _gShelterB4UpperSewerClass2FootstepSounds = 0x80188CBC; // size:0xC defined:True
 _gShelterB4UpperSewerClass3FootstepSounds = 0x80188CC8; // size:0xC defined:True
@@ -77,7 +76,7 @@ _gShelterB4UpperSewerClass2SurfaceProperties = 0x80188CE4; // size:0x8 defined:T
 _gShelterB4UpperSewerClass3SurfaceProperties = 0x80188CEC; // size:0x8 defined:True
 _gShelterB4UpperSewerClass5SurfaceProperties = 0x80188CF4; // size:0x8 defined:True
 gShelterB4UpperSewerSurfacePropertiesByClass = 0x80188CFC; // size:0x20 defined:True
-D_shelter_b4_upper_sewer_80188D1C = 0x80188D1C; // size:0x8 defined:True
+_gShelterB4UpperSewerExitFade = 0x80188D1C; // size:0x8 defined:True
 gActor102400Tasks = 0x8013647C; // absolute:True owner=actor_102400
 gActor107000SucklercephTaskDescs = 0x80139E60; // absolute:True owner=actor_107000
 gActor107000SlouchTaskDescs = 0x8013F5F0; // absolute:True owner=actor_107000
@@ -86,9 +85,9 @@ gActor100400Tasks = 0x80147E48; // absolute:True owner=actor_100400
 gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 gActor01100Tasks = 0x8015F400; // absolute:True owner=actor_204900
 gActor200400Tasks = 0x8015FE48; // absolute:True owner=actor_200400
-D_shelter_b4_upper_sewer_80188D24 = 0x80188D24; // size:0x8 defined:True
-D_shelter_b4_upper_sewer_80188D2C = 0x80188D2C; // size:0x4 defined:True
-D_shelter_b4_upper_sewer_80188D30 = 0x80188D30; // size:0x4 defined:True
+_gShelterB4UpperSewerExitDestination = 0x80188D24; // size:0x8 defined:True
+_gShelterB4UpperSewerSavedViewStorage = 0x80188D2C; // size:0x4 defined:True
+_gShelterB4UpperSewerWaterPacketCursor = 0x80188D30; // size:0x4 defined:True
 
 shelterB4UpperSewerRoomVisualEffectsFlashTask = 0x80182734; // type:func
 
@@ -151,3 +150,4 @@ _shelterB4UpperSewerExitTransitTask = 0x8017d80c; // type:func
 _shelterB4UpperSewerResolveRoomTransition = 0x8017d9c4; // type:func
 _shelterB4UpperSewerHandleWaterHoleCommand = 0x8017dab0; // type:func
 _shelterB4UpperSewerInitializeRoom = 0x8017dba8; // type:func
+_gShelterB4UpperSewerRoomStates = 0x8017d5c4;
