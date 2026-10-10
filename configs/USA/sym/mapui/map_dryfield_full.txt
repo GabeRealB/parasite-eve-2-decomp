@@ -5,10 +5,10 @@
 // loaded at a slot of its own, so each is absolute.
 dryfieldNightGasStationRoomTask = 0x8017FB70; // type:func absolute:True owner=dryfield_night_gas_station shared=rooms
 gDryfieldNightGasStationRoomLighting = 0x80189DB0; // absolute:True owner=dryfield_night_gas_station
-D_dryfield_night_gas_station_80189DD0 = 0x80189DD0; // absolute:True owner=dryfield_night_gas_station
+gDryfieldNightGasStationRoomCollisionResources = 0x80189DD0; // absolute:True owner=dryfield_night_gas_station
 gDryfieldNightGasStationViewMaps = 0x80189E70; // absolute:True owner=dryfield_night_gas_station
 gDryfieldNightGasStationViewCounts = 0x80189E80; // absolute:True owner=dryfield_night_gas_station
-D_dryfield_night_gas_station_80189E88 = 0x80189E88; // absolute:True owner=dryfield_night_gas_station
+gDryfieldNightGasStationWarpEntries = 0x80189E88; // absolute:True owner=dryfield_night_gas_station
 gDryfieldNightGasStationViewCameras = 0x8018B780; // absolute:True owner=dryfield_night_gas_station
 gDryfieldNightGasStationSpriteViews = 0x8018F6C4; // absolute:True owner=dryfield_night_gas_station
 gDryfieldNightGasStationSurfacePropertiesByClass = 0x80190780; // absolute:True owner=dryfield_night_gas_station

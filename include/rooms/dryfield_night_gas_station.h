@@ -20,7 +20,13 @@ extern AreaVariant D_dryfield_night_gas_station_80190624[12];
 /// remain valid while this room overlay is loaded; light transforms are writable.
 extern WorldCoordRoomLighting gDryfieldNightGasStationRoomLighting[4];
 
-extern WorldCollisionRoomResources D_dryfield_night_gas_station_80189DD0[];
+/// Collision resources for night gas station room variants 1..4, indexed by room - 1.
+///
+/// Rooms 1..3 share the live grid with its restorable cutscene obstacle;
+/// room 4 selects a separate mesh. All share view-boundary and interaction
+/// triggers and have no sight occluders. The map overlay borrows this directory
+/// while the room overlay and its mutable grids/trigger pools remain loaded.
+extern WorldCollisionRoomResources gDryfieldNightGasStationRoomCollisionResources[4];
 
 /// Logical-view maps for night gas station room variants 1..4, indexed by room - 1.
 ///
@@ -36,7 +42,13 @@ extern u8* gDryfieldNightGasStationViewMaps[4];
 /// room overlay; they do not count the maps' retained trailing bytes.
 extern ViewCount gDryfieldNightGasStationViewCounts[4];
 
-extern DirectionWarpEntry D_dryfield_night_gas_station_80189E88[];
+/// Three gas-station arrival/departure endpoints, indexed by warp ID minus one.
+///
+/// IDs 1..3 have initial views 2, 4 and 6; the two action-trigger exits use
+/// current endpoint IDs 3 and 2. Positions use room-space game units and yaw
+/// uses 1/4096 turns. There is no terminator. Stage-map and direction lookups
+/// borrow the table only while the owning room overlay remains loaded.
+extern DirectionWarpEntry gDryfieldNightGasStationWarpEntries[3];
 
 /// Cameras shared by all four room variants, indexed by mapped view minus one.
 ///

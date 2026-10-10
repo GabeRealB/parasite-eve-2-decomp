@@ -87480,7 +87480,7 @@ m2c seeded `_dryfieldNightGasStationSpriteFlickerTask` with the room's vector
 table read as
 
 ```c
-temp_v0 = (*((arg0->killCountdown * 8) + &D_dryfield_night_gas_station_80188580) & 1) ^ 1;
+temp_v0 = (*((arg0->killCountdown * 8) + &_gDryfieldNightGasStationRedStreakTrack) & 1) ^ 1;
 ```
 
 and scored 95%, differing from the target on exactly two instructions:
@@ -87497,7 +87497,7 @@ is the `SVECTOR` the same overlay's `_dryfieldNightGasStationDrawTrackRedStreak`
 walks with `ApplyMatrixSV`. Indexing it as a real type
 
 ```c
-temp_v0 = (D_dryfield_night_gas_station_80188580[arg0->killCountdown].vx & 1) ^ 1;
+temp_v0 = (_gDryfieldNightGasStationRedStreakTrack[arg0->killCountdown].vx & 1) ^ 1;
 ```
 
 fixes the stride and the load in one move, and the function goes to 100% on the
