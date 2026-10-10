@@ -66,16 +66,16 @@ extern RoomFadeStorage gRoomEventFade;
 /// The room's message table, which the room setup task installs.
 extern TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[];
 
-extern WorldCollisionGrid         D_neo_ark_savanna_zone_8017FBD0[1];
-extern WorldCollisionOccluder     D_neo_ark_savanna_zone_801808CC[1];
-extern WorldCollisionTrigger      D_neo_ark_savanna_zone_801804EC[4];
-extern WorldCollisionTrigger      D_neo_ark_savanna_zone_8018061C[5];
-extern WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5];
-extern WorldCoordRoomLights       D_neo_ark_savanna_zone_801804D4[1];
-static s32                        _neoArkSavannaZoneResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
-static s32                        _neoArkSavannaZoneRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-static s32                        _neoArkSavannaZoneIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-static s32                        _neoArkSavannaZoneIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static WorldCollisionGrid               _gNeoArkSavannaZoneCollisionGrid;
+extern WorldCollisionOccluder           D_neo_ark_savanna_zone_801808CC[1];
+extern WorldCollisionTrigger            D_neo_ark_savanna_zone_801804EC[4];
+extern WorldCollisionTrigger            D_neo_ark_savanna_zone_8018061C[5];
+static const WorldCoordRoomAmbientEntry _gNeoArkSavannaZoneAmbientTable[NEO_ARK_SAVANNA_ZONE_VIEW_COUNT + 1];
+static WorldCoordRoomLights             _gNeoArkSavannaZoneRoomLights;
+static s32                              _neoArkSavannaZoneResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32                              _neoArkSavannaZoneRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32                              _neoArkSavannaZoneIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32                              _neoArkSavannaZoneIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 /// Requests use of the selected collected key item; zero refuses the request.
 enum { NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -93,14 +93,14 @@ TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_neo_ark_savanna_zone_8017F9E4[1] = {
-    { D_neo_ark_savanna_zone_8017FBD0, D_neo_ark_savanna_zone_801804EC, D_neo_ark_savanna_zone_8018061C, D_neo_ark_savanna_zone_801808CC },
+    { &_gNeoArkSavannaZoneCollisionGrid, D_neo_ark_savanna_zone_801804EC, D_neo_ark_savanna_zone_8018061C, D_neo_ark_savanna_zone_801808CC },
 };
 
-WorldCoordRoomLighting D_neo_ark_savanna_zone_8017F9F4[1] = {
-    { D_neo_ark_savanna_zone_801804D4, D_neo_ark_savanna_zone_80180908 },
+WorldCoordRoomLighting gNeoArkSavannaZoneRoomLighting[1] = {
+    { &_gNeoArkSavannaZoneRoomLights, _gNeoArkSavannaZoneAmbientTable },
 };
 
-u8* D_neo_ark_savanna_zone_8017F9FC[1] = {
+u8* gNeoArkSavannaZoneViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -111,180 +111,222 @@ DirectionWarpEntry D_neo_ark_savanna_zone_8017FA04[2] = {
     { { { .word = 3072 }, 0x34BC, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x34BC, 0, 1500 }, { 0, 0, 0, 0 }, 0x55120004, 0x55120003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkSavannaZoneCollision02610Normals[5] = {
+/// Grid-local unit normals, scaled by 4096 and indexed by the grid's faces.
+static SVECTOR _gNeoArkSavannaZoneCollisionGridNormals[5] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_normals.inc"
 };
 
-static SVECTOR _gNeoArkSavannaZoneCollision02610Verts[12] = {
+/// Collision mesh vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkSavannaZoneCollisionGridVerts[12] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkSavannaZoneCollision02610Faces[11] = {
+/// Indexed collision faces with room-local surface classes 0..3.
+static WorldCollisionGridFace _gNeoArkSavannaZoneCollisionGridFaces[11] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_faces.inc"
 };
 
-static s16 _gNeoArkSavannaZoneCollision02610Cells[32] = {
+/// Four serialized face-index lists, each ending at `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gNeoArkSavannaZoneCollisionGridCells[32] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkSavannaZoneCollision02610Cells[i])
-static s16* _gNeoArkSavannaZoneCollision02610Table[4] = {
+#define GRID_CELL(i) (&_gNeoArkSavannaZoneCollisionGridCells[i])
+/// X-major directory into the grid's four face-index lists.
+static s16* _gNeoArkSavannaZoneCollisionGridTable[4] = {
 #include "assets/neo_ark_savanna_zone_collision_02610_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_savanna_zone_8017FBD0[1] = {
-    { NULL, _gNeoArkSavannaZoneCollision02610Normals, _gNeoArkSavannaZoneCollision02610Verts, _gNeoArkSavannaZoneCollision02610Faces, _gNeoArkSavannaZoneCollision02610Table, 50, 50, 4, 1, 4000, 11 },
+/// Savanna collision mesh and its 4-by-1 XZ grid of 4000-unit cells.
+///
+/// The grid origin is (-50, -50) in room XZ coordinates. Activation binds the
+/// view coordinate; the descriptor and mesh pools stay live with this overlay.
+static WorldCollisionGrid _gNeoArkSavannaZoneCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkSavannaZoneCollisionGridNormals,
+    .vertices    = _gNeoArkSavannaZoneCollisionGridVerts,
+    .faces       = _gNeoArkSavannaZoneCollisionGridFaces,
+    .cellFaceIds = _gNeoArkSavannaZoneCollisionGridTable,
+    .xBias       = 50,
+    .zBias       = 50,
+    .cellCountX  = ARRAY_SIZE(_gNeoArkSavannaZoneCollisionGridTable),
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkSavannaZoneCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_savanna_zone_8017FBF4[4] = {
-    { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -7500, 0x77D8, -1950 } }, 329 },
-    { { { { -676, 0, -4039 }, { -670, 4039, 112 }, { 3983, 679, -667 } }, { -6330, 1950, -2240 } }, 329 },
-    { { { { -365, 0, -4079 }, { -37, 4095, 3 }, { 4079, 38, -365 } }, { -1580, 1430, -2240 } }, 329 },
-    { { { { -753, 0, 4026 }, { 207, 4090, 38 }, { -4020, 211, -752 } }, { -9980, 1620, -2260 } }, 329 },
+/// Camera projection distance in pixels and neutral sprite modulation level.
+enum {
+    NEO_ARK_SAVANNA_ZONE_VIEW_SCREEN_DISTANCE = 329,
+    NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR = 128,
 };
 
-SpriteBatch D_neo_ark_savanna_zone_8017FC84[2] = {
+ViewCamera gNeoArkSavannaZoneViewCameras[NEO_ARK_SAVANNA_ZONE_VIEW_COUNT] = {
+    { { { { 4095, 0, 0 }, { 0, 0, -ONE }, { 0, 4095, 0 } }, { -7500, 0x77D8, -1950 } }, NEO_ARK_SAVANNA_ZONE_VIEW_SCREEN_DISTANCE },
+    { { { { -676, 0, -4039 }, { -670, 4039, 112 }, { 3983, 679, -667 } }, { -6330, 1950, -2240 } }, NEO_ARK_SAVANNA_ZONE_VIEW_SCREEN_DISTANCE },
+    { { { { -365, 0, -4079 }, { -37, 4095, 3 }, { 4079, 38, -365 } }, { -1580, 1430, -2240 } }, NEO_ARK_SAVANNA_ZONE_VIEW_SCREEN_DISTANCE },
+    { { { { -753, 0, 4026 }, { 207, 4090, 38 }, { -4020, 211, -752 } }, { -9980, 1620, -2260 } }, NEO_ARK_SAVANNA_ZONE_VIEW_SCREEN_DISTANCE },
+};
+
+/// View 1's empty sprite list; the zero first count retains decoded image strips.
+static SpriteBatch _gNeoArkSavannaZoneView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_savanna_zone_8017FC94[24] = {
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 16, 825, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 16, 825, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -128, -8, 875, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, -8, 875, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, -32, 925, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, -8, 1237, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, -40, 1237, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, -40, 1237, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -96, -24, 1237, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, -72, 1237, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -128, -72, 1237, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -152, -96, 1237, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -128, -104, 1237, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -152, 8, 1025, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -120, 8, 1025, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, 8, 1025, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -144, -8, 1025, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 0, 1025, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, 40, 962, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 48, 962, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 48, 962, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 16, 962, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 16, 962, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 8, 962, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+/// View 2's depth-sorted texture fragments, in pixels relative to the view centre.
+static SpriteSource _gNeoArkSavannaZoneView2SpriteSources[24] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -160, 16, 825, { .fields = { 80, 64 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -128, 16, 825, { .fields = { 96, 224 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -128, -8, 875, { .fields = { 56, 64 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, -8, 875, { .fields = { 64, 248 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -160, -32, 925, { .fields = { 72, 152 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -160, -8, 1237, { .fields = { 80, 176 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -160, -40, 1237, { .fields = { 96, 32 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -128, -40, 1237, { .fields = { 96, 0 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -96, -24, 1237, { .fields = { 48, 128 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -160, -72, 1237, { .fields = { 96, 128 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -128, -72, 1237, { .fields = { 64, 200 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -152, -96, 1237, { .fields = { 72, 224 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -128, -104, 1237, { .fields = { 72, 128 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -152, 8, 1025, { .fields = { 96, 96 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -120, 8, 1025, { .fields = { 96, 160 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -88, 8, 1025, { .fields = { 112, 64 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -144, -8, 1025, { .fields = { 56, 176 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -112, 0, 1025, { .fields = { 56, 192 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -96, 40, 962, { .fields = { 64, 144 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -160, 48, 962, { .fields = { 64, 0 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -128, 48, 962, { .fields = { 64, 32 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -160, 16, 962, { .fields = { 64, 96 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -128, 16, 962, { .fields = { 96, 192 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -152, 8, 962, { .fields = { 64, 88 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_savanna_zone_8017FE74[6] = {
+/// View 2's four source ranges, preceded by the image-strip selector and terminated by END.
+static SpriteBatch _gNeoArkSavannaZoneView2SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 3, 0 } },
     { 5, 8, 0, 0, { 0, 0 } },
     { 13, 5, 0, 0, { 2, 0 } },
-    { 18, 6, 0, 0, { 1, 0 } },
+    { 18, ARRAY_SIZE(_gNeoArkSavannaZoneView2SpriteSources) - 18, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_savanna_zone_8017FEA4[35] = {
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -120, 625, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -80, 625, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -40, 625, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -120, 625, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -120, -80, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -40, 625, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -120, 0, 625, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -80, -40, 625, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -80, -80, 625, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -80, -120, 625, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, 0, -120, 625, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 40, -120, 625, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 40, -96, 625, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -112, 96, 712, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 56, 712, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 56, 712, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 16, 712, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 16, 712, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -24, 712, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -24, 712, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -64, 712, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, -64, 712, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -80, -64, 712, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -104, 712, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, -88, 712, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -160, -120, 712, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -120, -120, 712, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -80, -24, 1062, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, -32, 1062, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 8, 1062, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 48, 1062, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -120, 48, 1062, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 8, 1062, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, -120, -24, 1062, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -80, 24, 1062, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+/// View 3's depth-sorted texture fragments, in pixels relative to the view centre.
+static SpriteSource _gNeoArkSavannaZoneView3SpriteSources[35] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -120, 625, { .fields = { 8, 120 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -80, 625, { .fields = { 8, 40 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -40, 625, { .fields = { 8, 200 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, -120, 625, { .fields = { 8, 160 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, -80, 625, { .fields = { 96, 0 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, -40, 625, { .fields = { 8, 80 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -120, 0, 625, { .fields = { 88, 80 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -80, -40, 625, { .fields = { 0, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, -80, -80, 625, { .fields = { 112, 80 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -80, -120, 625, { .fields = { 96, 40 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 24 } }, 0, -120, 625, { .fields = { 96, 200 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 24 } }, 40, -120, 625, { .fields = { 112, 176 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 40, -96, 625, { .fields = { 24, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, -112, 96, 712, { .fields = { 112, 248 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 56, 712, { .fields = { 88, 120 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, 56, 712, { .fields = { 88, 160 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 16, 712, { .fields = { 88, 200 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, 16, 712, { .fields = { 88, 0 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -24, 712, { .fields = { 88, 40 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, -24, 712, { .fields = { 88, 80 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -64, 712, { .fields = { 48, 0 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, -64, 712, { .fields = { 48, 160 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -80, -64, 712, { .fields = { 64, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -104, 712, { .fields = { 48, 200 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -120, -88, 712, { .fields = { 56, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, -160, -120, 712, { .fields = { 96, 224 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -120, -120, 712, { .fields = { 88, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 8, 8 } }, -80, -24, 1062, { .fields = { 120, 248 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, -32, 1062, { .fields = { 8, 0 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 8, 1062, { .fields = { 48, 40 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 48, 1062, { .fields = { 48, 80 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -120, 48, 1062, { .fields = { 88, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -120, 8, 1062, { .fields = { 48, 120 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 32 } }, -120, -24, 1062, { .fields = { 96, 120 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 24 } }, -80, 24, 1062, { .fields = { 104, 152 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_savanna_zone_80180160[5] = {
+/// View 3's three source ranges, preceded by the image-strip selector and terminated by END.
+static SpriteBatch _gNeoArkSavannaZoneView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 14, 0, 0, { 2, 0 } },
-    { 27, 8, 0, 0, { 0, 0 } },
+    { 27, ARRAY_SIZE(_gNeoArkSavannaZoneView3SpriteSources) - 27, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_savanna_zone_80180188[29] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 0, 1312, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -120, 1312, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -80, 1312, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -40, 1312, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 144, 0, 1312, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -120, 1312, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -80, 1312, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -40, 1312, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, -40, 1312, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, -64, 1312, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 40, -120, 1312, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -96, 1312, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 8, -80, 1312, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 32, 1700, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -8, 1700, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -48, 1700, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -72, 1700, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 80, -72, 1700, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -48, 1700, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 80, -8, 1700, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, 32, 1700, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, -32, 1700, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, -64, 1700, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 48, 1050, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 32, 1050, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -8, 1050, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, -24, 1050, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 8, 1050, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 80, 40, 1050, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+/// View 4's depth-sorted texture fragments, in pixels relative to the view centre.
+static SpriteSource _gNeoArkSavannaZoneView4SpriteSources[29] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 112, 0, 1312, { .fields = { 8, 112 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -120, 1312, { .fields = { 8, 40 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -80, 1312, { .fields = { 8, 0 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -40, 1312, { .fields = { 48, 120 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 144, 0, 1312, { .fields = { 32, 144 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -120, 1312, { .fields = { 48, 160 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -80, 1312, { .fields = { 48, 200 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -40, 1312, { .fields = { 48, 80 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 72, -40, 1312, { .fields = { 120, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 72, -64, 1312, { .fields = { 40, 208 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 40, -120, 1312, { .fields = { 88, 80 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 24, -96, 1312, { .fields = { 104, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, 8, -80, 1312, { .fields = { 16, 176 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, 32, 1700, { .fields = { 88, 120 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -8, 1700, { .fields = { 88, 0 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -48, 1700, { .fields = { 88, 40 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, 120, -72, 1700, { .fields = { 8, 232 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, 80, -72, 1700, { .fields = { 0, 208 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -48, 1700, { .fields = { 48, 0 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -8, 1700, { .fields = { 48, 40 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, 88, 32, 1700, { .fields = { 16, 112 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 64, -32, 1700, { .fields = { 16, 144 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 64, -64, 1700, { .fields = { 16, 160 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 48, 1050, { .fields = { 8, 120 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, 32, 1050, { .fields = { 88, 160 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -8, 1050, { .fields = { 88, 200 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, 120, -24, 1050, { .fields = { 48, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 104, 8, 1050, { .fields = { 88, 240 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 32 } }, 80, 40, 1050, { .fields = { 8, 80 } }, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_SAVANNA_ZONE_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_savanna_zone_801803CC[5] = {
+/// View 4's three source ranges, preceded by the image-strip selector and terminated by END.
+static SpriteBatch _gNeoArkSavannaZoneView4SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 10, 0, 0, { 2, 0 } },
-    { 23, 6, 0, 0, { 0, 0 } },
+    { 23, ARRAY_SIZE(_gNeoArkSavannaZoneView4SpriteSources) - 23, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_savanna_zone_801803F4[4] = {
-    { { .empty = D_neo_ark_savanna_zone_8017FC84 }, D_neo_ark_savanna_zone_8017FC84, NULL },
-    { { .elements = D_neo_ark_savanna_zone_8017FC94 }, D_neo_ark_savanna_zone_8017FE74, NULL },
-    { { .elements = D_neo_ark_savanna_zone_8017FEA4 }, D_neo_ark_savanna_zone_80180160, NULL },
-    { { .elements = D_neo_ark_savanna_zone_80180188 }, D_neo_ark_savanna_zone_801803CC, NULL },
+SpriteView gNeoArkSavannaZoneSpriteViews[NEO_ARK_SAVANNA_ZONE_VIEW_COUNT] = {
+    { { .empty = _gNeoArkSavannaZoneView1SpriteBatches }, _gNeoArkSavannaZoneView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkSavannaZoneView2SpriteSources }, _gNeoArkSavannaZoneView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkSavannaZoneView3SpriteSources }, _gNeoArkSavannaZoneView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkSavannaZoneView4SpriteSources }, _gNeoArkSavannaZoneView4SpriteBatches, NULL },
 };
 
-WorldCoordLight D_neo_ark_savanna_zone_80180424[2] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 952, -472, 229 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5837, 5715, 5574 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -834, -528, -362 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4243, 4202, 4138 }, { 0, 0 } },
+/// Two directional lights admitted in every view, with RGB intensities scaled by 4096.
+///
+/// The local translation holds the light direction. Coordinate composition and
+/// shading update the parent, cached transform and attenuation in these records.
+static WorldCoordLight _gNeoArkSavannaZoneDirectionalLights[2] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 952, -472, 229 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5837, 5715, 5574 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -834, -528, -362 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4243, 4202, 4138 }, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_neo_ark_savanna_zone_801804D4[1] = {
-    { ARRAY_SIZE(D_neo_ark_savanna_zone_80180424), D_neo_ark_savanna_zone_80180424, 0, NULL, 0, NULL },
+/// The room's two directional lights, with no point or cone lights.
+static WorldCoordRoomLights _gNeoArkSavannaZoneRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gNeoArkSavannaZoneDirectionalLights),
+    .directionalLights     = _gNeoArkSavannaZoneDirectionalLights,
+    .pointLightCount       = 0,
+    .pointLights           = NULL,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_neo_ark_savanna_zone_801804EC[4] = {
@@ -302,30 +344,35 @@ WorldCollisionTrigger D_neo_ark_savanna_zone_8018061C[5] = {
     { NULL, NULL, NULL, { 6976, -64, 2720, 0 }, { { -6992, 0, -432, 0 }, { 6992, 0, -432, 0 }, { -6992, 0, 432, 0 }, { 6992, 0, 432, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 7001, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_savanna_zone_80180798[3] = {
+/// Variant 1's Desert Chaser and scorpion resources, keyed by placement entry 1 and 25.
+static AreaResource _gNeoArkSavannaZoneVariant1Resources[3] = {
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor02500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_savanna_zone_801807BC[2] = {
+/// Variant 2's Black Beetle resource, keyed by placement entry 38.
+static AreaResource _gNeoArkSavannaZoneVariant2Resources[2] = {
     { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_savanna_zone_801807D4[3] = {
+/// Variant 3's Desert Chaser and Maggot Caterpillar resources, keyed by entry 1 and 26.
+static AreaResource _gNeoArkSavannaZoneVariant3Resources[3] = {
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { 26, 26, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_savanna_zone_801807F8[3] = {
+/// Variant 4's Desert Chaser and scorpion resources for its separate placement layout.
+static AreaResource _gNeoArkSavannaZoneVariant4Resources[3] = {
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor02500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_savanna_zone_8018081C[3] = {
+/// Variant 5's two Pawn GOLEM resource recipes, keyed by placement entry 20 and 56.
+static AreaResource _gNeoArkSavannaZoneVariant5Resources[3] = {
     { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
     { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205600PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -339,11 +386,11 @@ AreaResource D_neo_ark_savanna_zone_80180840[3] = {
 
 AreaVariant D_neo_ark_savanna_zone_80180864[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017BB70, D_neo_ark_savanna_zone_80180798 },
-    { D_map_neo_ark_8017BBF0, D_neo_ark_savanna_zone_801807BC },
-    { D_map_neo_ark_8017BC70, D_neo_ark_savanna_zone_801807D4 },
-    { D_map_neo_ark_8017BCE0, D_neo_ark_savanna_zone_801807F8 },
-    { D_map_neo_ark_8017BD50, D_neo_ark_savanna_zone_8018081C },
+    { D_map_neo_ark_8017BB70, _gNeoArkSavannaZoneVariant1Resources },
+    { D_map_neo_ark_8017BBF0, _gNeoArkSavannaZoneVariant2Resources },
+    { D_map_neo_ark_8017BC70, _gNeoArkSavannaZoneVariant3Resources },
+    { D_map_neo_ark_8017BCE0, _gNeoArkSavannaZoneVariant4Resources },
+    { D_map_neo_ark_8017BD50, _gNeoArkSavannaZoneVariant5Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -357,49 +404,90 @@ WorldCollisionOccluder D_neo_ark_savanna_zone_801808CC[1] = {
     { NULL, NULL, { 6928, -3008, 1552, 0 }, { { -7952, 0, -2576, 0 }, { 7952, 0, -2576, 0 }, { -7952, 0, 2576, 0 }, { 7952, 0, 2576, 0 } }, { 0, 4103, 0, 0 }, 8318, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5] = {
-    { .viewCount = ARRAY_SIZE(D_neo_ark_savanna_zone_80180908) - 1 },
+/// Minimum ambient colours for views 1..4, preceded by their element count.
+///
+/// RGB minima use 16 units per 8-bit colour level. The luma component is retained
+/// but not read by lighting. Keep the authored table in the overlay's data segment.
+static const WorldCoordRoomAmbientEntry _gNeoArkSavannaZoneAmbientTable[NEO_ARK_SAVANNA_ZONE_VIEW_COUNT + 1] __attribute__((section(".data"))) = {
+    { .viewCount = ARRAY_SIZE(_gNeoArkSavannaZoneAmbientTable) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 422, 394, 324, 395 } },
     { .color = { 422, 394, 324, 395 } },
     { .color = { 422, 394, 324, 395 } },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_savanna_zone_80180930 = {
-    0x10000039,
-    0x1000003B,
-    0x10000039,
+enum {
+    NEO_ARK_SAVANNA_ZONE_SURFACE_2_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x39,
+    NEO_ARK_SAVANNA_ZONE_SURFACE_2_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3B,
+    NEO_ARK_SAVANNA_ZONE_SURFACE_3_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x31,
+    NEO_ARK_SAVANNA_ZONE_SURFACE_3_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x33,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_savanna_zone_8018093C = {
-    0x10000031,
-    0x10000033,
-    0x10000031,
+/// Surface class 2's walking, running and scripted-jump cue-2 sound bases.
+///
+/// Cue 1 adds one; companion cues add 100. Playback borrows the loaded type-1
+/// sound bank, and scripted jumps share walking's pair. Retain the data placement.
+static const WorldCollisionFootstepSounds _gNeoArkSavannaZoneSurface2FootstepSounds __attribute__((section(".data"))) = {
+    .walk         = NEO_ARK_SAVANNA_ZONE_SURFACE_2_FOOTSTEP_WALK,
+    .run          = NEO_ARK_SAVANNA_ZONE_SURFACE_2_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_SAVANNA_ZONE_SURFACE_2_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_savanna_zone_80180948[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 3's walking, running and scripted-jump cue-2 sound bases.
+///
+/// Cue 1 adds one; companion cues add 100. Playback borrows the loaded type-1
+/// sound bank, and scripted jumps share walking's pair. Retain the data placement.
+static const WorldCollisionFootstepSounds _gNeoArkSavannaZoneSurface3FootstepSounds __attribute__((section(".data"))) = {
+    .walk         = NEO_ARK_SAVANNA_ZONE_SURFACE_3_FOOTSTEP_WALK,
+    .run          = NEO_ARK_SAVANNA_ZONE_SURFACE_3_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_SAVANNA_ZONE_SURFACE_3_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_savanna_zone_80180950[1] = { 0 };
-
-WorldCollisionSurfaceProperties D_neo_ark_savanna_zone_80180958[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_savanna_zone_80180930 },
+/// Classes 0 and 4..7: probe blocking, weapon impacts and pushback, without footsteps.
+static WorldCollisionSurfaceProperties _gNeoArkSavannaZoneSolidSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_savanna_zone_80180960[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_savanna_zone_8018093C },
+/// Class 1: probe blocking and pushback, with weapon impacts and footsteps disabled.
+static WorldCollisionSurfaceProperties _gNeoArkSavannaZoneNoWeaponImpactSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_savanna_zone_80180968[8] = {
-    D_neo_ark_savanna_zone_80180948,
-    D_neo_ark_savanna_zone_80180950,
-    D_neo_ark_savanna_zone_80180958,
-    D_neo_ark_savanna_zone_80180960,
-    D_neo_ark_savanna_zone_80180948,
-    D_neo_ark_savanna_zone_80180948,
-    D_neo_ark_savanna_zone_80180948,
-    D_neo_ark_savanna_zone_80180948,
+/// Class 2: probe blocking, weapon impacts and pushback, with its own footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkSavannaZoneSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkSavannaZoneSurface2FootstepSounds,
+};
+
+/// Class 3: probe blocking, weapon impacts and pushback, with its own footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkSavannaZoneSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkSavannaZoneSurface3FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkSavannaZoneSurfaceProperties[NEO_ARK_SAVANNA_ZONE_SURFACE_CLASS_COUNT] = {
+    &_gNeoArkSavannaZoneSolidSurface,
+    &_gNeoArkSavannaZoneNoWeaponImpactSurface,
+    &_gNeoArkSavannaZoneSurface2Properties,
+    &_gNeoArkSavannaZoneSurface3Properties,
+    &_gNeoArkSavannaZoneSolidSurface,
+    &_gNeoArkSavannaZoneSolidSurface,
+    &_gNeoArkSavannaZoneSolidSurface,
+    &_gNeoArkSavannaZoneSolidSurface,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };

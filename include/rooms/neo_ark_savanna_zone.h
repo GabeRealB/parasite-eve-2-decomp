@@ -11,24 +11,51 @@
 
 #include "main/task_types.h"
 
+/// Extents of the savanna zone's mapped view and collision surface directories.
+enum {
+    NEO_ARK_SAVANNA_ZONE_VIEW_COUNT          = 4,
+    NEO_ARK_SAVANNA_ZONE_SURFACE_CLASS_COUNT = 8,
+};
+
 extern AreaVariant D_neo_ark_savanna_zone_80180864[13];
 
 // neo_ark_savanna_zone
 extern WorldCollisionRoomResources D_neo_ark_savanna_zone_8017F9E4[];
 
-extern WorldCoordRoomLighting D_neo_ark_savanna_zone_8017F9F4[];
+/// Lighting for the savanna zone's single room, borrowed while its overlay is loaded.
+///
+/// Selects two directional lights and minimum ambient colours for views 1..4.
+extern WorldCoordRoomLighting gNeoArkSavannaZoneRoomLighting[1];
 
-extern u8* D_neo_ark_savanna_zone_8017F9FC[];
+/// The single room's logical-view map, borrowing gameplay's `gViewIdentityMap`.
+///
+/// Logical views 1..4 select the same 1-based camera, image and sprite index.
+/// The shared map has a larger capacity; this room uses only its first four bytes.
+extern u8* gNeoArkSavannaZoneViewMaps[1];
 
 extern ViewCount D_neo_ark_savanna_zone_8017FA00[];
 
 extern DirectionWarpEntry D_neo_ark_savanna_zone_8017FA04[];
 
-extern ViewCamera D_neo_ark_savanna_zone_8017FBF4[];
+/// Cameras selected by mapped view index 1..4, stored at index minus one.
+///
+/// Origins use world units, rotations use 4096 per unit and projection distance
+/// is 329 pixels. Queued camera application borrows this loaded overlay's storage.
+extern ViewCamera gNeoArkSavannaZoneViewCameras[NEO_ARK_SAVANNA_ZONE_VIEW_COUNT];
 
-extern SpriteView D_neo_ark_savanna_zone_801803F4[];
+/// Sprite fragments and batches selected by mapped view index 1..4.
+///
+/// View 1 has no source sprites; views 2..4 cover 24, 35 and 29 source elements.
+/// Every view retains image strips and has no clipping list. The descriptors
+/// and their mutable source/batch arrays remain borrowed while this overlay is loaded.
+extern SpriteView gNeoArkSavannaZoneSpriteViews[NEO_ARK_SAVANNA_ZONE_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_savanna_zone_80180968[];
+/// Collision policies and footstep cues indexed by room-local surface class 0..7.
+///
+/// All classes block probes and apply pushback. Class 1 disables weapon impacts;
+/// classes 2 and 3 supply distinct footstep cue tables. Classes 0 and 4..7 share
+/// the solid surface without footsteps. Records remain borrowed while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkSavannaZoneSurfaceProperties[NEO_ARK_SAVANNA_ZONE_SURFACE_CLASS_COUNT];
 
 /// Installs the savanna zone's enemy effects and enables ambient effects once.
 ///
