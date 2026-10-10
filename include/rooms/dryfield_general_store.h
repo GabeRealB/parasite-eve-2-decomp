@@ -11,10 +11,20 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_general_store_80185654[13];
+/// Placement layouts indexed directly by the General Store's saved variant.
+///
+/// Slots 1 and 10 are populated; 0, 2..9 and 11..12 are absent. Variant 1
+/// borrows five placements from the Dryfield map; variant 10 supplies eight
+/// room-owned placements. Resources and task recipes remain borrowed while
+/// loading or spawning, and placements must outlive actors retaining them.
+extern AreaVariant gDryfieldGeneralStorePlacementVariants[13];
 
-// dryfield_general_store
-extern WorldCollisionRoomResources D_dryfield_general_store_8017E670[];
+/// Collision resources for the General Store's single room.
+///
+/// Room 1 supplies a mesh, 28 directed view boundaries, 21 action triggers
+/// and four sight occluders. Setup binds mutable geometry to the current view;
+/// keep the room overlay loaded while the grid is active or records are linked.
+extern WorldCollisionRoomResources gDryfieldGeneralStoreRoomCollisionResources[1];
 
 /// Logical-view map directory for the General Store's single room.
 ///
@@ -23,7 +33,11 @@ extern WorldCollisionRoomResources D_dryfield_general_store_8017E670[];
 /// borrowing this directory; the map itself belongs to gameplay.
 extern u8* gDryfieldGeneralStoreRoomViewMaps[1];
 
-extern ViewCount D_dryfield_general_store_8017E684[];
+/// Logical-view reverse-search count for the General Store's single room.
+///
+/// Room 1 searches 16 entries in its identity map. This is an element count,
+/// independent of the shared map's capacity; borrow it while the room is loaded.
+extern ViewCount gDryfieldGeneralStoreRoomViewCounts[1];
 
 /// Lighting descriptor for the General Store's single room.
 ///
@@ -32,11 +46,29 @@ extern ViewCount D_dryfield_general_store_8017E684[];
 /// must remain loaded through coordinate updates and shading queries.
 extern WorldCoordRoomLighting gDryfieldGeneralStoreRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_general_store_8017E690[];
+/// Three arrival/departure endpoints, indexed by 1-based warp ID minus one.
+///
+/// Slots 1..3 serve the Gas Station, Back Street and Underpass doorways.
+/// Arrival views are 2, 7 and 14; map markers 489 and 470 apply to the first
+/// two endpoints. There is no terminator. Transitions copy a complete record;
+/// keep the room overlay loaded until the copy is made.
+extern DirectionWarpEntry gDryfieldGeneralStoreWarpEntries[3];
 
-extern ViewCamera D_dryfield_general_store_8017F25C[];
+/// Cameras for mapped General Store views 1 through 16, stored at index minus one.
+///
+/// The room's identity map selects these records without a terminator.
+/// Rotations use 4096 for unit scale, origins use world game coordinates and
+/// perspective distances use pixels. Keep the room loaded until queued camera
+/// application has copied the selected record.
+extern ViewCamera gDryfieldGeneralStoreViewCameras[16];
 
-extern SpriteView D_dryfield_general_store_8018402C[];
+/// Sprite descriptors for mapped General Store views 1 through 16.
+///
+/// Indexed by mapped view minus one. Views 2..14 borrow source rectangles;
+/// views 1, 15 and 16 retain empty-batch addresses and use decoded image strips.
+/// Every batch list ends with SPRITE_BATCH_END, and every view has no clip list.
+/// The descriptors and mutable source/batch pools live with the room overlay.
+extern SpriteView gDryfieldGeneralStoreSpriteViews[16];
 
 /// Collision policies and footstep cues indexed by room surface class 0 through 7.
 ///

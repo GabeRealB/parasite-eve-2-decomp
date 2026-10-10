@@ -438,7 +438,7 @@ AreaRecord D_8010CC94[39] = {
     { NULL, NULL },
     { gDryfieldGasStationPlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[0].state },
     { D_dryfield_main_street_80184F20, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[1].state },
-    { D_dryfield_general_store_80185654, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
+    { gDryfieldGeneralStorePlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[2].state },
     { NULL, NULL },
     { D_dryfield_back_street_80180A50, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[3].state },
     { D_dryfield_souvenir_shop_8017F598, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[4].state },

@@ -77,7 +77,7 @@ gMineSecretPassageRoomViewCounts = 0x80180FB8; // absolute:True owner=mine_secre
 gMineSecretPassageWarpEntries = 0x80180FBC; // absolute:True owner=mine_secret_passage
 gMineSecretPassageViewCameras = 0x80181604; // absolute:True owner=mine_secret_passage
 gMineSecretPassageSpriteViews = 0x80182994; // absolute:True owner=mine_secret_passage
-gMineSecretPassageSurfacePropertiesByClass = 0x80183420; // absolute:True owner=mine_secret_passage shared=rooms
+gMineSecretPassageSurfacePropertiesByClass = 0x80183420; // absolute:True owner=mine_secret_passage
 shelterB1ElevatorHallRoomTask = 0x8017DC28; // type:func absolute:True owner=shelter_b1_elevator_hall shared=rooms
 gShelterB1ElevatorHallRoomLighting = 0x80182DF8; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
 gShelterB1ElevatorHallRoomCollisionResources = 0x80182E00; // absolute:True owner=shelter_b1_elevator_hall shared=rooms
@@ -312,7 +312,7 @@ shelterB2NorthMaintenanceWalkwayRoomTask = 0x8017DD90; // type:func absolute:Tru
 gShelterB2NorthMaintenanceWalkwayRoomViewMaps = 0x80183C5C; // absolute:True owner=shelter_b2_north_maintenance_walkway
 D_shelter_b2_north_maintenance_walkway_80183C60 = 0x80183C60; // absolute:True owner=shelter_b2_north_maintenance_walkway
 D_shelter_b2_north_maintenance_walkway_80183C64 = 0x80183C64; // absolute:True owner=shelter_b2_north_maintenance_walkway
-gShelterB2NorthMaintenanceWalkwayCollisionGrid = 0x8018401C; // absolute:True owner=shelter_b2_north_maintenance_walkway shared=rooms
+gShelterB2NorthMaintenanceWalkwayCollisionGrid = 0x8018401C; // absolute:True owner=shelter_b2_north_maintenance_walkway
 gShelterB2NorthMaintenanceWalkwayViewCameras = 0x80184040; // absolute:True owner=shelter_b2_north_maintenance_walkway
 gShelterB2NorthMaintenanceWalkwaySpriteViews = 0x80185B04; // absolute:True owner=shelter_b2_north_maintenance_walkway
 gShelterB2NorthMaintenanceWalkwayLights = 0x80185D44; // absolute:True owner=shelter_b2_north_maintenance_walkway

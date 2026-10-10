@@ -84,26 +84,18 @@ extern ScreenFade gStoreFade;
 extern TaskMessageEntry D_dryfield_general_store_8017E188[];
 extern s32              D_dryfield_general_store_8017E1B8;
 extern TaskDesc         D_dryfield_general_store_8017E4C0;
-extern s32              D_dryfield_general_store_8017E55C;
-extern s32              D_dryfield_general_store_8017E560;
 extern s32              D_dryfield_general_store_8017E564;
 extern EvsCommand       D_dryfield_general_store_8017E568[];
 
 static void _dryfieldGeneralStoreInitRoomTask(Task* task);
 static void _dryfieldGeneralStoreIdleRoomTask(Task* task);
 
-extern AnimationPlayRequest     D_dryfield_general_store_8017E4FC;
-extern AnimationBankCopyRequest D_dryfield_general_store_8017E4E0;
-extern GameActorMoveAnim        D_dryfield_general_store_8017E554;
-extern ActorTransform           D_dryfield_general_store_8017E524;
-extern ActorTransform           D_dryfield_general_store_8017E53C;
-extern s32                      D_dryfield_general_store_8017E560;
-static void                     _dryfieldGeneralStoreEngageBattle(s32 unusedArg);
+static void _dryfieldGeneralStoreEngageBattle(s32 unusedArg);
 
 static WorldCollisionGrid         _gDryfieldGeneralStoreCollisionGrid;
-extern WorldCollisionOccluder     D_dryfield_general_store_80184F78[4];
-extern WorldCollisionTrigger      D_dryfield_general_store_801840EC[28];
-extern WorldCollisionTrigger      D_dryfield_general_store_8018493C[21];
+static WorldCollisionOccluder     _gDryfieldGeneralStoreSightOccluders[4];
+static WorldCollisionTrigger      _gDryfieldGeneralStoreViewBoundaryTriggers[28];
+static WorldCollisionTrigger      _gDryfieldGeneralStoreActionTriggers[21];
 static WorldCoordRoomAmbientEntry _gDryfieldGeneralStoreAmbientByView[17];
 static WorldCoordRoomLights       _gDryfieldGeneralStoreRoomLights;
 
@@ -116,6 +108,25 @@ static void _dryfieldGeneralStoreDropInActorsTask(Task* task);
 enum {
     DRYFIELD_GENERAL_STORE_MESSAGE_USE_KEY_ITEM  = 0x13F1,
     DRYFIELD_GENERAL_STORE_KEY_ITEM_USE_REJECTED = 0,
+};
+
+/// Room actor commands in the Dryfield/General Store namespace.
+enum {
+    DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_AWAIT_BATTLE = 0,
+    DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_ENTER        = 1,
+};
+
+/// Player clip IDs used by the encounter; the custom clip occupies extension slot 1.
+enum {
+    DRYFIELD_GENERAL_STORE_ENCOUNTER_PLAYER_CLIP  = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    DRYFIELD_GENERAL_STORE_ENCOUNTER_RUN_CLIP     = 4,
+    DRYFIELD_GENERAL_STORE_ENCOUNTER_ARRIVAL_CLIP = 9,
+};
+
+/// Resource-entry keys shared by the room's placement and loading tables.
+enum {
+    DRYFIELD_GENERAL_STORE_BLOOD_SUCKLER_ENTRY        = 40,
+    DRYFIELD_GENERAL_STORE_STAGED_BLOOD_SUCKLER_ENTRY = 140,
 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
@@ -163,39 +174,89 @@ TaskDesc D_dryfield_general_store_8017E4C0 = { { { TASK_BODY_NONE, 192 } }, _dry
 
 TaskDesc D_dryfield_general_store_8017E4CC = { { { TASK_BODY_NONE, 192 } }, _dryfieldGeneralStoreDropInActorsTask, { .value = 0 } };
 
-AnimationSet* D_dryfield_general_store_8017E4D8[2] = {
+/// Two extension words installing NULL at clip 47 and the encounter clip at 48.
+///
+/// Copied into the equipped player bank; the clip data stays borrowed from this room.
+static AnimationSet* _gDryfieldGeneralStoreEncounterAnimationSets[2] = {
     NULL,
     &_gDryfieldGeneralStoreAnimation00ED8,
 };
 
-AnimationBankCopyRequest D_dryfield_general_store_8017E4E0 = { { .sets = D_dryfield_general_store_8017E4D8 }, ARRAY_SIZE(D_dryfield_general_store_8017E4D8) };
+/// Installs both encounter extension entries without starting playback.
+///
+/// Dispatch borrows this request synchronously; the installed clip needs the room loaded.
+static AnimationBankCopyRequest _gDryfieldGeneralStoreEncounterAnimationBankCopy = {
+    .source    = { .sets = _gDryfieldGeneralStoreEncounterAnimationSets },
+    .wordCount = ARRAY_SIZE(_gDryfieldGeneralStoreEncounterAnimationSets),
+};
 
 AnimationPlayRequest D_dryfield_general_store_8017E4E8 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_general_store_8017E4FC = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays the installed encounter clip with a 20-frame blend and no grid collision.
+///
+/// The event interpreter copies this request and replaces its bank selector
+/// with the equipped weapon bank before synchronous player dispatch.
+static AnimationPlayRequest _gDryfieldGeneralStoreEncounterPlayerAnimation = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_GENERAL_STORE_ENCOUNTER_PLAYER_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 // Retained parameter record; layout follows the adjacent script arguments.
 AnimationPlayRequest D_dryfield_general_store_8017E510 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
 
-ActorTransform D_dryfield_general_store_8017E524 = { { 1735, 0, 6800, 0 }, { 0, -2047, 0, 0 } };
+/// Player placement at the start of the encounter run.
+///
+/// Position uses world game units and Euler angles use 4096 units per turn.
+/// The player copies both during synchronous dispatch.
+static ActorTransform _gDryfieldGeneralStoreEncounterPlayerPlacement = {
+    .pos = { 1735, 0, 6800, 0 },
+    .rot = { 0, 1 - ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
+};
 
-ActorTransform D_dryfield_general_store_8017E53C = { { 1505, 0, 5558, 0 }, { 0, -2047, 0, 0 } };
+/// World-space destination of the player's encounter run.
+///
+/// `GAME_ACTOR_MESSAGE_RUN_TO` copies XYZ in game units; the retained rotation is not read.
+static ActorTransform _gDryfieldGeneralStoreEncounterPlayerRunTarget = {
+    .pos = { 1505, 0, 5558, 0 },
+    .rot = { 0, 1 - ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
+};
 
-GameActorMoveAnim D_dryfield_general_store_8017E554 = { 4, 9 };
+/// Equipped-bank approach and arrival clips for the player's encounter run.
+///
+/// `GAME_ACTOR_MESSAGE_RUN_TO` copies both IDs synchronously, retaining their low halfwords.
+static GameActorMoveAnim _gDryfieldGeneralStoreEncounterPlayerRunAnimations = {
+    .approachAnimId = DRYFIELD_GENERAL_STORE_ENCOUNTER_RUN_CLIP,
+    .arrivalAnimId  = DRYFIELD_GENERAL_STORE_ENCOUNTER_ARRIVAL_CLIP,
+};
 
-s32 D_dryfield_general_store_8017E55C = 770;
+/// Arms the ordinary Blood Sucklers' wait for battle; staged Sucklers ignore it.
+///
+/// Borrowed by synchronous scene broadcast in the Dryfield/General Store namespace.
+static ActorCommand _gDryfieldGeneralStoreAwaitBattleActorCommand __attribute__((aligned(4))) = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE } },
+    .command = DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_AWAIT_BATTLE,
+};
 
-s32 D_dryfield_general_store_8017E560 = 0x10302;
+/// Starts staged Sucklers' drop-in and ordinary Sucklers' placement-specific entrances.
+///
+/// Borrowed by synchronous broadcast from the encounter script or drop-in task.
+static ActorCommand _gDryfieldGeneralStoreActorEntranceCommand __attribute__((aligned(4))) = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE } },
+    .command = DRYFIELD_GENERAL_STORE_ACTOR_COMMAND_ENTER,
+};
 
 s32 D_dryfield_general_store_8017E564 = 0x20302;
 
 EvsCommand D_dryfield_general_store_8017E568[11] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_general_store_8017E4E0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_general_store_8017E4FC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_general_store_8017E524 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .pointer = &D_dryfield_general_store_8017E53C } }, { .message = { .pointer = &D_dryfield_general_store_8017E554 } } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .pointer = &D_dryfield_general_store_8017E560 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldGeneralStoreEncounterAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldGeneralStoreEncounterPlayerAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldGeneralStoreEncounterPlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .transform = &_gDryfieldGeneralStoreEncounterPlayerRunTarget } }, { .message = { .moveAnimation = &_gDryfieldGeneralStoreEncounterPlayerRunAnimations } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gDryfieldGeneralStoreActorEntranceCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldGeneralStoreEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -203,24 +264,29 @@ EvsCommand D_dryfield_general_store_8017E568[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-WorldCollisionRoomResources D_dryfield_general_store_8017E670[1] = {
-    { &_gDryfieldGeneralStoreCollisionGrid, D_dryfield_general_store_801840EC, D_dryfield_general_store_8018493C, D_dryfield_general_store_80184F78 },
+WorldCollisionRoomResources gDryfieldGeneralStoreRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldGeneralStoreCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldGeneralStoreViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldGeneralStoreActionTriggers,
+        .occluders            = _gDryfieldGeneralStoreSightOccluders,
+    },
 };
 
 u8* gDryfieldGeneralStoreRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_general_store_8017E684[1] = { 16 };
+ViewCount gDryfieldGeneralStoreRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldGeneralStoreViewCameras) };
 
 WorldCoordRoomLighting gDryfieldGeneralStoreRoomLighting[1] = {
     { &_gDryfieldGeneralStoreRoomLights, _gDryfieldGeneralStoreAmbientByView },
 };
 
-DirectionWarpEntry D_dryfield_general_store_8017E690[3] = {
-    { { { .word = 0 }, 3100, 0, 439 }, { 0, 0, 0, 0 }, { { .word = 1536 }, 2496, 0, 920 }, { 0, 0, 0, 0 }, 0x52030004, 0x52030003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 489 },
-    { { { .word = 3072 }, 9669, 0, 4832 }, { 0, 0, 0, 0 }, { { .word = 512 }, 9128, 0, 4172 }, { 0, 0, 0, 0 }, 0x52030002, 0x52030001, 0x5203000B, 7, DIRECTION_WARP_FLAG_NONE, 470 },
-    { { { .word = 3072 }, 8649, 0, 7411 }, { 0, 0, 0, 0 }, { { .word = 512 }, 8209, 0, 6766 }, { 0, 0, 0, 0 }, 0x5203000E, 0x5203000D, 0x52030006, 14, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gDryfieldGeneralStoreWarpEntries[3] = {
+    { { { .word = 0 }, 3100, 0, 439 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 8 }, 2496, 0, 920 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 4), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 3), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 489 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 9669, 0, 4832 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 8 }, 9128, 0, 4172 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 2), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 1), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 0x0B), 7, DIRECTION_WARP_FLAG_NONE, 470 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 8649, 0, 7411 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 8 }, 8209, 0, 6766 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 0x0E), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 0x0D), SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 6), 14, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 /// Room-space collision normals, with `ONE` representing unit length.
@@ -268,7 +334,7 @@ static WorldCollisionGrid _gDryfieldGeneralStoreCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldGeneralStoreCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_general_store_8017F25C[16] = {
+ViewCamera gDryfieldGeneralStoreViewCameras[16] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5000, 0x7530, -4000 } }, 589 },
     { { { { -3828, 0, -1456 }, { -650, 3664, 1709 }, { 1303, 1829, -3425 } }, { -750, 2800, -5920 } }, 230 },
     { { { { 3759, 0, -1625 }, { -775, 3599, -1793 }, { 1428, 1954, 3304 } }, { -800, 2800, -1820 } }, 230 },
@@ -1138,7 +1204,8 @@ static SpriteBatch _gDryfieldGeneralStoreView9SpriteBatches[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80182D9C[81] = {
+/// Texture rectangles and sorting depths for General Store view 10.
+static SpriteSource _gDryfieldGeneralStoreView10SpriteSources[81] = {
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, -88, 1291, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -160, -64, 1371, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -160, -40, 1435, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
@@ -1222,16 +1289,20 @@ SpriteSource D_dryfield_general_store_80182D9C[81] = {
     { 142, 0x3FC0, { .fields = { 8, 24 } }, 8, 8, 1125, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_801833F0[6] = {
+/// View 10's image-strip selector and source ranges [0,13), [13,46), [46,54), [54,81).
+///
+/// All ranges start visible and included; SPRITE_BATCH_END terminates the list.
+static SpriteBatch _gDryfieldGeneralStoreView10SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 3, 0 } },
     { 13, 33, 0, 0, { 0, 0 } },
     { 46, 8, 0, 0, { 2, 0 } },
-    { 54, 27, 0, 0, { 1, 0 } },
+    { 54, ARRAY_SIZE(_gDryfieldGeneralStoreView10SpriteSources) - 54, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80183420[50] = {
+/// Texture rectangles and sorting depths for General Store view 11.
+static SpriteSource _gDryfieldGeneralStoreView11SpriteSources[50] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, -56, 725, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -56, 810, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 80, -64, 767, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
@@ -1284,14 +1355,18 @@ SpriteSource D_dryfield_general_store_80183420[50] = {
     { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, -8, 963, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_80183808[4] = {
+/// View 11's image-strip selector and source ranges [0,34), [34,50).
+///
+/// All ranges start visible and included; SPRITE_BATCH_END terminates the list.
+static SpriteBatch _gDryfieldGeneralStoreView11SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 34, 0, 0, { 1, 0 } },
-    { 34, 16, 0, 0, { 0, 0 } },
+    { 34, ARRAY_SIZE(_gDryfieldGeneralStoreView11SpriteSources) - 34, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80183828[34] = {
+/// Texture rectangles and sorting depths for General Store view 12.
+static SpriteSource _gDryfieldGeneralStoreView12SpriteSources[34] = {
     { 143, 0x3FC0, { .fields = { 32, 64 } }, -104, -120, 700, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 64 } }, -104, -56, 650, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 64 } }, -104, 8, 650, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
@@ -1328,13 +1403,17 @@ SpriteSource D_dryfield_general_store_80183828[34] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -40, 0, 1025, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_80183AD0[3] = {
+/// View 12's image-strip selector and single full-source sprite range.
+///
+/// The range starts visible and included; SPRITE_BATCH_END terminates the list.
+static SpriteBatch _gDryfieldGeneralStoreView12SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 34, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldGeneralStoreView12SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80183AE8[41] = {
+/// Texture rectangles and sorting depths for General Store view 13.
+static SpriteSource _gDryfieldGeneralStoreView13SpriteSources[41] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -48, 32, 800, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -32, 72, 800, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -32, 112, 321, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
@@ -1378,14 +1457,18 @@ SpriteSource D_dryfield_general_store_80183AE8[41] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, 40, 1508, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_80183E1C[4] = {
+/// View 13's image-strip selector and source ranges [0,20), [20,41).
+///
+/// All ranges start visible and included; SPRITE_BATCH_END terminates the list.
+static SpriteBatch _gDryfieldGeneralStoreView13SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 1, 0 } },
-    { 20, 21, 0, 0, { 0, 0 } },
+    { 20, ARRAY_SIZE(_gDryfieldGeneralStoreView13SpriteSources) - 20, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80183E3C[22] = {
+/// Texture rectangles and sorting depths for General Store view 14.
+static SpriteSource _gDryfieldGeneralStoreView14SpriteSources[22] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 8, 842, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, -120, 500, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, -48, 500, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
@@ -1410,23 +1493,32 @@ SpriteSource D_dryfield_general_store_80183E3C[22] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 96, 550, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_80183FF4[3] = {
+/// View 14's image-strip selector and single full-source sprite range.
+///
+/// The range starts visible and included; SPRITE_BATCH_END terminates the list.
+static SpriteBatch _gDryfieldGeneralStoreView14SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 22, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldGeneralStoreView14SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_general_store_8018400C[2] = {
+/// Empty sprite batch list selecting decoded image strips for view 15.
+///
+/// The source slot retains this list's address but supplies no source sprites.
+static SpriteBatch _gDryfieldGeneralStoreView15SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_general_store_8018401C[2] = {
+/// Empty sprite batch list selecting decoded image strips for view 16.
+///
+/// The source slot retains this list's address but supplies no source sprites.
+static SpriteBatch _gDryfieldGeneralStoreView16SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_general_store_8018402C[16] = {
+SpriteView gDryfieldGeneralStoreSpriteViews[16] = {
     { { .empty = _gDryfieldGeneralStoreView1SpriteBatches }, _gDryfieldGeneralStoreView1SpriteBatches, NULL },
     { { .elements = _gDryfieldGeneralStoreView2SpriteSources }, _gDryfieldGeneralStoreView2SpriteBatches, NULL },
     { { .elements = _gDryfieldGeneralStoreView3SpriteSources }, _gDryfieldGeneralStoreView3SpriteBatches, NULL },
@@ -1436,16 +1528,21 @@ SpriteView D_dryfield_general_store_8018402C[16] = {
     { { .elements = _gDryfieldGeneralStoreView7SpriteSources }, _gDryfieldGeneralStoreView7SpriteBatches, NULL },
     { { .elements = _gDryfieldGeneralStoreView8SpriteSources }, _gDryfieldGeneralStoreView8SpriteBatches, NULL },
     { { .elements = _gDryfieldGeneralStoreView9SpriteSources }, _gDryfieldGeneralStoreView9SpriteBatches, NULL },
-    { { .elements = D_dryfield_general_store_80182D9C }, D_dryfield_general_store_801833F0, NULL },
-    { { .elements = D_dryfield_general_store_80183420 }, D_dryfield_general_store_80183808, NULL },
-    { { .elements = D_dryfield_general_store_80183828 }, D_dryfield_general_store_80183AD0, NULL },
-    { { .elements = D_dryfield_general_store_80183AE8 }, D_dryfield_general_store_80183E1C, NULL },
-    { { .elements = D_dryfield_general_store_80183E3C }, D_dryfield_general_store_80183FF4, NULL },
-    { { .empty = D_dryfield_general_store_8018400C }, D_dryfield_general_store_8018400C, NULL },
-    { { .empty = D_dryfield_general_store_8018401C }, D_dryfield_general_store_8018401C, NULL },
+    { { .elements = _gDryfieldGeneralStoreView10SpriteSources }, _gDryfieldGeneralStoreView10SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView11SpriteSources }, _gDryfieldGeneralStoreView11SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView12SpriteSources }, _gDryfieldGeneralStoreView12SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView13SpriteSources }, _gDryfieldGeneralStoreView13SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView14SpriteSources }, _gDryfieldGeneralStoreView14SpriteBatches, NULL },
+    { { .empty = _gDryfieldGeneralStoreView15SpriteBatches }, _gDryfieldGeneralStoreView15SpriteBatches, NULL },
+    { { .empty = _gDryfieldGeneralStoreView16SpriteBatches }, _gDryfieldGeneralStoreView16SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_general_store_801840EC[28] = {
+/// Twenty-eight directed boundaries between logical views 2 through 14.
+///
+/// Source/destination bytes are 1-based views. Geometry uses room game units
+/// and 4096-unit normals. The last included quad carries LAST; links, view
+/// coordinates, enable bits and hit latches are mutable until the list is cleared.
+static WorldCollisionTrigger _gDryfieldGeneralStoreViewBoundaryTriggers[28] = {
     { NULL, NULL, NULL, { 2000, -1216, 4064, 0 }, { { 1872, 2240, 0, 0 }, { 1872, -2240, 0, 0 }, { -1872, 2240, 0, 0 }, { -1872, -2240, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 4096, 0 }, 2918, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1920, -1232, 4320, 0 }, { { -1872, 2256, 0, 0 }, { -1872, -2256, 0, 0 }, { 1872, 2256, 0, 0 }, { 1872, -2256, 0, 0 } }, { 0, 0, -4125, 0 }, { 0, 0, 4096, 0 }, 2930, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3616, -1232, 784, 0 }, { { 0, 2256, -1088, 0 }, { 0, -2256, -1088, 0 }, { 0, 2256, 1088, 0 }, { 0, -2256, 1088, 0 } }, { 4111, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2495, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1476,10 +1573,16 @@ WorldCollisionTrigger D_dryfield_general_store_801840EC[28] = {
     { NULL, NULL, NULL, { 7904, -1200, 7040, 0 }, { { 0, 2224, 1232, 0 }, { 0, -2224, 1232, 0 }, { 0, 2224, -1232, 0 }, { 0, -2224, -1232, 0 } }, { -4101, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2534, 0, 13, 14, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_general_store_8018493C[21] = {
-    { NULL, NULL, NULL, { 2816, -48, 224, 0 }, { { -480, 0, -224, 0 }, { 480, 0, -224, 0 }, { -480, 0, 224, 0 }, { 480, 0, 224, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, 1, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9792, -48, 4736, 0 }, { { 224, 0, -480, 0 }, { 224, 0, 480, 0 }, { -224, 0, -480, 0 }, { -224, 0, 480, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8704, -48, 7488, 0 }, { { 224, 0, -480, 0 }, { 224, 0, 480, 0 }, { -224, 0, -480, 0 }, { -224, 0, 480, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, 38, 51, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Three door warps, sixteen CAP interactions and two automatic scene regions.
+///
+/// Warp bytes select destination areas and packed departure/arrival slots;
+/// CAP bytes select commands, except ID 9 which requests a room message.
+/// Automatic room actions 1/2 start/complete the encounter. Room-space quads
+/// include the LAST-marked final record and remain mutable while linked.
+static WorldCollisionTrigger _gDryfieldGeneralStoreActionTriggers[21] = {
+    { NULL, NULL, NULL, { 2816, -48, 224, 0 }, { { -480, 0, -224, 0 }, { 480, 0, -224, 0 }, { -480, 0, 224, 0 }, { 480, 0, 224, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_GAS_STATION, (1 << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9792, -48, 4736, 0 }, { { 224, 0, -480, 0 }, { 224, 0, 480, 0 }, { -224, 0, -480, 0 }, { -224, 0, 480, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_BACK_STREET, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8704, -48, 7488, 0 }, { { 224, 0, -480, 0 }, { 224, 0, 480, 0 }, { -224, 0, -480, 0 }, { -224, 0, 480, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_UNDERPASS, (3 << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1680, -64, 2432, 0 }, { { -976, 0, -864, 0 }, { 976, 0, -864, 0 }, { -976, 0, 864, 0 }, { 976, 0, 864, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5888, -64, 3360, 0 }, { { -2224, 0, -336, 0 }, { 2224, 0, -336, 0 }, { -2224, 0, 336, 0 }, { 2224, 0, 336, 0 } }, { 0, 4107, 0, 0 }, { 200, 0, -4091, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5824, -64, 1344, 0 }, { { -2224, 0, -256, 0 }, { 2224, 0, -256, 0 }, { -2224, 0, 256, 0 }, { 2224, 0, 256, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -4096, 0 }, 2231, WORLD_COLLISION_TRIGGER_ACTION_CAP, 23, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -1500,7 +1603,11 @@ WorldCollisionTrigger D_dryfield_general_store_8018493C[21] = {
     { NULL, NULL, NULL, { 336, -64, 800, 0 }, { { 512, 0, -944, 0 }, { 512, 0, 944, 0 }, { -512, 0, -944, 0 }, { -512, 0, 944, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_general_store_80184F78[4] = {
+/// Four room-space quads blocking actor line-of-sight queries.
+///
+/// Positions and radii use game units, normals use 4096 per unit. The final
+/// quad carries LAST and is linked too; runtime links and enable bits are mutable.
+static WorldCollisionOccluder _gDryfieldGeneralStoreSightOccluders[4] = {
     { NULL, NULL, { 6128, -1376, 6144, 0 }, { { -4176, -2496, 0, 0 }, { 4176, -2496, 0, 0 }, { -4176, 2496, 0, 0 }, { 4176, 2496, 0, 0 } }, { 0, 0, -4113, 0 }, 4857, 1, 0 },
     { NULL, NULL, { 5872, -160, 4128, 0 }, { { -2144, -1152, 0, 0 }, { 2144, -1152, 0, 0 }, { -2144, 1152, 0, 0 }, { 2144, 1152, 0, 0 } }, { 0, 0, -4114, 0 }, 2428, 1, 0 },
     { NULL, NULL, { 5889, -16, 2016, 0 }, { { -2144, -1328, 0, 0 }, { 2144, -1328, 0, 0 }, { -2144, 1328, 0, 0 }, { 2144, 1328, 0, 0 } }, { 0, 0, -4096, 0 }, 2521, 1, 0 },
@@ -1560,43 +1667,44 @@ static WorldCoordRoomAmbientEntry _gDryfieldGeneralStoreAmbientByView[17] = {
     { .color = { 16, 0, 0, 6 } },
 };
 
-AreaResource D_dryfield_general_store_80185588[2] = {
-    { 40, 40, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor04000BloodSucklerTaskDesc },
+/// Variant 1's ordinary Blood Suckler file and task recipe, followed by END.
+///
+/// Entry 40 loads base file 104000 and spawns descriptor 0; placements are map-owned.
+static AreaResource _gDryfieldGeneralStoreVariant1Resources[2] = {
+    { DRYFIELD_GENERAL_STORE_BLOOD_SUCKLER_ENTRY, 40, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor04000BloodSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_general_store_801855A0[3] = {
-    { 140, 236, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor223600BloodSucklerTaskDesc },
-    { 40, 40, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor04000BloodSucklerTaskDesc },
+/// Variant 10's staged and ordinary Blood Suckler recipes, followed by END.
+///
+/// Entries 140/40 load base files 223600/104000 and each spawn descriptor 0.
+/// Resource tables and imported task recipes must stay loaded during spawning.
+static AreaResource _gDryfieldGeneralStoreVariant10Resources[3] = {
+    { DRYFIELD_GENERAL_STORE_STAGED_BLOOD_SUCKLER_ENTRY, 236, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor223600BloodSucklerTaskDesc },
+    { DRYFIELD_GENERAL_STORE_BLOOD_SUCKLER_ENTRY, 40, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor04000BloodSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_dryfield_general_store_801855C4[9] = {
-    { 140, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
-    { 140, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
-    { 140, 0, 0, -3473, 0, 993, 4096, 0, 0, 2, 0 },
-    { 40, 0, 0, 3470, 0, 3606, 1024, 0, 0, 2, 0 },
-    { 40, 0, 0, 1048, 0, 4979, -1024, 0, 0, 2, 0 },
-    { 40, 0, 0, 3468, 0, 4772, 0, 0, 0, 2, 0 },
-    { 40, 0, 0, 1234, 0, 3641, 128, 0, 0, 2, 0 },
-    { 40, 0, 0, -1234, 0, 3641, -128, 0, 0, 2, 0 },
+/// Variant 10's three staged and five ordinary Blood Sucklers, followed by END.
+///
+/// Positions use world game units, yaw uses 4096 units per turn. All spawn
+/// argument words are zero and CLUT relocation is two rows; actors retain
+/// these room-owned records. Repeated staged placements are distinct actor indices.
+static AreaPlacement _gDryfieldGeneralStoreVariant10Placements[9] = {
+    { DRYFIELD_GENERAL_STORE_STAGED_BLOOD_SUCKLER_ENTRY, 0, 0, -3473, 0, 993, ACTOR_TRANSFORM_ANGLE_TURN, 0, 0, 2, 0 },
+    { DRYFIELD_GENERAL_STORE_STAGED_BLOOD_SUCKLER_ENTRY, 0, 0, -3473, 0, 993, ACTOR_TRANSFORM_ANGLE_TURN, 0, 0, 2, 0 },
+    { DRYFIELD_GENERAL_STORE_STAGED_BLOOD_SUCKLER_ENTRY, 0, 0, -3473, 0, 993, ACTOR_TRANSFORM_ANGLE_TURN, 0, 0, 2, 0 },
+    { DRYFIELD_GENERAL_STORE_BLOOD_SUCKLER_ENTRY, 0, 0, 3470, 0, 3606, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0, 2, 0 },
+    { DRYFIELD_GENERAL_STORE_BLOOD_SUCKLER_ENTRY, 0, 0, 1048, 0, 4979, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0, 2, 0 },
+    { DRYFIELD_GENERAL_STORE_BLOOD_SUCKLER_ENTRY, 0, 0, 3468, 0, 4772, 0, 0, 0, 2, 0 },
+    { DRYFIELD_GENERAL_STORE_BLOOD_SUCKLER_ENTRY, 0, 0, 1234, 0, 3641, 128, 0, 0, 2, 0 },
+    { DRYFIELD_GENERAL_STORE_BLOOD_SUCKLER_ENTRY, 0, 0, -1234, 0, 3641, -128, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_dryfield_general_store_80185654[13] = {
-    { NULL, NULL },
-    { gMapDryfieldGeneralStoreVariant1Placements, D_dryfield_general_store_80185588 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_dryfield_general_store_801855C4, D_dryfield_general_store_801855A0 },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gDryfieldGeneralStorePlacementVariants[13] = {
+    [1]  = { .placements = gMapDryfieldGeneralStoreVariant1Placements, .resources = _gDryfieldGeneralStoreVariant1Resources },
+    [10] = { .placements = _gDryfieldGeneralStoreVariant10Placements, .resources = _gDryfieldGeneralStoreVariant10Resources },
 };
 
 /// Animation cue-2 footstep bases in the loaded type-1 sound bank.
@@ -1794,7 +1902,7 @@ static inline void _dryfieldGeneralStoreExpireSceneCue(Task* task)
 /// Starts the General Store encounter cue and waits before releasing its task.
 ///
 /// Requires state 0 start or 1 wait. Start broadcasts the area's command 0,
-/// which arms the Desert Chaser's wait for battle, starts area sound 0x0F and
+/// which arms the ordinary Blood Sucklers' wait for battle, starts area sound 0x0F and
 /// sets a 90-tick counter. Wait decrements to a signed halfword and releases
 /// the task on the 91st wait update, when the result first becomes negative.
 /// Other states do nothing. No work or spawn arguments are accessed.
@@ -1809,7 +1917,7 @@ static void _dryfieldGeneralStorePlaySceneCueTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_GENERAL_STORE_SCENE_CUE_START:
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E55C, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldGeneralStoreAwaitBattleActorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             sndEvtRequestScriptStart(DRYFIELD_GENERAL_STORE_SCENE_CUE_SOUND, 0, 0);
             task->killCountdown = DRYFIELD_GENERAL_STORE_SCENE_CUE_TICKS;
             task->state++;
@@ -1851,7 +1959,7 @@ static void _dryfieldGeneralStoreDropInActorsTask(Task* task)
     switch (task->state) {
         case DRYFIELD_GENERAL_STORE_DROP_IN_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E560, ACTOR_COMMAND_MESSAGE_APPLY);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &_gDryfieldGeneralStoreActorEntranceCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             task->killCountdown = DRYFIELD_GENERAL_STORE_DROP_IN_TICKS;
             task->state++;
             return;

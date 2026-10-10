@@ -576,7 +576,7 @@ WorldCoordRoomLighting* gMapDryfieldRoomLightingTables[38] = {
 DirectionWarpEntry* D_map_dryfield_8017A8F8[38] = {
     gDryfieldGasStationWarpEntries,
     gDryfieldMainStreetWarpEntries,
-    D_dryfield_general_store_8017E690,
+    gDryfieldGeneralStoreWarpEntries,
     gDryfieldR04WarpEntries,
     gDryfieldBackStreetWarpEntries,
     gDryfieldSouvenirShopWarpEntries,
@@ -617,7 +617,7 @@ DirectionWarpEntry* D_map_dryfield_8017A8F8[38] = {
 static ViewCount* D_map_dryfield_8017A990[38] = {
     gDryfieldGasStationRoomViewCounts,
     gDryfieldMainStreetRoomViewCounts,
-    D_dryfield_general_store_8017E684,
+    gDryfieldGeneralStoreRoomViewCounts,
     gDryfieldR04RoomViewCounts,
     gDryfieldBackStreetRoomViewCounts,
     gDryfieldSouvenirShopRoomViewCounts,
@@ -660,7 +660,7 @@ ViewCountTable D_map_dryfield_8017AA28 = { D_map_dryfield_8017A990 };
 static WorldCollisionRoomResources* D_map_dryfield_8017AA2C[38] = {
     gDryfieldGasStationRoomCollisionResources,
     gDryfieldMainStreetRoomCollisionResources,
-    D_dryfield_general_store_8017E670,
+    gDryfieldGeneralStoreRoomCollisionResources,
     gDryfieldR04RoomCollisionResources,
     gDryfieldBackStreetRoomCollisionResources,
     gDryfieldSouvenirShopRoomCollisionResources,
@@ -703,7 +703,7 @@ WorldCollisionStageResources D_map_dryfield_8017AAC4 = { D_map_dryfield_8017AA2C
 static ViewCamera* D_map_dryfield_8017AAC8[38] = {
     gDryfieldGasStationViewCameras,
     gDryfieldMainStreetViewCameras,
-    D_dryfield_general_store_8017F25C,
+    gDryfieldGeneralStoreViewCameras,
     gDryfieldR04ViewCameras,
     gDryfieldBackStreetViewCameras,
     gDryfieldSouvenirShopViewCameras,
@@ -797,7 +797,7 @@ ViewIndexTable gMapDryfieldViewIndexTable = { _gMapDryfieldAreaViewMaps };
 static SpriteView* _gMapDryfieldAreaSpriteViews[38] = {
     gDryfieldGasStationSpriteViews,
     gDryfieldMainStreetSpriteViews,
-    D_dryfield_general_store_8018402C,
+    gDryfieldGeneralStoreSpriteViews,
     gDryfieldR04SpriteViews,
     gDryfieldBackStreetSpriteViews,
     gDryfieldSouvenirShopSpriteViews,

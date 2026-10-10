@@ -1437,7 +1437,7 @@ D_dryfield_garage_801800E0 = 0x801800E0; // absolute:True owner=dryfield_garage
 
 gDryfieldGasStationPlacementVariants = 0x80184A38; // absolute:True owner=dryfield_gas_station shared=rooms
 
-D_dryfield_general_store_80185654 = 0x80185654; // absolute:True owner=dryfield_general_store
+gDryfieldGeneralStorePlacementVariants = 0x80185654; // absolute:True owner=dryfield_general_store
 
 D_dryfield_junk_yard_8017F558 = 0x8017F558; // absolute:True owner=dryfield_junk_yard shared=rooms
 
