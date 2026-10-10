@@ -1,35 +1,37 @@
-#include <psyq/sys/types.h>
+#include "mappic/mappic.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "common.h"
 
-static TmdBone _gMappicS303MappicS202Model00CF8000A8Skeleton[1] = {
+/// Identity transform and self-parented root for the Water hole shape.
+static TmdBone _gMappicS303WaterHoleShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00CF8_000A8_skeleton.inc"
 };
 
-static u32 _gMappicS303MappicS202Model00CF8000A8PartVerts[1] = {
+/// Vertex count of the Water hole shape's sole part (eight vertices).
+static u32 _gMappicS303WaterHoleShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_000A8_partVerts.inc"
 };
 
-static SVECTOR _gMappicS303MappicS202Model00CF8000A8Verts[8] = {
+/// Water hole's map outline in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS303WaterHoleShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00CF8_000A8_verts.inc"
 };
 
-static u32 _gMappicS303MappicS202Model00CF8000A8Stream[15] = {
+/// Three unlit quads' packed vertex byte offsets and colours, then two group ends and the stream end.
+static u32 _gMappicS303WaterHoleShapeStream[] = {
 #include "assets/mappic_s2_02_model_00CF8_000A8_stream.inc"
 };
 
-TmdSource D_mappic_s3_03_8012EFD8 = {
-    0,
-    72,
-    0,
-    1,
-    _gMappicS303MappicS202Model00CF8000A8PartVerts,
-    _gMappicS303MappicS202Model00CF8000A8Verts,
-    &_gMappicS303MappicS202Model00CF8000A8Verts[8],
-    _gMappicS303MappicS202Model00CF8000A8Skeleton,
-    _gMappicS303MappicS202Model00CF8000A8Stream,
+TmdSource gMappicS303WaterHoleShape = {
+    .bufferHalfBytes  = 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS303WaterHoleShapeSkeleton),
+    .partVertexCounts = _gMappicS303WaterHoleShapePartVerts,
+    .verts            = _gMappicS303WaterHoleShapeVerts,
+    .normals          = &_gMappicS303WaterHoleShapeVerts[ARRAY_SIZE(_gMappicS303WaterHoleShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS303WaterHoleShapeSkeleton,
+    .stream           = _gMappicS303WaterHoleShapeStream,
 };
 
 static TmdBone _gMappicS303MappicS400Model0005C00154Skeleton[1] = {

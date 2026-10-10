@@ -112,7 +112,12 @@ extern TmdSource D_mappic_s2_02_8012FD60;
 extern TmdSource D_mappic_s2_02_8012FDF0;
 
 // mappic_s2_03
-extern TmdSource D_mappic_s2_03_8012EFD8;
+/// Water hole's three-quad area fill on page 3 of the daytime Dryfield map.
+///
+/// Lies in the model X/Z plane; the map applies its 1495/4096 page scale.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep the mappic_s2_03 package loaded while these are used.
+extern TmdSource gMappicS203WaterHoleShape;
 
 extern TmdSource D_mappic_s2_03_8012F084;
 
@@ -252,7 +257,12 @@ extern TmdSource D_mappic_s3_02_8012FD78;
 extern TmdSource D_mappic_s3_02_8012FE08;
 
 // mappic_s3_03
-extern TmdSource D_mappic_s3_03_8012EFD8;
+/// Water hole's three-quad area fill on page 3 of the nighttime Dryfield map.
+///
+/// Lies in the model X/Z plane; the map applies its 1495/4096 page scale.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep the mappic_s3_03 package loaded while these are used.
+extern TmdSource gMappicS303WaterHoleShape;
 
 extern TmdSource D_mappic_s3_03_8012F084;
 
