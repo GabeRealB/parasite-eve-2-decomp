@@ -26,6 +26,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -34,6 +35,7 @@
 #include "main/mem.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -64,11 +66,11 @@ static s32 _neoArkSouthPromenadeIgnoreActionMessage(Task* task, s32 messageId, c
 /// Requests use of the selected key item; the room replies with zero to refuse it.
 enum { NEO_ARK_SOUTH_PROMENADE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-extern WorldCollisionGrid     D_neo_ark_south_promenade_8017FD8C[1];
+static WorldCollisionGrid     _gNeoArkSouthPromenadeCollisionGrid;
 extern WorldCollisionOccluder D_neo_ark_south_promenade_8018094C[1];
-extern WorldCollisionTrigger  D_neo_ark_south_promenade_801804E8[6];
-extern WorldCollisionTrigger  D_neo_ark_south_promenade_801806B0[6];
-extern WorldCoordRoomLights   D_neo_ark_south_promenade_801804D0[1];
+static WorldCollisionTrigger  _gNeoArkSouthPromenadeViewBoundaryTriggers[6];
+static WorldCollisionTrigger  _gNeoArkSouthPromenadeActionTriggers[6];
+static WorldCoordRoomLights   _gNeoArkSouthPromenadeRoomLights;
 
 TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSouthPromenadeResolveRoomTransition },
@@ -80,65 +82,101 @@ TaskMessageEntry D_neo_ark_south_promenade_8017F6B4[5] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCoordRoomLighting D_neo_ark_south_promenade_8017F6EC[1] = {
-    { D_neo_ark_south_promenade_801804D0, NULL },
+WorldCoordRoomLighting gNeoArkSouthPromenadeRoomLighting[1] = {
+    { &_gNeoArkSouthPromenadeRoomLights, NULL },
 };
 
 WorldCollisionRoomResources D_neo_ark_south_promenade_8017F6F4[1] = {
-    { D_neo_ark_south_promenade_8017FD8C, D_neo_ark_south_promenade_801804E8, D_neo_ark_south_promenade_801806B0, D_neo_ark_south_promenade_8018094C },
+    { &_gNeoArkSouthPromenadeCollisionGrid, _gNeoArkSouthPromenadeViewBoundaryTriggers, _gNeoArkSouthPromenadeActionTriggers, D_neo_ark_south_promenade_8018094C },
 };
 
-u8* D_neo_ark_south_promenade_8017F704[1] = {
+u8* gNeoArkSouthPromenadeViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_south_promenade_8017F708[1] = { 5 };
+ViewCount gNeoArkSouthPromenadeViewCounts[1] = { NEO_ARK_SOUTH_PROMENADE_VIEW_COUNT };
 
 DirectionWarpEntry D_neo_ark_south_promenade_8017F70C[2] = {
     { { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1137, 0, 2500 }, { 0, 0, 0, 0 }, 0x55130002, 0x55130001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 3072 }, 0x2A30, 0, 0x3200 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2A30, 0, 0x3200 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkSouthPromenadeCollision027CCNormals[13] = {
+/// Room-space face normals for the promenade collision grid, with ONE per unit.
+static SVECTOR _gNeoArkSouthPromenadeCollisionGridNormals[] = {
 #include "assets/neo_ark_south_promenade_collision_027CC_normals.inc"
 };
 
-static SVECTOR _gNeoArkSouthPromenadeCollision027CCVerts[81] = {
+/// Room-space collision vertices in signed game coordinates.
+static SVECTOR _gNeoArkSouthPromenadeCollisionGridVerts[] = {
 #include "assets/neo_ark_south_promenade_collision_027CC_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkSouthPromenadeCollision027CCFaces[35] = {
+/// Indexed collision quads selecting the room's surface classes 0, 1 and 2.
+static WorldCollisionGridFace _gNeoArkSouthPromenadeCollisionGridFaces[] = {
 #include "assets/neo_ark_south_promenade_collision_027CC_faces.inc"
 };
 
-static s16 _gNeoArkSouthPromenadeCollision027CCCells[158] = {
+/// Serialized signed face-index lists ending at WORLD_COLLISION_GRID_CELL_END.
+///
+/// Retained words between lists remain outside the lists selected by the cell table.
+static s16 _gNeoArkSouthPromenadeCollisionGridCells[] = {
 #include "assets/neo_ark_south_promenade_collision_027CC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkSouthPromenadeCollision027CCCells[i])
-static s16* _gNeoArkSouthPromenadeCollision027CCTable[16] = {
+/// XZ dimensions of the collision asset's X-major cell table.
+enum {
+    NEO_ARK_SOUTH_PROMENADE_GRID_CELL_COUNT_X = 4,
+    NEO_ARK_SOUTH_PROMENADE_GRID_CELL_COUNT_Z = 4,
+};
+
+// The generated table supplies constant element offsets into the face-index pool.
+#define GRID_CELL(i) (&_gNeoArkSouthPromenadeCollisionGridCells[i])
+/// X-major cell directory; NULL entries are empty cells.
+static s16* _gNeoArkSouthPromenadeCollisionGridTable[] = {
 #include "assets/neo_ark_south_promenade_collision_027CC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_south_promenade_8017FD8C[1] = {
-    { NULL, _gNeoArkSouthPromenadeCollision027CCNormals, _gNeoArkSouthPromenadeCollision027CCVerts, _gNeoArkSouthPromenadeCollision027CCFaces, _gNeoArkSouthPromenadeCollision027CCTable, -700, -500, 4, 4, 4000, 35 },
+STATIC_ASSERT_SIZEOF(_gNeoArkSouthPromenadeCollisionGridTable,
+                     NEO_ARK_SOUTH_PROMENADE_GRID_CELL_COUNT_X * NEO_ARK_SOUTH_PROMENADE_GRID_CELL_COUNT_Z * sizeof(s16*));
+
+/// Promenade collision mesh indexed by 4000-unit XZ cells from origin (700, 500).
+///
+/// Room setup binds the borrowed view coordinate. Mesh pools and cell lists stay
+/// live with this overlay while the grid is active; the asset contains 35 quads.
+static WorldCollisionGrid _gNeoArkSouthPromenadeCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkSouthPromenadeCollisionGridNormals,
+    .vertices    = _gNeoArkSouthPromenadeCollisionGridVerts,
+    .faces       = _gNeoArkSouthPromenadeCollisionGridFaces,
+    .cellFaceIds = _gNeoArkSouthPromenadeCollisionGridTable,
+    .xBias       = -700,
+    .zBias       = -500,
+    .cellCountX  = NEO_ARK_SOUTH_PROMENADE_GRID_CELL_COUNT_X,
+    .cellCountZ  = NEO_ARK_SOUTH_PROMENADE_GRID_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkSouthPromenadeCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_south_promenade_8017FDB0[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7000, 0x58D6, -7000 } }, 289 },
+ViewCamera gNeoArkSouthPromenadeViewCameras[NEO_ARK_SOUTH_PROMENADE_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -7000, 0x58D6, -7000 } }, 289 },
     { { { { 4002, 0, 871 }, { 35, 4092, -163 }, { -871, 167, 3998 } }, { -0x3070, 1502, -3900 } }, 257 },
     { { { { -3965, 0, 1025 }, { 54, 4090, 210 }, { -1023, 217, -3960 } }, { -0x31E2, 1650, -0x2BC0 } }, 257 },
     { { { { -954, 0, 3983 }, { 197, 4090, 47 }, { -3978, 203, -953 } }, { -0x3070, 1690, -3200 } }, 207 },
     { { { { -870, 0, 4002 }, { 776, 4018, 168 }, { -3926, 794, -853 } }, { -8000, 2042, -3300 } }, 207 },
 };
 
-SpriteBatch D_neo_ark_south_promenade_8017FE64[2] = {
+/// View 1's empty sprite list, retaining the decoded image-strip background.
+static SpriteBatch _gNeoArkSouthPromenadeView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_south_promenade_8017FE74[25] = {
+/// View 2's source rectangles: 16 opaque sprites followed by nine translucent sprites.
+///
+/// Positions and sizes are pixels relative to the view centre; depths are OT
+/// sorting values. Texture pages and CLUTs are encoded GPU addresses.
+static SpriteSource _gNeoArkSouthPromenadeView2SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, 24, 912, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 912, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 56, 900, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
@@ -166,15 +204,23 @@ SpriteSource D_neo_ark_south_promenade_8017FE74[25] = {
     { 143, 0x4000, { .fields = { 24, 40 } }, 136, -104, 1905, { .fields = { 0, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_south_promenade_80180068[5] = {
+/// View 2's background selector and source ranges [0,4), [4,16) and [16,25).
+///
+/// The zero-count first record retains image strips; the terminal record selects
+/// no sources. Serialized field_6 bytes remain uninterpreted.
+static SpriteBatch _gNeoArkSouthPromenadeView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 12, 0, 0, { 2, 0 } },
-    { 16, 9, 0, 0, { 0, 0 } },
+    { 16, ARRAY_SIZE(_gNeoArkSouthPromenadeView2SpriteSources) - 16, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_south_promenade_80180090[39] = {
+/// View 3's source rectangles: 26 opaque sprites followed by 13 translucent sprites.
+///
+/// Positions and sizes are pixels relative to the view centre; depths are OT
+/// sorting values. Texture pages and CLUTs are encoded GPU addresses.
+static SpriteSource _gNeoArkSouthPromenadeView3SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, -120, 1862, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -120, 1625, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 1375, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
@@ -216,96 +262,153 @@ SpriteSource D_neo_ark_south_promenade_80180090[39] = {
     { 143, 0x4000, { .fields = { 16, 8 } }, 48, -120, 1862, { .fields = { 40, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_south_promenade_8018039C[5] = {
+/// View 3's background selector and source ranges [0,14), [14,26) and [26,39).
+///
+/// The zero-count first record retains image strips; the terminal record selects
+/// no sources. Serialized field_6 bytes remain uninterpreted.
+static SpriteBatch _gNeoArkSouthPromenadeView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 1, 0 } },
     { 14, 12, 0, 0, { 2, 0 } },
-    { 26, 13, 0, 0, { 0, 0 } },
+    { 26, ARRAY_SIZE(_gNeoArkSouthPromenadeView3SpriteSources) - 26, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_south_promenade_801803C4[2] = {
+/// View 4's empty sprite list, retaining the decoded image-strip background.
+static SpriteBatch _gNeoArkSouthPromenadeView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_south_promenade_801803D4[2] = {
+/// View 5's empty sprite list, retaining the decoded image-strip background.
+static SpriteBatch _gNeoArkSouthPromenadeView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_south_promenade_801803E4[5] = {
-    { { .empty = D_neo_ark_south_promenade_8017FE64 }, D_neo_ark_south_promenade_8017FE64, NULL },
-    { { .elements = D_neo_ark_south_promenade_8017FE74 }, D_neo_ark_south_promenade_80180068, NULL },
-    { { .elements = D_neo_ark_south_promenade_80180090 }, D_neo_ark_south_promenade_8018039C, NULL },
-    { { .empty = D_neo_ark_south_promenade_801803C4 }, D_neo_ark_south_promenade_801803C4, NULL },
-    { { .empty = D_neo_ark_south_promenade_801803D4 }, D_neo_ark_south_promenade_801803D4, NULL },
+SpriteView gNeoArkSouthPromenadeSpriteViews[NEO_ARK_SOUTH_PROMENADE_VIEW_COUNT] = {
+    { { .empty = _gNeoArkSouthPromenadeView1SpriteBatches }, _gNeoArkSouthPromenadeView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkSouthPromenadeView2SpriteSources }, _gNeoArkSouthPromenadeView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkSouthPromenadeView3SpriteSources }, _gNeoArkSouthPromenadeView3SpriteBatches, NULL },
+    { { .empty = _gNeoArkSouthPromenadeView4SpriteBatches }, _gNeoArkSouthPromenadeView4SpriteBatches, NULL },
+    { { .empty = _gNeoArkSouthPromenadeView5SpriteBatches }, _gNeoArkSouthPromenadeView5SpriteBatches, NULL },
 };
 
-WorldCoordLight D_neo_ark_south_promenade_80180420[2] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 392, -740, 260 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4997, 4915, 4894 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -332, 260, -220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1310, 1290, 1228 }, { 0, 0 } },
+/// Two directional lights admitted in every promenade view, with Q12 RGB intensity.
+///
+/// Local translations supply light directions, not point-light positions. Room
+/// lighting updates parent and compose the mutable coordinates for model shading.
+static WorldCoordLight _gNeoArkSouthPromenadeDirectionalLights[] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 392, -740, 260 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4997, 4915, 4894 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -332, 260, -220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1310, 1290, 1228 }, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_neo_ark_south_promenade_801804D0[1] = {
-    { ARRAY_SIZE(D_neo_ark_south_promenade_80180420), D_neo_ark_south_promenade_80180420, 0, NULL, 0, NULL },
+/// Promenade light collection: two directional lights, no point or cone lights.
+static WorldCoordRoomLights _gNeoArkSouthPromenadeRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gNeoArkSouthPromenadeDirectionalLights),
+    .directionalLights     = _gNeoArkSouthPromenadeDirectionalLights,
+    .pointLightCount       = 0,
+    .pointLights           = NULL,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_south_promenade_801804E8[6] = {
-    { NULL, NULL, NULL, { 5005, -1568, 2682, 0 }, { { 44, -1904, -2937, 0 }, { -44, -1904, 2938, 0 }, { 44, 1904, -2937, 0 }, { -44, 1904, 2938, 0 } }, { 4109, 0, 60, 0 }, { 0, 0, 4096, 0 }, 3500, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5272, -1600, 2635, 0 }, { { -17, -1904, 3156, 0 }, { 17, -1904, -3155, 0 }, { -17, 1904, 3156, 0 }, { 17, 1904, -3155, 0 } }, { -4101, 0, -23, 0 }, { 0, 0, 4096, 0 }, 3683, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9087, -1441, 2401, 0 }, { { 309, -1904, 2737, 0 }, { -308, -1904, -2736, 0 }, { 309, 1904, 2737, 0 }, { -308, 1904, -2736, 0 } }, { -4071, 0, 458, 0 }, { 0, 0, 4096, 0 }, 3347, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8784, -1601, 2400, 0 }, { { -323, -1904, -2719, 0 }, { 322, -1904, 2718, 0 }, { -323, 1904, -2719, 0 }, { 322, 1904, 2718, 0 } }, { 4084, 0, -485, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2C11, -1440, 7472, 0 }, { { 3787, -1904, 557, 0 }, { -3788, -1904, -558, 0 }, { 3787, 1904, 557, 0 }, { -3788, 1904, -558, 0 } }, { -597, 0, 4053, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2BD1, -1504, 7632, 0 }, { { -3440, -1904, -505, 0 }, { 3439, -1904, 504, 0 }, { -3440, 1904, -505, 0 }, { 3439, 1904, 504, 0 } }, { 594, 0, -4057, 0 }, { 0, 0, 4096, 0 }, 3957, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Six directed view boundaries: 4 to/from 5, 4 to/from 3 and 2 to/from 3.
+///
+/// Room setup binds and enables the mutable nodes; the sixth is marked LAST.
+/// Origins and corner offsets use game coordinates, normals use ONE per unit.
+static WorldCollisionTrigger _gNeoArkSouthPromenadeViewBoundaryTriggers[6] = {
+    { NULL, NULL, NULL, { 5005, -1568, 2682, 0 }, { { 44, -1904, -2937, 0 }, { -44, -1904, 2938, 0 }, { 44, 1904, -2937, 0 }, { -44, 1904, 2938, 0 } }, { 4109, 0, 60, 0 }, { 0, 0, ONE, 0 }, 3500, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 5272, -1600, 2635, 0 }, { { -17, -1904, 3156, 0 }, { 17, -1904, -3155, 0 }, { -17, 1904, 3156, 0 }, { 17, 1904, -3155, 0 } }, { -4101, 0, -23, 0 }, { 0, 0, ONE, 0 }, 3683, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9087, -1441, 2401, 0 }, { { 309, -1904, 2737, 0 }, { -308, -1904, -2736, 0 }, { 309, 1904, 2737, 0 }, { -308, 1904, -2736, 0 } }, { -4071, 0, 458, 0 }, { 0, 0, ONE, 0 }, 3347, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8784, -1601, 2400, 0 }, { { -323, -1904, -2719, 0 }, { 322, -1904, 2718, 0 }, { -323, 1904, -2719, 0 }, { 322, 1904, 2718, 0 } }, { 4084, 0, -485, 0 }, { 0, 0, ONE, 0 }, 3328, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2C11, -1440, 7472, 0 }, { { 3787, -1904, 557, 0 }, { -3788, -1904, -558, 0 }, { 3787, 1904, 557, 0 }, { -3788, 1904, -558, 0 } }, { -597, 0, 4053, 0 }, { 0, 0, ONE, 0 }, 4252, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2BD1, -1504, 7632, 0 }, { { -3440, -1904, -505, 0 }, { 3439, -1904, 504, 0 }, { -3440, 1904, -505, 0 }, { 3439, 1904, 504, 0 } }, { 594, 0, -4057, 0 }, { 0, 0, ONE, 0 }, 3957, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_south_promenade_801806B0[6] = {
-    { NULL, NULL, NULL, { 1104, -48, 2416, 0 }, { { -496, 0, -1104, 0 }, { 496, 0, -1104, 0 }, { -496, 0, 1104, 0 }, { 496, 0, 1104, 0 } }, { 0, 4113, 0, 0 }, { 4096, 0, 0, 0 }, 1207, WORLD_COLLISION_TRIGGER_ACTION_WARP, 18, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2D20, -1248, 0x3070, 0 }, { { 0, 1280, -1072, 0 }, { 0, -1280, -1072, 0 }, { 0, 1280, 1072, 0 }, { 0, -1280, 1072, 0 } }, { 4106, 0, 0, 0 }, { -4096, 0, 0, 0 }, 1668, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 35, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2A30, -64, 0x30A0, 0 }, { { -288, 0, -592, 0 }, { 288, 0, -592, 0 }, { -288, 0, 592, 0 }, { 288, 0, 592, 0 } }, { 0, 4107, 0, 0 }, { -4096, 0, 0, 0 }, 655, WORLD_COLLISION_TRIGGER_ACTION_FACING, 24, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6464, -64, 912, 0 }, { { -5648, 0, -480, 0 }, { 5648, 0, -480, 0 }, { -5648, 0, 480, 0 }, { 5648, 0, 480, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 5655, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4720, -64, 3936, 0 }, { { -3872, 0, -480, 0 }, { 3872, 0, -480, 0 }, { -3872, 0, 480, 0 }, { 3872, 0, 480, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 3899, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2B2F, -64, 1375, 0 }, { { -1874, 0, -1634, 0 }, { 2368, 0, 812, 0 }, { -2367, 0, -811, 0 }, { 1875, 0, 1635, 0 } }, { 0, 4099, 0, 0 }, { -2276, 0, 3406, 0 }, 2495, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed action parameters for the promenade's warps, stair climb and CAP commands.
+enum {
+    NEO_ARK_SOUTH_PROMENADE_SAVANNA_WARP        = (1 << 4) | 2, // Departure slot 1, destination arrival slot 2.
+    NEO_ARK_SOUTH_PROMENADE_OBSERVATORY_WARP    = (2 << 4) | 3, // Departure slot 2, destination arrival slot 3.
+    NEO_ARK_SOUTH_PROMENADE_STAIR_SURFACE_STEPS = (1 << 4) | 8, // Surface class 1 throughout eight steps.
+    NEO_ARK_SOUTH_PROMENADE_STAIR_YAW           = 1024 >> 4,    // Quarter-turn yaw in 16-angle-unit steps.
+    NEO_ARK_SOUTH_PROMENADE_CAP_INTERACTION_1   = 1,
+    NEO_ARK_SOUTH_PROMENADE_CAP_INTERACTION_2   = 2,
 };
 
-AreaResource D_neo_ark_south_promenade_80180878[1] = {
+/// Two departure warps, a stair action and three CAP interaction quads.
+///
+/// Warps request the Savanna Zone and Observatory. Coordinates are in game units;
+/// facing normals use ONE per unit. Keep nodes live until unlinked; the sixth is LAST.
+static WorldCollisionTrigger _gNeoArkSouthPromenadeActionTriggers[6] = {
+    { NULL, NULL, NULL, { 1104, -48, 2416, 0 }, { { -496, 0, -1104, 0 }, { 496, 0, -1104, 0 }, { -496, 0, 1104, 0 }, { 496, 0, 1104, 0 } }, { 0, 4113, 0, 0 }, { ONE, 0, 0, 0 }, 1207, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SAVANNA_ZONE, NEO_ARK_SOUTH_PROMENADE_SAVANNA_WARP, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2D20, -1248, 0x3070, 0 }, { { 0, 1280, -1072, 0 }, { 0, -1280, -1072, 0 }, { 0, 1280, 1072, 0 }, { 0, -1280, 1072, 0 } }, { 4106, 0, 0, 0 }, { -ONE, 0, 0, 0 }, 1668, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_OBSERVATORY, NEO_ARK_SOUTH_PROMENADE_OBSERVATORY_WARP, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2A30, -64, 0x30A0, 0 }, { { -288, 0, -592, 0 }, { 288, 0, -592, 0 }, { -288, 0, 592, 0 }, { 288, 0, 592, 0 } }, { 0, 4107, 0, 0 }, { -ONE, 0, 0, 0 }, 655, WORLD_COLLISION_TRIGGER_ACTION_FACING, NEO_ARK_SOUTH_PROMENADE_STAIR_SURFACE_STEPS, NEO_ARK_SOUTH_PROMENADE_STAIR_YAW, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6464, -64, 912, 0 }, { { -5648, 0, -480, 0 }, { 5648, 0, -480, 0 }, { -5648, 0, 480, 0 }, { 5648, 0, 480, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, ONE, 0 }, 5655, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SOUTH_PROMENADE_CAP_INTERACTION_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4720, -64, 3936, 0 }, { { -3872, 0, -480, 0 }, { 3872, 0, -480, 0 }, { -3872, 0, 480, 0 }, { 3872, 0, 480, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, -ONE, 0 }, 3899, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SOUTH_PROMENADE_CAP_INTERACTION_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2B2F, -64, 1375, 0 }, { { -1874, 0, -1634, 0 }, { 2368, 0, 812, 0 }, { -2367, 0, -811, 0 }, { 1875, 0, 1635, 0 } }, { 0, 4099, 0, 0 }, { -2276, 0, 3406, 0 }, 2495, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_SOUTH_PROMENADE_CAP_INTERACTION_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Variant 2's empty resource list, paired with an empty placement list.
+static AreaResource _gNeoArkSouthPromenadeVariant2Resources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_south_promenade_80180884[1] = {
+/// Variant 3's empty resource list, paired with an empty placement list.
+static AreaResource _gNeoArkSouthPromenadeVariant3Resources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_south_promenade_80180890[2] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
+/// Placement-entry keys and matching base-file numbers used by the encounter variants.
+enum {
+    NEO_ARK_SOUTH_PROMENADE_BLACK_BEETLE_RESOURCE = 38,
+    NEO_ARK_SOUTH_PROMENADE_PAWN105600_RESOURCE   = 56,
+    NEO_ARK_SOUTH_PROMENADE_PAWN102000_RESOURCE   = 20,
+    NEO_ARK_SOUTH_PROMENADE_ROOK202300_RESOURCE   = 23,
+};
+
+/// Variant 4's Black Beetle resource recipe, terminated by AREA_PLACEMENT_END.
+///
+/// Six placements share entry 38; base-10 file 38 selects actor_103800, descriptor 0.
+/// The recipe and borrowed actor descriptor must stay loaded through loading/spawning.
+static AreaResource _gNeoArkSouthPromenadeVariant4Resources[] = {
+    { NEO_ARK_SOUTH_PROMENADE_BLACK_BEETLE_RESOURCE, NEO_ARK_SOUTH_PROMENADE_BLACK_BEETLE_RESOURCE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_south_promenade_801808A8[2] = {
-    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105600PawnGolemTasks },
+/// Variant 5's Pawn GOLEM resource recipe, terminated by AREA_PLACEMENT_END.
+///
+/// Two placements share entry 56; base-10 file 56 selects actor_105600, descriptor 0.
+/// The recipe and borrowed actor table must stay loaded through loading/spawning.
+static AreaResource _gNeoArkSouthPromenadeVariant5Resources[] = {
+    { NEO_ARK_SOUTH_PROMENADE_PAWN105600_RESOURCE, NEO_ARK_SOUTH_PROMENADE_PAWN105600_RESOURCE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105600PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_south_promenade_801808C0[3] = {
-    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
+/// Variant 11's Pawn and Rook GOLEM recipes, terminated by AREA_PLACEMENT_END.
+///
+/// Two entry-20 placements use base-10 file 20 and actor_102000; entry 23 uses
+/// base-20 file 23 and actor_202300. Both select descriptor 0 in borrowed tables.
+/// Keep the recipe and actor tables loaded through loading/spawning.
+static AreaResource _gNeoArkSouthPromenadeVariant11Resources[] = {
+    { NEO_ARK_SOUTH_PROMENADE_PAWN102000_RESOURCE, NEO_ARK_SOUTH_PROMENADE_PAWN102000_RESOURCE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
+    { NEO_ARK_SOUTH_PROMENADE_ROOK202300_RESOURCE, NEO_ARK_SOUTH_PROMENADE_ROOK202300_RESOURCE, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_neo_ark_south_promenade_801808E4[13] = {
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017BDB0, D_neo_ark_south_promenade_80180878 },
-    { D_map_neo_ark_8017BDC0, D_neo_ark_south_promenade_80180884 },
-    { D_map_neo_ark_8017BDD0, D_neo_ark_south_promenade_80180890 },
-    { D_map_neo_ark_8017BE40, D_neo_ark_south_promenade_801808A8 },
+    { D_map_neo_ark_8017BDB0, _gNeoArkSouthPromenadeVariant2Resources },
+    { D_map_neo_ark_8017BDC0, _gNeoArkSouthPromenadeVariant3Resources },
+    { D_map_neo_ark_8017BDD0, _gNeoArkSouthPromenadeVariant4Resources },
+    { D_map_neo_ark_8017BE40, _gNeoArkSouthPromenadeVariant5Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017BE70, D_neo_ark_south_promenade_801808C0 },
+    { D_map_neo_ark_8017BE70, _gNeoArkSouthPromenadeVariant11Resources },
     { NULL, NULL },
 };
 
@@ -313,33 +416,58 @@ WorldCollisionOccluder D_neo_ark_south_promenade_8018094C[1] = {
     { NULL, NULL, { 4912, -1568, 7344, 0 }, { { -4560, 2496, 2832, 0 }, { 4560, 2496, -2832, 0 }, { -4560, -2496, 2832, 0 }, { 4560, -2496, -2832, 0 } }, { 2162, 0, 3481, 0 }, 5904, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_south_promenade_80180988 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Cue-2 request bases in the loaded type-1 sound bank; cue 1 uses the next entry.
+enum {
+    NEO_ARK_SOUTH_PROMENADE_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    NEO_ARK_SOUTH_PROMENADE_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_south_promenade_80180994[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump footstep bases for surface classes 1 and 2.
+///
+/// Walking and scripted jumps share a cue pair; running uses the following pair.
+/// Consumers borrow the cues while this overlay and its type-1 bank are loaded.
+static WorldCollisionFootstepSounds _gNeoArkSouthPromenadeFootstepSounds = {
+    .walk         = NEO_ARK_SOUTH_PROMENADE_FOOTSTEP_WALK,
+    .run          = NEO_ARK_SOUTH_PROMENADE_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_SOUTH_PROMENADE_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_south_promenade_8018099C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_south_promenade_80180988 },
+/// Classes 0 and 3..7: probe blocking, weapon impacts and pushback without footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkSouthPromenadeSolidSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_south_promenade_801809A4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_south_promenade_80180988 },
+/// Class 1: probe blocking, weapon impacts, pushback and the room's footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkSouthPromenadeSolidFootstepSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkSouthPromenadeFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_south_promenade_801809AC[8] = {
-    D_neo_ark_south_promenade_80180994,
-    D_neo_ark_south_promenade_8018099C,
-    D_neo_ark_south_promenade_801809A4,
-    D_neo_ark_south_promenade_80180994,
-    D_neo_ark_south_promenade_80180994,
-    D_neo_ark_south_promenade_80180994,
-    D_neo_ark_south_promenade_80180994,
-    D_neo_ark_south_promenade_80180994,
+/// Class 2: probe passage and no weapon impacts, retaining pushback and footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkSouthPromenadeProbePassSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkSouthPromenadeFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkSouthPromenadeSurfaceProperties[NEO_ARK_SOUTH_PROMENADE_SURFACE_CLASS_COUNT] = {
+    &_gNeoArkSouthPromenadeSolidSurface,
+    &_gNeoArkSouthPromenadeSolidFootstepSurface,
+    &_gNeoArkSouthPromenadeProbePassSurface,
+    &_gNeoArkSouthPromenadeSolidSurface,
+    &_gNeoArkSouthPromenadeSolidSurface,
+    &_gNeoArkSouthPromenadeSolidSurface,
+    &_gNeoArkSouthPromenadeSolidSurface,
+    &_gNeoArkSouthPromenadeSolidSurface,
 };
 
 /// Refuses every key-item use request in this room, returning zero to the item menu.
