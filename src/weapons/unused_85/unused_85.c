@@ -209,136 +209,202 @@ static AnimationSet _gUnused85RunAnimation = {
     },
 };
 
-static AnimationPackedPose _gUnused85Animation02D8CBank1[19] = {
+/// Left stationary-turn translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85NegativeTurnAnimationBank1[19] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_02D8C_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation02D8CBank4[169] = {
+/// Packed left stationary-turn rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85NegativeTurnAnimationBank4[169] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_02D8C_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation02D8CRecords[290] = {
+/// Left stationary-turn keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85NegativeTurnAnimationRecords[290] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_02D8C_records.inc"
 };
 
-static u16 _gUnused85Animation02D8CIndices[20] = {
+/// Left stationary-turn track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85NegativeTurnAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_02D8C_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation02D8C = {
-    _gUnused85Animation02D8CRecords,
-    _gUnused85Animation02D8CIndices,
-    { NULL, _gUnused85Animation02D8CBank1, NULL, NULL, _gUnused85Animation02D8CBank4, NULL, NULL, NULL },
+/// Player looping left stationary-turn clip for unused weapon index 6.
+///
+/// Native-bank set 5, selected by a negative turn sign while stopped.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85NegativeTurnAnimation = {
+    .records           = _gUnused85NegativeTurnAnimationRecords,
+    .trackStartIndices = _gUnused85NegativeTurnAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85NegativeTurnAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85NegativeTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation035F0Bank1[19] = {
+/// Right stationary-turn translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85PositiveTurnAnimationBank1[19] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_035F0_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation035F0Bank4[170] = {
+/// Packed right stationary-turn rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85PositiveTurnAnimationBank4[170] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_035F0_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation035F0Records[290] = {
+/// Right stationary-turn keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85PositiveTurnAnimationRecords[290] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_035F0_records.inc"
 };
 
-static u16 _gUnused85Animation035F0Indices[20] = {
+/// Right stationary-turn track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85PositiveTurnAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_035F0_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation035F0 = {
-    _gUnused85Animation035F0Records,
-    _gUnused85Animation035F0Indices,
-    { NULL, _gUnused85Animation035F0Bank1, NULL, NULL, _gUnused85Animation035F0Bank4, NULL, NULL, NULL },
+/// Player looping right stationary-turn clip for unused weapon index 6.
+///
+/// Native-bank set 6, selected by a positive turn sign while stopped.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85PositiveTurnAnimation = {
+    .records           = _gUnused85PositiveTurnAnimationRecords,
+    .trackStartIndices = _gUnused85PositiveTurnAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85PositiveTurnAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85PositiveTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation03904Bank1[3] = {
+/// Item-use translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85ItemUseAnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_03904_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation03904Bank4[69] = {
+/// Packed item-use rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85ItemUseAnimationBank4[69] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_03904_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation03904Records[99] = {
+/// Item-use keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85ItemUseAnimationRecords[99] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_03904_records.inc"
 };
 
-static u16 _gUnused85Animation03904Indices[20] = {
+/// Item-use track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85ItemUseAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_03904_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation03904 = {
-    _gUnused85Animation03904Records,
-    _gUnused85Animation03904Indices,
-    { NULL, _gUnused85Animation03904Bank1, NULL, NULL, _gUnused85Animation03904Bank4, NULL, NULL, NULL },
+/// Player one-shot item-use clip for unused weapon index 6.
+///
+/// Native-bank set 40. Its 19 tracks borrow this package's embedded payloads
+/// while it is loaded; completion resumes aim locomotion.
+static AnimationSet _gUnused85ItemUseAnimation = {
+    .records           = _gUnused85ItemUseAnimationRecords,
+    .trackStartIndices = _gUnused85ItemUseAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85ItemUseAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85ItemUseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation04060Bank1[14] = {
+/// Stair-ascent translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85StairAscentAnimationBank1[14] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04060_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation04060Bank4[156] = {
+/// Packed stair-ascent rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85StairAscentAnimationBank4[156] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04060_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation04060Records[253] = {
+/// Stair-ascent keyframes, footstep cues and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85StairAscentAnimationRecords[253] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04060_records.inc"
 };
 
-static u16 _gUnused85Animation04060Indices[20] = {
+/// Stair-ascent track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85StairAscentAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04060_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation04060 = {
-    _gUnused85Animation04060Records,
-    _gUnused85Animation04060Indices,
-    { NULL, _gUnused85Animation04060Bank1, NULL, NULL, _gUnused85Animation04060Bank4, NULL, NULL, NULL },
+/// Player looping stair-ascent clip for unused weapon index 6.
+///
+/// Native-bank set 36; footstep cues pace scripted ascent strides.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85StairAscentAnimation = {
+    .records           = _gUnused85StairAscentAnimationRecords,
+    .trackStartIndices = _gUnused85StairAscentAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85StairAscentAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85StairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation047E8Bank1[16] = {
+/// Stair-descent translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85StairDescentAnimationBank1[16] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_047E8_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation047E8Bank4[167] = {
+/// Packed stair-descent rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85StairDescentAnimationBank4[167] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_047E8_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation047E8Records[247] = {
+/// Stair-descent keyframes, footstep cues and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85StairDescentAnimationRecords[247] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_047E8_records.inc"
 };
 
-static u16 _gUnused85Animation047E8Indices[20] = {
+/// Stair-descent track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85StairDescentAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_047E8_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation047E8 = {
-    _gUnused85Animation047E8Records,
-    _gUnused85Animation047E8Indices,
-    { NULL, _gUnused85Animation047E8Bank1, NULL, NULL, _gUnused85Animation047E8Bank4, NULL, NULL, NULL },
+/// Player looping stair-descent clip for unused weapon index 6.
+///
+/// Native-bank set 37; footstep cues pace scripted descent strides.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85StairDescentAnimation = {
+    .records           = _gUnused85StairDescentAnimationRecords,
+    .trackStartIndices = _gUnused85StairDescentAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85StairDescentAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85StairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gUnused85Animation04ABCBank1[6] = {
+/// Odd-count stair-ascent finish translation/rotation poses for player-model tracks 0 and 1.
+static const AnimationPackedPose _gUnused85StairAscentFinishOddAnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04ABC_bank1.inc"
 };
 
-static AnimationPackedRotation _gUnused85Animation04ABCBank4[52] = {
+/// Packed odd-count stair-ascent finish rotations for player-model tracks 2..18.
+static const AnimationPackedRotation _gUnused85StairAscentFinishOddAnimationBank4[52] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04ABC_bank4.inc"
 };
 
-static AnimationRecord _gUnused85Animation04ABCRecords[91] = {
+/// Odd-count stair-ascent finish keyframes, footstep cue and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gUnused85StairAscentFinishOddAnimationRecords[91] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04ABC_records.inc"
 };
 
-static u16 _gUnused85Animation04ABCIndices[20] = {
+/// Odd-count stair-ascent finish track starts for parts 0..18 and the retained export halfword.
+static const u16 _gUnused85StairAscentFinishOddAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/unused_85_animation_04ABC_indices.inc"
 };
 
-static AnimationSet _gUnused85Animation04ABC = {
-    _gUnused85Animation04ABCRecords,
-    _gUnused85Animation04ABCIndices,
-    { NULL, _gUnused85Animation04ABCBank1, NULL, NULL, _gUnused85Animation04ABCBank4, NULL, NULL, NULL },
+/// Player one-shot stair-ascent finish clip for an odd original step count, for unused weapon index 6.
+///
+/// Native-bank set 39; the stair controller retains the initial count's parity.
+/// Its 19 tracks borrow this package's embedded payloads while it is loaded.
+static AnimationSet _gUnused85StairAscentFinishOddAnimation = {
+    .records           = _gUnused85StairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gUnused85StairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [UNUSED_85_ANIMATION_TRANSLATION_ROTATION_BANK] = _gUnused85StairAscentFinishOddAnimationBank1,
+        [UNUSED_85_ANIMATION_PACKED_ROTATION_BANK]      = _gUnused85StairAscentFinishOddAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gUnused85Animation04E4CBank1[7] = {
@@ -897,8 +963,8 @@ AnimationBank D_unused_85_8012A474 = { { {
     &_gUnused85WalkAnimation,
     &_gUnused85BackwardWalkAnimation,
     &_gUnused85RunAnimation,
-    &_gUnused85Animation02D8C,
-    &_gUnused85Animation035F0,
+    &_gUnused85NegativeTurnAnimation,
+    &_gUnused85PositiveTurnAnimation,
     &_gUnused85Animation0CCC0,
     &_gUnused85Animation0D28C,
     &_gUnused85Animation0A670,
@@ -928,11 +994,11 @@ AnimationBank D_unused_85_8012A474 = { { {
     &_gUnused85Animation098BC,
     &_gUnused85Animation096E4,
     &_gUnused85Animation098BC,
-    &_gUnused85Animation04060,
-    &_gUnused85Animation047E8,
+    &_gUnused85StairAscentAnimation,
+    &_gUnused85StairDescentAnimation,
     &_gUnused85Animation04E4C,
-    &_gUnused85Animation04ABC,
-    &_gUnused85Animation03904,
+    &_gUnused85StairAscentFinishOddAnimation,
+    &_gUnused85ItemUseAnimation,
     &_gUnused85IdleAnimation,
     &_gUnused85Animation09E20,
     &_gUnused85Animation0A014,
