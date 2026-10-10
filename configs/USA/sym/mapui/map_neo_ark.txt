@@ -56,7 +56,7 @@ D_shelter_1f_guardroom_8017DA88 = 0x8017DA88; // absolute:True owner=shelter_1f_
 D_shelter_1f_guardroom_8017DA90 = 0x8017DA90; // absolute:True owner=shelter_1f_guardroom shared=rooms
 D_shelter_1f_guardroom_8017DA94 = 0x8017DA94; // absolute:True owner=shelter_1f_guardroom shared=rooms
 D_shelter_1f_guardroom_8017DA98 = 0x8017DA98; // absolute:True owner=shelter_1f_guardroom shared=rooms
-D_shelter_1f_guardroom_8017DC14 = 0x8017DC14; // absolute:True owner=shelter_1f_guardroom shared=rooms
+D_shelter_1f_guardroom_8017DC14 = 0x8017DC14; // absolute:True owner=shelter_1f_guardroom
 D_shelter_1f_guardroom_8017DCE0 = 0x8017DCE0; // absolute:True owner=shelter_1f_guardroom
 D_shelter_1f_guardroom_8017DFF4 = 0x8017DFF4; // absolute:True owner=shelter_1f_guardroom shared=rooms
 neoArkObservatoryRoomTask = 0x8017FDDC; // type:func absolute:True owner=neo_ark_observatory shared=rooms
@@ -78,14 +78,14 @@ gNeoArkEveAccessTunnelViewCameras = 0x8017F080; // absolute:True owner=neo_ark_e
 D_neo_ark_eve_access_tunnel_801800A0 = 0x801800A0; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 gNeoArkEveAccessTunnelSurfaceProperties = 0x80180780; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 neoArkEveElevatorRoomTask = 0x8017D6C4; // type:func absolute:True owner=neo_ark_eve_elevator shared=rooms
-D_neo_ark_eve_elevator_8017D74C = 0x8017D74C; // absolute:True owner=neo_ark_eve_elevator
-D_neo_ark_eve_elevator_8017D75C = 0x8017D75C; // absolute:True owner=neo_ark_eve_elevator
-D_neo_ark_eve_elevator_8017D764 = 0x8017D764; // absolute:True owner=neo_ark_eve_elevator
-D_neo_ark_eve_elevator_8017D768 = 0x8017D768; // absolute:True owner=neo_ark_eve_elevator
-D_neo_ark_eve_elevator_8017D76C = 0x8017D76C; // absolute:True owner=neo_ark_eve_elevator
-D_neo_ark_eve_elevator_8017DA50 = 0x8017DA50; // absolute:True owner=neo_ark_eve_elevator
-D_neo_ark_eve_elevator_8017DB20 = 0x8017DB20; // absolute:True owner=neo_ark_eve_elevator shared=rooms
-D_neo_ark_eve_elevator_8017DC30 = 0x8017DC30; // absolute:True owner=neo_ark_eve_elevator
+gNeoArkEveElevatorCollisionRooms = 0x8017D74C; // absolute:True owner=neo_ark_eve_elevator
+gNeoArkEveElevatorRoomLighting = 0x8017D75C; // absolute:True owner=neo_ark_eve_elevator
+gNeoArkEveElevatorViewMaps = 0x8017D764; // absolute:True owner=neo_ark_eve_elevator
+gNeoArkEveElevatorViewCounts = 0x8017D768; // absolute:True owner=neo_ark_eve_elevator
+gNeoArkEveElevatorWarpEntries = 0x8017D76C; // absolute:True owner=neo_ark_eve_elevator
+gNeoArkEveElevatorViewCameras = 0x8017DA50; // absolute:True owner=neo_ark_eve_elevator
+gNeoArkEveElevatorSpriteViews = 0x8017DB20; // absolute:True owner=neo_ark_eve_elevator shared=rooms
+gNeoArkEveElevatorSurfaceProperties = 0x8017DC30; // absolute:True owner=neo_ark_eve_elevator
 neoArkNorthPromenadeRoomTask = 0x8017D6C8; // type:func absolute:True owner=neo_ark_north_promenade
 D_neo_ark_north_promenade_80181DB4 = 0x80181DB4; // absolute:True owner=neo_ark_north_promenade
 gNeoArkNorthPromenadeRoomLighting = 0x80181DC4; // absolute:True owner=neo_ark_north_promenade shared=rooms

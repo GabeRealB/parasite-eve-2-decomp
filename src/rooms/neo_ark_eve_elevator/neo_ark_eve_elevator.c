@@ -18,6 +18,8 @@
 #include "main/fs.h"
 #include "main/gameflag_ids.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -25,14 +27,11 @@
 
 #include "../../shared/room_variants.h"
 
-/// The room's message table, which state 0 of its event task installs.
-extern TaskMessageEntry D_neo_ark_eve_elevator_8017D724[];
-
 static void _neoArkEveElevatorInitializeRoom(Task* task);
 static void _neoArkEveElevatorIdleRoomTask(Task* unusedTask);
 
-/// The event task's three states: install the message table, idle, and kill.
-static const TaskFuncTable3 D_neo_ark_eve_elevator_8017D5C4 = {
+/// Room-task handlers for states 0 (install receiver), 1 (idle), and 2 (release task).
+static const TaskFuncTable3 _gNeoArkEveElevatorRoomTaskHandlers = {
     {
         _neoArkEveElevatorInitializeRoom,
         _neoArkEveElevatorIdleRoomTask,
@@ -48,11 +47,15 @@ static s32 _neoArkEveElevatorResolveTransition(Task* unusedTask, s32 unusedMessa
 static s32 _neoArkEveElevatorIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
 static s32 _neoArkEveElevatorIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-extern WorldCollisionGrid    D_neo_ark_eve_elevator_8017DA2C[1];
-extern WorldCollisionTrigger D_neo_ark_eve_elevator_8017DBC8[1];
-extern WorldCoordRoomLights  D_neo_ark_eve_elevator_8017DBB0[1];
+static WorldCollisionGrid    _gNeoArkEveElevatorCollisionGrid;
+static WorldCollisionTrigger _gNeoArkEveElevatorExitTriggers[1];
+static WorldCoordRoomLights  _gNeoArkEveElevatorRoomLights;
 
-TaskMessageEntry D_neo_ark_eve_elevator_8017D724[5] = {
+/// Room receiver for transitions, key-item uses, trigger actions and commands.
+///
+/// Installed for the live room task, which borrows the table and callbacks
+/// until teardown. The end marker makes unsupported messages return zero.
+static TaskMessageEntry _gNeoArkEveElevatorRoomMessageTable[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkEveElevatorResolveTransition },
     { NEO_ARK_EVE_ELEVATOR_MESSAGE_USE_KEY_ITEM, _neoArkEveElevatorRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkEveElevatorIgnoreRoomAction },
@@ -60,119 +63,196 @@ TaskMessageEntry D_neo_ark_eve_elevator_8017D724[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-WorldCollisionRoomResources D_neo_ark_eve_elevator_8017D74C[1] = {
-    { D_neo_ark_eve_elevator_8017DA2C, NULL, D_neo_ark_eve_elevator_8017DBC8, NULL },
+WorldCollisionRoomResources gNeoArkEveElevatorCollisionRooms[1] = {
+    { &_gNeoArkEveElevatorCollisionGrid, NULL, _gNeoArkEveElevatorExitTriggers, NULL },
 };
 
-WorldCoordRoomLighting D_neo_ark_eve_elevator_8017D75C[1] = {
-    { D_neo_ark_eve_elevator_8017DBB0, NULL },
+WorldCoordRoomLighting gNeoArkEveElevatorRoomLighting[1] = {
+    { &_gNeoArkEveElevatorRoomLights, NULL },
 };
 
-u8* D_neo_ark_eve_elevator_8017D764[1] = {
+u8* gNeoArkEveElevatorViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_eve_elevator_8017D768[1] = { 4 };
+ViewCount gNeoArkEveElevatorViewCounts[1] = { NEO_ARK_EVE_ELEVATOR_VIEW_COUNT };
 
-DirectionWarpEntry D_neo_ark_eve_elevator_8017D76C[1] = {
-    { { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -960, 0, 0 }, { 0, 0, 0, 0 }, 0x55090002, 0x55090001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POWER_PLANT_2 },
+/// Endpoint 1 opens the ride view; headings use 4096 angle units per turn.
+enum {
+    NEO_ARK_EVE_ELEVATOR_ARRIVAL_YAW     = 3072,
+    NEO_ARK_EVE_ELEVATOR_ARRIVAL_VIEW    = 2,
+    NEO_ARK_EVE_ELEVATOR_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ELEVATOR, 2),
+    NEO_ARK_EVE_ELEVATOR_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_EVE_ELEVATOR, 1),
 };
 
-static SVECTOR _gNeoArkEveElevatorCollision0046CNormals[14] = {
+DirectionWarpEntry gNeoArkEveElevatorWarpEntries[1] = {
+    {
+        .player         = { { .word = NEO_ARK_EVE_ELEVATOR_ARRIVAL_YAW }, -960, 0, 0 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = NEO_ARK_EVE_ELEVATOR_ARRIVAL_YAW }, -960, 0, 0 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = NEO_ARK_EVE_ELEVATOR_ARRIVAL_SOUND,
+        .departureSound = NEO_ARK_EVE_ELEVATOR_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = NEO_ARK_EVE_ELEVATOR_ARRIVAL_VIEW,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_POWER_PLANT_2,
+    },
+};
+
+/// Room-local unit normals for the platform's walls and floor, with 4096 per unit.
+static SVECTOR _gNeoArkEveElevatorCollisionGridNormals[14] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_normals.inc"
 };
 
-static SVECTOR _gNeoArkEveElevatorCollision0046CVerts[24] = {
+/// Platform wall and floor vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkEveElevatorCollisionGridVerts[24] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkEveElevatorCollision0046CFaces[24] = {
+/// Indexed platform faces; class 1 is the floor and class 0 is silent geometry.
+static WorldCollisionGridFace _gNeoArkEveElevatorCollisionGridFaces[24] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_faces.inc"
 };
 
-static s16 _gNeoArkEveElevatorCollision0046CCells[26] = {
+/// The single cell's 24 face indices and -1 terminator, followed by a retained zero halfword.
+static s16 _gNeoArkEveElevatorCollisionGridCells[26] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkEveElevatorCollision0046CCells[i])
-static s16* _gNeoArkEveElevatorCollision0046CTable[1] = {
+#define GRID_CELL(i) (&_gNeoArkEveElevatorCollisionGridCells[i])
+/// One X-major cell-list pointer covering the entire platform mesh.
+static s16* _gNeoArkEveElevatorCollisionGridTable[1] = {
 #include "assets/neo_ark_eve_elevator_collision_0046C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_eve_elevator_8017DA2C[1] = {
-    { NULL, _gNeoArkEveElevatorCollision0046CNormals, _gNeoArkEveElevatorCollision0046CVerts, _gNeoArkEveElevatorCollision0046CFaces, _gNeoArkEveElevatorCollision0046CTable, 2050, 1050, 1, 1, 4000, 24 },
+/// Writable platform collision mesh with a single 4000-unit square cell.
+///
+/// Room setup binds its view coordinate. Mesh indices stay within 14 normals,
+/// 24 vertices and 24 faces; active queries borrow these pools until unload.
+static WorldCollisionGrid _gNeoArkEveElevatorCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkEveElevatorCollisionGridNormals,
+    .vertices    = _gNeoArkEveElevatorCollisionGridVerts,
+    .faces       = _gNeoArkEveElevatorCollisionGridFaces,
+    .cellFaceIds = _gNeoArkEveElevatorCollisionGridTable,
+    .xBias       = 2050,
+    .zBias       = 1050,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkEveElevatorCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_eve_elevator_8017DA50[4] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1000, 0x4E20, 0 } }, 1371 },
+ViewCamera gNeoArkEveElevatorViewCameras[NEO_ARK_EVE_ELEVATOR_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 1000, 20000, 0 } }, 1371 },
     { { { { 943, 0, -3985 }, { -3917, 755, -927 }, { 735, 4025, 174 } }, { 1340, 3520, 90 } }, 207 },
     { { { { 943, 0, -3985 }, { -3917, 755, -927 }, { 735, 4025, 174 } }, { 1340, 3520, 90 } }, 207 },
     { { { { 943, 0, -3985 }, { -3917, 755, -927 }, { 735, 4025, 174 } }, { 1340, 3520, 90 } }, 207 },
 };
 
-SpriteBatch D_neo_ark_eve_elevator_8017DAE0[2] = {
+/// View 1's zero-sprite image-background batch, followed by its end marker.
+static SpriteBatch _gNeoArkEveElevatorView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_eve_elevator_8017DAF0[2] = {
+/// View 2's zero-sprite image-background batch, followed by its end marker.
+static SpriteBatch _gNeoArkEveElevatorView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_eve_elevator_8017DB00[2] = {
+/// View 3's zero-sprite image-background batch, followed by its end marker.
+static SpriteBatch _gNeoArkEveElevatorView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_eve_elevator_8017DB10[2] = {
+/// View 4's zero-sprite image-background batch, followed by its end marker.
+static SpriteBatch _gNeoArkEveElevatorView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_eve_elevator_8017DB20[4] = {
-    { { .empty = D_neo_ark_eve_elevator_8017DAE0 }, D_neo_ark_eve_elevator_8017DAE0, NULL },
-    { { .empty = D_neo_ark_eve_elevator_8017DAF0 }, D_neo_ark_eve_elevator_8017DAF0, NULL },
-    { { .empty = D_neo_ark_eve_elevator_8017DB00 }, D_neo_ark_eve_elevator_8017DB00, NULL },
-    { { .empty = D_neo_ark_eve_elevator_8017DB10 }, D_neo_ark_eve_elevator_8017DB10, NULL },
+SpriteView gNeoArkEveElevatorSpriteViews[NEO_ARK_EVE_ELEVATOR_VIEW_COUNT] = {
+    { { .empty = _gNeoArkEveElevatorView1SpriteBatches }, _gNeoArkEveElevatorView1SpriteBatches, NULL },
+    { { .empty = _gNeoArkEveElevatorView2SpriteBatches }, _gNeoArkEveElevatorView2SpriteBatches, NULL },
+    { { .empty = _gNeoArkEveElevatorView3SpriteBatches }, _gNeoArkEveElevatorView3SpriteBatches, NULL },
+    { { .empty = _gNeoArkEveElevatorView4SpriteBatches }, _gNeoArkEveElevatorView4SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_eve_elevator_8017DB50[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1742, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 2867, 2621 }, { 0, 0 } }, 1500, 2500 },
+/// One all-view point light at (-1000, -1742, 0), with 1500/2500-unit falloff radii.
+///
+/// RGB intensity has 12 fractional bits. Composition and shading update the
+/// cached transform and attenuation, so the room-owned storage stays writable.
+static WorldCoordPointLight _gNeoArkEveElevatorPointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -1742, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 2867, 2621 }, { 0, 0 } }, 1500, 2500 },
 };
 
-WorldCoordRoomLights D_neo_ark_eve_elevator_8017DBB0[1] = {
-    { 0, NULL, ARRAY_SIZE(D_neo_ark_eve_elevator_8017DB50), D_neo_ark_eve_elevator_8017DB50, 0, NULL },
+/// The elevator's point-light collection, with no directional or cone lights.
+static WorldCoordRoomLights _gNeoArkEveElevatorRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkEveElevatorPointLights),
+    .pointLights           = _gNeoArkEveElevatorPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_eve_elevator_8017DBC8[1] = {
-    { NULL, NULL, NULL, { -240, -48, 48, 0 }, { { -304, 0, -976, 0 }, { 304, 0, -976, 0 }, { -304, 0, 976, 0 }, { 304, 0, 976, 0 } }, { 0, 4109, 0, 0 }, { -4096, 0, 0, 0 }, 1021, WORLD_COLLISION_TRIGGER_ACTION_WARP, 24, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Depart through elevator endpoint 1 and arrive at Shelter B6 corridor endpoint 1.
+enum { NEO_ARK_EVE_ELEVATOR_EXIT_WARP_SELECTORS = (1 << 4) | 1 };
+
+/// Facing-gated exit quad requesting the Shelter B6 corridor, including the final-list marker.
+///
+/// Room setup binds and links this writable record. The room transition
+/// receiver permits departure once CD dispatch is idle; the trigger persists
+/// until the action list is cleared or the room is replaced.
+static WorldCollisionTrigger _gNeoArkEveElevatorExitTriggers[1] = {
+    { NULL, NULL, NULL, { -240, -48, 48, 0 }, { { -304, 0, -976, 0 }, { 304, 0, -976, 0 }, { -304, 0, 976, 0 }, { 304, 0, 976, 0 } }, { 0, 4109, 0, 0 }, { -ONE, 0, 0, 0 }, 1021, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B6_CORRIDOR, NEO_ARK_EVE_ELEVATOR_EXIT_WARP_SELECTORS, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_eve_elevator_8017DC14 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Cue-2 bases in the loaded type-1 bank; cue 1 selects the following entry.
+enum {
+    NEO_ARK_EVE_ELEVATOR_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    NEO_ARK_EVE_ELEVATOR_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_eve_elevator_8017DC20[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Platform-floor walk/run cue pairs, with the walk pair also stored for scripted jumps.
+static WorldCollisionFootstepSounds _gNeoArkEveElevatorFootstepSounds = {
+    .walk         = NEO_ARK_EVE_ELEVATOR_FOOTSTEP_WALK,
+    .run          = NEO_ARK_EVE_ELEVATOR_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_EVE_ELEVATOR_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_eve_elevator_8017DC28[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_eve_elevator_8017DC14 },
+/// Blocking, impact-enabled policy with pushback and no footsteps, for classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gNeoArkEveElevatorSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_eve_elevator_8017DC30[8] = {
-    D_neo_ark_eve_elevator_8017DC20,
-    D_neo_ark_eve_elevator_8017DC28,
-    D_neo_ark_eve_elevator_8017DC20,
-    D_neo_ark_eve_elevator_8017DC20,
-    D_neo_ark_eve_elevator_8017DC20,
-    D_neo_ark_eve_elevator_8017DC20,
-    D_neo_ark_eve_elevator_8017DC20,
-    D_neo_ark_eve_elevator_8017DC20,
+/// Platform floor's class-1 collision policy and paired footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkEveElevatorFloorSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkEveElevatorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkEveElevatorSurfaceProperties[8] = {
+    &_gNeoArkEveElevatorSilentSurface,
+    &_gNeoArkEveElevatorFloorSurface,
+    &_gNeoArkEveElevatorSilentSurface,
+    &_gNeoArkEveElevatorSilentSurface,
+    &_gNeoArkEveElevatorSilentSurface,
+    &_gNeoArkEveElevatorSilentSurface,
+    &_gNeoArkEveElevatorSilentSurface,
+    &_gNeoArkEveElevatorSilentSurface,
 };
 
 /// Refuses every key-item use in the EVE elevator.
@@ -236,7 +316,7 @@ static s32 _neoArkEveElevatorIgnoreRoomAction(Task* unusedTask, s32 unusedMessag
 /// The session's room slot borrows the live task; teardown does not clear it.
 static void _neoArkEveElevatorInitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_eve_elevator_8017D724;
+    task->msgTable = _gNeoArkEveElevatorRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }
@@ -250,7 +330,7 @@ void neoArkEveElevatorRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_eve_elevator_8017D5C4;
+    handlers = _gNeoArkEveElevatorRoomTaskHandlers;
     handlers.funcs[task->state](task);
 }
 

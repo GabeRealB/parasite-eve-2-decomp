@@ -277,7 +277,7 @@ D_dryfield_night_water_hole_80182384 = 0x80182384; // absolute:True owner=dryfie
 gDryfieldNightWaterHoleSurfacePropertiesByClass = 0x801835F8; // absolute:True owner=dryfield_night_water_hole shared=rooms
 dryfieldNightCellarRoomTask = 0x8017D748; // type:func absolute:True owner=dryfield_night_cellar
 D_dryfield_night_cellar_8017DAF0 = 0x8017DAF0; // absolute:True owner=dryfield_night_cellar shared=rooms
-D_dryfield_night_cellar_8017DB00 = 0x8017DB00; // absolute:True owner=dryfield_night_cellar shared=rooms
+D_dryfield_night_cellar_8017DB00 = 0x8017DB00; // absolute:True owner=dryfield_night_cellar
 D_dryfield_night_cellar_8017DB28 = 0x8017DB28; // absolute:True owner=dryfield_night_cellar
 D_dryfield_night_cellar_8017DB30 = 0x8017DB30; // absolute:True owner=dryfield_night_cellar shared=rooms
 D_dryfield_night_cellar_8017DB34 = 0x8017DB34; // absolute:True owner=dryfield_night_cellar
