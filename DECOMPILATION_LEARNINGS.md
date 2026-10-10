@@ -21276,7 +21276,7 @@ allocated *before* it skips `$a2` (global order is by
 `floor_log2(refs)*refs/live_length`, and a 3-ref/40-insn flag pseudo sorts
 last), and the flag pseudo — offered `$a2` when its own turn comes — keeps it.
 Declaring `(Task* index, s32 value, s32 arg2)` scored 100% on the next build. It is
-still not promotable: the body names `D_actor_461800_80143898` /
+still not promotable: the body names `_gActor461800ScriptedWalkerTask` /
 `D_actor_461800_80143894`, and `overlay_dup_index.py promote` refused the
 byte-identical copy in `actor_143900` for exactly that.
 
@@ -77928,7 +77928,7 @@ Preprocessed SHA256 of the matching input: `base_1.i`
 `_actor461800PlayScriptedWalkerAnimation` is a four-argument handler
 `(Task*, s32, const AnimationPlayRequest*, s32)` whose m2c seed read only the third
 one, so m2c emitted `s32 f(void* arg2)`. GCC then placed the pointer in `$a0`,
-and the function's tail calls `func_actor_461800_80132660(D_actor_461800_80143898)`
+and the function's tail calls `func_actor_461800_80132660(_gActor461800ScriptedWalkerTask)`
 — whose own first argument also wants `$a0`. The false write-after-read
 dependency that creates is not cosmetic: it reordered block 4 into
 
@@ -77937,8 +77937,8 @@ lui  $v0,%hi(D_actor_461800_80143894)
 lw   $v0,%lo(D_actor_461800_80143894)($v0)
 nop
 sh   $zero,0x4BA($v0)          # store scheduled before the call's setup
-lui  $v0,%hi(D_actor_461800_80143898)
-lw   $a0,%lo(D_actor_461800_80143898)($v0)
+lui  $v0,%hi(_gActor461800ScriptedWalkerTask)
+lw   $a0,%lo(_gActor461800ScriptedWalkerTask)($v0)
 jal  func_actor_461800_80132660
 nop                            # delay slot left empty
 ```
@@ -92725,7 +92725,7 @@ queue            = &gCdCmdQueue;      /* before the call: the range spans it */
 task->msgTable   = D_neo_ark_r31_8017D9F4;
 gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
 queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-evsStartScriptWithSkip(D_actor_461800_80133F90, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_461800_80134470);
+evsStartScriptWithSkip(gActor461800NeoArkSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor461800NeoArkSceneSkipScript);
 task->state      = task->state + 1;
 ```
 
@@ -97850,7 +97850,7 @@ reference's entry block as well:
 ```c
     TmdObject*     attachmentModel = task->extra.tmd;
     GfxCoord* attachmentRoot = attachmentModel->coords;
-    GfxCoord* walkerCoords = D_actor_461800_80143898->extra.tmd->coords;
+    GfxCoord* walkerCoords = _gActor461800ScriptedWalkerTask->extra.tmd->coords;
     GfxCoord* parentPart  = walkerCoords + task->spawnArg1.value;
 
     switch (task->state) {
@@ -97869,7 +97869,7 @@ in another overlay and was matched separately — see the promotion note below.
 `overlay_dup_index.py promote` refuses a body that reads its own overlay's data by
 testing every reference against `func_<unit>_` / `D_<unit>_` / `jtbl_<unit>_`,
 where `unit` is the *containing unit* (`actor_461800_2`), not the overlay. A
-reference to `D_actor_461800_80143898` — the overlay's own task global, defined in
+reference to `_gActor461800ScriptedWalkerTask` — the overlay's own task global, defined in
 that overlay and nowhere else — matches none of those prefixes, so the guard does
 not fire and the promotion would proceed to write the span and the shared symbol
 into every carrier's map. The link is where it then fails, in the overlays that do
@@ -97877,7 +97877,7 @@ not define the name, after the manifest has already been touched.
 
 `_actor461800ScriptedWalkerAttachmentTask` / `_actor260400MongooseTask` are the worked case:
 byte-equal bodies modulo the link address whose only difference is *which*
-overlay's task global they read (`D_actor_461800_80143898` against
+overlay's task global they read (`_gActor461800ScriptedWalkerTask` against
 `_gActor260400ScriptedWalkerTask`). Two distinct variables, so one shared object cannot
 serve both — matching each copy separately is the correct call, not a pairing.
 Check `build/USA/dup_index.json`'s per-function `refs` before trusting a promote
@@ -103284,7 +103284,7 @@ carriers to read: `_actor461800ScriptedWalkerAttachmentTask` (fields score 0.95,
 and `_actor450800KyleMadiganAttachmentTask`. The copies vary in exactly two places:
 
 * **How the actor's own model task is reached.** `_gActor420700BodyTask` /
-  `D_actor_461800_80143898` are `Task*` globals the shared state-0 handler
+  `_gActor461800ScriptedWalkerTask` are `Task*` globals the shared state-0 handler
   publishes; `_actor450800KyleMadiganAttachmentTask` uses `task->parent` instead, which
   shows in the object as `lw $v1, 0x8($a2)` rather than `lui`/`lw` of a global.
 * **The part index.** `task->spawnArg1` costs a `sll`/`addu`/`sll` multiply by

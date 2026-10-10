@@ -205,8 +205,6 @@ enum {
 /// either task lives; the message and animation helpers support one live figure.
 extern TaskDesc gActor110800ViewFigureTasks[VIEW_FIGURE_TASK_COUNT];
 
-extern TaskDesc D_actor_461800_80139F8C[];
-
 /// Camera-parented SWAT figure spawn descriptors for actor_110300.
 ///
 /// Slots are `VIEW_FIGURE_TASK_BODY` and `VIEW_FIGURE_TASK_HELPER`, with no
@@ -430,8 +428,6 @@ extern TaskDesc gActor143900ScriptedWalkerTaskDesc;
 /// supply a live Enemy in spawn argument 2. Keep this package loaded until
 /// the body and its coordinate children are released.
 extern TaskDesc gActor105100TaskDescriptors[3];
-
-extern TaskDesc D_actor_461800_801437EC;
 
 /// Pierce Carradine spawn recipes: 0 body, 1 billboard, 2 part-4 model, 3 part-2 model.
 ///

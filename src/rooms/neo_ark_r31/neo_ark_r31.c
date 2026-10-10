@@ -6,11 +6,10 @@
 
 #include "common.h"
 
-#include "actors/task_tables.h"
+#include "actors/actor_461800.h"
 
 #include "gameplay/area.h"
 #include "gameplay/direction.h"
-#include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
@@ -33,8 +32,6 @@
 
 /// Room message handler table installed into `Task::msgTable`.
 extern TaskMessageEntry D_neo_ark_r31_8017D9F4[];
-extern EvsCommand       D_actor_461800_80133F90[];
-extern EvsCommand       D_actor_461800_80134470[];
 
 static s32  _neoArkR31RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32  _neoArkR31ResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
@@ -136,8 +133,8 @@ WorldCoordRoomLights gNeoArkR31RoomLights = {
 };
 
 AreaResource D_neo_ark_r31_8017DB94[3] = {
-    { 101, 618, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, D_actor_461800_80139F8C },
-    { 132, 618, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_461800_801437EC },
+    { 101, 618, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor461800ScriptedWalkerTasks },
+    { 132, 618, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor461800FootstepWalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -351,7 +348,7 @@ static void _neoArkR31InitializeRoom(Task* task)
     task->msgTable = D_neo_ark_r31_8017D9F4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    evsStartScriptWithSkip(D_actor_461800_80133F90, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_461800_80134470);
+    evsStartScriptWithSkip(gActor461800NeoArkSceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor461800NeoArkSceneSkipScript);
     task->state = task->state + 1;
 }
 
