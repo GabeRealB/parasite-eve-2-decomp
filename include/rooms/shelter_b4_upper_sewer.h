@@ -24,7 +24,12 @@ extern SVECTOR D_shelter_b4_upper_sewer_80186708[9];
 
 extern s16 D_shelter_b4_upper_sewer_80186438;
 
-extern AreaVariant D_shelter_b4_upper_sewer_80188B9C[12];
+/// Placement/resource layouts for the upper sewer, indexed by the saved variant.
+///
+/// Slots 1, 2, 3, 4, 7, 8 and 11 are populated; 0, 5, 6, 9 and 10 are absent.
+/// Each populated slot borrows room-owned lists ending at `AREA_PLACEMENT_END`.
+/// Actors may retain placement pointers until teardown; keep this overlay loaded.
+extern AreaVariant gShelterB4UpperSewerAreaVariants[12];
 
 // shelter_b4_upper_sewer
 /// The upper sewer's single-room directory of logical-view mappings.
@@ -34,7 +39,12 @@ extern AreaVariant D_shelter_b4_upper_sewer_80188B9C[12];
 /// and remains valid while this room overlay is loaded.
 extern u8* gShelterB4UpperSewerViewMaps[1];
 
-extern ViewCount D_shelter_b4_upper_sewer_80186594[];
+/// Reverse-lookup view count for the upper sewer's single room.
+///
+/// Room 1 searches fourteen logical-view entries in `gShelterB4UpperSewerViewMaps`.
+/// The signed-halfword count array has no terminator and is borrowed by the
+/// Shelter map only while this room overlay is loaded.
+extern ViewCount gShelterB4UpperSewerViewCounts[1];
 
 extern DirectionWarpEntry D_shelter_b4_upper_sewer_80186598[];
 
@@ -46,9 +56,22 @@ extern DirectionWarpEntry D_shelter_b4_upper_sewer_80186598[];
 /// coordinate. The mutable record and pools require this overlay to stay loaded.
 extern WorldCollisionGrid gShelterB4UpperSewerCollisionGrid;
 
-extern ViewCamera D_shelter_b4_upper_sewer_80186F1C[];
+/// Camera transforms and projection distances for upper-sewer mapped views 1..14.
+///
+/// Index by mapped view minus one; there is no terminator. Rotations use
+/// 4096 per unit, translations are negated world-space camera origins, and
+/// projection distances are pixels. Queued camera tasks borrow these records
+/// until application, so this room overlay must remain loaded until then.
+extern ViewCamera gShelterB4UpperSewerViewCameras[14];
 
-extern SpriteView D_shelter_b4_upper_sewer_801879BC[];
+/// Sprite directory for upper-sewer mapped views 1..14, indexed by view minus one.
+///
+/// Borrows mutable room-owned sources and terminated batch lists, without
+/// clipping lists. Views 1, 6, 7, 10 and 14 have no foreground sprites; all
+/// views retain the decoded background. The water-hole scene toggles view 13's
+/// single foreground sprite through its batch. Keep this overlay loaded while
+/// the directory or any borrowed list is in use.
+extern SpriteView gShelterB4UpperSewerSpriteViews[14];
 
 /// The upper sewer's collection of 19 point lights, admitted in every view.
 ///
@@ -57,7 +80,14 @@ extern SpriteView D_shelter_b4_upper_sewer_801879BC[];
 /// attenuation. The collection and array remain valid while this overlay is loaded.
 extern WorldCoordRoomLights gShelterB4UpperSewerRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b4_upper_sewer_8018819C[];
+/// Eighteen directed camera-change boundaries for the upper sewer's single room.
+///
+/// Each source/destination pair is a 1-based logical view; the final live
+/// boundary carries `WORLD_COLLISION_TRIGGER_LAST`. Geometry uses world units
+/// and normals use 4096 per unit. Room setup binds the view coordinate and
+/// mutates links, enable flags and hit latches; keep the overlay loaded until
+/// the runtime view-boundary list is cleared.
+extern WorldCollisionTrigger gShelterB4UpperSewerViewBoundaryTriggers[18];
 
 extern WorldCollisionTrigger D_shelter_b4_upper_sewer_801886F4[];
 
