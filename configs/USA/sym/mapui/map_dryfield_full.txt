@@ -293,7 +293,7 @@ D_dryfield_night_underpass_8017DE60 = 0x8017DE60; // absolute:True owner=dryfiel
 gDryfieldNightUnderpassViewCameras = 0x8017E6F8; // absolute:True owner=dryfield_night_underpass
 gDryfieldNightUnderpassSpriteViews = 0x8017F420; // absolute:True owner=dryfield_night_underpass
 gDryfieldNightUnderpassSurfacePropertiesByClass = 0x80180374; // absolute:True owner=dryfield_night_underpass
-D_mappic_s3_00_8012EFF4 = 0x8012EFF4; // absolute:True owner=mappic_s3_00
+gMappicS300WaterTankShape = 0x8012EFF4; // absolute:True owner=mappic_s3_00
 gMappicS300MotelRoom5Shape = 0x8012F084; // absolute:True owner=mappic_s3_00 shared=mappic
 gMappicS300MotelBalconyShape = 0x8012F19C; // absolute:True owner=mappic_s3_00
 gMappicS300MotelRoom6Shape = 0x8012F22C; // absolute:True owner=mappic_s3_00

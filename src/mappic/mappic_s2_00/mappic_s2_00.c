@@ -133,30 +133,35 @@ TmdSource gMappicS200MotelRoom5Shape = {
     .stream           = _gMappicS200MotelRoom5ShapeStream,
 };
 
-static TmdBone _gMappicS200Model00344Skeleton[1] = {
+/// Identity transform and self-parented root for the Water tank area shape.
+static TmdBone _gMappicS200WaterTankShapeSkeleton[] = {
 #include "assets/mappic_s2_00_model_00344_skeleton.inc"
 };
 
-static u32 _gMappicS200Model00344PartVerts[1] = {
+/// Vertex count of the Water tank shape's sole part (ten vertices).
+static u32 _gMappicS200WaterTankShapePartVerts[] = {
 #include "assets/mappic_s2_00_model_00344_partVerts.inc"
 };
 
-static SVECTOR _gMappicS200Model00344Verts[10] = {
+/// Water tank fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS200WaterTankShapeVerts[] = {
 #include "assets/mappic_s2_00_model_00344_verts.inc"
 };
 
-static u32 _gMappicS200Model00344Stream[18] = {
+/// Four unlit quads, followed by two group ends and the stream end.
+///
+/// Each face stores packed u16 vertex byte offsets and a colour word. The map
+/// uses the geometry to draw textured fills and ignores the stored colours.
+static u32 _gMappicS200WaterTankShapeStream[] = {
 #include "assets/mappic_s2_00_model_00344_stream.inc"
 };
 
-TmdSource D_mappic_s2_00_8012F2BC = {
-    0,
-    96,
-    0,
-    1,
-    _gMappicS200Model00344PartVerts,
-    _gMappicS200Model00344Verts,
-    &_gMappicS200Model00344Verts[10],
-    _gMappicS200Model00344Skeleton,
-    _gMappicS200Model00344Stream,
+TmdSource gMappicS200WaterTankShape = {
+    .bufferHalfBytes  = 4 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS200WaterTankShapeSkeleton),
+    .partVertexCounts = _gMappicS200WaterTankShapePartVerts,
+    .verts            = _gMappicS200WaterTankShapeVerts,
+    .normals          = &_gMappicS200WaterTankShapeVerts[ARRAY_SIZE(_gMappicS200WaterTankShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS200WaterTankShapeSkeleton,
+    .stream           = _gMappicS200WaterTankShapeStream,
 };

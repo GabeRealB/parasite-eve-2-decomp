@@ -4,32 +4,37 @@
 
 #include "common.h"
 
-static TmdBone _gMappicS300MappicS200Model00344Skeleton[1] = {
+/// Identity transform and self-parented root for the Water tank area shape.
+static TmdBone _gMappicS300WaterTankShapeSkeleton[] = {
 #include "assets/mappic_s2_00_model_00344_skeleton.inc"
 };
 
-static u32 _gMappicS300MappicS200Model00344PartVerts[1] = {
+/// Vertex count of the Water tank shape's sole part (ten vertices).
+static u32 _gMappicS300WaterTankShapePartVerts[] = {
 #include "assets/mappic_s2_00_model_00344_partVerts.inc"
 };
 
-static SVECTOR _gMappicS300MappicS200Model00344Verts[10] = {
+/// Water tank fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS300WaterTankShapeVerts[] = {
 #include "assets/mappic_s2_00_model_00344_verts.inc"
 };
 
-static u32 _gMappicS300MappicS200Model00344Stream[18] = {
+/// Four unlit quads, followed by two group ends and the stream end.
+///
+/// Each face stores packed u16 vertex byte offsets and a colour word. The map
+/// uses the geometry to draw textured fills and ignores the stored colours.
+static u32 _gMappicS300WaterTankShapeStream[] = {
 #include "assets/mappic_s2_00_model_00344_stream.inc"
 };
 
-TmdSource D_mappic_s3_00_8012EFF4 = {
-    0,
-    96,
-    0,
-    1,
-    _gMappicS300MappicS200Model00344PartVerts,
-    _gMappicS300MappicS200Model00344Verts,
-    &_gMappicS300MappicS200Model00344Verts[10],
-    _gMappicS300MappicS200Model00344Skeleton,
-    _gMappicS300MappicS200Model00344Stream,
+TmdSource gMappicS300WaterTankShape = {
+    .bufferHalfBytes  = 4 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS300WaterTankShapeSkeleton),
+    .partVertexCounts = _gMappicS300WaterTankShapePartVerts,
+    .verts            = _gMappicS300WaterTankShapeVerts,
+    .normals          = &_gMappicS300WaterTankShapeVerts[ARRAY_SIZE(_gMappicS300WaterTankShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS300WaterTankShapeSkeleton,
+    .stream           = _gMappicS300WaterTankShapeStream,
 };
 
 /// Identity transform and self-parented root for the Motel room 5 shape.

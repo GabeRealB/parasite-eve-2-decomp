@@ -67,7 +67,12 @@ extern TmdSource gMappicS200MotelLoftShape;
 /// vertices and first stream group; keep mappic_s2_00 loaded during use.
 extern TmdSource gMappicS200MotelRoom5Shape;
 
-extern TmdSource D_mappic_s2_00_8012F2BC;
+/// Water tank's four-quad area fill on page 1 of the daytime Dryfield map.
+///
+/// Ten vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s2_00 loaded during use.
+extern TmdSource gMappicS200WaterTankShape;
 
 // mappic_s2_02
 /// Gas Station's two area-fill quads on page 2 of the daytime Dryfield map.
@@ -210,7 +215,12 @@ extern TmdSource D_mappic_s5_03_8012F2B8;
 extern TmdSource D_mappic_s5_03_8012F348;
 
 // mappic_s3_00
-extern TmdSource D_mappic_s3_00_8012EFF4;
+/// Water tank's four-quad area fill on page 1 of the nighttime Dryfield map.
+///
+/// Ten vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s3_00 loaded during use.
+extern TmdSource gMappicS300WaterTankShape;
 
 /// Motel room 5's area-fill quad on page 1 of the nighttime Dryfield map.
 ///
