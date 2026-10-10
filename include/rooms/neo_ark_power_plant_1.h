@@ -45,7 +45,13 @@ extern ViewCamera gNeoArkPowerPlant1ViewCameras[9];
 /// overlay; Life Support visibility changes in batch 1 of views 6 and 7.
 extern SpriteView gNeoArkPowerPlant1SpriteViews[9];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_power_plant_1_80181BE0[];
+/// Neo Ark power plant 1 collision and footstep policies for surface classes 0..7.
+///
+/// Class 3 passes probes and ignores weapon impacts; every other class blocks
+/// probes and allows impacts. All apply pushback. Classes 4 and 5 have separate
+/// walking/running/scripted-jump cues; others are silent. Setup reads all eight
+/// entries. Borrow the directory, records and cues while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkPowerPlant1SurfacePropertiesByClass[8];
 
 /// Switches the first power plant's Life Support scenery batches off or on.
 ///

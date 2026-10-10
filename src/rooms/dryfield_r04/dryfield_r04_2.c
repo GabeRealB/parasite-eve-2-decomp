@@ -45,7 +45,7 @@ static WorldCollisionSurfaceProperties _gDryfieldR04SurfaceProperties = {
     .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_r04_8017E2AC[8] = {
+WorldCollisionSurfaceProperties* gDryfieldR04SurfacePropertiesByClass[8] = {
     &_gDryfieldR04SurfaceProperties,
     &_gDryfieldR04SurfaceProperties,
     &_gDryfieldR04SurfaceProperties,

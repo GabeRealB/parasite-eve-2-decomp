@@ -95,7 +95,7 @@ static WorldCollisionSurfaceProperties _gNeoArkPowerPlant1Surface5Properties = {
     .footstepSounds      = &gNeoArkPowerPlant1Surface5FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_power_plant_1_80181BE0[8] = {
+WorldCollisionSurfaceProperties* gNeoArkPowerPlant1SurfacePropertiesByClass[8] = {
     &_gNeoArkPowerPlant1DefaultSurfaceProperties,
     &_gNeoArkPowerPlant1DefaultSurfaceProperties,
     &_gNeoArkPowerPlant1DefaultSurfaceProperties,

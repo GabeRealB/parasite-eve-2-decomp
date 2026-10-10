@@ -20,7 +20,13 @@ extern AreaVariant D_dryfield_motel_room_2_80180410[12];
 /// The directory lives with this overlay; the shared byte map lives with gameplay.
 extern u8* gDryfieldMotelRoom2RoomViewMaps[1];
 
-extern WorldCollisionRoomResources D_dryfield_motel_room_2_8017D6E8[];
+/// Motel Room 2's room-1 collision mesh, eight view boundaries, six actions and two sight occluders.
+///
+/// Index by the 1-based room minus one; only room 1 exists. Setup binds the grid
+/// and triggers to the current view and links/enables both trigger lists and
+/// the occluders through their included LAST records. Resources are mutable
+/// and borrowed from this overlay; unlink them before unloading it.
+extern WorldCollisionRoomResources gDryfieldMotelRoom2RoomCollisionResources[1];
 
 /// Motel Room 2's six-view reverse-search limit for room 1.
 ///
@@ -36,7 +42,13 @@ extern ViewCount gDryfieldMotelRoom2RoomViewCounts[2];
 /// The record and its collection remain borrowed while this overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldMotelRoom2RoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_motel_room_2_8017D704[];
+/// Motel Room 2's single warp endpoint, connecting to the main street's endpoint 4.
+///
+/// Warp ID 1 selects element 0. Player and companion arrive at (4666, 0, 2610)
+/// in room game units, facing 3/4 turn (3072 of 4096), in view 2. Arrival and
+/// departure use this area's sound entries 2 and 1; blocked requests are silent.
+/// Later arrivals update map-marker nibble 485. Borrow while this overlay is loaded.
+extern DirectionWarpEntry gDryfieldMotelRoom2WarpEntries[1];
 
 /// Motel Room 2's six cameras, indexed by the mapped view minus one.
 ///

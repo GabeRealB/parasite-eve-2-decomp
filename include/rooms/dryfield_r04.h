@@ -26,6 +26,11 @@ extern ViewCamera D_dryfield_r04_8017E218[];
 
 extern SpriteView D_dryfield_r04_8017E280[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_r04_8017E2AC[];
+/// Dryfield R04 collision and footstep policies for surface classes 0..7.
+///
+/// All eight classes share one record: probes block, weapon impacts are enabled,
+/// pushback applies and footsteps are silent. Setup reads every entry; borrow
+/// the directory and record only while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldR04SurfacePropertiesByClass[8];
 
 #endif // INCLUDE_ROOMS_DRYFIELD_R04_H

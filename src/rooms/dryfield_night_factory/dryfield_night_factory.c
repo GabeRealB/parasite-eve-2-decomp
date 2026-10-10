@@ -108,10 +108,10 @@ SpriteView D_dryfield_night_factory_80189A24[19] = {
     { { .empty = gDryfieldNightFactoryView13SpriteBatches }, gDryfieldNightFactoryView13SpriteBatches, NULL },
     { { .empty = gDryfieldNightFactoryView14SpriteBatches }, gDryfieldNightFactoryView14SpriteBatches, NULL },
     { { .elements = gDryfieldNightFactoryView15SpriteSources }, gDryfieldNightFactoryView15SpriteBatches, NULL },
-    { { .elements = gDryfieldNightFactoryView16SpriteSources }, D_dryfield_night_factory_80189858, NULL },
-    { { .empty = D_dryfield_night_factory_80189880 }, D_dryfield_night_factory_80189880, NULL },
-    { { .elements = D_dryfield_night_factory_80189890 }, D_dryfield_night_factory_801899E4, NULL },
-    { { .elements = D_dryfield_night_factory_80189890 }, D_dryfield_night_factory_801899E4, NULL },
+    { { .elements = gDryfieldNightFactoryView16SpriteSources }, gDryfieldNightFactoryView16SpriteBatches, NULL },
+    { { .empty = gDryfieldNightFactoryView17SpriteBatches }, gDryfieldNightFactoryView17SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView18And19SpriteSources }, gDryfieldNightFactoryView18And19SpriteBatches, NULL },
+    { { .elements = gDryfieldNightFactoryView18And19SpriteSources }, gDryfieldNightFactoryView18And19SpriteBatches, NULL },
 };
 
 /// Authored point lights for the room, eligible in every logical view.

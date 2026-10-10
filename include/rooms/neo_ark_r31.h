@@ -39,7 +39,12 @@ extern SpriteView D_neo_ark_r31_8017DAF8[];
 /// array; coordinate setup and queries require this overlay to remain loaded.
 extern WorldCoordRoomLights gNeoArkR31RoomLights;
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[];
+/// Neo Ark R31 collision and footstep policies for surface classes 0..7.
+///
+/// All eight classes share one record: probes block, weapon impacts are enabled,
+/// pushback applies and footsteps are silent. Setup reads every entry; borrow
+/// the directory and record only while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkR31SurfacePropertiesByClass[8];
 
 /// Runs the room controller and keeps RGB16 background masking armed.
 ///

@@ -18,32 +18,41 @@
 
 #include "main/coord.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield.h"
 
-/// The room's message table, published at `Task::msgTable` by the room task.
-extern TaskMessageEntry D_dryfield_motel_room_2_8017D6BC[];
-
-enum { DRYFIELD_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
+enum {
+    DRYFIELD_MOTEL_ROOM_2_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_2, 2),
+    DRYFIELD_MOTEL_ROOM_2_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_2, 1),
+    DRYFIELD_MOTEL_ROOM_2_MAP_FLAG        = 485,
+    // This area's departure slot 1 and the main street's arrival slot 4.
+    DRYFIELD_MOTEL_ROOM_2_MAIN_STREET_WARP_ENDPOINTS = 0x14,
+};
 
 static s32 _dryfieldMotelRoom2RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldMotelRoom2ResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _dryfieldMotelRoom2IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
 static s32 _dryfieldMotelRoom2IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-extern WorldCollisionGrid     D_dryfield_motel_room_2_8017DE0C[1];
-extern WorldCollisionOccluder D_dryfield_motel_room_2_80180140[2];
-extern WorldCollisionTrigger  D_dryfield_motel_room_2_8017FD18[8];
-extern WorldCollisionTrigger  D_dryfield_motel_room_2_8017FF78[6];
+static WorldCollisionGrid     _gDryfieldMotelRoom2CollisionGrid;
+static WorldCollisionOccluder _gDryfieldMotelRoom2SightOccluders[2];
+static WorldCollisionTrigger  _gDryfieldMotelRoom2ViewBoundaryTriggers[8];
+static WorldCollisionTrigger  _gDryfieldMotelRoom2ActionTriggers[6];
 
 static WorldCoordRoomLights _gDryfieldMotelRoom2RoomLights;
 
-TaskMessageEntry D_dryfield_motel_room_2_8017D6BC[5] = {
+/// Synchronous room messages: allow transitions, refuse key items and ignore actions and commands.
+///
+/// The room task borrows the table and its callbacks while the overlay is loaded.
+/// The final marker makes unsupported IDs return zero. Read-only authored storage
+/// stays in the overlay's data section.
+static const TaskMessageEntry _gDryfieldMotelRoom2RoomMessages[] __attribute__((section(".data"))) = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom2ResolveRoomEvent },
-    { DRYFIELD_MOTEL_ROOM_2_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom2RejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom2RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelRoom2IgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldMotelRoom2IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -53,8 +62,13 @@ u8* gDryfieldMotelRoom2RoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-WorldCollisionRoomResources D_dryfield_motel_room_2_8017D6E8[1] = {
-    { D_dryfield_motel_room_2_8017DE0C, D_dryfield_motel_room_2_8017FD18, D_dryfield_motel_room_2_8017FF78, D_dryfield_motel_room_2_80180140 },
+WorldCollisionRoomResources gDryfieldMotelRoom2RoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldMotelRoom2CollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldMotelRoom2ViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldMotelRoom2ActionTriggers,
+        .occluders            = _gDryfieldMotelRoom2SightOccluders,
+    },
 };
 
 ViewCount gDryfieldMotelRoom2RoomViewCounts[2] = { ARRAY_SIZE(gDryfieldMotelRoom2ViewCameras), 0 };
@@ -63,34 +77,68 @@ WorldCoordRoomLighting gDryfieldMotelRoom2RoomLighting[1] = {
     { &_gDryfieldMotelRoom2RoomLights, NULL },
 };
 
-DirectionWarpEntry D_dryfield_motel_room_2_8017D704[1] = {
-    { { { .word = 3072 }, 4666, 0, 2610 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4666, 0, 2610 }, { 0, 0, 0, 0 }, 0x520C0002, 0x520C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 485 },
+DirectionWarpEntry gDryfieldMotelRoom2WarpEntries[1] = {
+    {
+        .player         = { { .word = 3 * ONE / 4 }, 4666, 0, 2610 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3 * ONE / 4 }, 4666, 0, 2610 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_MOTEL_ROOM_2_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_MOTEL_ROOM_2_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_MOTEL_ROOM_2_MAP_FLAG,
+    },
 };
 
-static SVECTOR _gDryfieldMotelRoom2Collision0084CNormals[13] = {
+/// Grid-local normals, with 4096 units per unit length.
+static SVECTOR _gDryfieldMotelRoom2CollisionGridNormals[13] = {
 #include "assets/dryfield_motel_room_2_collision_0084C_normals.inc"
 };
 
-static SVECTOR _gDryfieldMotelRoom2Collision0084CVerts[105] = {
+/// Collision-mesh vertices in signed grid-local game units.
+static SVECTOR _gDryfieldMotelRoom2CollisionGridVerts[105] = {
 #include "assets/dryfield_motel_room_2_collision_0084C_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldMotelRoom2Collision0084CFaces[43] = {
+/// Indexed room quads using surface classes 0..3.
+static WorldCollisionGridFace _gDryfieldMotelRoom2CollisionGridFaces[43] = {
 #include "assets/dryfield_motel_room_2_collision_0084C_faces.inc"
 };
 
-static s16 _gDryfieldMotelRoom2Collision0084CCells[134] = {
+/// Four face-index lists ending at elements 43, 81, 112 and 132.
+///
+/// Element 113 repeats face 0 outside the lists; the final halfword is retained
+/// authored storage, also outside every cell scan.
+static s16 _gDryfieldMotelRoom2CollisionGridCells[134] = {
 #include "assets/dryfield_motel_room_2_collision_0084C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldMotelRoom2Collision0084CCells[i])
-static s16* _gDryfieldMotelRoom2Collision0084CTable[4] = {
+// Generated initializers select face-index lists by offsets in halfword elements.
+#define GRID_CELL(i) (&_gDryfieldMotelRoom2CollisionGridCells[i])
+/// X-major 2-by-2 cell table, with list starts at elements 0, 44, 82 and 114.
+static s16* _gDryfieldMotelRoom2CollisionGridTable[4] = {
 #include "assets/dryfield_motel_room_2_collision_0084C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_motel_room_2_8017DE0C[1] = {
-    { NULL, _gDryfieldMotelRoom2Collision0084CNormals, _gDryfieldMotelRoom2Collision0084CVerts, _gDryfieldMotelRoom2Collision0084CFaces, _gDryfieldMotelRoom2Collision0084CTable, 0, 0, 2, 2, 4000, 43 },
+/// Motel room 2's collision mesh and 2-by-2 XZ index of 4000-unit cells.
+///
+/// The room owns this mutable descriptor and its pools. Activation binds the
+/// current view coordinate; keep the overlay loaded while the grid is active.
+static WorldCollisionGrid _gDryfieldMotelRoom2CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldMotelRoom2CollisionGridNormals,
+    .vertices    = _gDryfieldMotelRoom2CollisionGridVerts,
+    .faces       = _gDryfieldMotelRoom2CollisionGridFaces,
+    .cellFaceIds = _gDryfieldMotelRoom2CollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 0,
+    .cellCountX  = 2,
+    .cellCountZ  = ARRAY_SIZE(_gDryfieldMotelRoom2CollisionGridTable) / 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldMotelRoom2CollisionGridFaces),
 };
 
 ViewCamera gDryfieldMotelRoom2ViewCameras[6] = {
@@ -600,29 +648,260 @@ SpriteView gDryfieldMotelRoom2SpriteViews[6] = {
     { { .elements = _gDryfieldMotelRoom2View6SpriteSources }, _gDryfieldMotelRoom2View6SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_motel_room_2_8017FD18[8] = {
-    { NULL, NULL, NULL, { 2590, -1168, 2061, 0 }, { { 783, -2192, 2008, 0 }, { -789, -2192, -2014, 0 }, { 783, 2192, 2008, 0 }, { -789, 2192, -2014, 0 } }, { -3826, 0, 1494, 0 }, { 0, 0, 4096, 0 }, 3072, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2495, -1280, 2079, 0 }, { { -791, -2192, -2016, 0 }, { 781, -2192, 2006, 0 }, { -791, 2192, -2016, 0 }, { 781, 2192, 2006, 0 } }, { 3824, 0, -1496, 0 }, { 0, 0, 4096, 0 }, 3072, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 847, -1184, 3966, 0 }, { { -838, -2192, 18, 0 }, { 839, -2192, -17, 0 }, { -838, 2192, 18, 0 }, { 839, 2192, -17, 0 } }, { -87, 0, -4102, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 895, -1152, 3887, 0 }, { { 846, -2192, -36, 0 }, { -846, -2192, 36, 0 }, { 846, 2192, -36, 0 }, { -846, 2192, 36, 0 } }, { 174, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2464, -1184, 4000, 0 }, { { -838, -2192, 18, 0 }, { 839, -2192, -17, 0 }, { -838, 2192, 18, 0 }, { 839, 2192, -17, 0 } }, { -87, 0, -4102, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 3, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2431, -1120, 3871, 0 }, { { 839, -2192, -17, 0 }, { -838, -2192, 18, 0 }, { 839, 2192, -17, 0 }, { -838, 2192, 18, 0 } }, { 84, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 5, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3568, -1312, 4975, 0 }, { { -267, -2192, 1058, 0 }, { 267, -2192, -1057, 0 }, { -267, 2192, 1058, 0 }, { 267, 2192, -1057, 0 } }, { -3976, 0, -1005, 0 }, { 0, 0, 4096, 0 }, 2442, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3424, -1248, 4927, 0 }, { { 267, -2192, -1057, 0 }, { -267, -2192, 1058, 0 }, { 267, 2192, -1057, 0 }, { -267, 2192, 1058, 0 } }, { 3973, 0, 1002, 0 }, { 0, 0, 4096, 0 }, 2442, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed view boundaries joining views 2/3, 3/4, 3/5 and 5/6 in both directions.
+///
+/// Coordinates and radii use room game units; normals use 4096 per unit.
+/// Room setup binds, links and enables every record through the included LAST
+/// record. The overlay owns the mutable links and hit latches until unlinked.
+static WorldCollisionTrigger _gDryfieldMotelRoom2ViewBoundaryTriggers[8] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2590, -1168, 2061, 0 },
+        .vertices     = { { 783, -2192, 2008, 0 }, { -789, -2192, -2014, 0 }, { 783, 2192, 2008, 0 }, { -789, 2192, -2014, 0 } },
+        .normal       = { -3826, 0, 1494, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3072,
+        .control      = 0,
+        .parameter0   = 3,
+        .parameter1   = 2,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2495, -1280, 2079, 0 },
+        .vertices     = { { -791, -2192, -2016, 0 }, { 781, -2192, 2006, 0 }, { -791, 2192, -2016, 0 }, { 781, 2192, 2006, 0 } },
+        .normal       = { 3824, 0, -1496, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3072,
+        .control      = 0,
+        .parameter0   = 2,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 847, -1184, 3966, 0 },
+        .vertices     = { { -838, -2192, 18, 0 }, { 839, -2192, -17, 0 }, { -838, 2192, 18, 0 }, { 839, 2192, -17, 0 } },
+        .normal       = { -87, 0, -4102, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 2346,
+        .control      = 0,
+        .parameter0   = 3,
+        .parameter1   = 4,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 895, -1152, 3887, 0 },
+        .vertices     = { { 846, -2192, -36, 0 }, { -846, -2192, 36, 0 }, { 846, 2192, -36, 0 }, { -846, 2192, 36, 0 } },
+        .normal       = { 174, 0, 4095, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 2346,
+        .control      = 0,
+        .parameter0   = 4,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2464, -1184, 4000, 0 },
+        .vertices     = { { -838, -2192, 18, 0 }, { 839, -2192, -17, 0 }, { -838, 2192, 18, 0 }, { 839, 2192, -17, 0 } },
+        .normal       = { -87, 0, -4102, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 2346,
+        .control      = 0,
+        .parameter0   = 3,
+        .parameter1   = 5,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2431, -1120, 3871, 0 },
+        .vertices     = { { 839, -2192, -17, 0 }, { -838, -2192, 18, 0 }, { 839, 2192, -17, 0 }, { -838, 2192, 18, 0 } },
+        .normal       = { 84, 0, 4099, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 2346,
+        .control      = 0,
+        .parameter0   = 5,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 3568, -1312, 4975, 0 },
+        .vertices     = { { -267, -2192, 1058, 0 }, { 267, -2192, -1057, 0 }, { -267, 2192, 1058, 0 }, { 267, 2192, -1057, 0 } },
+        .normal       = { -3976, 0, -1005, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 2442,
+        .control      = 0,
+        .parameter0   = 5,
+        .parameter1   = 6,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 3424, -1248, 4927, 0 },
+        .vertices     = { { 267, -2192, -1057, 0 }, { -267, -2192, 1058, 0 }, { 267, 2192, -1057, 0 }, { -267, 2192, 1058, 0 } },
+        .normal       = { 3973, 0, 1002, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 2442,
+        .control      = 0,
+        .parameter0   = 6,
+        .parameter1   = 5,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
-WorldCollisionTrigger D_dryfield_motel_room_2_8017FF78[6] = {
-    { NULL, NULL, NULL, { 4560, -80, 2608, 0 }, { { -304, 0, -528, 0 }, { 304, 0, -528, 0 }, { -304, 0, 528, 0 }, { 304, 0, 528, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 607, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 400, -64, 3024, 0 }, { { -336, 0, -480, 0 }, { 336, 0, -480, 0 }, { -336, 0, 480, 0 }, { 336, 0, 480, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 583, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2288, -64, 4864, 0 }, { { -512, 0, -336, 0 }, { 512, 0, -336, 0 }, { -512, 0, 336, 0 }, { 512, 0, 336, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 610, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4640, -64, 4976, 0 }, { { -288, 0, -480, 0 }, { 288, 0, -480, 0 }, { -288, 0, 480, 0 }, { 288, 0, 480, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 557, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3408, -64, 3872, 0 }, { { -1088, 0, 80, 0 }, { 224, 0, 80, 0 }, { -736, 0, 912, 0 }, { 224, 0, 912, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 704, -64, 5216, 0 }, { { -544, 0, -240, 0 }, { 544, 0, -240, 0 }, { -544, 0, 240, 0 }, { 544, 0, 240, 0 } }, { 0, 4095, 0, 0 }, { 201, 0, -4091, 0 }, 593, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Six interaction quads: the main-street warp and CAP commands 5, 8, 10, 11 and 1.
+///
+/// All require facing except command 11, which also accepts nearby activation.
+/// Positions and radii use room game units; normals use 4096 per unit. Setup
+/// binds, links and enables the included LAST record. Keep this mutable storage
+/// loaded until its links and latched hits have been retired.
+static WorldCollisionTrigger _gDryfieldMotelRoom2ActionTriggers[6] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 4560, -80, 2608, 0 },
+        .vertices     = { { -304, 0, -528, 0 }, { 304, 0, -528, 0 }, { -304, 0, 528, 0 }, { 304, 0, 528, 0 } },
+        .normal       = { 0, ONE, 0, 0 },
+        .facingNormal = { -ONE, 0, 0, 0 },
+        .radius       = 607,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_MAIN_STREET,
+        .parameter1   = DRYFIELD_MOTEL_ROOM_2_MAIN_STREET_WARP_ENDPOINTS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 400, -64, 3024, 0 },
+        .vertices     = { { -336, 0, -480, 0 }, { 336, 0, -480, 0 }, { -336, 0, 480, 0 }, { 336, 0, 480, 0 } },
+        .normal       = { 0, 4101, 0, 0 },
+        .facingNormal = { ONE, 0, 0, 0 },
+        .radius       = 583,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 5,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2288, -64, 4864, 0 },
+        .vertices     = { { -512, 0, -336, 0 }, { 512, 0, -336, 0 }, { -512, 0, 336, 0 }, { 512, 0, 336, 0 } },
+        .normal       = { 0, 4100, 0, 0 },
+        .facingNormal = { 0, 0, -ONE, 0 },
+        .radius       = 610,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 8,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 4640, -64, 4976, 0 },
+        .vertices     = { { -288, 0, -480, 0 }, { 288, 0, -480, 0 }, { -288, 0, 480, 0 }, { 288, 0, 480, 0 } },
+        .normal       = { 0, 4100, 0, 0 },
+        .facingNormal = { -ONE, 0, 0, 0 },
+        .radius       = 557,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 10,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 3408, -64, 3872, 0 },
+        .vertices     = { { -1088, 0, 80, 0 }, { 224, 0, 80, 0 }, { -736, 0, 912, 0 }, { 224, 0, 912, 0 } },
+        .normal       = { 0, 4098, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 1166,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 11,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 704, -64, 5216, 0 },
+        .vertices     = { { -544, 0, -240, 0 }, { 544, 0, -240, 0 }, { -544, 0, 240, 0 }, { 544, 0, 240, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { 201, 0, -4091, 0 },
+        .radius       = 593,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = 1,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
-WorldCollisionOccluder D_dryfield_motel_room_2_80180140[2] = {
-    { NULL, NULL, { 4000, -1280, 3904, 0 }, { { -1024, -1952, 0, 0 }, { 1024, -1952, 0, 0 }, { -1024, 1952, 0, 0 }, { 1024, 1952, 0, 0 } }, { 0, 0, -4101, 0 }, 2202, 1, 0 },
-    { NULL, NULL, { 1600, -1312, 4896, 0 }, { { 0, -1952, 1024, 0 }, { 0, -1952, -1024, 0 }, { 0, 1952, 1024, 0 }, { 0, 1952, -1024, 0 } }, { -4101, 0, 0, 0 }, 2202, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// Two room-space quads blocking actor line-of-sight queries.
+///
+/// Positions and radii use game units; normals use 4096 per unit. Room setup
+/// links and enables both records, including the final LAST record. Links are
+/// mutable and must be retired before unloading this room. The stored low flag
+/// bit is retained; no meaning is established for it.
+static WorldCollisionOccluder _gDryfieldMotelRoom2SightOccluders[2] = {
+    {
+        .next       = NULL,
+        .prevLink   = NULL,
+        .origin     = { 4000, -1280, 3904, 0 },
+        .vertices   = { { -1024, -1952, 0, 0 }, { 1024, -1952, 0, 0 }, { -1024, 1952, 0, 0 }, { 1024, 1952, 0, 0 } },
+        .normal     = { 0, 0, -4101, 0 },
+        .radius     = 2202,
+        .flags      = 1,
+        .unknown_3B = 0,
+    },
+    {
+        .next       = NULL,
+        .prevLink   = NULL,
+        .origin     = { 1600, -1312, 4896, 0 },
+        .vertices   = { { 0, -1952, 1024, 0 }, { 0, -1952, -1024, 0 }, { 0, 1952, 1024, 0 }, { 0, 1952, -1024, 0 } },
+        .normal     = { -4101, 0, 0, 0 },
+        .radius     = 2202,
+        .flags      = 1 | WORLD_COLLISION_OCCLUDER_LAST,
+        .unknown_3B = 0,
+    },
 };
 
 /// Motel room 2's five point lights, shared by every view.
@@ -938,7 +1217,7 @@ static s32 _dryfieldMotelRoom2IgnoreRoomAction(Task* unusedTask, s32 unusedMessa
 /// receive messages. Registration does not retain the task or clear on teardown.
 static void _dryfieldMotelRoom2InitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_motel_room_2_8017D6BC;
+    task->msgTable = _gDryfieldMotelRoom2RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -951,8 +1230,11 @@ static void _dryfieldMotelRoom2IdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The room task's three states.
-static const TaskFuncTable3 D_dryfield_motel_room_2_8017D5C4 = {
+/// Room-task states 0 initialize the receiver, 1 idle, and 2 release the task.
+///
+/// The dispatcher copies all three callbacks by value before its unchecked
+/// state lookup. Callback code must remain loaded through dispatch.
+static const TaskFuncTable3 _gDryfieldMotelRoom2RoomStateHandlers = {
     { _dryfieldMotelRoom2InitRoomTask, _dryfieldMotelRoom2IdleRoomTask, taskKill },
 };
 
@@ -960,7 +1242,7 @@ void dryfieldMotelRoom2Task(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_motel_room_2_8017D5C4;
+    stateHandlers = _gDryfieldMotelRoom2RoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

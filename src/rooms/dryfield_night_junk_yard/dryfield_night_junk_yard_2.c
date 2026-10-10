@@ -792,19 +792,25 @@ static SpriteSource _gDryfieldNightJunkYardView10SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 831, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_801836A0[12] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 6, 0 } },
-    { 10, 8, 0, 0, { 1, 0 } },
-    { 18, 4, 0, 0, { 8, 0 } },
-    { 22, 5, 0, 0, { 0, 0 } },
-    { 27, 1, 0, 0, { 5, 0 } },
-    { 28, 18, 0, 0, { 2, 0 } },
-    { 46, 16, 0, 0, { 9, 0 } },
-    { 62, 6, 0, 0, { 4, 0 } },
-    { 68, 1, 0, 0, { 7, 0 } },
-    { 69, 28, 0, 0, { 3, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 10's ten contiguous foreground ranges, covering all 97 sources.
+///
+/// Indices and counts select source elements. A zero-count first record keeps
+/// decoded background strips, and `SPRITE_BATCH_END` follows the live ranges.
+/// Visibility remains writable; authored metadata bytes retain their unproven
+/// meaning. Borrow the list and its source pool while this overlay is loaded.
+static SpriteBatch _gDryfieldNightJunkYardView10SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = 10, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 6, 0 } },
+    { .firstSprite = 10, .spriteCount = 8, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
+    { .firstSprite = 18, .spriteCount = 4, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 8, 0 } },
+    { .firstSprite = 22, .spriteCount = 5, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 27, .spriteCount = 1, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 5, 0 } },
+    { .firstSprite = 28, .spriteCount = 18, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
+    { .firstSprite = 46, .spriteCount = 16, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 9, 0 } },
+    { .firstSprite = 62, .spriteCount = 6, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 4, 0 } },
+    { .firstSprite = 68, .spriteCount = 1, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 7, 0 } },
+    { .firstSprite = 69, .spriteCount = ARRAY_SIZE(_gDryfieldNightJunkYardView10SpriteSources) - 69, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 3, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
 SpriteView D_dryfield_night_junk_yard_80183700[10] = {
@@ -817,7 +823,7 @@ SpriteView D_dryfield_night_junk_yard_80183700[10] = {
     { { .elements = _gDryfieldNightJunkYardView7SpriteSources }, _gDryfieldNightJunkYardView7SpriteBatches, NULL },
     { { .elements = _gDryfieldNightJunkYardView8SpriteSources }, _gDryfieldNightJunkYardView8SpriteBatches, NULL },
     { { .elements = _gDryfieldNightJunkYardView9SpriteSources }, _gDryfieldNightJunkYardView9SpriteBatches, NULL },
-    { { .elements = _gDryfieldNightJunkYardView10SpriteSources }, D_dryfield_night_junk_yard_801836A0, NULL },
+    { { .elements = _gDryfieldNightJunkYardView10SpriteSources }, _gDryfieldNightJunkYardView10SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_junk_yard_80183778[10] = {

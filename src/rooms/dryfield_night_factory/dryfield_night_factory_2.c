@@ -818,46 +818,46 @@ SpriteSource gDryfieldNightFactoryView16SpriteSources[32] = {
     { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_832, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 48, 24 } }, 112, -120, 1143, { .fields = { 96, 168 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_factory_80189858[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 1, 0 } },
-    { 7, 10, 0, 0, { 2, 0 } },
-    { 17, 15, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+SpriteBatch gDryfieldNightFactoryView16SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = 7, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
+    { .firstSprite = 7, .spriteCount = 10, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
+    { .firstSprite = 17, .spriteCount = ARRAY_SIZE(gDryfieldNightFactoryView16SpriteSources) - 17, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_factory_80189880[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+SpriteBatch gDryfieldNightFactoryView17SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_factory_80189890[17] = {
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -56, 40, 1300, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 48, 1750, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 64, 1750, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 8, 1325, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 8, 1325, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 16, 1312, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 16, 1320, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 24, 1322, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 24, 1315, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 32, 1300, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 32, 1362, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 40, 1375, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 40, 1312, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, 40, 1275, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 32, 1282, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 1287, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 216 } }, -112, -120, 500, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+SpriteSource gDryfieldNightFactoryView18And19SpriteSources[] = {
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 48, 8 } }, -56, 40, 1300, { .fields = { 8, 224 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 48, 16 } }, -56, 48, 1750, { .fields = { 56, 216 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 48, 16 } }, -56, 64, 1750, { .fields = { 80, 232 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -48, 8, 1325, { .fields = { 40, 216 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -64, 8, 1325, { .fields = { 48, 248 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -48, 16, 1312, { .fields = { 40, 232 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -64, 16, 1320, { .fields = { 32, 8 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -64, 24, 1322, { .fields = { 40, 240 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -48, 24, 1315, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -48, 32, 1300, { .fields = { 96, 248 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -64, 32, 1362, { .fields = { 80, 248 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -64, 40, 1375, { .fields = { 112, 248 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 16, 8 } }, -48, 40, 1312, { .fields = { 64, 248 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 24, 16 } }, -40, 40, 1275, { .fields = { 104, 216 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 24, 8 } }, -40, 32, 1282, { .fields = { 56, 240 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 24, 8 } }, -40, 24, 1287, { .fields = { 56, 232 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
+    { DRYFIELD_NIGHT_FACTORY_SPRITE_TPAGE_960, DRYFIELD_NIGHT_FACTORY_SPRITE_CLUT_ROW_255, { .fields = { 80, 216 } }, -112, -120, 500, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, DRYFIELD_NIGHT_FACTORY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_dryfield_night_factory_801899E4[6] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 3, 0, 0, { 3, 0 } },
-    { 3, 10, 0, 0, { 0, 0 } },
-    { 13, 3, 0, 0, { 2, 0 } },
-    { 16, 1, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+SpriteBatch gDryfieldNightFactoryView18And19SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 0, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 3, 0 } },
+    { .firstSprite = 3, .spriteCount = 10, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = 13, .spriteCount = 3, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 2, 0 } },
+    { .firstSprite = 16, .spriteCount = ARRAY_SIZE(gDryfieldNightFactoryView18And19SpriteSources) - 16, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
 #include "../../shared/room_event_gate.inc.c"

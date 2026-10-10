@@ -28,7 +28,14 @@ extern ViewCamera D_shelter_b2_pod_access_tunnel_801841D8[];
 
 extern SpriteView D_shelter_b2_pod_access_tunnel_80184C6C[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_access_tunnel_801856D8[];
+/// Pod access tunnel collision and footstep policies for surface classes 0..7.
+///
+/// Class 1 passes probes and ignores weapon impacts; every other class blocks
+/// probes and allows impacts. All apply pushback. Class 3 supplies footstep cues,
+/// while the other classes are silent. Classes 0 and 4..7 share one record;
+/// class 2 has a distinct record with the same proven policies. Setup reads all
+/// eight entries. Borrow the directory, records and cues while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB2PodAccessTunnelSurfacePropertiesByClass[8];
 
 /// Runs the pod access tunnel's room setup, idle or teardown state.
 ///

@@ -159,7 +159,7 @@ static WorldCollisionSurfaceProperties _gNeoArkR31SurfaceProperties = {
     .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[8] = {
+WorldCollisionSurfaceProperties* gNeoArkR31SurfacePropertiesByClass[8] = {
     &_gNeoArkR31SurfaceProperties,
     &_gNeoArkR31SurfaceProperties,
     &_gNeoArkR31SurfaceProperties,

@@ -134,7 +134,7 @@ static WorldCollisionSurfaceProperties _gNeoArkGardenSurface4Properties = {
     .footstepSounds      = &_gNeoArkGardenSurface4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[8] = {
+WorldCollisionSurfaceProperties* gNeoArkGardenSurfacePropertiesByClass[8] = {
     &_gNeoArkGardenDefaultSurfaceProperties,
     &_gNeoArkGardenDefaultSurfaceProperties,
     &_gNeoArkGardenDefaultSurfaceProperties,

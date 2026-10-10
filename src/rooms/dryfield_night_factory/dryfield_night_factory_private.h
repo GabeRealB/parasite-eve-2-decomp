@@ -210,13 +210,36 @@ extern SpriteBatch gDryfieldNightFactoryView15SpriteBatches[6];
 /// terminator. Storage remains valid while the night factory overlay is loaded.
 extern SpriteSource gDryfieldNightFactoryView16SpriteSources[32];
 
-extern SpriteBatch D_dryfield_night_factory_80189858[5];
+/// Three contiguous foreground ranges covering all 32 mapped-view-16 sprites.
+///
+/// The leading zero count retains decoded background strips; the final record
+/// ends with `SPRITE_BATCH_END`. Source indices count elements. Visibility stays
+/// writable, and authored metadata bytes retain their unproven meaning. Borrow
+/// the list and its source pool while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView16SpriteBatches[5];
 
-extern SpriteBatch D_dryfield_night_factory_80189880[2];
+/// Mapped view 17's background-only sprite list.
+///
+/// A zero-count selector precedes `SPRITE_BATCH_END`, retaining decoded image
+/// strips. The same address occupies `sources.empty` and supplies no sprites.
+/// Borrow this distinct authored list while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView17SpriteBatches[2];
 
-extern SpriteSource D_dryfield_night_factory_80189890[17];
+/// Seventeen mutable foreground rectangles shared by mapped views 18 and 19.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels.
+/// UVs use texels, depth is unscaled and RGB 128 is neutral modulation. Both descriptors
+/// borrow this same pool and its batch list, with no source sentinel. Keep the
+/// night factory overlay loaded during packet allocation and drawing.
+extern SpriteSource gDryfieldNightFactoryView18And19SpriteSources[17];
 
-extern SpriteBatch D_dryfield_night_factory_801899E4[6];
+/// Four contiguous sprite ranges shared by mapped views 18 and 19.
+///
+/// Ranges cover the shared 17-source pool in elements. A leading zero count
+/// retains decoded background strips, and `SPRITE_BATCH_END` ends the list.
+/// Visibility is mutable; authored metadata bytes have unproven meaning. Both
+/// descriptors borrow this list while the night factory overlay is loaded.
+extern SpriteBatch gDryfieldNightFactoryView18And19SpriteBatches[6];
 
 // Callbacks referenced by the overlay's shared data tables.
 

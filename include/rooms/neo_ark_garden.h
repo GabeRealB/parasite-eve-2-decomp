@@ -62,7 +62,13 @@ extern ViewCamera gNeoArkGardenViewCameras[NEO_ARK_GARDEN_VIEW_COUNT];
 /// all borrowed arrays require the garden overlay to remain loaded.
 extern SpriteView gNeoArkGardenSpriteViews[NEO_ARK_GARDEN_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[];
+/// Neo Ark garden collision and footstep policies for surface classes 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Class 4 supplies walking/running/scripted-jump cue bases; all others share
+/// silent properties. Setup reads all eight entries. The directory, records
+/// and sound cues remain borrowed only while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkGardenSurfacePropertiesByClass[8];
 
 /// Updates the garden's view-dependent ambience and fixed-point visual effects.
 ///

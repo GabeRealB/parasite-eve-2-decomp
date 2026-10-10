@@ -51,19 +51,34 @@ ActorTransform D_dryfield_night_motel_loft_8017FB84[2] = {
     { { 0xFFFF, 0, 0, 0 }, { -1, 0, 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_motel_loft_8017FBB4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 12's background-only sprite list.
+///
+/// A zero-count selector precedes `SPRITE_BATCH_END`, retaining decoded image
+/// strips. The same address occupies `sources.empty` and supplies no sprites.
+/// Keep this distinct authored storage live while the room overlay is loaded.
+static SpriteBatch _gDryfieldNightMotelLoftView12SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_motel_loft_8017FBC4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 13's background-only sprite list.
+///
+/// A zero-count selector precedes `SPRITE_BATCH_END`, retaining decoded image
+/// strips. The same address occupies `sources.empty` and supplies no sprites.
+/// Keep this distinct authored storage live while the room overlay is loaded.
+static SpriteBatch _gDryfieldNightMotelLoftView13SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_motel_loft_8017FBD4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 14's background-only sprite list.
+///
+/// A zero-count selector precedes `SPRITE_BATCH_END`, retaining decoded image
+/// strips. The same address occupies `sources.empty` and supplies no sprites.
+/// Keep this distinct authored storage live while the room overlay is loaded.
+static SpriteBatch _gDryfieldNightMotelLoftView14SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
 SpriteView D_dryfield_night_motel_loft_8017FBE4[14] = {
@@ -78,9 +93,9 @@ SpriteView D_dryfield_night_motel_loft_8017FBE4[14] = {
     { { .empty = gDryfieldNightMotelLoftView2SpriteBatches }, gDryfieldNightMotelLoftView2SpriteBatches, NULL },
     { { .elements = gDryfieldNightMotelLoftView3SpriteSources }, gDryfieldNightMotelLoftView3SpriteBatches, NULL },
     { { .elements = gDryfieldNightMotelLoftView7SpriteSources }, gDryfieldNightMotelLoftView7SpriteBatches, NULL },
-    { { .empty = D_dryfield_night_motel_loft_8017FBB4 }, D_dryfield_night_motel_loft_8017FBB4, NULL },
-    { { .empty = D_dryfield_night_motel_loft_8017FBC4 }, D_dryfield_night_motel_loft_8017FBC4, NULL },
-    { { .empty = D_dryfield_night_motel_loft_8017FBD4 }, D_dryfield_night_motel_loft_8017FBD4, NULL },
+    { { .empty = _gDryfieldNightMotelLoftView12SpriteBatches }, _gDryfieldNightMotelLoftView12SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightMotelLoftView13SpriteBatches }, _gDryfieldNightMotelLoftView13SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightMotelLoftView14SpriteBatches }, _gDryfieldNightMotelLoftView14SpriteBatches, NULL },
 };
 
 /// Point lights shared by both nighttime motel loft rooms in every view.
@@ -349,7 +364,7 @@ static WorldCollisionSurfaceProperties _gDryfieldNightMotelLoftSurface1Propertie
     .footstepSounds      = &_gDryfieldNightMotelLoftSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_motel_loft_8018090C[8] = {
+WorldCollisionSurfaceProperties* gDryfieldNightMotelLoftSurfacePropertiesByClass[8] = {
     &_gDryfieldNightMotelLoftDefaultSurfaceProperties,
     &_gDryfieldNightMotelLoftSurface1Properties,
     &_gDryfieldNightMotelLoftDefaultSurfaceProperties,

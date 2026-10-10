@@ -58,7 +58,13 @@ extern ViewCamera gDryfieldNightMotelLoftViewCameras[11];
 
 extern SpriteView D_dryfield_night_motel_loft_8017FBE4[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_loft_8018090C[];
+/// Nighttime motel loft collision and footstep policies for surface classes 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Class 1 supplies walking/running/scripted-jump cue bases; all others share
+/// silent properties. Setup reads all eight entries. The directory, records
+/// and sound cues remain borrowed only while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightMotelLoftSurfacePropertiesByClass[8];
 
 /// Updates a tumbling grey shard that bounces on Y=0 and fades after its first bounce.
 ///

@@ -733,9 +733,14 @@ static SpriteBatch _gDryfieldCellarView10SpriteBatches[3] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_cellar_8017FE30[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 11's background-only sprite list.
+///
+/// A zero-count selector precedes `SPRITE_BATCH_END`, retaining decoded image
+/// strips. The same address occupies `sources.empty` and supplies no sprites.
+/// Keep this distinct authored storage live while the room overlay is loaded.
+static SpriteBatch _gDryfieldCellarView11SpriteBatches[] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0, .hidden = 0, .skipCachedPackets = 0, .field_6 = { 0, 0 } },
 };
 
 SpriteView D_dryfield_cellar_8017FE40[11] = {
@@ -749,7 +754,7 @@ SpriteView D_dryfield_cellar_8017FE40[11] = {
     { { .elements = _gDryfieldCellarView8SpriteSources }, _gDryfieldCellarView8SpriteBatches, NULL },
     { { .elements = _gDryfieldCellarView9SpriteSources }, _gDryfieldCellarView9SpriteBatches, NULL },
     { { .elements = _gDryfieldCellarView10SpriteSources }, _gDryfieldCellarView10SpriteBatches, NULL },
-    { { .empty = D_dryfield_cellar_8017FE30 }, D_dryfield_cellar_8017FE30, NULL },
+    { { .empty = _gDryfieldCellarView11SpriteBatches }, _gDryfieldCellarView11SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_cellar_8017FEC4[6] = {

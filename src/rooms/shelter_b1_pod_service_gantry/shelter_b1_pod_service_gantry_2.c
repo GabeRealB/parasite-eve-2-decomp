@@ -102,7 +102,7 @@ static WorldCollisionSurfaceProperties _gShelterB1PodServiceGantrySurfacePropert
     .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_pod_service_gantry_80182520[8] = {
+WorldCollisionSurfaceProperties* gShelterB1PodServiceGantrySurfacePropertiesByClass[8] = {
     &_gShelterB1PodServiceGantrySurfaceProperties,
     &_gShelterB1PodServiceGantrySurfaceProperties,
     &_gShelterB1PodServiceGantrySurfaceProperties,

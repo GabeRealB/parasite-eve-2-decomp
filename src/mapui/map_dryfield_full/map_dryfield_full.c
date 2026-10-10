@@ -779,7 +779,7 @@ WorldCollisionSurfaceProperties** D_map_dryfield_full_8017ABB0[38] = {
     gDryfieldNightMotelRoom5SurfacePropertiesByClass,
     gDryfieldNightMotelBalconySurfacePropertiesByClass,
     gDryfieldNightMotelRoom6SurfacePropertiesByClass,
-    D_dryfield_night_motel_loft_8018090C,
+    gDryfieldNightMotelLoftSurfacePropertiesByClass,
     gDryfieldNightWaterHoleSurfacePropertiesByClass,
     NULL,
     gDryfieldNightCellarSurfacePropertiesByClass,

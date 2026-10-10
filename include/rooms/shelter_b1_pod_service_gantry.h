@@ -30,7 +30,12 @@ extern SpriteView D_shelter_b1_pod_service_gantry_80181BA0[];
 
 extern WorldCoordRoomLights D_shelter_b1_pod_service_gantry_801824F4;
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_pod_service_gantry_80182520[];
+/// Pod service gantry collision and footstep policies for surface classes 0..7.
+///
+/// All eight classes share one record: probes block, weapon impacts are enabled,
+/// pushback applies and footsteps are silent. Setup reads every entry; borrow
+/// the directory and record only while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB1PodServiceGantrySurfacePropertiesByClass[8];
 
 /// Runs the pod service gantry's room receiver and two-scene sequence.
 ///

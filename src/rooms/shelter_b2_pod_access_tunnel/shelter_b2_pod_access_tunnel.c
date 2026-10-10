@@ -107,7 +107,7 @@ static WorldCollisionSurfaceProperties _gShelterB2PodAccessTunnelSurface3Propert
     .footstepSounds      = &_gShelterB2PodAccessTunnelSurface3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b2_pod_access_tunnel_801856D8[8] = {
+WorldCollisionSurfaceProperties* gShelterB2PodAccessTunnelSurfacePropertiesByClass[8] = {
     &_gShelterB2PodAccessTunnelDefaultSurfaceProperties,
     &_gShelterB2PodAccessTunnelSurface1Properties,
     &_gShelterB2PodAccessTunnelSurface2Properties,
