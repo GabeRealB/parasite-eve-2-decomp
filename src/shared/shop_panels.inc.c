@@ -9,7 +9,22 @@ static void _shopRefillWeaponSupplyTask(Task* task);
 
 static UiObjectDesc Shop_Data_80181BD8 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -36, 144, 64 }, 32, 0, TASK_BODY_NONE, 192, _shopRefillWeaponSupplyTask, 0 };
 
-static UiObjectDesc Shop_Data_80181BF4 = { 0, { 48, -93, 96, 97 }, 44, 0, TASK_BODY_NONE, 192, _shopItemPreviewTask, 0 };
+/// Bodyless priority-192 panel recipe for the selected item's preview and amount.
+///
+/// Bounds are pixels relative to the screen center. The item-list task spawns
+/// it without input, with its list panel as parent; the content callback reads
+/// the live selection and loaded item. Spawning copies this recipe, retaining
+/// only callback code, which must stay loaded until the child panel closes.
+static const UiObjectDesc _gShopItemPreviewDescriptor SECTION(".data") = {
+    .style           = 0,
+    .bounds          = { 48, -93, 96, 97 },
+    .otIndexSeed     = 44,
+    .field_E         = 0,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _shopItemPreviewTask,
+    .taskDataValue   = 0,
+};
 
 enum { SHOP_PURCHASE_QUANTITY_PANEL_STYLE = 3 };
 

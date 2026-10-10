@@ -995,20 +995,44 @@ static const u16 _gShopRestrictedShelterAlternateEventItemsStock[6] SECTION(".da
     SHOP_ROW_END,
 };
 
-static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT] = {
-    { 0x38A4, { 109, 55, 2 } },
-    { 0x3E80, { 70, 10, 58 } },
-    { 0xABE0, { 69, 60, 161 } },
-    { 0xC738, { 66, 13, 6 } },
-    { 0xDEA8, { 67, 11, 97 } },
-    { 0xF230, { 68, 14, 56 } },
-    { 0x101D0, { 107, 162, 57 } },
-    { 0x10D88, { 142, 174, 173 } },
-    { 0x11940, { 136, 166, 54 } },
-    { 0x124F8, { 144, 167, 5 } },
-    { 0x30D40, { 139, 170, 3 } },
-    { 0x61A80, { 149, 63, 7 } },
-    { 0x7FFFFFFF, { 150, 61, 62 } },
+/// Additional catalogue ids in the replay tier ladder.
+enum {
+    SHOP_REPLAY_ITEM_MONK_ROBE         = 109,
+    SHOP_REPLAY_ITEM_MD_PLAYER         = 14,
+    SHOP_REPLAY_ITEM_SKULL_CRYSTAL     = 54,
+    SHOP_REPLAY_ITEM_HOLY_WATER        = 56,
+    SHOP_REPLAY_ITEM_OFUDA             = 57,
+    SHOP_REPLAY_ITEM_RINGERS_SOLUTION  = 61,
+    SHOP_REPLAY_ITEM_EAU_DE_TOILETTE   = 62,
+    SHOP_REPLAY_ITEM_HUNTER_GOGGLES    = 63,
+    SHOP_REPLAY_ITEM_MONGOOSE          = 136,
+    SHOP_REPLAY_ITEM_HYPERVELOCITY     = 149,
+    SHOP_REPLAY_ITEM_GUNBLADE          = 150,
+    SHOP_REPLAY_ITEM_44_MAEDA_SP       = 167,
+    SHOP_REPLAY_ITEM_COLA              = 5,
+    SHOP_REPLAY_TIER_FINAL_EXP_CEILING = 0x7FFFFFFF
+};
+
+/// Thirteen replay-unlock tiers, each contributing three catalogue item ids.
+///
+/// Save bit n selects row n. Normal/replay mode adds every unlocked row's
+/// items to the matching category; demo scene 1 unlocks all rows. EXP ceilings
+/// mirror the replay-award ladder; shop consumers read only the items.
+/// All rows are borrowed read-only while this carrier's room image is loaded.
+static const ShopTier _gShopReplayTierLadder[SHOP_TIER_COUNT] SECTION(".data") = {
+    { 14500, { SHOP_REPLAY_ITEM_MONK_ROBE, SHOP_STOCK_ITEM_MEDICINE_WHEEL, SHOP_STOCK_ITEM_RECOVERY_2 } },
+    { 16000, { SHOP_ITEM_M9, SHOP_ITEM_RIFLE_CLIP_HOLDER, SHOP_STOCK_ITEM_FLARE } },
+    { 44000, { SHOP_ITEM_M203, SHOP_STOCK_ITEM_PROTEIN_CAPSULE, SHOP_STOCK_ITEM_9MM_HYDRA } },
+    { 51000, { SHOP_ITEM_HAMMER, SHOP_ITEM_BELT_POUCH, SHOP_STOCK_ITEM_MP_BOOST_1 } },
+    { 57000, { SHOP_ITEM_PYKE, SHOP_STOCK_ITEM_LIPSTICK, SHOP_STOCK_ITEM_TACTICAL_ARMOR } },
+    { 62000, { SHOP_ITEM_JAVELIN, SHOP_REPLAY_ITEM_MD_PLAYER, SHOP_REPLAY_ITEM_HOLY_WATER } },
+    { 66000, { SHOP_STOCK_ITEM_AYA_SPECIAL, SHOP_STOCK_ITEM_9MM_SPARTAN, SHOP_REPLAY_ITEM_OFUDA } },
+    { 69000, { SHOP_STOCK_ITEM_AS12, SHOP_STOCK_ITEM_R_SLUG, SHOP_STOCK_ITEM_FIREFLY } },
+    { 72000, { SHOP_REPLAY_ITEM_MONGOOSE, SHOP_STOCK_ITEM_44_MAGNUM, SHOP_REPLAY_ITEM_SKULL_CRYSTAL } },
+    { 75000, { SHOP_STOCK_ITEM_M249, SHOP_REPLAY_ITEM_44_MAEDA_SP, SHOP_REPLAY_ITEM_COLA } },
+    { 200000, { SHOP_STOCK_ITEM_MM1, SHOP_STOCK_ITEM_AIRBURST, SHOP_STOCK_ITEM_RECOVERY_3 } },
+    { 400000, { SHOP_REPLAY_ITEM_HYPERVELOCITY, SHOP_REPLAY_ITEM_HUNTER_GOGGLES, SHOP_STOCK_ITEM_MP_BOOST_2 } },
+    { SHOP_REPLAY_TIER_FINAL_EXP_CEILING, { SHOP_REPLAY_ITEM_GUNBLADE, SHOP_REPLAY_ITEM_RINGERS_SOLUTION, SHOP_REPLAY_ITEM_EAU_DE_TOILETTE } },
 };
 
 /// Row currently selected for the shop preview, or SHOP_PREVIEW_NONE before selection.
@@ -1024,100 +1048,20 @@ static const u8 _gShopPurchaseLabel[20] SECTION(".data") = "Purchase";
 /// NUL-terminated Pass caption for leaving a category or purchase prompt.
 static const u8 _gShopPassLabel[8] SECTION(".data") = "Pass";
 
-static u8 Shop_Data_80181A0C[16] = {
-    66,
-    97,
-    116,
-    116,
-    101,
-    114,
-    105,
-    101,
-    115,
-    47,
-    70,
-    117,
-    101,
-    108,
-    0,
-    0,
-};
+/// NUL-terminated caption of the free weapon-supply recharge service row.
+static const u8 _gShopRechargeServiceLabel[16] SECTION(".data") = "Batteries/Fuel";
 
-static u8 Shop_Data_80181A1C[4] = { 0 };
+/// Empty caption retained for the special row 0xFFFC.
+///
+/// Current stock and unlock paths do not produce this row; its service role
+/// is unproven. Text drawing reads only the first NUL byte.
+static const u8 _gShopUnusedSpecialRowLabel[4] SECTION(".data") = "";
 
-static u8 Shop_Data_80181A20[60] = {
-    87,
-    101,
-    97,
-    112,
-    111,
-    110,
-    115,
-    32,
-    117,
-    115,
-    105,
-    110,
-    103,
-    32,
-    98,
-    97,
-    116,
-    116,
-    101,
-    114,
-    105,
-    101,
-    115,
-    32,
-    111,
-    114,
-    32,
-    102,
-    117,
-    101,
-    108,
-    10,
-    99,
-    97,
-    110,
-    32,
-    98,
-    101,
-    32,
-    114,
-    101,
-    108,
-    111,
-    97,
-    100,
-    101,
-    100,
-    32,
-    102,
-    111,
-    114,
-    32,
-    102,
-    114,
-    101,
-    101,
-    46,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated two-line prompt for the selected weapon-supply recharge row.
+static const u8 _gShopRechargeServicePrompt[60] SECTION(".data") = "Weapons using batteries or fuel\ncan be reloaded for free.";
 
-static u8 Shop_Data_80181A5C[8] = {
-    87,
-    101,
-    97,
-    112,
-    111,
-    110,
-    115,
-    0,
-};
+/// NUL-terminated caption of the Weapons shop category.
+static const u8 _gShopWeaponsCategoryLabel[8] SECTION(".data") = "Weapons";
 
 static u8 Shop_Data_80181A64[12] = {
     65,
@@ -1180,7 +1124,11 @@ static const u16 _gShopEmptyStock[2] SECTION(".data") = {
     0,
 };
 
-static UiListRowCallback Shop_Data_80181AD8[1] = {
+/// Shared row callback for all offered items and the recharge-service row.
+///
+/// Lists enable USER_INTERFACE_LIST_SHARED_ROW_CALLBACK: entry zero handles
+/// every row. The list borrows this single-entry table for the room's lifetime.
+static UiListRowCallback _gShopItemRowCallbacks[] = {
     _shopDrawItemRow,
 };
 

@@ -9939,7 +9939,7 @@ split the same way and needed nothing.
 When the table is immediately followed by `INCLUDE_RODATA` that belongs to a
 *later* function, add a second pair so the table is the only thing in its
 object's `.rodata`. `func_dryfield_night_trailer_coach_80181DB0` is a 0x60-byte
-0..23 table at `0x1BC` ending at `0x21C`, and `D_..._8017D7DC` starts there:
+0..23 table at `0x1BC` ending at `0x21C`, and `_gDryfieldNightTrailerCoachRoomTaskStates` starts there:
 
 ```toml
 dryfield_night_trailer_coach = { room = "Trailer coach",

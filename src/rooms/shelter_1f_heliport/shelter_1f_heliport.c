@@ -74,27 +74,19 @@ static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
 
 /// Messages and labels of the shop's panels.
-static u8 Shop_Data_80181A0C[];
-static u8 Shop_Data_80181A1C[];
-static u8 Shop_Data_80181A20[];
-static u8 Shop_Data_80181A5C[];
 static u8 Shop_Data_80181A64[];
 static u8 Shop_Data_80181A70[];
 static u8 Shop_Data_80181A78[];
-/// The shop's tier ladder.
-static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
 
 static s32 _gShopPreviewRowId;
 
 /// Row handlers, lists and panel descriptors of the shop's panels.
-static UiListRowCallback Shop_Data_80181AD8[];
-static UiList            Shop_Data_80181AE0;
-static UiObjectDesc      Shop_Data_80181B30;
-static UiObjectDesc      Shop_Data_80181B4C;
-static UiObjectDesc      Shop_Data_80181B68;
-static UiObjectDesc      Shop_Data_80181B84;
-static UiObjectDesc      Shop_Data_80181BD8;
-static UiObjectDesc      Shop_Data_80181BF4;
+static UiList       Shop_Data_80181AE0;
+static UiObjectDesc Shop_Data_80181B30;
+static UiObjectDesc Shop_Data_80181B4C;
+static UiObjectDesc Shop_Data_80181B68;
+static UiObjectDesc Shop_Data_80181B84;
+static UiObjectDesc Shop_Data_80181BD8;
 
 /// Descriptors of the room's event task and of its cap-script task.
 extern TaskDesc D_shelter_1f_heliport_80181194;

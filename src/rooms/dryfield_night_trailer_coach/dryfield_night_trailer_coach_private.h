@@ -28,17 +28,47 @@ extern ActorTransform gDryfieldNightTrailerCoachPlayerDialogueTransform;
 /// selected bank must remain loaded throughout playback.
 extern const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerIdleAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_801879F8;
+/// Equipped-player clip 47 leading into the story conversation's closing phase.
+///
+/// Event playback copies the request and resolves its bank seed from equipment.
+/// Blends over eight frames with world collision disabled. The script borrows
+/// the request until dispatch; the room's installed clip data stays live during playback.
+extern const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryClosingLeadInAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187A0C;
+/// Equipped-player clip 52 at the closing CAP cue of the story conversation.
+///
+/// Event playback copies the request and resolves its bank seed from equipment.
+/// Resets playback with world collision disabled. The script borrows the request
+/// until dispatch; the room's installed clip data stays live during playback.
+extern const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryClosingAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187A34;
+/// Equipped-player clip 53 repeated at the story conversation's dialogue cues.
+///
+/// Event playback copies the request and resolves its bank seed from equipment.
+/// Resets playback with world collision disabled. The script borrows the request
+/// until dispatch; the room's installed clip data stays live during playback.
+extern const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryDialogueAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187A98;
+/// Equipped-player clip 56 at the chapter-4 arrival conversation cue.
+///
+/// Event playback copies the request and resolves its bank seed from equipment.
+/// Resets playback with world collision disabled. The script borrows the request
+/// until dispatch; the room's installed clip data stays live during playback.
+extern const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerChapter4DialogueAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187AAC;
+/// Equipped-player clip 57 at the middle story-conversation reply cue.
+///
+/// Event playback copies the request and resolves its bank seed from equipment.
+/// Resets playback with world collision disabled. The script borrows the request
+/// until dispatch; the room's installed clip data stays live during playback.
+extern const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryReplyAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187AD4;
+/// Gary's reset base-bank clip 1 opening the first story conversation.
+///
+/// Resets playback immediately and ignores blend duration and collision.
+/// The script borrows the request until synchronous placement-0 dispatch;
+/// the room image must remain loaded until that instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryStoryLeadInAnimation;
 
 /// Gary's reset base-bank clip 4 between the closing lead-in and talk rest.
 ///
@@ -72,7 +102,12 @@ extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkHoldAnimation;
 /// the room image must remain loaded until the instruction executes.
 extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkClosingLeadInAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187B88;
+/// Gary's blended base-bank clip 10 for the CAP-11 and repeat CAP-13 replies.
+///
+/// Blends over eight frames regardless of blendFrames; collision is ignored.
+/// The script borrows the request until synchronous placement-0 dispatch;
+/// the room image must remain loaded until that instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkReplyAnimation;
 
 /// Gary's reset bank-1 clip 1 leading into arrival and story dialogue.
 ///
@@ -90,7 +125,12 @@ extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueLeadInAnimatio
 /// the room image must remain loaded until the instruction executes.
 extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueHoldAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187BEC;
+/// Gary's blended bank-1 clip 3 between the first story conversation's dialogue cues.
+///
+/// Maps to local set 13. Blends over eight frames regardless of blendFrames; collision is ignored.
+/// The script borrows the request until synchronous placement-0 dispatch;
+/// the room image must remain loaded until that instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryStoryReplyAnimation;
 
 /// Gary's blended bank-1 clip 7 for the next phase of arrival and story dialogue.
 ///
@@ -101,7 +141,12 @@ extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187BEC;
 /// the room image must remain loaded until the instruction executes.
 extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueFollowupAnimation;
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187CA0;
+/// Gary's blended bank-2 clip 3 at the first story conversation's closing cue.
+///
+/// Maps to local set 20. Blends over eight frames regardless of blendFrames; collision is ignored.
+/// The script borrows the request until synchronous placement-0 dispatch;
+/// the room image must remain loaded until that instruction executes.
+extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryStoryClosingAnimation;
 
 /// Installs eleven room-owned dialogue clips into the equipped player's bank extension.
 ///

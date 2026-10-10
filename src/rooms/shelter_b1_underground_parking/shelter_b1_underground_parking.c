@@ -213,22 +213,11 @@ static const u16 _gShopStandardDefaultItemsStock[];
 
 /// Texts and panel descriptors of the shop list's two special rows (ids
 /// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-static u8           Shop_Data_80181A0C[];
-static u8           Shop_Data_80181A1C[];
-static u8           Shop_Data_80181A20[];
 static UiObjectDesc Shop_Data_80181B84;
 static UiObjectDesc Shop_Data_80181BD8;
 
-/// The shop's unlockable stock rows.
-static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
-
-/// The shop list's row handlers and the balance panel beside it.
-static UiListRowCallback Shop_Data_80181AD8[];
-static UiObjectDesc      Shop_Data_80181BF4;
-
 /// Texts of the four rows that pick an entry of the shop's id list, and the
 /// panel they open.
-static u8           Shop_Data_80181A5C[];
 static u8           Shop_Data_80181A64[];
 static u8           Shop_Data_80181A70[];
 static u8           Shop_Data_80181A78[];

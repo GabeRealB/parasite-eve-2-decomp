@@ -368,7 +368,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
         panelControl = object->panel.control.word;
         if (((panelControl >> SHOP_ROW_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
             if (list->selectedItemIndex == list->currentItemIndex) {
-                uiSetPromptText(Shop_Data_80181A20, 0, 0);
+                uiSetPromptText(_gShopRechargeServicePrompt, 0, 0);
             }
         }
         if (equipmentHasCarriedWeaponSupply() == 0) {
@@ -383,7 +383,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
         textRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         textRequest.alignment  = TEXT_ALIGNMENT_LEFT;
         textRequest.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&textRequest, Shop_Data_80181A0C);
+        textDrawString(&textRequest, _gShopRechargeServiceLabel);
         if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             uiSpawnObject(&Shop_Data_80181BD8, 0, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
@@ -405,7 +405,7 @@ static void _shopDrawItemRow(UiList* list, UiObject* object)
             purchaseBlocked = 1;
             list->colorRgb  = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
         }
-        textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Shop_Data_80181A1C, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, _gShopUnusedSpecialRowLabel, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
         if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && purchaseBlocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
             specialRowDialog = uiSpawnObject(&Shop_Data_80181B84, rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
@@ -566,8 +566,8 @@ static void _shopBuildItemList(UiList* list, UiObject* object)
             for (tierIndex = 0; tierIndex < SHOP_TIER_COUNT; tierIndex++) {
                 tierUnlocked = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers & (1 << tierIndex);
                 if (tierUnlocked != 0) {
-                    for (tierItemIndex = 0; tierItemIndex < ARRAY_SIZE(Shop_Data_80181950[tierIndex].items); tierItemIndex++) {
-                        itemId = Shop_Data_80181950[tierIndex].items[tierItemIndex];
+                    for (tierItemIndex = 0; tierItemIndex < ARRAY_SIZE(_gShopReplayTierLadder[tierIndex].items); tierItemIndex++) {
+                        itemId = _gShopReplayTierLadder[tierIndex].items[tierItemIndex];
                         switch (stockSelector >> 16) {
                             case SHOP_CATEGORY_WEAPONS:
                                 if (((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < SHOP_WEAPON_ITEM_COUNT) || (itemId == SHOP_ITEM_SNAIL_MAGAZINE) || (itemId == SHOP_ITEM_SMG_CLIP_HOLDER) ||
@@ -673,7 +673,7 @@ static void _shopItemListTask(Task* task)
         if (allocation != NULL) {
             work                      = allocation;
             task->work                = work;
-            work->list.rowCallbacks   = Shop_Data_80181AD8;
+            work->list.rowCallbacks   = _gShopItemRowCallbacks;
             work->list.wrapNavigation = 0;
             work->list.rowHeight      = 0xF;
             _shopBuildItemList(&work->list, object);
@@ -682,7 +682,7 @@ static void _shopItemListTask(Task* task)
             uiSetListSystemCursorSound(&work->list, 1);
             object->panel.bounds.unsignedRect.h += 8;
             work->list.topInset                  = 8;
-            uiSpawnObject(&Shop_Data_80181BF4, 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
+            uiSpawnObject(&_gShopItemPreviewDescriptor, 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
             task->state += 1;
         }
     }
@@ -750,7 +750,7 @@ static void _shopDrawCategoryRow(UiList* list, UiObject* object)
         return;
     }
 
-    label                          = Shop_Data_80181A5C;
+    label                          = _gShopWeaponsCategoryLabel;
     object->owner->spawnArg1.value = (u16)object->owner->spawnArg1.value;
     switch (list->currentItemIndex) {
         case SHOP_CATEGORY_WEAPONS:

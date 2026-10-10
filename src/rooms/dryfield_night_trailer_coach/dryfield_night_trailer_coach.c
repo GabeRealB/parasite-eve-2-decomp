@@ -92,18 +92,17 @@ static s32 _dryfieldNightTrailerCoachSoundMessage(Task* unusedTask, s32 unusedMe
 
 static void _dryfieldNightTrailerCoachTalkTask(Task* task);
 
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187A20;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation07DD8;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation07FD0;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation08324;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation0851C;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation08820;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation08C48;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation09284;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation0959C;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation098C8;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation09E10;
-static AnimationSet         _gDryfieldNightTrailerCoachAnimation0A364;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation07DD8;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation07FD0;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation08324;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation0851C;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation08820;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation08C48;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation09284;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation0959C;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation098C8;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation09E10;
+static AnimationSet _gDryfieldNightTrailerCoachAnimation0A364;
 
 static void _dryfieldNightTrailerCoachStartTalkVariant1(void);
 static void _dryfieldNightTrailerCoachOpenShop(void);
@@ -406,7 +405,12 @@ static AnimationSet _gDryfieldNightTrailerCoachAnimation0A364 = {
     { NULL, _gDryfieldNightTrailerCoachAnimation0A364Bank1, NULL, NULL, _gDryfieldNightTrailerCoachAnimation0A364Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_dryfield_night_trailer_coach_8018794C[6] = {
+/// Sentinel-terminated receiver table for the night trailer coach room task.
+///
+/// Five handlers resolve room variants, reject key items, ignore room actions,
+/// start room commands and route sound cues. The task borrows this table and
+/// its callback code while the room image remains loaded.
+static const TaskMessageEntry _gDryfieldNightTrailerCoachRoomMessages[] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightTrailerCoachResolveRoomVariantMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightTrailerCoachRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightTrailerCoachIgnoreActionMessage },
@@ -415,7 +419,17 @@ TaskMessageEntry D_dryfield_night_trailer_coach_8018794C[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_night_trailer_coach_8018797C = { { { TASK_BODY_NONE, 32 } }, _dryfieldNightTrailerCoachTalkTask, { .value = 0 } };
+enum { DRYFIELD_NIGHT_TRAILER_COACH_TALK_TASK_PRIORITY = 32 };
+
+/// Bodyless priority-32 recipe for the room-command conversation task.
+///
+/// Spawning copies the recipe; the room's callback code must remain loaded
+/// until the task completes. Spawn payload words are unused.
+static TaskDesc _gDryfieldNightTrailerCoachTalkTaskDescriptor = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_NIGHT_TRAILER_COACH_TALK_TASK_PRIORITY } },
+    .callback = _dryfieldNightTrailerCoachTalkTask,
+    .data     = { .value = 0 },
+};
 
 ActorTransform gDryfieldNightTrailerCoachPlayerDialogueTransform = {
     .pos = { 4870, 0, -900, 0 },
@@ -424,7 +438,14 @@ ActorTransform gDryfieldNightTrailerCoachPlayerDialogueTransform = {
 
 ActorTransform D_dryfield_night_trailer_coach_801879A0 = { { 4600, 0, -1300, 0 }, { 0, -1479, 0, 0 } };
 
-ActorTransform D_dryfield_night_trailer_coach_801879B8 = { { 4400, 0, -2400, 0 }, { 0, 512, 0, 0 } };
+/// Arrival placement of a present companion in room-coordinate units.
+///
+/// Yaw 512 is one eighth-turn; pitch and roll are zero. Placement copies both
+/// vectors synchronously and does not retain the transform.
+static const ActorTransform _gDryfieldNightTrailerCoachCompanionArrivalTransform SECTION(".data") = {
+    .pos = { 4400, 0, -2400, 0 },
+    .rot = { 0, 512, 0, 0 },
+};
 
 enum { DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_IDLE_CLIP = 1 };
 
@@ -438,13 +459,63 @@ const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerIdleAnimation SECTION
 
 AnimationPlayRequest D_dryfield_night_trailer_coach_801879E4 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_801879F8 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_EQUIPPED_BANK_SEED         = 1,
+    DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_DIALOGUE_BLEND_FRAMES      = 8,
+    DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_STORY_CLOSING_LEAD_IN_CLIP = 47,
+    DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_STORY_CLOSING_CLIP         = 52,
+    DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_ARRIVAL_DIALOGUE_CLIP      = 48,
+    DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_STORY_DIALOGUE_CLIP        = 53,
+    DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_CHAPTER4_DIALOGUE_CLIP     = 56,
+    DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_STORY_REPLY_CLIP           = 57,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_STORY_LEAD_IN_CLIP           = 1,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_TALK_OPENING_HOLD_CLIP       = 7,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_TALK_REPLY_CLIP              = 10,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_STORY_REPLY_CLIP             = 3,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_ARRIVAL_OPENING_CLIP         = 1,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_ARRIVAL_FOLLOWUP_CLIP        = 2,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_STORY_CLOSING_CLIP           = 3,
+    DRYFIELD_NIGHT_TRAILER_COACH_FLINT_ARRIVAL_CLIP                = 34,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_ARRIVAL_BANK                 = 2,
+    DRYFIELD_NIGHT_TRAILER_COACH_FLINT_BANK                        = 6
+};
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187A0C = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryClosingLeadInAnimation SECTION(".data") = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_EQUIPPED_BANK_SEED },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_STORY_CLOSING_LEAD_IN_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187A20 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryClosingAnimation SECTION(".data") = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_EQUIPPED_BANK_SEED },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_STORY_CLOSING_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187A34 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Equipped-player clip 48 for the warp-2 arrival dialogue.
+///
+/// Playback copies the request, replaces the bank seed from current equipment,
+/// blends over eight frames and disables world collision. The request is
+/// borrowed until dispatch; room-owned clip data stays live during playback.
+static const AnimationPlayRequest _gDryfieldNightTrailerCoachPlayerArrivalDialogueAnimation SECTION(".data") = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_EQUIPPED_BANK_SEED },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_ARRIVAL_DIALOGUE_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryDialogueAnimation SECTION(".data") = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_EQUIPPED_BANK_SEED },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_STORY_DIALOGUE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_trailer_coach_80187A48[4] = {
     { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -453,18 +524,23 @@ AnimationPlayRequest D_dryfield_night_trailer_coach_80187A48[4] = {
     { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187A98 = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerChapter4DialogueAnimation SECTION(".data") = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_EQUIPPED_BANK_SEED },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_CHAPTER4_DIALOGUE_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187AAC = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+const AnimationPlayRequest gDryfieldNightTrailerCoachPlayerStoryReplyAnimation SECTION(".data") = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_EQUIPPED_BANK_SEED },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_PLAYER_STORY_REPLY_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_trailer_coach_80187AC0 = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187AD4 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
-
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187AE8[2] = {
-    { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-};
 
 enum {
     DRYFIELD_NIGHT_TRAILER_COACH_GARY_BASE_BANK                 = 0,
@@ -476,6 +552,19 @@ enum {
     DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_LEAD_IN_CLIP     = 1,
     DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_HOLD_CLIP        = 2,
     DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_FOLLOWUP_CLIP    = 7,
+};
+
+AnimationPlayRequest gDryfieldNightTrailerCoachGaryStoryLeadInAnimation = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_BASE_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_STORY_LEAD_IN_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+AnimationPlayRequest D_dryfield_night_trailer_coach_80187AE8[2] = {
+    { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
+    { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkClosingAnimation = {
@@ -514,7 +603,18 @@ static AnimationPlayRequest _gDryfieldNightTrailerCoachGaryTalkOpeningAnimation 
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187B4C = { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gary's reset base-bank clip 7 between talk opening and the held talk pose.
+///
+/// Follows the opening after 21 frames; the script waits another nine frames
+/// before talk hold. Placement-0 dispatch consumes the request synchronously;
+/// blend duration and world collision are ignored. The room stays loaded until dispatch.
+static AnimationPlayRequest _gDryfieldNightTrailerCoachGaryTalkOpeningHoldAnimation = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_BASE_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_TALK_OPENING_HOLD_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkHoldAnimation = {
     .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_BASE_BANK },
@@ -532,7 +632,13 @@ AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkClosingLeadInAnimation = 
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187B88 = { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest gDryfieldNightTrailerCoachGaryTalkReplyAnimation = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_BASE_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_TALK_REPLY_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_TALK_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_trailer_coach_80187B9C[2] = {
     { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -555,7 +661,13 @@ AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueHoldAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187BEC = { { .index = 1 }, 3, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest gDryfieldNightTrailerCoachGaryStoryReplyAnimation = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_STORY_REPLY_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_trailer_coach_80187C00[3] = {
     { { .index = 1 }, 4, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -571,15 +683,52 @@ AnimationPlayRequest gDryfieldNightTrailerCoachGaryDialogueFollowupAnimation = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187C50 = { { .index = 1 }, 2, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gary's blended bank-1 clip 2 held at the warp-2 arrival dialogue cue.
+///
+/// Follows the dialogue lead-in after sixteen frames. Maps to local set 12
+/// and blends over eight frames despite the zero requested duration. World
+/// collision is ignored; the script borrows this record until placement-0 dispatch.
+static AnimationPlayRequest _gDryfieldNightTrailerCoachGaryArrivalDialogueHoldAnimation = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_DIALOGUE_HOLD_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_trailer_coach_80187C64 = { { .index = 2 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187C78 = { { .index = 2 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gary's reset bank-2 clip 1 at the opening of warp-2 arrival dialogue.
+///
+/// Maps to local set 18. Placement-0 dispatch resets playback immediately;
+/// blend duration and collision are ignored. The room stays loaded until dispatch.
+static AnimationPlayRequest _gDryfieldNightTrailerCoachGaryArrivalOpeningAnimation = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_ARRIVAL_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_ARRIVAL_OPENING_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187C8C = { { .index = 2 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Gary's reset bank-2 clip 2 after the first warp-2 arrival CAP cue.
+///
+/// Maps to local set 19. Placement-0 dispatch resets playback immediately;
+/// blend duration and collision are ignored. The room stays loaded until dispatch.
+static AnimationPlayRequest _gDryfieldNightTrailerCoachGaryArrivalFollowupAnimation = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_ARRIVAL_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_ARRIVAL_FOLLOWUP_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187CA0 = { { .index = 2 }, 3, ANIMATION_BLEND_INTERPOLATE, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest gDryfieldNightTrailerCoachGaryStoryClosingAnimation = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_GARY_ARRIVAL_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_GARY_STORY_CLOSING_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Room-owned player clips installed at equipped-bank indices 47..57 for dialogue.
 ///
@@ -606,62 +755,101 @@ const AnimationBankCopyRequest gDryfieldNightTrailerCoachPlayerDialogueBankCopyR
     .wordCount = ARRAY_SIZE(_gDryfieldNightTrailerCoachPlayerDialogueAnimationSets) - 1,
 };
 
-AnimationPlayRequest D_dryfield_night_trailer_coach_80187CEC = { { .index = 6 }, 34, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Flint-bank clip 34 requested of a present companion on room entry.
+///
+/// Selects bank 6 directly, resets playback and disables world collision.
+/// Dispatch reads the request synchronously; Flint's loaded animation bank
+/// and tracks must remain live throughout the companion's playback.
+static const AnimationPlayRequest _gDryfieldNightTrailerCoachFlintArrivalAnimation SECTION(".data") = {
+    .source               = { .index = DRYFIELD_NIGHT_TRAILER_COACH_FLINT_BANK },
+    .animationId          = DRYFIELD_NIGHT_TRAILER_COACH_FLINT_ARRIVAL_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-EvsCommand D_dryfield_night_trailer_coach_80187D00[25] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
+enum {
+    DRYFIELD_NIGHT_TRAILER_COACH_CAP_WARP2_ARRIVAL      = 8,
+    DRYFIELD_NIGHT_TRAILER_COACH_CAP_TALK_CHOICE        = 9,
+    DRYFIELD_NIGHT_TRAILER_COACH_CAP_SHOP_GREETING      = 10,
+    DRYFIELD_NIGHT_TRAILER_COACH_CAP_CHAPTER4_GREETING  = 24,
+    DRYFIELD_NIGHT_TRAILER_COACH_SHOP_CHOICE_STOCK      = 0x20,
+    DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX   = 0,
+    DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_OPENING_SOUND  = 8,
+    DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_FOLLOWUP_SOUND = 9,
+    DRYFIELD_NIGHT_TRAILER_COACH_RESTORED_VIEW          = 3
+};
+
+/// Skippable warp-2 arrival dialogue with Gary.
+///
+/// Starts CAP command 8, installs the player's room clips and coordinates
+/// player/Gary animation with CAP cues and sound requests. Restores weapons,
+/// lighting, view 3 and normal player control before END. The interpreter
+/// borrows this complete command stream and its room resources until it ends.
+static EvsCommand _gDryfieldNightTrailerCoachWarp2ArrivalScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_CAP_WARP2_ARRIVAL }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gDryfieldNightTrailerCoachPlayerDialogueBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &gDryfieldNightTrailerCoachPlayerDialogueTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187C78 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x531B0008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryArrivalOpeningAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_OPENING_SOUND) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187C8C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x531B0009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryArrivalFollowupAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_FOLLOWUP_SOUND) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_trailer_coach_80187A20 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightTrailerCoachPlayerArrivalDialogueAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryDialogueLeadInAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryDialogueLeadInAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 16 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187C50 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryArrivalDialogueHoldAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_TRAILER_COACH_RESTORED_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_trailer_coach_80187F58[14] = {
+/// Restores the warp-2 arrival scene when the player skips dialogue.
+///
+/// Covers restoration with a fade, places the player, resets player/Gary poses,
+/// restores weapons and lighting, selects view 3, and ends scripted control.
+/// This END-terminated stream and its resources remain borrowed until completion.
+static EvsCommand _gDryfieldNightTrailerCoachWarp2ArrivalSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &gDryfieldNightTrailerCoachPlayerDialogueTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_TRAILER_COACH_RESTORED_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_trailer_coach_801880A8[14] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
+/// Opens the initial Gary conversation and leaves its CAP choice for the talk task.
+///
+/// CAP command 9 hides the HUD and enters Gary's talk pose, then the callback
+/// starts variant 1. CAP cues bracket the choice. Player control and the HUD
+/// remain held for the selected follow-up. The room stays loaded through END.
+static EvsCommand _gDryfieldNightTrailerCoachTalkChoiceScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_CAP_TALK_CHOICE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_HIDE_HUD }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187B4C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningHoldAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkHoldAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkHoldAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightTrailerCoachStartTalkVariant1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -670,85 +858,92 @@ EvsCommand D_dryfield_night_trailer_coach_801880A8[14] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_trailer_coach_801881F8[14] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
+/// Runs the shop follow-up selected by conversation variant 11.
+///
+/// CAP command 10 opens stock profile 32 at its cue, then closes Gary's talk
+/// pose and restores player control and the HUD. The interpreter borrows
+/// this END-terminated stream and its callbacks through completion.
+static EvsCommand _gDryfieldNightTrailerCoachShopChoiceScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_CAP_SHOP_GREETING }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackResult = shopOpenSession }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingLeadInAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackResult = shopOpenSession }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_SHOP_CHOICE_STOCK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingLeadInAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_SHOW_HUD }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_trailer_coach_80188348[19] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
+/// Runs Gary's repeat greeting and opens the night trailer coach shop.
+///
+/// CAP command 10 drives the opening and closing talk poses around the shop
+/// callback. Ends by restoring player control and the HUD. The complete
+/// END-terminated stream and callback code must remain loaded until completion.
+static EvsCommand _gDryfieldNightTrailerCoachShopGreetingScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_CAP_SHOP_GREETING }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_trailer_coach_80187B4C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningHoldAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkHoldAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkHoldAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightTrailerCoachOpenShop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingLeadInAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingLeadInAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_SHOW_HUD }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_trailer_coach_80188510[21] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 24 }, { .value = 0 } },
+/// Runs Gary's first chapter-4 greeting and opens the night trailer coach shop.
+///
+/// CAP command 24 uses the story-dialogue poses before opening the shop,
+/// then closes the conversation and restores player control and the HUD.
+/// The interpreter borrows this END-terminated stream until completion.
+static EvsCommand _gDryfieldNightTrailerCoachChapter4ShopGreetingScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_CAP_CHAPTER4_GREETING }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &gDryfieldNightTrailerCoachPlayerIdleAnimation }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightTrailerCoachGaryTalkOpeningAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 21 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryDialogueLeadInAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryDialogueLeadInAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryDialogueHoldAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryDialogueHoldAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryDialogueFollowupAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryDialogueFollowupAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightTrailerCoachOpenShop }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingLeadInAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingLeadInAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkClosingAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = DRYFIELD_NIGHT_TRAILER_COACH_GARY_PLACEMENT_INDEX }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &gDryfieldNightTrailerCoachGaryTalkRestAnimation } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_SHOW_HUD }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 /// Texts and panel descriptors of the shop list's two special rows (ids
 /// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-static u8 Shop_Data_80181A20[];
-
-static u8 Shop_Data_80181A0C[];
 
 static UiObjectDesc Shop_Data_80181BD8;
 
-static u8 Shop_Data_80181A1C[];
-
 static UiObjectDesc Shop_Data_80181B84;
 
-static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
-
 /// Messages and labels of the shop's panels.
-static u8 Shop_Data_80181A5C[];
 
 static u8 Shop_Data_80181A64[];
 
@@ -757,7 +952,6 @@ static u8 Shop_Data_80181A70[];
 static u8 Shop_Data_80181A78[];
 
 /// Row handlers, lists and panel descriptors of the shop's panels.
-static UiListRowCallback Shop_Data_80181AD8[];
 
 static UiList Shop_Data_80181AE0;
 
@@ -765,32 +959,10 @@ static UiObjectDesc Shop_Data_80181B4C;
 
 static UiObjectDesc Shop_Data_80181B68;
 
-static UiObjectDesc Shop_Data_80181BF4;
-
 /// Descriptor of the panel `func_dryfield_night_trailer_coach_8017FEC0` opens.
 static UiObjectDesc Shop_Data_80181B30;
 
-extern TaskMessageEntry D_dryfield_night_trailer_coach_8018794C[6];
-
-extern ActorTransform D_dryfield_night_trailer_coach_801879B8;
-
-extern AnimationPlayRequest D_dryfield_night_trailer_coach_80187CEC;
-
-extern EvsCommand D_dryfield_night_trailer_coach_80187D00[];
-
-extern EvsCommand D_dryfield_night_trailer_coach_80187F58[];
-
-extern EvsCommand D_dryfield_night_trailer_coach_801880A8[];
-
-extern EvsCommand D_dryfield_night_trailer_coach_801881F8[];
-
-extern EvsCommand D_dryfield_night_trailer_coach_80188348[];
-
-extern EvsCommand D_dryfield_night_trailer_coach_80188510[];
-
 static void _dryfieldNightTrailerCoachInitRoomTask(Task* task);
-
-extern TaskDesc D_dryfield_night_trailer_coach_8018797C;
 
 #include "../../shared/shop.inc.c"
 #undef SHOP_REFILL_DISPLAY_QUANTITY
@@ -814,9 +986,11 @@ void dryfieldNightTrailerCoachTelephoneMenuTask(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// State handlers of the room's task `dryfieldNightTrailerCoachRoomTask`
-/// runs: its set-up, a per-frame state and the kill.
-static const TaskFuncTable3 D_dryfield_night_trailer_coach_8017D7DC = {
+/// Room-task dispatch for states 0 initialize, 1 update depth scale and 2 kill.
+///
+/// State indices must stay in 0..2. This table stays at its original rodata
+/// position among the callback definitions.
+static const TaskFuncTable3 _gDryfieldNightTrailerCoachRoomTaskStates = {
     {
         _dryfieldNightTrailerCoachInitRoomTask,
         _trailerCoachSetDepthShift,
@@ -841,15 +1015,15 @@ static void _dryfieldNightTrailerCoachInitRoomTask(Task* task)
     };
     s32* taskState;
 
-    task->msgTable = D_dryfield_night_trailer_coach_8018794C;
+    task->msgTable = _gDryfieldNightTrailerCoachRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_night_trailer_coach_801879B8, 0);
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_night_trailer_coach_80187CEC, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldNightTrailerCoachCompanionArrivalTransform, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &_gDryfieldNightTrailerCoachFlintArrivalAnimation, 0);
     }
     // Arrival scripts own their normal and skipped restoration paths.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_WARP_2) {
-        evsStartScriptWithSkip(D_dryfield_night_trailer_coach_80187D00, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_trailer_coach_80187F58);
+        evsStartScriptWithSkip(_gDryfieldNightTrailerCoachWarp2ArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightTrailerCoachWarp2ArrivalSkipScript);
     }
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_WARP_3) {
         evsStartScriptWithSkip(D_dryfield_night_trailer_coach_80189080, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_trailer_coach_801892C0);
@@ -891,22 +1065,22 @@ static void _dryfieldNightTrailerCoachTalkTask(Task* task)
         case DRYFIELD_NIGHT_TRAILER_COACH_TALK_SELECT:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) == 0) {
-                evsStartScript(D_dryfield_night_trailer_coach_801880A8, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(_gDryfieldNightTrailerCoachTalkChoiceScript, EVENT_SCRIPT_HUD_KEEP);
                 task->state++;
                 break;
             }
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN) == 0 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER) {
                 gameFlagSetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_CHAPTER4_SCENE_SEEN, 1);
-                evsStartScript(D_dryfield_night_trailer_coach_80188510, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gDryfieldNightTrailerCoachChapter4ShopGreetingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
-                evsStartScript(D_dryfield_night_trailer_coach_80188348, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gDryfieldNightTrailerCoachShopGreetingScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             taskKill(task);
             break;
         case DRYFIELD_NIGHT_TRAILER_COACH_TALK_HANDLE_CHOICE:
             // Route the completed conversation's choice into its follow-up scene.
             if (capGetVariantKey() == DRYFIELD_NIGHT_TRAILER_COACH_TALK_VARIANT_SHOP) {
-                evsStartScript(D_dryfield_night_trailer_coach_801881F8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gDryfieldNightTrailerCoachShopChoiceScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else if (capGetVariantKey() == DRYFIELD_NIGHT_TRAILER_COACH_TALK_VARIANT_CAP_11) {
                 evsStartScript(D_dryfield_night_trailer_coach_80188708, EVENT_SCRIPT_HUD_KEEP);
             } else if (capGetVariantKey() == DRYFIELD_NIGHT_TRAILER_COACH_TALK_VARIANT_STORY) {
@@ -1026,7 +1200,7 @@ static s32 _dryfieldNightTrailerCoachCommandMessage(Task* unusedTask, s32 unused
         _dryfieldNightTrailerCoachQueueCutscene();
     }
     if (commandId == DRYFIELD_NIGHT_TRAILER_COACH_COMMAND_TALK) {
-        taskSpawnFromTable(&D_dryfield_night_trailer_coach_8018797C, 0, 0, 0);
+        taskSpawnFromTable(&_gDryfieldNightTrailerCoachTalkTaskDescriptor, 0, 0, 0);
     }
     if (commandId == DRYFIELD_NIGHT_TRAILER_COACH_COMMAND_CAP_23) {
         capRunCommandWithTransition(DRYFIELD_NIGHT_TRAILER_COACH_COMMAND_CAP_23);
@@ -1092,6 +1266,6 @@ void dryfieldNightTrailerCoachRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_dryfield_night_trailer_coach_8017D7DC;
+    handlers = _gDryfieldNightTrailerCoachRoomTaskStates;
     handlers.funcs[task->state](task);
 }

@@ -204,7 +204,7 @@ gShelterB1UndergroundParkingRoomLighting = 0x801877B4; // absolute:True owner=sh
 D_shelter_b1_underground_parking_801877F4 = 0x801877F4; // absolute:True owner=shelter_b1_underground_parking shared=rooms
 gShelterB1UndergroundParkingRoomViewMaps = 0x8018791C; // absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_8018793C = 0x8018793C; // absolute:True owner=shelter_b1_underground_parking
-D_shelter_b1_underground_parking_8018794C = 0x8018794C; // absolute:True owner=shelter_b1_underground_parking shared=rooms
+D_shelter_b1_underground_parking_8018794C = 0x8018794C; // absolute:True owner=shelter_b1_underground_parking
 gShelterB1UndergroundParkingViewCameras = 0x80189778; // absolute:True owner=shelter_b1_underground_parking
 gShelterB1UndergroundParkingSpriteViews = 0x8018AB9C; // absolute:True owner=shelter_b1_underground_parking
 gShelterB1UndergroundParkingSurfacePropertiesByClass = 0x8018D724; // absolute:True owner=shelter_b1_underground_parking

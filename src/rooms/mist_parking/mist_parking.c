@@ -758,20 +758,12 @@ AnimationSet gMistParkingAnimation10174 = {
 
 /// Texts and panel descriptors of the shop list's two special rows (ids
 /// 0xFFFE and 0xFFFC) and of the panel a bought item opens.
-static u8 Shop_Data_80181A20[];
-
-static u8 Shop_Data_80181A0C[];
-
-static u8 Shop_Data_80181A1C[];
 
 static UiObjectDesc Shop_Data_80181B84;
 
 static UiObjectDesc Shop_Data_80181BD8;
 
-static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];
-
 /// Messages of the shop's panels.
-static u8 Shop_Data_80181A5C[];
 
 static u8 Shop_Data_80181A64[];
 
@@ -780,15 +772,12 @@ static u8 Shop_Data_80181A70[];
 static u8 Shop_Data_80181A78[];
 
 /// Row handlers, lists and panel descriptors of the shop's panels.
-static UiListRowCallback Shop_Data_80181AD8[];
 
 static UiList Shop_Data_80181AE0;
 
 static UiObjectDesc Shop_Data_80181B4C;
 
 static UiObjectDesc Shop_Data_80181B68;
-
-static UiObjectDesc Shop_Data_80181BF4;
 
 /// Descriptor of the panel `func_mist_parking_8017FF9C` opens.
 static UiObjectDesc Shop_Data_80181B30;
