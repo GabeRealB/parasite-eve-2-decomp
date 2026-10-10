@@ -744,7 +744,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AEBC[1] = {
 WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
     [GAME_AREA_MINE_MESA - 1]                             = gMineMesaRoomLighting,
     [GAME_AREA_MINE_CAVERN - 1]                           = gMineCavernRoomLighting,
-    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = D_mine_tunnel_entrance_8017DB58,
+    [GAME_AREA_MINE_TUNNEL_ENTRANCE - 1]                  = gMineTunnelEntranceRoomLighting,
     [GAME_AREA_MINE_TUNNEL - 1]                           = gMineTunnelRoomLighting,
     [GAME_AREA_MINE_GORGE - 1]                            = gMineGorgeRoomLighting,
     [GAME_AREA_MINE_REFUGE - 1]                           = gMineRefugeRoomLighting,
@@ -1073,7 +1073,7 @@ WorldCollisionStageResources D_map_shelter_8017B3B8 = { D_map_shelter_8017B2F4 }
 static ViewCamera* D_map_shelter_8017B3BC[49] = {
     gMineMesaViewCameras,
     gMineCavernViewCameras,
-    D_mine_tunnel_entrance_8017E0E4,
+    gMineTunnelEntranceViewCameras,
     gMineTunnelViewCameras,
     gMineGorgeViewCameras,
     gMineRefugeViewCameras,
@@ -1131,7 +1131,7 @@ ViewCameraTable D_map_shelter_8017B480 = { D_map_shelter_8017B3BC };
 static u8** _gMapShelterAreaViewMaps[49] = {
     gMineMesaRoomViewMaps,
     gMineCavernRoomViewMaps,
-    D_mine_tunnel_entrance_8017DB70,
+    gMineTunnelEntranceRoomViewMaps,
     gMineTunnelRoomViewMaps,
     gMineGorgeRoomViewMaps,
     gMineRefugeRoomViewMaps,
@@ -1189,7 +1189,7 @@ ViewIndexTable gMapShelterViewIndexTable = { _gMapShelterAreaViewMaps };
 static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gMineMesaSpriteViews,
     gMineCavernSpriteViews,
-    D_mine_tunnel_entrance_8017EA4C,
+    gMineTunnelEntranceSpriteViews,
     gMineTunnelSpriteViews,
     gMineGorgeSpriteViews,
     gMineRefugeSpriteViews,
@@ -1243,7 +1243,7 @@ SpriteAreaTable gMapShelterSpriteAreaTable = { _gMapShelterAreaSpriteViews };
 WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gMineMesaSurfacePropertiesByClass,
     gMineCavernSurfacePropertiesByClass,
-    D_mine_tunnel_entrance_8017F3E8,
+    gMineTunnelEntranceSurfacePropertiesByClass,
     gMineTunnelSurfaceProperties,
     gMineGorgeSurfacePropertiesByClass,
     gMineRefugeSurfacePropertiesByClass,

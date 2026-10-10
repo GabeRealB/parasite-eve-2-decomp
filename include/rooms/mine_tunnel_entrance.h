@@ -13,22 +13,46 @@
 
 extern AreaVariant D_mine_tunnel_entrance_8017F32C[12];
 
-// mine_tunnel_entrance
-extern WorldCoordRoomLighting D_mine_tunnel_entrance_8017DB58[];
+/// Room 1's authored lights and per-view minimum ambient colours.
+///
+/// The Shelter map borrows this one-entry room array while the tunnel overlay
+/// is loaded. Light transforms and attenuation remain writable at runtime.
+extern WorldCoordRoomLighting gMineTunnelEntranceRoomLighting[1];
 
 extern WorldCollisionRoomResources D_mine_tunnel_entrance_8017DB60[];
 
-extern u8* D_mine_tunnel_entrance_8017DB70[];
+/// Room 1's logical-view mapping, borrowing gameplay's identity map.
+///
+/// Logical views 1..6 select camera, image and sprite indices 1..6 unchanged.
+/// This room directory lives in the tunnel overlay; the byte map lives in gameplay.
+extern u8* gMineTunnelEntranceRoomViewMaps[1];
 
 extern ViewCount D_mine_tunnel_entrance_8017DB74[];
 
 extern DirectionWarpEntry D_mine_tunnel_entrance_8017DB78[];
 
-extern ViewCamera D_mine_tunnel_entrance_8017E0E4[];
+/// Six cameras selected by mapped view index minus one.
+///
+/// Rotations use ONE (4096) for unity, translations are negated world-space
+/// origins, and perspective distances are pixels. The Shelter map borrows
+/// the array while this room overlay is loaded.
+extern ViewCamera gMineTunnelEntranceViewCameras[6];
 
-extern SpriteView D_mine_tunnel_entrance_8017EA4C[];
+/// Six mapped views' depth-sorted sprites over decoded background strips.
+///
+/// Views 1 and 5 have no source sprites; views 2, 3, 4 and 6 select 13, 39,
+/// 39 and 11 sources. Every batch list includes a zero-count first record
+/// and an end marker. No view supplies clipping rectangles. The Shelter map
+/// borrows this array and its mutable source/batch storage while the room is loaded.
+extern SpriteView gMineTunnelEntranceSpriteViews[6];
 
-extern WorldCollisionSurfaceProperties* D_mine_tunnel_entrance_8017F3E8[];
+/// Collision and footstep policies for surface classes 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback.
+/// Class 2 supplies floor footsteps; the others are silent. Classes 0 and
+/// 3..7 borrow one common policy, while class 1 retains a separate record.
+/// The Shelter map borrows this directory and its records while the room is loaded.
+extern WorldCollisionSurfaceProperties* gMineTunnelEntranceSurfacePropertiesByClass[8];
 
 /// Draws the tunnel entrance's flickering light flares for the current view.
 ///

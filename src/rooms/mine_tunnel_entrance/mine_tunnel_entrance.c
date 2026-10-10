@@ -31,6 +31,7 @@
 #include "main/mc_types.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_types.h"
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -43,14 +44,6 @@
 
 /// The room's message table, which the room task answers messages with.
 extern TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[];
-
-/// The tunnel's per-view quad positions, one `SVECTOR` per position, 8 bytes
-/// apart. The runs overlap: `DB18[5]`, `DB30[2]` and `DB38[1]` are all the
-/// same point, reached through whichever base the view's case names.
-extern SVECTOR D_mine_tunnel_entrance_8017DB18[];
-extern SVECTOR D_mine_tunnel_entrance_8017DB30[];
-extern SVECTOR D_mine_tunnel_entrance_8017DB38[];
-extern SVECTOR D_mine_tunnel_entrance_8017DB48[];
 
 static void _mineTunnelEntranceInitRoomTask(Task* task);
 static void _mineTunnelEntranceAdvanceSceneEvent(Task* unusedTask);
@@ -73,11 +66,11 @@ static s32 _mineTunnelEntranceIgnoreAction(Task* task, s32 messageId, const Dire
 /// The inventory's room-specific key-item use request.
 enum { MINE_TUNNEL_ENTRANCE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-extern WorldCollisionGrid         D_mine_tunnel_entrance_8017E0C0[1];
+static WorldCollisionGrid         _gMineTunnelEntranceCollisionGrid;
 extern WorldCollisionTrigger      D_mine_tunnel_entrance_8017ECEC[8];
 extern WorldCollisionTrigger      D_mine_tunnel_entrance_8017EF4C[4];
-extern WorldCoordRoomAmbientEntry D_mine_tunnel_entrance_8017F38C[7];
-extern WorldCoordRoomLights       D_mine_tunnel_entrance_8017ECD4[1];
+static WorldCoordRoomAmbientEntry _gMineTunnelEntranceViewAmbientTable[7];
+static WorldCoordRoomLights       _gMineTunnelEntranceRoomLights;
 
 TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineTunnelEntranceResolveRoomTransition },
@@ -87,35 +80,30 @@ TaskMessageEntry D_mine_tunnel_entrance_8017DAF0[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_mine_tunnel_entrance_8017DB18[3] = {
-    { 0x5B4A, -600, 3070, 0 },
-    { 0x5B4A, -600, 1560, 0 },
-    { 0x3BE2, -1920, 3770, 0 },
-};
-
-SVECTOR D_mine_tunnel_entrance_8017DB30[1] = {
+/// Eight flare centres in signed world-coordinate units, shared by views 2..6.
+///
+/// View 2 selects 0, 1, 2 and 5; view 3 selects 3..5; view 4 selects 3..4;
+/// view 5 selects 4; view 6 selects 6..7. The fourth halfword is unused.
+static SVECTOR _gMineTunnelEntranceFlarePoints[8] = {
+    { 23370, -600, 3070, 0 },
+    { 23370, -600, 1560, 0 },
+    { 15330, -1920, 3770, 0 },
     { 6970, -1770, 3440, 0 },
-};
-
-SVECTOR D_mine_tunnel_entrance_8017DB38[2] = {
     { 200, -1960, 2090, 0 },
-    { 0x302A, -1830, 530, 0 },
-};
-
-SVECTOR D_mine_tunnel_entrance_8017DB48[2] = {
+    { 12330, -1830, 530, 0 },
     { 2250, -1500, -840, 0 },
     { 3000, -1870, -3060, 0 },
 };
 
-WorldCoordRoomLighting D_mine_tunnel_entrance_8017DB58[1] = {
-    { D_mine_tunnel_entrance_8017ECD4, D_mine_tunnel_entrance_8017F38C },
+WorldCoordRoomLighting gMineTunnelEntranceRoomLighting[1] = {
+    { .lights = &_gMineTunnelEntranceRoomLights, .ambientTable = _gMineTunnelEntranceViewAmbientTable },
 };
 
 WorldCollisionRoomResources D_mine_tunnel_entrance_8017DB60[1] = {
-    { D_mine_tunnel_entrance_8017E0C0, D_mine_tunnel_entrance_8017ECEC, D_mine_tunnel_entrance_8017EF4C, NULL },
+    { &_gMineTunnelEntranceCollisionGrid, D_mine_tunnel_entrance_8017ECEC, D_mine_tunnel_entrance_8017EF4C, NULL },
 };
 
-u8* D_mine_tunnel_entrance_8017DB70[1] = {
+u8* gMineTunnelEntranceRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -127,34 +115,59 @@ DirectionWarpEntry D_mine_tunnel_entrance_8017DB78[3] = {
     { { { .word = 1024 }, 417, 0, 1571 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 417, 0, 1571 }, { 0, 0, 0, 0 }, 0x54030006, 0x54030005, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gMineTunnelEntranceCollision00B00Normals[23] = {
+enum {
+    MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_COUNT_X = 5,
+    MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_COUNT_Z = 2,
+    MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_SIZE    = 4000,
+};
+
+/// Room-space collision normals, with ONE (4096) representing unit length.
+static SVECTOR _gMineTunnelEntranceCollisionGridNormals[23] = {
 #include "assets/mine_tunnel_entrance_collision_00B00_normals.inc"
 };
 
-static SVECTOR _gMineTunnelEntranceCollision00B00Verts[54] = {
+/// Collision mesh vertices in signed room-coordinate units.
+static SVECTOR _gMineTunnelEntranceCollisionGridVerts[54] = {
 #include "assets/mine_tunnel_entrance_collision_00B00_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineTunnelEntranceCollision00B00Faces[30] = {
+/// Collision triangles and quads indexed by the grid's cell lists.
+static WorldCollisionGridFace _gMineTunnelEntranceCollisionGridFaces[30] = {
 #include "assets/mine_tunnel_entrance_collision_00B00_faces.inc"
 };
 
-static s16 _gMineTunnelEntranceCollision00B00Cells[84] = {
+/// Cell face-index lists ending in WORLD_COLLISION_GRID_CELL_END, including retained zero entries.
+static s16 _gMineTunnelEntranceCollisionGridCells[84] = {
 #include "assets/mine_tunnel_entrance_collision_00B00_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineTunnelEntranceCollision00B00Cells[i])
-static s16* _gMineTunnelEntranceCollision00B00Table[10] = {
+#define GRID_CELL(i) (&_gMineTunnelEntranceCollisionGridCells[i])
+/// X-major cell directory borrowing one terminated face-index list per cell.
+static s16* _gMineTunnelEntranceCollisionGridTable[MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_COUNT_X * MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/mine_tunnel_entrance_collision_00B00_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_tunnel_entrance_8017E0C0[1] = {
-    { NULL, _gMineTunnelEntranceCollision00B00Normals, _gMineTunnelEntranceCollision00B00Verts, _gMineTunnelEntranceCollision00B00Faces, _gMineTunnelEntranceCollision00B00Table, 630, 1791, 5, 2, 4000, 30 },
+/// Tunnel entrance floor and walls, partitioned into five by two square XZ cells.
+///
+/// Activation borrows the current view coordinate. The mesh and cell lists
+/// stay in this overlay while collision queries use the grid.
+static WorldCollisionGrid _gMineTunnelEntranceCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gMineTunnelEntranceCollisionGridNormals,
+    .vertices    = _gMineTunnelEntranceCollisionGridVerts,
+    .faces       = _gMineTunnelEntranceCollisionGridFaces,
+    .cellFaceIds = _gMineTunnelEntranceCollisionGridTable,
+    .xBias       = 630,
+    .zBias       = 1791,
+    .cellCountX  = MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_COUNT_X,
+    .cellCountZ  = MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_COUNT_Z,
+    .cellSize    = MINE_TUNNEL_ENTRANCE_COLLISION_GRID_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gMineTunnelEntranceCollisionGridFaces),
 };
 
-ViewCamera D_mine_tunnel_entrance_8017E0E4[6] = {
-    { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { -9000, 0x4A38, -2000 } }, 269 },
+ViewCamera gMineTunnelEntranceViewCameras[6] = {
+    { { { { 4095, 0, 0 }, { 0, 0, -ONE }, { 0, 4095, 0 } }, { -9000, 19000, -2000 } }, 269 },
     { { { { 1067, 0, -3954 }, { -511, 4061, -138 }, { 3921, 529, 1058 } }, { -0x27B4, 1646, -704 } }, 289 },
     { { { { 829, 0, 4011 }, { 668, 4038, -138 }, { -3954, 683, 817 } }, { -0x419D, 1790, -1202 } }, 269 },
     { { { { 841, 0, 4008 }, { 629, 4045, -132 }, { -3959, 643, 830 } }, { -0x2979, 1679, -913 } }, 269 },
@@ -162,177 +175,206 @@ ViewCamera D_mine_tunnel_entrance_8017E0E4[6] = {
     { { { { -3780, 0, 1577 }, { -235, 4050, -564 }, { -1559, -611, -3737 } }, { -3904, 535, -2862 } }, 246 },
 };
 
-SpriteBatch D_mine_tunnel_entrance_8017E1BC[2] = {
+// GPU-encoded 8-bit pages at Y = 0, palette row 255, and neutral opaque modulation.
+enum {
+    MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896 = getTPage(1, 0, 896, 0),
+    MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960 = getTPage(1, 0, 960, 0),
+    MINE_TUNNEL_ENTRANCE_SPRITE_CLUT              = getClut(0, 255),
+    MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL     = 128,
+    MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED  = 0,
+};
+
+/// View 1 retains decoded background strips and has no source sprites.
+static SpriteBatch _gMineTunnelEntranceView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_tunnel_entrance_8017E1CC[13] = {
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 88, -104, 499, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, -40, 505, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 0, 489, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 40, 474, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 112, -120, 437, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 120, -104, 480, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, -104, 438, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, -72, 443, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, -40, 450, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 0, 457, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 40, 464, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, 80, 555, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 80, 474, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+/// View 2's texture rectangles in screen pixels, with unscaled sorting depths.
+static SpriteSource _gMineTunnelEntranceView2SpriteSources[13] = {
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 64 } }, 88, -104, 499, { .fields = { 96, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, -40, 505, { .fields = { 112, 128 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, 0, 489, { .fields = { 112, 168 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, 40, 474, { .fields = { 112, 208 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 48, 16 } }, 112, -120, 437, { .fields = { 48, 40 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 64 } }, 120, -104, 480, { .fields = { 120, 64 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 32 } }, 128, -104, 438, { .fields = { 64, 144 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 32 } }, 128, -72, 443, { .fields = { 80, 224 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 40 } }, 128, -40, 450, { .fields = { 80, 184 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 40 } }, 128, 0, 457, { .fields = { 64, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 40 } }, 128, 40, 464, { .fields = { 80, 104 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, 104, 80, 555, { .fields = { 96, 144 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, 80, 474, { .fields = { 80, 64 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_mine_tunnel_entrance_8017E2D0[3] = {
+/// View 2 draws its full source array over decoded background strips.
+static SpriteBatch _gMineTunnelEntranceView2SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMineTunnelEntranceView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_tunnel_entrance_8017E2E8[39] = {
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 0, -120, 1132, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 32, -120, 1153, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 64, -120, 1113, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 64, -80, 1146, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 64, -24, 1179, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 64, 16, 1211, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -104, -120, 996, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -80, -120, 1051, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -144, -120, 956, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -128, 48, 1000, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -112, -80, 1036, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 48, 1105, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, -32, 1078, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, 8, 1070, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, 8, 1031, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -136, -32, 1004, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -136, -80, 980, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -56, -96, 2310, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -24, -96, 2452, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 0, -96, 2453, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 0, -64, 2487, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 0, -32, 2533, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 0, 0, 2487, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, -56, 2191, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, -24, 2193, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -80, -80, 2302, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -96, -80, 2258, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, -96, 2233, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -80, -96, 2264, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 112, 713, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -96, -120, 2200, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -96, -32, 2080, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -96, 8, 2000, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 120 } }, -160, -8, 850, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 112 } }, -160, -120, 955, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, -128, -120, 1580, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -128, -16, 1500, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -112, -120, 1995, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -112, -24, 1900, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+/// View 3's texture rectangles in screen pixels, with unscaled sorting depths.
+static SpriteSource _gMineTunnelEntranceView3SpriteSources[39] = {
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 8 } }, 0, -120, 1132, { .fields = { 88, 144 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 40 } }, 32, -120, 1153, { .fields = { 24, 176 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 40, 40 } }, 64, -120, 1113, { .fields = { 112, 176 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 40, 56 } }, 64, -80, 1146, { .fields = { 56, 200 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 40 } }, 64, -24, 1179, { .fields = { 8, 40 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 40 } }, 64, 16, 1211, { .fields = { 16, 136 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 40 } }, -104, -120, 996, { .fields = { 24, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 24 } }, -80, -120, 1051, { .fields = { 104, 120 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 40, 40 } }, -144, -120, 956, { .fields = { 0, 216 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 24 } }, -128, 48, 1000, { .fields = { 104, 216 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 48 } }, -112, -80, 1036, { .fields = { 48, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, 48, 1105, { .fields = { 120, 232 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -112, -32, 1078, { .fields = { 8, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -112, 8, 1070, { .fields = { 16, 80 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -128, 8, 1031, { .fields = { 40, 216 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 40 } }, -136, -32, 1004, { .fields = { 32, 96 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 48 } }, -136, -80, 980, { .fields = { 40, 48 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 16 } }, -56, -96, 2310, { .fields = { 96, 240 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 32 } }, -24, -96, 2452, { .fields = { 112, 32 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 32 } }, 0, -96, 2453, { .fields = { 112, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 32 } }, 0, -64, 2487, { .fields = { 120, 144 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 32 } }, 0, -32, 2533, { .fields = { 104, 64 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 8 } }, 0, 0, 2487, { .fields = { 96, 152 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 32 } }, -96, -56, 2191, { .fields = { 0, 80 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 32 } }, -96, -24, 2193, { .fields = { 0, 112 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 24 } }, -80, -80, 2302, { .fields = { 96, 232 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X896, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 24 } }, -96, -80, 2258, { .fields = { 112, 96 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 16 } }, -96, -96, 2233, { .fields = { 16, 120 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 16 } }, -80, -96, 2264, { .fields = { 56, 184 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 8 } }, -160, 112, 713, { .fields = { 40, 40 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 48 } }, -96, -120, 2200, { .fields = { 56, 96 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 40 } }, -96, -32, 2080, { .fields = { 56, 144 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 40 } }, -96, 8, 2000, { .fields = { 48, 136 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 120 } }, -160, -8, 850, { .fields = { 96, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 112 } }, -160, -120, 955, { .fields = { 96, 120 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 104 } }, -128, -120, 1580, { .fields = { 80, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 96 } }, -128, -16, 1500, { .fields = { 64, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 96 } }, -112, -120, 1995, { .fields = { 80, 104 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 88 } }, -112, -24, 1900, { .fields = { 64, 96 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_mine_tunnel_entrance_8017E5F4[5] = {
+/// View 3 partitions its sources into 17, 12 and 10 sprites over background strips.
+static SpriteBatch _gMineTunnelEntranceView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 1, 0 } },
     { 17, 12, 0, 0, { 2, 0 } },
-    { 29, 10, 0, 0, { 0, 0 } },
+    { 29, ARRAY_SIZE(_gMineTunnelEntranceView3SpriteSources) - 29, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_tunnel_entrance_8017E61C[39] = {
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 104, 64, 1095, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 56, 1117, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 128, 40, 1056, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 96, 40, 1064, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 104, -8, 1114, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 104, -64, 1114, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 112, -88, 1047, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, -120, 1003, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, -120, 958, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -88, 977, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 128, -64, 1010, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 128, -8, 1023, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, -64, 1000, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 136, -16, 1032, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -136, 48, 856, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, 48, 877, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 80, 856, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 80, 810, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -112, -16, 897, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -120, -80, 812, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -136, -16, 833, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -144, -80, 750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, -120, 780, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -120, 809, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -104, -120, 862, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, -120, 778, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -144, -80, 1377, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, -120, 779, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -128, 0, 837, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -128, 48, 783, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 24, 849, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, 64, 670, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 523, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, 8, 860, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, -32, 1293, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, 24, 571, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -24, 849, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -72, 1163, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -160, -120, 958, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+/// View 4's texture rectangles in screen pixels, with unscaled sorting depths.
+static SpriteSource _gMineTunnelEntranceView4SpriteSources[39] = {
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 40, 8 } }, 104, 64, 1095, { .fields = { 0, 248 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 8 } }, 96, 56, 1117, { .fields = { 8, 240 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 24 } }, 128, 40, 1056, { .fields = { 40, 232 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 16 } }, 96, 40, 1064, { .fields = { 8, 32 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 48 } }, 104, -8, 1114, { .fields = { 40, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 56 } }, 104, -64, 1114, { .fields = { 80, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 24 } }, 112, -88, 1047, { .fields = { 8, 184 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 32 } }, 88, -120, 1003, { .fields = { 8, 88 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 40, 32 } }, 120, -120, 958, { .fields = { 0, 120 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, -88, 977, { .fields = { 16, 216 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 56 } }, 128, -64, 1010, { .fields = { 96, 56 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 48 } }, 128, -8, 1023, { .fields = { 88, 168 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 48 } }, 136, -64, 1000, { .fields = { 64, 168 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 56 } }, 136, -16, 1032, { .fields = { 80, 112 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 32 } }, -136, 48, 856, { .fields = { 16, 152 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 32 } }, -112, 48, 877, { .fields = { 24, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 16 } }, -112, 80, 856, { .fields = { 96, 240 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 16 } }, -128, 80, 810, { .fields = { 40, 168 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 64 } }, -112, -16, 897, { .fields = { 112, 192 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 64 } }, -120, -80, 812, { .fields = { 112, 128 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 64 } }, -136, -16, 833, { .fields = { 104, 64 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 64 } }, -144, -80, 750, { .fields = { 104, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 24, 40 } }, -144, -120, 780, { .fields = { 40, 192 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -120, -120, 809, { .fields = { 64, 216 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 32, 40 } }, -104, -120, 862, { .fields = { 24, 48 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -144, -120, 778, { .fields = { 40, 88 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 48 } }, -144, -80, 1377, { .fields = { 56, 48 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 24 } }, -128, -120, 779, { .fields = { 72, 144 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 48 } }, -128, 0, 837, { .fields = { 72, 96 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 48 } }, -128, 48, 783, { .fields = { 56, 144 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 32 } }, -120, 24, 849, { .fields = { 32, 184 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 56 } }, -144, 64, 670, { .fields = { 96, 128 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, 80, 523, { .fields = { 80, 216 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 56 } }, -144, 8, 860, { .fields = { 96, 184 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -144, -32, 1293, { .fields = { 40, 128 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 56 } }, -160, 24, 571, { .fields = { 80, 56 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 48 } }, -160, -24, 849, { .fields = { 56, 96 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 48 } }, -160, -72, 1163, { .fields = { 64, 48 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 48 } }, -160, -120, 958, { .fields = { 64, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_mine_tunnel_entrance_8017E928[4] = {
+/// View 4 partitions its sources into 25 and 14 sprites over background strips.
+static SpriteBatch _gMineTunnelEntranceView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 25, 0, 0, { 1, 0 } },
-    { 25, 14, 0, 0, { 0, 0 } },
+    { 25, ARRAY_SIZE(_gMineTunnelEntranceView4SpriteSources) - 25, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_tunnel_entrance_8017E948[2] = {
+/// View 5 retains decoded background strips and has no source sprites.
+static SpriteBatch _gMineTunnelEntranceView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_tunnel_entrance_8017E958[11] = {
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -88, 40, 960, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -80, -32, 970, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -80, 24, 941, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -64, -24, 1006, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, 24, 980, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -16, 1030, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, 24, 1006, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -32, -16, 1054, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, 24, 1026, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -16, -24, 1069, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -16, 24, 1040, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+/// View 6's texture rectangles in screen pixels, with unscaled sorting depths.
+static SpriteSource _gMineTunnelEntranceView6SpriteSources[11] = {
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 8, 40 } }, -88, 40, 960, { .fields = { 104, 128 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 56 } }, -80, -32, 970, { .fields = { 112, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 56 } }, -80, 24, 941, { .fields = { 112, 56 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 48 } }, -64, -24, 1006, { .fields = { 112, 160 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -64, 24, 980, { .fields = { 96, 208 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -48, -16, 1030, { .fields = { 96, 88 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -48, 24, 1006, { .fields = { 96, 48 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 40 } }, -32, -16, 1054, { .fields = { 96, 168 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 48 } }, -32, 24, 1026, { .fields = { 96, 0 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 48 } }, -16, -24, 1069, { .fields = { 112, 208 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
+    { MINE_TUNNEL_ENTRANCE_SPRITE_TEXTURE_PAGE_X960, MINE_TUNNEL_ENTRANCE_SPRITE_CLUT, { .fields = { 16, 48 } }, -16, 24, 1040, { .fields = { 112, 112 } }, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_COLOR_NEUTRAL, MINE_TUNNEL_ENTRANCE_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_mine_tunnel_entrance_8017EA34[3] = {
+/// View 6 draws its full source array over decoded background strips.
+static SpriteBatch _gMineTunnelEntranceView6SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMineTunnelEntranceView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mine_tunnel_entrance_8017EA4C[6] = {
-    { { .empty = D_mine_tunnel_entrance_8017E1BC }, D_mine_tunnel_entrance_8017E1BC, NULL },
-    { { .elements = D_mine_tunnel_entrance_8017E1CC }, D_mine_tunnel_entrance_8017E2D0, NULL },
-    { { .elements = D_mine_tunnel_entrance_8017E2E8 }, D_mine_tunnel_entrance_8017E5F4, NULL },
-    { { .elements = D_mine_tunnel_entrance_8017E61C }, D_mine_tunnel_entrance_8017E928, NULL },
-    { { .empty = D_mine_tunnel_entrance_8017E948 }, D_mine_tunnel_entrance_8017E948, NULL },
-    { { .elements = D_mine_tunnel_entrance_8017E958 }, D_mine_tunnel_entrance_8017EA34, NULL },
+SpriteView gMineTunnelEntranceSpriteViews[ARRAY_SIZE(gMineTunnelEntranceViewCameras)] = {
+    { { .empty = _gMineTunnelEntranceView1SpriteBatches }, _gMineTunnelEntranceView1SpriteBatches, NULL },
+    { { .elements = _gMineTunnelEntranceView2SpriteSources }, _gMineTunnelEntranceView2SpriteBatches, NULL },
+    { { .elements = _gMineTunnelEntranceView3SpriteSources }, _gMineTunnelEntranceView3SpriteBatches, NULL },
+    { { .elements = _gMineTunnelEntranceView4SpriteSources }, _gMineTunnelEntranceView4SpriteBatches, NULL },
+    { { .empty = _gMineTunnelEntranceView5SpriteBatches }, _gMineTunnelEntranceView5SpriteBatches, NULL },
+    { { .elements = _gMineTunnelEntranceView6SpriteSources }, _gMineTunnelEntranceView6SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_mine_tunnel_entrance_8017EA94[6] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9530, -3860, 1830 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1155, 1608, 1468 }, { 0, 0 } }, 0, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3BEC, -2000, 3640 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3522, 2539 }, { 0, 0 } }, 800, 3600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3016, -2000, 700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3522, 2457 }, { 0, 0 } }, 800, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7110, -2000, 3290 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2621 }, { 0, 0 } }, 0, 4600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 740, -2000, 2380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3276, 2539 }, { 0, 0 } }, 500, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2140, -2000, -90 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3112, 2211 }, { 0, 0 } }, 500, 3000 },
+/// Six point lights contributing in every view, with Q12 RGB and world-unit radii.
+///
+/// Room-light setup supplies the view parent; composition and light selection
+/// update the transform caches and attenuation in place.
+static WorldCoordPointLight _gMineTunnelEntrancePointLights[6] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9530, -3860, 1830 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1155, 1608, 1468 }, { 0, 0 } }, 0, 10000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3BEC, -2000, 3640 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3522, 2539 }, { 0, 0 } }, 800, 3600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3016, -2000, 700 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3522, 2457 }, { 0, 0 } }, 800, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7110, -2000, 3290 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2621 }, { 0, 0 } }, 0, 4600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 740, -2000, 2380 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3276, 2539 }, { 0, 0 } }, 500, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2140, -2000, -90 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3112, 2211 }, { 0, 0 } }, 500, 3000 },
 };
 
-WorldCoordRoomLights D_mine_tunnel_entrance_8017ECD4[1] = {
-    { 0, NULL, ARRAY_SIZE(D_mine_tunnel_entrance_8017EA94), D_mine_tunnel_entrance_8017EA94, 0, NULL },
+/// The tunnel's authored point lights; there are no directional or cone lights.
+static WorldCoordRoomLights _gMineTunnelEntranceRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gMineTunnelEntrancePointLights),
+    .pointLights           = _gMineTunnelEntrancePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_mine_tunnel_entrance_8017ECEC[8] = {
@@ -444,8 +486,11 @@ AreaVariant D_mine_tunnel_entrance_8017F32C[12] = {
     { D_mine_tunnel_entrance_8017F2FC, D_mine_tunnel_entrance_8017F0F4 },
 };
 
-WorldCoordRoomAmbientEntry D_mine_tunnel_entrance_8017F38C[7] = {
-    { .viewCount = ARRAY_SIZE(D_mine_tunnel_entrance_8017F38C) - 1 },
+/// Six per-view minimum ambient colours following their count header.
+///
+/// RGB uses 16 units per 8-bit colour level; stored luma is retained but unused.
+static WorldCoordRoomAmbientEntry _gMineTunnelEntranceViewAmbientTable[ARRAY_SIZE(gMineTunnelEntranceViewCameras) + 1] = {
+    { .viewCount = ARRAY_SIZE(_gMineTunnelEntranceViewAmbientTable) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 400, 380, 300, 377 } },
     { .color = { 560, 530, 500, 537 } },
@@ -454,33 +499,56 @@ WorldCoordRoomAmbientEntry D_mine_tunnel_entrance_8017F38C[7] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_mine_tunnel_entrance_8017F3C4 = {
-    0x1000001D,
-    0x1000001F,
-    0x1000001D,
+enum {
+    MINE_TUNNEL_ENTRANCE_FOOTSTEP_WALK_SCRIPT = 0x1D,
+    MINE_TUNNEL_ENTRANCE_FOOTSTEP_RUN_SCRIPT  = 0x1F,
 };
 
-WorldCollisionSurfaceProperties D_mine_tunnel_entrance_8017F3D0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 2's paired footsteps in the loaded type-1 sound bank.
+///
+/// These are cue-2 bases; cue 1 adds one. Scripted jumps reuse the walk pair.
+static WorldCollisionFootstepSounds _gMineTunnelEntranceSurfaceClass2FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_TUNNEL_ENTRANCE_FOOTSTEP_WALK_SCRIPT,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_TUNNEL_ENTRANCE_FOOTSTEP_RUN_SCRIPT,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_TUNNEL_ENTRANCE_FOOTSTEP_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_mine_tunnel_entrance_8017F3D8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, impact-enabled, pushing surface without footsteps, shared by classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gMineTunnelEntranceDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_mine_tunnel_entrance_8017F3E0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_tunnel_entrance_8017F3C4 },
+/// Class 1's separate blocking wall policy, with impacts and pushback but no footsteps.
+static WorldCollisionSurfaceProperties _gMineTunnelEntranceSurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_mine_tunnel_entrance_8017F3E8[8] = {
-    D_mine_tunnel_entrance_8017F3D0,
-    D_mine_tunnel_entrance_8017F3D8,
-    D_mine_tunnel_entrance_8017F3E0,
-    D_mine_tunnel_entrance_8017F3D0,
-    D_mine_tunnel_entrance_8017F3D0,
-    D_mine_tunnel_entrance_8017F3D0,
-    D_mine_tunnel_entrance_8017F3D0,
-    D_mine_tunnel_entrance_8017F3D0,
+/// Class 2's floor policy, with blocking, impacts, pushback and footstep cues.
+static WorldCollisionSurfaceProperties _gMineTunnelEntranceSurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gMineTunnelEntranceSurfaceClass2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gMineTunnelEntranceSurfacePropertiesByClass[8] = {
+    &_gMineTunnelEntranceDefaultSurfaceProperties,
+    &_gMineTunnelEntranceSurfaceClass1Properties,
+    &_gMineTunnelEntranceSurfaceClass2Properties,
+    &_gMineTunnelEntranceDefaultSurfaceProperties,
+    &_gMineTunnelEntranceDefaultSurfaceProperties,
+    &_gMineTunnelEntranceDefaultSurfaceProperties,
+    &_gMineTunnelEntranceDefaultSurfaceProperties,
+    &_gMineTunnelEntranceDefaultSurfaceProperties,
 };
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -582,7 +650,7 @@ void mineTunnelEntranceDrawFlaresTask(Task* unusedTask)
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (viewGetMappedIndex() & MINE_TUNNEL_ENTRANCE_VIEW_INDEX_MASK) {
         case 2: {
-            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB18;
+            const SVECTOR* flarePoints = _gMineTunnelEntranceFlarePoints;
             _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_0, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePoints[1], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_0, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePoints[2], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
@@ -590,25 +658,25 @@ void mineTunnelEntranceDrawFlaresTask(Task* unusedTask)
             break;
         }
         case 3: {
-            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB30;
+            const SVECTOR* flarePoints = &_gMineTunnelEntranceFlarePoints[3];
             _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePoints[1], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePoints[2], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             break;
         }
         case 4: {
-            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB30;
+            const SVECTOR* flarePoints = &_gMineTunnelEntranceFlarePoints[3];
             _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePoints[1], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             break;
         }
         case 5: {
-            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB38;
+            const SVECTOR* flarePoints = &_gMineTunnelEntranceFlarePoints[4];
             _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             break;
         }
         case 6: {
-            const SVECTOR* flarePoints = D_mine_tunnel_entrance_8017DB48;
+            const SVECTOR* flarePoints = &_gMineTunnelEntranceFlarePoints[6];
             _glowDrawFlare(&flarePoints[0], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_RADIUS_SCALE);
             _glowDrawFlare(&flarePoints[1], MINE_TUNNEL_ENTRANCE_FLARE_TEXTURE_1, MINE_TUNNEL_ENTRANCE_FLARE_SMALL_RADIUS_SCALE);
             break;
