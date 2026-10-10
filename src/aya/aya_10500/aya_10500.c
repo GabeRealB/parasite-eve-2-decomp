@@ -138,36 +138,45 @@ TmdSource gAya10500FirstPairHand1Model = {
     .stream              = _gAya10500FirstPairHand1ModelStream,
 };
 
-static TmdBone _gAya10500Aya10200Model00F0CSkeleton[1] = {
+/// Initial local transform and self-parented root for second-pair hand slot 1.
+///
+/// Read-only source tables retain their serialized positions in the data section.
+static const TmdBone _gAya10500SecondPairHand1ModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_00F0C_skeleton.inc"
 };
 
-static u32 _gAya10500Aya10200Model00F0CPartVerts[1] = {
+/// Vertex count of the hand's sole part: 23.
+static const u32 _gAya10500SecondPairHand1ModelPartVerts[ARRAY_SIZE(_gAya10500SecondPairHand1ModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_00F0C_partVerts.inc"
 };
 
-static SVECTOR _gAya10500Aya10200Model00F0CVerts[23] = {
+/// Writable second-pair hand-1 vertices in integer coordinates local to the wrist.
+static SVECTOR _gAya10500SecondPairHand1ModelVerts[23] = {
 #include "assets/aya_10200_model_00F0C_verts.inc"
 };
 
-static SVECTOR _gAya10500Aya10200Model00F0CNormals[23] = {
+/// Writable part-local lighting normals with twelve fractional bits and independent indices.
+static SVECTOR _gAya10500SecondPairHand1ModelNormals[23] = {
 #include "assets/aya_10200_model_00F0C_normals.inc"
 };
 
-static u32 _gAya10500Aya10200Model00F0CStream[161] = {
+/// Writable commands for two textured triangles and twenty textured quads, ending in `TMD_STREAM_END`.
+///
+/// First model creation resolves each command's draw-handler slot in place.
+static u32 _gAya10500SecondPairHand1ModelStream[161] = {
 #include "assets/aya_10200_model_00F0C_stream.inc"
 };
 
-TmdSource D_aya_10500_80116900 = {
-    0,
-    1120,
-    0,
-    1,
-    _gAya10500Aya10200Model00F0CPartVerts,
-    _gAya10500Aya10200Model00F0CVerts,
-    _gAya10500Aya10200Model00F0CNormals,
-    _gAya10500Aya10200Model00F0CSkeleton,
-    _gAya10500Aya10200Model00F0CStream,
+TmdSource gAya10500SecondPairHand1Model = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (20 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gAya10500SecondPairHand1ModelSkeleton),
+    .partVertexCounts    = _gAya10500SecondPairHand1ModelPartVerts,
+    .verts               = _gAya10500SecondPairHand1ModelVerts,
+    .normals             = _gAya10500SecondPairHand1ModelNormals,
+    .skeleton            = _gAya10500SecondPairHand1ModelSkeleton,
+    .stream              = _gAya10500SecondPairHand1ModelStream,
 };
 
 /// Initial body-part transforms and hierarchy, with part 0 as the self-parented root.
