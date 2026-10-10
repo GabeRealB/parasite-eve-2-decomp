@@ -2,6 +2,17 @@
 #define INCLUDE_WEAPONS_PA3_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Single-part held PA3 shotgun model attached to the player's weapon hand.
+///
+/// Instances borrow the package's 26 vertices, 26 lighting normals and writable
+/// command stream; keep PA3 loaded until all instances are released. Creation
+/// resolves draw handlers in place and copies the identity root pose. Each
+/// primitive-buffer half holds two textured Gouraud triangles and 23 quads,
+/// entirely in the directly transformed region. Player animation uses a
+/// separate bank and rig.
+extern TmdSource gPa3WeaponModel;
 
 /// Runs the PA3 player shot, contact handling, pump cue and recovery.
 ///

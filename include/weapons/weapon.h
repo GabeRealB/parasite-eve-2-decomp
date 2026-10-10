@@ -82,8 +82,6 @@ extern TmdSource gUnused85HeldWeaponModel;
 /// attached instances before replacing the package.
 extern TmdSource gMongooseModel;
 
-extern TmdSource D_pa3_8011DA04;
-
 /// Rigid held SP12 shotgun model, attached through the resident weapon-task bank.
 ///
 /// One root part holds 34 vertices and 30 lighting normals. The SP12 overlay

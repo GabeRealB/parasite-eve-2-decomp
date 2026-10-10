@@ -21,7 +21,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
@@ -150,36 +149,47 @@ void pa3AttackState(Task* playerTask)
 
 /* Each package carries its own model. */
 #if WEAPON_ID == 0xD
-static TmdBone _gPa3Model0056CSkeleton[1] = {
+/// Identity local transform and self-parented root of the rigid held shotgun.
+///
+/// Read-only asset arrays retain their serialized positions in .data.
+static const TmdBone _gPa3WeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/pa3_model_0056C_skeleton.inc"
 };
 
-static u32 _gPa3Model0056CPartVerts[1] = {
+/// Vertex count of the sole part, covering all 26 local vertices.
+static const u32 _gPa3WeaponModelPartVerts[ARRAY_SIZE(_gPa3WeaponModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/pa3_model_0056C_partVerts.inc"
 };
 
-static SVECTOR _gPa3Model0056CVerts[26] = {
+/// Shotgun vertices in integer coordinates local to the root part.
+static SVECTOR _gPa3WeaponModelVerts[] = {
 #include "assets/pa3_model_0056C_verts.inc"
 };
 
-static SVECTOR _gPa3Model0056CNormals[26] = {
+/// Part-local lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gPa3WeaponModelNormals[] = {
 #include "assets/pa3_model_0056C_normals.inc"
 };
 
-static u32 _gPa3Model0056CStream[182] = {
+/// Writable draw commands for two textured Gouraud triangles and 23 quads.
+///
+/// Creation resolves handler slots in place. The part group and an empty final
+/// pre-transformed group each end with `TMD_STREAM_GROUP_END`, followed by
+/// `TMD_STREAM_END`; all primitives use the directly transformed buffer region.
+static u32 _gPa3WeaponModelStream[] = {
 #include "assets/pa3_model_0056C_stream.inc"
 };
 
-TmdSource D_pa3_8011DA04 = {
-    0,
-    1276,
-    0,
-    1,
-    _gPa3Model0056CPartVerts,
-    _gPa3Model0056CVerts,
-    _gPa3Model0056CNormals,
-    _gPa3Model0056CSkeleton,
-    _gPa3Model0056CStream,
+TmdSource gPa3WeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (23 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gPa3WeaponModelSkeleton),
+    .partVertexCounts    = _gPa3WeaponModelPartVerts,
+    .verts               = _gPa3WeaponModelVerts,
+    .normals             = _gPa3WeaponModelNormals,
+    .skeleton            = _gPa3WeaponModelSkeleton,
+    .stream              = _gPa3WeaponModelStream,
 };
 #elif WEAPON_ID == 0xE
 /// Initial identity transform and self-parented root of the rigid shotgun model.

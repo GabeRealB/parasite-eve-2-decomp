@@ -69,6 +69,8 @@
 
 #include "weapons/p08.h"
 
+#include "weapons/pa3.h"
+
 #include "weapons/tonfa_baton.h"
 
 #include "weapons/weapon.h"
@@ -323,7 +325,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gGrenadePistolWeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gMm1WeaponModel } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_pa3_8011DA04 } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gPa3WeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gSp12Model } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gAs12Model } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM4a1RifleModel } },
