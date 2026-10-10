@@ -82,11 +82,6 @@ extern TaskDesc D_dryfield_water_hole_8017FC8C[];
 /// Last-frame world positions of the two tracked parts of the slot-3 task's
 /// model, compared against this frame's to measure how far each moved.
 extern SVECTOR D_dryfield_water_hole_8017FD1C[];
-/// Cursor into the primitive area the room's water surface is written to,
-/// reset each frame to the half of that area belonging to the ordering table
-/// being built.
-/// Frame counter the water surface's wave is phased by.
-
 // Indexed views below share one contiguous table.
 static WorldCollisionGrid         _gDryfieldWaterHoleCollisionGrid;
 extern WorldCollisionOccluder     D_dryfield_water_hole_80181F28[2];
@@ -119,7 +114,11 @@ TaskDesc D_dryfield_water_hole_8017FC8C[1] = {
     { { { TASK_BODY_NONE, 192 } }, _waterHoleWaterTask, { .value = 0 } },
 };
 
-WaterHoleSurface gWaterHoleSurfaces[3] = {
+/// Two world-space water patches at the shared session height, followed by a Y=-1 sentinel.
+///
+/// Each frame draws 64 columns in each of two strips per patch. At most 256
+/// accepted quads and their draw modes consume 0x3000 bytes of the borrowed actor arena.
+static WaterHoleSurface _gWaterHoleSurfaces[3] = {
     { 4000, -2000, 8000, 2000, WATER_HOLE_SURFACE_HEIGHT },
     { 10000, -4000, 13000, 2000, WATER_HOLE_SURFACE_HEIGHT },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
@@ -1473,9 +1472,18 @@ WorldCollisionSurfaceProperties* gDryfieldWaterHoleSurfacePropertiesByClass[8] =
     &_gDryfieldWaterHoleDefaultSurfaceProperties,
 };
 
-u8* gWaterHolePrimCursor = NULL;
+/// Byte cursor for interleaved POLY_G4 and DR_MODE packets in the current actor-arena half.
+///
+/// Reset on every draw to buffer 2 without a companion, otherwise buffer 1,
+/// offset by the current ordering-table half (0 or 1) times 0xC000 bytes.
+/// Packet casts select views of word-aligned storage; GPU use outlives this cursor.
+static u8* _gWaterHolePrimCursor = NULL;
 
-s16 gWaterHoleWaveScroll;
+/// Signed-halfword running-actor tick counter controlling the water seam's phase.
+///
+/// Paused actors retain it. Each increment scrolls -16 angle units (4096 per
+/// turn); narrowing retains the low 16 bits, so the sine repeats every 256 ticks.
+static s16 _gWaterHoleWaveScroll;
 
 /// Refuses every key-item use in this room without consuming the item.
 ///

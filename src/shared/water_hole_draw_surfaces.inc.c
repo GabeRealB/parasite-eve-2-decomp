@@ -43,22 +43,22 @@ static void _waterHoleDrawSurfaces(Task* task)
 #define WATER_HOLE_QUEUE_QUAD()                                                                                                                \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
             quad);                                                                                                                             \
-    drawMode             = (DR_MODE*)gWaterHolePrimCursor;                                                                                     \
-    gWaterHolePrimCursor = (u8*)(drawMode + 1);                                                                                                \
+    drawMode              = (DR_MODE*)_gWaterHolePrimCursor;                                                                                   \
+    _gWaterHolePrimCursor = (u8*)(drawMode + 1);                                                                                               \
     setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                     \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
             drawMode);
 
-    surface = gWaterHoleSurfaces;
+    surface = _gWaterHoleSurfaces;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        gWaterHolePrimCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * WATER_HOLE_PACKET_HALF_BYTES;
+        _gWaterHolePrimCursor = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * WATER_HOLE_PACKET_HALF_BYTES;
     } else {
-        gWaterHolePrimCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * WATER_HOLE_PACKET_HALF_BYTES;
+        _gWaterHolePrimCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * WATER_HOLE_PACKET_HALF_BYTES;
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        gWaterHoleWaveScroll++;
+        _gWaterHoleWaveScroll++;
     }
-    wavePhase                  = -(gWaterHoleWaveScroll * WATER_HOLE_PHASE_PER_TICK);
+    wavePhase                  = -(_gWaterHoleWaveScroll * WATER_HOLE_PHASE_PER_TICK);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
@@ -84,8 +84,8 @@ static void _waterHoleDrawSurfaces(Task* task)
             vertex3.vz = surface->z + halfDepth;
             depth      = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
             if (projectionFlags >= 0) {
-                quad                 = (POLY_G4*)gWaterHolePrimCursor;
-                gWaterHolePrimCursor = (u8*)(quad + 1);
+                quad                  = (POLY_G4*)_gWaterHolePrimCursor;
+                _gWaterHolePrimCursor = (u8*)(quad + 1);
                 setPolyG4(quad);
                 setSemiTrans(quad, 1);
                 GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;
@@ -124,8 +124,8 @@ static void _waterHoleDrawSurfaces(Task* task)
             vertex3.vz = surface->z + halfDepth * 2;
             depth      = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
             if (projectionFlags >= 0) {
-                quad                 = (POLY_G4*)gWaterHolePrimCursor;
-                gWaterHolePrimCursor = (u8*)(quad + 1);
+                quad                  = (POLY_G4*)_gWaterHolePrimCursor;
+                _gWaterHolePrimCursor = (u8*)(quad + 1);
                 setPolyG4(quad);
                 setSemiTrans(quad, 1);
                 GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;

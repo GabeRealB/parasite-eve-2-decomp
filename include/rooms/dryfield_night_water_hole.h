@@ -16,8 +16,13 @@ extern AreaApplyRec D_dryfield_night_water_hole_80183618[4];
 
 extern AreaVariant D_dryfield_night_water_hole_80183418[22];
 
-// dryfield_night_water_hole
-extern WorldCollisionRoomResources D_dryfield_night_water_hole_80180A04[];
+/// Collision grid, view boundaries, actions and occluders for room selectors 1..4.
+///
+/// Indexed by room - 1, with no terminal record. All four share the grid,
+/// twelve view boundaries and two occluders. Rooms 1/3 use switch-on action
+/// regions; rooms 2/4 use switch-off regions. The stage directory borrows the
+/// records and their mutable resources while the room overlay is loaded.
+extern WorldCollisionRoomResources gDryfieldNightWaterHoleRoomCollisionResources[4];
 
 /// Lighting and logical-view ambient minima for the night water hole's four rooms.
 ///
@@ -37,9 +42,22 @@ extern WorldCoordRoomLighting gDryfieldNightWaterHoleRoomLighting[4];
 /// borrows the maps only while this overlay is loaded.
 extern u8* gDryfieldNightWaterHoleViewMaps[4];
 
-extern ViewCount D_dryfield_night_water_hole_80180AA4[];
+/// Eleven logical views for each of the night water hole's four room selectors.
+///
+/// Indexed by room - 1 (rooms 1..4), without a terminator. Counts cover logical
+/// map entries, independently of the 26 mapped camera/image/sprite slots.
+/// The stage directory borrows this signed-halfword table while the room is loaded.
+extern ViewCount gDryfieldNightWaterHoleViewCounts[4];
 
-extern DirectionWarpEntry D_dryfield_night_water_hole_80180AAC[];
+/// Player/companion arrival placements and departure options for warp IDs 1..3.
+///
+/// Indexed by warp - 1, without a terminator. Warps 1/2 meet the driveway and
+/// underpass respectively; warp 3 meets the Shelter door. Placements use world
+/// units and yaw uses 4096 units per turn; initial logical views are 3, 8 and 2.
+/// Warp 1 fades on departure. Warps 2/3 mark the underpass connection and water
+/// respectively on arrival; no endpoint has a blocked-departure sound.
+/// The map overlay borrows the table only while this room is loaded.
+extern DirectionWarpEntry gDryfieldNightWaterHoleWarpEntries[3];
 
 /// Number of mapped camera/image/sprite slots in the night water hole.
 enum { DRYFIELD_NIGHT_WATER_HOLE_MAPPED_VIEW_COUNT = 26 };

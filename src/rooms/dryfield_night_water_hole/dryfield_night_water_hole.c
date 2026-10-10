@@ -30,6 +30,7 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -95,9 +96,6 @@ static void _waterHoleWaterTask(Task* task);
 
 static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply);
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-
 /// One surface-class replacement the room applies after its default records load.
 ///
 /// The room's list of these ends at the first entry whose `properties` is NULL.
@@ -111,40 +109,13 @@ typedef struct {
 } _DryfieldNightWaterHoleSurfaceOverride;
 STATIC_ASSERT_SIZEOF(_DryfieldNightWaterHoleSurfaceOverride, 0x8);
 
-/// Descriptor the room's event task is spawned from, index 0 of the table
-/// `_dryfieldNightWaterHoleCommandMessage` hands `taskSpawnFromTable`. Its
-/// callback is that same task, `roomEventDepartureTask`.
-extern TaskDesc D_dryfield_night_water_hole_801805EC;
-/// The room's message table, the `TaskMessageEntry` list the room task publishes in
-/// `Task::msgTable` for `taskMessageDispatch` to walk: 0x13EE, 0x13F1, 0x13EF and
-/// 0x13F0.
-extern TaskMessageEntry D_dryfield_night_water_hole_801805F8[];
-/// The two four-byte records this room hands the slot-4 task as the message
-/// 0x7DB payload, picked by `gGameSession::location.loc.warp`. They are the last two of
-/// the four-record run at 0x80180654, which differ only in the halfword at 0x2.
-extern s32 D_dryfield_night_water_hole_8018065C;
-extern s32 D_dryfield_night_water_hole_80180660;
-/// The records message 0x13EF passes to `evsStartScript` on the first visit
-/// through sub-id 1, for `field_2` 2 and 1 respectively.
-extern EvsCommand D_dryfield_night_water_hole_8018067C[];
-extern EvsCommand D_dryfield_night_water_hole_801807FC[];
-/// Descriptor of the room's water task, spawned while progress nibble 0xB8 is
-/// still clear. Its callback is `_waterHoleWaterTask`.
-extern TaskDesc D_dryfield_night_water_hole_80180964[];
 /// Point pairs of the glowing beams the splash task draws, one table per group
 /// of views.
 extern SVECTOR D_dryfield_night_water_hole_80180994[];
 extern SVECTOR D_dryfield_night_water_hole_801809B4[];
 extern SVECTOR D_dryfield_night_water_hole_801809D4[];
-/// Last-frame world positions of the two tracked parts of the slot-3 task's
-/// model, compared against this frame's to measure how far each moved.
-extern SVECTOR D_dryfield_night_water_hole_801809F4[];
 /// Override list applied once nibble 0xB8 is set.
 extern _DryfieldNightWaterHoleSurfaceOverride D_dryfield_night_water_hole_801835D8[];
-/// Cursor into the primitive area the room's water surface is written to,
-/// reset each frame to the half of that area belonging to the ordering table
-/// being built.
-/// Frame counter the water surface's wave is phased by.
 /// The staged event descriptor, read by the room's event task.
 extern RoomDeparture gRoomDeparture;
 
@@ -152,16 +123,14 @@ static void _dryfieldNightWaterHoleRoomIdle(Task* task);
 static void _dryfieldNightWaterHoleApplySurfaceOverrides(const _DryfieldNightWaterHoleSurfaceOverride* overrides);
 
 static WorldCollisionGrid         _gDryfieldNightWaterHoleCollisionGrid;
-extern WorldCollisionOccluder     D_dryfield_night_water_hole_80182D58[2];
-extern WorldCollisionTrigger      D_dryfield_night_water_hole_801824BC[12];
-extern WorldCollisionTrigger      D_dryfield_night_water_hole_8018284C[9];
-extern WorldCollisionTrigger      D_dryfield_night_water_hole_80182AF8[8];
+static WorldCollisionOccluder     _gDryfieldNightWaterHoleOccluders[2];
+static WorldCollisionTrigger      _gDryfieldNightWaterHoleViewBoundaryTriggers[12];
+static WorldCollisionTrigger      _gDryfieldNightWaterHoleSwitchOnActionTriggers[9];
+static WorldCollisionTrigger      _gDryfieldNightWaterHoleSwitchOffActionTriggers[8];
 static WorldCoordRoomAmbientEntry _gDryfieldNightWaterHoleSwitchOnAmbientByView[12];
 static WorldCoordRoomAmbientEntry _gDryfieldNightWaterHoleSwitchOffAmbientByView[12];
 static WorldCoordRoomLights       _gDryfieldNightWaterHoleSwitchOnRoomLights;
 static WorldCoordRoomLights       _gDryfieldNightWaterHoleSwitchOffRoomLights;
-
-extern AnimationSet* D_dryfield_night_water_hole_80180620[1];
 
 static s32 _dryfieldNightWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32 _dryfieldNightWaterHoleCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg);
@@ -169,6 +138,38 @@ static s32 _dryfieldNightWaterHoleRoomActionMessage(Task* unusedTask, s32 messag
 
 enum {
     DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM = 0x13F1,
+};
+
+// Room-local script choices, task priorities and logical-view extent.
+enum {
+    DRYFIELD_NIGHT_WATER_HOLE_DEPARTURE_TASK_PRIORITY      = 32,
+    DRYFIELD_NIGHT_WATER_HOLE_WATER_TASK_PRIORITY          = 192,
+    DRYFIELD_NIGHT_WATER_HOLE_PLAYER_IDLE_CLIP             = 1,
+    DRYFIELD_NIGHT_WATER_HOLE_CAP_ARRIVAL                  = 5,
+    DRYFIELD_NIGHT_WATER_HOLE_CAP_LOGICAL_VIEW_IDS         = 1,
+    DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_BATTLE_DELAY_FRAMES  = 3,
+    DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL2_BATTLE_VIEW         = 7,
+    DRYFIELD_NIGHT_WATER_HOLE_LOGICAL_VIEW_COUNT           = 11,
+    DRYFIELD_NIGHT_WATER_HOLE_STALKER_FIRST_WALL_ENTRANCE  = 0,
+    DRYFIELD_NIGHT_WATER_HOLE_STALKER_SECOND_WALL_ENTRANCE = 1,
+    DRYFIELD_NIGHT_WATER_HOLE_STALKER_FIRST_FLOOR_ARRIVAL  = 2,
+    DRYFIELD_NIGHT_WATER_HOLE_STALKER_SECOND_FLOOR_ARRIVAL = 3,
+    DRYFIELD_NIGHT_WATER_HOLE_STAIR_DESCEND                = 0x100,
+    DRYFIELD_NIGHT_WATER_HOLE_STAIR_SURFACE_CLASS          = 1,
+    DRYFIELD_NIGHT_WATER_HOLE_STAIR_DESCENT_STEPS          = 2,
+    DRYFIELD_NIGHT_WATER_HOLE_STAIR_ASCENT_STEPS           = 5,
+    DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_YAW_UNITS            = 16,
+    DRYFIELD_NIGHT_WATER_HOLE_DRIVEWAY_WARP_SLOTS          = (1 << 4) | 2,
+    DRYFIELD_NIGHT_WATER_HOLE_UNDERPASS_WARP_SLOTS         = (2 << 4) | 2,
+    DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_ARRIVAL1_ACTION      = 1,
+    DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_ARRIVAL2_ACTION      = 2,
+    DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_SHELTER_DOOR_COMMAND = 2,
+    DRYFIELD_NIGHT_WATER_HOLE_CAP_SWITCH_ON_INTERACTION    = 6,
+    DRYFIELD_NIGHT_WATER_HOLE_UNDERPASS_MAP_FLAG           = 462,
+    DRYFIELD_NIGHT_WATER_HOLE_WARP1_SOUND                  = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 3),
+    DRYFIELD_NIGHT_WATER_HOLE_WARP2_ARRIVAL_SOUND          = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 2),
+    DRYFIELD_NIGHT_WATER_HOLE_WARP2_DEPARTURE_SOUND        = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 1),
+    DRYFIELD_NIGHT_WATER_HOLE_WARP3_ARRIVAL_SOUND          = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 8),
 };
 
 static AnimationPackedPose _gDryfieldNightWaterHoleAnimation03004Bank1[6] = {
@@ -193,9 +194,16 @@ static AnimationSet _gDryfieldNightWaterHoleAnimation03004 = {
     { NULL, _gDryfieldNightWaterHoleAnimation03004Bank1, NULL, NULL, _gDryfieldNightWaterHoleAnimation03004Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_night_water_hole_801805EC = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
+/// Bodyless priority-32 controller for a resolved departure through the Shelter door.
+///
+/// Borrows the staged `gRoomDeparture` until the departure has been issued.
+static TaskDesc _gDryfieldNightWaterHoleShelterDepartureTaskDesc = { { { TASK_BODY_NONE, DRYFIELD_NIGHT_WATER_HOLE_DEPARTURE_TASK_PRIORITY } }, roomEventDepartureTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
+/// Room-transition, key-item, trigger-action and Shelter-door message dispatch.
+///
+/// The initialized room task borrows this table while loaded. The final entry
+/// rejects unsupported messages; the four live handlers consume their payloads synchronously.
+static TaskMessageEntry _gDryfieldNightWaterHoleRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveWaterHole },
     { DRYFIELD_NIGHT_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldNightWaterHoleRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightWaterHoleRoomActionMessage },
@@ -203,68 +211,112 @@ TaskMessageEntry D_dryfield_night_water_hole_801805F8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* D_dryfield_night_water_hole_80180620[1] = {
+/// The one player clip appended to the equipped animation bank for the arrival scene.
+///
+/// Becomes clip `ANIMATION_BANK_BASE_SET_COUNT`; its data stays borrowed during playback.
+static AnimationSet* _gDryfieldNightWaterHoleArrivalAnimationSets[1] = {
     &_gDryfieldNightWaterHoleAnimation03004,
 };
 
-AnimationBankCopyRequest D_dryfield_night_water_hole_80180624 = { { .sets = D_dryfield_night_water_hole_80180620 }, ARRAY_SIZE(D_dryfield_night_water_hole_80180620) };
+/// Copies the arrival clip pointer into the loaded player's first extension slot.
+///
+/// The one-word source is borrowed through dispatch; the copied clip remains room-owned.
+static AnimationBankCopyRequest _gDryfieldNightWaterHoleArrivalAnimationBankExtension = { { .sets = _gDryfieldNightWaterHoleArrivalAnimationSets }, ARRAY_SIZE(_gDryfieldNightWaterHoleArrivalAnimationSets) };
 
-AnimationPlayRequest D_dryfield_night_water_hole_8018062C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Restarts the room's appended player clip with world collision enabled.
+///
+/// The script resolves the equipped bank in a copy of this request before dispatch.
+/// The clip's visual action is unproven; playback borrows the loaded room animation.
+static AnimationPlayRequest _gDryfieldNightWaterHoleArrivalPlayerAnimation = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_night_water_hole_80180640 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Holds the player in the equipped bank's idle clip before the arrival scene.
+///
+/// Restarts without blending and enables world collision; the script replaces
+/// the initial bank index in its stack copy before dispatch.
+static AnimationPlayRequest _gDryfieldNightWaterHoleArrivalPlayerIdleAnimation = { { .index = 1 }, DRYFIELD_NIGHT_WATER_HOLE_PLAYER_IDLE_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-ActorCommand D_dryfield_night_water_hole_80180654 = { { .loc = { 3, 32 } }, 0 };
+/// Starts placement zero's first Zebra Stalker wall entrance during arrival action 1.
+///
+/// Borrowed through dispatch; the receiver latches the action and ignores the context.
+static ActorCommand _gDryfieldNightWaterHoleStalkerFirstWallEntranceCommand = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE } }, DRYFIELD_NIGHT_WATER_HOLE_STALKER_FIRST_WALL_ENTRANCE };
 
-ActorCommand D_dryfield_night_water_hole_80180658 = { { .loc = { 3, 32 } }, 1 };
+/// Starts placement zero's second Zebra Stalker wall entrance during arrival action 2.
+///
+/// Borrowed through dispatch; the receiver latches the action and ignores the context.
+static ActorCommand _gDryfieldNightWaterHoleStalkerSecondWallEntranceCommand = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE } }, DRYFIELD_NIGHT_WATER_HOLE_STALKER_SECOND_WALL_ENTRANCE };
 
-s32 D_dryfield_night_water_hole_8018065C = 0x22003;
+/// Starts the Zebra Stalker on the first floor position after the arrival event.
+///
+/// Used for arrival IDs other than 2. The receiver latches command 2, then
+/// places at (11000, 0, -1000) with yaw 3072 and enters ordinary behavior.
+static ActorCommand _gDryfieldNightWaterHoleStalkerFirstFloorArrivalCommand = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE } }, DRYFIELD_NIGHT_WATER_HOLE_STALKER_FIRST_FLOOR_ARRIVAL };
 
-s32 D_dryfield_night_water_hole_80180660 = 0x32003;
+/// Starts the Zebra Stalker on the second floor position after the arrival event.
+///
+/// Used for arrival ID 2. The receiver latches command 3, then places at
+/// (15000, 0, -3000) with yaw 1024 and enters ordinary behavior.
+static ActorCommand _gDryfieldNightWaterHoleStalkerSecondFloorArrivalCommand = { { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE } }, DRYFIELD_NIGHT_WATER_HOLE_STALKER_SECOND_FLOOR_ARRIVAL };
 
-ActorTransform D_dryfield_night_water_hole_80180664 = { { 0, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+/// Arrival-action-1 player turn toward +X, a quarter-turn in the root's parent frame.
+///
+/// The turn handler copies only yaw; the zero position is unused.
+static ActorTransform _gDryfieldNightWaterHoleArrivalPlayerTurn = { { 0, 0, 0, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-EvsCommand D_dryfield_night_water_hole_8018067C[16] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_water_hole_80180624 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_water_hole_80180640 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// First-visit arrival-action-2 sequence with the second Stalker wall entrance.
+///
+/// Plays CAP command 5 and the appended player clip, then waits for CAP cues,
+/// delays battle engagement and selects logical view 7 before restoring control.
+/// The interpreter borrows this terminated array and its payloads while the room stays loaded.
+static EvsCommand _gDryfieldNightWaterHoleArrival2Script[16] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_WATER_HOLE_CAP_ARRIVAL }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightWaterHoleArrivalAnimationBankExtension } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightWaterHoleArrivalPlayerIdleAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = DRYFIELD_NIGHT_WATER_HOLE_CAP_LOGICAL_VIEW_IDS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_water_hole_8018062C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightWaterHoleArrivalPlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_water_hole_80180658 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldNightWaterHoleStalkerSecondWallEntranceCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_BATTLE_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL2_BATTLE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_water_hole_801807FC[15] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_water_hole_80180624 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_water_hole_80180640 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// First-visit arrival-action-1 sequence with the first Stalker wall entrance.
+///
+/// Plays CAP command 5 and the appended player clip, turns the player to +X,
+/// then engages battle and restores control. CAP cues order the scene steps.
+/// The interpreter borrows this terminated array and its payloads while the room stays loaded.
+static EvsCommand _gDryfieldNightWaterHoleArrival1Script[15] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_WATER_HOLE_CAP_ARRIVAL }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightWaterHoleArrivalAnimationBankExtension } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightWaterHoleArrivalPlayerIdleAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = DRYFIELD_NIGHT_WATER_HOLE_CAP_LOGICAL_VIEW_IDS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_water_hole_8018062C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightWaterHoleArrivalPlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_night_water_hole_80180654 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gDryfieldNightWaterHoleStalkerFirstWallEntranceCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_dryfield_night_water_hole_80180664 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, { .message = { .transform = &_gDryfieldNightWaterHoleArrivalPlayerTurn } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_BATTLE_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_dryfield_night_water_hole_80180964[1] = {
-    { { { TASK_BODY_NONE, 192 } }, _waterHoleWaterTask, { .value = 0 } },
-};
+/// Bodyless priority-192 water drawer, spawned while the Shelter route is closed.
+static TaskDesc _gDryfieldNightWaterHoleWaterTaskDesc = { { { TASK_BODY_NONE, DRYFIELD_NIGHT_WATER_HOLE_WATER_TASK_PRIORITY } }, _waterHoleWaterTask, { .value = 0 } };
 
-WaterHoleSurface gWaterHoleSurfaces[3] = {
+/// Two world-space water patches at the shared session height, followed by a Y=-1 sentinel.
+///
+/// Each frame draws 64 columns in each of two strips per patch. At most 256
+/// accepted quads and their draw modes consume 0x3000 bytes of the borrowed actor arena.
+static WaterHoleSurface _gWaterHoleSurfaces[3] = {
     { 4000, -2000, 8000, 2000, WATER_HOLE_SURFACE_HEIGHT },
     { 10000, -4000, 13000, 2000, WATER_HOLE_SURFACE_HEIGHT },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
@@ -291,13 +343,18 @@ SVECTOR D_dryfield_night_water_hole_801809D4[4] = {
     { 0x4B64, -1750, -2095, 0 },
 };
 
-SVECTOR D_dryfield_night_water_hole_801809F4[2] = { 0 };
+/// Previous composed XYZ samples for player splash coordinates 14 and 17.
+///
+/// One signed-halfword sample per part; inactive frames retain the last sample.
+/// The singleton emitter initializes XYZ from the cached transform, then updates
+/// them after each splash test. The fourth halfword is never read or written.
+static SVECTOR _gDryfieldNightWaterHolePreviousSplashPartPositions[2] = { 0 };
 
-WorldCollisionRoomResources D_dryfield_night_water_hole_80180A04[4] = {
-    { &_gDryfieldNightWaterHoleCollisionGrid, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_8018284C, D_dryfield_night_water_hole_80182D58 },
-    { &_gDryfieldNightWaterHoleCollisionGrid, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_80182AF8, D_dryfield_night_water_hole_80182D58 },
-    { &_gDryfieldNightWaterHoleCollisionGrid, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_8018284C, D_dryfield_night_water_hole_80182D58 },
-    { &_gDryfieldNightWaterHoleCollisionGrid, D_dryfield_night_water_hole_801824BC, D_dryfield_night_water_hole_80182AF8, D_dryfield_night_water_hole_80182D58 },
+WorldCollisionRoomResources gDryfieldNightWaterHoleRoomCollisionResources[4] = {
+    { &_gDryfieldNightWaterHoleCollisionGrid, _gDryfieldNightWaterHoleViewBoundaryTriggers, _gDryfieldNightWaterHoleSwitchOnActionTriggers, _gDryfieldNightWaterHoleOccluders },
+    { &_gDryfieldNightWaterHoleCollisionGrid, _gDryfieldNightWaterHoleViewBoundaryTriggers, _gDryfieldNightWaterHoleSwitchOffActionTriggers, _gDryfieldNightWaterHoleOccluders },
+    { &_gDryfieldNightWaterHoleCollisionGrid, _gDryfieldNightWaterHoleViewBoundaryTriggers, _gDryfieldNightWaterHoleSwitchOnActionTriggers, _gDryfieldNightWaterHoleOccluders },
+    { &_gDryfieldNightWaterHoleCollisionGrid, _gDryfieldNightWaterHoleViewBoundaryTriggers, _gDryfieldNightWaterHoleSwitchOffActionTriggers, _gDryfieldNightWaterHoleOccluders },
 };
 
 WorldCoordRoomLighting gDryfieldNightWaterHoleRoomLighting[4] = {
@@ -392,12 +449,17 @@ u8* gDryfieldNightWaterHoleViewMaps[4] = {
     _gDryfieldNightWaterHoleRoom4ViewMap,
 };
 
-ViewCount D_dryfield_night_water_hole_80180AA4[4] = { 11, 11, 11, 11 };
+ViewCount gDryfieldNightWaterHoleViewCounts[4] = {
+    DRYFIELD_NIGHT_WATER_HOLE_LOGICAL_VIEW_COUNT,
+    DRYFIELD_NIGHT_WATER_HOLE_LOGICAL_VIEW_COUNT,
+    DRYFIELD_NIGHT_WATER_HOLE_LOGICAL_VIEW_COUNT,
+    DRYFIELD_NIGHT_WATER_HOLE_LOGICAL_VIEW_COUNT,
+};
 
-DirectionWarpEntry D_dryfield_night_water_hole_80180AAC[3] = {
-    { { { .word = 0 }, 7400, 0, -1300 }, { 0, 0, 0, 0 }, { { .word = 0 }, 7400, 0, -1300 }, { 0, 0, 0, 0 }, 0x53200003, 0x53200003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 0x57C0, -534, -3076 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x57C0, -534, -3076 }, { 0, 0, 0, 0 }, 0x53200002, 0x53200001, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, 462 },
-    { { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, 0x53200008, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_WATER },
+DirectionWarpEntry gDryfieldNightWaterHoleWarpEntries[3] = {
+    { { { .word = 0 }, 7400, 0, -1300 }, { 0, 0, 0, 0 }, { { .word = 0 }, 7400, 0, -1300 }, { 0, 0, 0, 0 }, DRYFIELD_NIGHT_WATER_HOLE_WARP1_SOUND, DRYFIELD_NIGHT_WATER_HOLE_WARP1_SOUND, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 0x57C0, -534, -3076 }, { 0, 0, 0, 0 }, { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 0x57C0, -534, -3076 }, { 0, 0, 0, 0 }, DRYFIELD_NIGHT_WATER_HOLE_WARP2_ARRIVAL_SOUND, DRYFIELD_NIGHT_WATER_HOLE_WARP2_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DRYFIELD_NIGHT_WATER_HOLE_UNDERPASS_MAP_FLAG },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 4680, 0, -954 }, { 0, 0, 0, 0 }, DRYFIELD_NIGHT_WATER_HOLE_WARP3_ARRIVAL_SOUND, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_WATER },
 };
 
 enum {
@@ -1037,45 +1099,64 @@ SpriteView gDryfieldNightWaterHoleSpriteViews[DRYFIELD_NIGHT_WATER_HOLE_MAPPED_V
     { .sources = { .empty = _gDryfieldNightWaterHoleView26Batches }, .batches = _gDryfieldNightWaterHoleView26Batches, .drawAreas = NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_water_hole_801824BC[12] = {
-    { NULL, NULL, NULL, { 6101, -1152, -1034, 0 }, { { 199, -2176, -1004, 0 }, { -200, -2176, 1004, 0 }, { 199, 2176, -1004, 0 }, { -200, 2176, 1004, 0 } }, { 4021, 0, 797, 0 }, { 0, 0, 4096, 0 }, 2401, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6304, -1104, -1024, 0 }, { { -154, -2128, 1004, 0 }, { 144, -2128, -1022, 0 }, { -154, 2128, 1004, 0 }, { 144, 2128, -1022, 0 } }, { -4056, 0, -597, 0 }, { 0, 0, 4096, 0 }, 2360, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9499, -1248, -1060, 0 }, { { -345, -2272, -963, 0 }, { 345, -2272, 963, 0 }, { -345, 2272, -963, 0 }, { 345, 2272, 963, 0 } }, { 3869, 0, -1388, 0 }, { 0, 0, 4096, 0 }, 2482, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 9632, -1200, -1026, 0 }, { { 340, -2224, 960, 0 }, { -350, -2224, -966, 0 }, { 340, 2224, 960, 0 }, { -350, 2224, -966, 0 } }, { -3865, 0, 1383, 0 }, { 0, 0, 4096, 0 }, 2442, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2A9F, -1088, -1922, 0 }, { { 919, -2112, 432, 0 }, { -929, -2112, -443, 0 }, { 919, 2112, 432, 0 }, { -929, 2112, -443, 0 } }, { -1765, 0, 3723, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2A7E, -1168, -1858, 0 }, { { -927, -2192, -439, 0 }, { 923, -2192, 434, 0 }, { -927, 2192, -439, 0 }, { 923, 2192, 434, 0 } }, { 1748, 0, -3710, 0 }, { 0, 0, 4096, 0 }, 2415, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x319F, -1248, -2945, 0 }, { { 435, -2272, -931, 0 }, { -441, -2272, 919, 0 }, { 435, 2272, -931, 0 }, { -441, 2272, 919, 0 } }, { 3717, 0, 1758, 0 }, { 0, 0, 4096, 0 }, 2482, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x323F, -1136, -2976, 0 }, { { -441, -2160, 919, 0 }, { 435, -2160, -931, 0 }, { -441, 2160, 919, 0 }, { 435, 2160, -931, 0 } }, { -3706, 0, -1755, 0 }, { 0, 0, 4096, 0 }, 2387, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x415F, -1200, -2912, 0 }, { { 198, -2224, 1001, 0 }, { -202, -2224, -1006, 0 }, { 198, 2224, 1001, 0 }, { -202, 2224, -1006, 0 } }, { -4027, 0, 801, 0 }, { 0, 0, 4096, 0 }, 2442, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x40FF, -1328, -2977, 0 }, { { -205, -2352, -1008, 0 }, { 195, -2352, 999, 0 }, { -205, 2352, -1008, 0 }, { 195, 2352, 999, 0 } }, { 4021, 0, -803, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x531F, -1376, -2978, 0 }, { { 0, -2400, 1024, 0 }, { 0, -2400, -1023, 0 }, { 0, 2400, 1024, 0 }, { 0, 2400, -1023, 0 } }, { -4116, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2598, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x523F, -1408, -2978, 0 }, { { 51, -2432, -1022, 0 }, { -50, -2432, 1022, 0 }, { 51, 2432, -1022, 0 }, { -50, 2432, 1022, 0 } }, { 4093, 0, 200, 0 }, { 0, 0, 4096, 0 }, 2635, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Twelve directed logical-view boundaries linking views 2 through 8 in all four rooms.
+///
+/// Each adjacent pair has one trigger in each direction. Positions/radii use
+/// room units and normals use Q12. Setup mutates links and coordinates through
+/// the final LAST-marked entry; storage must remain loaded until unlinked.
+static WorldCollisionTrigger _gDryfieldNightWaterHoleViewBoundaryTriggers[12] = {
+    { NULL, NULL, NULL, { 6101, -1152, -1034, 0 }, { { 199, -2176, -1004, 0 }, { -200, -2176, 1004, 0 }, { 199, 2176, -1004, 0 }, { -200, 2176, 1004, 0 } }, { 4021, 0, 797, 0 }, { 0, 0, ONE, 0 }, 2401, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6304, -1104, -1024, 0 }, { { -154, -2128, 1004, 0 }, { 144, -2128, -1022, 0 }, { -154, 2128, 1004, 0 }, { 144, 2128, -1022, 0 } }, { -4056, 0, -597, 0 }, { 0, 0, ONE, 0 }, 2360, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9499, -1248, -1060, 0 }, { { -345, -2272, -963, 0 }, { 345, -2272, 963, 0 }, { -345, 2272, -963, 0 }, { 345, 2272, 963, 0 } }, { 3869, 0, -1388, 0 }, { 0, 0, ONE, 0 }, 2482, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 9632, -1200, -1026, 0 }, { { 340, -2224, 960, 0 }, { -350, -2224, -966, 0 }, { 340, 2224, 960, 0 }, { -350, 2224, -966, 0 } }, { -3865, 0, 1383, 0 }, { 0, 0, ONE, 0 }, 2442, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2A9F, -1088, -1922, 0 }, { { 919, -2112, 432, 0 }, { -929, -2112, -443, 0 }, { 919, 2112, 432, 0 }, { -929, 2112, -443, 0 } }, { -1765, 0, 3723, 0 }, { 0, 0, ONE, 0 }, 2346, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2A7E, -1168, -1858, 0 }, { { -927, -2192, -439, 0 }, { 923, -2192, 434, 0 }, { -927, 2192, -439, 0 }, { 923, 2192, 434, 0 } }, { 1748, 0, -3710, 0 }, { 0, 0, ONE, 0 }, 2415, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x319F, -1248, -2945, 0 }, { { 435, -2272, -931, 0 }, { -441, -2272, 919, 0 }, { 435, 2272, -931, 0 }, { -441, 2272, 919, 0 } }, { 3717, 0, 1758, 0 }, { 0, 0, ONE, 0 }, 2482, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x323F, -1136, -2976, 0 }, { { -441, -2160, 919, 0 }, { 435, -2160, -931, 0 }, { -441, 2160, 919, 0 }, { 435, 2160, -931, 0 } }, { -3706, 0, -1755, 0 }, { 0, 0, ONE, 0 }, 2387, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x415F, -1200, -2912, 0 }, { { 198, -2224, 1001, 0 }, { -202, -2224, -1006, 0 }, { 198, 2224, 1001, 0 }, { -202, 2224, -1006, 0 } }, { -4027, 0, 801, 0 }, { 0, 0, ONE, 0 }, 2442, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x40FF, -1328, -2977, 0 }, { { -205, -2352, -1008, 0 }, { 195, -2352, 999, 0 }, { -205, 2352, -1008, 0 }, { 195, 2352, 999, 0 } }, { 4021, 0, -803, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x531F, -1376, -2978, 0 }, { { 0, -2400, 1024, 0 }, { 0, -2400, -1023, 0 }, { 0, 2400, 1024, 0 }, { 0, 2400, -1023, 0 } }, { -4116, 0, 0, 0 }, { 0, 0, ONE, 0 }, 2598, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x523F, -1408, -2978, 0 }, { { 51, -2432, -1022, 0 }, { -50, -2432, 1022, 0 }, { 51, 2432, -1022, 0 }, { -50, 2432, 1022, 0 } }, { 4093, 0, 200, 0 }, { 0, 0, ONE, 0 }, 2635, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_water_hole_8018284C[9] = {
-    { NULL, NULL, NULL, { 7376, -48, -1616, 0 }, { { -719, 0, -336, 0 }, { 720, 0, -336, 0 }, { -719, 0, 336, 0 }, { 720, 0, 336, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x58B0, -1280, -2992, 0 }, { { 0, 1344, -1199, 0 }, { 0, 1344, 1200, 0 }, { 0, -1344, -1199, 0 }, { 0, -1344, 1200, 0 } }, { -4101, 0, 0, 0 }, { -4096, 0, 0, 0 }, 1801, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 38, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x5860, -403, -2944, 0 }, { { 288, 0, -671, 0 }, { 288, 0, 672, 0 }, { -288, 0, -671, 0 }, { -288, 0, 672, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 729, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 18, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x5640, -32, -2976, 0 }, { { 288, 0, -671, 0 }, { 288, 0, 672, 0 }, { -288, 0, -671, 0 }, { -288, 0, 672, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 729, WORLD_COLLISION_TRIGGER_ACTION_FACING, 21, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4384, -64, -976, 0 }, { { -415, 0, -1120, 0 }, { 416, 0, -1120, 0 }, { -415, 0, 1120, 0 }, { 416, 0, 1120, 0 } }, { 0, 4098, 0, 0 }, { 4091, 0, -201, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x34B0, -64, -2961, 0 }, { { 398, 0, -1136, 0 }, { 718, 0, -951, 0 }, { -718, 0, 952, 0 }, { -398, 0, 1137, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1200, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4100, -64, -5409, 0 }, { { -838, 0, -1072, 0 }, { 491, 0, -1269, 0 }, { -491, 0, 1270, 0 }, { 838, 0, 1073, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1360, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 7376, -64, -2176, 0 }, { { -959, 0, 176, 0 }, { 960, 0, 176, 0 }, { -959, 0, 848, 0 }, { 960, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 18, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x40A0, -64, -4416, 0 }, { { -1007, 0, 464, 0 }, { 944, 0, 464, 0 }, { -1007, 0, 1392, 0 }, { 944, 0, 1392, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 1717, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Switch-on interaction regions for rooms 1 and 3, including CAP command 6.
+///
+/// Covers driveway/underpass warps, the stair flight, Shelter-door command 2
+/// and automatic arrival actions 1/2. The final LAST-marked trigger is included.
+/// Links, coordinates and hit latches are mutable and borrowed while loaded.
+static WorldCollisionTrigger _gDryfieldNightWaterHoleSwitchOnActionTriggers[9] = {
+    { NULL, NULL, NULL, { 7376, -48, -1616, 0 }, { { -719, 0, -336, 0 }, { 720, 0, -336, 0 }, { -719, 0, 336, 0 }, { 720, 0, 336, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, ONE, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY, DRYFIELD_NIGHT_WATER_HOLE_DRIVEWAY_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x58B0, -1280, -2992, 0 }, { { 0, 1344, -1199, 0 }, { 0, 1344, 1200, 0 }, { 0, -1344, -1199, 0 }, { 0, -1344, 1200, 0 } }, { -4101, 0, 0, 0 }, { -ONE, 0, 0, 0 }, 1801, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, DRYFIELD_NIGHT_WATER_HOLE_UNDERPASS_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x5860, -403, -2944, 0 }, { { 288, 0, -671, 0 }, { 288, 0, 672, 0 }, { -288, 0, -671, 0 }, { -288, 0, 672, 0 } }, { 0, ONE, 0, 0 }, { ONE, 0, 0, 0 }, 729, WORLD_COLLISION_TRIGGER_ACTION_FACING | DRYFIELD_NIGHT_WATER_HOLE_STAIR_DESCEND | WORLD_COLLISION_TRIGGER_AUTOMATIC, (DRYFIELD_NIGHT_WATER_HOLE_STAIR_SURFACE_CLASS << 4) | DRYFIELD_NIGHT_WATER_HOLE_STAIR_DESCENT_STEPS, 3 * ACTOR_TRANSFORM_ANGLE_TURN / (4 * DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_YAW_UNITS), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x5640, -32, -2976, 0 }, { { 288, 0, -671, 0 }, { 288, 0, 672, 0 }, { -288, 0, -671, 0 }, { -288, 0, 672, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 729, WORLD_COLLISION_TRIGGER_ACTION_FACING, (DRYFIELD_NIGHT_WATER_HOLE_STAIR_SURFACE_CLASS << 4) | DRYFIELD_NIGHT_WATER_HOLE_STAIR_ASCENT_STEPS, ACTOR_TRANSFORM_ANGLE_TURN / (4 * DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_YAW_UNITS), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4384, -64, -976, 0 }, { { -415, 0, -1120, 0 }, { 416, 0, -1120, 0 }, { -415, 0, 1120, 0 }, { 416, 0, 1120, 0 } }, { 0, 4098, 0, 0 }, { 4091, 0, -201, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_SHELTER_DOOR_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x34B0, -64, -2961, 0 }, { { 398, 0, -1136, 0 }, { 718, 0, -951, 0 }, { -718, 0, 952, 0 }, { -398, 0, 1137, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, ONE, 0 }, 1200, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_ARRIVAL1_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4100, -64, -5409, 0 }, { { -838, 0, -1072, 0 }, { 491, 0, -1269, 0 }, { -491, 0, 1270, 0 }, { 838, 0, 1073, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1360, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_ARRIVAL2_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 7376, -64, -2176, 0 }, { { -959, 0, 176, 0 }, { 960, 0, 176, 0 }, { -959, 0, 848, 0 }, { 960, 0, 848, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, ONE, 0 }, 1280, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY, DRYFIELD_NIGHT_WATER_HOLE_DRIVEWAY_WARP_SLOTS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x40A0, -64, -4416, 0 }, { { -1007, 0, 464, 0 }, { 944, 0, 464, 0 }, { -1007, 0, 1392, 0 }, { 944, 0, 1392, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, ONE, 0 }, 1717, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WATER_HOLE_CAP_SWITCH_ON_INTERACTION, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_water_hole_80182AF8[8] = {
-    { NULL, NULL, NULL, { 7376, -48, -1616, 0 }, { { -719, 0, -336, 0 }, { 720, 0, -336, 0 }, { -719, 0, 336, 0 }, { 720, 0, 336, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x58B0, -1280, -2992, 0 }, { { 0, 1344, -1199, 0 }, { 0, 1344, 1200, 0 }, { 0, -1344, -1199, 0 }, { 0, -1344, 1200, 0 } }, { -4101, 0, 0, 0 }, { -4096, 0, 0, 0 }, 1801, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 38, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x5860, -403, -2944, 0 }, { { 288, 0, -671, 0 }, { 288, 0, 672, 0 }, { -288, 0, -671, 0 }, { -288, 0, 672, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 729, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 18, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x5640, -32, -2976, 0 }, { { 288, 0, -671, 0 }, { 288, 0, 672, 0 }, { -288, 0, -671, 0 }, { -288, 0, 672, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 729, WORLD_COLLISION_TRIGGER_ACTION_FACING, 21, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4384, -64, -976, 0 }, { { -415, 0, -1120, 0 }, { 416, 0, -1120, 0 }, { -415, 0, 1120, 0 }, { 416, 0, 1120, 0 } }, { 0, 4098, 0, 0 }, { 4091, 0, -201, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x34B0, -64, -2961, 0 }, { { 398, 0, -1136, 0 }, { 718, 0, -951, 0 }, { -718, 0, 952, 0 }, { -398, 0, 1137, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1200, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4100, -64, -5409, 0 }, { { -838, 0, -1072, 0 }, { 491, 0, -1269, 0 }, { -491, 0, 1270, 0 }, { 838, 0, 1073, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1360, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 7376, -64, -2240, 0 }, { { -959, 0, 208, 0 }, { 960, 0, 208, 0 }, { -959, 0, 976, 0 }, { 960, 0, 976, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 1366, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 18, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Switch-off interaction regions for rooms 2 and 4, without the CAP-command-6 region.
+///
+/// Covers driveway/underpass warps, the stair flight, Shelter-door command 2
+/// and automatic arrival actions 1/2. The larger driveway region is the included
+/// LAST entry. Links, coordinates and hit latches are borrowed while loaded.
+static WorldCollisionTrigger _gDryfieldNightWaterHoleSwitchOffActionTriggers[8] = {
+    { NULL, NULL, NULL, { 7376, -48, -1616, 0 }, { { -719, 0, -336, 0 }, { 720, 0, -336, 0 }, { -719, 0, 336, 0 }, { 720, 0, 336, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, ONE, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY, DRYFIELD_NIGHT_WATER_HOLE_DRIVEWAY_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x58B0, -1280, -2992, 0 }, { { 0, 1344, -1199, 0 }, { 0, 1344, 1200, 0 }, { 0, -1344, -1199, 0 }, { 0, -1344, 1200, 0 } }, { -4101, 0, 0, 0 }, { -ONE, 0, 0, 0 }, 1801, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, DRYFIELD_NIGHT_WATER_HOLE_UNDERPASS_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x5860, -403, -2944, 0 }, { { 288, 0, -671, 0 }, { 288, 0, 672, 0 }, { -288, 0, -671, 0 }, { -288, 0, 672, 0 } }, { 0, ONE, 0, 0 }, { ONE, 0, 0, 0 }, 729, WORLD_COLLISION_TRIGGER_ACTION_FACING | DRYFIELD_NIGHT_WATER_HOLE_STAIR_DESCEND | WORLD_COLLISION_TRIGGER_AUTOMATIC, (DRYFIELD_NIGHT_WATER_HOLE_STAIR_SURFACE_CLASS << 4) | DRYFIELD_NIGHT_WATER_HOLE_STAIR_DESCENT_STEPS, 3 * ACTOR_TRANSFORM_ANGLE_TURN / (4 * DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_YAW_UNITS), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x5640, -32, -2976, 0 }, { { 288, 0, -671, 0 }, { 288, 0, 672, 0 }, { -288, 0, -671, 0 }, { -288, 0, 672, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 729, WORLD_COLLISION_TRIGGER_ACTION_FACING, (DRYFIELD_NIGHT_WATER_HOLE_STAIR_SURFACE_CLASS << 4) | DRYFIELD_NIGHT_WATER_HOLE_STAIR_ASCENT_STEPS, ACTOR_TRANSFORM_ANGLE_TURN / (4 * DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_YAW_UNITS), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4384, -64, -976, 0 }, { { -415, 0, -1120, 0 }, { 416, 0, -1120, 0 }, { -415, 0, 1120, 0 }, { 416, 0, 1120, 0 } }, { 0, 4098, 0, 0 }, { 4091, 0, -201, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_SHELTER_DOOR_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x34B0, -64, -2961, 0 }, { { 398, 0, -1136, 0 }, { 718, 0, -951, 0 }, { -718, 0, 952, 0 }, { -398, 0, 1137, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, ONE, 0 }, 1200, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_ARRIVAL1_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4100, -64, -5409, 0 }, { { -838, 0, -1072, 0 }, { 491, 0, -1269, 0 }, { -491, 0, 1270, 0 }, { 838, 0, 1073, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1360, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_NIGHT_WATER_HOLE_TRIGGER_ARRIVAL2_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 7376, -64, -2240, 0 }, { { -959, 0, 208, 0 }, { 960, 0, 208, 0 }, { -959, 0, 976, 0 }, { 960, 0, 976, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, ONE, 0 }, 1366, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY, DRYFIELD_NIGHT_WATER_HOLE_DRIVEWAY_WARP_SLOTS, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_night_water_hole_80182D58[2] = {
+/// Two room-space line-of-sight blocking quads shared by all four room selectors.
+///
+/// Normals use Q12 and positions use game units. Setup mutates list links and
+/// enables both entries, including the LAST-marked second; keep storage live until unlinked.
+static WorldCollisionOccluder _gDryfieldNightWaterHoleOccluders[2] = {
     { NULL, NULL, { 8544, -1520, -3664, 0 }, { { -1536, -2224, -1840, 0 }, { -1536, 2224, -1840, 0 }, { 1536, -2224, 1840, 0 }, { 1536, 2224, 1840, 0 } }, { -3150, 0, 2629, 0 }, 3268, 1, 0 },
     { NULL, NULL, { 0x34E0, -1568, -176, 0 }, { { -1504, -2224, -1936, 0 }, { -1504, 2224, -1936, 0 }, { 1504, -2224, 1936, 0 }, { 1504, 2224, 1936, 0 } }, { -3237, 0, 2514, 0 }, 3308, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -1152,30 +1233,46 @@ static WorldCoordRoomLights _gDryfieldNightWaterHoleSwitchOffRoomLights = {
     .coneLights      = _gDryfieldNightWaterHoleSwitchOffConeLights,
 };
 
-AreaResource D_dryfield_night_water_hole_801833B8[2] = {
+/// Variant 1's Zebra Stalker resource and terminal entry.
+///
+/// Placement zero selects the water-entrance spawn; file group base 40/file 6
+/// supplies its package and task descriptor, borrowed during loading and spawning.
+static AreaResource _gDryfieldNightWaterHoleVariant1Resources[2] = {
     { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_water_hole_801833D0[2] = {
+/// Variant 2's actor-101100 resource shared by its two placements, then a terminator.
+///
+/// File group base 10/file 11 supplies the package; descriptor zero is borrowed
+/// during loading and spawning. Both placements match entry ID 11.
+static AreaResource _gDryfieldNightWaterHoleVariant2Resources[2] = {
     { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_water_hole_801833E8[2] = {
+/// Variant 10's Water Hole scene-controller resource and terminal entry.
+///
+/// File group base 10/file 460 is loaded although this variant's placement list
+/// is empty. Room initialization starts the ending controller explicitly.
+static AreaResource _gDryfieldNightWaterHoleVariant10Resources[2] = {
     { 101, 460, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor146000WaterHoleSceneTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_water_hole_80183400[2] = {
+/// Variant 21's Zebra Stalker resource shared by three ordinary placements, then a terminator.
+///
+/// File group base 40/file 6 and descriptor zero serve every entry-ID-6 placement.
+/// The table and descriptor are borrowed during loading and spawning.
+static AreaResource _gDryfieldNightWaterHoleVariant21Resources[2] = {
     { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_dryfield_night_water_hole_80183418[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017CCE8, D_dryfield_night_water_hole_801833B8 },
-    { D_map_dryfield_full_8017CD08, D_dryfield_night_water_hole_801833D0 },
+    { D_map_dryfield_full_8017CCE8, _gDryfieldNightWaterHoleVariant1Resources },
+    { D_map_dryfield_full_8017CD08, _gDryfieldNightWaterHoleVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1183,7 +1280,7 @@ AreaVariant D_dryfield_night_water_hole_80183418[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017CD38, D_dryfield_night_water_hole_801833E8 },
+    { D_map_dryfield_full_8017CD38, _gDryfieldNightWaterHoleVariant10Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1194,7 +1291,7 @@ AreaVariant D_dryfield_night_water_hole_80183418[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017CD48, D_dryfield_night_water_hole_80183400 },
+    { D_map_dryfield_full_8017CD48, _gDryfieldNightWaterHoleVariant21Resources },
 };
 
 /// Ambient minima by logical view for rooms 1 and 3, with switch 1 on.
@@ -1322,18 +1419,32 @@ static WorldCollisionSurfaceProperties _gDryfieldNightWaterHoleClass6Surface = {
     .footstepSounds      = &_gDryfieldNightWaterHoleClass6Footsteps,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835C8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gDryfieldNightWaterHoleClass6Footsteps },
+/// Shelter-route-open blocking policy for classes 1 and 4, with footstep bases 61/63/61.
+///
+/// Allows weapon impacts and pushback. The active class table borrows this
+/// mutable record until replaced or unloaded; the physical material is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldNightWaterHoleShelterRouteOpenClasses1And4Surface = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightWaterHoleClass6Footsteps,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_water_hole_801835D0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gDryfieldNightWaterHoleClass6Footsteps },
+/// Shelter-route-open blocking policy for class 2, with footstep bases 61/63/61.
+///
+/// Allows weapon impacts and pushback. The active class table borrows this
+/// separate mutable record until replaced or unloaded; the physical material is unproven.
+static WorldCollisionSurfaceProperties _gDryfieldNightWaterHoleShelterRouteOpenClass2Surface = {
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightWaterHoleClass6Footsteps,
 };
 
 _DryfieldNightWaterHoleSurfaceOverride D_dryfield_night_water_hole_801835D8[4] = {
-    { D_dryfield_night_water_hole_801835C8, 4 },
-    { D_dryfield_night_water_hole_801835C8, 1 },
-    { D_dryfield_night_water_hole_801835D0, 2 },
+    { &_gDryfieldNightWaterHoleShelterRouteOpenClasses1And4Surface, 4 },
+    { &_gDryfieldNightWaterHoleShelterRouteOpenClasses1And4Surface, 1 },
+    { &_gDryfieldNightWaterHoleShelterRouteOpenClass2Surface, 2 },
     { NULL, 0 },
 };
 
@@ -1355,9 +1466,18 @@ AreaApplyRec D_dryfield_night_water_hole_80183618[4] = {
     { 255, 0, 0, 0 },
 };
 
-u8* gWaterHolePrimCursor = NULL;
+/// Byte cursor for interleaved POLY_G4 and DR_MODE packets in the current actor-arena half.
+///
+/// Reset on every draw to buffer 2 without a companion, otherwise buffer 1,
+/// offset by the current ordering-table half (0 or 1) times 0xC000 bytes.
+/// Packet casts select views of word-aligned storage; GPU use outlives this cursor.
+static u8* _gWaterHolePrimCursor = NULL;
 
-s16 gWaterHoleWaveScroll = 0;
+/// Signed-halfword running-actor tick counter controlling the water seam's phase.
+///
+/// Paused actors retain it. Each increment scrolls -16 angle units (4096 per
+/// turn); narrowing retains the low 16 bits, so the sine repeats every 256 ticks.
+static s16 _gWaterHoleWaveScroll = 0;
 
 /// Not read by this room's code; what it belongs to is unknown.
 s16 D_dryfield_night_water_hole_8018362E = -0x3000;
@@ -1392,18 +1512,18 @@ static void _dryfieldNightWaterHoleInitializeRoom(Task* task)
         DRYFIELD_NIGHT_WATER_HOLE_ENDING_TASK_INDEX = 1,
     };
 
-    task->msgTable = D_dryfield_night_water_hole_801805F8;
+    task->msgTable = _gDryfieldNightWaterHoleRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
-        taskSpawnFromTable(D_dryfield_night_water_hole_80180964, 0, 0, 0);
+        taskSpawnFromTable(&_gDryfieldNightWaterHoleWaterTaskDesc, 0, 0, 0);
     } else {
         _dryfieldNightWaterHoleApplySurfaceOverrides(D_dryfield_night_water_hole_801835D8);
     }
     if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT && sceneFindPlacedActor(0) != 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) != 0) {
         if (gGameSession->location.loc.warp == DRYFIELD_NIGHT_WATER_HOLE_ALTERNATE_ARRIVAL) {
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_80180660, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gDryfieldNightWaterHoleStalkerSecondFloorArrivalCommand, 0);
         } else {
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_water_hole_8018065C, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gDryfieldNightWaterHoleStalkerFirstFloorArrivalCommand, 0);
         }
     }
     if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ENDING_VARIANT && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0 && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
@@ -1414,10 +1534,10 @@ static void _dryfieldNightWaterHoleInitializeRoom(Task* task)
     task->state = task->state + 1;
 }
 
-/// The room task's three states, run from a stack copy by
-/// `dryfieldNightWaterHoleRoomTask`: the entry tick, the idle state,
-/// then `taskKill`.
-static const TaskFuncTable3 D_dryfield_night_water_hole_8017D688 = {
+/// Initialization, message-wait and teardown handlers indexed by room-task state 0..2.
+///
+/// Dispatched from a complete 12-byte stack copy; callback order is fixed.
+static const TaskFuncTable3 _gDryfieldNightWaterHoleRoomStateHandlers = {
     { _dryfieldNightWaterHoleInitializeRoom, _dryfieldNightWaterHoleRoomIdle, taskKill },
 };
 
@@ -1491,7 +1611,7 @@ static s32 _dryfieldNightWaterHoleCommandMessage(Task* task, s32 messageId, s32 
             // Resolve only initialized destination selectors; the request aliases its reply.
             _roomVariantResolveDeparture(&departure, resolve);
             gRoomDeparture = departure;
-            taskSpawnFromTable(&D_dryfield_night_water_hole_801805EC, 0, 0, 0);
+            taskSpawnFromTable(&_gDryfieldNightWaterHoleShelterDepartureTaskDesc, 0, 0, 0);
         } else {
             capRunCommandWithTransition(DRYFIELD_NIGHT_WATER_HOLE_CAP_LOCKED_DOOR);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, DRYFIELD_NIGHT_WATER_HOLE_MAP_WATER_MARK);
@@ -1520,12 +1640,12 @@ static s32 _dryfieldNightWaterHoleRoomActionMessage(Task* unusedTask, s32 messag
 
     if ((request->actionId == DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_2) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == DRYFIELD_NIGHT_WATER_HOLE_ARRIVAL_VARIANT)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
-        evsStartScript(D_dryfield_night_water_hole_8018067C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(_gDryfieldNightWaterHoleArrival2Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     actionId = request->actionId;
     if ((actionId == DRYFIELD_NIGHT_WATER_HOLE_ACTION_ARRIVAL_1) && (gameFlagGetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT) == 0) && (gGameSession->location.loc.variant == actionId)) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_WATER_HOLE_ARRIVAL_EVENT, 1);
-        evsStartScript(D_dryfield_night_water_hole_801807FC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(_gDryfieldNightWaterHoleArrival1Script, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
@@ -1541,7 +1661,7 @@ void dryfieldNightWaterHoleRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_water_hole_8017D688;
+    stateHandlers = _gDryfieldNightWaterHoleRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -1577,7 +1697,7 @@ void dryfieldNightWaterHoleSplashAndLightShaftsTask(Task* task)
     enum {
         DRYFIELD_NIGHT_WATER_HOLE_SPLASH_INITIALIZE   = 0,
         DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ACTIVE       = 1,
-        DRYFIELD_NIGHT_WATER_HOLE_SPLASH_SAMPLE_COUNT = ARRAY_SIZE(D_dryfield_night_water_hole_801809F4),
+        DRYFIELD_NIGHT_WATER_HOLE_SPLASH_SAMPLE_COUNT = ARRAY_SIZE(_gDryfieldNightWaterHolePreviousSplashPartPositions),
         DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_1_VIEWS = (1 << 3) | (1 << 4),
         DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_2_VIEWS = (1 << 4) | (1 << 6) | (1 << 9) | (1 << 11),
         DRYFIELD_NIGHT_WATER_HOLE_SHAFT_GROUP_3_VIEWS = 1 << 7,
@@ -1602,31 +1722,31 @@ void dryfieldNightWaterHoleSplashAndLightShaftsTask(Task* task)
 /// and a model containing coordinates 14/17. Consumes two ordered LCG draws,
 /// including on failed spawns, and leaves the resulting odds in work->angle.
 /// Expands to a braced statement block; the child uses its copied coordinate.
-#define DRYFIELD_NIGHT_WATER_HOLE_EMIT_PART_SPLASHES(sampleIndex)                                                                                                 \
-    {                                                                                                                                                             \
-        trackedPart = &playerTask->extra.tmd->coords[DRYFIELD_NIGHT_WATER_HOLE_SPLASH_FIRST_PART + (sampleIndex) * DRYFIELD_NIGHT_WATER_HOLE_SPLASH_PART_STRIDE]; \
-        actorRenderComposeCoord(trackedPart);                                                                                                                     \
-        /* Movement sets signed-halfword odds; ripple alone adds the bias. */                                                                                     \
-        work->angle = ABS(D_dryfield_night_water_hole_801809F4[(sampleIndex)].vx - trackedPart->workm.t[0]) +                                                     \
-                      ABS(D_dryfield_night_water_hole_801809F4[(sampleIndex)].vy - trackedPart->workm.t[1]) +                                                     \
-                      ABS(D_dryfield_night_water_hole_801809F4[(sampleIndex)].vz - trackedPart->workm.t[2]) + DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_ODDS_BIAS;         \
-        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &trackedPart->workm, &surfaceCoord.coord);                                                                 \
-        surfaceCoord.parent       = surfaceParent;                                                                                                                \
-        surfaceCoord.coord.t[1]   = gGameSession->waterY;                                                                                                         \
-        surfaceCoord.composeStamp = GRAPHICS_COORD_DIRTY;                                                                                                         \
-        actorRenderComposeCoord(&surfaceCoord);                                                                                                                   \
-        randomRoll = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                                          \
-        if ((s32)((randomRoll >> 16) & DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                               \
-            effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_HALF_SIDE, 0);                                                  \
-        }                                                                                                                                                         \
-        work->angle -= DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_ODDS_BIAS;                                                                                                \
-        randomRoll   = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                                        \
-        if ((s32)((randomRoll >> 16) & DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                               \
-            effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, DRYFIELD_NIGHT_WATER_HOLE_SPRAY_SPAWN_ARG, 0);                                                    \
-        }                                                                                                                                                         \
-        D_dryfield_night_water_hole_801809F4[(sampleIndex)].vx = trackedPart->workm.t[0];                                                                         \
-        D_dryfield_night_water_hole_801809F4[(sampleIndex)].vy = trackedPart->workm.t[1];                                                                         \
-        D_dryfield_night_water_hole_801809F4[(sampleIndex)].vz = trackedPart->workm.t[2];                                                                         \
+#define DRYFIELD_NIGHT_WATER_HOLE_EMIT_PART_SPLASHES(sampleIndex)                                                                                                        \
+    {                                                                                                                                                                    \
+        trackedPart = &playerTask->extra.tmd->coords[DRYFIELD_NIGHT_WATER_HOLE_SPLASH_FIRST_PART + (sampleIndex) * DRYFIELD_NIGHT_WATER_HOLE_SPLASH_PART_STRIDE];        \
+        actorRenderComposeCoord(trackedPart);                                                                                                                            \
+        /* Movement sets signed-halfword odds; ripple alone adds the bias. */                                                                                            \
+        work->angle = ABS(_gDryfieldNightWaterHolePreviousSplashPartPositions[(sampleIndex)].vx - trackedPart->workm.t[0]) +                                             \
+                      ABS(_gDryfieldNightWaterHolePreviousSplashPartPositions[(sampleIndex)].vy - trackedPart->workm.t[1]) +                                             \
+                      ABS(_gDryfieldNightWaterHolePreviousSplashPartPositions[(sampleIndex)].vz - trackedPart->workm.t[2]) + DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_ODDS_BIAS; \
+        gfxMakeRelativeTransform(&gGfxViewCoord.workm, &trackedPart->workm, &surfaceCoord.coord);                                                                        \
+        surfaceCoord.parent       = surfaceParent;                                                                                                                       \
+        surfaceCoord.coord.t[1]   = gGameSession->waterY;                                                                                                                \
+        surfaceCoord.composeStamp = GRAPHICS_COORD_DIRTY;                                                                                                                \
+        actorRenderComposeCoord(&surfaceCoord);                                                                                                                          \
+        randomRoll = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                                                 \
+        if ((s32)((randomRoll >> 16) & DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                                      \
+            effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_HALF_SIDE, 0);                                                         \
+        }                                                                                                                                                                \
+        work->angle -= DRYFIELD_NIGHT_WATER_HOLE_RIPPLE_ODDS_BIAS;                                                                                                       \
+        randomRoll   = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);                                                               \
+        if ((s32)((randomRoll >> 16) & DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ROLL_MASK) < work->angle) {                                                                      \
+            effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, DRYFIELD_NIGHT_WATER_HOLE_SPRAY_SPAWN_ARG, 0);                                                           \
+        }                                                                                                                                                                \
+        _gDryfieldNightWaterHolePreviousSplashPartPositions[(sampleIndex)].vx = trackedPart->workm.t[0];                                                                 \
+        _gDryfieldNightWaterHolePreviousSplashPartPositions[(sampleIndex)].vy = trackedPart->workm.t[1];                                                                 \
+        _gDryfieldNightWaterHolePreviousSplashPartPositions[(sampleIndex)].vz = trackedPart->workm.t[2];                                                                 \
     }
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
@@ -1642,10 +1762,10 @@ void dryfieldNightWaterHoleSplashAndLightShaftsTask(Task* task)
             }
             task->state = DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ACTIVE;
             for (sampleIndex = 0; sampleIndex < DRYFIELD_NIGHT_WATER_HOLE_SPLASH_SAMPLE_COUNT; sampleIndex++) {
-                trackedPart                                          = &playerTask->extra.tmd->coords[DRYFIELD_NIGHT_WATER_HOLE_SPLASH_FIRST_PART + sampleIndex * DRYFIELD_NIGHT_WATER_HOLE_SPLASH_PART_STRIDE];
-                D_dryfield_night_water_hole_801809F4[sampleIndex].vx = trackedPart->workm.t[0];
-                D_dryfield_night_water_hole_801809F4[sampleIndex].vy = trackedPart->workm.t[1];
-                D_dryfield_night_water_hole_801809F4[sampleIndex].vz = trackedPart->workm.t[2];
+                trackedPart                                                         = &playerTask->extra.tmd->coords[DRYFIELD_NIGHT_WATER_HOLE_SPLASH_FIRST_PART + sampleIndex * DRYFIELD_NIGHT_WATER_HOLE_SPLASH_PART_STRIDE];
+                _gDryfieldNightWaterHolePreviousSplashPartPositions[sampleIndex].vx = trackedPart->workm.t[0];
+                _gDryfieldNightWaterHolePreviousSplashPartPositions[sampleIndex].vy = trackedPart->workm.t[1];
+                _gDryfieldNightWaterHolePreviousSplashPartPositions[sampleIndex].vz = trackedPart->workm.t[2];
             }
             break;
         case DRYFIELD_NIGHT_WATER_HOLE_SPLASH_ACTIVE:

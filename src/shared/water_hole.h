@@ -37,11 +37,8 @@ enum { WATER_HOLE_SURFACE_HEIGHT = -420 };
 static void _waterHoleWaterStart(Task* task);
 static void _waterHoleDrawSurfaces(Task* task);
 
-/// The room's water surfaces, ended by an entry whose `y` is `WATER_SURFACE_LIST_END`.
-extern WaterHoleSurface gWaterHoleSurfaces[];
-/// Where the next water quad is written in the frame's primitive buffer.
-extern u8* gWaterHolePrimCursor;
-/// The seam wave's scroll, advanced while the room's actors run.
-extern s16 gWaterHoleWaveScroll;
+// Each carrier defines its private _gWaterHoleSurfaces terminated table,
+// _gWaterHolePrimCursor byte pointer and _gWaterHoleWaveScroll signed-halfword
+// tick counter before including the drawing fragment.
 
 #endif /* SRC_SHARED_WATER_HOLE_H */

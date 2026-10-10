@@ -205,7 +205,7 @@ dryfieldNightDrivewayRoomTask = 0x8017DD8C; // type:func absolute:True owner=dry
 gDryfieldNightDrivewayRoomLighting = 0x801805E0; // absolute:True owner=dryfield_night_driveway
 gDryfieldNightDrivewayRoomCollisionResources = 0x801805F0; // absolute:True owner=dryfield_night_driveway
 gDryfieldNightDrivewayViewMaps = 0x8018061C; // absolute:True owner=dryfield_night_driveway shared=rooms
-gDryfieldNightDrivewayViewCounts = 0x80180624; // absolute:True owner=dryfield_night_driveway shared=rooms
+gDryfieldNightDrivewayViewCounts = 0x80180624; // absolute:True owner=dryfield_night_driveway
 gDryfieldNightDrivewayWarpEntries = 0x80180628; // absolute:True owner=dryfield_night_driveway
 gDryfieldNightDrivewayViewCameras = 0x80180C30; // absolute:True owner=dryfield_night_driveway
 gDryfieldNightDrivewaySpriteViews = 0x80181870; // absolute:True owner=dryfield_night_driveway
@@ -267,11 +267,11 @@ gDryfieldNightMotelLoftViewCameras = 0x8017F144; // absolute:True owner=dryfield
 D_dryfield_night_motel_loft_8017FBE4 = 0x8017FBE4; // absolute:True owner=dryfield_night_motel_loft shared=rooms
 gDryfieldNightMotelLoftSurfacePropertiesByClass = 0x8018090C; // absolute:True owner=dryfield_night_motel_loft
 dryfieldNightWaterHoleRoomTask = 0x8017DE30; // type:func absolute:True owner=dryfield_night_water_hole shared=rooms
-D_dryfield_night_water_hole_80180A04 = 0x80180A04; // absolute:True owner=dryfield_night_water_hole
+gDryfieldNightWaterHoleRoomCollisionResources = 0x80180A04; // absolute:True owner=dryfield_night_water_hole
 gDryfieldNightWaterHoleRoomLighting = 0x80180A44; // absolute:True owner=dryfield_night_water_hole
 gDryfieldNightWaterHoleViewMaps = 0x80180A94; // absolute:True owner=dryfield_night_water_hole
-D_dryfield_night_water_hole_80180AA4 = 0x80180AA4; // absolute:True owner=dryfield_night_water_hole
-D_dryfield_night_water_hole_80180AAC = 0x80180AAC; // absolute:True owner=dryfield_night_water_hole shared=rooms
+gDryfieldNightWaterHoleViewCounts = 0x80180AA4; // absolute:True owner=dryfield_night_water_hole
+gDryfieldNightWaterHoleWarpEntries = 0x80180AAC; // absolute:True owner=dryfield_night_water_hole shared=rooms
 gDryfieldNightWaterHoleViewCameras = 0x80180F74; // absolute:True owner=dryfield_night_water_hole
 gDryfieldNightWaterHoleSpriteViews = 0x80182384; // absolute:True owner=dryfield_night_water_hole shared=rooms
 gDryfieldNightWaterHoleSurfacePropertiesByClass = 0x801835F8; // absolute:True owner=dryfield_night_water_hole
