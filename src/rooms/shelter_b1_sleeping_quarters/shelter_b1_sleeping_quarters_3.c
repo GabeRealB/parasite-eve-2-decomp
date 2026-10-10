@@ -21,6 +21,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -41,7 +42,7 @@ static RoomFxShade _gRoomVisualEffectsGlowDiscShades[2];
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-u8* D_shelter_b1_sleeping_quarters_80180658[1] = {
+u8* gShelterB1SleepingQuartersRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -52,29 +53,53 @@ DirectionWarpEntry D_shelter_b1_sleeping_quarters_80180660[2] = {
     { { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x2E2C, 0, 5980 }, { 0, 0, 0, 0 }, 0x540E0002, 0x540E0001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1B3 },
 };
 
-static SVECTOR _gShelterB1SleepingQuartersCollision03B14Normals[7] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gShelterB1SleepingQuartersCollisionGridNormals[7] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_normals.inc"
 };
 
-static SVECTOR _gShelterB1SleepingQuartersCollision03B14Verts[143] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gShelterB1SleepingQuartersCollisionGridVerts[143] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1SleepingQuartersCollision03B14Faces[64] = {
+/// Indexed collision quads; their surface classes select this room's policies.
+static WorldCollisionGridFace _gShelterB1SleepingQuartersCollisionGridFaces[64] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_faces.inc"
 };
 
-static s16 _gShelterB1SleepingQuartersCollision03B14Cells[274] = {
+/// Signed face-index lists for the collision cells, each ending at -1.
+///
+/// The authored storage also retains zeros between lists and after the last list.
+static s16 _gShelterB1SleepingQuartersCollisionGridCells[274] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1SleepingQuartersCollision03B14Cells[i])
-static s16* _gShelterB1SleepingQuartersCollision03B14Table[12] = {
+enum {
+    SHELTER_B1_SLEEPING_QUARTERS_COLLISION_CELL_COUNT_X = 4,
+    SHELTER_B1_SLEEPING_QUARTERS_COLLISION_CELL_COUNT_Z = 3
+};
+
+#define GRID_CELL(i) (&_gShelterB1SleepingQuartersCollisionGridCells[i])
+/// X-major cell pointers, indexed by x * cellCountZ + z.
+static s16* _gShelterB1SleepingQuartersCollisionGridTable[SHELTER_B1_SLEEPING_QUARTERS_COLLISION_CELL_COUNT_X * SHELTER_B1_SLEEPING_QUARTERS_COLLISION_CELL_COUNT_Z] = {
 #include "assets/shelter_b1_sleeping_quarters_collision_03B14_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_sleeping_quarters_801810D4 = { NULL, _gShelterB1SleepingQuartersCollision03B14Normals, _gShelterB1SleepingQuartersCollision03B14Verts, _gShelterB1SleepingQuartersCollision03B14Faces, _gShelterB1SleepingQuartersCollision03B14Table, 1400, 4400, 4, 3, 4000, 64 };
+WorldCollisionGrid gShelterB1SleepingQuartersCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1SleepingQuartersCollisionGridNormals,
+    .vertices    = _gShelterB1SleepingQuartersCollisionGridVerts,
+    .faces       = _gShelterB1SleepingQuartersCollisionGridFaces,
+    .cellFaceIds = _gShelterB1SleepingQuartersCollisionGridTable,
+    .xBias       = 1400,
+    .zBias       = 4400,
+    .cellCountX  = SHELTER_B1_SLEEPING_QUARTERS_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = SHELTER_B1_SLEEPING_QUARTERS_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1SleepingQuartersCollisionGridFaces),
+};
 
 ViewCamera D_shelter_b1_sleeping_quarters_801810F8[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
@@ -89,17 +114,27 @@ ViewCamera D_shelter_b1_sleeping_quarters_801810F8[10] = {
     { { { { -4061, 0, 531 }, { 531, 240, 4054 }, { -31, 4088, -238 } }, { -9925, 5691, -1450 } }, 230 },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_80181260[2] = {
+/// Empty sprite batch list retaining decoded image strips for mapped view 1.
+///
+/// The first zero count selects the image; the next record terminates the list.
+static SpriteBatch _gShelterB1SleepingQuartersView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_80181270[2] = {
+/// Empty sprite batch list retaining decoded image strips for mapped view 2.
+///
+/// The first zero count selects the image; the next record terminates the list.
+static SpriteBatch _gShelterB1SleepingQuartersView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_sleeping_quarters_80181280[5] = {
+/// Texture rectangles and sorting depths for mapped view 3's room sprites.
+///
+/// Positions and dimensions are pixels; depth is the unscaled ordering value.
+/// View 3's batches select all 5 elements while the overlay stays loaded.
+static SpriteSource _gShelterB1SleepingQuartersView3SpriteSources[5] = {
     { 143, 0x3FC0, { .fields = { 24, 72 } }, 88, -32, 750, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 80 } }, 80, 40, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -32, 700, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
@@ -107,13 +142,21 @@ SpriteSource D_shelter_b1_sleeping_quarters_80181280[5] = {
     { 143, 0x3FC0, { .fields = { 48, 80 } }, 112, 40, 700, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_801812E4[3] = {
+/// Sprite ranges layered over the decoded background of mapped view 3.
+///
+/// One five-sprite range covers the source array.
+/// The first zero-count record retains image strips; the final record ends the list.
+static SpriteBatch _gShelterB1SleepingQuartersView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1SleepingQuartersView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_sleeping_quarters_801812FC[6] = {
+/// Texture rectangles and sorting depths for mapped view 4's room sprites.
+///
+/// Positions and dimensions are pixels; depth is the unscaled ordering value.
+/// View 4's batches select all 6 elements while the overlay stays loaded.
+static SpriteSource _gShelterB1SleepingQuartersView4SpriteSources[6] = {
     { 143, 0x3FC0, { .fields = { 8, 120 } }, 112, 0, 675, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 96 } }, 120, 24, 650, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 96 } }, 144, 24, 625, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
@@ -122,13 +165,21 @@ SpriteSource D_shelter_b1_sleeping_quarters_801812FC[6] = {
     { 143, 0x3FC0, { .fields = { 32, 32 } }, 128, -96, 575, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_80181374[3] = {
+/// Sprite ranges layered over the decoded background of mapped view 4.
+///
+/// One six-sprite range covers the source array.
+/// The first zero-count record retains image strips; the final record ends the list.
+static SpriteBatch _gShelterB1SleepingQuartersView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1SleepingQuartersView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_sleeping_quarters_8018138C[85] = {
+/// Texture rectangles and sorting depths for mapped view 5's room sprites.
+///
+/// Positions and dimensions are pixels; depth is the unscaled ordering value.
+/// View 5's batches select all 85 elements while the overlay stays loaded.
+static SpriteSource _gShelterB1SleepingQuartersView5SpriteSources[85] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, -24, 1720, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, -8, 1710, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 8, 1700, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
@@ -216,19 +267,31 @@ SpriteSource D_shelter_b1_sleeping_quarters_8018138C[85] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 88, 1062, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_80181A30[4] = {
+/// Sprite ranges layered over the decoded background of mapped view 5.
+///
+/// Ranges [0, 52) and [52, 85) cover the source array.
+/// The first zero-count record retains image strips; the final record ends the list.
+static SpriteBatch _gShelterB1SleepingQuartersView5SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 52, 0, 0, { 1, 0 } },
-    { 52, 33, 0, 0, { 0, 0 } },
+    { 52, ARRAY_SIZE(_gShelterB1SleepingQuartersView5SpriteSources) - 52, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_shelter_b1_sleeping_quarters_80181A50[2] = {
+/// Clip and full-screen restore commands for mapped view 5.
+///
+/// Clips to (79, 99, 62, 140) draw-buffer pixels until sorting depth 1662.
+/// The second record ends the list; the renderer adds the active buffer's Y origin.
+static SpriteDrawArea _gShelterB1SleepingQuartersView5SpriteDrawAreas[2] = {
     { { 79, 99, 62, 140 }, 1662 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b1_sleeping_quarters_80181A64[112] = {
+/// Texture rectangles and sorting depths for mapped view 6's room sprites.
+///
+/// Positions and dimensions are pixels; depth is the unscaled ordering value.
+/// View 6's batches select all 112 elements while the overlay stays loaded.
+static SpriteSource _gShelterB1SleepingQuartersView6SpriteSources[112] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -80, 56, 751, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -72, 56, 784, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -64, 56, 863, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
@@ -343,20 +406,32 @@ SpriteSource D_shelter_b1_sleeping_quarters_80181A64[112] = {
     { 142, 0x4000, { .fields = { 40, 32 } }, 120, 88, 272, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_80182324[5] = {
+/// Sprite ranges layered over the decoded background of mapped view 6.
+///
+/// Ranges [0, 53), [53, 82) and [82, 112) cover the source array.
+/// The first zero-count record retains image strips; the final record ends the list.
+static SpriteBatch _gShelterB1SleepingQuartersView6SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 53, 0, 0, { 2, 0 } },
     { 53, 29, 0, 0, { 1, 0 } },
-    { 82, 30, 0, 0, { 0, 0 } },
+    { 82, ARRAY_SIZE(_gShelterB1SleepingQuartersView6SpriteSources) - 82, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_shelter_b1_sleeping_quarters_8018234C[2] = {
+/// Clip and full-screen restore commands for mapped view 6.
+///
+/// Retains a zero-size clip at (109, 215) until sorting depth 0x57E4.
+/// The second record ends the list; the renderer adds the active buffer's Y origin.
+static SpriteDrawArea _gShelterB1SleepingQuartersView6SpriteDrawAreas[2] = {
     { { 109, 215, 0, 0 }, 0x57E4 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b1_sleeping_quarters_80182360[37] = {
+/// Texture rectangles and sorting depths for mapped view 7's room sprites.
+///
+/// Positions and dimensions are pixels; depth is the unscaled ordering value.
+/// View 7's batches select all 37 elements while the overlay stays loaded.
+static SpriteSource _gShelterB1SleepingQuartersView7SpriteSources[37] = {
     { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, -64, 757, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, -16, 743, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 48 } }, -120, -64, 725, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
@@ -396,19 +471,31 @@ SpriteSource D_shelter_b1_sleeping_quarters_80182360[37] = {
     { 143, 0x3FC0, { .fields = { 32, 64 } }, 40, 24, 1500, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_80182644[4] = {
+/// Sprite ranges layered over the decoded background of mapped view 7.
+///
+/// Ranges [0, 21) and [21, 37) cover the source array.
+/// The first zero-count record retains image strips; the final record ends the list.
+static SpriteBatch _gShelterB1SleepingQuartersView7SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 21, 0, 0, { 1, 0 } },
-    { 21, 16, 0, 0, { 0, 0 } },
+    { 21, ARRAY_SIZE(_gShelterB1SleepingQuartersView7SpriteSources) - 21, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_shelter_b1_sleeping_quarters_80182664[2] = {
+/// Clip and full-screen restore commands for mapped view 7.
+///
+/// Clips to (121, 87, 83, 152) draw-buffer pixels until sorting depth 1375.
+/// The second record ends the list; the renderer adds the active buffer's Y origin.
+static SpriteDrawArea _gShelterB1SleepingQuartersView7SpriteDrawAreas[2] = {
     { { 121, 87, 83, 152 }, 1375 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b1_sleeping_quarters_80182678[39] = {
+/// Texture rectangles and sorting depths for mapped view 8's room sprites.
+///
+/// Positions and dimensions are pixels; depth is the unscaled ordering value.
+/// View 8's batches select all 39 elements while the overlay stays loaded.
+static SpriteSource _gShelterB1SleepingQuartersView8SpriteSources[39] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 16, 818, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -80, 750, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, -64, 800, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
@@ -450,10 +537,14 @@ SpriteSource D_shelter_b1_sleeping_quarters_80182678[39] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 96, -24, 1137, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_sleeping_quarters_80182984[4] = {
+/// Sprite ranges layered over the decoded background of mapped view 8.
+///
+/// Ranges [0, 17) and [17, 39) cover the source array.
+/// The first zero-count record retains image strips; the final record ends the list.
+static SpriteBatch _gShelterB1SleepingQuartersView8SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 17, 0, 0, { 1, 0 } },
-    { 17, 22, 0, 0, { 0, 0 } },
+    { 17, ARRAY_SIZE(_gShelterB1SleepingQuartersView8SpriteSources) - 17, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -538,35 +629,50 @@ SpriteBatch D_shelter_b1_sleeping_quarters_80182E60[2] = {
 };
 
 SpriteView D_shelter_b1_sleeping_quarters_80182E70[11] = {
-    { { .empty = D_shelter_b1_sleeping_quarters_80181260 }, D_shelter_b1_sleeping_quarters_80181260, NULL },
-    { { .empty = D_shelter_b1_sleeping_quarters_80181270 }, D_shelter_b1_sleeping_quarters_80181270, NULL },
-    { { .elements = D_shelter_b1_sleeping_quarters_80181280 }, D_shelter_b1_sleeping_quarters_801812E4, NULL },
-    { { .elements = D_shelter_b1_sleeping_quarters_801812FC }, D_shelter_b1_sleeping_quarters_80181374, NULL },
-    { { .elements = D_shelter_b1_sleeping_quarters_8018138C }, D_shelter_b1_sleeping_quarters_80181A30, D_shelter_b1_sleeping_quarters_80181A50 },
-    { { .elements = D_shelter_b1_sleeping_quarters_80181A64 }, D_shelter_b1_sleeping_quarters_80182324, D_shelter_b1_sleeping_quarters_8018234C },
-    { { .elements = D_shelter_b1_sleeping_quarters_80182360 }, D_shelter_b1_sleeping_quarters_80182644, D_shelter_b1_sleeping_quarters_80182664 },
-    { { .elements = D_shelter_b1_sleeping_quarters_80182678 }, D_shelter_b1_sleeping_quarters_80182984, NULL },
+    { { .empty = _gShelterB1SleepingQuartersView1SpriteBatches }, _gShelterB1SleepingQuartersView1SpriteBatches, NULL },
+    { { .empty = _gShelterB1SleepingQuartersView2SpriteBatches }, _gShelterB1SleepingQuartersView2SpriteBatches, NULL },
+    { { .elements = _gShelterB1SleepingQuartersView3SpriteSources }, _gShelterB1SleepingQuartersView3SpriteBatches, NULL },
+    { { .elements = _gShelterB1SleepingQuartersView4SpriteSources }, _gShelterB1SleepingQuartersView4SpriteBatches, NULL },
+    { { .elements = _gShelterB1SleepingQuartersView5SpriteSources }, _gShelterB1SleepingQuartersView5SpriteBatches, _gShelterB1SleepingQuartersView5SpriteDrawAreas },
+    { { .elements = _gShelterB1SleepingQuartersView6SpriteSources }, _gShelterB1SleepingQuartersView6SpriteBatches, _gShelterB1SleepingQuartersView6SpriteDrawAreas },
+    { { .elements = _gShelterB1SleepingQuartersView7SpriteSources }, _gShelterB1SleepingQuartersView7SpriteBatches, _gShelterB1SleepingQuartersView7SpriteDrawAreas },
+    { { .elements = _gShelterB1SleepingQuartersView8SpriteSources }, _gShelterB1SleepingQuartersView8SpriteBatches, NULL },
     { { .empty = D_shelter_b1_sleeping_quarters_801829A4 }, D_shelter_b1_sleeping_quarters_801829A4, NULL },
     { { .elements = D_shelter_b1_sleeping_quarters_801829B4 }, D_shelter_b1_sleeping_quarters_80182E28, NULL },
     { { .empty = D_shelter_b1_sleeping_quarters_80182E60 }, D_shelter_b1_sleeping_quarters_80182E60, NULL },
 };
 
-WorldCoordLight D_shelter_b1_sleeping_quarters_80182EF4[4] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 409, 409, 409 }, { 0, 0 } },
+/// Four directional model-shading sources active in every room view.
+///
+/// Translation supplies the direction; RGB intensity has 12 fractional bits.
+/// The lighting task binds and composes transforms, and queries update attenuation.
+static WorldCoordLight _gShelterB1SleepingQuartersDirectionalLights[4] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, 1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, -1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 409, 409, 409 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_shelter_b1_sleeping_quarters_80183054[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4500, -2620, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1339, 2360 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3200, -2159, -922 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 2220, 3442 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -766, -2000, -4618 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1319, 2059 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1240, -5082, 2801 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 7000, 7001 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3966, -2581, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1800, 3001 },
+/// Five point sources with room-space positions and distance falloff.
+///
+/// All views admit them; RGB intensity has 12 fractional bits and radii use game units.
+/// The lighting task binds and composes transforms, and queries update attenuation.
+static WorldCoordPointLight _gShelterB1SleepingQuartersPointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4500, -2620, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 1339, 2360 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3200, -2159, -922 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 2220, 3442 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -766, -2000, -4618 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1319, 2059 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1240, -5082, 2801 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 7000, 7001 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3966, -2581, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1800, 3001 },
 };
 
-WorldCoordRoomLights D_shelter_b1_sleeping_quarters_80183234 = { ARRAY_SIZE(D_shelter_b1_sleeping_quarters_80182EF4), D_shelter_b1_sleeping_quarters_80182EF4, ARRAY_SIZE(D_shelter_b1_sleeping_quarters_80183054), D_shelter_b1_sleeping_quarters_80183054, 0, NULL };
+WorldCoordRoomLights gShelterB1SleepingQuartersRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gShelterB1SleepingQuartersDirectionalLights),
+    .directionalLights     = _gShelterB1SleepingQuartersDirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB1SleepingQuartersPointLights),
+    .pointLights           = _gShelterB1SleepingQuartersPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b1_sleeping_quarters_8018324C[18] = {
     { NULL, NULL, NULL, { 1936, -2000, 1200, 0 }, { { 2224, -3360, -256, 0 }, { -2224, -3360, 256, 0 }, { 2224, 3360, -256, 0 }, { -2224, 3360, 256, 0 } }, { 469, 0, 4076, 0 }, { 0, 0, 4096, 0 }, 4031, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -707,33 +813,57 @@ AreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_sleeping_quarters_8018408C = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+enum {
+    SHELTER_B1_SLEEPING_QUARTERS_WALK_FOOTSTEP_SCRIPT = 0x15,
+    SHELTER_B1_SLEEPING_QUARTERS_RUN_FOOTSTEP_SCRIPT  = 0x17
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_sleeping_quarters_80184098[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walk, run and scripted-jump cue bases for room surface class 2.
+///
+/// Type-1 requests select the loaded bank; animation cue 1 adds one to each base.
+/// Scripted jumps reuse the walk pair. The surface borrows this record while loaded.
+static WorldCollisionFootstepSounds _gShelterB1SleepingQuartersFootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B1_SLEEPING_QUARTERS_WALK_FOOTSTEP_SCRIPT,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B1_SLEEPING_QUARTERS_RUN_FOOTSTEP_SCRIPT,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B1_SLEEPING_QUARTERS_WALK_FOOTSTEP_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_sleeping_quarters_801840A0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent blocking policy shared by room surface classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gShelterB1SleepingQuartersDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_sleeping_quarters_801840A8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_sleeping_quarters_8018408C },
+/// Class 1's silent policy: passes probes, ignores impacts and applies pushback.
+static WorldCollisionSurfaceProperties _gShelterB1SleepingQuartersProbePassSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_sleeping_quarters_801840B0[8] = {
-    D_shelter_b1_sleeping_quarters_80184098,
-    D_shelter_b1_sleeping_quarters_801840A0,
-    D_shelter_b1_sleeping_quarters_801840A8,
-    D_shelter_b1_sleeping_quarters_80184098,
-    D_shelter_b1_sleeping_quarters_80184098,
-    D_shelter_b1_sleeping_quarters_80184098,
-    D_shelter_b1_sleeping_quarters_80184098,
-    D_shelter_b1_sleeping_quarters_80184098,
+/// Class 2's blocking, impact-enabled policy with the room's footstep cue pairs.
+static WorldCollisionSurfaceProperties _gShelterB1SleepingQuartersFootstepSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB1SleepingQuartersFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB1SleepingQuartersSurfacePropertiesByClass[8] = {
+    &_gShelterB1SleepingQuartersDefaultSurfaceProperties,
+    &_gShelterB1SleepingQuartersProbePassSurfaceProperties,
+    &_gShelterB1SleepingQuartersFootstepSurfaceProperties,
+    &_gShelterB1SleepingQuartersDefaultSurfaceProperties,
+    &_gShelterB1SleepingQuartersDefaultSurfaceProperties,
+    &_gShelterB1SleepingQuartersDefaultSurfaceProperties,
+    &_gShelterB1SleepingQuartersDefaultSurfaceProperties,
+    &_gShelterB1SleepingQuartersDefaultSurfaceProperties,
 };
 
 void shelterB1SleepingQuartersRoomVisualEffectsGlowDiscTask(Task* task)

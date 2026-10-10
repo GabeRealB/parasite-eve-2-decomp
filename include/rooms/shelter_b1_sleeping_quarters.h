@@ -17,20 +17,36 @@ extern TmdSource gShelterB1SleepingQuartersModel02DFC;
 
 extern AreaVariant D_shelter_b1_sleeping_quarters_80183FDC[22];
 
-// shelter_b1_sleeping_quarters
-extern u8* D_shelter_b1_sleeping_quarters_80180658[];
+/// The sleeping quarters' one-room directory of logical-view maps.
+///
+/// Room 1 borrows `gViewIdentityMap`, so mapped image and sprite indices equal
+/// their logical view IDs. Reverse lookup searches 11 map entries; resource
+/// arrays have independent bounds. The directory has no terminator and remains
+/// valid only while this overlay is loaded; the byte map belongs to gameplay.
+extern u8* gShelterB1SleepingQuartersRoomViewMaps[1];
 
 extern ViewCount D_shelter_b1_sleeping_quarters_8018065C[];
 
 extern DirectionWarpEntry D_shelter_b1_sleeping_quarters_80180660[];
 
-extern WorldCollisionGrid D_shelter_b1_sleeping_quarters_801810D4;
+/// The sleeping quarters' room-space collision mesh and XZ cell index.
+///
+/// Contains 64 quads, 143 vertices and seven Q12 normals. The 4-by-3 cell
+/// table has 4000-game-unit cells and additive X/Z biases of 1400/4400.
+/// Setup binds the view coordinate; the descriptor and mesh pools remain
+/// mutable and must stay loaded while active.
+extern WorldCollisionGrid gShelterB1SleepingQuartersCollisionGrid;
 
 extern ViewCamera D_shelter_b1_sleeping_quarters_801810F8[];
 
 extern SpriteView D_shelter_b1_sleeping_quarters_80182E70[];
 
-extern WorldCoordRoomLights D_shelter_b1_sleeping_quarters_80183234;
+/// The sleeping quarters' four directional and five point model-shading lights.
+///
+/// Every source admits all views; there are no cone lights. Coordinate updates
+/// and lighting queries mutate the borrowed arrays, which remain valid while
+/// this overlay is loaded.
+extern WorldCoordRoomLights gShelterB1SleepingQuartersRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_8018324C[];
 
@@ -38,7 +54,14 @@ extern WorldCollisionOccluder D_shelter_b1_sleeping_quarters_801837A4[];
 
 extern WorldCollisionTrigger D_shelter_b1_sleeping_quarters_801838D0[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_sleeping_quarters_801840B0[];
+/// Collision and footstep policies indexed by room surface class 0..7.
+///
+/// Classes 0 and 3..7 block probes, allow weapon impacts and have no footsteps.
+/// Class 1 passes probes, ignores weapon impacts and has no footsteps; class 2
+/// blocks probes and allows impacts with walk/run footstep pairs. All classes
+/// apply pushback. Entries borrow scalar records owned by this loaded overlay;
+/// the table has no terminator.
+extern WorldCollisionSurfaceProperties* gShelterB1SleepingQuartersSurfacePropertiesByClass[8];
 
 /// Hides the sleeping quarters' placed model when its packed object state is 2.
 ///
