@@ -13,19 +13,62 @@
 // neo_ark_altar
 extern WorldCollisionRoomResources D_neo_ark_altar_8017F094[];
 
-extern WorldCoordRoomLighting D_neo_ark_altar_8017F0C4[];
+/// Extents of the altar's progress variants and shared mapped-view resources.
+enum {
+    NEO_ARK_ALTAR_ROOM_VARIANT_COUNT  = 3,
+    NEO_ARK_ALTAR_VIEW_RESOURCE_COUNT = 8,
+};
 
-extern u8* D_neo_ark_altar_8017F0EC[];
+/// Lighting for room variants 1..3, all borrowing the same directional light.
+///
+/// Indexed by room minus one. No per-view ambient table is supplied, so the
+/// default ambient minima apply. The altar overlay must remain loaded while
+/// the records or their mutable light collection are used.
+extern WorldCoordRoomLighting gNeoArkAltarRoomLighting[NEO_ARK_ALTAR_ROOM_VARIANT_COUNT];
 
-extern ViewCount D_neo_ark_altar_8017F0F8[];
+/// Logical-view maps for the altar's three tile-sequence progress variants.
+///
+/// Indexed by room minus one: 1 uses the identity map, 2 swaps mapped files
+/// 2 and 4 after sequence 2, and 3 swaps files 2 and 7 after both sequences.
+/// Each map accepts logical views 1..8 and returns a 1-based index into the
+/// area's camera, image and sprite resources. Maps have no terminator and
+/// require the altar and gameplay overlays to remain loaded.
+extern u8* gNeoArkAltarViewMaps[NEO_ARK_ALTAR_ROOM_VARIANT_COUNT];
+
+/// Reverse-lookup limits for altar room variants 1 and 2, eight entries each.
+///
+/// Indexed by room minus one; this array contains no count for variant 3.
+/// Forward view selection in all three variants uses `gNeoArkAltarViewMaps`
+/// independently. Requires the altar overlay to remain loaded.
+extern ViewCount gNeoArkAltarViewCounts[2];
 
 extern DirectionWarpEntry D_neo_ark_altar_8017F0FC[];
 
-extern ViewCamera D_neo_ark_altar_8017F5A0[];
+/// Cameras for the altar's eight mapped view files, indexed by file minus one.
+///
+/// File 1 looks down on the altar, file 5 is the switch close-up, and files
+/// 2/4/6 and 7/8 share their respective shots. Rotation uses ONE (4096) for
+/// unit scale; translations are negated world-space camera origins and
+/// projection distances are pixels. Requires the altar overlay to stay loaded.
+extern ViewCamera gNeoArkAltarViewCameras[NEO_ARK_ALTAR_VIEW_RESOURCE_COUNT];
 
-extern SpriteView D_neo_ark_altar_8017FE38[];
+/// Foreground and switch sprites for the altar's eight mapped view files.
+///
+/// Indexed by mapped file minus one. Files 1, 3, 6 and 8 have no sprites;
+/// files 2, 4 and 7 provide foreground layers, with switch indicators in
+/// batch 1 of files 4 and 7. File 5 has six switch frames in batches 1..6,
+/// with one visible at a time. Every batch list ends with SPRITE_BATCH_END;
+/// no view supplies a draw-area list. The room owns the mutable lists and
+/// sources, which remain valid only while the altar overlay is loaded.
+extern SpriteView gNeoArkAltarSpriteViews[NEO_ARK_ALTAR_VIEW_RESOURCE_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_altar_8018005C[];
+/// Collision policies for the altar's surface classes 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Class 4
+/// supplies paired walking/running/jump footstep cues; the others have none.
+/// Grid faces use classes 0, 1 and 4. The pointers borrow room-owned records
+/// and require the altar overlay to remain loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkAltarSurfaceProperties[8];
 
 /// Leaves the altar's bank-6 effect task (slot 0x15A) unchanged.
 ///

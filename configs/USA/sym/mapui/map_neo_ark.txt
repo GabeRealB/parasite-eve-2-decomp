@@ -178,13 +178,13 @@ gNeoArkSouthPromenadeSpriteViews = 0x801803E4; // absolute:True owner=neo_ark_so
 gNeoArkSouthPromenadeSurfaceProperties = 0x801809AC; // absolute:True owner=neo_ark_south_promenade shared=rooms
 neoArkAltarRoomTask = 0x8017D9E8; // type:func absolute:True owner=neo_ark_altar shared=rooms
 D_neo_ark_altar_8017F094 = 0x8017F094; // absolute:True owner=neo_ark_altar
-D_neo_ark_altar_8017F0C4 = 0x8017F0C4; // absolute:True owner=neo_ark_altar
-D_neo_ark_altar_8017F0EC = 0x8017F0EC; // absolute:True owner=neo_ark_altar
-D_neo_ark_altar_8017F0F8 = 0x8017F0F8; // absolute:True owner=neo_ark_altar
+gNeoArkAltarRoomLighting = 0x8017F0C4; // absolute:True owner=neo_ark_altar
+gNeoArkAltarViewMaps = 0x8017F0EC; // absolute:True owner=neo_ark_altar
+gNeoArkAltarViewCounts = 0x8017F0F8; // absolute:True owner=neo_ark_altar
 D_neo_ark_altar_8017F0FC = 0x8017F0FC; // absolute:True owner=neo_ark_altar
-D_neo_ark_altar_8017F5A0 = 0x8017F5A0; // absolute:True owner=neo_ark_altar
-D_neo_ark_altar_8017FE38 = 0x8017FE38; // absolute:True owner=neo_ark_altar shared=rooms
-D_neo_ark_altar_8018005C = 0x8018005C; // absolute:True owner=neo_ark_altar
+gNeoArkAltarViewCameras = 0x8017F5A0; // absolute:True owner=neo_ark_altar
+gNeoArkAltarSpriteViews = 0x8017FE38; // absolute:True owner=neo_ark_altar shared=rooms
+gNeoArkAltarSurfaceProperties = 0x8018005C; // absolute:True owner=neo_ark_altar
 neoArkShrineRoomTask = 0x8017D948; // type:func absolute:True owner=neo_ark_shrine shared=rooms
 D_neo_ark_shrine_80182724 = 0x80182724; // absolute:True owner=neo_ark_shrine
 gNeoArkShrineRoomLighting = 0x80182784; // absolute:True owner=neo_ark_shrine

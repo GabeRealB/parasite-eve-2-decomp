@@ -117,9 +117,9 @@ static s16  _neoArkAltarFindTile(const _NeoArkAltarTile* table, s16 x, s16 z);
 static s16  _neoArkAltarEvaluateTileSequence(Task* task);
 static void _neoArkAltarDrawTileWalls(s16 tileIndex, s32 height);
 
-extern WorldCollisionGrid    D_neo_ark_altar_8017F57C[1];
+static WorldCollisionGrid    _gNeoArkAltarCollisionGrid;
 extern WorldCollisionTrigger D_neo_ark_altar_8017FF08[4];
-extern WorldCoordRoomLights  D_neo_ark_altar_8017FEF0[1];
+static WorldCoordRoomLights  _gNeoArkAltarRoomLights;
 static void                  _neoArkAltarTileSequenceTask(Task* task);
 
 static void _neoArkAltarPlayMovieTask(Task* task);
@@ -185,18 +185,19 @@ TaskDesc D_neo_ark_altar_8017F088[1] = {
 };
 
 WorldCollisionRoomResources D_neo_ark_altar_8017F094[3] = {
-    { D_neo_ark_altar_8017F57C, NULL, D_neo_ark_altar_8017FF08, NULL },
-    { D_neo_ark_altar_8017F57C, NULL, D_neo_ark_altar_8017FF08, NULL },
-    { D_neo_ark_altar_8017F57C, NULL, D_neo_ark_altar_8017FF08, NULL },
+    { &_gNeoArkAltarCollisionGrid, NULL, D_neo_ark_altar_8017FF08, NULL },
+    { &_gNeoArkAltarCollisionGrid, NULL, D_neo_ark_altar_8017FF08, NULL },
+    { &_gNeoArkAltarCollisionGrid, NULL, D_neo_ark_altar_8017FF08, NULL },
 };
 
-WorldCoordRoomLighting D_neo_ark_altar_8017F0C4[3] = {
-    { D_neo_ark_altar_8017FEF0, NULL },
-    { D_neo_ark_altar_8017FEF0, NULL },
-    { D_neo_ark_altar_8017FEF0, NULL },
+WorldCoordRoomLighting gNeoArkAltarRoomLighting[NEO_ARK_ALTAR_ROOM_VARIANT_COUNT] = {
+    { &_gNeoArkAltarRoomLights, NULL },
+    { &_gNeoArkAltarRoomLights, NULL },
+    { &_gNeoArkAltarRoomLights, NULL },
 };
 
-u8 D_neo_ark_altar_8017F0DC[8] = {
+/// Eight logical-view mappings after sequence 2 alone; views 2 and 4 swap files.
+static u8 _gNeoArkAltarSecondSequenceViewMap[NEO_ARK_ALTAR_VIEW_RESOURCE_COUNT] = {
     1,
     4,
     3,
@@ -207,7 +208,8 @@ u8 D_neo_ark_altar_8017F0DC[8] = {
     8,
 };
 
-u8 D_neo_ark_altar_8017F0E4[8] = {
+/// Eight logical-view mappings after both sequences; views 2 and 7 swap files.
+static u8 _gNeoArkAltarBothSequencesViewMap[NEO_ARK_ALTAR_VIEW_RESOURCE_COUNT] = {
     1,
     7,
     3,
@@ -218,46 +220,69 @@ u8 D_neo_ark_altar_8017F0E4[8] = {
     8,
 };
 
-u8* D_neo_ark_altar_8017F0EC[3] = {
+u8* gNeoArkAltarViewMaps[NEO_ARK_ALTAR_ROOM_VARIANT_COUNT] = {
     gViewIdentityMap,
-    D_neo_ark_altar_8017F0DC,
-    D_neo_ark_altar_8017F0E4,
+    _gNeoArkAltarSecondSequenceViewMap,
+    _gNeoArkAltarBothSequencesViewMap,
 };
 
-ViewCount D_neo_ark_altar_8017F0F8[2] = { 8, 8 };
+ViewCount gNeoArkAltarViewCounts[2] = {
+    NEO_ARK_ALTAR_VIEW_RESOURCE_COUNT,
+    ARRAY_SIZE(_gNeoArkAltarSecondSequenceViewMap),
+};
 
 DirectionWarpEntry D_neo_ark_altar_8017F0FC[1] = {
     { { { .word = 1024 }, 7533, -3600, -7520 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -2944, 0, -2035 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkAltarCollision01FBCNormals[9] = {
+/// Room-space normal pool of `_gNeoArkAltarCollisionGrid`, with ONE unit length.
+static SVECTOR _gNeoArkAltarCollisionGridNormals[9] = {
 #include "assets/neo_ark_altar_collision_01FBC_normals.inc"
 };
 
-static SVECTOR _gNeoArkAltarCollision01FBCVerts[58] = {
+/// Signed world-unit vertex pool of `_gNeoArkAltarCollisionGrid`.
+static SVECTOR _gNeoArkAltarCollisionGridVerts[58] = {
 #include "assets/neo_ark_altar_collision_01FBC_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkAltarCollision01FBCFaces[29] = {
+/// Indexed collision faces using surface classes 0, 1 and 4.
+static WorldCollisionGridFace _gNeoArkAltarCollisionGridFaces[29] = {
 #include "assets/neo_ark_altar_collision_01FBC_faces.inc"
 };
 
-static s16 _gNeoArkAltarCollision01FBCCells[94] = {
+/// Six cell face-index lists ending in WORLD_COLLISION_GRID_CELL_END.
+static s16 _gNeoArkAltarCollisionGridCells[94] = {
 #include "assets/neo_ark_altar_collision_01FBC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkAltarCollision01FBCCells[i])
-static s16* _gNeoArkAltarCollision01FBCTable[6] = {
+#define GRID_CELL(i) (&_gNeoArkAltarCollisionGridCells[i])
+/// X-major cell directory of `_gNeoArkAltarCollisionGrid`, with two Z cells per X.
+static s16* _gNeoArkAltarCollisionGridTable[6] = {
 #include "assets/neo_ark_altar_collision_01FBC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_altar_8017F57C[1] = {
-    { NULL, _gNeoArkAltarCollision01FBCNormals, _gNeoArkAltarCollision01FBCVerts, _gNeoArkAltarCollision01FBCFaces, _gNeoArkAltarCollision01FBCTable, -2640, 0x2710, 3, 2, 4000, 29 },
+/// Shared collision mesh for all three altar room variants.
+///
+/// Its 3-by-2 XZ cells are 4000 world units across, using additive biases
+/// (-2640, 10000). Activation binds the mutable descriptor to the view;
+/// the descriptor and all pools live in the loaded altar overlay.
+static WorldCollisionGrid _gNeoArkAltarCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkAltarCollisionGridNormals,
+    .vertices    = _gNeoArkAltarCollisionGridVerts,
+    .faces       = _gNeoArkAltarCollisionGridFaces,
+    .cellFaceIds = _gNeoArkAltarCollisionGridTable,
+    .xBias       = -2640,
+    .zBias       = 10000,
+    .cellCountX  = 3,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkAltarCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_altar_8017F5A0[8] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5270, 0x7530, 7060 } }, 380 },
+ViewCamera gNeoArkAltarViewCameras[NEO_ARK_ALTAR_VIEW_RESOURCE_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -5270, 0x7530, 7060 } }, 380 },
     { { { { -37, 0, -4095 }, { -3560, 2024, 32 }, { 2024, 3560, -18 } }, { -7700, 0x27DF, 7433 } }, 230 },
     { { { { -1439, 0, -3834 }, { 422, 4071, -158 }, { 3811, -450, -1431 } }, { -0x2807, 5092, 6594 } }, 230 },
     { { { { -37, 0, -4095 }, { -3560, 2024, 32 }, { 2024, 3560, -18 } }, { -7700, 0x27DF, 7433 } }, 230 },
@@ -267,103 +292,126 @@ ViewCamera D_neo_ark_altar_8017F5A0[8] = {
     { { { { -1439, 0, -3834 }, { 422, 4071, -158 }, { 3811, -450, -1431 } }, { -5375, 4872, 5719 } }, 230 },
 };
 
-SpriteBatch D_neo_ark_altar_8017F6C0[2] = {
+/// Common 8-bit sprite page and neutral RGB modulation for the altar's view sprites.
+enum {
+    NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE  = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR = 128,
+};
+
+/// Empty sprite list for mapped file 1, retaining decoded-image background strips.
+static SpriteBatch _gNeoArkAltarView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_altar_8017F6D0[24] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 72, 1380, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 72, 1371, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 72, 1380, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 72, 1370, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 80, 1357, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 80, 1354, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 80, 1357, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 80, 1359, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 88, 1333, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 88, 1328, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 88, 1333, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 88, 1339, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 96, 1336, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 96, 1334, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 96, 1338, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 96, 1334, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 104, 1338, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 104, 1337, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 104, 1340, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 104, 1339, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 112, 1344, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 112, 1342, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 112, 1346, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 112, 1345, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
+/// Twenty-four 8-by-8 foreground tiles for mapped file 2's arrival view.
+static SpriteSource _gNeoArkAltarView2SpriteSources[24] = {
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 72, 1380, { .fields = { 112, 24 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 72, 1371, { .fields = { 112, 32 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 72, 1380, { .fields = { 112, 40 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 72, 1370, { .fields = { 120, 248 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 80, 1357, { .fields = { 120, 224 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 80, 1354, { .fields = { 120, 232 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 80, 1357, { .fields = { 120, 240 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 80, 1359, { .fields = { 120, 152 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 88, 1333, { .fields = { 120, 64 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 88, 1328, { .fields = { 120, 56 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 88, 1333, { .fields = { 120, 80 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 88, 1339, { .fields = { 120, 72 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 96, 1336, { .fields = { 120, 32 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 96, 1334, { .fields = { 120, 24 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 96, 1338, { .fields = { 120, 48 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 96, 1334, { .fields = { 120, 40 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 104, 1338, { .fields = { 120, 128 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 104, 1337, { .fields = { 120, 120 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 104, 1340, { .fields = { 120, 144 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 104, 1339, { .fields = { 120, 136 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 112, 1344, { .fields = { 120, 96 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 112, 1342, { .fields = { 120, 88 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 112, 1346, { .fields = { 120, 112 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 112, 1345, { .fields = { 120, 104 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_altar_8017F8B0[4] = {
+/// File 2's background selector, empty switch slot, foreground range and end marker.
+static SpriteBatch _gNeoArkAltarView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 1, 0 } },
-    { 0, 24, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkAltarView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_altar_8017F8D0[2] = {
+/// Empty sprite list for mapped file 3, used by the pre-solution switch dialogue.
+static SpriteBatch _gNeoArkAltarView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_altar_8017F8E0[33] = {
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -8, -64, 1802, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 72, 1380, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 72, 1371, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 72, 1380, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 72, 1370, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 80, 1357, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 80, 1354, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 80, 1357, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 80, 1359, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 88, 1333, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 88, 1328, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 88, 1333, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 88, 1339, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 96, 1336, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 96, 1334, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 96, 1338, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 96, 1334, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 104, 1338, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 104, 1337, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 104, 1340, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 104, 1339, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 112, 1344, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 112, 1342, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 112, 1346, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 112, 1345, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -40, -120, 1438, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -40, -112, 1267, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -40, -104, 1349, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -40, -96, 1441, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, -88, 1485, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, -80, 1541, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, -72, 1584, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -32, -64, 1652, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+/// File 4's switch indicator followed by 32 foreground tiles and strips.
+static SpriteSource _gNeoArkAltarView4SpriteSources[33] = {
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 24, 24 } }, -8, -64, 1802, { .fields = { 104, 0 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 72, 1380, { .fields = { 112, 24 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 72, 1371, { .fields = { 112, 32 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 72, 1380, { .fields = { 112, 40 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 72, 1370, { .fields = { 120, 248 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 80, 1357, { .fields = { 120, 224 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 80, 1354, { .fields = { 120, 232 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 80, 1357, { .fields = { 120, 240 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 80, 1359, { .fields = { 120, 152 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 88, 1333, { .fields = { 120, 64 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 88, 1328, { .fields = { 120, 56 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 88, 1333, { .fields = { 120, 80 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 88, 1339, { .fields = { 120, 72 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 96, 1336, { .fields = { 120, 32 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 96, 1334, { .fields = { 120, 24 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 96, 1338, { .fields = { 120, 48 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 96, 1334, { .fields = { 120, 40 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 104, 1338, { .fields = { 120, 128 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 104, 1337, { .fields = { 120, 120 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 104, 1340, { .fields = { 120, 144 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 104, 1339, { .fields = { 120, 136 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -48, 112, 1344, { .fields = { 120, 96 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -40, 112, 1342, { .fields = { 120, 88 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 32, 112, 1346, { .fields = { 120, 112 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 40, 112, 1345, { .fields = { 120, 104 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 88, 8 } }, -40, -120, 1438, { .fields = { 40, 192 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 88, 8 } }, -40, -112, 1267, { .fields = { 40, 200 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 88, 8 } }, -40, -104, 1349, { .fields = { 40, 208 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 80, 8 } }, -40, -96, 1441, { .fields = { 48, 184 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 72, 8 } }, -32, -88, 1485, { .fields = { 56, 160 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 72, 8 } }, -32, -80, 1541, { .fields = { 56, 168 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 72, 8 } }, -32, -72, 1584, { .fields = { 56, 176 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 72, 8 } }, -32, -64, 1652, { .fields = { 56, 216 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_altar_8017FB74[4] = {
+/// File 4's background, mutable switch indicator and always-visible foreground.
+///
+/// Batch 1 is shown only for the set switch choice; batch 2 spans the remaining
+/// sources. The terminal record selects no sources.
+static SpriteBatch _gNeoArkAltarView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
-    { 1, 32, 0, 0, { 0, 0 } },
+    { 1, ARRAY_SIZE(_gNeoArkAltarView4SpriteSources) - 1, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_altar_8017FB94[6] = {
-    { 143, 0x3FC0, { .fields = { 56, 72 } }, -8, -8, 386, { .fields = { 16, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 56, 72 } }, -8, -8, 389, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 56, 72 } }, -8, -8, 391, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4080, { .fields = { 56, 72 } }, -8, -8, 394, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x40C0, { .fields = { 56, 72 } }, -8, -8, 396, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4100, { .fields = { 56, 72 } }, -8, -8, 399, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+/// Six 56-by-72 switch-animation frames for mapped file 5's close-up.
+///
+/// Each frame has its own palette row, 255..260; frames run from the clear
+/// endpoint to the set endpoint and are selected through batches 1..6.
+static SpriteSource _gNeoArkAltarView5SpriteSources[6] = {
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 56, 72 } }, -8, -8, 386, { .fields = { 16, 72 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 256), { .fields = { 56, 72 } }, -8, -8, 389, { .fields = { 16, 144 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 257), { .fields = { 56, 72 } }, -8, -8, 391, { .fields = { 72, 0 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 258), { .fields = { 56, 72 } }, -8, -8, 394, { .fields = { 72, 72 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 259), { .fields = { 56, 72 } }, -8, -8, 396, { .fields = { 72, 144 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 260), { .fields = { 56, 72 } }, -8, -8, 399, { .fields = { 16, 0 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_altar_8017FC0C[8] = {
+/// File 5's background selector and six independently hidden switch-frame batches.
+///
+/// Each frame batch selects exactly one source. Room initialization and switch
+/// animation choose one visible frame, preserving the zero-count background.
+static SpriteBatch _gNeoArkAltarView5SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 0, 0 } },
     { 1, 1, 0, 0, { 1, 0 } },
@@ -374,65 +422,82 @@ SpriteBatch D_neo_ark_altar_8017FC0C[8] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_altar_8017FC4C[2] = {
+/// Empty sprite list for mapped file 6's alternate altar background.
+static SpriteBatch _gNeoArkAltarView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_altar_8017FC5C[21] = {
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -32, 16, 1897, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 64, 839, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 72, 693, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 56, 40, 1012, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 40, 982, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, 40, 936, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 80, 40, 891, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 48, 869, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, 48, 888, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 56, 863, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, 48, 826, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -40, 48, 717, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -32, 48, 724, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -24, 48, 728, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -16, 56, 731, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 32, 1887, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 32, 1833, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, 32, 1887, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -64, -48, 1922, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -40, -48, 1922, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -16, -48, 1922, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+/// File 7's switch indicator and twenty foreground pieces in two depth groups.
+static SpriteSource _gNeoArkAltarView7SpriteSources[21] = {
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 24, 24 } }, -32, 16, 1897, { .fields = { 80, 96 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, 112, 64, 839, { .fields = { 120, 248 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 8 } }, -8, 72, 693, { .fields = { 112, 248 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 32 } }, 56, 40, 1012, { .fields = { 96, 32 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 32 } }, 64, 40, 982, { .fields = { 96, 0 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 32 } }, 72, 40, 936, { .fields = { 104, 216 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 32 } }, 80, 40, 891, { .fields = { 96, 64 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 24 } }, 88, 48, 869, { .fields = { 96, 168 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 24 } }, 96, 48, 888, { .fields = { 96, 120 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 16 } }, 104, 56, 863, { .fields = { 104, 144 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 32 } }, -48, 48, 826, { .fields = { 112, 216 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 32 } }, -40, 48, 717, { .fields = { 120, 216 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 32 } }, -32, 48, 724, { .fields = { 104, 112 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 32 } }, -24, 48, 728, { .fields = { 104, 80 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 8, 24 } }, -16, 56, 731, { .fields = { 96, 144 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 16, 16 } }, -16, 32, 1887, { .fields = { 88, 192 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 16, 16 } }, -72, 32, 1833, { .fields = { 88, 208 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 16, 16 } }, 0, 32, 1887, { .fields = { 88, 224 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 24, 80 } }, -64, -48, 1922, { .fields = { 104, 0 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 24, 56 } }, -40, -48, 1922, { .fields = { 104, 160 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
+    { NEO_ARK_ALTAR_SPRITE_TEXTURE_PAGE, getClut(0, 255), { .fields = { 16, 80 } }, -16, -48, 1922, { .fields = { 112, 80 } }, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, NEO_ARK_ALTAR_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_neo_ark_altar_8017FE00[5] = {
+/// File 7's background, mutable switch indicator and two foreground ranges.
+///
+/// Batch 1 follows the saved switch choice; batches 2 and 3 select 14 and 6
+/// sources respectively. All ranges stay within the 21-element source pool.
+static SpriteBatch _gNeoArkAltarView7SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
     { 1, 14, 0, 0, { 2, 0 } },
-    { 15, 6, 0, 0, { 0, 0 } },
+    { 15, ARRAY_SIZE(_gNeoArkAltarView7SpriteSources) - 15, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_altar_8017FE28[2] = {
+/// Empty sprite list for mapped file 8's alternate side-view background.
+static SpriteBatch _gNeoArkAltarView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_altar_8017FE38[8] = {
-    { { .empty = D_neo_ark_altar_8017F6C0 }, D_neo_ark_altar_8017F6C0, NULL },
-    { { .elements = D_neo_ark_altar_8017F6D0 }, D_neo_ark_altar_8017F8B0, NULL },
-    { { .empty = D_neo_ark_altar_8017F8D0 }, D_neo_ark_altar_8017F8D0, NULL },
-    { { .elements = D_neo_ark_altar_8017F8E0 }, D_neo_ark_altar_8017FB74, NULL },
-    { { .elements = D_neo_ark_altar_8017FB94 }, D_neo_ark_altar_8017FC0C, NULL },
-    { { .empty = D_neo_ark_altar_8017FC4C }, D_neo_ark_altar_8017FC4C, NULL },
-    { { .elements = D_neo_ark_altar_8017FC5C }, D_neo_ark_altar_8017FE00, NULL },
-    { { .empty = D_neo_ark_altar_8017FE28 }, D_neo_ark_altar_8017FE28, NULL },
+SpriteView gNeoArkAltarSpriteViews[NEO_ARK_ALTAR_VIEW_RESOURCE_COUNT] = {
+    { { .empty = _gNeoArkAltarView1SpriteBatches }, _gNeoArkAltarView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkAltarView2SpriteSources }, _gNeoArkAltarView2SpriteBatches, NULL },
+    { { .empty = _gNeoArkAltarView3SpriteBatches }, _gNeoArkAltarView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkAltarView4SpriteSources }, _gNeoArkAltarView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkAltarView5SpriteSources }, _gNeoArkAltarView5SpriteBatches, NULL },
+    { { .empty = _gNeoArkAltarView6SpriteBatches }, _gNeoArkAltarView6SpriteBatches, NULL },
+    { { .elements = _gNeoArkAltarView7SpriteSources }, _gNeoArkAltarView7SpriteBatches, NULL },
+    { { .empty = _gNeoArkAltarView8SpriteBatches }, _gNeoArkAltarView8SpriteBatches, NULL },
 };
 
-WorldCoordLight D_neo_ark_altar_8017FE98[1] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4000, -0x3A98, 8000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4915, 4915 }, { 0, 0 } },
+/// One all-view directional light, with direction (-4000, -15000, 8000).
+///
+/// Its RGB intensity is 4915 in each channel with 12 fractional bits.
+/// Coordinate setup and lighting queries update its transform and attenuation.
+static WorldCoordLight _gNeoArkAltarDirectionalLights[1] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4000, -15000, 8000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4915, 4915, 4915 }, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_neo_ark_altar_8017FEF0[1] = {
-    { ARRAY_SIZE(D_neo_ark_altar_8017FE98), D_neo_ark_altar_8017FE98, 0, NULL, 0, NULL },
+/// Shared altar light collection: one directional light, no point or cone lights.
+static WorldCoordRoomLights _gNeoArkAltarRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gNeoArkAltarDirectionalLights),
+    .directionalLights     = _gNeoArkAltarDirectionalLights,
+    .pointLightCount       = 0,
+    .pointLights           = NULL,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_neo_ark_altar_8017FF08[4] = {
@@ -442,33 +507,59 @@ WorldCollisionTrigger D_neo_ark_altar_8017FF08[4] = {
     { NULL, NULL, NULL, { 0x2FC0, -4256, -7552, 0 }, { { 416, 14, -974, 0 }, { 416, -13, 975, 0 }, { -416, 14, -974, 0 }, { -416, -13, 975, 0 } }, { 0, 4099, 51, 0 }, { -4096, 0, 0, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_altar_80180038 = {
-    0x1000003D,
-    0x1000003F,
-    0x1000003D,
+/// Type-1 footstep requests select entries in the currently loaded sound bank.
+enum {
+    NEO_ARK_ALTAR_WALK_FOOTSTEP_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3D,
+    NEO_ARK_ALTAR_RUN_FOOTSTEP_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3F,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_altar_80180044[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface-class-4 footstep cue bases in the currently loaded type-1 sound bank.
+///
+/// Walking and scripted jumps use entries 0x3D/0x3E, running 0x3F/0x40;
+/// companion playback adds 100 to those entry numbers.
+/// Playback only reads this record; its storage belongs to the overlay's data image.
+static const WorldCollisionFootstepSounds _gNeoArkAltarFootstepSounds __attribute__((section(".data"))) = {
+    .walk         = NEO_ARK_ALTAR_WALK_FOOTSTEP_BASE,
+    .run          = NEO_ARK_ALTAR_RUN_FOOTSTEP_BASE,
+    .scriptedJump = NEO_ARK_ALTAR_WALK_FOOTSTEP_BASE,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_altar_8018004C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Shared blocking, impact-enabled, pushback surface for classes 0, 2, 3 and 5..7.
+static WorldCollisionSurfaceProperties _gNeoArkAltarSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_altar_80180054[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_altar_80180038 },
+/// Separate silent class-1 record, with the same collision policies as class 0.
+static WorldCollisionSurfaceProperties _gNeoArkAltarSurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_altar_8018005C[8] = {
-    D_neo_ark_altar_80180044,
-    D_neo_ark_altar_8018004C,
-    D_neo_ark_altar_80180044,
-    D_neo_ark_altar_80180044,
-    D_neo_ark_altar_80180054,
-    D_neo_ark_altar_80180044,
-    D_neo_ark_altar_80180044,
-    D_neo_ark_altar_80180044,
+/// Class-4 collision policy, adding paired footsteps to the shared blocking policy.
+static WorldCollisionSurfaceProperties _gNeoArkAltarFootstepSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkAltarFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkAltarSurfaceProperties[8] = {
+    &_gNeoArkAltarSilentSurfaceProperties,
+    &_gNeoArkAltarSurfaceClass1Properties,
+    &_gNeoArkAltarSilentSurfaceProperties,
+    &_gNeoArkAltarSilentSurfaceProperties,
+    &_gNeoArkAltarFootstepSurfaceProperties,
+    &_gNeoArkAltarSilentSurfaceProperties,
+    &_gNeoArkAltarSilentSurfaceProperties,
+    &_gNeoArkAltarSilentSurfaceProperties,
 };
 
 AreaApplyRec D_neo_ark_altar_8018007C[9] = {
