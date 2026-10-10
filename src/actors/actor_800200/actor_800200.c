@@ -111,25 +111,21 @@ typedef struct {
 } _Actor800200Waypoint;
 STATIC_ASSERT_SIZEOF(_Actor800200Waypoint, 8);
 
-extern TaskMessageEntry     D_actor_800200_80169EF0[20];
-extern u8*                  D_actor_800200_80169FD0[4];
-extern _Actor800200Waypoint D_actor_800200_80169FE0[];
-extern _Actor800200Waypoint D_actor_800200_80169FF8[];
-extern _Actor800200Waypoint D_actor_800200_8016A018[];
-extern _Actor800200Waypoint D_actor_800200_8016A020[];
-extern _Actor800200Waypoint D_actor_800200_8016A040[];
-extern _Actor800200Waypoint D_actor_800200_8016A048[];
-extern _Actor800200Waypoint D_actor_800200_8016A058[];
-extern _Actor800200Waypoint D_actor_800200_8016A068[];
-extern _Actor800200Waypoint D_actor_800200_8016A080[];
-extern _Actor800200Waypoint D_actor_800200_8016A090[];
-extern _Actor800200Waypoint D_actor_800200_8016A098[];
-extern _Actor800200Waypoint D_actor_800200_8016A0B0[];
-extern _Actor800200Waypoint D_actor_800200_8016A0C8[];
-extern _Actor800200Waypoint D_actor_800200_8016A0E0[];
-extern _Actor800200Waypoint D_actor_800200_8016A108[];
-extern _Actor800200Waypoint D_actor_800200_8016A128[];
-extern _Actor800200Waypoint D_actor_800200_8016A130[];
+/// Receiver-specific aliases of indexed animation playback.
+enum {
+    ACTOR_800200_MESSAGE_PLAY_ANIMATION_ALIAS_1002 = 1002,
+    ACTOR_800200_MESSAGE_PLAY_ANIMATION_ALIAS_1003 = 1003,
+    ACTOR_800200_MESSAGE_PLAY_ANIMATION_ALIAS_1004 = 1004
+};
+
+/// Byte choices in the sixteen equiprobable slots of each combat distance row.
+enum {
+    ACTOR_800200_IDLE_KEEP            = 0,
+    ACTOR_800200_IDLE_APPROACH_TARGET = 1,
+    ACTOR_800200_IDLE_ACTION_BURST    = 2,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER   = 3,
+    ACTOR_800200_COMBAT_CHOICE_COUNT  = 16
+};
 
 static void _actor800200TeardownTask(Task* task);
 static void _actor800200TickCompanionBehavior(Task* task);
@@ -212,11 +208,19 @@ TmdSource gActor800200FlintBody = {
     _gActor800200FlintBodyStream,
 };
 
-TaskMessageEntry D_actor_800200_80169EF0[20] = {
+/// Flint's borrowed message handlers for IDs 1000..1019, without an end marker.
+///
+/// Send only an installed ID while the task, actor_800200 and gameplay remain
+/// live. Playback aliases 1002..1004, stairs, button holds, damage and player
+/// presentation all read an `AnimationPlayRequest` with a companion-bank index;
+/// they do not implement those commands' player-specific payloads or behavior.
+/// The walk-steps request enters scripted state 5, which only ticks animation
+/// and leaves motion pending. Playback-fallback callbacks have no defined reply.
+static TaskMessageEntry _gActor800200MessageTable[20] = {
     { ANIMATION_MESSAGE_PLAY, companionPlayScriptedAnimation },
-    { 1002, companionPlayScriptedAnimation },
-    { 1003, companionPlayScriptedAnimation },
-    { 1004, companionPlayScriptedAnimation },
+    { ACTOR_800200_MESSAGE_PLAY_ANIMATION_ALIAS_1002, companionPlayScriptedAnimation },
+    { ACTOR_800200_MESSAGE_PLAY_ANIMATION_ALIAS_1003, companionPlayScriptedAnimation },
+    { ACTOR_800200_MESSAGE_PLAY_ANIMATION_ALIAS_1004, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_PLACE, playerActorPlace },
     { ANIMATION_MESSAGE_IS_PLAYING, playerActorIsAnimationPlaying },
     { GAME_ACTOR_MESSAGE_TURN_TO_YAW, companionTurnToYaw },
@@ -231,165 +235,229 @@ TaskMessageEntry D_actor_800200_80169EF0[20] = {
     { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, animationCopyCompanionBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, companionPlayScriptedAnimation },
-    { 1018, companionPlayScriptedAnimation },
+    { PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, companionPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_RUN_TO, companionRunTo },
 };
 
-u8 D_actor_800200_80169F90[16] = {
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Combat choices below 1024 planar game units: follow 11/16, action burst 5/16.
+static u8 _gActor800200CombatChoicesWithin1024[ACTOR_800200_COMBAT_CHOICE_COUNT] = {
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
 };
 
-u8 D_actor_800200_80169FA0[16] = {
-    3,
-    3,
-    3,
-    3,
-    3,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Combat choices at 1024..2047 units: follow 5/16, approach 2/16, action burst 9/16.
+static u8 _gActor800200CombatChoicesWithin2048[ACTOR_800200_COMBAT_CHOICE_COUNT] = {
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
 };
 
-u8 D_actor_800200_80169FB0[16] = {
-    3,
-    3,
-    3,
-    3,
-    3,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Combat choices at 2048..3071 units: follow 5/16, approach 5/16, action burst 6/16.
+static u8 _gActor800200CombatChoicesWithin3072[ACTOR_800200_COMBAT_CHOICE_COUNT] = {
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
 };
 
-u8 D_actor_800200_80169FC0[16] = {
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    3,
-    3,
-    2,
-    2,
-    2,
+/// Combat choices from 3072 units: approach 11/16, follow 2/16, action burst 3/16.
+static u8 _gActor800200CombatChoicesFrom3072[ACTOR_800200_COMBAT_CHOICE_COUNT] = {
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_APPROACH_TARGET,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_FOLLOW_PLAYER,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
+    ACTOR_800200_IDLE_ACTION_BURST,
 };
 
-u8* D_actor_800200_80169FD0[4] = {
-    D_actor_800200_80169F90,
-    D_actor_800200_80169FA0,
-    D_actor_800200_80169FB0,
-    D_actor_800200_80169FC0,
+/// Read-only combat rows selected by min(planar target distance / 1024, 3).
+///
+/// Each row has sixteen byte choices sampled by the low four random bits.
+/// Row pointers and their storage belong to the loaded actor overlay.
+static const u8 (*_gActor800200CombatChoicesByDistance[4])[ACTOR_800200_COMBAT_CHOICE_COUNT] = {
+    &_gActor800200CombatChoicesWithin1024,
+    &_gActor800200CombatChoicesWithin2048,
+    &_gActor800200CombatChoicesWithin3072,
+    &_gActor800200CombatChoicesFrom3072,
 };
 
-_Actor800200Waypoint D_actor_800200_80169FE0[3] = {
+/// Three X/Z stops for schedule 3 in Dryfield's junk yard and trailer coach.
+///
+/// Index 0..2 starts zeroed on area spawning; the final stop starts the rest pose.
+/// Coordinates use signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200Schedule3Waypoints[3] = {
     { 0x3C28, 3850 },
     { 0x52DA, 3390 },
     { 0x5488, 3000 },
 };
 
-_Actor800200Waypoint D_actor_800200_80169FF8[4] = {
+/// Four X/Z stops through the Dryfield junk yard for schedule 1, indexed 0..3.
+///
+/// Area spawning resets the index. Stop 2 waits for wire-rope collection, and
+/// the last leg walks. Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200DryfieldJunkYardWaypoints[4] = {
     { 0x32C8, 3740 },
     { 7530, 2720 },
     { 1720, 1480 },
     { 5100, 1250 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A018[1] = {
+/// Schedule 1's single Dryfield garage stop, indexed only at zero.
+///
+/// Area spawning resets the index and this route never advances it.
+/// Signed X/Z root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200DryfieldGarageWaypoints[1] = {
     { 940, 2320 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A020[4] = {
+/// Four X/Z stops through the daytime Dryfield factory for schedule 1, indexed 0..3.
+///
+/// Area spawning resets the index; intermediate stops wait for the player and
+/// the last leg walks. Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200DryfieldFactorySchedule1Waypoints[4] = {
     { 5000, 3760 },
     { 2970, 3020 },
     { 3400, 1640 },
     { 4530, 1500 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A040[1] = {
+/// Schedule 1's single Dryfield driveway stop, indexed only at zero.
+///
+/// Area spawning resets the index and this route never advances it.
+/// Signed X/Z root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200DryfieldDrivewayWaypoints[1] = {
     { 200, 1650 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A048[2] = {
+/// Two X/Z stops through the nighttime Dryfield factory for schedule 7, indexed 0..1.
+///
+/// Area spawning resets the index; arrival at the last stop completes the route.
+/// Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200DryfieldFactorySchedule7Waypoints[2] = {
     { 1530, 2560 },
     { 1100, 7060 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A058[2] = {
+/// Two X/Z stops through the nighttime Dryfield breezeway for schedule 7, indexed 0..1.
+///
+/// Area spawning resets the index; stop 0 can wait for the player.
+/// Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200DryfieldBreezewayWaypoints[2] = {
     { 0x2C4C, 1450 },
     { 7940, 1590 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A068[3] = {
+/// Three X/Z stops through the nighttime Dryfield water tower for schedule 7, indexed 0..2.
+///
+/// Area spawning resets the index; intermediate stops can wait for the player,
+/// and the final leg walks. Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200DryfieldWaterTowerWaypoints[3] = {
     { 4100, -350 },
     { 200, -1050 },
     { -1900, 600 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A080[2] = {
+/// Two X/Z stops through the Shelter 1F heliport for schedules 8/9, indexed 0..1.
+///
+/// Area spawning resets the index. Travel starts with a route animation;
+/// stop 0 can wait for the player. Signed root-parent units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200Shelter1fHeliportWaypoints[2] = {
     { 8512, 2880 },
     { 0x2792, 2880 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A090[1] = {
+/// Schedule 9's single Shelter 1F bulwark stop, indexed only at zero.
+///
+/// Area spawning resets the index and this route never advances it.
+/// Arrival plays a route animation. Signed X/Z root-parent units; Y stays current.
+static _Actor800200Waypoint _gActor800200Shelter1fBulwarkWaypoints[1] = {
     { 3130, 0 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A098[3] = {
+/// Three X/Z stops through the Shelter 1F vehicular airlock for schedule 9, indexed 0..2.
+///
+/// Area spawning resets the index; intermediate arrivals play a route animation.
+/// Leg 1 walks. Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200Shelter1fVehicularAirlockWaypoints[3] = {
     { -9350, -1248 },
     { -5070, 230 },
     { -4960, 1380 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A0B0[3] = {
+/// Three X/Z stops through the Shelter 1F airlock for schedule 9, indexed 0..2.
+///
+/// Area spawning resets the index; intermediate arrivals play a route animation.
+/// Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200Shelter1fAirlockWaypoints[3] = {
     { -4740, 4740 },
     { 2170, 4660 },
     { 2100, 3390 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A0C8[3] = {
+/// Three X/Z stops through the Shelter 1F parking garage for schedule 9, indexed 0..2.
+///
+/// Area spawning resets the index. Initial travel and intermediate arrivals play
+/// a route animation. Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200Shelter1fParkingGarageWaypoints[3] = {
     { 4600, -320 },
     { 5200, -1540 },
     { 9100, -1560 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A0E0[5] = {
+/// Five X/Z stops through Shelter B1 underground parking for schedule 10, indexed 0..4.
+///
+/// Area spawning resets the index. Initial travel and intermediate arrivals play
+/// a route animation. Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200ShelterB1UndergroundParkingWaypoints[5] = {
     { -480, -3700 },
     { 1940, -3640 },
     { 3000, -320 },
@@ -397,18 +465,30 @@ _Actor800200Waypoint D_actor_800200_8016A0E0[5] = {
     { 1980, -6660 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A108[4] = {
+/// Four X/Z stops through the Shelter B1 access tunnel for schedule 10, indexed 0..3.
+///
+/// Area spawning resets the index; intermediate arrivals play a route animation.
+/// Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200ShelterB1AccessTunnelWaypoints[4] = {
     { 1780, 7950 },
     { 9850, 7980 },
     { 9710, 6210 },
     { 0x288C, 6240 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A128[1] = {
+/// Schedule 10's single Shelter B1 transfer-tunnel stop, indexed only at zero.
+///
+/// Area spawning resets the index and this route never advances it.
+/// Arrival plays a route animation. Signed X/Z root-parent units; Y stays current.
+static _Actor800200Waypoint _gActor800200ShelterB1TransferTunnelWaypoints[1] = {
     { 5570, 18 },
 };
 
-_Actor800200Waypoint D_actor_800200_8016A130[5] = {
+/// Five X/Z stops through the Shelter B1 main corridor for schedule 10, indexed 0..4.
+///
+/// Area spawning resets the index; each arrival plays a route animation and
+/// leg 1 walks. Signed root-parent game units; destination Y stays current.
+static _Actor800200Waypoint _gActor800200ShelterB1MainCorridorWaypoints[5] = {
     { -800, -2050 },
     { 10, -2950 },
     { 10, -6900 },
@@ -834,87 +914,91 @@ static AnimationSet _gActor800200Animation0D3C0 = {
     { NULL, _gActor800200Animation0D3C0Bank1, NULL, NULL, _gActor800200Animation0D3C0Bank4, NULL, NULL, NULL },
 };
 
-AnimationBank D_actor_800200_8016F208 = { { {
-    NULL,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation08CC0,
-    &_gActor800200Animation08CC0,
-    &_gActor800200Animation09504,
-    &_gActor800200Animation0C530,
-    &_gActor800200Animation0BF24,
-    &_gActor800200Animation09AB8,
-    &_gActor800200Animation0A0C4,
-    &_gActor800200Animation09D48,
-    &_gActor800200Animation0B328,
-    &_gActor800200Animation0B90C,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation0CC70,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation0AC24,
-    &_gActor800200Animation0B080,
-    &_gActor800200Animation0CE00,
-    &_gActor800200Animation08CC0,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation08644,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation0A354,
-    &_gActor800200Animation0A734,
-    &_gActor800200Animation0CFA8,
-    &_gActor800200Animation0D168,
-    &_gActor800200Animation0D3C0,
-    &_gActor800200Animation08644,
-    &_gActor800200Animation08644,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-} } };
+AnimationBank gActor800200CompanionAnimationBank = {
+    .table = {
+        .sets = {
+            NULL,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation08CC0,
+            &_gActor800200Animation08CC0,
+            &_gActor800200Animation09504,
+            &_gActor800200Animation0C530,
+            &_gActor800200Animation0BF24,
+            &_gActor800200Animation09AB8,
+            &_gActor800200Animation0A0C4,
+            &_gActor800200Animation09D48,
+            &_gActor800200Animation0B328,
+            &_gActor800200Animation0B90C,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation0CC70,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation0AC24,
+            &_gActor800200Animation0B080,
+            &_gActor800200Animation0CE00,
+            &_gActor800200Animation08CC0,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation08644,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation0A354,
+            &_gActor800200Animation0A734,
+            &_gActor800200Animation0CFA8,
+            &_gActor800200Animation0D168,
+            &_gActor800200Animation0D3C0,
+            &_gActor800200Animation08644,
+            &_gActor800200Animation08644,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+        },
+    },
+};
 
 static void _actor800200InitTask(Task* task);
 static void _actor800200UpdateMove(Task* task);
@@ -1014,7 +1098,7 @@ static void _actor800200InitTask(Task* task)
     coordsSlot               = &model->coords;
     rootCoord                = *coordsSlot;
     task->state++;
-    task->msgTable                                 = D_actor_800200_80169EF0;
+    task->msgTable                                 = _gActor800200MessageTable;
     task->exitCallback                             = &_actor800200TeardownTask;
     actor->animationSlotCount                      = GAME_ACTOR_NORMAL_ANIMATION_SLOTS;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = task;
@@ -1225,18 +1309,21 @@ static void _actor800200TeardownTask(Task* task)
     taskKill(task);
 }
 
-/// State handlers of the actor's main task, indexed by its state: set-up, the
-/// per-frame update, a step that only advances to the last state, and the
-/// teardown.
-static const TaskFuncTable4 D_actor_800200_80161E24 = { {
+/// Flint's four main-task states: initialize, update, stage exit and teardown.
+///
+/// `Task.state` must be 0..3. The dispatcher copies all four callbacks before
+/// selecting one; the table and callbacks belong to the loaded actor overlay.
+static const TaskFuncTable4 _gActor800200TaskStates = { {
     _actor800200InitTask,
     _actor800200UpdateMove,
     _actor800200AdvanceToTeardown,
     _actor800200TeardownTask,
 } };
 
-/// Handlers `_actor800200TickCompanionBehavior` runs, indexed by `mode`.
-static const TaskFuncTable3 D_actor_800200_80161E34 = { {
+/// Flint's behavior modes, indexed by `GameActor.mode` (0 normal, 1 damage, 2 scripted).
+///
+/// The per-frame behavior update copies the three callbacks before dispatch.
+static const TaskFuncTable3 _gActor800200ModeHandlers = { {
     _actor800200TickNormalMode,
     _actor800200TickDamageMode,
     _actor800200TickScriptedMode,
@@ -1246,7 +1333,7 @@ void actor800200Task(Task* task)
 {
     TaskFuncTable4 states;
 
-    states = D_actor_800200_80161E24;
+    states = _gActor800200TaskStates;
     states.funcs[task->state](task);
 }
 
@@ -1262,14 +1349,10 @@ void actor800200Task(Task* task)
 static void _actor800200TickFreeIdle(Task* task)
 {
     enum {
-        ACTOR_800200_IDLE_KEEP                    = 0,
-        ACTOR_800200_IDLE_APPROACH_TARGET         = 1,
-        ACTOR_800200_IDLE_ACTION_BURST            = 2,
-        ACTOR_800200_IDLE_FOLLOW_PLAYER           = 3,
         ACTOR_800200_IDLE_SCRATCH_BYTES           = 16,
         ACTOR_800200_COMBAT_DISTANCE_BUCKET_UNITS = 1024,
-        ACTOR_800200_COMBAT_DISTANCE_BUCKET_COUNT = ARRAY_SIZE(D_actor_800200_80169FD0),
-        ACTOR_800200_COMBAT_CHOICE_MASK           = 0xF,
+        ACTOR_800200_COMBAT_DISTANCE_BUCKET_COUNT = ARRAY_SIZE(_gActor800200CombatChoicesByDistance),
+        ACTOR_800200_COMBAT_CHOICE_MASK           = ACTOR_800200_COMBAT_CHOICE_COUNT - 1,
         ACTOR_800200_COMBAT_REPEAT_MASK           = 3,
         ACTOR_800200_IDLE_FOLLOW_DISTANCE         = 0x600,
         ACTOR_800200_IDLE_TURN_ANGLE              = 0x200,
@@ -1306,7 +1389,7 @@ static void _actor800200TickFreeIdle(Task* task)
             if (distanceBucket >= ACTOR_800200_COMBAT_DISTANCE_BUCKET_COUNT) {
                 distanceBucket = ACTOR_800200_COMBAT_DISTANCE_BUCKET_COUNT - 1;
             }
-            decisionWeights = D_actor_800200_80169FD0[distanceBucket];
+            decisionWeights = *_gActor800200CombatChoicesByDistance[distanceBucket];
             decision        = decisionWeights[rand() & ACTOR_800200_COMBAT_CHOICE_MASK];
         }
         switch (decision) {
@@ -1368,7 +1451,7 @@ static void _actor800200TickFreeIdle(Task* task)
 static void _actor800200TickArea26Route(Task* task)
 {
     enum { ACTOR_800200_ROUTE_ROPE_WAYPOINT         = 2,
-           ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_80169FF8) - 1,
+           ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(_gActor800200DryfieldJunkYardWaypoints) - 1,
            ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xe00,
            ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0xc01 };
     GameActor*      actor;
@@ -1386,7 +1469,7 @@ static void _actor800200TickArea26Route(Task* task)
         case ACTOR_800200_ROUTE_CHECK_END:
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_80169FF8, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldJunkYardWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                 _actor800200EnterTimedWait(task, 0);
@@ -1394,7 +1477,7 @@ static void _actor800200TickArea26Route(Task* task)
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_80169FF8, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldJunkYardWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1442,7 +1525,7 @@ static void _actor800200TickArea26Route(Task* task)
 /// that original restriction. The final leg walks rather than runs.
 static void _actor800200TickArea23Route1(Task* task)
 {
-    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_8016A020) - 1,
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(_gActor800200DryfieldFactorySchedule1Waypoints) - 1,
            ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xc00,
            ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0xb01 };
     GameActor*      actor;
@@ -1460,7 +1543,7 @@ static void _actor800200TickArea23Route1(Task* task)
         case ACTOR_800200_ROUTE_CHECK_END:
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A020, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldFactorySchedule1Waypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                 _actor800200EnterTimedWait(task, 0);
@@ -1468,7 +1551,7 @@ static void _actor800200TickArea23Route1(Task* task)
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A020, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldFactorySchedule1Waypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1524,7 +1607,7 @@ static void _actor800200TickSchedule3Route(Task* task)
         ACTOR_800200_SCHEDULE3_AWAIT_PHASE       = 3,
         ACTOR_800200_SCHEDULE3_HOLD_POSE         = 4,
         ACTOR_800200_SCHEDULE3_FINISHED          = 5,
-        ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_80169FE0) - 1,
+        ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(_gActor800200Schedule3Waypoints) - 1,
         ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xE00,
         ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0xA01
     };
@@ -1540,7 +1623,7 @@ static void _actor800200TickSchedule3Route(Task* task)
     companion   = actor->companionWork;
     switch (actor->stateAux) {
         case ACTOR_800200_SCHEDULE3_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_80169FE0, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200Schedule3Waypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     // Keep the original animation request followed by approach entry.
@@ -1601,7 +1684,7 @@ static void _actor800200TickSchedule3Route(Task* task)
 /// 512 units of the final stop.
 static void _actor800200TickArea23Route7(Task* task)
 {
-    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A048) - 1 };
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(_gActor800200DryfieldFactorySchedule7Waypoints) - 1 };
     GameActor*      actor;
     CompanionWork*  companion;
     const GfxCoord* coord;
@@ -1617,13 +1700,13 @@ static void _actor800200TickArea23Route7(Task* task)
             // A spawn near the final stop skips the intermediate route.
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A048, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldFactorySchedule7Waypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A048, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldFactorySchedule7Waypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
@@ -1649,7 +1732,7 @@ static void _actor800200TickArea23Route7(Task* task)
 /// target-dependent action without advancing the route.
 static void _actor800200TickArea22Route(Task* task)
 {
-    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_8016A058) - 1,
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(_gActor800200DryfieldBreezewayWaypoints) - 1,
            ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xc00,
            ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0x801 };
     GameActor*      actor;
@@ -1666,13 +1749,13 @@ static void _actor800200TickArea22Route(Task* task)
         case ACTOR_800200_ROUTE_CHECK_END:
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A058, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldBreezewayWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A058, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldBreezewayWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
@@ -1716,7 +1799,7 @@ static void _actor800200TickArea22Route(Task* task)
 /// waiting periodically starts one target-dependent action.
 static void _actor800200TickArea20Route7(Task* task)
 {
-    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(D_actor_800200_8016A068) - 1,
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT         = ARRAY_SIZE(_gActor800200DryfieldWaterTowerWaypoints) - 1,
            ACTOR_800200_ROUTE_WAIT_DISTANCE         = 0xc00,
            ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT = 0x901 };
     GameActor*      actor;
@@ -1734,7 +1817,7 @@ static void _actor800200TickArea20Route7(Task* task)
         case ACTOR_800200_ROUTE_CHECK_END:
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_TRAVEL;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A068, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldWaterTowerWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 companion->routeComplete = COMPANION_ROUTE_COMPLETE;
                 _actor800200EnterTimedWait(task, 0);
@@ -1742,7 +1825,7 @@ static void _actor800200TickArea20Route7(Task* task)
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A068, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200DryfieldWaterTowerWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                     companion->routeComplete = COMPANION_ROUTE_COMPLETE;
@@ -1792,7 +1875,7 @@ static void _actor800200TickArea4Route(Task* task)
     enum { ACTOR_800200_ROUTE_PLAY_ANIMATION         = 1,
            ACTOR_800200_ROUTE_TRAVEL_AFTER_ANIMATION = 2,
            ACTOR_800200_ROUTE_WAIT_AFTER_ANIMATION   = 3,
-           ACTOR_800200_ROUTE_LAST_WAYPOINT          = ARRAY_SIZE(D_actor_800200_8016A080) - 1,
+           ACTOR_800200_ROUTE_LAST_WAYPOINT          = ARRAY_SIZE(_gActor800200Shelter1fHeliportWaypoints) - 1,
            ACTOR_800200_ROUTE_WAIT_DISTANCE          = 0xc00,
            ACTOR_800200_ROUTE_RESUME_DISTANCE_LIMIT  = 0x901 };
     GameActor*      actor;
@@ -1810,7 +1893,7 @@ static void _actor800200TickArea4Route(Task* task)
         case ACTOR_800200_ROUTE_CHECK_END:
             // A spawn near the final stop skips the intermediate route.
             actor->stateAux = ACTOR_800200_ROUTE_PLAY_ANIMATION;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A080, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fHeliportWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
@@ -1819,7 +1902,7 @@ static void _actor800200TickArea4Route(Task* task)
             _actor800200EnterRouteAnimation(task);
             return;
         case ACTOR_800200_ROUTE_TRAVEL_AFTER_ANIMATION:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A080, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fHeliportWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
@@ -1867,7 +1950,7 @@ static void _actor800200TickArea4Route(Task* task)
 static void _actor800200TickArea2Route(Task* task)
 {
     enum { ACTOR_800200_ROUTE_WALK_WAYPOINT = 1,
-           ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A098) - 1 };
+           ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(_gActor800200Shelter1fVehicularAirlockWaypoints) - 1 };
     GameActor*      actor;
     CompanionWork*  companion;
     const GfxCoord* coord;
@@ -1884,13 +1967,13 @@ static void _actor800200TickArea2Route(Task* task)
             // A spawn near the final stop skips the intermediate route.
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A098, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fVehicularAirlockWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A098, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fVehicularAirlockWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
@@ -1920,7 +2003,7 @@ static void _actor800200TickArea2Route(Task* task)
 /// arrival. Completion selects timed wait.
 static void _actor800200TickArea5Route(Task* task)
 {
-    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A0B0) - 1 };
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(_gActor800200Shelter1fAirlockWaypoints) - 1 };
     GameActor*      actor;
     CompanionWork*  companion;
     const GfxCoord* coord;
@@ -1936,13 +2019,13 @@ static void _actor800200TickArea5Route(Task* task)
             // A spawn near the final stop skips the intermediate route.
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0B0, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fAirlockWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             // Fall through to select the current waypoint.
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0B0, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fAirlockWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
@@ -1968,7 +2051,7 @@ static void _actor800200TickArea5Route(Task* task)
 /// then runs at the current Y. Completion selects timed wait.
 static void _actor800200TickArea1Route(Task* task)
 {
-    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A0C8) - 1 };
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(_gActor800200Shelter1fParkingGarageWaypoints) - 1 };
     GameActor*      actor;
     CompanionWork*  companion;
     const GfxCoord* coord;
@@ -1982,14 +2065,14 @@ static void _actor800200TickArea1Route(Task* task)
             // A spawn near the final stop skips the intermediate route.
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0C8, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fParkingGarageWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             _actor800200EnterRouteAnimation(task);
             break;
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0C8, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200Shelter1fParkingGarageWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
@@ -2013,7 +2096,7 @@ static void _actor800200TickArea1Route(Task* task)
 /// then runs at the current Y. Completion selects timed wait.
 static void _actor800200TickArea20Route8To10(Task* task)
 {
-    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A0E0) - 1 };
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(_gActor800200ShelterB1UndergroundParkingWaypoints) - 1 };
     GameActor*      actor;
     CompanionWork*  companion;
     const GfxCoord* coord;
@@ -2029,14 +2112,14 @@ static void _actor800200TickArea20Route8To10(Task* task)
             // A spawn near the final stop skips the intermediate route.
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0E0, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200ShelterB1UndergroundParkingWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
             _actor800200EnterRouteAnimation(task);
             return;
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, D_actor_800200_8016A0E0, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, coord, _gActor800200ShelterB1UndergroundParkingWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&coord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
@@ -2062,7 +2145,7 @@ static void _actor800200TickArea20Route8To10(Task* task)
 /// intermediate arrival. Final arrival latches completion and enters timed wait.
 static void _actor800200TickArea19Route(Task* task)
 {
-    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A108) - 1 };
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(_gActor800200ShelterB1AccessTunnelWaypoints) - 1 };
     GameActor*      actor;
     CompanionWork*  companion;
     const GfxCoord* rootCoord;
@@ -2077,12 +2160,12 @@ static void _actor800200TickArea19Route(Task* task)
         case ACTOR_800200_ROUTE_CHECK_END:
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A108, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1AccessTunnelWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A108, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1AccessTunnelWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
@@ -2108,7 +2191,7 @@ static void _actor800200TickArea19Route(Task* task)
 /// stop 1 and runs on other legs; final arrival also latches route completion.
 static void _actor800200TickArea15Route(Task* task)
 {
-    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(D_actor_800200_8016A130) - 1,
+    enum { ACTOR_800200_ROUTE_LAST_WAYPOINT = ARRAY_SIZE(_gActor800200ShelterB1MainCorridorWaypoints) - 1,
            ACTOR_800200_ROUTE_WALK_WAYPOINT = 1 };
     GameActor*      actor;
     CompanionWork*  companion;
@@ -2125,12 +2208,12 @@ static void _actor800200TickArea15Route(Task* task)
         case ACTOR_800200_ROUTE_CHECK_END:
             initialRoutePhase = ACTOR_800200_ROUTE_TRAVEL;
             actor->stateAux   = initialRoutePhase;
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A130, ACTOR_800200_ROUTE_LAST_WAYPOINT);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1MainCorridorWaypoints, ACTOR_800200_ROUTE_LAST_WAYPOINT);
             if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 goto arrived;
             }
         case ACTOR_800200_ROUTE_TRAVEL:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A130, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1MainCorridorWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_WAYPOINT_DISTANCE_LIMIT) {
                 if (companion->waypointIndex == ACTOR_800200_ROUTE_LAST_WAYPOINT) {
                 arrived:
@@ -2835,8 +2918,12 @@ static void _actor800200TickScriptedRunToDestination(Task* task)
 
 #undef ACTOR_800200_STEP_DESTINATION_TURN
 
-/// Handlers `_actor800200TickNormalMode` runs, indexed by `state`.
-static const TaskFuncTable12 D_actor_800200_80161E5C = { {
+/// Flint's twelve normal-behavior state handlers, indexed by `GameActor.state`.
+///
+/// Slots 0/3/5/6 dispatch schedule idle, 1 follows the player, 2 turns to the
+/// target, 4 performs an action burst, 7 rests, 8 approaches a destination,
+/// 9 waits, 10 escapes an obstruction and 11 plays a route animation.
+static const TaskFuncTable12 _gActor800200NormalStateHandlers = { {
     _actor800200TickScheduleIdle,
     _actor800200TickPlayerFollow,
     _actor800200TickTargetTurn,
@@ -2851,9 +2938,12 @@ static const TaskFuncTable12 D_actor_800200_80161E5C = { {
     _actor800200TickRouteAnimation,
 } };
 
-/// Handlers `_actor800200TickScheduleIdle` runs, indexed by the low nibble of
-/// the task's `spawnArg1`.
-static const TaskFuncTable11 D_actor_800200_80161E8C = { {
+/// Flint's idle behavior for companion-2 schedules 0..10 captured at task spawn.
+///
+/// The low spawn-argument nibble comes from `GAME_FLAG_COMPANION_2_SCHEDULE`;
+/// callers must restrict it to 0..10, as the C flag writers do. Slots 0/2/4/5/6
+/// select free idle, 1/3/7 select Dryfield routes, and 8/9/10 select Shelter routes.
+static const TaskFuncTable11 _gActor800200ScheduleIdleHandlers = { {
     _actor800200TickFreeIdle,
     _actor800200TickSchedule1Route,
     _actor800200TickFreeIdle,
@@ -2867,17 +2957,22 @@ static const TaskFuncTable11 D_actor_800200_80161E8C = { {
     _actor800200TickSchedules8To10Route,
 } };
 
-/// Handlers `_actor800200TickDamageMode` runs, indexed by `hitRegion`.
-static const TaskFuncTable4 D_actor_800200_80161EB8 = { {
+/// Flint's four damage-selector handlers, indexed by unsigned `GameActor.hitRegion`.
+///
+/// Selectors 0..2 finish ordinary damage recovery; 3 holds the stopped pose.
+static const TaskFuncTable4 _gActor800200DamageHandlers = { {
     _actor800200TickDamageRecovery,
     _actor800200TickDamageRecovery,
     _actor800200TickDamageRecovery,
     _actor800200HoldStoppedPose,
 } };
 
-/// Handlers `_actor800200TickScriptedMode` runs, indexed by `state`; the
-/// gameplay entries are the player's own mode-2 state handlers.
-static const TaskFuncTable9 D_actor_800200_80161EC8 = { {
+/// Flint's nine scripted-control state handlers, indexed by `GameActor.state`.
+///
+/// State 0 ticks direct child tracks, 2 turns, 4 walks to a destination and
+/// 8 runs. States 1/3/5/6/7 only tick animation. The stairs and counted-walk
+/// slots 3/5 do not advance motion or clear its pending flag.
+static const TaskFuncTable9 _gActor800200ScriptedStateHandlers = { {
     playerActorScriptedState0,
     playerActorTickScriptedAnimation,
     _actor800200TickScriptedTurn,
@@ -2974,7 +3069,7 @@ static void _actor800200TickCompanionBehavior(Task* task)
     GameActor*     actor;
     TaskFuncTable3 modeHandlers;
 
-    modeHandlers = D_actor_800200_80161E34;
+    modeHandlers = _gActor800200ModeHandlers;
     actor        = task->work;
     if ((s8)actor->recoveryTicks > 0) {
         actor->recoveryTicks--;
@@ -3270,7 +3365,7 @@ static void _actor800200TickArea24Route1(Task* task)
     rootCoord = task->extra.tmd->coords;
     companion = actor->companionWork;
     if (actor->stateAux == ACTOR_800200_ROUTE_CHECK_END) {
-        ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A018, companion->waypointIndex);
+        ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200DryfieldGarageWaypoints, companion->waypointIndex);
         if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             _actor800200EnterTimedWait(task, 0);
@@ -3299,7 +3394,7 @@ static void _actor800200TickArea25Route1(Task* task)
     rootCoord = task->extra.tmd->coords;
     companion = actor->companionWork;
     if (actor->stateAux == ACTOR_800200_ROUTE_CHECK_END) {
-        ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A040, companion->waypointIndex);
+        ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200DryfieldDrivewayWaypoints, companion->waypointIndex);
         if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             _actor800200EnterTimedWait(task, 0);
@@ -3342,7 +3437,7 @@ static void _actor800200TickArea3Route(Task* task)
     companion  = actor->companionWork;
     switch (routePhase) {
         case ACTOR_800200_BULWARK_APPROACH:
-            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A090, companion->waypointIndex);
+            ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200Shelter1fBulwarkWaypoints, companion->waypointIndex);
             if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
                 actor->stateAux++;
                 if (companion->routeComplete != COMPANION_ROUTE_COMPLETE) {
@@ -3374,7 +3469,7 @@ static void _actor800200TickArea24Route10(Task* task)
     rootCoord = task->extra.tmd->coords;
     companion = actor->companionWork;
     if (actor->stateAux == ACTOR_800200_ROUTE_CHECK_END) {
-        ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, D_actor_800200_8016A128, companion->waypointIndex);
+        ACTOR_800200_SET_ROUTE_DESTINATION(actor, rootCoord, _gActor800200ShelterB1TransferTunnelWaypoints, companion->waypointIndex);
         if (playerActorPlanarDistance(MATRIX_TRANS(&rootCoord->coord), &actor->destination) < ACTOR_800200_ROUTE_INITIAL_DISTANCE_LIMIT) {
             companion->routeComplete = COMPANION_ROUTE_COMPLETE;
             _actor800200EnterRouteAnimation(task);
@@ -3399,7 +3494,7 @@ static void _actor800200TickNormalMode(Task* task)
     GameActor*            actor;
     CompanionWork*        companion;
     GfxCoord*             rootCoord;
-    const TaskFuncTable12 stateHandlers = D_actor_800200_80161E5C;
+    const TaskFuncTable12 stateHandlers = _gActor800200NormalStateHandlers;
     s32                   audioPan;
 
     actor     = task->work;
@@ -3435,7 +3530,7 @@ static void _actor800200TickScheduleIdle(Task* task)
     enum { ACTOR_800200_SPAWN_SCHEDULE_MASK = 0xF };
     TaskFuncTable11 handlers;
 
-    handlers = D_actor_800200_80161E8C;
+    handlers = _gActor800200ScheduleIdleHandlers;
     handlers.funcs[task->spawnArg1.value & ACTOR_800200_SPAWN_SCHEDULE_MASK](task);
 }
 
@@ -3510,7 +3605,7 @@ static void _actor800200TickDamageMode(Task* task)
     TaskFuncTable4 handlers;
     GameActor*     actor;
 
-    handlers = D_actor_800200_80161EB8;
+    handlers = _gActor800200DamageHandlers;
     actor    = task->work;
     playerActorTickAnimationState(task);
     playerActorTickChildSlots(task);
@@ -3551,7 +3646,7 @@ static void _actor800200TickScriptedMode(Task* task)
     GameActor*     actor;
     GfxCoord*      rootCoord;
 
-    states    = D_actor_800200_80161EC8;
+    states    = _gActor800200ScriptedStateHandlers;
     actor     = task->work;
     rootCoord = task->extra.tmd->coords;
     states.funcs[actor->state](task);

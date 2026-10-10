@@ -476,7 +476,7 @@ D_kyle_800101_801756D0 = 0x801756D0; // absolute:True owner=kyle_800101
 D_kyle_800102_801772E8 = 0x801772E8; // absolute:True owner=kyle_800102
 D_kyle_800103_8017567C = 0x8017567C; // absolute:True owner=kyle_800103
 D_kyle_800104_80176C1C = 0x80176C1C; // absolute:True owner=kyle_800104
-D_actor_800200_8016F208 = 0x8016F208; // absolute:True owner=actor_800200
+gActor800200CompanionAnimationBank = 0x8016F208; // absolute:True owner=actor_800200
 gActor800300CompanionAnimationBank = 0x8016CB98; // absolute:True owner=actor_800300
 gShelterB4ReservoirStairAscentSurfaces = 0x801850C8; // absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirStairDescentSurfaces = 0x801850D8; // absolute:True owner=shelter_b4_reservoir shared=rooms

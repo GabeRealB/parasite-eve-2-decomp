@@ -11335,7 +11335,7 @@ scores 76%, while hoisting the pointer matches at 100%:
 ```c
     GameActor* actor;
 
-    handlers = D_actor_800200_80161EB8;
+    handlers = _gActor800200DamageHandlers;
     actor = task->work;          /* must precede the two ticks */
     playerActorTickAnimationState(task);
     playerActorTickChildSlots(task);
@@ -64554,7 +64554,7 @@ read off the code rather than guessed. m2c renders this as a `s32*` walk with
 `+= 0x10`, which advances 0x40 a step and skips 0x30 bytes between groups; the
 loop then copies from the wrong addresses and nothing downstream can match.
 `_actor800200TickScriptedMode` is the worked example - the 0x24 bytes are a
-9-entry `TaskFuncTable9`, and `states = D_actor_800200_80161EC8;` with
+9-entry `TaskFuncTable9`, and `states = _gActor800200ScriptedStateHandlers;` with
 `states.funcs[actor->state](task)` and a `RotMatrix(&actor->rotation,
 &rootCoord->coord)` matches at 100% on the first rewrite, against 67% for m2c's
 element-wise `M2C_FIELD` version. Sizes at or below 32 bytes never reach this
@@ -64588,7 +64588,7 @@ table's first word (`M2C_UNK (*sp10)(void*, M2C_UNK, s32, s32)`, plus dead
 `sp14`/`sp18`) and scores 72% with `insert=3 delete=6`. The load count is the
 table's entry count, not the callee's arity: three loads mean `TaskFuncTable3`
 and a one-argument `TaskFunc`. `_actor800200TickCompanionBehavior` is the worked
-example — `modeHandlers = D_actor_800200_80161E34; modeHandlers.funcs[actor->mode](task);`
+example — `modeHandlers = _gActor800200ModeHandlers; modeHandlers.funcs[actor->mode](task);`
 matches at 100% first try.
 
 ## Name a two-step pointer chase used inside a store's RHS, or it schedules after the store
@@ -106479,8 +106479,8 @@ sibling `_actor800200TickArea20Route7` and `_actor800200TickArea4Route` are stil
 The landed body itself is the family shape already described here: the m2c seed
 scored 81.273% because it typed the path table as 4-byte elements (an `sll 0x5`
 where the target has `sll 0x3`) and scaled `coord + 0x18` by `sizeof(*coord)`
-into `0x780`. Declaring `_Actor800200Waypoint D_actor_800200_8016A058[]` and writing
-`D_actor_800200_8016A058[1]` / `[companion->waypointIndex]` with the sibling idiom matched
+into `0x780`. Declaring `_Actor800200Waypoint _gActor800200DryfieldBreezewayWaypoints[]` and writing
+`_gActor800200DryfieldBreezewayWaypoints[1]` / `[companion->waypointIndex]` with the sibling idiom matched
 100.00% with all-zero penalties on the first typed attempt; the `$s3 = 1` held
 across calls that the seed lacked came out of the source by itself, with no pin.
 
@@ -106536,7 +106536,7 @@ to `$a0` before assuming the same, and confirm in the built object
 build's silence.
 
 `_actor800200TickArea23Route1` itself then matched on the first typed attempt after
-the two mechanical edits, following the `D_actor_800200_8016A020[3]` /
+the two mechanical edits, following the `_gActor800200DryfieldFactorySchedule1Waypoints[3]` /
 `[companion->waypointIndex]` `_Actor800200Waypoint` idiom of its siblings; the seed had typed the
 table as an untyped scalar and scaled `coord + 0x18` by `sizeof(GfxCoord)`.
 
@@ -106623,7 +106623,7 @@ sits at the `binop:` label, so *any* call inside either operand of a `+` is expa
 including the one written first. The seed
 
 ```c
-decision = *(u8*)(D_actor_800200_80169FD0[distanceBucket] + (rand() & 0xF));
+decision = *(const u8*)(*_gActor800200CombatChoicesByDistance[distanceBucket] + (rand() & 0xF));
 ```
 
 expands the call first — in `.rtl` the `jal rand` is insn 128, the table's `high`/`lo_sum` 131/132 and the
@@ -106639,7 +106639,7 @@ target's stolen `lui`. Loading the row in its own statement fixes order, homes a
 100%, every penalty 0:
 
 ```c
-decisionWeights = D_actor_800200_80169FD0[distanceBucket];
+decisionWeights = *_gActor800200CombatChoicesByDistance[distanceBucket];
 decision = decisionWeights[rand() & ACTOR_800200_COMBAT_CHOICE_MASK];
 ```
 
@@ -106808,18 +106808,18 @@ lw    v0,0x18(v1)         /* 8*3 here, not 0 */
 ```
 
 The sibling `_actor800200TickArea23Route1` is the control: its matched
-`D_actor_800200_8016A020[3].x` is `addiu $v1,$v1,0xA020` (`%lo(0x8016A020)`)
+`_gActor800200DryfieldFactorySchedule1Waypoints[3].x` is `addiu $v1,$v1,0xA020` (`%lo(0x8016A020)`)
 plus `lw $v0,0x18($v1)`. So a target word pair of `%lo(SYM)` + `lw 0x18(reg)` is
 `SYM[3]`, and rewriting it as a second symbol at `SYM+0x18` indexed from zero is
 *not* equivalent - that emits `%lo(SYM+0x18)` (`0xA010` for a `0x9FF8` base) with
 displacement 0, and only the checksum notices.
 
 `_actor800200TickArea26Route` reads its path table both ways and they agree on one
-symbol: case 0 is `D_actor_800200_80169FF8[3]` (`%lo(...9FF8)` + `0x18`) and case
-1 is `D_actor_800200_80169FF8[companion->waypointIndex]` (same base, `sll 3` folded into the
-register, displacement 0). Splat printed that base as an auto-named
-`D_actor_800200_80169FF8`; it links as declared, needing nothing beyond the
-`extern _Actor800200Waypoint D_actor_800200_80169FF8[];` the neighbouring tables in
+symbol: case 0 is `_gActor800200DryfieldJunkYardWaypoints[3]` (`%lo(...9FF8)` + `0x18`) and case
+1 is `_gActor800200DryfieldJunkYardWaypoints[companion->waypointIndex]` (same base, `sll 3` folded into the
+register, displacement 0). The symbol map names that base as
+`_gActor800200DryfieldJunkYardWaypoints`; it links as declared, needing nothing beyond the
+`static _Actor800200Waypoint _gActor800200DryfieldJunkYardWaypoints[4];` the neighbouring tables in
 the same `.c` already use.
 
 ## A sub-word constant store captures the *next* store's constant — read an `int` value to make both stores share one register
