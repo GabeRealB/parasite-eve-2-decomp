@@ -40,6 +40,15 @@ enum {
     ROAMER_SPAWN_POINT_NONE = 0,
 };
 
+/// States of the deferred battle-hold release after banking retreat HP.
+enum {
+    ROAMER_BATTLE_RELEASE_NONE    = 0,
+    ROAMER_BATTLE_RELEASE_PENDING = 1,
+};
+
+/// Unread marker halfwords following the six live pool-A placement rows.
+enum { ROAMER_SPAWN_POINT_END = 0x7FFF };
+
 /// A fixed point at which a pool places an enemy it revives.
 ///
 /// A room keeps one table of these for each pool. A spawn request names a row
@@ -54,6 +63,17 @@ typedef struct {
     s16 yaw; // Facing about the vertical axis, signed, 4096 units per turn
 } RoamerSpawnPoint;
 STATIC_ASSERT_SIZEOF(RoamerSpawnPoint, 8);
+
+// Each carrier defines these initialized objects for its own room visit.
+// Shared fragments use the same interface; no other translation unit imports it.
+static u8               _gRoamerPoolAArmCounts[14];
+static u8               _gRoamerPoolBArmCounts[16];
+static TaskMessageEntry _gRoamerPoolAMessages[4];
+static TaskMessageEntry _gRoamerPoolBMessages[4];
+static s16              _gRoamerReserveCount;
+static s16              _gRoamerBattleReleasePending;
+static s16              _gRoamerPreviousBattleRefs;
+static RoamerSpawnPoint _gRoamerPoolASpawnPoints[7];
 
 static void _roamerTickPoolA(Task* task);
 

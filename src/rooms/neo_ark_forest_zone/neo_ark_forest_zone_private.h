@@ -16,17 +16,44 @@ extern ActorCommand gRoamerCommand;
 
 extern u16 gRoamerReserveHp[5];
 
-extern TaskDesc D_neo_ark_forest_zone_80181DBC;
+/// Bodyless, priority-32 controller for the latched woodland-departure event.
+///
+/// Spawn with descriptor index zero after preparing the room's transition and
+/// CAP/sound records. Their storage and this overlay must survive through reload.
+extern TaskDesc gNeoArkForestZoneStagedEventTaskDesc;
 
-extern TaskMessageEntry D_neo_ark_forest_zone_80181DC8[6];
+/// Room receiver's transition, key-item, action, command and actor-event callbacks.
+///
+/// The final TASK_MESSAGE_TABLE_END record rejects unsupported IDs with zero.
+/// Borrows the overlay's callbacks for the room task's lifetime.
+extern TaskMessageEntry gNeoArkForestZoneRoomMessages[6];
 
-extern s32 D_neo_ark_forest_zone_80181E30;
+/// Forest command 0: hide placed actors and pause the roaming-enemy cooldown.
+///
+/// Context is stage 5/area 11. Scene broadcasts and direct pool-B dispatch borrow
+/// the complete four-byte record synchronously; the two recipients act independently.
+extern ActorCommand gNeoArkForestZoneFirstVisitPauseCommand;
 
-extern s32 D_neo_ark_forest_zone_80181E38;
+/// Forest command 2: hide the extra actor and request pool B's first-enemy ambush.
+///
+/// Context is stage 5/area 11. The first-visit script broadcasts it before
+/// dispatching it to the pool; receivers borrow it only through each dispatch.
+extern ActorCommand gNeoArkForestZoneStartAmbushCommand;
 
-extern Task* D_neo_ark_forest_zone_80181E68;
+/// Borrowed pool-B controller created by room initialization, or NULL before spawn.
+///
+/// Receives forwarded room actions, actor events and forest pause/ambush commands.
+/// The task system owns it; this handle is valid only for the current room visit
+/// and is not cleared by task teardown.
+extern Task* gNeoArkForestZoneRoamerPoolBTask;
 
-extern EvsCommand D_neo_ark_forest_zone_80181E6C[23];
+/// First-visit encounter script, started by action 1 in unseen variant 1.
+///
+/// Installs two temporary player clips, starts CAP command 1, places the player,
+/// synchronizes animation and actor commands with CAP cues, then starts the
+/// ambush and restores player control. The 23 records include the final END;
+/// script, payloads and clip resources must remain loaded through execution.
+extern EvsCommand gNeoArkForestZoneFirstVisitScript[23];
 
 extern TaskDesc D_neo_ark_forest_zone_80182E18;
 

@@ -1,11 +1,11 @@
 // Overlay-local symbols for neo_ark_woodland_path.
 _gRoamerCooldownFrames = 0x8018498E; // size:0x2 defined:True
 _gRoamerPendingSpawnPoint = 0x80184992; // size:0x2 defined:True
-gRoamerReleasePending = 0x80184996; // size:0x2 defined:True
+_gRoamerBattleReleasePending = 0x80184996; // size:0x2 defined:True
 _gNeoArkWoodlandPathRoamerPoolATask = 0x80181680; // size:0x4 defined:True
-gRoamerArmCountsB = 0x80184970; // size:0x10 defined:True
-gRoamerArmCountsA = 0x80184980; // size:0xE defined:True
-gRoamerReserveCount = 0x80184990; // size:0x2 defined:True
+_gRoamerPoolBArmCounts = 0x80184970; // size:0x10 defined:True
+_gRoamerPoolAArmCounts = 0x80184980; // size:0xE defined:True
+_gRoamerReserveCount = 0x80184990; // size:0x2 defined:True
 _gRoamerLastActionId = 0x80184994; // size:0x2 defined:True
 _gNeoArkWoodlandPathRoomMessages = 0x80181650; // size:0x30 defined:True
 gNeoArkWoodlandPathPlayerWaterPartHistory = 0x80181684; // size:0x10 defined:True
@@ -65,10 +65,10 @@ gMapNeoArkWoodlandPathVariant3Placements = 0x8017C420; // absolute:True owner=ma
 gMapNeoArkWoodlandPathVariant4Placements = 0x8017C450; // absolute:True owner=map_neo_ark
 gNeoArkWoodlandPathWaterRefractionTaskDesc = 0x80181638; // size:0xC defined:True
 _gNeoArkWoodlandPathWaterDistortBandTaskDesc = 0x80181644; // size:0xC defined:True
-gRoamerMsgTableA = 0x80184998; // size:0x20 defined:True
-gRoamerSpawnPointsA = 0x801849B8; // size:0x38 defined:True
-gRoamerPrevBattleRefs = 0x801849F0; // size:0x2 defined:True
-gRoamerMsgTableB = 0x801849F4; // size:0x20 defined:True
+_gRoamerPoolAMessages = 0x80184998; // size:0x20 defined:True
+_gRoamerPoolASpawnPoints = 0x801849B8; // size:0x38 defined:True
+_gRoamerPreviousBattleRefs = 0x801849F0; // size:0x2 defined:True
+_gRoamerPoolBMessages = 0x801849F4; // size:0x20 defined:True
 D_neo_ark_woodland_path_80184A14 = 0x80184A14; // size:0x28 defined:True
 gNeoArkWoodlandPathSurfaceProperties = 0x80184910; // size:0x20 defined:True
 gRoamerParams = 0x80184948; // size:0x10 defined:True

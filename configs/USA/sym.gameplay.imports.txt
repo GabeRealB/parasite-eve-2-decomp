@@ -1557,7 +1557,7 @@ gNeoArkBridgePlacementVariants = 0x80184A50; // absolute:True owner=neo_ark_brid
 
 D_neo_ark_eve_access_tunnel_801806B8 = 0x801806B8; // absolute:True owner=neo_ark_eve_access_tunnel
 
-D_neo_ark_forest_zone_80182968 = 0x80182968; // absolute:True owner=neo_ark_forest_zone
+gNeoArkForestZoneAreaVariants = 0x80182968; // absolute:True owner=neo_ark_forest_zone
 
 D_neo_ark_garden_80182B54 = 0x80182B54; // absolute:True owner=neo_ark_garden shared=rooms
 

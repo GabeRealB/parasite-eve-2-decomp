@@ -11,7 +11,15 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_neo_ark_forest_zone_80182968[13];
+/// Forest placement/resource directory indexed directly by saved location variant 0..12.
+///
+/// Variants 1..5, 10 and 11 are present; all others have two NULL pointers.
+/// Variant 10 supplies one origin placement with a CLUT-row offset of two.
+/// Variant 4 starts at the later slice of the combined variant-3/4 map table;
+/// each variant's saved placement indices start at zero in its own slice.
+/// Placements borrow map and room storage; resources borrow room storage.
+/// Keep their overlays and the selected actor descriptors loaded during use.
+extern AreaVariant gNeoArkForestZoneAreaVariants[13];
 
 /// Extents of the forest zone's mapped view resources and surface-class directory.
 enum {
@@ -19,8 +27,11 @@ enum {
     NEO_ARK_FOREST_ZONE_SURFACE_CLASS_COUNT = 8,
 };
 
-// neo_ark_forest_zone
-extern WorldCollisionRoomResources D_neo_ark_forest_zone_801820A4[];
+/// Collision resources for room 1: box grid, six view boundaries and ten actions.
+///
+/// Indexed by room - 1; there are no sight occluders. Setup borrows and mutates
+/// the grid and trigger lists, which must remain in the loaded forest overlay.
+extern WorldCollisionRoomResources gNeoArkForestZoneRoomCollisionResources[1];
 
 /// Lighting for room 1: two point lights and the default ambient minima.
 ///
@@ -35,9 +46,17 @@ extern WorldCoordRoomLighting gNeoArkForestZoneRoomLighting[1];
 /// directory requires the forest zone overlay to remain loaded.
 extern u8* gNeoArkForestZoneViewMaps[1];
 
-extern ViewCount D_neo_ark_forest_zone_801820C0[];
+/// Number of logical views in room 1, indexed by room - 1.
+extern ViewCount gNeoArkForestZoneViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_forest_zone_801820C4[];
+/// Three arrival/departure records, indexed by one-based warp ID minus one.
+///
+/// Slots 1..3 connect the north promenade, submarine tunnel and woodland path;
+/// arrival views are 2, 5 and 4. Player and companion share each placement.
+/// Coordinates use world game units and yaw uses 4096 units per turn. Slot 1
+/// marks Power Plant 1 on arrival; all slots have no fade or scripted-player flag.
+/// Keep this overlay loaded while the stage directory borrows the records.
+extern DirectionWarpEntry gNeoArkForestZoneWarpEntries[3];
 
 /// Cameras for mapped views 1..6, indexed by mapped view - 1.
 ///

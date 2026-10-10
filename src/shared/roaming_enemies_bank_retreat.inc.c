@@ -26,7 +26,7 @@ static void _roamerBankRetreat(Task* task, s32 messageId, s32 hp, s32 unusedArg)
                 if (gSceneCombatState.battleRefs >= 2) {
                     sceneReleaseBattleRef(task, 0xD);
                 } else {
-                    gRoamerReleasePending = 1;
+                    _gRoamerBattleReleasePending = ROAMER_BATTLE_RELEASE_PENDING;
                 }
                 _gRoamerCooldownFrames += ROAMER_ACTION_COOLDOWN_FRAMES;
                 return;

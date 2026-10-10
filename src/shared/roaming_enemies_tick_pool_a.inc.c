@@ -26,12 +26,12 @@ static __inline__ s16 _roamerCountReserveSlots(void)
 /// frame and yaw uses 4096 units per turn. Marks dirty before replacing rotation.
 static __inline__ void _roamerPlacePoolAActor(s16 actorIndex)
 {
-    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[0]   = gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].x;
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[0]   = _gRoamerPoolASpawnPoints[_gRoamerPendingSpawnPoint - 1].x;
     sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[1]   = 0;
-    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].z;
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[2]   = _gRoamerPoolASpawnPoints[_gRoamerPendingSpawnPoint - 1].z;
     sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     gfxRotMatrixY(&sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord,
-                  gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].yaw, GRAPHICS_ROTATION_REPLACE);
+                  _gRoamerPoolASpawnPoints[_gRoamerPendingSpawnPoint - 1].yaw, GRAPHICS_ROTATION_REPLACE);
 }
 
 /// Advances pool A's battle bookkeeping and revives at most one waiting placed actor.
@@ -61,18 +61,18 @@ static void _roamerTickPoolA(Task* task)
     s16    reserveSlot;
 
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (gRoamerArmCountsA[gGameSession->location.loc.variant] == 0) {
+    if (_gRoamerPoolAArmCounts[gGameSession->location.loc.variant] == 0) {
         return;
     }
     if (_gRoamerCooldownFrames > ROAMER_COOLDOWN_READY) {
         _gRoamerCooldownFrames--;
     }
-    if (gRoamerReleasePending == 1 && gSceneCombatState.battleRefs >= 2) {
-        gRoamerReleasePending = 0;
+    if (_gRoamerBattleReleasePending == ROAMER_BATTLE_RELEASE_PENDING && gSceneCombatState.battleRefs >= 2) {
+        _gRoamerBattleReleasePending = ROAMER_BATTLE_RELEASE_NONE;
         sceneReleaseBattleRef(task, ROAMER_POOL_A_RELEASE_ARG);
     }
     // Persist losses only when the previous frame still held a battle reference.
-    if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
+    if (gSceneCombatState.battleRefs == 0 && _gRoamerPreviousBattleRefs > 0) {
         _gRoamerCooldownFrames = ROAMER_POST_BATTLE_COOLDOWN_FRAMES;
         killedCount            = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A);
         previousReserveCount   = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE);
@@ -82,7 +82,7 @@ static void _roamerTickPoolA(Task* task)
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE, remainingSlots);
         areaSyncLocationVariant(&gGameSession->location.loc);
     }
-    gRoamerPrevBattleRefs = gSceneCombatState.battleRefs;
+    _gRoamerPreviousBattleRefs = gSceneCombatState.battleRefs;
     if (gGameSession->battleResetPending == 1 && _gRoamerCooldownFrames == ROAMER_COOLDOWN_READY) {
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
         gSceneCombatState.peTargetCount             = 0;
@@ -105,7 +105,7 @@ static void _roamerTickPoolA(Task* task)
                 break;
             }
             if (enemy->hp == ROAMER_WAITING_ACTOR_HP) {
-                for (reserveSlot = 0; reserveSlot < gRoamerReserveCount; reserveSlot++) {
+                for (reserveSlot = 0; reserveSlot < _gRoamerReserveCount; reserveSlot++) {
                     if (((s16*)gRoamerReserveHp)[reserveSlot] > 0) {
                         enemy->hp                     = gRoamerReserveHp[reserveSlot];
                         enemy->reactionFlags          = 0;

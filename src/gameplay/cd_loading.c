@@ -586,7 +586,7 @@ AreaRecord D_8010D0AC[34] = {
     { D_neo_ark_eve_access_tunnel_801806B8, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
     { NULL, NULL },
     { D_neo_ark_north_promenade_8018305C, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
-    { D_neo_ark_forest_zone_80182968, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
+    { gNeoArkForestZoneAreaVariants, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
     { D_neo_ark_submarine_tunnel_80187470, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
     { D_neo_ark_pavilion_801876C4, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
     { D_neo_ark_island_80183F48, &gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[13].state },

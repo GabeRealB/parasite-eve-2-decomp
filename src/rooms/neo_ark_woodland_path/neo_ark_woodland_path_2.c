@@ -79,51 +79,10 @@ extern u16 gRoamerReserveHp[5];
 extern EnemyParams  gRoamerParams;
 extern DamageAttack D_neo_ark_woodland_path_80184930[6];
 
-/// The room's arming count, packed into game flag 0x10A as a nibble:
-/// `_roamerArmPoolB` adds the slot's spawn count to it and
-/// then caps it at 5, the number of slots `D_...84A60` has. Signed, though the
-/// add reads it as `lhu` - the result is truncated by the following `sh`, so
-/// only the low half matters and GCC picks the unsigned load by itself.
-extern s16 gRoamerReserveCount;
-
-/// How many spawns each slot arms, indexed by `gGameSession->location.loc.variant` (the
-/// slot the session is in): the byte `func_...80180C6C` adds to
-/// `D_...80184990`, and the gate `_roamerTickPoolB` tests against zero.
-extern u8 gRoamerArmCountsB[];
-
-/// The message-handler table `_roamerArmPoolB` parks in
-/// `Task::msgTable`: a placement request (0x13EF,
-/// `_roamerLatchSpawnRequestPoolB`), a countdown bump (0x13F4) and the
-/// 0x7DB command handler `_roamerAmbushMsg`.
-extern TaskMessageEntry gRoamerMsgTableB[];
-
-/// The same gate for the arm-state one step earlier: `func_...80180568` tests
-/// it against zero and `func_...801806D8` reads the slot's count from it. One
-/// byte per session slot, indexed by `gGameSession->location.loc.variant`, like
-/// `D_...84970` above.
-extern u8 gRoamerArmCountsA[];
-
-/// `func_...80180568`'s own message-handler table, parked in `Task::msgTable`
-/// as `D_...849F4` is by `func_...80180C6C`: the same three ids, answered by
-/// the placement request `_roamerLatchSpawnRequestPoolA`, the spawn-slot
-/// filler `_roamerBankRetreat` and a 0x7DB handler that
-/// ignores the message.
-extern TaskMessageEntry gRoamerMsgTableA[];
-
-/// Set once a spawn slot has been armed, read by the room's other states.
-extern s16 gRoamerReleasePending;
-
-/// The room's spawn placements, indexed by `_gRoamerPendingSpawnPoint - 1`.
-extern RoamerSpawnPoint gRoamerSpawnPointsA[];
-
 /// The second arming sequence's spawn placements, which
 /// `_roamerTickPoolB` picks from by `_gRoamerPendingSpawnPoint - 1`. Five of them; any
 /// request past the fourth takes the last.
 extern RoamerSpawnPoint D_neo_ark_woodland_path_80184A14[5];
-
-/// `gSceneCombatState.battleRefs` as `func_...801806D8` saw it on the previous frame, so
-/// that it can tell the reference count was non-zero before the frame began.
-extern s16 gRoamerPrevBattleRefs;
 
 static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);
 static s32 _roamerExtendCooldown(Task* unusedTask, s32 unusedMessageId, s32 unusedEventValue, s32 unusedSecondArg);
@@ -151,7 +110,11 @@ u16 D_neo_ark_woodland_path_80184958[3][4] = {
     { 0, 500, 7, 0 },
 };
 
-u8 gRoamerArmCountsB[16] = {
+/// Pool-B reserve additions by location variant 0..15, also gating arm/tick work.
+///
+/// Variants 1, 2 and 3 add 1, 3 and 2 enemies when the saved variant changes;
+/// zero disables the pool for this visit. The saved sum precedes the live five-slot clamp.
+static u8 _gRoamerPoolBArmCounts[16] = {
     0,
     1,
     3,
@@ -170,7 +133,11 @@ u8 gRoamerArmCountsB[16] = {
     0,
 };
 
-u8 gRoamerArmCountsA[14] = {
+/// Pool-A reserve additions by location variant 0..13, also gating arm/tick work.
+///
+/// Variants 1, 2 and 3 add 3, 2 and 4 enemies when the saved variant changes;
+/// zero disables the pool for this visit. The saved sum precedes the live five-slot clamp.
+static u8 _gRoamerPoolAArmCounts[14] = {
     0,
     3,
     2,
@@ -195,7 +162,12 @@ u8 gRoamerArmCountsA[14] = {
 /// back to a signed halfword.
 static s16 _gRoamerCooldownFrames = ROAMER_INITIAL_COOLDOWN_FRAMES;
 
-s16 gRoamerReserveCount = 0;
+/// Live reserve prefix length scanned for an enemy to revive, shared by both pools.
+///
+/// Arming loads a saved nibble, adds a new variant's count and persists the sum
+/// before HP seeding clamps the live count to 0..5. Banking/spawning changes HP
+/// slots without decrementing this prefix length. Stores retain signed 16-bit narrowing.
+static s16 _gRoamerReserveCount = 0;
 
 /// One-based spawn-point selector pending for the next active pool tick.
 ///
@@ -211,28 +183,53 @@ static s16 _gRoamerPendingSpawnPoint = ROAMER_SPAWN_POINT_NONE;
 /// suppresses it, so the same action must change before it can request a spawn.
 static s16 _gRoamerLastActionId = ROAMER_SPAWN_POINT_NONE;
 
-s16 gRoamerReleasePending = 0;
+/// Deferred battle-hold release after retreat HP was banked with fewer than two holds.
+///
+/// NONE means no release owed; PENDING is cleared by an active pool-A tick once
+/// the scene has at least two holds, immediately before releasing one. Multiple
+/// deferred retreats still set the same flag; it is not a release count.
+static s16 _gRoamerBattleReleasePending = ROAMER_BATTLE_RELEASE_NONE;
 
-TaskMessageEntry gRoamerMsgTableA[4] = {
+/// Pool-A receiver: latch room actions, bank retreat HP and ignore actor commands.
+///
+/// Installed only in armed variants; the final marker rejects unsupported IDs.
+/// The retreat callback has no result, so its sender must ignore the dispatch
+/// return. The task borrows this table and its callbacks for the loaded visit.
+static TaskMessageEntry _gRoamerPoolAMessages[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolA },
     { ROOM_MESSAGE_ACTOR_EVENT, _roamerBankRetreat },
     { ACTOR_COMMAND_MESSAGE_APPLY, _neoArkWoodlandPathIgnoreRoamerCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-RoamerSpawnPoint gRoamerSpawnPointsA[7] = {
+/// Pool-A placements for room-action selectors 1..6, followed by an unread marker row.
+///
+/// Woodland triggers supply 1..6; the tick indexes selector minus one without
+/// clamping. X/Z use the root's parent game units at Y=0; yaw is 4096 units per turn.
+/// The seven-row extent includes retained marker storage, not another live selector.
+static RoamerSpawnPoint _gRoamerPoolASpawnPoints[7] = {
     { -2000, 0, 8977, -1024 },
     { 379, 0, 7700, 2048 },
     { 7950, 0, 4650, -1024 },
     { 7950, 0, -4650, -1024 },
     { -633, 0, -1000, 2048 },
     { -2280, 0, -6378, -1024 },
-    { 0x7FFF, 0x7FFF, 0x7FFF, 0x7FFF },
+    { ROAMER_SPAWN_POINT_END, ROAMER_SPAWN_POINT_END, ROAMER_SPAWN_POINT_END, ROAMER_SPAWN_POINT_END },
 };
 
-s16 gRoamerPrevBattleRefs = 0;
+/// Previous active-pool tick's scene battle-hold count, narrowed to a signed halfword.
+///
+/// A positive sample followed by a zero live count triggers loss persistence and
+/// the post-battle cooldown. Both pools share this sample; disabled ticks leave
+/// it unchanged. Preserve the signed comparison even though the source is u16.
+static s16 _gRoamerPreviousBattleRefs = 0;
 
-TaskMessageEntry gRoamerMsgTableB[4] = {
+/// Pool-B receiver: latch room actions, extend arrival cooldown and handle forest commands.
+///
+/// Installed only in armed variants; the final marker rejects unsupported IDs.
+/// Actor events return 1 after adding cooldown; forest command 0 pauses it and
+/// command 2 starts the ambush. The task borrows table/callback storage for this visit.
+static TaskMessageEntry _gRoamerPoolBMessages[4] = {
     { DIRECTION_MESSAGE_ROOM_ACTION, _roamerLatchSpawnRequestPoolB },
     { ROOM_MESSAGE_ACTOR_EVENT, _roamerExtendCooldown },
     { ACTOR_COMMAND_MESSAGE_APPLY, _roamerAmbushMsg },
@@ -451,14 +448,14 @@ static void _roamerTickPoolB(Task* task)
     }
 
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (gRoamerArmCountsB[gGameSession->location.loc.variant] == 0) {
+    if (_gRoamerPoolBArmCounts[gGameSession->location.loc.variant] == 0) {
         return;
     }
     if (_gRoamerCooldownFrames > ROAMER_COOLDOWN_READY) {
         _gRoamerCooldownFrames--;
     }
     // Persist the reserve only on the transition out of a live battle.
-    if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
+    if (gSceneCombatState.battleRefs == 0 && _gRoamerPreviousBattleRefs > 0) {
         persistedReserve = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
         bankedCount      = 0;
         for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
@@ -486,7 +483,7 @@ static void _roamerTickPoolB(Task* task)
         areaSyncLocationVariant(&gGameSession->location.loc);
         _gRoamerCooldownFrames = ROAMER_POST_BATTLE_COOLDOWN_FRAMES;
     }
-    gRoamerPrevBattleRefs = gSceneCombatState.battleRefs;
+    _gRoamerPreviousBattleRefs = gSceneCombatState.battleRefs;
     // Defer clearing battle rewards until the post-battle cooldown expires.
     if (gGameSession->battleResetPending == 1 && _gRoamerCooldownFrames == ROAMER_COOLDOWN_READY) {
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
@@ -511,7 +508,7 @@ static void _roamerTickPoolB(Task* task)
                 break;
             }
             if (enemy->hp == ROAMER_POOL_B_HP_AVAILABLE) {
-                for (reserveIndex = 0; reserveIndex < gRoamerReserveCount; reserveIndex++) {
+                for (reserveIndex = 0; reserveIndex < _gRoamerReserveCount; reserveIndex++) {
                     if ((s16)gRoamerReserveHp[reserveIndex] > 0) {
                         enemy->hp                      = gRoamerReserveHp[reserveIndex];
                         enemy->reactionFlags           = 0;
@@ -559,7 +556,7 @@ static const TaskFuncTable4 D_neo_ark_woodland_path_8017D684 = {
 
 /// Ignores actor commands delivered to the pool-A controller and returns zero.
 ///
-/// Serves `ACTOR_COMMAND_MESSAGE_APPLY` in `gRoamerMsgTableA`. All arguments
+/// Serves `ACTOR_COMMAND_MESSAGE_APPLY` in `_gRoamerPoolAMessages`. All arguments
 /// are unused: the command is neither read, modified nor retained, and the
 /// controller's task state is unchanged.
 static s32 _neoArkWoodlandPathIgnoreRoamerCommand(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg)

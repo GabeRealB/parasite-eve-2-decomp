@@ -67489,7 +67489,7 @@ This is not limited to a *leading*-`.rodata` symbol. A table in a later
 subsegment cut for a compiler-generated jump table migrates the same way, into
 the `.s` of the function in the cut's own unit that reads it, and vanishes the
 same way when that function is matched - `neo_ark_forest_zone`'s
-`D_neo_ark_forest_zone_8017D634` is at `0x74`, behind the
+`_gNeoArkForestZoneRoamerPoolBStates` is at `0x74`, behind the
 `jtbl_neo_ark_forest_zone_8017D620` at `0x60` that
 `_roamerTickPoolB`'s `INCLUDE_ASM` carries. Its `const` sits
 above the dispatcher, after that `INCLUDE_ASM`, and the unit checksums. What

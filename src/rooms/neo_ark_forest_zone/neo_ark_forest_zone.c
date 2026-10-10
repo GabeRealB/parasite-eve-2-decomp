@@ -55,7 +55,6 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/room_events.h"
 #include "../../shared/falling_leaves.h"
-#include "../../shared/roaming_enemies.h"
 
 extern s8 D_neo_ark_forest_zone_80182E40;
 
@@ -133,7 +132,7 @@ static __inline__ s32 _neoArkForestZoneStartEvent(const RoomEventMsg* transition
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
-            taskSpawnFromTable(&D_neo_ark_forest_zone_80181DBC, 0, 0, 0);
+            taskSpawnFromTable(&gNeoArkForestZoneStagedEventTaskDesc, 0, 0, 0);
             D_neo_ark_forest_zone_80182E40 = ROOM_EVENT_STARTED;
         }
         return ROOM_EVENT_ELIGIBLE;
@@ -185,11 +184,11 @@ s32 neoArkForestZoneHandleAction(Task* unusedTask, s32 messageId, const Directio
     if (actionId == NEO_ARK_FOREST_ZONE_FIRST_VISIT_ACTION) {
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN, NEO_ARK_FOREST_ZONE_FIRST_VISIT_SEEN);
-            evsStartScript(D_neo_ark_forest_zone_80181E6C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(gNeoArkForestZoneFirstVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
         }
     }
-    if (D_neo_ark_forest_zone_80181E68 != NULL) {
-        return TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_forest_zone_80181E68, messageId, request, secondArg);
+    if (gNeoArkForestZoneRoamerPoolBTask != NULL) {
+        return TASK_MESSAGE_DISPATCH_POINTER(gNeoArkForestZoneRoamerPoolBTask, messageId, request, secondArg);
     }
     return NEO_ARK_FOREST_ZONE_POOL_ABSENT;
 }
@@ -198,15 +197,15 @@ s32 neoArkForestZoneForwardActorEvent(Task* unusedTask, s32 messageId, s32 event
 {
     enum { NEO_ARK_FOREST_ZONE_ROAMER_TASK_ABSENT = -1 };
 
-    return D_neo_ark_forest_zone_80181E68 == NULL
+    return gNeoArkForestZoneRoamerPoolBTask == NULL
                ? NEO_ARK_FOREST_ZONE_ROAMER_TASK_ABSENT
-               : taskMessageDispatch(D_neo_ark_forest_zone_80181E68, messageId, eventValue, secondArg);
+               : taskMessageDispatch(gNeoArkForestZoneRoamerPoolBTask, messageId, eventValue, secondArg);
 }
 
 void neoArkForestZoneStartRoamerAmbush(void)
 {
-    if (D_neo_ark_forest_zone_80181E68 != NULL) {
-        TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_forest_zone_80181E68, ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_forest_zone_80181E38, 0);
+    if (gNeoArkForestZoneRoamerPoolBTask != NULL) {
+        TASK_MESSAGE_DISPATCH_POINTER(gNeoArkForestZoneRoamerPoolBTask, ACTOR_COMMAND_MESSAGE_APPLY, &gNeoArkForestZoneStartAmbushCommand, 0);
     }
 }
 
@@ -219,12 +218,12 @@ static void _neoArkForestZoneInitializeRoom(Task* task)
 {
     enum { NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT = 1 };
 
-    task->msgTable = D_neo_ark_forest_zone_80181DC8;
+    task->msgTable = gNeoArkForestZoneRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_FOREST_ZONE_AMBIENCE, 0, 0);
-    D_neo_ark_forest_zone_80181E68 = taskSpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
+    gNeoArkForestZoneRoamerPoolBTask = taskSpawnFromTable(&D_neo_ark_forest_zone_80182E18, 0, 0, 0);
     if (gGameSession->location.loc.variant == NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_neo_ark_forest_zone_80181E30, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &gNeoArkForestZoneFirstVisitPauseCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }
     task->state = task->state + 1;
 }
@@ -239,7 +238,7 @@ static void _neoArkForestZonePauseRoamersState(Task* task)
     enum { NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT = 1 };
 
     if (gGameSession->location.loc.variant == NEO_ARK_FOREST_ZONE_FIRST_VISIT_VARIANT && gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_EVENT_SEEN) == 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_forest_zone_80181E68, ACTOR_COMMAND_MESSAGE_APPLY, &D_neo_ark_forest_zone_80181E30, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(gNeoArkForestZoneRoamerPoolBTask, ACTOR_COMMAND_MESSAGE_APPLY, &gNeoArkForestZoneFirstVisitPauseCommand, 0);
     }
     task->state = task->state + 1;
 }

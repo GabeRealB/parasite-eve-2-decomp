@@ -12,18 +12,18 @@ static void _roamerArmPoolB(Task* task)
 {
     s16 previousVariant;
 
-    if (gRoamerArmCountsB[gGameSession->location.loc.variant] == 0) {
+    if (_gRoamerPoolBArmCounts[gGameSession->location.loc.variant] == 0) {
         task->msgTable = NULL;
         task->state    = task->state + 1;
         return;
     }
-    task->msgTable      = gRoamerMsgTableB;
-    gRoamerReserveCount = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
-    previousVariant     = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_VARIANT);
+    task->msgTable       = _gRoamerPoolBMessages;
+    _gRoamerReserveCount = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
+    previousVariant      = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_VARIANT);
     // Persist the accumulated count before limiting this visit's live slots.
     if (gGameSession->location.loc.variant != previousVariant) {
-        gRoamerReserveCount = gRoamerReserveCount + gRoamerArmCountsB[gGameSession->location.loc.variant];
-        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE, gRoamerReserveCount);
+        _gRoamerReserveCount = _gRoamerReserveCount + _gRoamerPoolBArmCounts[gGameSession->location.loc.variant];
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE, _gRoamerReserveCount);
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_VARIANT, gGameSession->location.loc.variant);
     }
     _roamerSeedReserveHp();
