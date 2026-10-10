@@ -13,8 +13,12 @@
 
 extern AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22];
 
-// dryfield_night_dilapidated_house
-extern WorldCoordRoomLighting D_dryfield_night_dilapidated_house_8018738C[];
+/// Light collection and minimum ambient colours for the house's single room.
+///
+/// Indexed by room selector minus one (room 1 only). Borrows the mutable room
+/// lights and the ambient table for logical views 1..11. The stage directory,
+/// this descriptor and its resources are valid while this overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldNightDilapidatedHouseRoomLighting[1];
 
 extern WorldCollisionRoomResources D_dryfield_night_dilapidated_house_80187394[];
 
@@ -30,7 +34,13 @@ extern u8* gDryfieldNightDilapidatedHouseViewMaps[1];
 /// The stage map borrows this signed element count while the room is loaded.
 extern ViewCount gDryfieldNightDilapidatedHouseViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_dilapidated_house_801873AC[];
+/// Three arrival/departure endpoints for the nighttime house, indexed by warp ID minus one.
+///
+/// IDs 1 and 3 share the back-street placement and view 6; ID 2 uses the
+/// warehouse placement and view 2. Only ID 1 supplies sounds and a map flag.
+/// Positions use whole room units and yaw uses 4096 units per turn. Gameplay
+/// copies complete entries from the stage directory while this overlay is loaded.
+extern DirectionWarpEntry gDryfieldNightDilapidatedHouseWarpEntries[3];
 
 /// Cameras for mapped house views 1..11, indexed by mapped view minus one.
 ///

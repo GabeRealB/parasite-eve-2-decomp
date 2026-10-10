@@ -35,6 +35,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -50,7 +51,7 @@
 
 static WorldCollisionGrid _gDryfieldNightDilapidatedHouseCollisionGrid;
 
-extern WorldCollisionTrigger D_dryfield_night_dilapidated_house_801892A0[8];
+static WorldCollisionTrigger _gDryfieldNightDilapidatedHouseViewBoundaries[8];
 
 static void _dryfieldNightDilapidatedHouseMovieTask(Task* task);
 static void _dryfieldNightDilapidatedHouseLaunchMovieTask(Task* task);
@@ -923,7 +924,22 @@ static AnimationSet _gDryfieldNightDilapidatedHouseAnimation08ED4 = {
     { NULL, _gDryfieldNightDilapidatedHouseAnimation08ED4Bank1, NULL, NULL, _gDryfieldNightDilapidatedHouseAnimation08ED4Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_dryfield_night_dilapidated_house_801864BC[25] = {
+// Scene playback resolves this stored bank word before dispatch. Blend durations
+// count whole normal-rate animation frames; extended set IDs are base + table index.
+enum {
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER    = 1,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_PLAYER_OPENING_SET  = 9,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES   = 20,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_MEDIUM_BLEND_FRAMES = 10,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_SHORT_BLEND_FRAMES  = 4,
+};
+
+/// Player animation-set extension for the first-visit scene.
+///
+/// The 25 pointers overwrite bank indices 47..71; entry zero is NULL, and
+/// entries 1..24 are the scene's sets 48..71. Clip data stays borrowed from
+/// this overlay throughout playback; later extension words are unchanged.
+static AnimationSet* _gDryfieldNightDilapidatedHouseFirstVisitPlayerSets[] = {
     NULL,
     &_gDryfieldNightDilapidatedHouseAnimation01444,
     &_gDryfieldNightDilapidatedHouseAnimation01C10,
@@ -950,31 +966,106 @@ AnimationSet* D_dryfield_night_dilapidated_house_801864BC[25] = {
     &_gDryfieldNightDilapidatedHouseAnimation05A6C,
     &_gDryfieldNightDilapidatedHouseAnimation05D8C,
 };
+STATIC_ASSERT(ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitPlayerSets) <= ANIMATION_BANK_EXTENSION_CAPACITY, _gDryfieldNightDilapidatedHouseFirstVisitPlayerSetsFitsBankExtension);
 
-AnimationBankCopyRequest D_dryfield_night_dilapidated_house_80186520 = { { .sets = D_dryfield_night_dilapidated_house_801864BC }, ARRAY_SIZE(D_dryfield_night_dilapidated_house_801864BC) };
+/// Installs the first-visit player sets in the selected animation-bank extension.
+///
+/// Copies the complete pointer table during message dispatch, without starting
+/// playback. The selected bank must be loaded and writable, and the copied
+/// clip pointers remain borrowed from this overlay until playback ends.
+static AnimationBankCopyRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerBankCopy = {
+    .source    = { .sets = _gDryfieldNightDilapidatedHouseFirstVisitPlayerSets },
+    .wordCount = ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitPlayerSets),
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_80186528 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_8018653C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player set-48 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the equipped-weapon bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation48 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_80186550 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player opening animation request for the first-visit scene.
+///
+/// Uses native bank set 9 with an immediate reset and grid collision enabled.
+/// The script resolves the equipped-weapon bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation9 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_PLAYER_OPENING_SET,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_80186564[2] = {
     { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
     { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_8018658C = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player set-52 animation request for the first-visit dialogue cues.
+///
+/// Blends over 4 whole animation frames and enables grid collision.
+/// The script resolves the equipped-weapon bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation52 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_SHORT_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_801865A0 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player set-53 animation request for the first-visit dialogue cues.
+///
+/// Blends over 4 whole animation frames and enables grid collision.
+/// The script resolves the equipped-weapon bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation53 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 6,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_SHORT_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_801865B4 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_801865C8 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player set-55 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the equipped-weapon bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation55 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 8,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_801865DC = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_801865F0 = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player set-57 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the equipped-weapon bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation57 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 10,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_80186604[6] = {
     { { .index = 1 }, 58, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
@@ -985,9 +1076,31 @@ AnimationPlayRequest D_dryfield_night_dilapidated_house_80186604[6] = {
     { { .index = 1 }, 63, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_8018667C = { { .index = 1 }, 64, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player set-64 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the equipped-weapon bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation64 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 17,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_80186690 = { { .index = 1 }, 65, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player set-65 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the equipped-weapon bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation65 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 18,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_801866A4[5] = {
     { { .index = 1 }, 66, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE },
@@ -997,11 +1110,34 @@ AnimationPlayRequest D_dryfield_night_dilapidated_house_801866A4[5] = {
     { { .index = 1 }, 70, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_80186708 = { { .index = 1 }, 71, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Player set-71 animation request for the first-visit dialogue cues.
+///
+/// Blends over 10 whole animation frames and enables grid collision.
+/// The script resolves the equipped-weapon bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation71 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 24,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_MEDIUM_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-ActorTransform D_dryfield_night_dilapidated_house_8018671C = { { 2900, 0, 0, 0 }, { 0, -1024, 0, 0 } };
+/// Player placement shared by the normal and skip paths of the first-visit scene.
+///
+/// Position uses whole room units and yaw uses 4096 units per turn.
+/// Message dispatch copies the needed values.
+static ActorTransform _gDryfieldNightDilapidatedHouseFirstVisitPlayerPlacement = {
+    .pos = { 2900, 0, 0, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
-AnimationSet* D_dryfield_night_dilapidated_house_80186734[16] = {
+/// Companion animation-set extension for the first-visit scene.
+///
+/// The 16 pointers overwrite bank indices 47..62; entry zero is NULL, and
+/// entries 1..15 are the scene's sets 48..62. Clip data stays borrowed from
+/// this overlay throughout playback; later extension words are unchanged.
+static AnimationSet* _gDryfieldNightDilapidatedHouseFirstVisitCompanionSets[] = {
     NULL,
     &_gDryfieldNightDilapidatedHouseAnimation06008,
     &_gDryfieldNightDilapidatedHouseAnimation07DA4,
@@ -1019,46 +1155,210 @@ AnimationSet* D_dryfield_night_dilapidated_house_80186734[16] = {
     &_gDryfieldNightDilapidatedHouseAnimation0679C,
     &_gDryfieldNightDilapidatedHouseAnimation08ED4,
 };
+STATIC_ASSERT(ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitCompanionSets) <= ANIMATION_BANK_EXTENSION_CAPACITY, _gDryfieldNightDilapidatedHouseFirstVisitCompanionSetsFitsBankExtension);
 
-AnimationBankCopyRequest D_dryfield_night_dilapidated_house_80186774 = { { .sets = D_dryfield_night_dilapidated_house_80186734 }, ARRAY_SIZE(D_dryfield_night_dilapidated_house_80186734) };
+/// Installs the first-visit companion sets in the selected animation-bank extension.
+///
+/// Copies the complete pointer table during message dispatch, without starting
+/// playback. The selected bank must be loaded and writable, and the copied
+/// clip pointers remain borrowed from this overlay until playback ends.
+static AnimationBankCopyRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionBankCopy = {
+    .source    = { .sets = _gDryfieldNightDilapidatedHouseFirstVisitCompanionSets },
+    .wordCount = ARRAY_SIZE(_gDryfieldNightDilapidatedHouseFirstVisitCompanionSets),
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_8018677C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_80186790 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-48 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation48 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_801867A4 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_801867B8 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion opening animation request for the first-visit scene.
+///
+/// Uses scene set 50 with an immediate reset and grid collision enabled.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation50 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_801867CC = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-51 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation51 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_801867E0 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-52 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation52 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_801867F4 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_80186808 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-54 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation54 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 7,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_8018681C = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-55 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation55 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 8,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_80186830 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-56 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation56 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 9,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_80186844 = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-57 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation57 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 10,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_80186858 = { { .index = 1 }, 58, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-58 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation58 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 11,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_8018686C = { { .index = 1 }, 59, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-59 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation59 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 12,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_80186880 = { { .index = 1 }, 60, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-60 animation request for the first-visit dialogue cues.
+///
+/// Blends over 20 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation60 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 13,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_dilapidated_house_80186894 = { { .index = 1 }, 61, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_dryfield_night_dilapidated_house_801868A8 = { { .index = 1 }, 62, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Companion set-62 animation request for the first-visit dialogue cues.
+///
+/// Blends over 10 whole animation frames and enables grid collision.
+/// The script resolves the saved-companion bank in a request copy before
+/// dispatch; clip data must stay live for playback.
+static AnimationPlayRequest _gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation62 = {
+    .source               = { .index = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_BANK_PLACEHOLDER },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 15,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_VISIT_MEDIUM_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-ActorTransform D_dryfield_night_dilapidated_house_801868BC = { { 400, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+/// Companion starting placement for the normal first-visit scene.
+///
+/// Position uses whole room units and yaw uses 4096 units per turn.
+/// Message dispatch copies the needed values.
+static ActorTransform _gDryfieldNightDilapidatedHouseFirstVisitCompanionStartPlacement = {
+    .pos = { 400, 0, 0, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_dilapidated_house_801868D4 = { { 1540, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+/// Companion approach destination and final placement for the first-visit scene.
+///
+/// The normal script walks toward this position before placing the actor here;
+/// the skip script places it here immediately. Position is in whole room units,
+/// yaw in 4096 units per turn; message dispatch copies the needed values.
+static ActorTransform _gDryfieldNightDilapidatedHouseFirstVisitCompanionDestination = {
+    .pos = { 1540, 0, 0, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 },
+};
 
-EvsSceneKey D_dryfield_night_dilapidated_house_801868EC = { 3, 50, 11 };
+/// Scene/audio stream selector for the house's first-visit dialogue.
+///
+/// Selects group 3, stream 50, qualifier 11 (second qualifier zero). Caption
+/// control and event playback borrow this key while the room remains loaded.
+static EvsSceneKey _gDryfieldNightDilapidatedHouseFirstVisitSceneKey = {
+    .group    = 3,
+    .streamId = 50,
+    .subId    = 11,
+};
 
 EvsCommand D_dryfield_night_dilapidated_house_801868F4[88] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
@@ -1066,78 +1366,78 @@ EvsCommand D_dryfield_night_dilapidated_house_801868F4[88] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightDilapidatedHouseStartMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_dryfield_night_dilapidated_house_801868EC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gDryfieldNightDilapidatedHouseFirstVisitSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightDilapidatedHouseStageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightDilapidatedHouseEnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_80186520 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_80186774 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_8018671C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_801868BC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionStartPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186550 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_801867B8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation9 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation50 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_8018653C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_801867CC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation51 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1010 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_801868D4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .transform = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionDestination } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186880 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation60 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_8018658C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation52 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_801865A0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation53 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_8018653C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_801867E0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_801868D4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation52 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionDestination } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_801865C8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation55 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186880 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation60 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_801865F0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation57 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186708 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation71 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_8018667C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186790 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation64 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_801868A8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation62 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_8018653C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186808 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation48 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation54 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_8018681C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation55 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186830 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation56 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186708 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation71 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186844 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation57 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 36 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186858 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation58 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 28 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_8018686C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation59 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186690 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation65 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_8018653C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_dilapidated_house_80186880 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionAnimation60 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1156,8 +1456,8 @@ EvsCommand D_dryfield_night_dilapidated_house_80187134[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_8018671C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_dilapidated_house_801868D4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDilapidatedHouseFirstVisitPlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightDilapidatedHouseFirstVisitCompanionDestination } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1207,12 +1507,12 @@ static SVECTOR _gDryfieldNightDilapidatedHouseLightPrismCorners[24] = {
     { -650, 0, -1660, 0 },
 };
 
-WorldCoordRoomLighting D_dryfield_night_dilapidated_house_8018738C[1] = {
-    { &gDryfieldNightDilapidatedHouseRoomLights, gDryfieldNightDilapidatedHouseAmbientByView },
+WorldCoordRoomLighting gDryfieldNightDilapidatedHouseRoomLighting[1] = {
+    { .lights = &gDryfieldNightDilapidatedHouseRoomLights, .ambientTable = gDryfieldNightDilapidatedHouseAmbientByView },
 };
 
 WorldCollisionRoomResources D_dryfield_night_dilapidated_house_80187394[1] = {
-    { &_gDryfieldNightDilapidatedHouseCollisionGrid, D_dryfield_night_dilapidated_house_801892A0, D_dryfield_night_dilapidated_house_80189B78, D_dryfield_night_dilapidated_house_80189F08 },
+    { &_gDryfieldNightDilapidatedHouseCollisionGrid, _gDryfieldNightDilapidatedHouseViewBoundaries, D_dryfield_night_dilapidated_house_80189B78, D_dryfield_night_dilapidated_house_80189F08 },
 };
 
 u8* gDryfieldNightDilapidatedHouseViewMaps[1] = {
@@ -1221,10 +1521,49 @@ u8* gDryfieldNightDilapidatedHouseViewMaps[1] = {
 
 ViewCount gDryfieldNightDilapidatedHouseViewCounts[1] = { ARRAY_SIZE(gDryfieldNightDilapidatedHouseViewCameras) };
 
-DirectionWarpEntry D_dryfield_night_dilapidated_house_801873AC[3] = {
-    { { { .word = 0 }, 1596, 0, -2540 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2296, 0, -1578 }, { 0, 0, 0, 0 }, 0x53090002, 0x53090001, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 467 },
-    { { { .word = 1024 }, -5403, 2, -400 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5184, 2, 200 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, 1596, 0, -2540 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2296, 0, -1578 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+enum {
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_BACK_STREET_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE, 2),
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_BACK_STREET_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE, 1),
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_BACK_STREET_MAP_FLAG        = 467,
+};
+
+DirectionWarpEntry gDryfieldNightDilapidatedHouseWarpEntries[3] = {
+    {
+        .player         = { { .word = 0 }, 1596, 0, -2540 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 2296, 0, -1578 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_BACK_STREET_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_BACK_STREET_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_BACK_STREET_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -5403, 2, -400 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -5184, 2, 200 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { { .word = 0 }, 1596, 0, -2540 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 2296, 0, -1578 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-space face normals, using ONE for unit length.
@@ -1711,15 +2050,134 @@ SpriteView gDryfieldNightDilapidatedHouseSpriteViews[11] = {
     { { .elements = _gDryfieldNightDilapidatedHouseView11SpriteSources }, _gDryfieldNightDilapidatedHouseView11SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_dilapidated_house_801892A0[8] = {
-    { NULL, NULL, NULL, { -4160, -1696, -1792, 0 }, { { 0, -2112, -1024, 0 }, { 0, -2112, 1024, 0 }, { 0, 2112, -1024, 0 }, { 0, 2112, 1024, 0 } }, { 4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4064, -1376, -1824, 0 }, { { 0, -2400, 1024, 0 }, { 0, -2400, -1024, 0 }, { 0, 2400, 1024, 0 }, { 0, 2400, -1024, 0 } }, { -4117, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2598, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1937, -1376, -1937, 0 }, { { -2182, -2400, 2208, 0 }, { 2183, -2400, -2207, 0 }, { -2182, 2400, 2208, 0 }, { 2183, 2400, -2207, 0 } }, { -2920, 0, -2887, 0 }, { 0, 0, 4096, 0 }, 3916, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2017, -1360, -2017, 0 }, { { 2183, -2384, -2207, 0 }, { -2182, -2384, 2208, 0 }, { 2183, 2384, -2207, 0 }, { -2182, 2384, 2208, 0 } }, { 2913, 0, 2880, 0 }, { 0, 0, 4096, 0 }, 3907, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 220, -1392, 318, 0 }, { { -30, -2416, -3113, 0 }, { 4, -2416, 3091, 0 }, { -30, 2416, -3113, 0 }, { 4, 2416, 3091, 0 } }, { 4098, 0, -23, 0 }, { 0, 0, 4096, 0 }, 3932, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2974, -1312, -1986, 0 }, { { -2235, -2336, -137, 0 }, { 2226, -2336, 127, 0 }, { -2235, 2336, -137, 0 }, { 2226, 2336, 127, 0 } }, { 241, 0, -4092, 0 }, { 0, 0, 4096, 0 }, 3228, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 318, -1360, 352, 0 }, { { 13, -2384, 3100, 0 }, { -23, -2384, -3109, 0 }, { 13, 2384, 3100, 0 }, { -23, 2384, -3109, 0 } }, { -4098, 0, 23, 0 }, { 0, 0, 4096, 0 }, 3907, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2975, -1472, -2048, 0 }, { { 2226, -2496, 127, 0 }, { -2235, -2496, -137, 0 }, { 2226, 2496, 127, 0 }, { -2235, 2496, -137, 0 } }, { -243, 0, 4090, 0 }, { 0, 0, 4096, 0 }, 3347, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Eight directed camera boundaries connecting logical views 2..6 in the house.
+///
+/// Includes both directions of 2/3, 3/4, 4/5 and 5/6; parameter0 is the source
+/// view and parameter1 the destination. Positions, corner offsets and radii
+/// use room units; authored normals use Q12. The final record carries LAST.
+/// Room binding parents, links and enables these writable nodes; keep this
+/// overlay loaded until their runtime list has been cleared.
+static WorldCollisionTrigger _gDryfieldNightDilapidatedHouseViewBoundaries[8] = {
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { -4160, -1696, -1792, 0 },
+        .vertices     = { { 0, -2112, -1024, 0 }, { 0, -2112, 1024, 0 }, { 0, 2112, -1024, 0 }, { 0, 2112, 1024, 0 } },
+        .normal       = { 4097, 0, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 2346,
+        .control      = 0,
+        .parameter0   = 3,
+        .parameter1   = 2,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { -4064, -1376, -1824, 0 },
+        .vertices     = { { 0, -2400, 1024, 0 }, { 0, -2400, -1024, 0 }, { 0, 2400, 1024, 0 }, { 0, 2400, -1024, 0 } },
+        .normal       = { -4117, 0, 0, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 2598,
+        .control      = 0,
+        .parameter0   = 2,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { -1937, -1376, -1937, 0 },
+        .vertices     = { { -2182, -2400, 2208, 0 }, { 2183, -2400, -2207, 0 }, { -2182, 2400, 2208, 0 }, { 2183, 2400, -2207, 0 } },
+        .normal       = { -2920, 0, -2887, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3916,
+        .control      = 0,
+        .parameter0   = 3,
+        .parameter1   = 4,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { -2017, -1360, -2017, 0 },
+        .vertices     = { { 2183, -2384, -2207, 0 }, { -2182, -2384, 2208, 0 }, { 2183, 2384, -2207, 0 }, { -2182, 2384, 2208, 0 } },
+        .normal       = { 2913, 0, 2880, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3907,
+        .control      = 0,
+        .parameter0   = 4,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 220, -1392, 318, 0 },
+        .vertices     = { { -30, -2416, -3113, 0 }, { 4, -2416, 3091, 0 }, { -30, 2416, -3113, 0 }, { 4, 2416, 3091, 0 } },
+        .normal       = { 4098, 0, -23, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3932,
+        .control      = 0,
+        .parameter0   = 5,
+        .parameter1   = 4,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2974, -1312, -1986, 0 },
+        .vertices     = { { -2235, -2336, -137, 0 }, { 2226, -2336, 127, 0 }, { -2235, 2336, -137, 0 }, { 2226, 2336, 127, 0 } },
+        .normal       = { 241, 0, -4092, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3228,
+        .control      = 0,
+        .parameter0   = 6,
+        .parameter1   = 5,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 318, -1360, 352, 0 },
+        .vertices     = { { 13, -2384, 3100, 0 }, { -23, -2384, -3109, 0 }, { 13, 2384, 3100, 0 }, { -23, 2384, -3109, 0 } },
+        .normal       = { -4098, 0, 23, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3907,
+        .control      = 0,
+        .parameter0   = 4,
+        .parameter1   = 5,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+        .hit          = 0,
+    },
+    {
+        .next         = NULL,
+        .prevLink     = NULL,
+        .coord        = NULL,
+        .origin       = { 2975, -1472, -2048, 0 },
+        .vertices     = { { 2226, -2496, 127, 0 }, { -2235, -2496, -137, 0 }, { 2226, 2496, 127, 0 }, { -2235, 2496, -137, 0 } },
+        .normal       = { -243, 0, 4090, 0 },
+        .facingNormal = { 0, 0, ONE, 0 },
+        .radius       = 3347,
+        .control      = 0,
+        .parameter0   = 5,
+        .parameter1   = 6,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST,
+        .hit          = 0,
+    },
 };
 
 WorldCoordPointLight gDryfieldNightDilapidatedHousePointLights[8] = {
