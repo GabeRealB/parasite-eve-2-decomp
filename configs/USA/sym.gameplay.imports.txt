@@ -287,7 +287,7 @@ gMapDryfieldMarkerFlags = 0x8017A824; // absolute:True owner=map_dryfield
 D_map_neo_ark_8017A9A0 = 0x8017A9A0; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AA0C = 0x8017AA0C; // absolute:True owner=map_akropolis
 D_map_shelter_8017AD88 = 0x8017AD88; // absolute:True owner=map_shelter
-Gp_ItemTextHi = 0x801D6484; // absolute:True
+gNmcNamesEnemyNameTable = 0x801D6484; // absolute:True
 func_807150F8 = 0x807150F8; // type:func absolute:True
 func_80715198 = 0x80715198; // type:func absolute:True
 func_80724120 = 0x80724120; // type:func absolute:True

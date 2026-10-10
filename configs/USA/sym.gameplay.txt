@@ -1382,7 +1382,7 @@ Gp_StatRows                 = 0x8010D328; // size:0x20 defined:True
 Gp_StackLimits = 0x8010E3B8; // size:0x80 defined:True
 
 // Gameplay naming pass 10 (held equip, cap evt, light, id tables)
-// Gp_ItemTextHi lives in another overlay (0x801D6484); import is in
+// gNmcNamesEnemyNameTable lives in another overlay (0x801D6484); import is in
 // configs/USA/sym.gameplay.imports.txt (absolute:True).
 Gp_ModStatAttrs = 0x8010E2B8; // size:0x100 defined:True
 Gp_ItemAttrs                = 0x8010DFB8;

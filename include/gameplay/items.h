@@ -405,7 +405,7 @@ enum {
 ///
 /// Declared catalogue ids are 0..0xBF and 0x100..0x17F; raw id dispatch performs
 /// no bounds check. Packed ids 0x300..0x4FF use element/energy/level bits to select
-/// an identified ordinary entry. Enemy ids 0x500..0x53E use `Gp_ItemTextHi` and
+/// an identified ordinary entry. Enemy ids 0x500..0x53E use `gNmcNamesEnemyNameTable` and
 /// ignore the field/form arguments; the enemy-name overlay must be loaded.
 /// Results remain readable while their defining image stays loaded. Skipping
 /// fields requires all delimiters to be readable; a first byte n/N also causes

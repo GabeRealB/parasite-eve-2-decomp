@@ -705,7 +705,7 @@ const u8* itemGetText(s32 itemId, s32 fieldIndex, s32 forceIdentified)
     s32             levelOffset;
 
     if (itemId >= ITEM_TEXT_ENEMY_ID_FIRST) {
-        text = (const s8*)Gp_ItemTextHi[itemId - ITEM_TEXT_ENEMY_ID_FIRST];
+        text = (const s8*)gNmcNamesEnemyNameTable[itemId - ITEM_TEXT_ENEMY_ID_FIRST];
     } else if (itemId >= ITEM_TEXT_PACKED_ID_FIRST) {
         // Packed PE ids choose an element, an energy within it and a one-based level.
         // Level zero aliases level one; the recursive lookup uses identified text.
