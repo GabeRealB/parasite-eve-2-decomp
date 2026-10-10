@@ -143,16 +143,16 @@ D_shelter_b1_sleeping_quarters_801837A4 = 0x801837A4; // absolute:True owner=she
 D_shelter_b1_sleeping_quarters_801838D0 = 0x801838D0; // absolute:True owner=shelter_b1_sleeping_quarters
 D_shelter_b1_sleeping_quarters_801840B0 = 0x801840B0; // absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 shelterB1MainCorridorRoomTask = 0x8017DD98; // type:func absolute:True owner=shelter_b1_main_corridor shared=rooms
-D_shelter_b1_main_corridor_801831F8 = 0x801831F8; // absolute:True owner=shelter_b1_main_corridor
+gShelterB1MainCorridorRoomViewMaps = 0x801831F8; // absolute:True owner=shelter_b1_main_corridor
 D_shelter_b1_main_corridor_801831FC = 0x801831FC; // absolute:True owner=shelter_b1_main_corridor
 D_shelter_b1_main_corridor_80183200 = 0x80183200; // absolute:True owner=shelter_b1_main_corridor
-D_shelter_b1_main_corridor_801840F0 = 0x801840F0; // absolute:True owner=shelter_b1_main_corridor
+gShelterB1MainCorridorCollisionGrid = 0x801840F0; // absolute:True owner=shelter_b1_main_corridor
 D_shelter_b1_main_corridor_80184114 = 0x80184114; // absolute:True owner=shelter_b1_main_corridor
 D_shelter_b1_main_corridor_80185128 = 0x80185128; // absolute:True owner=shelter_b1_main_corridor shared=rooms
-D_shelter_b1_main_corridor_801853E0 = 0x801853E0; // absolute:True owner=shelter_b1_main_corridor
+gShelterB1MainCorridorRoomLights = 0x801853E0; // absolute:True owner=shelter_b1_main_corridor
 D_shelter_b1_main_corridor_801853F8 = 0x801853F8; // absolute:True owner=shelter_b1_main_corridor shared=rooms
 D_shelter_b1_main_corridor_801858B8 = 0x801858B8; // absolute:True owner=shelter_b1_main_corridor shared=rooms
-D_shelter_b1_main_corridor_80185D04 = 0x80185D04; // absolute:True owner=shelter_b1_main_corridor
+gShelterB1MainCorridorSurfacePropertiesByClass = 0x80185D04; // absolute:True owner=shelter_b1_main_corridor
 shelterB1SterilizationRoomTask = 0x80180518; // type:func absolute:True owner=shelter_b1_sterilization_room
 gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 = 0x80184DF8; // absolute:True owner=shelter_b1_sterilization_room
 gShelterB1SterilizationRoomLighting = 0x80189354; // absolute:True owner=shelter_b1_sterilization_room

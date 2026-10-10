@@ -14,26 +14,47 @@
 
 extern AreaVariant D_shelter_b1_main_corridor_80185C30[22];
 
-// shelter_b1_main_corridor
-extern u8* D_shelter_b1_main_corridor_801831F8[];
+/// Logical-view maps for the corridor's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..10 select the same
+/// 1-based camera, image and sprite indices. The directory has no terminator;
+/// keep this room overlay and gameplay loaded while using it.
+extern u8* gShelterB1MainCorridorRoomViewMaps[1];
 
 extern ViewCount D_shelter_b1_main_corridor_801831FC[];
 
 extern DirectionWarpEntry D_shelter_b1_main_corridor_80183200[];
 
-extern WorldCollisionGrid D_shelter_b1_main_corridor_801840F0;
+/// The corridor's room-space collision mesh and 3-by-6 XZ cell index.
+///
+/// Owns 34 normals, 172 vertices and 82 faces; cells are 4000 world units wide,
+/// starting at X = -5398, Z = -19715. Faces use surface classes 0..2 from
+/// `gShelterB1MainCorridorSurfacePropertiesByClass`. Activation binds the view
+/// coordinate; keep this overlay loaded while the grid and its pools are active.
+extern WorldCollisionGrid gShelterB1MainCorridorCollisionGrid;
 
 extern ViewCamera D_shelter_b1_main_corridor_80184114[];
 
 extern SpriteView D_shelter_b1_main_corridor_80185128[];
 
-extern WorldCoordRoomLights D_shelter_b1_main_corridor_801853E0;
+/// Six point lights shading models throughout the corridor's views.
+///
+/// No directional or cone lights. Positions and falloff radii are world units;
+/// RGB intensities have 12 fractional bits. Gameplay updates the borrowed
+/// transforms and attenuation, so the record and room overlay must remain live.
+extern WorldCoordRoomLights gShelterB1MainCorridorRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b1_main_corridor_801853F8[];
 
 extern WorldCollisionTrigger D_shelter_b1_main_corridor_801858B8[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_main_corridor_80185D04[];
+/// Collision policies and footstep cues indexed by room-local surface class 0..7.
+///
+/// Class 1 passes probes and disables weapon impacts; class 2 is the floor and
+/// supplies footsteps. Class 0 and classes 3..7 share blocking, impact-enabled
+/// properties without footstep cues. All classes apply pushback. No terminator;
+/// keep the room overlay loaded while gameplay borrows these records.
+extern WorldCollisionSurfaceProperties* gShelterB1MainCorridorSurfacePropertiesByClass[8];
 
 /// Runs the corridor's room-message receiver through registration, idle and teardown.
 ///
