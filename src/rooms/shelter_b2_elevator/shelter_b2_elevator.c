@@ -26,6 +26,7 @@
 #include "gameplay/view.h"
 #include "gameplay/world_coords.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -66,14 +67,12 @@ STATIC_ASSERT_SIZEOF(_ShelterB2ElevatorDoorLeafWork, 4);
 extern EvsCommand D_actor_142900_801378D0[];
 extern EvsCommand D_actor_142900_801380F8[];
 
-/// The room's message table, installed on the room entry task.
-extern TaskMessageEntry D_shelter_b2_elevator_8017DFA0[];
-
-/// The room's spawnable tasks: the two door leaves, then the exit task.
-extern TaskDesc D_shelter_b2_elevator_8017DF70[];
-
-/// The two door-leaf tasks the room entry task spawns.
-extern Task* D_shelter_b2_elevator_8017EA00[];
+/// Borrowed door-leaf task handles in negative-Z, positive-Z order.
+///
+/// Room initialization stores both spawn results without checking failure.
+/// Door messages require both tasks to be live. Task teardown owns their bodies
+/// and work and does not clear these handles; stop using them before room unload.
+static Task* _gShelterB2ElevatorDoorLeafTasks[2];
 
 static void _shelterB2ElevatorRoomIdleState(Task* unusedTask);
 
@@ -102,6 +101,40 @@ enum {
     SHELTER_B2_ELEVATOR_TASK_NEGATIVE_Z_LEAF = 0,
     SHELTER_B2_ELEVATOR_TASK_POSITIVE_Z_LEAF = 1,
     SHELTER_B2_ELEVATOR_TASK_EXIT            = 2,
+};
+
+/// Execution-list priorities for the room's model leaves and exit controller.
+enum {
+    SHELTER_B2_ELEVATOR_DOOR_LEAF_PRIORITY = 192,
+    SHELTER_B2_ELEVATOR_EXIT_PRIORITY      = 32,
+};
+
+/// View slots used by the arrival endpoint and the two directed boundaries.
+enum {
+    SHELTER_B2_ELEVATOR_ENTRY_VIEW = 2,
+    SHELTER_B2_ELEVATOR_SCENE_VIEW = 3,
+};
+
+/// Sound requests stored in the elevator's warp endpoint.
+enum {
+    SHELTER_B2_ELEVATOR_WARP_ARRIVAL_SOUND   = 0x541A0002,
+    SHELTER_B2_ELEVATOR_WARP_DEPARTURE_SOUND = 0x541A0001,
+};
+
+/// Departure slot 1 in this room and arrival slot 2 in the B2 elevator hall.
+enum { SHELTER_B2_ELEVATOR_HALL_WARP_KEY = (1 << 4) | 2 };
+
+/// Saved upper-sewer layout and map-mark policy after the first elevator scene.
+enum {
+    SHELTER_B2_ELEVATOR_UPPER_SEWER_LAYOUT = 4,
+    SHELTER_B2_ELEVATOR_SET_MAP_MARK       = 1,
+};
+
+/// Encoded 8-bit texture pages and palette used by view 2's sprite rectangles.
+enum {
+    SHELTER_B2_ELEVATOR_SPRITE_LEFT_TEXTURE_PAGE  = 142,    // VRAM X = 896, Y = 0
+    SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE = 143,    // VRAM X = 960, Y = 0
+    SHELTER_B2_ELEVATOR_SPRITE_CLUT               = 0x3FC0, // VRAM X = 0, Y = 255
 };
 
 static TmdBone _gShelterB2ElevatorModel00688Skeleton[1] = {
@@ -160,16 +193,26 @@ static TmdSource _gShelterB2ElevatorModel00884 = {
     _gShelterB2ElevatorModel00884Stream,
 };
 
-TaskDesc D_shelter_b2_elevator_8017DF70[4] = {
-    { { { TASK_BODY_TMD, 192 } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00688 } },
-    { { { TASK_BODY_TMD, 192 } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00884 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterB2ElevatorExitTask, { .value = 0 } },
+/// Spawn recipes for the negative-Z leaf, positive-Z leaf and exit controller.
+///
+/// Indices 0..2 are live; index 3 is `TASK_DESC_END`. Leaf models borrow room
+/// geometry for their task lifetimes. The bodyless exit controller has priority
+/// 32, ahead of the priority-192 leaves on the ascending execution list.
+static TaskDesc _gShelterB2ElevatorTaskDescriptors[4] = {
+    { { { TASK_BODY_TMD, SHELTER_B2_ELEVATOR_DOOR_LEAF_PRIORITY } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00688 } },
+    { { { TASK_BODY_TMD, SHELTER_B2_ELEVATOR_DOOR_LEAF_PRIORITY } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00884 } },
+    { { { TASK_BODY_NONE, SHELTER_B2_ELEVATOR_EXIT_PRIORITY } }, _shelterB2ElevatorExitTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_shelter_b2_elevator_8017DFA0[7] = {
+/// The room receiver's six message handlers followed by `TASK_MESSAGE_TABLE_END`.
+///
+/// Resolves room transitions, refuses key items, ignores room actions/commands
+/// and controls both door leaves. The receiver borrows this table while the
+/// room is loaded; door messages require live leaf handles.
+static TaskMessageEntry _gShelterB2ElevatorRoomMessages[7] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2ElevatorResolveRoomEventMessage },
-    { SHELTER_B2_ELEVATOR_MESSAGE_USE_KEY_ITEM, _shelterB2ElevatorRejectKeyItemMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2ElevatorRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2ElevatorIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _shelterB2ElevatorIgnoreCommandMessage },
     { SHELTER_B2_ELEVATOR_MESSAGE_OPEN_DOOR, _shelterB2ElevatorOpenDoorMessage },
@@ -177,42 +220,49 @@ TaskMessageEntry D_shelter_b2_elevator_8017DFA0[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u8* D_shelter_b2_elevator_8017DFD8[1] = {
+u8* gShelterB2ElevatorViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b2_elevator_8017DFDC[1] = { 3 };
+ViewCount gShelterB2ElevatorViewCounts[1] = { ARRAY_SIZE(gShelterB2ElevatorSpriteViews) };
 
-DirectionWarpEntry D_shelter_b2_elevator_8017DFE0[1] = {
-    { { { .word = 1024 }, 0x2CEA, 0, -496 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0x2CEA, 0, -496 }, { 0, 0, 0, 0 }, 0x541A0002, 0x541A0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterB2ElevatorWarps[1] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 0x2CEA, 0, -496 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 0x2CEA, 0, -496 }, { 0, 0, 0, 0 }, SHELTER_B2_ELEVATOR_WARP_ARRIVAL_SOUND, SHELTER_B2_ELEVATOR_WARP_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, SHELTER_B2_ELEVATOR_ENTRY_VIEW, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelterB2ElevatorCollision00B24Normals[6] = {
+/// Room-axis unit normals for the cab's collision box, with ONE per unit.
+static SVECTOR _gShelterB2ElevatorCollisionGridNormals[6] = {
 #include "assets/shelter_b2_elevator_collision_00B24_normals.inc"
 };
 
-static SVECTOR _gShelterB2ElevatorCollision00B24Verts[8] = {
+/// Eight corners of the cab's collision box in whole room-coordinate units.
+static SVECTOR _gShelterB2ElevatorCollisionGridVerts[8] = {
 #include "assets/shelter_b2_elevator_collision_00B24_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB2ElevatorCollision00B24Faces[6] = {
+/// Six quads indexing the collision grid's corner and normal pools.
+static WorldCollisionGridFace _gShelterB2ElevatorCollisionGridFaces[6] = {
 #include "assets/shelter_b2_elevator_collision_00B24_faces.inc"
 };
 
-static s16 _gShelterB2ElevatorCollision00B24Cells[8] = {
+/// Face-index storage for the grid cell, including its -1 list end.
+///
+/// The final word follows the end marker and has no established interpretation.
+static s16 _gShelterB2ElevatorCollisionGridCells[8] = {
 #include "assets/shelter_b2_elevator_collision_00B24_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2ElevatorCollision00B24Cells[i])
-static s16* _gShelterB2ElevatorCollision00B24Table[1] = {
+#define GRID_CELL(i) (&_gShelterB2ElevatorCollisionGridCells[i])
+/// X-major directory of the cab grid's single face-index list.
+static s16* _gShelterB2ElevatorCollisionGridTable[1] = {
 #include "assets/shelter_b2_elevator_collision_00B24_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_elevator_8017E0E4 = { NULL, _gShelterB2ElevatorCollision00B24Normals, _gShelterB2ElevatorCollision00B24Verts, _gShelterB2ElevatorCollision00B24Faces, _gShelterB2ElevatorCollision00B24Table, -0x2AF8, 1450, 1, 1, 4000, 6 };
+WorldCollisionGrid gShelterB2ElevatorCollisionGrid = { NULL, _gShelterB2ElevatorCollisionGridNormals, _gShelterB2ElevatorCollisionGridVerts, _gShelterB2ElevatorCollisionGridFaces, _gShelterB2ElevatorCollisionGridTable, -0x2AF8, 1450, 1, 1, 4000, ARRAY_SIZE(_gShelterB2ElevatorCollisionGridFaces) };
 
-ViewCamera D_shelter_b2_elevator_8017E108[15] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2EE0, 0x7530, 450 } }, 2748 },
+ViewCamera gShelterB2ElevatorViewCameras[15] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -0x2EE0, 0x7530, 450 } }, 2748 },
     { { { { -496, 0, 4065 }, { 3586, 1929, 438 }, { -1914, 3613, -233 } }, { -0x32B8, 2954, 417 } }, 207 },
     { { { { -758, 0, 4025 }, { 230, 4089, 43 }, { -4018, 234, -757 } }, { -0x32AC, 1398, 78 } }, 289 },
     { { { { -758, 0, 4025 }, { 230, 4089, 43 }, { -4018, 234, -757 } }, { -0x32AC, 1398, 78 } }, 289 },
@@ -229,100 +279,113 @@ ViewCamera D_shelter_b2_elevator_8017E108[15] = {
     { { { { -758, 0, 4025 }, { 230, 4089, 43 }, { -4018, 234, -757 } }, { -0x32AC, 1398, 78 } }, 289 },
 };
 
-SpriteBatch D_shelter_b2_elevator_8017E324[2] = {
+/// View 1's empty sprite list; the zero first count keeps decoded image strips.
+static SpriteBatch _gShelterB2ElevatorView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_elevator_8017E334[56] = {
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 104, -24, 0, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, -48, 0, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, -64, 0, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, -80, 0, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 120 } }, -8, -120, 0, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -16, -120, 0, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 32, -120, 0, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 40, -120, 0, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -120, 0, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -120, -64, 0, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -112, -64, 0, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -104, -56, 0, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -96, -48, 0, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -88, -32, 0, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -16, 0, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, -16, 0, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, -16, 0, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 112, -120, 461, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, 56, -120, 519, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 104, -80, 484, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 96, -64, 524, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 88, -48, 592, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 72, -24, 638, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 32, -32, 756, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 40, -16, 698, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, -40, 730, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 40, -56, 683, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, -48, 704, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 72, -64, 535, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -88, 529, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, -80, 540, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -32, -40, 782, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, -64, 727, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -56, -120, 550, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -56, -16, 0, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, -24, 707, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -32, 685, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -56, -40, 774, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, -48, 691, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, -48, 640, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -56, -64, 745, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -80, -64, 673, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, -80, 569, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, -80, 531, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -120, -96, 490, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, -88, 552, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -80, -96, 558, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -104, -96, 548, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -120, -120, 472, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, -120, 524, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, -120, 566, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, -120, 555, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -88, 589, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, -88, 598, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, -80, 560, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, -80, 581, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+/// View 2's depth-sorted textured rectangles in screen pixels and unscaled OT depth.
+///
+/// The complete source array is selected by its one live batch, after the empty
+/// background selector. Texture pages 142/143 use the view image's CLUT 0x3FC0;
+/// RGB 128 is neutral modulation and code flags 0 select opaque emission.
+static SpriteSource _gShelterB2ElevatorView2SpriteSources[56] = {
+    { SHELTER_B2_ELEVATOR_SPRITE_LEFT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 56, 24 } }, 104, -24, 0, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 40, 24 } }, 120, -48, 0, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 16 } }, 136, -64, 0, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 16 } }, 152, -80, 0, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 40, 120 } }, -8, -120, 0, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 80 } }, -16, -120, 0, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 88 } }, 32, -120, 0, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 64 } }, 40, -120, 0, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, -120, 0, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 64 } }, -120, -64, 0, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 64 } }, -112, -64, 0, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 56 } }, -104, -56, 0, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 48 } }, -96, -48, 0, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 32 } }, -88, -32, 0, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, -16, 0, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 16 } }, -16, -16, 0, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 16 } }, 32, -16, 0, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 48, 40 } }, 112, -120, 461, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 56, 40 } }, 56, -120, 519, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_LEFT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 48, 16 } }, 104, -80, 484, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_LEFT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 40, 16 } }, 96, -64, 524, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 32, 24 } }, 88, -48, 592, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 32, 24 } }, 72, -24, 638, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_LEFT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 16 } }, 32, -32, 756, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_LEFT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 32, 16 } }, 40, -16, 698, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 24 } }, 56, -40, 730, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 24 } }, 40, -56, 683, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 24 } }, 72, -48, 704, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_LEFT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 16 } }, 72, -64, 535, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 32 } }, 48, -88, 529, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 40 } }, 56, -80, 540, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 24 } }, -32, -40, 782, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 24 } }, -40, -64, 727, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 40, 32 } }, -56, -120, 550, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_LEFT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 40, 16 } }, -56, -16, 0, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 24 } }, -72, -24, 707, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, -32, 685, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 24 } }, -56, -40, 774, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 24 } }, -72, -48, 691, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, -48, 640, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 24 } }, -56, -64, 745, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_LEFT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 16 } }, -80, -64, 673, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 32 } }, -96, -80, 569, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 24 } }, -104, -80, 531, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 32 } }, -120, -96, 490, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 24 } }, -64, -88, 552, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 32 } }, -80, -96, 558, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 16 } }, -104, -96, 548, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 24 } }, -120, -120, 472, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, -120, 524, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 32 } }, -64, -120, 566, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 8, 24 } }, -72, -120, 555, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, -88, 589, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 24 } }, -32, -88, 598, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, -80, 560, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
+    { SHELTER_B2_ELEVATOR_SPRITE_RIGHT_TEXTURE_PAGE, SHELTER_B2_ELEVATOR_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, -80, 581, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_elevator_8017E794[3] = {
+/// View 2's background selector, complete source range and batch-list end.
+static SpriteBatch _gShelterB2ElevatorView2SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 56, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2ElevatorView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_elevator_8017E7AC[2] = {
+/// View 3's empty sprite list; the zero first count keeps decoded image strips.
+static SpriteBatch _gShelterB2ElevatorView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b2_elevator_8017E7BC[3] = {
-    { { .empty = D_shelter_b2_elevator_8017E324 }, D_shelter_b2_elevator_8017E324, NULL },
-    { { .elements = D_shelter_b2_elevator_8017E334 }, D_shelter_b2_elevator_8017E794, NULL },
-    { { .empty = D_shelter_b2_elevator_8017E7AC }, D_shelter_b2_elevator_8017E7AC, NULL },
+SpriteView gShelterB2ElevatorSpriteViews[3] = {
+    { { .empty = _gShelterB2ElevatorView1SpriteBatches }, _gShelterB2ElevatorView1SpriteBatches, NULL },
+    { { .elements = _gShelterB2ElevatorView2SpriteSources }, _gShelterB2ElevatorView2SpriteBatches, NULL },
+    { { .empty = _gShelterB2ElevatorView3SpriteBatches }, _gShelterB2ElevatorView3SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b2_elevator_8017E7E0[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2FD1, -1742, -381 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2950, 3487, 3402 }, { 0, 0 } }, 679, 5240 },
+/// The cab's point light, in world units with 12-fractional-bit RGB intensity.
+///
+/// Contributes in every view, at full strength within 679 units and falling to
+/// zero at 5240 units. Room setup binds its parent; lighting queries reuse its
+/// composition cache and attenuation, so the record remains mutable.
+static WorldCoordPointLight _gShelterB2ElevatorPointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2FD1, -1742, -381 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2950, 3487, 3402 }, { 0, 0 } }, 679, 5240 },
 };
 
-WorldCoordRoomLights D_shelter_b2_elevator_8017E840 = { 0, NULL, ARRAY_SIZE(D_shelter_b2_elevator_8017E7E0), D_shelter_b2_elevator_8017E7E0, 0, NULL };
+WorldCoordRoomLights gShelterB2ElevatorRoomLights = { 0, NULL, ARRAY_SIZE(_gShelterB2ElevatorPointLights), _gShelterB2ElevatorPointLights, 0, NULL };
 
-WorldCollisionTrigger D_shelter_b2_elevator_8017E858[2] = {
-    { NULL, NULL, NULL, { 3454, -1167, 45, 0 }, { { -10, -1520, 2263, 0 }, { 11, -1520, -2263, 0 }, { -10, 1520, 2263, 0 }, { 11, 1520, -2263, 0 } }, { -4099, 0, -20, 0 }, { 0, 0, 4096, 0 }, 2721, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3311, -1152, 47, 0 }, { { 27, -1520, -2262, 0 }, { -26, -1520, 2263, 0 }, { 27, 1520, -2262, 0 }, { -26, 1520, 2263, 0 } }, { 4095, 0, 47, 0 }, { 0, 0, 4096, 0 }, 2721, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB2ElevatorViewBoundaryTriggers[2] = {
+    { NULL, NULL, NULL, { 3454, -1167, 45, 0 }, { { -10, -1520, 2263, 0 }, { 11, -1520, -2263, 0 }, { -10, 1520, 2263, 0 }, { 11, 1520, -2263, 0 } }, { -4099, 0, -20, 0 }, { 0, 0, ONE, 0 }, 2721, 0, SHELTER_B2_ELEVATOR_SCENE_VIEW, SHELTER_B2_ELEVATOR_ENTRY_VIEW, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3311, -1152, 47, 0 }, { { 27, -1520, -2262, 0 }, { -26, -1520, 2263, 0 }, { 27, 1520, -2262, 0 }, { -26, 1520, 2263, 0 } }, { 4095, 0, 47, 0 }, { 0, 0, ONE, 0 }, 2721, 0, SHELTER_B2_ELEVATOR_ENTRY_VIEW, SHELTER_B2_ELEVATOR_SCENE_VIEW, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b2_elevator_8017E8F0[1] = {
-    { NULL, NULL, NULL, { 0x2BF0, -48, -448, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, 27, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB2ElevatorActionTriggers[1] = {
+    { NULL, NULL, NULL, { 0x2BF0, -48, -448, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { ONE, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, SHELTER_B2_ELEVATOR_HALL_WARP_KEY, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 AreaResource D_shelter_b2_elevator_8017E93C[2] = {
@@ -330,13 +393,14 @@ AreaResource D_shelter_b2_elevator_8017E93C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b2_elevator_8017E954[1] = {
+/// Empty placement list for variant 1, whose resource list still loads the scene actor.
+static AreaPlacement _gShelterB2ElevatorVariant1Placements[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaVariant D_shelter_b2_elevator_8017E964[11] = {
     { NULL, NULL },
-    { D_shelter_b2_elevator_8017E954, D_shelter_b2_elevator_8017E93C },
+    { _gShelterB2ElevatorVariant1Placements, D_shelter_b2_elevator_8017E93C },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -348,37 +412,46 @@ AreaVariant D_shelter_b2_elevator_8017E964[11] = {
     { NULL, NULL },
 };
 
-s32 D_shelter_b2_elevator_8017E9BC[3] = {
+/// Three retained type-1 sound requests with no established reader or record type.
+static s32 D_shelter_b2_elevator_8017E9BC[3] = {
     0x10000059,
     0x1000005B,
     0x10000059,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_elevator_8017E9C8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent blocking surface policy shared by classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gShelterB2ElevatorDefaultSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_elevator_8017E9D0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// The floor's class-1 policy, with the same blocking behavior and no footstep sounds.
+static WorldCollisionSurfaceProperties _gShelterB2ElevatorSurfaceClass1 = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b2_elevator_8017E9D8[8] = {
-    D_shelter_b2_elevator_8017E9C8,
-    D_shelter_b2_elevator_8017E9D0,
-    D_shelter_b2_elevator_8017E9C8,
-    D_shelter_b2_elevator_8017E9C8,
-    D_shelter_b2_elevator_8017E9C8,
-    D_shelter_b2_elevator_8017E9C8,
-    D_shelter_b2_elevator_8017E9C8,
-    D_shelter_b2_elevator_8017E9C8,
+WorldCollisionSurfaceProperties* gShelterB2ElevatorSurfacePropertiesByClass[8] = {
+    &_gShelterB2ElevatorDefaultSurface,
+    &_gShelterB2ElevatorSurfaceClass1,
+    &_gShelterB2ElevatorDefaultSurface,
+    &_gShelterB2ElevatorDefaultSurface,
+    &_gShelterB2ElevatorDefaultSurface,
+    &_gShelterB2ElevatorDefaultSurface,
+    &_gShelterB2ElevatorDefaultSurface,
+    &_gShelterB2ElevatorDefaultSurface,
 };
 
-AreaApplyRec D_shelter_b2_elevator_8017E9F8[2] = {
-    { 4, 44, 4, 1 },
-    { 255, 0, 0, 0 },
+AreaApplyRec gShelterB2ElevatorSceneSavedAreaUpdates[2] = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, SHELTER_B2_ELEVATOR_UPPER_SEWER_LAYOUT, AREA_APPLY_MODE_ALWAYS | SHELTER_B2_ELEVATOR_SET_MAP_MARK },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
-
-Task* D_shelter_b2_elevator_8017EA00[2];
 
 /// Spawns a door leaf at rest or the room's exit task on the selected task list.
 ///
@@ -388,7 +461,7 @@ Task* D_shelter_b2_elevator_8017EA00[2];
 /// Keep this room's callback code and model geometry loaded while tasks use them.
 static __inline__ Task* _shelterB2ElevatorSpawnTask(s32 descriptorIndex, s32 doorSide)
 {
-    return taskSpawnFromTable(D_shelter_b2_elevator_8017DF70, descriptorIndex, SHELTER_B2_ELEVATOR_DOOR_REST, doorSide);
+    return taskSpawnFromTable(_gShelterB2ElevatorTaskDescriptors, descriptorIndex, SHELTER_B2_ELEVATOR_DOOR_REST, doorSide);
 }
 
 /// Initializes the elevator's room receiver, door leaves and entry sequence.
@@ -410,10 +483,10 @@ static void _shelterB2ElevatorRoomInitState(Task* task)
         SHELTER_B2_ELEVATOR_EVENT_ACTIVE           = 1,
     };
 
-    task->msgTable = D_shelter_b2_elevator_8017DFA0;
+    task->msgTable = _gShelterB2ElevatorRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_shelter_b2_elevator_8017EA00[0] = _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_NEGATIVE_Z_LEAF, -1);
-    D_shelter_b2_elevator_8017EA00[1] = _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_POSITIVE_Z_LEAF, 1);
+    _gShelterB2ElevatorDoorLeafTasks[SHELTER_B2_ELEVATOR_TASK_NEGATIVE_Z_LEAF] = _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_NEGATIVE_Z_LEAF, -1);
+    _gShelterB2ElevatorDoorLeafTasks[SHELTER_B2_ELEVATOR_TASK_POSITIVE_Z_LEAF] = _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_POSITIVE_Z_LEAF, 1);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_B2_ELEVATOR_SETUP_ONLY_DEMO) {
         if (gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
             gameFlagSetNibble(GAME_FLAG_0CF, SHELTER_B2_ELEVATOR_FIRST_VISIT_RECORDED);
@@ -511,8 +584,11 @@ static void _shelterB2ElevatorDoorLeafTask(Task* task)
     }
 }
 
-/// The room entry task's three states: set the room up, idle, end.
-static const TaskFuncTable3 D_shelter_b2_elevator_8017D5C4 = {
+/// Room-controller states 0..2: initialize, idle, release the task.
+///
+/// Copied as a twelve-byte callback value before unchecked state dispatch;
+/// contains no terminal entry. Callback code must stay loaded through the call.
+static const TaskFuncTable3 _gShelterB2ElevatorRoomStates = {
     { _shelterB2ElevatorRoomInitState, _shelterB2ElevatorRoomIdleState, taskKill },
 };
 
@@ -647,22 +723,22 @@ static s32 _shelterB2ElevatorIgnoreActionMessage(Task* task, s32 messageId, cons
 
 /// Requests both door leaves to open on subsequent updates and returns 0.
 ///
-/// Both tasks in `D_shelter_b2_elevator_8017EA00` must be live; their initial
+/// Both tasks in `_gShelterB2ElevatorDoorLeafTasks` must be live; their initial
 /// travel storage is allocated by their own first updates. Payloads are ignored.
 static s32 _shelterB2ElevatorOpenDoorMessage(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2)
 {
-    D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_OPEN;
-    D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_OPEN;
+    _gShelterB2ElevatorDoorLeafTasks[SHELTER_B2_ELEVATOR_TASK_NEGATIVE_Z_LEAF]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_OPEN;
+    _gShelterB2ElevatorDoorLeafTasks[SHELTER_B2_ELEVATOR_TASK_POSITIVE_Z_LEAF]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_OPEN;
     return 0;
 }
 
 /// Requests both door leaves to close on subsequent updates and returns 0.
 ///
-/// Both tasks in `D_shelter_b2_elevator_8017EA00` must be live. Payloads are ignored.
+/// Both tasks in `_gShelterB2ElevatorDoorLeafTasks` must be live. Payloads are ignored.
 static s32 _shelterB2ElevatorCloseDoorMessage(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2)
 {
-    D_shelter_b2_elevator_8017EA00[0]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_CLOSE;
-    D_shelter_b2_elevator_8017EA00[1]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_CLOSE;
+    _gShelterB2ElevatorDoorLeafTasks[SHELTER_B2_ELEVATOR_TASK_NEGATIVE_Z_LEAF]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_CLOSE;
+    _gShelterB2ElevatorDoorLeafTasks[SHELTER_B2_ELEVATOR_TASK_POSITIVE_Z_LEAF]->spawnArg1.value = SHELTER_B2_ELEVATOR_DOOR_CLOSE;
     return 0;
 }
 
@@ -677,7 +753,7 @@ void shelterB2ElevatorRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b2_elevator_8017D5C4;
+    stateHandlers = _gShelterB2ElevatorRoomStates;
     stateHandlers.funcs[task->state](task);
 }
 

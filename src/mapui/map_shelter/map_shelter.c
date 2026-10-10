@@ -660,7 +660,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AE14[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE1C[1] = {
-    { &D_shelter_b2_elevator_8017E840, NULL },
+    { &gShelterB2ElevatorRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE24[1] = {
@@ -819,7 +819,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b1_pod_service_gantry_8017FB24,
     gShelterB1TransferTunnelWarpEntries,
     D_shelter_b1_control_room_access_tunnel_80181F08,
-    D_shelter_b2_elevator_8017DFE0,
+    gShelterB2ElevatorWarps,
     D_shelter_b2_elevator_hall_801838E4,
     D_shelter_b2_south_maintenance_walkway_80182644,
     D_shelter_b2_operating_room_80180BD0,
@@ -871,7 +871,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b1_pod_service_gantry_8017FB20,
     gShelterB1TransferTunnelRoomViewCounts,
     gShelterB1ControlRoomAccessTunnelRoomViewCounts,
-    D_shelter_b2_elevator_8017DFDC,
+    gShelterB2ElevatorViewCounts,
     D_shelter_b2_elevator_hall_801838E0,
     D_shelter_b2_south_maintenance_walkway_80182640,
     D_shelter_b2_operating_room_80180BCC,
@@ -944,7 +944,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B1B4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B1C4[1] = {
-    { &D_shelter_b2_elevator_8017E0E4, D_shelter_b2_elevator_8017E858, D_shelter_b2_elevator_8017E8F0, NULL },
+    { &gShelterB2ElevatorCollisionGrid, gShelterB2ElevatorViewBoundaryTriggers, gShelterB2ElevatorActionTriggers, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B1D4[1] = {
@@ -1096,7 +1096,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_shelter_b1_pod_service_gantry_801801E8,
     gShelterB1TransferTunnelViewCameras,
     gShelterB1ControlRoomAccessTunnelViewCameras,
-    D_shelter_b2_elevator_8017E108,
+    gShelterB2ElevatorViewCameras,
     D_shelter_b2_elevator_hall_80183DD8,
     D_shelter_b2_south_maintenance_walkway_80182A0C,
     D_shelter_b2_operating_room_80181388,
@@ -1154,7 +1154,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB1PodServiceGantryRoomViewMaps,
     gShelterB1TransferTunnelRoomViewMaps,
     gShelterB1ControlRoomAccessTunnelRoomViewMaps,
-    D_shelter_b2_elevator_8017DFD8,
+    gShelterB2ElevatorViewMaps,
     D_shelter_b2_elevator_hall_801838DC,
     D_shelter_b2_south_maintenance_walkway_8018263C,
     D_shelter_b2_operating_room_80180BC8,
@@ -1212,7 +1212,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     D_shelter_b1_pod_service_gantry_80181BA0,
     gShelterB1TransferTunnelSpriteViews,
     gShelterB1ControlRoomAccessTunnelSpriteViews,
-    D_shelter_b2_elevator_8017E7BC,
+    gShelterB2ElevatorSpriteViews,
     D_shelter_b2_elevator_hall_80184120,
     D_shelter_b2_south_maintenance_walkway_80183018,
     D_shelter_b2_operating_room_80183184,
@@ -1266,7 +1266,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB1PodServiceGantrySurfacePropertiesByClass,
     gShelterB1TransferTunnelSurfacePropertiesByClass,
     gShelterB1ControlRoomAccessTunnelSurfacePropertiesByClass,
-    D_shelter_b2_elevator_8017E9D8,
+    gShelterB2ElevatorSurfacePropertiesByClass,
     D_shelter_b2_elevator_hall_80184D5C,
     D_shelter_b2_south_maintenance_walkway_801838B4,
     D_shelter_b2_operating_room_801841F4,
