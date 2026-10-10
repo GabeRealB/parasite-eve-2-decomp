@@ -2,6 +2,15 @@
 #define INCLUDE_WEAPONS_M4A1_HAMMER_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Single-part held M4A1 Hammer weapon model and its shared writable command stream.
+///
+/// The Hammer overlay and its asset arrays must stay loaded while model objects
+/// borrow them. Creation copies the identity skeleton and resolves stream
+/// handlers in place; each primitive-buffer half holds two textured Gouraud
+/// triangles and 67 quads, with no pre-transformed region.
+extern TmdSource gM4a1HammerModel;
 
 /// Requests for the attachment glow, stored in `Task::spawnArg1.value`.
 enum {

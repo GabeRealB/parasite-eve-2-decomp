@@ -1,5 +1,5 @@
 // Overlay-local symbols for M4A1 Hammer (file 10325).
-D_m4a1_hammer_8011F778 = 0x8011F778; // model named by a task descriptor
+gM4a1HammerModel = 0x8011F778; // model named by a task descriptor
 
 m4a1HammerImpactFlashTask = 0x8011DD08; // type:func
 
@@ -8,3 +8,7 @@ spriteQuadDraw = 0x8011DE60; // type:func
 spriteQuadDrawCharge = 0x8011D904; // type:func
 _beamStripDraw = 0x8011E29C; // type:func
 m4a1HammerAttackState = 0x8011e710; // type:func
+_gM4a1HammerGlowLocalOffset = 0x8011eb60;
+_gM4a1HammerSparkState = 0x8012d630;
+_gM4a1HammerGlowTask = 0x8012d660;
+_gM4a1HammerAttachmentOrigin = 0x8012d668;

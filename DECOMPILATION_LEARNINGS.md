@@ -56766,9 +56766,9 @@ two registers permuted": in the spark loop, two chained LCG draws
 
 ```c
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-D_m4a1_hammer_8012D630[sparkIndex] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
+_gM4a1HammerSparkState[sparkIndex] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-D_m4a1_hammer_8012D630[sparkIndex + 8] += (gRandomLcgState >> 16) & 0xFF;
+_gM4a1HammerSparkState[sparkIndex + 8] += (gRandomLcgState >> 16) & 0xFF;
 ```
 
 put the first draw in `$a1` and the second in `$a2`, where the target has them
@@ -56793,11 +56793,11 @@ What worked was giving the *index* a name:
 for (sparkIndex = 0; sparkIndex < 8; sparkIndex++) {
     heightIndex = sparkIndex + 8;
     gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-    D_m4a1_hammer_8012D630[sparkIndex] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
+    _gM4a1HammerSparkState[sparkIndex] -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
     gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-    D_m4a1_hammer_8012D630[heightIndex] += (gRandomLcgState >> 16) & 0xFF;
+    _gM4a1HammerSparkState[heightIndex] += (gRandomLcgState >> 16) & 0xFF;
     ...
-    work->pos.vy = D_m4a1_hammer_8012D630[heightIndex];
+    work->pos.vy = _gM4a1HammerSparkState[heightIndex];
 }
 ```
 

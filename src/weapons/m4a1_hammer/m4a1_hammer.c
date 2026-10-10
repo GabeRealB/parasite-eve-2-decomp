@@ -9,8 +9,6 @@
 #include "common.h"
 #include "gte.h"
 
-#include "m4a1_hammer_private.h"
-
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/effects.h"
@@ -47,8 +45,19 @@ static void spriteQuadDrawCharge(const long* pos, u16 frame, u16 size, s16 angle
 /// Signed perspective-sizing numerator for the attachment and contact beams.
 enum { M4A1_HAMMER_BEAM_WIDTH_SCALE = 0x280 };
 
-/// Fixed offset from the parent coordinate that the hammer effect starts at.
-static SVECTOR D_m4a1_hammer_8011EB60 = { 0, 0x280, 0x20, 0 };
+/// Eight charged sparks stored in contiguous angle, height and radius banks.
+enum {
+    M4A1_HAMMER_SPARK_COUNT       = 8,
+    M4A1_HAMMER_SPARK_HEIGHT_BASE = M4A1_HAMMER_SPARK_COUNT,
+    M4A1_HAMMER_SPARK_RADIUS_BASE = M4A1_HAMMER_SPARK_COUNT * 2,
+};
+
+static s16     _gM4a1HammerSparkState[M4A1_HAMMER_SPARK_COUNT * 3];
+static Task*   _gM4a1HammerGlowTask;
+static SVECTOR _gM4a1HammerAttachmentOrigin;
+
+/// Attachment glow origin in weapon-local integer coordinates.
+static SVECTOR _gM4a1HammerGlowLocalOffset = { 0, 0x280, 0x20, 0 };
 
 /// Converts a charged spark's local offset into a beam endpoint in place.
 ///
@@ -80,9 +89,6 @@ void m4a1HammerGlowTask(Task* task)
         M4A1_HAMMER_GLOW_TASK_UPDATE     = 1,
         M4A1_HAMMER_LIGHT_SLOT           = 1,
         M4A1_HAMMER_LIGHT_REFRESH_FRAMES = 4,
-        M4A1_HAMMER_SPARK_COUNT          = 8,
-        M4A1_HAMMER_SPARK_HEIGHT_BASE    = M4A1_HAMMER_SPARK_COUNT,
-        M4A1_HAMMER_SPARK_RADIUS_BASE    = M4A1_HAMMER_SPARK_COUNT * 2,
         M4A1_HAMMER_CHARGED_TICKS        = 5,
         M4A1_HAMMER_ANGLE_MASK           = 0xFFF, // 4096 angle units per turn
         M4A1_HAMMER_TRIG_SHIFT           = 12,    // rsin/rcos: 4096 represents 1.0
@@ -113,20 +119,20 @@ void m4a1HammerGlowTask(Task* task)
                 // Keep the flare at the weapon's fixed local offset.
                 glowCoord->parent = work->parent;
                 gfxSetRotIdentity(&glowCoord->coord);
-                glowCoord->coord.t[0]   = D_m4a1_hammer_8011EB60.vx;
-                glowCoord->coord.t[1]   = D_m4a1_hammer_8011EB60.vy;
-                glowCoord->coord.t[2]   = D_m4a1_hammer_8011EB60.vz;
+                glowCoord->coord.t[0]   = _gM4a1HammerGlowLocalOffset.vx;
+                glowCoord->coord.t[1]   = _gM4a1HammerGlowLocalOffset.vy;
+                glowCoord->coord.t[2]   = _gM4a1HammerGlowLocalOffset.vz;
                 glowCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-                D_m4a1_hammer_8012D660 = task;
+                _gM4a1HammerGlowTask = task;
                 actorRenderComposeCoord(glowCoord);
                 task->state = M4A1_HAMMER_GLOW_TASK_UPDATE;
                 return;
             case M4A1_HAMMER_GLOW_TASK_UPDATE:
                 // Publish the existing cache before composition; contact beams share its low halves.
-                D_m4a1_hammer_8012D668.vx = glowCoord->workm.t[0];
-                D_m4a1_hammer_8012D668.vy = glowCoord->workm.t[1];
-                D_m4a1_hammer_8012D668.vz = glowCoord->workm.t[2];
+                _gM4a1HammerAttachmentOrigin.vx = glowCoord->workm.t[0];
+                _gM4a1HammerAttachmentOrigin.vy = glowCoord->workm.t[1];
+                _gM4a1HammerAttachmentOrigin.vz = glowCoord->workm.t[2];
                 switch (task->spawnArg1.value) {
                     case M4A1_HAMMER_GLOW_OFF:
                         break;
@@ -175,11 +181,11 @@ void m4a1HammerGlowTask(Task* task)
                             // Three eight-entry banks hold each spark's angle, height and radius.
                             for (sparkIndex = 0; sparkIndex < M4A1_HAMMER_SPARK_COUNT; sparkIndex++) {
                                 gRandomLcgState                                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[sparkIndex]                                 = (sparkIndex << 9) + ((gRandomLcgState >> 16) & 0x1FF);
+                                _gM4a1HammerSparkState[sparkIndex]                                 = (sparkIndex << 9) + ((gRandomLcgState >> 16) & 0x1FF);
                                 gRandomLcgState                                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[sparkIndex + M4A1_HAMMER_SPARK_HEIGHT_BASE] = ((gRandomLcgState >> 16) & 0x7FF) + 0x200;
+                                _gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_HEIGHT_BASE] = ((gRandomLcgState >> 16) & 0x7FF) + 0x200;
                                 gRandomLcgState                                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] = (gRandomLcgState >> 16) & 0x3FF;
+                                _gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] = (gRandomLcgState >> 16) & 0x3FF;
                             }
                         }
                         if ((work->age & M4A1_HAMMER_SPIN_TICK_MASK) == 0) {
@@ -193,15 +199,15 @@ void m4a1HammerGlowTask(Task* task)
                             for (sparkIndex = 0; sparkIndex < M4A1_HAMMER_SPARK_COUNT; sparkIndex++) {
                                 heightIndex                          = sparkIndex + M4A1_HAMMER_SPARK_HEIGHT_BASE;
                                 gRandomLcgState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[sparkIndex]  -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
+                                _gM4a1HammerSparkState[sparkIndex]  -= ((gRandomLcgState >> 16) & 0x1FF) - 0x100;
                                 gRandomLcgState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                D_m4a1_hammer_8012D630[heightIndex] += (gRandomLcgState >> 16) & 0xFF;
+                                _gM4a1HammerSparkState[heightIndex] += (gRandomLcgState >> 16) & 0xFF;
                                 work->pos.vx =
-                                    (D_m4a1_hammer_8012D630[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rsin(D_m4a1_hammer_8012D630[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
+                                    (_gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rsin(_gM4a1HammerSparkState[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
                                 work->pos.vz =
-                                    (D_m4a1_hammer_8012D630[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rcos(D_m4a1_hammer_8012D630[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
-                                work->pos.vy = D_m4a1_hammer_8012D630[heightIndex];
-                                M4A1_HAMMER_COMPOSE_SPARK_POSITION(glowCoord, work->pos, D_m4a1_hammer_8012D668);
+                                    (_gM4a1HammerSparkState[sparkIndex + M4A1_HAMMER_SPARK_RADIUS_BASE] * rcos(_gM4a1HammerSparkState[sparkIndex])) >> M4A1_HAMMER_TRIG_SHIFT;
+                                work->pos.vy = _gM4a1HammerSparkState[heightIndex];
+                                M4A1_HAMMER_COMPOSE_SPARK_POSITION(glowCoord, work->pos, _gM4a1HammerAttachmentOrigin);
                                 _beamStripDraw(glowCoord, &work->pos, work->age, M4A1_HAMMER_BEAM_WIDTH_SCALE);
                             }
                         }
@@ -292,7 +298,7 @@ void m4a1HammerImpactFlashTask(Task* task)
     switch (task->state) {
         case M4A1_HAMMER_IMPACT_TASK_ATTACH:
             // Teardown follows the attachment glow; the transform follows the contact.
-            taskReparent(D_m4a1_hammer_8012D660, task);
+            taskReparent(_gM4a1HammerGlowTask, task);
             if (task->spawnArg1.value != 0) {
                 parent                    = work->parent;
                 impactCoord->coord.t[0]   = 0;
@@ -311,7 +317,7 @@ void m4a1HammerImpactFlashTask(Task* task)
             if (work->age & 1) {
                 spriteQuadDraw(impactCoord, ++work->index, M4A1_HAMMER_IMPACT_SPRITE_SIZE, work->angle);
                 if (work->age < M4A1_HAMMER_IMPACT_BEAM_END_AGE) {
-                    _beamStripDraw(impactCoord, &D_m4a1_hammer_8012D668, work->index, M4A1_HAMMER_BEAM_WIDTH_SCALE);
+                    _beamStripDraw(impactCoord, &_gM4a1HammerAttachmentOrigin, work->index, M4A1_HAMMER_BEAM_WIDTH_SCALE);
                 }
             }
             if (work->age >= M4A1_HAMMER_IMPACT_LIFETIME) {
@@ -340,124 +346,169 @@ void m4a1HammerImpactFlashTask(Task* task)
 
 #include "../../shared/beam_strip_draw.inc.c"
 
-static TmdBone _gM4a1HammerModel01E10Skeleton[1] = {
+/// Initial identity transform and self-parented root of the held weapon model.
+///
+/// Read-only asset tables retain their serialized positions in .data.
+static const TmdBone _gM4a1HammerModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_model_01E10_skeleton.inc"
 };
 
-static u32 _gM4a1HammerModel01E10PartVerts[1] = {
+/// Vertex count of each skeletal part; the single weapon part contains all 70 vertices.
+static const u32 _gM4a1HammerModelPartVerts[ARRAY_SIZE(_gM4a1HammerModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_model_01E10_partVerts.inc"
 };
 
-static SVECTOR _gM4a1HammerModel01E10Verts[70] = {
+/// Held weapon vertices in integer coordinates local to its single part.
+static SVECTOR _gM4a1HammerModelVerts[] = {
 #include "assets/m4a1_hammer_model_01E10_verts.inc"
 };
 
-static SVECTOR _gM4a1HammerModel01E10Normals[66] = {
+/// Held weapon lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gM4a1HammerModelNormals[] = {
 #include "assets/m4a1_hammer_model_01E10_normals.inc"
 };
 
-static u32 _gM4a1HammerModel01E10Stream[490] = {
+/// Writable commands for two textured Gouraud triangles and 67 quads, then group and stream markers.
+///
+/// First model creation resolves the draw-handler slots in place.
+static u32 _gM4a1HammerModelStream[] = {
 #include "assets/m4a1_hammer_model_01E10_stream.inc"
 };
 
-TmdSource D_m4a1_hammer_8011F778 = {
-    0,
-    3564,
-    0,
-    1,
-    _gM4a1HammerModel01E10PartVerts,
-    _gM4a1HammerModel01E10Verts,
-    _gM4a1HammerModel01E10Normals,
-    _gM4a1HammerModel01E10Skeleton,
-    _gM4a1HammerModel01E10Stream,
+TmdSource gM4a1HammerModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (67 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM4a1HammerModelSkeleton),
+    .partVertexCounts    = _gM4a1HammerModelPartVerts,
+    .verts               = _gM4a1HammerModelVerts,
+    .normals             = _gM4a1HammerModelNormals,
+    .skeleton            = _gM4a1HammerModelSkeleton,
+    .stream              = _gM4a1HammerModelStream,
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation0276CBank1[2] = {
+/// Translation and Euler keyframe poses for `_gM4a1HammerIdleAnimation`, in encoding-1 three-word entries.
+static const AnimationPackedPose _gM4a1HammerIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0276C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation0276CBank4[8] = {
+/// Packed Euler keyframes for `_gM4a1HammerIdleAnimation`, in encoding-4 words with eight-unit angle steps.
+static const AnimationPackedRotation _gM4a1HammerIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0276C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation0276CRecords[76] = {
+/// Keyframe durations, pose-word offsets and control records for `_gM4a1HammerIdleAnimation`.
+static const AnimationRecord _gM4a1HammerIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0276C_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation0276CIndices[20] = {
+/// Model-part track starts for `_gM4a1HammerIdleAnimation`, as absolute indices into its record array.
+static const u16 _gM4a1HammerIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0276C_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation0276C = {
-    _gM4a1HammerAnimation0276CRecords,
-    _gM4a1HammerAnimation0276CIndices,
-    { NULL, _gM4a1HammerAnimation0276CBank1, NULL, NULL, _gM4a1HammerAnimation0276CBank4, NULL, NULL, NULL },
+/// Standing-idle pose for the Hammer player animation bank.
+///
+/// Selected at native-bank slots 1, 21, 22 and 41; each track repeats its held pose.
+/// Records, indices and pose banks are read-only in their serialized .data
+/// positions and must stay loaded while any playback slot refers to the clip.
+static AnimationSet _gM4a1HammerIdleAnimation = {
+    .records           = _gM4a1HammerIdleAnimationRecords,
+    .trackStartIndices = _gM4a1HammerIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1HammerIdleAnimationBank1, NULL, NULL, _gM4a1HammerIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation02E10Bank1[12] = {
+/// Translation and Euler keyframe poses for `_gM4a1HammerUnarmedWalkAnimation`, in encoding-1 three-word entries.
+static const AnimationPackedPose _gM4a1HammerUnarmedWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_02E10_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation02E10Bank4[151] = {
+/// Packed Euler keyframes for `_gM4a1HammerUnarmedWalkAnimation`, in encoding-4 words with eight-unit angle steps.
+static const AnimationPackedRotation _gM4a1HammerUnarmedWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_02E10_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation02E10Records[218] = {
+/// Keyframe durations, pose-word offsets and control records for `_gM4a1HammerUnarmedWalkAnimation`.
+static const AnimationRecord _gM4a1HammerUnarmedWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_02E10_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation02E10Indices[20] = {
+/// Model-part track starts for `_gM4a1HammerUnarmedWalkAnimation`, as absolute indices into its record array.
+static const u16 _gM4a1HammerUnarmedWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_02E10_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation02E10 = {
-    _gM4a1HammerAnimation02E10Records,
-    _gM4a1HammerAnimation02E10Indices,
-    { NULL, _gM4a1HammerAnimation02E10Bank1, NULL, NULL, _gM4a1HammerAnimation02E10Bank4, NULL, NULL, NULL },
+/// Forward walking clip while the held weapon model is absent.
+///
+/// Selected at native-bank slot 19; the Hammer bank still supplies the player pose.
+/// Records, indices and pose banks are read-only in their serialized .data
+/// positions and must stay loaded while any playback slot refers to the clip.
+static AnimationSet _gM4a1HammerUnarmedWalkAnimation = {
+    .records           = _gM4a1HammerUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gM4a1HammerUnarmedWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1HammerUnarmedWalkAnimationBank1, NULL, NULL, _gM4a1HammerUnarmedWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation03670Bank1[19] = {
+/// Translation and Euler keyframe poses for `_gM4a1HammerTurnLeftAnimation`, in encoding-1 three-word entries.
+static const AnimationPackedPose _gM4a1HammerTurnLeftAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_03670_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation03670Bank4[169] = {
+/// Packed Euler keyframes for `_gM4a1HammerTurnLeftAnimation`, in encoding-4 words with eight-unit angle steps.
+static const AnimationPackedRotation _gM4a1HammerTurnLeftAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_03670_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation03670Records[290] = {
+/// Keyframe durations, pose-word offsets and control records for `_gM4a1HammerTurnLeftAnimation`.
+static const AnimationRecord _gM4a1HammerTurnLeftAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_03670_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation03670Indices[20] = {
+/// Model-part track starts for `_gM4a1HammerTurnLeftAnimation`, as absolute indices into its record array.
+static const u16 _gM4a1HammerTurnLeftAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_03670_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation03670 = {
-    _gM4a1HammerAnimation03670Records,
-    _gM4a1HammerAnimation03670Indices,
-    { NULL, _gM4a1HammerAnimation03670Bank1, NULL, NULL, _gM4a1HammerAnimation03670Bank4, NULL, NULL, NULL },
+/// Stationary negative-yaw turn clip for the Hammer player animation bank.
+///
+/// Selected at native-bank slot 5 for negative manual and scripted turns.
+/// Records, indices and pose banks are read-only in their serialized .data
+/// positions and must stay loaded while any playback slot refers to the clip.
+static AnimationSet _gM4a1HammerTurnLeftAnimation = {
+    .records           = _gM4a1HammerTurnLeftAnimationRecords,
+    .trackStartIndices = _gM4a1HammerTurnLeftAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1HammerTurnLeftAnimationBank1, NULL, NULL, _gM4a1HammerTurnLeftAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation03ED4Bank1[19] = {
+/// Translation and Euler keyframe poses for `_gM4a1HammerTurnRightAnimation`, in encoding-1 three-word entries.
+static const AnimationPackedPose _gM4a1HammerTurnRightAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_03ED4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation03ED4Bank4[170] = {
+/// Packed Euler keyframes for `_gM4a1HammerTurnRightAnimation`, in encoding-4 words with eight-unit angle steps.
+static const AnimationPackedRotation _gM4a1HammerTurnRightAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_03ED4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation03ED4Records[290] = {
+/// Keyframe durations, pose-word offsets and control records for `_gM4a1HammerTurnRightAnimation`.
+static const AnimationRecord _gM4a1HammerTurnRightAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_03ED4_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation03ED4Indices[20] = {
+/// Model-part track starts for `_gM4a1HammerTurnRightAnimation`, as absolute indices into its record array.
+static const u16 _gM4a1HammerTurnRightAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_03ED4_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation03ED4 = {
-    _gM4a1HammerAnimation03ED4Records,
-    _gM4a1HammerAnimation03ED4Indices,
-    { NULL, _gM4a1HammerAnimation03ED4Bank1, NULL, NULL, _gM4a1HammerAnimation03ED4Bank4, NULL, NULL, NULL },
+/// Stationary positive-yaw turn clip for the Hammer player animation bank.
+///
+/// Selected at native-bank slot 6 for positive manual and scripted turns.
+/// Records, indices and pose banks are read-only in their serialized .data
+/// positions and must stay loaded while any playback slot refers to the clip.
+static AnimationSet _gM4a1HammerTurnRightAnimation = {
+    .records           = _gM4a1HammerTurnRightAnimationRecords,
+    .trackStartIndices = _gM4a1HammerTurnRightAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1HammerTurnRightAnimationBank1, NULL, NULL, _gM4a1HammerTurnRightAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1HammerAnimation041E8Bank1[3] = {
@@ -1188,12 +1239,12 @@ static AnimationSet _gM4a1HammerAnimation1030C = {
 
 AnimationBank D_m4a1_hammer_8012D4F4 = { { {
     NULL,
-    &_gM4a1HammerAnimation0276C,
+    &_gM4a1HammerIdleAnimation,
     &_gM4a1HammerAnimation0F198,
     &_gM4a1HammerAnimation0F938,
     &_gM4a1HammerAnimation1030C,
-    &_gM4a1HammerAnimation03670,
-    &_gM4a1HammerAnimation03ED4,
+    &_gM4a1HammerTurnLeftAnimation,
+    &_gM4a1HammerTurnRightAnimation,
     &_gM4a1HammerAnimation0E368,
     &_gM4a1HammerAnimation0E8E0,
     &_gM4a1HammerAnimation0AF50,
@@ -1206,10 +1257,10 @@ AnimationBank D_m4a1_hammer_8012D4F4 = { { {
     &_gM4a1HammerAnimation06B38,
     &_gM4a1HammerAnimation06E58,
     &_gM4a1HammerAnimation0761C,
-    &_gM4a1HammerAnimation02E10,
+    &_gM4a1HammerUnarmedWalkAnimation,
     &_gM4a1HammerAnimation0D0D4,
-    &_gM4a1HammerAnimation0276C,
-    &_gM4a1HammerAnimation0276C,
+    &_gM4a1HammerIdleAnimation,
+    &_gM4a1HammerIdleAnimation,
     &_gM4a1HammerAnimation088B4,
     &_gM4a1HammerAnimation09B48,
     &_gM4a1HammerAnimation0942C,
@@ -1228,7 +1279,7 @@ AnimationBank D_m4a1_hammer_8012D4F4 = { { {
     &_gM4a1HammerAnimation05730,
     &_gM4a1HammerAnimation053A0,
     &_gM4a1HammerAnimation041E8,
-    &_gM4a1HammerAnimation0276C,
+    &_gM4a1HammerIdleAnimation,
     &_gM4a1HammerAnimation0A704,
     &_gM4a1HammerAnimation0A8F8,
     &_gM4a1HammerAnimation0AD78,
@@ -1268,16 +1319,30 @@ AnimationBank D_m4a1_hammer_8012D4F4 = { { {
     NULL,
 } } };
 
-/// Jitter table for the eight sparks the charged hammer throws: `[0..7]` are
-/// the spin angles, `[8..15]` the heights and `[16..23]` the radii.
-s16 D_m4a1_hammer_8012D630[24] = { 0 };
+/// Retained cylindrical offsets of eight sparks, reseeded at the start of a charged burst.
+///
+/// Bank starts are 0 for angles, `M4A1_HAMMER_SPARK_HEIGHT_BASE` for heights
+/// and `M4A1_HAMMER_SPARK_RADIUS_BASE` for radii; each has `M4A1_HAMMER_SPARK_COUNT`
+/// entries. Angles use 4096 units per turn without normalization. Heights and
+/// radii use weapon-local integer coordinates; radii stay fixed at 0..1023.
+/// Every other active age tick drifts angles and raises heights, retaining
+/// signed-halfword wrap on each store. Storage lasts for the loaded overlay.
+static s16 _gM4a1HammerSparkState[M4A1_HAMMER_SPARK_COUNT * 3] = { 0 };
 
-/// Parent task the hammer effect re-attaches itself to each time it restarts.
-Task* D_m4a1_hammer_8012D660 = NULL;
+/// Borrowed live attachment glow task that owns contact flashes' teardown.
+///
+/// Published when the glow attaches. Contact spawning requires it to remain
+/// live; releasing the glow does not clear this retained pointer.
+static Task* _gM4a1HammerGlowTask = NULL;
 
 /// Nothing reads the word after the task pointer; it keeps the offset of the
 /// vector that follows.
 static s32 s_unused_8012D664 = 0;
 
-/// World-space endpoint supplied to `_beamStripDraw`.
-SVECTOR D_m4a1_hammer_8012D668 = { 0, 0, 0, 0 };
+/// Cached attachment origin shared by charged sparks and contact beams.
+///
+/// Signed low halfwords of the glow's composed translation, published before
+/// that update recomposes it. Uses composition-root space, including the view
+/// transform; the beam drawer projects it through `GsWSMATRIX`. Storage lasts
+/// for the loaded Hammer overlay; updates preserve the fourth halfword.
+static SVECTOR _gM4a1HammerAttachmentOrigin = { 0, 0, 0, 0 };

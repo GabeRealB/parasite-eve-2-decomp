@@ -106,8 +106,6 @@ extern TmdSource gGunbladeModel;
 
 extern TmdSource D_m4a1_pyke_8011F56C;
 
-extern TmdSource D_m4a1_hammer_8011F778;
-
 extern TmdSource D_m4a1_javelin_8012071C;
 
 /// Model arguments of descriptors that point into the zeroed tail of their
