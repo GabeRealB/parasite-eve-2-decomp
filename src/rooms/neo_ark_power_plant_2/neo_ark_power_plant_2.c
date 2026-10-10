@@ -66,8 +66,8 @@
 #define GLOW_DRAW_DISC_SCRATCH GlowCentreRadiusFirstScratch
 #include "../../shared/glow_draw.h"
 
-extern WorldCollisionOccluder     D_neo_ark_power_plant_2_80182E78[1];
-extern WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10];
+extern WorldCollisionOccluder           D_neo_ark_power_plant_2_80182E78[1];
+static const WorldCoordRoomAmbientEntry _gNeoArkPowerPlant2AmbientTable[10];
 
 extern TaskMessageEntry D_neo_ark_power_plant_2_801801F8[];
 extern EvsCommand       D_neo_ark_power_plant_2_801802A8[];
@@ -91,10 +91,10 @@ extern AreaResource D_neo_ark_power_plant_2_80182D80[3];
 extern AreaResource D_neo_ark_power_plant_2_80182DA4[3];
 extern AreaResource D_neo_ark_power_plant_2_80182DC8[2];
 
-extern WorldCollisionGrid    D_neo_ark_power_plant_2_80180DC4[1];
+static WorldCollisionGrid    _gNeoArkPowerPlant2CollisionGrid;
 extern WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8];
 extern WorldCollisionTrigger D_neo_ark_power_plant_2_80182B20[8];
-extern WorldCoordRoomLights  D_neo_ark_power_plant_2_801828A8[1];
+static WorldCoordRoomLights  _gNeoArkPowerPlant2RoomLights;
 
 enum { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -245,14 +245,14 @@ SVECTOR D_neo_ark_power_plant_2_80180678 = { 6140, -6085, -8500, 0 };
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_neo_ark_power_plant_2_80180690[1] = {
-    { D_neo_ark_power_plant_2_80180DC4, D_neo_ark_power_plant_2_801828C0, D_neo_ark_power_plant_2_80182B20, D_neo_ark_power_plant_2_80182E78 },
+    { &_gNeoArkPowerPlant2CollisionGrid, D_neo_ark_power_plant_2_801828C0, D_neo_ark_power_plant_2_80182B20, D_neo_ark_power_plant_2_80182E78 },
 };
 
-WorldCoordRoomLighting D_neo_ark_power_plant_2_801806A0[1] = {
-    { D_neo_ark_power_plant_2_801828A8, D_neo_ark_power_plant_2_80182EB4 },
+WorldCoordRoomLighting gNeoArkPowerPlant2RoomLighting[1] = {
+    { .lights = &_gNeoArkPowerPlant2RoomLights, .ambientTable = _gNeoArkPowerPlant2AmbientTable },
 };
 
-u8* D_neo_ark_power_plant_2_801806A8[1] = {
+u8* gNeoArkPowerPlant2ViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -262,30 +262,52 @@ DirectionWarpEntry D_neo_ark_power_plant_2_801806B0[1] = {
     { { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4000, -5000, -400 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkPowerPlant2Collision03804Normals[11] = {
+/// Room-axis collision normals, with 4096 representing unit length.
+static SVECTOR _gNeoArkPowerPlant2CollisionGridNormals[] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_normals.inc"
 };
 
-static SVECTOR _gNeoArkPowerPlant2Collision03804Verts[82] = {
+/// Collision mesh vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkPowerPlant2CollisionGridVerts[] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkPowerPlant2Collision03804Faces[41] = {
+/// Indexed triangles and quads using this room's surface classes 0, 3, 4 and 5.
+static WorldCollisionGridFace _gNeoArkPowerPlant2CollisionGridFaces[] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_faces.inc"
 };
 
-static s16 _gNeoArkPowerPlant2Collision03804Cells[236] = {
+/// Serialized face-index lists for the grid cells, each ending at -1.
+static s16 _gNeoArkPowerPlant2CollisionGridCells[] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkPowerPlant2Collision03804Cells[i])
-static s16* _gNeoArkPowerPlant2Collision03804Table[12] = {
+#define GRID_CELL(i) (&_gNeoArkPowerPlant2CollisionGridCells[i])
+/// Twelve cell-list pointers in X-major order, four Z cells per X row.
+static s16* _gNeoArkPowerPlant2CollisionGridTable[] = {
 #include "assets/neo_ark_power_plant_2_collision_03804_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_power_plant_2_80180DC4[1] = {
-    { NULL, _gNeoArkPowerPlant2Collision03804Normals, _gNeoArkPowerPlant2Collision03804Verts, _gNeoArkPowerPlant2Collision03804Faces, _gNeoArkPowerPlant2Collision03804Table, 100, 0x2F44, 3, 4, 4000, 41 },
+enum { NEO_ARK_POWER_PLANT_2_COLLISION_GRID_Z_CELL_COUNT = 4 };
+
+/// The plant's collision mesh and 3-by-4 XZ cell index.
+///
+/// Cells are 4000 room units wide, with origin (-100, -12100). Activation
+/// binds the mutable descriptor to the view; its mesh and cell lists remain
+/// borrowed from this room overlay until collision teardown.
+static WorldCollisionGrid _gNeoArkPowerPlant2CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkPowerPlant2CollisionGridNormals,
+    .vertices    = _gNeoArkPowerPlant2CollisionGridVerts,
+    .faces       = _gNeoArkPowerPlant2CollisionGridFaces,
+    .cellFaceIds = _gNeoArkPowerPlant2CollisionGridTable,
+    .xBias       = 100,
+    .zBias       = 12100,
+    .cellCountX  = ARRAY_SIZE(_gNeoArkPowerPlant2CollisionGridTable) / NEO_ARK_POWER_PLANT_2_COLLISION_GRID_Z_CELL_COUNT,
+    .cellCountZ  = NEO_ARK_POWER_PLANT_2_COLLISION_GRID_Z_CELL_COUNT,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkPowerPlant2CollisionGridFaces),
 };
 
 ViewCamera D_neo_ark_power_plant_2_80180DE8[9] = {
@@ -300,79 +322,95 @@ ViewCamera D_neo_ark_power_plant_2_80180DE8[9] = {
     { { { { -4095, 0, -13 }, { 4, 3863, -1361 }, { 12, -1361, -3862 } }, { -3992, 5736, 1231 } }, 230 },
 };
 
-SpriteBatch D_neo_ark_power_plant_2_80180F2C[2] = {
+/// Neutral per-channel texture modulation; 128 represents unity.
+enum { NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB = 128 };
+
+/// View 1's background-only batch list, with no source sprite elements.
+///
+/// The first zero count keeps decoded image strips; SPRITE_BATCH_END stops
+/// traversal. The source slot retains this list's address without dereferencing it.
+static SpriteBatch _gNeoArkPowerPlant2View1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_power_plant_2_80180F3C[64] = {
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 128, -48, 1319, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 72, -40, 1325, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 120, -40, 1325, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 48, -32, 1300, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, -32, 1300, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, -24, 1146, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, -16, 1111, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, -8, 1082, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 72, 0, 1070, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, 0, 1033, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 144, 0, 1047, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 120, 8, 1084, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 96, 8, 1062, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 72, 8, 1080, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 64, 0, 1172, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 56, -8, 1242, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 48, -16, 1205, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, 0, 1232, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, -24, 1200, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 64, -24, 1225, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 56, -16, 1086, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 72, -16, 1111, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, -8, 1032, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 80, -8, 1092, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -40, 1573, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, -120, 1298, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 128, -120, 1395, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 120, -120, 1622, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 112, -104, 1644, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 56, -32, 1163, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, -32, 1191, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, -32, 1534, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, -24, 1514, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 88, 32, 1035, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 88, -64, 1500, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, -56, 1512, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, -48, 1542, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, -56, 1450, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 128, -56, 1450, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 96 } }, 120, 0, 1061, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, -32, 1450, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 56, -40, 1475, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -40, 1500, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, -32, 1525, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, 48, 1097, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, 48, 1097, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -80, 48, 1097, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -72, 40, 1097, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 48, 1097, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 32 } }, -112, 40, 1163, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, -112, 32, 1225, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 56, 794, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -72, 2000, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -72, -80, 1475, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -64, -40, 1175, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -64, 16, 925, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -56, 16, 800, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 8, 1000, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 40, 1056, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 88, 0, 1000, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 24, 1025, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 128, 24, 925, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 136, 32, 875, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 144, 40, 875, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+/// View 2's 64 depth-sorted image rectangles in screen-relative pixels.
+///
+/// Texture pages use 8-bit indices and the CLUT at (0, 255); RGB 128 is
+/// neutral modulation. The view's batches select ranges in source elements,
+/// and the room overlay owns their mutable geometry and sorting depths.
+static SpriteSource _gNeoArkPowerPlant2View2SpriteSources[] = {
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 128, -48, 1319, { .fields = { 120, 56 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 72, -40, 1325, { .fields = { 104, 104 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 120, -40, 1325, { .fields = { 112, 232 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 48, -32, 1300, { .fields = { 96, 248 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 104, -32, 1300, { .fields = { 88, 112 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 104, -24, 1146, { .fields = { 88, 128 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 104, -16, 1111, { .fields = { 88, 120 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 104, -8, 1082, { .fields = { 96, 240 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 72, 0, 1070, { .fields = { 80, 224 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 152, 0, 1033, { .fields = { 56, 48 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 144, 0, 1047, { .fields = { 56, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 120, 8, 1084, { .fields = { 40, 144 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, 96, 8, 1062, { .fields = { 48, 192 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, 72, 8, 1080, { .fields = { 96, 200 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 64, 0, 1172, { .fields = { 80, 128 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 56, -8, 1242, { .fields = { 88, 200 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 48, -16, 1205, { .fields = { 120, 200 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 40, 0, 1232, { .fields = { 40, 184 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 48, -24, 1200, { .fields = { 48, 184 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 64, -24, 1225, { .fields = { 96, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, 56, -16, 1086, { .fields = { 120, 80 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 72, -16, 1111, { .fields = { 104, 72 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 64, -8, 1032, { .fields = { 0, 136 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, 80, -8, 1092, { .fields = { 112, 40 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, -40, 1573, { .fields = { 56, 88 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 144, -120, 1298, { .fields = { 72, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 128, -120, 1395, { .fields = { 80, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 120, -120, 1622, { .fields = { 96, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 112, -104, 1644, { .fields = { 72, 176 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 56, -32, 1163, { .fields = { 64, 144 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 48, -32, 1191, { .fields = { 64, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 40, -32, 1534, { .fields = { 96, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 32, -24, 1514, { .fields = { 104, 80 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, 88, 32, 1035, { .fields = { 40, 96 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 88, -64, 1500, { .fields = { 16, 112 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 80, -56, 1512, { .fields = { 72, 224 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 72, -48, 1542, { .fields = { 56, 240 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 112, -56, 1450, { .fields = { 24, 200 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, 128, -56, 1450, { .fields = { 8, 176 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 96 } }, 120, 0, 1061, { .fields = { 88, 104 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 64, -32, 1450, { .fields = { 24, 224 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 56, -40, 1475, { .fields = { 72, 128 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 48, -40, 1500, { .fields = { 88, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 40, -32, 1525, { .fields = { 80, 240 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -112, 48, 1097, { .fields = { 24, 80 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -96, 48, 1097, { .fields = { 8, 200 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -80, 48, 1097, { .fields = { 8, 80 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 16, 8 } }, -72, 40, 1097, { .fields = { 120, 48 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -64, 48, 1097, { .fields = { 112, 88 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 32 } }, -112, 40, 1163, { .fields = { 112, 144 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 40 } }, -112, 32, 1225, { .fields = { 0, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -48, 56, 794, { .fields = { 72, 56 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -80, -72, 2000, { .fields = { 64, 240 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 104 } }, -72, -80, 1475, { .fields = { 120, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -64, -40, 1175, { .fields = { 72, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, -64, 16, 925, { .fields = { 104, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, -56, 16, 800, { .fields = { 112, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 128, 8, 1000, { .fields = { 72, 248 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 120, 40, 1056, { .fields = { 48, 240 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 88, 0, 1000, { .fields = { 8, 40 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 80, 24, 1025, { .fields = { 48, 80 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 128, 24, 925, { .fields = { 80, 184 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 136, 32, 875, { .fields = { 64, 48 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 144, 40, 875, { .fields = { 48, 40 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_power_plant_2_8018143C[10] = {
+/// View 2's 8 source ranges between the background selector and end marker.
+///
+/// The zero-count first record keeps decoded background strips; the terminal
+/// record contributes no sprites. Ranges cover the view's complete source array.
+static SpriteBatch _gNeoArkPowerPlant2View2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 6, 0 } },
     { 24, 16, 0, 0, { 1, 0 } },
@@ -381,192 +419,233 @@ SpriteBatch D_neo_ark_power_plant_2_8018143C[10] = {
     { 49, 1, 0, 0, { 5, 0 } },
     { 50, 1, 0, 0, { 3, 0 } },
     { 51, 6, 0, 0, { 7, 0 } },
-    { 57, 7, 0, 0, { 2, 0 } },
+    { 57, ARRAY_SIZE(_gNeoArkPowerPlant2View2SpriteSources) - 57, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_power_plant_2_8018148C[70] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, 96, 864, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, 48, 746, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -160, 64, 806, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 48, 750, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -128, 32, 810, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -120, 24, 852, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, 16, 888, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -104, 16, 942, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -96, 8, 1007, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -88, 0, 1029, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 40, 779, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -136, 64, 843, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -112, 64, 879, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -96, 64, 874, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 64, 971, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 48, 1049, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -160, 16, 936, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -160, 8, 998, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 24, 911, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 32, 845, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 40, 765, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -160, 0, 1044, { .fields = { 24, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, -8, 1093, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, 0, 1172, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, 0, 1162, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 16, 1011, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 16, 1011, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 24, 949, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 32, 899, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 32, 899, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 32, 899, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 40, 838, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 40, 997, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 48, 788, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 48, 784, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 48, 788, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 56, 754, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 56, 754, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 56, 929, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 64, 718, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 64, 798, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 72, 686, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 72, 686, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 72, 807, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 80, 657, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 80, 657, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 80, 702, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 88, 631, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 88, 631, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 96, 606, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 96, 561, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 104, 584, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 104, 584, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 112, 559, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 112, 559, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 32, 859, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 40, 812, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 48, 772, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 56, 743, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 64, 728, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 72, 715, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 72, 718, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 80, 702, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 80, 700, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 88, 690, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 88, 690, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 96, 678, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 96, 678, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 104, 667, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 112, 656, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+/// View 3's 70 depth-sorted image rectangles in screen-relative pixels.
+///
+/// Texture pages use 8-bit indices and the CLUT at (0, 255); RGB 128 is
+/// neutral modulation. The view's batches select ranges in source elements,
+/// and the room overlay owns their mutable geometry and sorting depths.
+static SpriteSource _gNeoArkPowerPlant2View3SpriteSources[] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -88, 96, 864, { .fields = { 88, 48 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -160, 48, 746, { .fields = { 88, 192 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, -160, 64, 806, { .fields = { 104, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -144, 48, 750, { .fields = { 96, 176 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -128, 32, 810, { .fields = { 96, 88 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -120, 24, 852, { .fields = { 96, 48 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -112, 16, 888, { .fields = { 104, 120 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -104, 16, 942, { .fields = { 96, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -96, 8, 1007, { .fields = { 112, 120 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -88, 0, 1029, { .fields = { 120, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -136, 40, 779, { .fields = { 120, 232 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, -136, 64, 843, { .fields = { 104, 176 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -112, 64, 879, { .fields = { 104, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -96, 64, 874, { .fields = { 120, 120 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -88, 64, 971, { .fields = { 96, 152 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -80, 48, 1049, { .fields = { 96, 120 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -160, 16, 936, { .fields = { 48, 16 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, -160, 8, 998, { .fields = { 40, 208 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 24, 911, { .fields = { 64, 216 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, 32, 845, { .fields = { 64, 56 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, 40, 765, { .fields = { 72, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 72, 8 } }, -160, 0, 1044, { .fields = { 24, 8 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, -8, 1093, { .fields = { 80, 224 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -104, 0, 1172, { .fields = { 104, 56 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -96, 0, 1162, { .fields = { 96, 232 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, 16, 1011, { .fields = { 104, 168 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 16, 1011, { .fields = { 112, 56 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 24, 949, { .fields = { 88, 32 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, 32, 899, { .fields = { 88, 40 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 32, 899, { .fields = { 88, 104 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 32, 899, { .fields = { 88, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 40, 838, { .fields = { 88, 72 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 40, 997, { .fields = { 88, 96 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, 48, 788, { .fields = { 88, 88 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 48, 784, { .fields = { 88, 120 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 48, 788, { .fields = { 88, 160 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, 56, 754, { .fields = { 88, 136 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 56, 754, { .fields = { 88, 128 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 56, 929, { .fields = { 88, 112 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 64, 718, { .fields = { 88, 80 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 64, 798, { .fields = { 88, 152 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, 72, 686, { .fields = { 88, 144 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 72, 686, { .fields = { 88, 168 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 72, 807, { .fields = { 88, 176 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, 80, 657, { .fields = { 88, 184 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 80, 657, { .fields = { 88, 248 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 80, 702, { .fields = { 80, 88 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 88, 631, { .fields = { 88, 232 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 88, 631, { .fields = { 88, 240 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 96, 606, { .fields = { 80, 24 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 96, 561, { .fields = { 80, 40 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 104, 584, { .fields = { 80, 48 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 104, 584, { .fields = { 80, 32 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 112, 559, { .fields = { 80, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 112, 559, { .fields = { 80, 72 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 32, 859, { .fields = { 80, 80 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 40, 812, { .fields = { 80, 96 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 48, 772, { .fields = { 80, 104 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 56, 743, { .fields = { 80, 112 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 64, 728, { .fields = { 80, 136 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 72, 715, { .fields = { 88, 24 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 80, 72, 718, { .fields = { 80, 120 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 80, 702, { .fields = { 80, 128 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 80, 80, 700, { .fields = { 80, 152 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 88, 690, { .fields = { 80, 160 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 80, 88, 690, { .fields = { 80, 168 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 96, 678, { .fields = { 80, 192 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 80, 96, 678, { .fields = { 80, 144 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 104, 667, { .fields = { 80, 176 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 72, 112, 656, { .fields = { 80, 184 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_power_plant_2_80181A04[6] = {
+/// View 3's 4 source ranges between the background selector and end marker.
+///
+/// The zero-count first record keeps decoded background strips; the terminal
+/// record contributes no sprites. Ranges cover the view's complete source array.
+static SpriteBatch _gNeoArkPowerPlant2View3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 23, 0, 0, { 3, 0 } },
     { 23, 2, 0, 0, { 0, 0 } },
     { 25, 30, 0, 0, { 2, 0 } },
-    { 55, 15, 0, 0, { 1, 0 } },
+    { 55, ARRAY_SIZE(_gNeoArkPowerPlant2View3SpriteSources) - 55, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_power_plant_2_80181A34[30] = {
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -144, -8, 1375, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -96, -8, 1375, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -96, 0, 1200, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -144, 0, 1200, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -136, 8, 1150, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 8, 1150, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -48, -8, 1375, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, -88, -8, 1375, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 72 } }, -144, -16, 1375, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, 0, 1151, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -64, 0, 950, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, 0, 950, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 0, 925, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -88, 0, 900, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -96, 8, 875, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -104, 8, 875, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 24, 875, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 112, 250, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 72, 0, 1000, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 80, 0, 750, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 48, 850, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 16, 0x9E59, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, 64, 675, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, 32, 500, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 88, 525, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 104, 48, 375, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 96, 425, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 64, 250, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, 80, 250, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 128, 104, 250, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+/// View 4's 30 depth-sorted image rectangles in screen-relative pixels.
+///
+/// Texture pages use 8-bit indices and the CLUT at (0, 255); RGB 128 is
+/// neutral modulation. The view's batches select ranges in source elements,
+/// and the room overlay owns their mutable geometry and sorting depths.
+static SpriteSource _gNeoArkPowerPlant2View4SpriteSources[] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -144, -8, 1375, { .fields = { 24, 168 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -96, -8, 1375, { .fields = { 16, 160 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -96, 0, 1200, { .fields = { 16, 144 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -144, 0, 1200, { .fields = { 24, 192 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -136, 8, 1150, { .fields = { 24, 184 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -88, 8, 1150, { .fields = { 24, 176 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 72 } }, -48, -8, 1375, { .fields = { 96, 144 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 72 } }, -88, -8, 1375, { .fields = { 88, 72 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 72 } }, -144, -16, 1375, { .fields = { 72, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -56, 0, 1151, { .fields = { 80, 224 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -64, 0, 950, { .fields = { 72, 168 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -72, 0, 950, { .fields = { 64, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -80, 0, 925, { .fields = { 64, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -88, 0, 900, { .fields = { 64, 32 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -96, 8, 875, { .fields = { 120, 216 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -104, 8, 875, { .fields = { 112, 216 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -112, 24, 875, { .fields = { 64, 120 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 136, 112, 250, { .fields = { 64, 152 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 72, 0, 1000, { .fields = { 80, 128 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 80, 0, 750, { .fields = { 80, 176 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 80, 48, 850, { .fields = { 96, 216 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 88, 16, 0x9E59, { .fields = { 72, 120 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 88, 64, 675, { .fields = { 88, 144 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 96, 32, 500, { .fields = { 80, 72 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 96, 88, 525, { .fields = { 72, 208 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 104, 48, 375, { .fields = { 72, 72 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 104, 96, 425, { .fields = { 64, 96 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 112, 64, 250, { .fields = { 88, 200 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 120, 80, 250, { .fields = { 104, 216 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 128, 104, 250, { .fields = { 72, 240 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_power_plant_2_80181C8C[6] = {
+/// View 4's 4 source ranges between the background selector and end marker.
+///
+/// The zero-count first record keeps decoded background strips; the terminal
+/// record contributes no sprites. Ranges cover the view's complete source array.
+static SpriteBatch _gNeoArkPowerPlant2View4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 3, 0 } },
     { 6, 3, 0, 0, { 0, 0 } },
     { 9, 8, 0, 0, { 2, 0 } },
-    { 17, 13, 0, 0, { 1, 0 } },
+    { 17, ARRAY_SIZE(_gNeoArkPowerPlant2View4SpriteSources) - 17, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_power_plant_2_80181CBC[28] = {
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 0, 1350, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -160, 8, 1350, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 16, 1350, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 16, 1350, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 96 } }, -160, 24, 1350, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -72, 48, 1350, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, 48, 1350, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, 48, 1350, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, 48, 1350, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, -128, 24, 1350, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, -128, 64, 1350, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -160, -120, 575, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -152, -96, 575, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -160, 0, 775, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -160, 56, 775, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -136, 0, 850, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -136, 56, 850, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -120, 8, 875, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -120, 56, 875, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -112, 24, 950, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -112, 64, 950, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -104, 32, 1075, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -104, 64, 1075, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -88, 56, 1100, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, -112, 8, 2000, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 48 } }, 40, 8, 2000, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -8, 8, 2000, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -56, 8, 2000, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
+/// View 5's 28 depth-sorted image rectangles in screen-relative pixels.
+///
+/// Texture pages use 8-bit indices and the CLUT at (0, 255); RGB 128 is
+/// neutral modulation. The view's batches select ranges in source elements,
+/// and the room overlay owns their mutable geometry and sorting depths.
+static SpriteSource _gNeoArkPowerPlant2View5SpriteSources[] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 0, 1350, { .fields = { 24, 40 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -160, 8, 1350, { .fields = { 0, 248 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 16, 1350, { .fields = { 16, 240 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -120, 16, 1350, { .fields = { 40, 48 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 96 } }, -160, 24, 1350, { .fields = { 96, 104 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -72, 48, 1350, { .fields = { 64, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -64, 48, 1350, { .fields = { 96, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -48, 48, 1350, { .fields = { 24, 168 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -40, 48, 1350, { .fields = { 8, 168 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 40 } }, -128, 24, 1350, { .fields = { 8, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 56 } }, -128, 64, 1350, { .fields = { 56, 200 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 104 } }, -160, -120, 575, { .fields = { 120, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -152, -96, 575, { .fields = { 80, 160 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, -160, 0, 775, { .fields = { 72, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 64 } }, -160, 56, 775, { .fields = { 96, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -136, 0, 850, { .fields = { 80, 56 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -136, 56, 850, { .fields = { 112, 200 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -120, 8, 875, { .fields = { 80, 112 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -120, 56, 875, { .fields = { 88, 112 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -112, 24, 950, { .fields = { 112, 64 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -112, 64, 950, { .fields = { 88, 160 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -104, 32, 1075, { .fields = { 8, 136 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -104, 64, 1075, { .fields = { 16, 104 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -88, 56, 1100, { .fields = { 24, 136 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 40 } }, -112, 8, 2000, { .fields = { 0, 200 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 48 } }, 40, 8, 2000, { .fields = { 16, 56 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 48 } }, -8, 8, 2000, { .fields = { 32, 152 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 48 } }, -56, 8, 2000, { .fields = { 32, 104 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_power_plant_2_80181EEC[5] = {
+/// View 5's 3 source ranges between the background selector and end marker.
+///
+/// The zero-count first record keeps decoded background strips; the terminal
+/// record contributes no sprites. Ranges cover the view's complete source array.
+static SpriteBatch _gNeoArkPowerPlant2View5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 1, 0 } },
     { 11, 13, 0, 0, { 2, 0 } },
-    { 24, 4, 0, 0, { 0, 0 } },
+    { 24, ARRAY_SIZE(_gNeoArkPowerPlant2View5SpriteSources) - 24, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_power_plant_2_80181F14[8] = {
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, -8, 869, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 144, -8, 903, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 136, -8, 939, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 64, -40, 1575, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 48, -40, 1625, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 32, -40, 1700, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 16, -40, 2000, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 8, -40, 2000, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+/// View 6's 8 depth-sorted image rectangles in screen-relative pixels.
+///
+/// Texture pages use 8-bit indices and the CLUT at (0, 255); RGB 128 is
+/// neutral modulation. The view's batches select ranges in source elements,
+/// and the room overlay owns their mutable geometry and sorting depths.
+static SpriteSource _gNeoArkPowerPlant2View6SpriteSources[] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 152, -8, 869, { .fields = { 112, 192 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 144, -8, 903, { .fields = { 120, 192 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 136, -8, 939, { .fields = { 104, 192 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 96 } }, 64, -40, 1575, { .fields = { 88, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 96 } }, 48, -40, 1625, { .fields = { 112, 96 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 96 } }, 32, -40, 1700, { .fields = { 112, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 96 } }, 16, -40, 2000, { .fields = { 96, 96 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 96 } }, 8, -40, 2000, { .fields = { 104, 0 } }, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, NEO_ARK_POWER_PLANT_2_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_power_plant_2_80181FB4[4] = {
+/// View 6's 2 source ranges between the background selector and end marker.
+///
+/// The zero-count first record keeps decoded background strips; the terminal
+/// record contributes no sprites. Ranges cover the view's complete source array.
+/// Batch 2 selects five Life Support sprites whose visibility can change.
+static SpriteBatch _gNeoArkPowerPlant2View6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
-    { 3, 5, 0, 0, { 0, 0 } },
+    { 3, ARRAY_SIZE(_gNeoArkPowerPlant2View6SpriteSources) - 3, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_power_plant_2_80181FD4[2] = {
+/// View 7's background-only batch list, with no source sprite elements.
+///
+/// The first zero count keeps decoded image strips; SPRITE_BATCH_END stops
+/// traversal. The source slot retains this list's address without dereferencing it.
+static SpriteBatch _gNeoArkPowerPlant2View7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -590,43 +669,57 @@ SpriteBatch D_neo_ark_power_plant_2_80182044[3] = {
 };
 
 SpriteView D_neo_ark_power_plant_2_8018205C[9] = {
-    { { .empty = D_neo_ark_power_plant_2_80180F2C }, D_neo_ark_power_plant_2_80180F2C, NULL },
-    { { .elements = D_neo_ark_power_plant_2_80180F3C }, D_neo_ark_power_plant_2_8018143C, NULL },
-    { { .elements = D_neo_ark_power_plant_2_8018148C }, D_neo_ark_power_plant_2_80181A04, NULL },
-    { { .elements = D_neo_ark_power_plant_2_80181A34 }, D_neo_ark_power_plant_2_80181C8C, NULL },
-    { { .elements = D_neo_ark_power_plant_2_80181CBC }, D_neo_ark_power_plant_2_80181EEC, NULL },
-    { { .elements = D_neo_ark_power_plant_2_80181F14 }, D_neo_ark_power_plant_2_80181FB4, NULL },
-    { { .empty = D_neo_ark_power_plant_2_80181FD4 }, D_neo_ark_power_plant_2_80181FD4, NULL },
+    { { .empty = _gNeoArkPowerPlant2View1SpriteBatches }, _gNeoArkPowerPlant2View1SpriteBatches, NULL },
+    { { .elements = _gNeoArkPowerPlant2View2SpriteSources }, _gNeoArkPowerPlant2View2SpriteBatches, NULL },
+    { { .elements = _gNeoArkPowerPlant2View3SpriteSources }, _gNeoArkPowerPlant2View3SpriteBatches, NULL },
+    { { .elements = _gNeoArkPowerPlant2View4SpriteSources }, _gNeoArkPowerPlant2View4SpriteBatches, NULL },
+    { { .elements = _gNeoArkPowerPlant2View5SpriteSources }, _gNeoArkPowerPlant2View5SpriteBatches, NULL },
+    { { .elements = _gNeoArkPowerPlant2View6SpriteSources }, _gNeoArkPowerPlant2View6SpriteBatches, NULL },
+    { { .empty = _gNeoArkPowerPlant2View7SpriteBatches }, _gNeoArkPowerPlant2View7SpriteBatches, NULL },
     { { .empty = D_neo_ark_power_plant_2_80181FE4 }, D_neo_ark_power_plant_2_80181FE4, NULL },
     { { .elements = D_neo_ark_power_plant_2_80181FF4 }, D_neo_ark_power_plant_2_80182044, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_power_plant_2_801820C8[21] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -0x2710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -7350 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -4650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7980, -7500, -650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7980, -7500, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7980, -7500, -4650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7980, -7500, -7350 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7980, -7500, -0x2710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 1966, 1884 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6340, -7990, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4510, -5320, -0x2710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 1966, 1884 }, { 0, 0 } }, 1500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5770, -7990, -7380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5770, -7990, -4670 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4840, -6520, -2600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 1966, 1884 }, { 0, 0 } }, 1500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3280, -7990, -4670 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3280, -7990, -7380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3280, -7990, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3280, -7990, 700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5770, -7990, 730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7980, -7500, 730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -7530, 700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+/// Twenty-one authored point lights admitted in every logical view.
+///
+/// Placements and falloff distances use world units; RGB intensity uses Q12.
+/// Gameplay parents and composes the coordinates and overwrites attenuation,
+/// so these room-owned records stay mutable for the overlay's lifetime.
+static WorldCoordPointLight _gNeoArkPowerPlant2PointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 990, -7530, -0x2710 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 990, -7530, -7350 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 990, -7530, -4650 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 990, -7530, -2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7980, -7500, -650 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7980, -7500, -2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7980, -7500, -4650 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7980, -7500, -7350 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7980, -7500, -0x2710 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 1966, 1884 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6340, -7990, -2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4510, -5320, -0x2710 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 1966, 1884 }, { 0, 0 } }, 1500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5770, -7990, -7380 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5770, -7990, -4670 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4840, -6520, -2600 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 1966, 1884 }, { 0, 0 } }, 1500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3280, -7990, -4670 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3280, -7990, -7380 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3280, -7990, -2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3280, -7990, 700 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5770, -7990, 730 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1500, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7980, -7500, 730 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 990, -7530, 700 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3194, 3112 }, { 0, 0 } }, 1000, 4000 },
 };
 
-WorldCoordRoomLights D_neo_ark_power_plant_2_801828A8[1] = {
-    { 0, NULL, ARRAY_SIZE(D_neo_ark_power_plant_2_801820C8), D_neo_ark_power_plant_2_801820C8, 0, NULL },
+/// The plant's authored model-light collection, containing only point lights.
+///
+/// Gameplay parents and composes the borrowed light coordinates and updates
+/// attenuation. The record and its mutable array must stay loaded while used.
+static WorldCoordRoomLights _gNeoArkPowerPlant2RoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkPowerPlant2PointLights),
+    .pointLights           = _gNeoArkPowerPlant2PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_neo_ark_power_plant_2_801828C0[8] = {
@@ -694,8 +787,13 @@ WorldCollisionOccluder D_neo_ark_power_plant_2_80182E78[1] = {
     { NULL, NULL, { 6064, -6976, -6944, 0 }, { { 208, 2944, 1760, 0 }, { -208, 2944, -1760, 0 }, { 208, -2944, 1760, 0 }, { -208, -2944, -1760, 0 } }, { 4068, 0, -481, 0 }, 3434, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10] = {
-    { .viewCount = ARRAY_SIZE(D_neo_ark_power_plant_2_80182EB4) - 1 },
+// Keep read-only lighting data in the original room-data section.
+/// Ambient minima for logical views 1..9, preceded by the view-count header.
+///
+/// RGB uses 16 units per colour level; view 8 has higher minima than the other
+/// views. The fourth colour halfword retains authored luma and is not queried.
+static const WorldCoordRoomAmbientEntry _gNeoArkPowerPlant2AmbientTable[10] __attribute__((section(".data"))) = {
+    { .viewCount = ARRAY_SIZE(_gNeoArkPowerPlant2AmbientTable) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -707,53 +805,114 @@ WorldCoordRoomAmbientEntry D_neo_ark_power_plant_2_80182EB4[10] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_power_plant_2_80182F04 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Cue-2 sound-script requests; cue 1 adds one to the nonzero base.
+enum {
+    NEO_ARK_POWER_PLANT_2_SURFACE_2_WALK_SOUND = 0x10000015,
+    NEO_ARK_POWER_PLANT_2_SURFACE_2_RUN_SOUND  = 0x10000017,
+    NEO_ARK_POWER_PLANT_2_SURFACE_2_JUMP_SOUND = 0x10000019,
+    NEO_ARK_POWER_PLANT_2_SURFACE_4_WALK_SOUND = 0x10000059,
+    NEO_ARK_POWER_PLANT_2_SURFACE_4_RUN_SOUND  = 0x1000005B,
+    NEO_ARK_POWER_PLANT_2_SURFACE_5_WALK_SOUND = 0x1000005D,
+    NEO_ARK_POWER_PLANT_2_SURFACE_5_RUN_SOUND  = 0x1000005F,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_power_plant_2_80182F10 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+// Keep read-only cue tables in the original room-data section.
+/// Walking, running and scripted-jump cue bases for surface class 4.
+///
+/// Uses scripts 0x59/0x5A for walking and jumping, 0x5B/0x5C for running,
+/// in the currently loaded type-1 sound bank. Surface records borrow this data.
+static const WorldCollisionFootstepSounds _gNeoArkPowerPlant2Surface4FootstepSounds __attribute__((section(".data"))) = {
+    .walk         = NEO_ARK_POWER_PLANT_2_SURFACE_4_WALK_SOUND,
+    .run          = NEO_ARK_POWER_PLANT_2_SURFACE_4_RUN_SOUND,
+    .scriptedJump = NEO_ARK_POWER_PLANT_2_SURFACE_4_WALK_SOUND,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_power_plant_2_80182F1C = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Walking, running and scripted-jump cue bases for stair surface class 2.
+///
+/// Uses scripts 0x15/0x16, 0x17/0x18 and 0x19/0x1A respectively in the
+/// currently loaded type-1 bank. The descent selects this class independently
+/// of the grid faces; surface records borrow the room-owned data.
+static const WorldCollisionFootstepSounds _gNeoArkPowerPlant2Surface2FootstepSounds __attribute__((section(".data"))) = {
+    .walk         = NEO_ARK_POWER_PLANT_2_SURFACE_2_WALK_SOUND,
+    .run          = NEO_ARK_POWER_PLANT_2_SURFACE_2_RUN_SOUND,
+    .scriptedJump = NEO_ARK_POWER_PLANT_2_SURFACE_2_JUMP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F28[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump cue bases for surface class 5.
+///
+/// Uses scripts 0x5D/0x5E for walking and jumping, 0x5F/0x60 for running,
+/// in the currently loaded type-1 sound bank. Surface records borrow this data.
+static const WorldCollisionFootstepSounds _gNeoArkPowerPlant2Surface5FootstepSounds __attribute__((section(".data"))) = {
+    .walk         = NEO_ARK_POWER_PLANT_2_SURFACE_5_WALK_SOUND,
+    .run          = NEO_ARK_POWER_PLANT_2_SURFACE_5_RUN_SOUND,
+    .scriptedJump = NEO_ARK_POWER_PLANT_2_SURFACE_5_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F30[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_power_plant_2_80182F10 },
+/// Blocking collision policy without footstep cues for classes 0, 1, 6 and 7.
+///
+/// Enables weapon impacts and pushback; the surface directory borrows this record.
+static WorldCollisionSurfaceProperties _gNeoArkPowerPlant2DefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F38[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking collision policy and stair footstep cues for surface class 2.
+///
+/// Enables weapon impacts and pushback. The descending stair sets this class;
+/// the room's grid faces do not use it. Both record and cues are room-owned.
+static WorldCollisionSurfaceProperties _gNeoArkPowerPlant2Surface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkPowerPlant2Surface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F40[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_power_plant_2_80182F04 },
+/// Probe-passable surface class 3, with weapon impacts disabled and no footstep cues.
+///
+/// Grid contacts still apply pushback; the surface directory borrows this record.
+static WorldCollisionSurfaceProperties _gNeoArkPowerPlant2Surface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_power_plant_2_80182F48[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_power_plant_2_80182F1C },
+/// Blocking surface class 4 with weapon impacts, pushback and its own footstep cues.
+///
+/// The surface directory borrows this record and its room-owned cue table.
+static WorldCollisionSurfaceProperties _gNeoArkPowerPlant2Surface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkPowerPlant2Surface4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_power_plant_2_80182F50[8] = {
-    D_neo_ark_power_plant_2_80182F28,
-    D_neo_ark_power_plant_2_80182F28,
-    D_neo_ark_power_plant_2_80182F30,
-    D_neo_ark_power_plant_2_80182F38,
-    D_neo_ark_power_plant_2_80182F40,
-    D_neo_ark_power_plant_2_80182F48,
-    D_neo_ark_power_plant_2_80182F28,
-    D_neo_ark_power_plant_2_80182F28,
+/// Blocking surface class 5 with weapon impacts, pushback and its own footstep cues.
+///
+/// The surface directory borrows this record and its room-owned cue table.
+static WorldCollisionSurfaceProperties _gNeoArkPowerPlant2Surface5Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkPowerPlant2Surface5FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkPowerPlant2SurfaceProperties[NEO_ARK_POWER_PLANT_2_SURFACE_CLASS_COUNT] = {
+    &_gNeoArkPowerPlant2DefaultSurfaceProperties,
+    &_gNeoArkPowerPlant2DefaultSurfaceProperties,
+    &_gNeoArkPowerPlant2Surface2Properties,
+    &_gNeoArkPowerPlant2Surface3Properties,
+    &_gNeoArkPowerPlant2Surface4Properties,
+    &_gNeoArkPowerPlant2Surface5Properties,
+    &_gNeoArkPowerPlant2DefaultSurfaceProperties,
+    &_gNeoArkPowerPlant2DefaultSurfaceProperties,
 };
 
 AreaApplyRec D_neo_ark_power_plant_2_80182F70[9] = {

@@ -16,9 +16,18 @@ extern AreaVariant D_neo_ark_power_plant_2_80182DE0[19];
 // neo_ark_power_plant_2
 extern WorldCollisionRoomResources D_neo_ark_power_plant_2_80180690[];
 
-extern WorldCoordRoomLighting D_neo_ark_power_plant_2_801806A0[];
+/// Lighting for the plant's single room, indexed by room minus one.
+///
+/// Borrows 21 mutable point lights and ambient minima for logical views 1..9.
+/// The stage map and lighting queries require this room overlay to stay loaded.
+extern WorldCoordRoomLighting gNeoArkPowerPlant2RoomLighting[1];
 
-extern u8* D_neo_ark_power_plant_2_801806A8[];
+/// Logical-view map directory for the plant's single room.
+///
+/// Entry zero borrows `gViewIdentityMap`: logical views 1..9 select the same
+/// camera, image and sprite indices. Indexed by room minus one, with no
+/// terminator; the room directory and gameplay-owned map must remain loaded.
+extern u8* gNeoArkPowerPlant2ViewMaps[1];
 
 extern ViewCount D_neo_ark_power_plant_2_801806AC[];
 
@@ -28,7 +37,17 @@ extern ViewCamera D_neo_ark_power_plant_2_80180DE8[];
 
 extern SpriteView D_neo_ark_power_plant_2_8018205C[];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_power_plant_2_80182F50[];
+/// Number of room-local collision surface classes in the plant's directory.
+enum { NEO_ARK_POWER_PLANT_2_SURFACE_CLASS_COUNT = 8 };
+
+/// Collision policies and footstep cues indexed by surface class 0..7.
+///
+/// Classes 0, 1, 6 and 7 share a blocking policy without footstep cues.
+/// Class 2 supplies stair cues; class 3 passes probes and ignores weapon
+/// impacts. Classes 4 and 5 block probes and supply their own footstep cues.
+/// All classes apply pushback. The directory and borrowed records remain
+/// valid only while this room overlay is loaded; there is no terminator.
+extern WorldCollisionSurfaceProperties* gNeoArkPowerPlant2SurfaceProperties[NEO_ARK_POWER_PLANT_2_SURFACE_CLASS_COUNT];
 
 /// Sets visibility of view 6's five-sprite batch for the generator Life Support task.
 ///
