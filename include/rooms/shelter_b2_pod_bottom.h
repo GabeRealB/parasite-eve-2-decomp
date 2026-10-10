@@ -20,10 +20,22 @@ extern TmdSource gShelterB2PodBottomModel0AA08;
 
 extern TmdSource gShelterB2PodBottomModel0AE48;
 
-extern AreaVariant D_shelter_b2_pod_bottom_80187678[11];
+/// Placement variants for the pod-bottom area, indexed directly by variant 0..10.
+///
+/// Variant 1 supplies the entry scene and variant 2 the immediate boss fight.
+/// Both place the boss, tentacle and Aya Brea scene actor; slots 0 and 3..10
+/// contain no placements or resources. The loader borrows the resource lists,
+/// and spawned actors retain placement pointers until teardown. Keep this room
+/// and the referenced actor overlays loaded while their records are in use.
+extern AreaVariant gShelterB2PodBottomAreaVariants[11];
 
-// shelter_b2_pod_bottom
-extern WorldCollisionRoomResources D_shelter_b2_pod_bottom_80181D14[];
+/// Collision resources for the pod-bottom area's single room, at room ID minus one.
+///
+/// Borrows the collision grid, twenty view-boundary triggers and one action
+/// trigger; the sight-occluder pointer is NULL. Setup binds mutable geometry
+/// to the active view. Keep this overlay loaded while the grid is active or
+/// its triggers remain linked.
+extern WorldCollisionRoomResources gShelterB2PodBottomRoomCollisionResources[1];
 
 /// Lighting for the pod-bottom area's single room, indexed by room ID minus one.
 ///
@@ -40,13 +52,35 @@ extern WorldCoordRoomLighting gShelterB2PodBottomRoomLighting[1];
 /// The directory requires this overlay to remain loaded.
 extern u8* gShelterB2PodBottomRoomViewMaps[1];
 
-extern ViewCount D_shelter_b2_pod_bottom_80181D30[];
+/// Logical-view count for the pod-bottom area's single room, at room ID minus one.
+///
+/// The signed halfword count is sixteen readable mapping entries, independent
+/// of the map's capacity and mapped resource-array extents. The stage directory
+/// borrows this array while the room overlay is loaded; there is no terminator.
+extern ViewCount gShelterB2PodBottomRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b2_pod_bottom_80181D34[];
+/// The pod-bottom area's warp endpoint 1, stored at warp ID minus one.
+///
+/// Places player and companion at (1542, -1998, 7374) in room game units,
+/// facing a quarter turn (1024 of 4096 angle units), and starts logical view 2.
+/// No arrival, departure or blocked sound is selected; arrivals mark the pod
+/// service gantry on the map. Borrows this overlay's record during transitions.
+extern DirectionWarpEntry gShelterB2PodBottomWarpEntries[1];
 
-extern ViewCamera D_shelter_b2_pod_bottom_80182B80[];
+/// Cameras for mapped pod-bottom view indices 1..16, stored at index minus one.
+///
+/// Rotations use twelve fractional bits, translations are negated room-space
+/// camera origins, and projection distances are pixels. The array has no
+/// terminator; keep this overlay loaded until any queued camera copy finishes.
+extern ViewCamera gShelterB2PodBottomViewCameras[16];
 
-extern SpriteView D_shelter_b2_pod_bottom_80185904[];
+/// Sprite resources for mapped pod-bottom view indices 1..16, at index minus one.
+///
+/// Every view retains decoded background strips and has no draw-area list.
+/// Views 1, 12 and 14..16 select no source sprites; the others select their own
+/// terminated batch lists. Descriptors and mutable source/batch storage remain
+/// borrowed while rendering, so keep this overlay loaded until use finishes.
+extern SpriteView gShelterB2PodBottomSpriteViews[16];
 
 /// Pod-bottom collision and footstep records indexed by surface class 0..7.
 ///

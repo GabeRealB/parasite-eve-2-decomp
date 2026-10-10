@@ -33,16 +33,18 @@
 
 #include "mapui/map_shelter.h"
 
-extern EvsCommand       D_actor_361100_80165F48[];
-extern EvsCommand       D_actor_361100_80166848[];
-extern TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[];
+extern EvsCommand D_actor_361100_80165F48[];
+extern EvsCommand D_actor_361100_80166848[];
 
 static void _shelterB2PodBottomInitializeRoomTask(Task* task);
 static void _shelterB2PodBottomIdleRoomTask(Task* unusedTask);
 
-/// The room task's states: set up, idle, then `taskKill`.
-static const TaskFuncTable3 D_shelter_b2_pod_bottom_8017D5C4 = {
-    { _shelterB2PodBottomInitializeRoomTask, _shelterB2PodBottomIdleRoomTask, taskKill },
+/// Room-task handlers for states 0 initialize, 1 idle and 2 teardown.
+///
+/// Copied by value before dispatch; only indices 0..2 are valid. The table
+/// borrows callback addresses that remain live with the room overlay.
+static const TaskFuncTable3 _gShelterB2PodBottomRoomTaskStates = {
+    .funcs = { _shelterB2PodBottomInitializeRoomTask, _shelterB2PodBottomIdleRoomTask, taskKill },
 };
 
 static s32 _shelterB2PodBottomRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
@@ -51,7 +53,7 @@ static s32 _shelterB2PodBottomIgnoreCommandMessage(Task* unusedTask, s32 message
 static s32 _shelterB2PodBottomIgnoreActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* unusedRequest, s32 unusedArg);
 
 static WorldCollisionGrid    _gShelterB2PodBottomCollisionGrid;
-extern WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20];
+static WorldCollisionTrigger _gShelterB2PodBottomViewBoundaryTriggers[20];
 
 static WorldCoordRoomLights _gShelterB2PodBottomRoomLights;
 
@@ -61,7 +63,13 @@ enum {
     SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_SIZE    = 4000,
 };
 
-TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
+/// The room task's four supported messages and terminating record.
+///
+/// Resolves room-event requests, refuses key items and ignores action/command
+/// requests. Unsupported IDs return zero at TASK_MESSAGE_TABLE_END. The task
+/// borrows this table and callback code until teardown; payloads are borrowed
+/// only during synchronous dispatch and follow each handler's message contract.
+static TaskMessageEntry _gShelterB2PodBottomRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2PodBottomResolveRoomEventMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2PodBottomRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2PodBottomIgnoreActionMessage },
@@ -69,13 +77,13 @@ TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-EffectBandShape D_shelter_b2_pod_bottom_80181C94[3] = {
-    { 512, 3072, 512 },
-    { 1024, 2048, 768 },
-    { 1536, 1024, 1024 },
+EffectBandShape gShelterB2PodBottomArcFlashBandShapes[3] = {
+    { .baseRadius = 512, .lift = 3072, .spread = 512 },
+    { .baseRadius = 1024, .lift = 2048, .spread = 768 },
+    { .baseRadius = 1536, .lift = 1024, .spread = 1024 },
 };
 
-u16 D_shelter_b2_pod_bottom_80181CA8[18][3] = {
+u16 gShelterB2PodBottomEnergyRingChannelShifts[18][3] = {
     { 0, 1, 2 },
     { 0, 2, 1 },
     { 1, 0, 2 },
@@ -96,8 +104,11 @@ u16 D_shelter_b2_pod_bottom_80181CA8[18][3] = {
     { 0, 2, 0 },
 };
 
-WorldCollisionRoomResources D_shelter_b2_pod_bottom_80181D14[1] = {
-    { &_gShelterB2PodBottomCollisionGrid, D_shelter_b2_pod_bottom_80186FA8, gShelterB2PodBottomActionTriggers, NULL },
+WorldCollisionRoomResources gShelterB2PodBottomRoomCollisionResources[1] = {
+    { .grid                 = &_gShelterB2PodBottomCollisionGrid,
+      .viewBoundaryTriggers = _gShelterB2PodBottomViewBoundaryTriggers,
+      .actionTriggers       = gShelterB2PodBottomActionTriggers,
+      .occluders            = NULL },
 };
 
 WorldCoordRoomLighting gShelterB2PodBottomRoomLighting[1] = {
@@ -108,10 +119,19 @@ u8* gShelterB2PodBottomRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b2_pod_bottom_80181D30[1] = { 16 };
+ViewCount gShelterB2PodBottomRoomViewCounts[1] = { 16 };
 
-DirectionWarpEntry D_shelter_b2_pod_bottom_80181D34[1] = {
-    { { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY },
+DirectionWarpEntry gShelterB2PodBottomWarpEntries[1] = {
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 1542, -1998, 7374 },
+      .unknown_10     = { 0, 0, 0, 0 },
+      .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 1542, -1998, 7374 },
+      .unknown_24     = { 0, 0, 0, 0 },
+      .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+      .departureSound = DIRECTION_WARP_SOUND_NONE,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 2,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY },
 };
 
 /// Room-space face normals for the pod-bottom collision grid, with ONE as unit length.
@@ -161,7 +181,7 @@ static WorldCollisionGrid _gShelterB2PodBottomCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gShelterB2PodBottomCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b2_pod_bottom_80182B80[16] = {
+ViewCamera gShelterB2PodBottomViewCameras[16] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7510, 0x61A8, -6980 } }, 329 },
     { { { { 3491, 0, -2141 }, { 362, 4036, 590 }, { 2110, -693, 3441 } }, { -490, 2270, -1670 } }, 289 },
     { { { { -3308, 0, -2415 }, { -149, 4088, 204 }, { 2410, 253, -3301 } }, { -610, 5200, -0x3B74 } }, 257 },
@@ -947,41 +967,72 @@ static SpriteBatch _gShelterB2PodBottomView11SpriteBatches[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_80185848[2] = {
+/// Empty sprite list for mapped view 12, retaining decoded background strips.
+///
+/// A zero-count record precedes SPRITE_BATCH_END. Both descriptor slots retain
+/// this list's address; no source elements are selected. Keep the mutable list
+/// loaded while this view is in use.
+static SpriteBatch _gShelterB2PodBottomView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_80185858[5] = {
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -160, 56, 1394, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 16 } }, -96, 56, 1402, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -16, 48, 1402, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 16 } }, 16, 56, 1415, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 16 } }, 88, 56, 1424, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
+/// Five depth-sorted textured rectangles for mapped view 13.
+///
+/// Uses the 8-bit texture page at (960, 0) and CLUT row 255. Positions and
+/// dimensions are pixels relative to the view centre; depths are unscaled
+/// sorting values. Its batches select all five elements. The renderer borrows
+/// the mutable sources while this room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView13SpriteSources[5] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, -160, 56, 1394, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 80, 16 } }, -96, 56, 1402, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -16, 48, 1402, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 72, 16 } }, 16, 56, 1415, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 72, 16 } }, 88, 56, 1424, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_801858BC[3] = {
+/// Sprite ranges for mapped view 13, indexing its five source elements.
+///
+/// The first zero-count record retains decoded background strips; the next
+/// selects every source, with visibility and cached-packet exclusion clear.
+/// SPRITE_BATCH_END terminates the borrowed mutable list.
+static SpriteBatch _gShelterB2PodBottomView13SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2PodBottomView13SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_801858D4[2] = {
+/// Empty sprite list for mapped view 14, retaining decoded background strips.
+///
+/// A zero-count record precedes SPRITE_BATCH_END. Both descriptor slots retain
+/// this list's address; no source elements are selected. Keep the mutable list
+/// loaded while this view is in use.
+static SpriteBatch _gShelterB2PodBottomView14SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_801858E4[2] = {
+/// Empty sprite list for mapped view 15, retaining decoded background strips.
+///
+/// A zero-count record precedes SPRITE_BATCH_END. Both descriptor slots retain
+/// this list's address; no source elements are selected. Keep the mutable list
+/// loaded while this view is in use.
+static SpriteBatch _gShelterB2PodBottomView15SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_801858F4[2] = {
+/// Empty sprite list for mapped view 16, retaining decoded background strips.
+///
+/// A zero-count record precedes SPRITE_BATCH_END. Both descriptor slots retain
+/// this list's address; no source elements are selected. Keep the mutable list
+/// loaded while this view is in use.
+static SpriteBatch _gShelterB2PodBottomView16SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b2_pod_bottom_80185904[16] = {
+SpriteView gShelterB2PodBottomSpriteViews[16] = {
     { { .empty = _gShelterB2PodBottomView1SpriteBatches }, _gShelterB2PodBottomView1SpriteBatches, NULL },
     { { .elements = _gShelterB2PodBottomView2SpriteSources }, _gShelterB2PodBottomView2SpriteBatches, NULL },
     { { .elements = _gShelterB2PodBottomView3SpriteSources }, _gShelterB2PodBottomView3SpriteBatches, NULL },
@@ -993,11 +1044,11 @@ SpriteView D_shelter_b2_pod_bottom_80185904[16] = {
     { { .elements = _gShelterB2PodBottomView9SpriteSources }, _gShelterB2PodBottomView9SpriteBatches, NULL },
     { { .elements = _gShelterB2PodBottomView10SpriteSources }, _gShelterB2PodBottomView10SpriteBatches, NULL },
     { { .elements = _gShelterB2PodBottomView11SpriteSources }, _gShelterB2PodBottomView11SpriteBatches, NULL },
-    { { .empty = D_shelter_b2_pod_bottom_80185848 }, D_shelter_b2_pod_bottom_80185848, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_80185858 }, D_shelter_b2_pod_bottom_801858BC, NULL },
-    { { .empty = D_shelter_b2_pod_bottom_801858D4 }, D_shelter_b2_pod_bottom_801858D4, NULL },
-    { { .empty = D_shelter_b2_pod_bottom_801858E4 }, D_shelter_b2_pod_bottom_801858E4, NULL },
-    { { .empty = D_shelter_b2_pod_bottom_801858F4 }, D_shelter_b2_pod_bottom_801858F4, NULL },
+    { { .empty = _gShelterB2PodBottomView12SpriteBatches }, _gShelterB2PodBottomView12SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView13SpriteSources }, _gShelterB2PodBottomView13SpriteBatches, NULL },
+    { { .empty = _gShelterB2PodBottomView14SpriteBatches }, _gShelterB2PodBottomView14SpriteBatches, NULL },
+    { { .empty = _gShelterB2PodBottomView15SpriteBatches }, _gShelterB2PodBottomView15SpriteBatches, NULL },
+    { { .empty = _gShelterB2PodBottomView16SpriteBatches }, _gShelterB2PodBottomView16SpriteBatches, NULL },
 };
 
 /// Authored point lights for model shading throughout the pod-bottom room.
@@ -1089,7 +1140,13 @@ static WorldCoordRoomLights _gShelterB2PodBottomRoomLights = {
     .coneLights            = _gShelterB2PodBottomConeLights,
 };
 
-WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20] = {
+/// Twenty directional boundaries switching between logical views 2..10.
+///
+/// Each parameter pair is source/destination view, with the final record
+/// carrying WORLD_COLLISION_TRIGGER_LAST. Origins, vertices and radii use room
+/// game units; normals use twelve fractional bits. Setup binds and links these
+/// mutable records to the active view; keep them loaded until unlinked.
+static WorldCollisionTrigger _gShelterB2PodBottomViewBoundaryTriggers[20] = {
     { NULL, NULL, NULL, { 2000, -4784, 5327, 0 }, { { -2181, -6160, -16, 0 }, { 2181, -6160, 16, 0 }, { -2181, 6160, -16, 0 }, { 2181, 6160, 16, 0 } }, { 29, 0, -4098, 0 }, { 0, 0, 4096, 0 }, 6516, 0, 9, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1903, -5152, 4959, 0 }, { { 2234, -6160, -8, 0 }, { -2233, -6160, 9, 0 }, { 2234, 6160, -8, 0 }, { -2233, 6160, 9, 0 } }, { 15, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 6536, 0, 2, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 4627, -4928, 0x34F6, 0 }, { { 5, -6160, -1799, 0 }, { -5, -6160, 1799, 0 }, { 5, 6160, -1799, 0 }, { -5, 6160, 1799, 0 } }, { 4108, 0, 11, 0 }, { 0, 0, 4096, 0 }, 6415, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1112,46 +1169,71 @@ WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20] = {
     { NULL, NULL, NULL, { 0x3ADF, 0, 3199, 0 }, { { 2234, -6160, -8, 0 }, { -2233, -6160, 9, 0 }, { 2234, 6160, -8, 0 }, { -2233, 6160, 9, 0 } }, { 15, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 6536, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b2_pod_bottom_80187598[4] = {
-    { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor403600TaskTable },
-    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor361100TentacleTaskDesc },
-    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor361100AyaBreaTaskDesc },
+enum {
+    SHELTER_B2_POD_BOTTOM_VARIANT_ENTRY_SCENE = 1,
+    SHELTER_B2_POD_BOTTOM_VARIANT_FIGHT       = 2,
+    SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS       = 36,
+    SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE   = 45,
+    SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA   = 132,
+};
+
+/// Resource recipes for placement variant 1's entry scene.
+///
+/// Entry IDs match its boss, tentacle and Aya Brea placements. Each selects
+/// descriptor zero; file-group selectors and decimal file numbers identify
+/// their loaded actor packages. AREA_PLACEMENT_END terminates the list, which
+/// remains borrowed with its descriptor pointers during loading and spawning.
+static AreaResource _gShelterB2PodBottomEntrySceneResources[4] = {
+    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS, .fileNumber = 36, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor403600TaskTable },
+    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100TentacleTaskDesc },
+    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100AyaBreaTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b2_pod_bottom_801875C8[4] = {
-    { 36, 0, 0, 8000, -3000, 6400, -1024, 0, 0, 0, 0 },
-    { 45, 0, 0, 0, 0, 0, 0, 0, 1, 4, 0 },
-    { 132, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
+/// Boss, tentacle and Aya Brea placements for variant 1's entry scene.
+///
+/// The boss starts at (8000, -3000, 6400), yaw -1024; the scene actors start
+/// at the origin with texture-page/CLUT-row offsets (1, 4) and (-1, 2).
+/// Positions use room game units and yaw uses 4096 units per turn. Spawn
+/// variant, mode, additional-file component and actor parameter row are zero.
+/// AREA_PLACEMENT_END ends the list; spawned actors borrow records until teardown.
+static AreaPlacement _gShelterB2PodBottomEntryScenePlacements[4] = {
+    { SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS, 0, 0, 8000, -3000, 6400, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0, 0, 0 },
+    { SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE, 0, 0, 0, 0, 0, 0, 0, 1, 4, 0 },
+    { SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaResource D_shelter_b2_pod_bottom_80187608[4] = {
-    { 36, 36, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, gActor403600TaskTable },
-    { 45, 611, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor361100TentacleTaskDesc },
-    { 132, 611, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor361100AyaBreaTaskDesc },
+/// Resource recipes for placement variant 2's immediate boss fight.
+///
+/// Loads the same boss, tentacle and Aya Brea recipes as the entry scene into
+/// a separately stored list. Entry IDs match its placements, descriptor indices
+/// are zero and AREA_PLACEMENT_END terminates the table. Borrowed list and
+/// descriptor storage must remain loaded during loading and spawning.
+static AreaResource _gShelterB2PodBottomFightResources[4] = {
+    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS, .fileNumber = 36, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor403600TaskTable },
+    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100TentacleTaskDesc },
+    { .entryId = SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA, .fileNumber = 611, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor361100AyaBreaTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b2_pod_bottom_80187638[4] = {
-    { 36, 0, 0, 8000, -3000, 6400, -1024, 0, 0, 0, 0 },
-    { 45, 0, 0, 0, 0, 0, 0, 0, 1, 4, 0 },
-    { 132, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
+/// Boss, tentacle and Aya Brea placements for variant 2's immediate boss fight.
+///
+/// The boss starts at (8000, -3000, 6400), yaw -1024; the other actors start
+/// at the origin with texture-page/CLUT-row offsets (1, 4) and (-1, 2).
+/// Positions use room game units and yaw uses 4096 units per turn. Spawn
+/// variant, mode, additional-file component and actor parameter row are zero.
+/// AREA_PLACEMENT_END ends the list; spawned actors borrow records until teardown.
+static AreaPlacement _gShelterB2PodBottomFightPlacements[4] = {
+    { SHELTER_B2_POD_BOTTOM_RESOURCE_BOSS, 0, 0, 8000, -3000, 6400, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0, 0, 0 },
+    { SHELTER_B2_POD_BOTTOM_RESOURCE_TENTACLE, 0, 0, 0, 0, 0, 0, 0, 1, 4, 0 },
+    { SHELTER_B2_POD_BOTTOM_RESOURCE_AYA_BREA, 0, 0, 0, 0, 0, 0, 0, -1, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b2_pod_bottom_80187678[11] = {
-    { NULL, NULL },
-    { D_shelter_b2_pod_bottom_801875C8, D_shelter_b2_pod_bottom_80187598 },
-    { D_shelter_b2_pod_bottom_80187638, D_shelter_b2_pod_bottom_80187608 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB2PodBottomAreaVariants[11] = {
+    [SHELTER_B2_POD_BOTTOM_VARIANT_ENTRY_SCENE] = { .placements = _gShelterB2PodBottomEntryScenePlacements, .resources = _gShelterB2PodBottomEntrySceneResources },
+    [SHELTER_B2_POD_BOTTOM_VARIANT_FIGHT]       = { .placements = _gShelterB2PodBottomFightPlacements, .resources = _gShelterB2PodBottomFightResources },
 };
 
 /// Refuses every key-item use without consuming the item or changing room state.
@@ -1207,7 +1289,7 @@ static void _shelterB2PodBottomInitializeRoomTask(Task* task)
 
     ActorCommand command;
 
-    task->msgTable = D_shelter_b2_pod_bottom_80181C6C;
+    task->msgTable = _gShelterB2PodBottomRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == ROOM_VARIANT_ENTRY_SCENE) {
         actor361100ClearHeadAimTaskHandle(0);
@@ -1234,6 +1316,6 @@ void shelterB2PodBottomRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_shelter_b2_pod_bottom_8017D5C4;
+    handlers = _gShelterB2PodBottomRoomTaskStates;
     handlers.funcs[task->state](task);
 }

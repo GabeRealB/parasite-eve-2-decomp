@@ -170,7 +170,7 @@ gDryfieldWaterTowerRoomLighting = 0x801827E4; // absolute:True owner=dryfield_wa
 D_dryfield_water_tower_801827EC = 0x801827EC; // absolute:True owner=dryfield_water_tower shared=rooms
 gDryfieldWaterTowerViewCameras = 0x801835E8; // absolute:True owner=dryfield_water_tower
 gDryfieldWaterTowerSpriteViews = 0x80186560; // absolute:True owner=dryfield_water_tower
-gDryfieldWaterTowerSurfacePropertiesByClass = 0x80187608; // absolute:True owner=dryfield_water_tower shared=rooms
+gDryfieldWaterTowerSurfacePropertiesByClass = 0x80187608; // absolute:True owner=dryfield_water_tower
 dryfieldWaterTankRoomTask = 0x8017DAF0; // type:func absolute:True owner=dryfield_water_tank shared=rooms
 D_dryfield_water_tank_801868E0 = 0x801868E0; // absolute:True owner=dryfield_water_tank
 gDryfieldWaterTankRoomViewMaps = 0x801868F0; // absolute:True owner=dryfield_water_tank

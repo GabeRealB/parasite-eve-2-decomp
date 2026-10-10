@@ -635,7 +635,7 @@ static void _shelterB2PodBottomDrawArcFlashBand(const EffectWork* work, const Gf
     u16                    lift;
     u16                    animatedLift;
 
-    shape        = &D_shelter_b2_pod_bottom_80181C94[bandIndex];
+    shape        = &gShelterB2PodBottomArcFlashBandShapes[bandIndex];
     animatedLift = work->period;
     baseRadius   = work->angle;
     lift         = animatedLift + shape->lift;
@@ -731,14 +731,14 @@ void shelterB2PodBottomEnergyRingTask(Task* task)
                 work->step          = SHELTER_B2_POD_BOTTOM_ENERGY_RING_BRIGHTNESS_SPAN / task->spawnArg1.value;
                 task->state         = SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE;
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->index         = (gRandomLcgState >> 16) % ARRAY_SIZE(D_shelter_b2_pod_bottom_80181CA8);
+                work->index         = (gRandomLcgState >> 16) % ARRAY_SIZE(gShelterB2PodBottomEnergyRingChannelShifts);
             // Pausing retains drawing without consuming the charge countdown.
             case SHELTER_B2_POD_BOTTOM_EFFECT_ACTIVE:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     work->age--;
-                    rgb[0] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][0];
-                    rgb[1] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][1];
-                    rgb[2] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][2];
+                    rgb[0] = work->scale >> gShelterB2PodBottomEnergyRingChannelShifts[work->index][0];
+                    rgb[1] = work->scale >> gShelterB2PodBottomEnergyRingChannelShifts[work->index][1];
+                    rgb[2] = work->scale >> gShelterB2PodBottomEnergyRingChannelShifts[work->index][2];
                     effectDrawGouraudDisc(coord, work->angle, rgb);
                     effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                     effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value % SHELTER_B2_POD_BOTTOM_ENERGY_RING_CYCLE_UPDATES * (work->scale << 2)), SHELTER_B2_POD_BOTTOM_ENERGY_RING_RING_WIDTH, rgb);
@@ -748,9 +748,9 @@ void shelterB2PodBottomEnergyRingTask(Task* task)
                 work->scale    = nextBrightness;
                 work->angle    = nextBrightness * 4 + SHELTER_B2_POD_BOTTOM_ENERGY_RING_INITIAL_RADIUS;
                 task->spawnArg1.value--;
-                rgb[0] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][0];
-                rgb[1] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][1];
-                rgb[2] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][2];
+                rgb[0] = work->scale >> gShelterB2PodBottomEnergyRingChannelShifts[work->index][0];
+                rgb[1] = work->scale >> gShelterB2PodBottomEnergyRingChannelShifts[work->index][1];
+                rgb[2] = work->scale >> gShelterB2PodBottomEnergyRingChannelShifts[work->index][2];
                 effectDrawGouraudDisc(coord, work->angle, rgb);
                 effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                 effectDrawOuterGlowBand(coord, (s16)(task->spawnArg1.value % SHELTER_B2_POD_BOTTOM_ENERGY_RING_CYCLE_UPDATES * (work->scale << 2)), SHELTER_B2_POD_BOTTOM_ENERGY_RING_RING_WIDTH, rgb);
@@ -761,22 +761,22 @@ void shelterB2PodBottomEnergyRingTask(Task* task)
                     work->step   = 0;
                 }
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->index     = (gRandomLcgState >> 16) % ARRAY_SIZE(D_shelter_b2_pod_bottom_80181CA8);
+                work->index     = (gRandomLcgState >> 16) % ARRAY_SIZE(gShelterB2PodBottomEnergyRingChannelShifts);
                 return;
             // The full-bright flash is drawn before each running fade step.
             case SHELTER_B2_POD_BOTTOM_EFFECT_FADE:
                 if (work->scale < SHELTER_B2_POD_BOTTOM_ENERGY_RING_VISIBLE_MIN) {
                     break;
                 }
-                rgb[0] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][0];
-                rgb[1] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][1];
-                rgb[2] = work->scale >> D_shelter_b2_pod_bottom_80181CA8[work->index][2];
+                rgb[0] = work->scale >> gShelterB2PodBottomEnergyRingChannelShifts[work->index][0];
+                rgb[1] = work->scale >> gShelterB2PodBottomEnergyRingChannelShifts[work->index][1];
+                rgb[2] = work->scale >> gShelterB2PodBottomEnergyRingChannelShifts[work->index][2];
                 effectDrawGouraudDisc(coord, work->angle, rgb);
                 effectDrawGouraudDisc(coord, (s16)((u16)work->angle * 2), rgb);
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     work->scale    -= SHELTER_B2_POD_BOTTOM_ENERGY_RING_FADE_STEP;
-                    work->index     = (gRandomLcgState >> 16) % ARRAY_SIZE(D_shelter_b2_pod_bottom_80181CA8);
+                    work->index     = (gRandomLcgState >> 16) % ARRAY_SIZE(gShelterB2PodBottomEnergyRingChannelShifts);
                 }
                 return;
             default:
