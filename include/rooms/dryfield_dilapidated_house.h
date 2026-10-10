@@ -23,7 +23,12 @@ extern WorldCollisionRoomResources D_dryfield_dilapidated_house_80186954[];
 /// This one-entry directory stays valid while the room overlay is loaded.
 extern u8* gDryfieldDilapidatedHouseRoomViewMaps[1];
 
-extern ViewCount D_dryfield_dilapidated_house_80186968[];
+/// Room 1's logical view count for the dilapidated house, 21 entries.
+///
+/// The Dryfield map selects this one-entry array at area 9, indexed by room
+/// minus one. It limits reverse searches of the room's identity view map;
+/// the count is in elements and has no terminator. Keep the room overlay loaded.
+extern ViewCount gDryfieldDilapidatedHouseRoomViewCounts[1];
 
 /// Room 1's authored lights and minimum ambient levels for logical views 1..21.
 ///
@@ -34,9 +39,22 @@ extern WorldCoordRoomLighting gDryfieldDilapidatedHouseRoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_dilapidated_house_80186974[];
 
-extern ViewCamera D_dryfield_dilapidated_house_80187308[];
+/// Cameras for mapped views 1..21 of the Dryfield dilapidated house.
+///
+/// The area-9 map directory borrows this array, indexed by mapped view minus
+/// one. Rotation uses 12 fractional bits, translation is the negated world
+/// origin in game units, and projection distances are pixels. There is no
+/// terminator; records stay readable while the room overlay is loaded.
+extern ViewCamera gDryfieldDilapidatedHouseViewCameras[21];
 
-extern SpriteView D_dryfield_dilapidated_house_80188C0C[];
+/// Sprite descriptors for mapped views 1..21 of the Dryfield dilapidated house.
+///
+/// The area-9 map directory borrows this array at mapped view minus one.
+/// Each descriptor retains decoded image strips and has no clipping list.
+/// Views 1, 10, 12 and 15..21 have no source sprites; their source slot retains
+/// the batch-list address and is never dereferenced as sprites. All descriptors
+/// and mutable source/batch lists stay valid while the room overlay is loaded.
+extern SpriteView gDryfieldDilapidatedHouseSpriteViews[21];
 
 /// Collision policies and footstep cues for the room's surface classes 0..7.
 ///

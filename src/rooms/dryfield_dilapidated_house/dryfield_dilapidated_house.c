@@ -79,8 +79,6 @@
 #include "../../shared/sprite_quad.h"
 #include "../../shared/model_morph.h"
 
-extern SVECTOR D_dryfield_dilapidated_house_80186944[2];
-
 extern AnimationSet* D_dryfield_dilapidated_house_80183F00[16];
 
 /// Work block of the morphing model a script command attaches to one of the
@@ -175,13 +173,7 @@ extern ScreenWaveCtx D_dryfield_dilapidated_house_80189C94;
 extern TaskDesc      D_dryfield_dilapidated_house_80183E48[];
 
 extern TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[];
-extern s32              D_dryfield_dilapidated_house_80186804[16];
-extern SVECTOR          D_dryfield_dilapidated_house_80186844[2];
 extern ModelMorph       D_dryfield_dilapidated_house_8018669C;
-extern SVECTOR          D_dryfield_dilapidated_house_801866B4[];
-extern SVECTOR          D_dryfield_dilapidated_house_80186794[2];
-extern SVECTOR          D_dryfield_dilapidated_house_801867A4[6];
-extern SVECTOR          D_dryfield_dilapidated_house_801867D4[6];
 
 enum {
     DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT = 6,
@@ -230,10 +222,10 @@ enum {
     DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_ACTIVE = 2,
 };
 
-extern WorldCollisionGrid               D_dryfield_dilapidated_house_801872E4[1];
+static WorldCollisionGrid               _gDryfieldDilapidatedHouseCollisionGrid;
 extern WorldCollisionOccluder           D_dryfield_dilapidated_house_80189260[1];
-extern WorldCollisionTrigger            D_dryfield_dilapidated_house_80188D08[9];
-extern WorldCollisionTrigger            D_dryfield_dilapidated_house_80188FB4[9];
+static WorldCollisionTrigger            _gDryfieldDilapidatedHouseViewBoundaryTriggers[9];
+static WorldCollisionTrigger            _gDryfieldDilapidatedHouseActionTriggers[9];
 static const WorldCoordRoomAmbientEntry _gDryfieldDilapidatedHouseAmbientByView[22];
 static WorldCoordRoomLights             _gDryfieldDilapidatedHouseRoomLights;
 extern PadScriptCmd                     D_dryfield_dilapidated_house_80189B30[2];
@@ -770,7 +762,12 @@ SVECTOR D_dryfield_dilapidated_house_8018659C[32] = {
 
 ModelMorph D_dryfield_dilapidated_house_8018669C = { D_dryfield_dilapidated_house_8018659C, NULL, D_dryfield_dilapidated_house_80189CA0, NULL, 40, 0, 0, 32 };
 
-SVECTOR D_dryfield_dilapidated_house_801866B4[8] = {
+/// Attachment-local control points and markers of the debug Bezier curve.
+///
+/// Segments use entries 0..3 and 3..6, sharing endpoint 3; marker 7 repeats
+/// entry 0. XYZ uses signed game-coordinate units. The room never spawns the
+/// debug task; an authored purpose beyond its curve display is unproven.
+static SVECTOR _gDryfieldDilapidatedHouseDebugCurveControlPoints[] = {
     { -81, -162, -82, 0 },
     { -150, -232, -355, 0 },
     { -150, -162, -720, 0 },
@@ -827,12 +824,21 @@ u8 gGlowRingBeamColors[24][4] = {
     { 0, 0, 0, 0 },
 };
 
-SVECTOR D_dryfield_dilapidated_house_80186794[2] = {
+/// Start and full-length end of the capped beam in attachment-local game units.
+///
+/// The paired beam mirrors X; morph progress shortens the transformed end
+/// toward the start before projection.
+static SVECTOR _gDryfieldDilapidatedHouseCappedBeamEndpoints[] = {
     { -81, -162, -82, 0 },
     { -150, -232, -355, 0 },
 };
 
-SVECTOR D_dryfield_dilapidated_house_801867A4[6] = {
+/// Start-cap contour shared by the beam's core and enlarged halo.
+///
+/// Entry 0 is the centre, followed by five rim offsets. XY is scaled by the
+/// projection distance divided by the end depth, then rotated in screen space;
+/// the stored zero Z components are not read.
+static SVECTOR _gDryfieldDilapidatedHouseCappedBeamStartCapOffsets[DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT] = {
     { 0, 0, 0, 0 },
     { 12, 0, 0, 0 },
     { 6, 5, 0, 0 },
@@ -841,7 +847,11 @@ SVECTOR D_dryfield_dilapidated_house_801867A4[6] = {
     { -12, 0, 0, 0 },
 };
 
-SVECTOR D_dryfield_dilapidated_house_801867D4[6] = {
+/// End-cap contour shared by the beam's core and enlarged halo.
+///
+/// Entry 0 is the centre, followed by five rim offsets. XY uses the same
+/// perspective scale and screen rotation as the start cap; Z is not read.
+static SVECTOR _gDryfieldDilapidatedHouseCappedBeamEndCapOffsets[DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT] = {
     { 0, 0, 0, 0 },
     { -5, 0, 0, 0 },
     { -3, -2, 0, 0 },
@@ -850,7 +860,11 @@ SVECTOR D_dryfield_dilapidated_house_801867D4[6] = {
     { 5, 0, 0, 0 },
 };
 
-s32 D_dryfield_dilapidated_house_80186804[16] = {
+/// Per-callback phase advance of each morph cone outer-ring vertex.
+///
+/// One turn is `DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD` units. The
+/// initial phases are these rates times the spawn argument's frame advance.
+static s32 _gDryfieldDilapidatedHouseConeRimPhaseRates[] = {
     128,
     256,
     324,
@@ -868,8 +882,10 @@ s32 D_dryfield_dilapidated_house_80186804[16] = {
     426,
     222,
 };
+STATIC_ASSERT(ARRAY_SIZE(_gDryfieldDilapidatedHouseConeRimPhaseRates) == ARRAY_SIZE(((_DryfieldDilapidatedHouseConeWork*)0)->rimPhase), dryfieldDilapidatedHouseConePhaseRateCount);
 
-SVECTOR D_dryfield_dilapidated_house_80186844[2] = {
+/// Inner then outer morph-cone ring centre, in attachment-local game units.
+static SVECTOR _gDryfieldDilapidatedHouseConeRingCenters[] = {
     { 0, -164, -83, 0 },
     { 0, -164, -280, 0 },
 };
@@ -881,7 +897,11 @@ TaskDesc D_dryfield_dilapidated_house_80186854[4] = {
     { { { TASK_BODY_COORD, 192 } }, _dryfieldDilapidatedHouseMorphConeTask, { .value = 0 } },
 };
 
-SVECTOR D_dryfield_dilapidated_house_80186884[24] = {
+/// Corners of the left, middle and right room light prisms, in local game units.
+///
+/// Each consecutive group of eight stores the four lit-ring corners followed
+/// by the four dark-ring corners. The drawer selects bases 0, 8 and 16.
+static SVECTOR _gDryfieldDilapidatedHouseLightPrismVertices[] = {
     { -5500, -2250, -3030, 0 },
     { -4500, -2250, -3030, 0 },
     { -4500, -1030, -3030, 0 },
@@ -908,21 +928,21 @@ SVECTOR D_dryfield_dilapidated_house_80186884[24] = {
     { -650, 0, -1660, 0 },
 };
 
-// The following record is dereferenced through an indexed view of this base; keep the complete bounded pool.
-SVECTOR D_dryfield_dilapidated_house_80186944[2] = {
+/// First and second ribbon endpoints in No. 9's model-part-8 local game units.
+static SVECTOR _gDryfieldDilapidatedHouseTwinTrailEndpointOffsets[] = {
     { -128, 96, 0, 0 },
     { -896, 96, 0, 0 },
 };
 
 WorldCollisionRoomResources D_dryfield_dilapidated_house_80186954[1] = {
-    { D_dryfield_dilapidated_house_801872E4, D_dryfield_dilapidated_house_80188D08, D_dryfield_dilapidated_house_80188FB4, D_dryfield_dilapidated_house_80189260 },
+    { &_gDryfieldDilapidatedHouseCollisionGrid, _gDryfieldDilapidatedHouseViewBoundaryTriggers, _gDryfieldDilapidatedHouseActionTriggers, D_dryfield_dilapidated_house_80189260 },
 };
 
 u8* gDryfieldDilapidatedHouseRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_dilapidated_house_80186968[1] = { 21 };
+ViewCount gDryfieldDilapidatedHouseRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldDilapidatedHouseViewCameras) };
 
 WorldCoordRoomLighting gDryfieldDilapidatedHouseRoomLighting[1] = {
     { .lights = &_gDryfieldDilapidatedHouseRoomLights, .ambientTable = _gDryfieldDilapidatedHouseAmbientByView },
@@ -933,33 +953,53 @@ DirectionWarpEntry D_dryfield_dilapidated_house_80186974[2] = {
     { { { .word = 1024 }, -5403, 2, -400 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5184, 2, 200 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldDilapidatedHouseCollision09D24Normals[12] = {
+/// Room collision face normals, with 4096 representing unit length.
+static SVECTOR _gDryfieldDilapidatedHouseCollisionGridNormals[] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_normals.inc"
 };
 
-static SVECTOR _gDryfieldDilapidatedHouseCollision09D24Verts[116] = {
+/// Room collision vertices in signed room-local game coordinates.
+static SVECTOR _gDryfieldDilapidatedHouseCollisionGridVerts[] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldDilapidatedHouseCollision09D24Faces[70] = {
+/// Indexed room collision faces, using surface classes 0..2.
+static WorldCollisionGridFace _gDryfieldDilapidatedHouseCollisionGridFaces[] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_faces.inc"
 };
 
-static s16 _gDryfieldDilapidatedHouseCollision09D24Cells[208] = {
+/// Complete serialized pool of signed face-index lists, each ending in -1.
+static s16 _gDryfieldDilapidatedHouseCollisionGridCells[] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldDilapidatedHouseCollision09D24Cells[i])
-static s16* _gDryfieldDilapidatedHouseCollision09D24Table[6] = {
+#define GRID_CELL(i) (&_gDryfieldDilapidatedHouseCollisionGridCells[i])
+/// X-major pointers to the six face lists of the room's 3-by-2 collision grid.
+static s16* _gDryfieldDilapidatedHouseCollisionGridTable[] = {
 #include "assets/dryfield_dilapidated_house_collision_09D24_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_dilapidated_house_801872E4[1] = {
-    { NULL, _gDryfieldDilapidatedHouseCollision09D24Normals, _gDryfieldDilapidatedHouseCollision09D24Verts, _gDryfieldDilapidatedHouseCollision09D24Faces, _gDryfieldDilapidatedHouseCollision09D24Table, 6000, 3200, 3, 2, 4000, 70 },
+/// Room 1's collision mesh and 4000-unit XZ cell index.
+///
+/// The origin is (-6000, -3200), with three X cells and two Z cells. Activation
+/// binds the writable descriptor to the view; it and all borrowed pools must
+/// remain loaded until the active grid is retired.
+static WorldCollisionGrid _gDryfieldDilapidatedHouseCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldDilapidatedHouseCollisionGridNormals,
+    .vertices    = _gDryfieldDilapidatedHouseCollisionGridVerts,
+    .faces       = _gDryfieldDilapidatedHouseCollisionGridFaces,
+    .cellFaceIds = _gDryfieldDilapidatedHouseCollisionGridTable,
+    .xBias       = 6000,
+    .zBias       = 3200,
+    .cellCountX  = 3,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldDilapidatedHouseCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_dilapidated_house_80187308[21] = {
+ViewCamera gDryfieldDilapidatedHouseViewCameras[21] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 900, 0x4E20, 0 } }, 490 },
     { { { { 3872, 0, -1335 }, { -1200, 1793, -3481 }, { 584, 3682, 1695 } }, { 5380, 4300, 2840 } }, 207 },
     { { { { -2538, 0, 3214 }, { 1329, 3729, 1049 }, { -2926, 1694, -2310 } }, { 200, 2400, -200 } }, 257 },
@@ -1329,7 +1369,10 @@ static SpriteBatch _gDryfieldDilapidatedHouseView12SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_801888C4[21] = {
+/// View 13's texture rectangles, pixel positions and unscaled sorting depths.
+///
+/// The view's complete sprite range borrows this writable source array.
+static SpriteSource _gDryfieldDilapidatedHouseView13SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, 88, 125, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -144, 72, 125, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -128, 56, 125, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
@@ -1353,13 +1396,17 @@ SpriteSource D_dryfield_dilapidated_house_801888C4[21] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 48, 125, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188A68[3] = {
+/// View 13's complete sprite range after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView13SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldDilapidatedHouseView13SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_80188A80[13] = {
+/// View 14's texture rectangles, pixel positions and unscaled sorting depths.
+///
+/// The view's complete sprite range borrows this writable source array.
+static SpriteSource _gDryfieldDilapidatedHouseView14SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -32, 2000, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -16, -32, 2125, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -24, 24, 1875, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
@@ -1375,48 +1422,56 @@ SpriteSource D_dryfield_dilapidated_house_80188A80[13] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 56, -32, 1750, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188B84[3] = {
+/// View 14's complete sprite range after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView14SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldDilapidatedHouseView14SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188B9C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_dryfield_dilapidated_house_80188BAC[2] = {
+/// View 15's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView15SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188BBC[2] = {
+/// View 16's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView16SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188BCC[2] = {
+/// View 17's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView17SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188BDC[2] = {
+/// View 18's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView18SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188BEC[2] = {
+/// View 19's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView19SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188BFC[2] = {
+/// View 20's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView20SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_dilapidated_house_80188C0C[21] = {
+/// View 21's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView21SpriteBatches[] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+SpriteView gDryfieldDilapidatedHouseSpriteViews[21] = {
     { { .empty = _gDryfieldDilapidatedHouseView1SpriteBatches }, _gDryfieldDilapidatedHouseView1SpriteBatches, NULL },
     { { .elements = _gDryfieldDilapidatedHouseView2SpriteSources }, _gDryfieldDilapidatedHouseView2SpriteBatches, NULL },
     { { .elements = _gDryfieldDilapidatedHouseView3SpriteSources }, _gDryfieldDilapidatedHouseView3SpriteBatches, NULL },
@@ -1429,18 +1484,24 @@ SpriteView D_dryfield_dilapidated_house_80188C0C[21] = {
     { { .empty = _gDryfieldDilapidatedHouseView10SpriteBatches }, _gDryfieldDilapidatedHouseView10SpriteBatches, NULL },
     { { .elements = _gDryfieldDilapidatedHouseView11SpriteSources }, _gDryfieldDilapidatedHouseView11SpriteBatches, NULL },
     { { .empty = _gDryfieldDilapidatedHouseView12SpriteBatches }, _gDryfieldDilapidatedHouseView12SpriteBatches, NULL },
-    { { .elements = D_dryfield_dilapidated_house_801888C4 }, D_dryfield_dilapidated_house_80188A68, NULL },
-    { { .elements = D_dryfield_dilapidated_house_80188A80 }, D_dryfield_dilapidated_house_80188B84, NULL },
-    { { .empty = D_dryfield_dilapidated_house_80188B9C }, D_dryfield_dilapidated_house_80188B9C, NULL },
-    { { .empty = D_dryfield_dilapidated_house_80188BAC }, D_dryfield_dilapidated_house_80188BAC, NULL },
-    { { .empty = D_dryfield_dilapidated_house_80188BBC }, D_dryfield_dilapidated_house_80188BBC, NULL },
-    { { .empty = D_dryfield_dilapidated_house_80188BCC }, D_dryfield_dilapidated_house_80188BCC, NULL },
-    { { .empty = D_dryfield_dilapidated_house_80188BDC }, D_dryfield_dilapidated_house_80188BDC, NULL },
-    { { .empty = D_dryfield_dilapidated_house_80188BEC }, D_dryfield_dilapidated_house_80188BEC, NULL },
-    { { .empty = D_dryfield_dilapidated_house_80188BFC }, D_dryfield_dilapidated_house_80188BFC, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView13SpriteSources }, _gDryfieldDilapidatedHouseView13SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView14SpriteSources }, _gDryfieldDilapidatedHouseView14SpriteBatches, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView15SpriteBatches }, _gDryfieldDilapidatedHouseView15SpriteBatches, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView16SpriteBatches }, _gDryfieldDilapidatedHouseView16SpriteBatches, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView17SpriteBatches }, _gDryfieldDilapidatedHouseView17SpriteBatches, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView18SpriteBatches }, _gDryfieldDilapidatedHouseView18SpriteBatches, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView19SpriteBatches }, _gDryfieldDilapidatedHouseView19SpriteBatches, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView20SpriteBatches }, _gDryfieldDilapidatedHouseView20SpriteBatches, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView21SpriteBatches }, _gDryfieldDilapidatedHouseView21SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_dilapidated_house_80188D08[9] = {
+/// Directed view-change quads for room 1, including the final LAST record.
+///
+/// Source/destination pairs are 3->2, 2->3, 3->4, 4->3, 5->4, 6->5, 4->5,
+/// 5->6 and another 3->2 boundary. Activation binds and links the writable
+/// records; their room-local geometry uses game units. Keep the overlay
+/// loaded until they are unlinked.
+static WorldCollisionTrigger _gDryfieldDilapidatedHouseViewBoundaryTriggers[9] = {
     { NULL, NULL, NULL, { -4256, -2000, -2432, 0 }, { { 0, -3056, -2464, 0 }, { 0, -3056, 2432, 0 }, { 0, 3056, -2432, 0 }, { 0, 3056, 2464, 0 } }, { 4100, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3924, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -4064, -2080, -2368, 0 }, { { 0, -3104, 2272, 0 }, { 0, -3104, -2272, 0 }, { 0, 3104, 2272, 0 }, { 0, 3104, -2272, 0 } }, { -4106, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -1937, -1376, -1937, 0 }, { { -2182, -2400, 2208, 0 }, { 2183, -2400, -2207, 0 }, { -2182, 2400, 2208, 0 }, { 2183, 2400, -2207, 0 } }, { -2920, 0, -2887, 0 }, { 0, 0, 4096, 0 }, 3916, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1452,7 +1513,13 @@ WorldCollisionTrigger D_dryfield_dilapidated_house_80188D08[9] = {
     { NULL, NULL, NULL, { -4961, -2048, -2225, 0 }, { { -670, -3056, -1440, 0 }, { 660, -3056, 1411, 0 }, { -659, 3056, -1410, 0 }, { 671, 3056, 1441, 0 } }, { 3712, 1, -1733, 0 }, { 0, 0, 4096, 0 }, 3444, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_dilapidated_house_80188FB4[9] = {
+/// Room 1's interaction quads: two warps, six CAP commands and the encounter gate.
+///
+/// CAP commands 2, 3, 5, 18, 17 and 16 run outside battle; the automatic gate
+/// sends room action 1. The final LAST record remains an active CAP trigger.
+/// Geometry uses room-local game units; activation binds and links these
+/// writable records, which stay loaded until unlinked.
+static WorldCollisionTrigger _gDryfieldDilapidatedHouseActionTriggers[9] = {
     { NULL, NULL, NULL, { 1504, -52, -2768, 0 }, { { -768, 0, -400, 0 }, { 768, 0, -400, 0 }, { -768, 0, 400, 0 }, { 768, 0, 400, 0 } }, { 0, 4116, 0, 0 }, { 0, 0, 4096, 0 }, 865, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -5600, -52, 192, 0 }, { { 224, 0, -624, 0 }, { 224, 0, 624, 0 }, { -224, 0, -624, 0 }, { -224, 0, 624, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 662, WORLD_COLLISION_TRIGGER_ACTION_WARP, 7, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -4688, -64, 352, 0 }, { { -512, 0, -608, 0 }, { 512, 0, -608, 0 }, { -512, 0, 608, 0 }, { 512, 0, 608, 0 } }, { 0, 4101, 0, 0 }, { -4091, 0, 201, 0 }, 794, WORLD_COLLISION_TRIGGER_ACTION_CAP | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -2631,19 +2698,19 @@ ScreenWaveCtx D_dryfield_dilapidated_house_80189C94 = { 0 };
 
 SVECTOR D_dryfield_dilapidated_house_80189CA0[40];
 
-GfxCoord D_dryfield_dilapidated_house_80189DE0[8];
+/// Eight-frame circular history of the first twin-trail endpoint.
+///
+/// Local matrices retain world-space snapshots parented to `gGfxViewCoord`;
+/// composed matrices supply view-space translations to the ribbon drawer.
+/// All trail tasks share this storage, reseeding every slot on initialization.
+static GfxCoord _gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory[8];
 
-GfxCoord D_dryfield_dilapidated_house_8018A060[8];
-
-/// Prism corners in model space, eight per prism: `[0..3]` the lit ring and
-/// `[4..7]` the far ring. Callers pick a prism by passing 0, 8 or 0x10.
-extern SVECTOR D_dryfield_dilapidated_house_80186884[];
-
-/// Eight-slot trail coordinates, one array per end of the pair. Every entry is
-/// parented to `gGfxViewCoord`.
-extern GfxCoord D_dryfield_dilapidated_house_80189DE0[8];
-
-extern GfxCoord D_dryfield_dilapidated_house_8018A060[8];
+/// Circular history of the second endpoint, synchronized with the first history.
+///
+/// Uses the same world-space snapshots, view parent and age-masked slot index.
+/// All trail tasks share the array; it has no per-task allocation or release.
+static GfxCoord _gDryfieldDilapidatedHouseTwinTrailSecondEndpointHistory[ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory)];
+STATIC_ASSERT((ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory) & (ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory) - 1)) == 0, dryfieldDilapidatedHouseTrailHistoryPowerOfTwo);
 
 #include "../../shared/screen_wave.inc.c"
 
@@ -3258,9 +3325,9 @@ static void _dryfieldDilapidatedHouseDrawCurveControlPoints(Task* task)
     attachmentMtx = &parentWork->attachMtx;
     // Place markers in the attachment's frame, narrowing world XYZ to halfwords.
     do {
-        projection.point.vx = D_dryfield_dilapidated_house_801866B4[pointIndex].vx;
-        projection.point.vy = D_dryfield_dilapidated_house_801866B4[pointIndex].vy;
-        projection.point.vz = D_dryfield_dilapidated_house_801866B4[pointIndex].vz;
+        projection.point.vx = _gDryfieldDilapidatedHouseDebugCurveControlPoints[pointIndex].vx;
+        projection.point.vy = _gDryfieldDilapidatedHouseDebugCurveControlPoints[pointIndex].vy;
+        projection.point.vz = _gDryfieldDilapidatedHouseDebugCurveControlPoints[pointIndex].vz;
         gte_SetRotMatrix(attachmentMtx);
         gte_ldv0(&projection.point);
         gte_rtv0();
@@ -3302,7 +3369,7 @@ static void _dryfieldDilapidatedHouseDrawCurveControlPoints(Task* task)
         line->x1 = leftX;
         line->y1 = bottomY;
         addPrim(gGpuCurrentOt + DEBUG_OT_OFFSET, line);
-    } while (pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801866B4));
+    } while (pointIndex < ARRAY_SIZE(_gDryfieldDilapidatedHouseDebugCurveControlPoints));
 }
 
 /// Marks each debug Bezier segment with 21 projected crosses, green then blue.
@@ -3361,7 +3428,7 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
     attachmentMtx = &parentWork->attachMtx;
     // Keep the two segments distinct so their markers carry different colours.
     for (sampleIndex = CURVE_SUBDIVISIONS; sampleIndex >= 0; sampleIndex--) {
-        _bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4, D_dryfield_dilapidated_house_801866B4 + 3, CURVE_SUBDIVISIONS, sampleIndex, sampleXyz);
+        _bezierCurveEvaluate(_gDryfieldDilapidatedHouseDebugCurveControlPoints, _gDryfieldDilapidatedHouseDebugCurveControlPoints + 3, CURVE_SUBDIVISIONS, sampleIndex, sampleXyz);
         point.vx = sampleXyz[0];
         point.vy = sampleXyz[1];
         point.vz = sampleXyz[2];
@@ -3390,7 +3457,7 @@ static void _dryfieldDilapidatedHouseDrawCurveSamples(Task* task)
         addPrim(gGpuCurrentOt + DEBUG_OT_OFFSET, line);
     }
     for (sampleIndex = CURVE_SUBDIVISIONS; sampleIndex >= 0; sampleIndex--) {
-        _bezierCurveEvaluate(D_dryfield_dilapidated_house_801866B4 + 3, D_dryfield_dilapidated_house_801866B4 + 6, CURVE_SUBDIVISIONS, sampleIndex, sampleXyz);
+        _bezierCurveEvaluate(_gDryfieldDilapidatedHouseDebugCurveControlPoints + 3, _gDryfieldDilapidatedHouseDebugCurveControlPoints + 6, CURVE_SUBDIVISIONS, sampleIndex, sampleXyz);
         point.vx = sampleXyz[0];
         point.vy = sampleXyz[1];
         point.vz = sampleXyz[2];
@@ -3472,10 +3539,10 @@ static void _dryfieldDilapidatedHouseBuildCappedBeamPoints(Task* task, SVECTOR s
     work          = parentTask->work;
     attachmentMtx = &work->attachMtx;
     brightnessQ12 = work->beamLevel;
-    startPoint.vx = D_dryfield_dilapidated_house_80186794[0].vx;
-    startPoint.vy = D_dryfield_dilapidated_house_80186794[0].vy;
-    startPoint.vz = D_dryfield_dilapidated_house_80186794[0].vz;
-    endTemplate   = &D_dryfield_dilapidated_house_80186794[1];
+    startPoint.vx = _gDryfieldDilapidatedHouseCappedBeamEndpoints[0].vx;
+    startPoint.vy = _gDryfieldDilapidatedHouseCappedBeamEndpoints[0].vy;
+    startPoint.vz = _gDryfieldDilapidatedHouseCappedBeamEndpoints[0].vz;
+    endTemplate   = &_gDryfieldDilapidatedHouseCappedBeamEndpoints[1];
     endPoint.vx   = endTemplate->vx;
     endPoint.vy   = endTemplate->vy;
     endPoint.vz   = endTemplate->vz;
@@ -3519,18 +3586,18 @@ static void _dryfieldDilapidatedHouseBuildCappedBeamPoints(Task* task, SVECTOR s
     gte_SetRotMatrix(&screenRotation);
     // Reuse the endpoint vectors for cap offsets, retaining the start point's world Z.
     // Rotate their XY contours along the projected segment.
-    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801867A4); pointIndex++) {
-        startPoint.vx = D_dryfield_dilapidated_house_801867A4[pointIndex].vx * projectionDistance / *endDepth;
-        startPoint.vy = D_dryfield_dilapidated_house_801867A4[pointIndex].vy * projectionDistance / *endDepth;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(_gDryfieldDilapidatedHouseCappedBeamStartCapOffsets); pointIndex++) {
+        startPoint.vx = _gDryfieldDilapidatedHouseCappedBeamStartCapOffsets[pointIndex].vx * projectionDistance / *endDepth;
+        startPoint.vy = _gDryfieldDilapidatedHouseCappedBeamStartCapOffsets[pointIndex].vy * projectionDistance / *endDepth;
         gte_ldv0(&startPoint);
         gte_rtv0();
         gte_stsv(&endPoint);
         screenPoints[pointIndex].vx = endPoint.vx + startX;
         screenPoints[pointIndex].vy = endPoint.vy + startY;
     }
-    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801867D4); pointIndex++) {
-        startPoint.vx = D_dryfield_dilapidated_house_801867D4[pointIndex].vx * projectionDistance / *endDepth;
-        startPoint.vy = D_dryfield_dilapidated_house_801867D4[pointIndex].vy * projectionDistance / *endDepth;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(_gDryfieldDilapidatedHouseCappedBeamEndCapOffsets); pointIndex++) {
+        startPoint.vx = _gDryfieldDilapidatedHouseCappedBeamEndCapOffsets[pointIndex].vx * projectionDistance / *endDepth;
+        startPoint.vy = _gDryfieldDilapidatedHouseCappedBeamEndCapOffsets[pointIndex].vy * projectionDistance / *endDepth;
         gte_ldv0(&startPoint);
         gte_rtv0();
         gte_stsv(&endPoint);
@@ -3539,18 +3606,18 @@ static void _dryfieldDilapidatedHouseBuildCappedBeamPoints(Task* task, SVECTOR s
     }
     // Pulse enlarged halo caps around the same endpoints and depth as the core.
     haloScaleQ12 = ONE - rsin(task->killCountdown) * 0.5 + ONE;
-    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801867A4); pointIndex++) {
-        startPoint.vx = ((D_dryfield_dilapidated_house_801867A4[pointIndex].vx * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
-        startPoint.vy = ((D_dryfield_dilapidated_house_801867A4[pointIndex].vy * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(_gDryfieldDilapidatedHouseCappedBeamStartCapOffsets); pointIndex++) {
+        startPoint.vx = ((_gDryfieldDilapidatedHouseCappedBeamStartCapOffsets[pointIndex].vx * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
+        startPoint.vy = ((_gDryfieldDilapidatedHouseCappedBeamStartCapOffsets[pointIndex].vy * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
         gte_ldv0(&startPoint);
         gte_rtv0();
         gte_stsv(&endPoint);
         screenPoints[pointIndex + 2 * DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT].vx = endPoint.vx + startX;
         screenPoints[pointIndex + 2 * DRYFIELD_DILAPIDATED_HOUSE_BEAM_CAP_POINT_COUNT].vy = endPoint.vy + startY;
     }
-    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_801867D4); pointIndex++) {
-        startPoint.vx = ((D_dryfield_dilapidated_house_801867D4[pointIndex].vx * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
-        startPoint.vy = ((D_dryfield_dilapidated_house_801867D4[pointIndex].vy * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(_gDryfieldDilapidatedHouseCappedBeamEndCapOffsets); pointIndex++) {
+        startPoint.vx = ((_gDryfieldDilapidatedHouseCappedBeamEndCapOffsets[pointIndex].vx * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
+        startPoint.vy = ((_gDryfieldDilapidatedHouseCappedBeamEndCapOffsets[pointIndex].vy * haloScaleQ12) >> GLOW_TRIG_SHIFT) * projectionDistance / *endDepth;
         gte_ldv0(&startPoint);
         gte_rtv0();
         gte_stsv(&endPoint);
@@ -3711,8 +3778,8 @@ static void _dryfieldDilapidatedHouseBuildMorphConeRings(Task* task, SVECTOR* ri
     parentTask = task->spawnArg2.pointer;
     parentWork = parentTask->work;
 
-    innerCentre       = D_dryfield_dilapidated_house_80186844;
-    outerCentre       = D_dryfield_dilapidated_house_80186844 + 1;
+    innerCentre       = _gDryfieldDilapidatedHouseConeRingCenters;
+    outerCentre       = _gDryfieldDilapidatedHouseConeRingCenters + 1;
     ringCentres[0].vx = innerCentre->vx;
     ringCentres[0].vy = innerCentre->vy;
     ringCentres[0].vz = innerCentre->vz;
@@ -3752,7 +3819,7 @@ static void _dryfieldDilapidatedHouseBuildMorphConeRings(Task* task, SVECTOR* ri
         // Ripple the outer ring along its axis, then advance that vertex's phase.
         outerVertex->vz = ringCentres[1].vz + ((rsin(coneWork->rimPhase[vertexIndex] >> 2) * RIM_RIPPLE_AMPLITUDE) >> GLOW_TRIG_SHIFT);
 
-        coneWork->rimPhase[vertexIndex] = (coneWork->rimPhase[vertexIndex] + D_dryfield_dilapidated_house_80186804[vertexIndex]) &
+        coneWork->rimPhase[vertexIndex] = (coneWork->rimPhase[vertexIndex] + _gDryfieldDilapidatedHouseConeRimPhaseRates[vertexIndex]) &
                                           (DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD - 1);
 
         gte_ldv0(outerVertex);
@@ -4151,7 +4218,7 @@ static void _dryfieldDilapidatedHouseMorphConeInit(Task* task)
     }
     task->work = work;
     for (vertexIndex = 0; vertexIndex < ARRAY_SIZE(work->rimPhase); vertexIndex++) {
-        work->rimPhase[vertexIndex] = (D_dryfield_dilapidated_house_80186804[vertexIndex] * task->spawnArg1.value) &
+        work->rimPhase[vertexIndex] = (_gDryfieldDilapidatedHouseConeRimPhaseRates[vertexIndex] * task->spawnArg1.value) &
                                       (DRYFIELD_DILAPIDATED_HOUSE_CONE_RIM_PHASE_PERIOD - 1);
     }
     parentTask    = task->spawnArg2.pointer;
@@ -4195,7 +4262,7 @@ static void _dryfieldDilapidatedHouseDrawLightPrism(GfxCoord* coord, s16 firstVe
     /// evaluated once. Each axis narrows to s16. Expands several statements, so
     /// use only as a standalone sequence here, never as an unbraced branch body.
 #define DRYFIELD_DILAPIDATED_HOUSE_TRANSFORM_PRISM_CORNER(vertexIndex, worldIndex)                         \
-    gte_ldv0(&D_dryfield_dilapidated_house_80186884[(vertexIndex)]);                                       \
+    gte_ldv0(&_gDryfieldDilapidatedHouseLightPrismVertices[(vertexIndex)]);                                \
     gte_rtv0();                                                                                            \
     gte_stsv(&scratch->vertices[(worldIndex)]);                                                            \
     scratch->vertices[(worldIndex)].vx = (u16)scratch->vertices[(worldIndex)].vx + (u16)coord->workm.t[0]; \
@@ -4313,7 +4380,7 @@ void dryfieldDilapidatedHouseTwinTrailTask(Task* task)
     enum {
         TRAIL_INITIALIZE,
         TRAIL_RECORD,
-        TRAIL_SLOT_MASK         = ARRAY_SIZE(D_dryfield_dilapidated_house_80189DE0) - 1,
+        TRAIL_SLOT_MASK         = ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory) - 1,
         TRAIL_COLOR_MULTIPLIERS = (2 << 8) | (1 << 4),
     };
 
@@ -4333,23 +4400,23 @@ void dryfieldDilapidatedHouseTwinTrailTask(Task* task)
             case TRAIL_INITIALIZE:
                 // Seed both histories so the first ribbon starts collapsed.
                 firstEndpointCoord->parent       = work->parent;
-                firstEndpointCoord->coord.t[0]   = D_dryfield_dilapidated_house_80186944[0].vx;
-                firstEndpointCoord->coord.t[1]   = D_dryfield_dilapidated_house_80186944[0].vy;
-                firstEndpointCoord->coord.t[2]   = D_dryfield_dilapidated_house_80186944[0].vz;
+                firstEndpointCoord->coord.t[0]   = _gDryfieldDilapidatedHouseTwinTrailEndpointOffsets[0].vx;
+                firstEndpointCoord->coord.t[1]   = _gDryfieldDilapidatedHouseTwinTrailEndpointOffsets[0].vy;
+                firstEndpointCoord->coord.t[2]   = _gDryfieldDilapidatedHouseTwinTrailEndpointOffsets[0].vz;
                 firstEndpointCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(firstEndpointCoord);
                 task->state                      = TRAIL_RECORD;
                 secondEndpointCoord.parent       = work->parent;
-                initialOffset                    = &D_dryfield_dilapidated_house_80186944[1];
+                initialOffset                    = &_gDryfieldDilapidatedHouseTwinTrailEndpointOffsets[1];
                 secondEndpointCoord.coord.t[0]   = initialOffset->vx;
                 secondEndpointCoord.coord.t[1]   = initialOffset->vy;
                 secondEndpointCoord.coord.t[2]   = initialOffset->vz;
                 secondEndpointCoord.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&secondEndpointCoord);
-                for (slotIndex = 0; slotIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_80189DE0); slotIndex++) {
-                    historyFrame = &D_dryfield_dilapidated_house_80189DE0[slotIndex];
+                for (slotIndex = 0; slotIndex < ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory); slotIndex++) {
+                    historyFrame = &_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory[slotIndex];
                     _dryfieldDilapidatedHouseStoreTrailFrame(historyFrame, firstEndpointCoord);
-                    historyFrame = &D_dryfield_dilapidated_house_8018A060[slotIndex];
+                    historyFrame = &_gDryfieldDilapidatedHouseTwinTrailSecondEndpointHistory[slotIndex];
                     _dryfieldDilapidatedHouseStoreTrailFrame(historyFrame, &secondEndpointCoord);
                 }
                 return;
@@ -4360,22 +4427,22 @@ void dryfieldDilapidatedHouseTwinTrailTask(Task* task)
                 actorRenderComposeCoord(firstEndpointCoord);
                 secondEndpointCoord.parent = work->parent;
                 {
-                    SVECTOR* updateOffset          = &D_dryfield_dilapidated_house_80186944[1];
+                    SVECTOR* updateOffset          = &_gDryfieldDilapidatedHouseTwinTrailEndpointOffsets[1];
                     secondEndpointCoord.coord.t[0] = updateOffset->vx;
                     secondEndpointCoord.coord.t[1] = updateOffset->vy;
                     secondEndpointCoord.coord.t[2] = updateOffset->vz;
                 }
                 secondEndpointCoord.composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(&secondEndpointCoord);
-                historyFrame = &D_dryfield_dilapidated_house_80189DE0[work->age & TRAIL_SLOT_MASK];
+                historyFrame = &_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory[work->age & TRAIL_SLOT_MASK];
                 _dryfieldDilapidatedHouseStoreTrailFrame(historyFrame, firstEndpointCoord);
-                historyFrame = &D_dryfield_dilapidated_house_8018A060[work->age & TRAIL_SLOT_MASK];
+                historyFrame = &_gDryfieldDilapidatedHouseTwinTrailSecondEndpointHistory[work->age & TRAIL_SLOT_MASK];
                 _dryfieldDilapidatedHouseStoreTrailFrame(historyFrame, &secondEndpointCoord);
-                for (slotIndex = 0; slotIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_80189DE0); slotIndex++) {
-                    historyFrame               = &D_dryfield_dilapidated_house_80189DE0[slotIndex];
+                for (slotIndex = 0; slotIndex < ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory); slotIndex++) {
+                    historyFrame               = &_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory[slotIndex];
                     historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(historyFrame);
-                    historyFrame               = &D_dryfield_dilapidated_house_8018A060[slotIndex];
+                    historyFrame               = &_gDryfieldDilapidatedHouseTwinTrailSecondEndpointHistory[slotIndex];
                     historyFrame->composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(historyFrame);
                 }
@@ -4398,7 +4465,7 @@ void dryfieldDilapidatedHouseTwinTrailTask(Task* task)
 static void _dryfieldDilapidatedHouseDrawTwinTrail(s16 newestSlot, s16 colorMultipliers)
 {
     enum {
-        TRAIL_SLOT_MASK          = ARRAY_SIZE(D_dryfield_dilapidated_house_80189DE0) - 1,
+        TRAIL_SLOT_MASK          = ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory) - 1,
         TRAIL_INITIAL_INTENSITY  = 64,
         TRAIL_INTENSITY_STEP     = 9,
         TRAIL_MIN_DEPTH          = 17,
@@ -4422,22 +4489,22 @@ static void _dryfieldDilapidatedHouseDrawTwinTrail(s16 newestSlot, s16 colorMult
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     // Newer endpoint pairs form the bright edge; older pairs form the dim edge.
-    for (segmentIndex = 0; segmentIndex < ARRAY_SIZE(D_dryfield_dilapidated_house_80189DE0) - 1; segmentIndex++) {
+    for (segmentIndex = 0; segmentIndex < ARRAY_SIZE(_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory) - 1; segmentIndex++) {
         frameIndex             = newestSlot - segmentIndex;
         newerSlot              = frameIndex & TRAIL_SLOT_MASK;
         olderSlot              = (frameIndex - 1) & TRAIL_SLOT_MASK;
-        firstEndpointFrame     = &D_dryfield_dilapidated_house_80189DE0[newerSlot];
+        firstEndpointFrame     = &_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory[newerSlot];
         scratch->corners[0].vx = (u16)firstEndpointFrame->workm.t[0];
         scratch->corners[0].vy = (u16)firstEndpointFrame->workm.t[1];
-        secondEndpointFrame    = &D_dryfield_dilapidated_house_8018A060[newerSlot];
+        secondEndpointFrame    = &_gDryfieldDilapidatedHouseTwinTrailSecondEndpointHistory[newerSlot];
         scratch->corners[0].vz = (u16)firstEndpointFrame->workm.t[2];
         scratch->corners[1].vx = (u16)secondEndpointFrame->workm.t[0];
         scratch->corners[1].vy = (u16)secondEndpointFrame->workm.t[1];
-        firstEndpointFrame     = &D_dryfield_dilapidated_house_80189DE0[olderSlot];
+        firstEndpointFrame     = &_gDryfieldDilapidatedHouseTwinTrailFirstEndpointHistory[olderSlot];
         scratch->corners[1].vz = (u16)secondEndpointFrame->workm.t[2];
         scratch->corners[2].vx = (u16)firstEndpointFrame->workm.t[0];
         scratch->corners[2].vy = (u16)firstEndpointFrame->workm.t[1];
-        secondEndpointFrame    = &D_dryfield_dilapidated_house_8018A060[olderSlot];
+        secondEndpointFrame    = &_gDryfieldDilapidatedHouseTwinTrailSecondEndpointHistory[olderSlot];
         scratch->corners[2].vz = (u16)firstEndpointFrame->workm.t[2];
         scratch->corners[3].vx = (u16)secondEndpointFrame->workm.t[0];
         scratch->corners[3].vy = (u16)secondEndpointFrame->workm.t[1];

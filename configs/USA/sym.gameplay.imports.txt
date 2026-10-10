@@ -1665,7 +1665,7 @@ D_shelter_b4_lower_sewer_80183D48 = 0x80183D48; // absolute:True owner=shelter_b
 
 D_shelter_b4_reservoir_80187350 = 0x80187350; // absolute:True owner=shelter_b4_reservoir
 
-D_shelter_b4_upper_sewer_80188B9C = 0x80188B9C; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
+D_shelter_b4_upper_sewer_80188B9C = 0x80188B9C; // absolute:True owner=shelter_b4_upper_sewer
 
 D_shelter_b4_water_supply_80184CA4 = 0x80184CA4; // absolute:True owner=shelter_b4_water_supply shared=rooms
 

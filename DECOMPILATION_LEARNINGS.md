@@ -78514,7 +78514,7 @@ strength-reduced bivs the target has.
 
 ```c
 for (vertexIndex = 0; vertexIndex < 0x10; vertexIndex++) {
-    work->rimPhase[vertexIndex] = (D_dryfield_dilapidated_house_80186804[vertexIndex] * task->spawnArg1.value) & 0x3FFF;
+    work->rimPhase[vertexIndex] = (_gDryfieldDilapidatedHouseConeRimPhaseRates[vertexIndex] * task->spawnArg1.value) & 0x3FFF;
 }
 ```
 
