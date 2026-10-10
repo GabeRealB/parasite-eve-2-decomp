@@ -490,15 +490,15 @@ gShelterB4ReservoirSpriteViews = 0x80186730; // absolute:True owner=shelter_b4_r
 gShelterB4ReservoirSurfacePropertiesByClass = 0x80187480; // absolute:True owner=shelter_b4_reservoir
 shelterB4WaterSupplyRoomTask = 0x8017DDA4; // type:func absolute:True owner=shelter_b4_water_supply
 gShelterB4WaterSupplyViewMaps = 0x8018273C; // absolute:True owner=shelter_b4_water_supply
-D_shelter_b4_water_supply_80182740 = 0x80182740; // absolute:True owner=shelter_b4_water_supply
-D_shelter_b4_water_supply_80182744 = 0x80182744; // absolute:True owner=shelter_b4_water_supply
-D_shelter_b4_water_supply_80182E3C = 0x80182E3C; // absolute:True owner=shelter_b4_water_supply
+gShelterB4WaterSupplyViewCounts = 0x80182740; // absolute:True owner=shelter_b4_water_supply
+gShelterB4WaterSupplyWarpEntries = 0x80182744; // absolute:True owner=shelter_b4_water_supply
+gShelterB4WaterSupplyCollisionGrid = 0x80182E3C; // absolute:True owner=shelter_b4_water_supply
 gShelterB4WaterSupplyViewCameras = 0x80182E60; // absolute:True owner=shelter_b4_water_supply shared=rooms
 gShelterB4WaterSupplySpriteViews = 0x80183F90; // absolute:True owner=shelter_b4_water_supply
 gShelterB4WaterSupplyRoomLights = 0x801843D4; // absolute:True owner=shelter_b4_water_supply
-D_shelter_b4_water_supply_801843EC = 0x801843EC; // absolute:True owner=shelter_b4_water_supply
-D_shelter_b4_water_supply_80184944 = 0x80184944; // absolute:True owner=shelter_b4_water_supply
-D_shelter_b4_water_supply_80184D04 = 0x80184D04; // absolute:True owner=shelter_b4_water_supply shared=rooms
+gShelterB4WaterSupplyViewBoundaryTriggers = 0x801843EC; // absolute:True owner=shelter_b4_water_supply
+gShelterB4WaterSupplyActionTriggers = 0x80184944; // absolute:True owner=shelter_b4_water_supply
+gShelterB4WaterSupplyOccluders = 0x80184D04; // absolute:True owner=shelter_b4_water_supply shared=rooms
 gShelterB4WaterSupplyRoomAmbient = 0x80184D7C; // absolute:True owner=shelter_b4_water_supply
 gShelterB4WaterSupplySurfacePropertiesByClass = 0x80184E14; // absolute:True owner=shelter_b4_water_supply
 shelterR47RoomTask = 0x801807B4; // type:func absolute:True owner=shelter_r47

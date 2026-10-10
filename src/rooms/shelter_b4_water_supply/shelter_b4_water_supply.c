@@ -68,38 +68,6 @@
 static void _waterDrawSpin(const GfxCoord* coord, s16 textureColumn, s16 radiusScale, s16 spinAngle);
 static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScale);
 
-/// Descriptor of the departure task spawned once the event block is staged.
-extern TaskDesc D_shelter_b4_water_supply_801825E4;
-
-/// The room's message table, installed by the room task's first state.
-extern TaskMessageEntry D_shelter_b4_water_supply_801825F0[];
-
-/// Task table spawned by `_shelterB4WaterSupplyHandleRoomAction` once the
-/// valve script has run.
-extern TaskDesc D_shelter_b4_water_supply_80182620[];
-
-/// Tasks the room task's first state spawns.
-extern TaskDesc D_shelter_b4_water_supply_8018263C[];
-
-/// The room's water surfaces whose strips run along X.
-extern RoomCompactWaterSurface D_shelter_b4_water_supply_8018265C[];
-
-/// End-point pairs of the light beams the room task draws per view.
-extern SVECTOR D_shelter_b4_water_supply_80182670[];
-extern SVECTOR D_shelter_b4_water_supply_80182680[];
-
-/// Last-frame world positions of the two tracked parts of the slot-3 task's
-/// model, compared against this frame's to measure how far each moved.
-extern SVECTOR D_shelter_b4_water_supply_801826E0[];
-
-/// Spawn argument for the task `_shelterB4WaterSupplyUpperSewerDepartureTask` starts
-/// with `taskSpawn(1, 0x31, ...)`.
-extern RoomFadeStorage D_shelter_b4_water_supply_80184E34;
-
-/// Staging save location the spawned task reads: area / `field_4` /
-/// `field_1` receive the outgoing location's `field_0` / `field_2` / `field_3`.
-extern RoomEventMsg D_shelter_b4_water_supply_80184E3C;
-
 /// The staged event block, read by the departure task.
 extern RoomDeparture gRoomDeparture;
 
@@ -127,30 +95,50 @@ static s32  _shelterB4WaterSupplyHandleSound(Task* task, s32 messageId, s32 soun
 static void _shelterB4WaterSupplyFirstValveDepartureTask(Task* task);
 static void _shelterB4WaterSupplyWaterTask(Task* task);
 
-enum { SHELTER_B4_WATER_SUPPLY_MESSAGE_USE_KEY_ITEM = 5105 };
+enum {
+    SHELTER_B4_WATER_SUPPLY_DEPARTURE_PRIORITY = 32,
+    SHELTER_B4_WATER_SUPPLY_WATER_PRIORITY     = 96,
+};
 
-TaskDesc D_shelter_b4_water_supply_801825E4 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
+/// Bodyless Water Hole departure recipe, borrowing the staged `gRoomDeparture`.
+///
+/// Both spawn arguments are unused. The room and staging must outlive the task;
+/// the descriptor itself is read only during spawning.
+static TaskDesc _gShelterB4WaterSupplyWaterHoleDepartureTaskDesc = { { { TASK_BODY_NONE, SHELTER_B4_WATER_SUPPLY_DEPARTURE_PRIORITY } }, roomEventDepartureTask, { .value = 0 } };
 
-TaskMessageEntry D_shelter_b4_water_supply_801825F0[6] = {
+/// Synchronous message handlers borrowed by the initialized room receiver.
+///
+/// Resolve uses request/reply `RoomEventMsg` pointers; room action borrows a
+/// `DirectionActionRequest`. Key-item, command and sound payloads are integer
+/// words. The final record makes unsupported messages return zero. Keep the
+/// room overlay loaded while the receiver holds this table.
+static TaskMessageEntry _gShelterB4WaterSupplyRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB4WaterSupplyResolveRoomEvent },
-    { SHELTER_B4_WATER_SUPPLY_MESSAGE_USE_KEY_ITEM, _shelterB4WaterSupplyRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB4WaterSupplyRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4WaterSupplyHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB4WaterSupplyIgnoreCommand },
     { ROOM_MESSAGE_SOUND, _shelterB4WaterSupplyHandleSound },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b4_water_supply_80182620[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _shelterB4WaterSupplyFirstValveDepartureTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterB4WaterSupplyUpperSewerDepartureTask, { .value = 0 } },
+/// Indexed bodyless departure recipes: first valve use (0), upper sewer (1).
+///
+/// Slot 0 waits for the active valve CAP; slot 1 receives a CAP command ID in
+/// the first spawn word and borrows the staged upper-sewer destination.
+/// The second spawn word is unused. These are indexed entries with no terminator.
+static TaskDesc _gShelterB4WaterSupplyDepartureTaskDescs[] = {
+    { { { TASK_BODY_NONE, SHELTER_B4_WATER_SUPPLY_DEPARTURE_PRIORITY } }, _shelterB4WaterSupplyFirstValveDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B4_WATER_SUPPLY_DEPARTURE_PRIORITY } }, _shelterB4WaterSupplyUpperSewerDepartureTask, { .value = 0 } },
 };
 
 /// Undisplaced Y of both water rectangles in signed world units, published to the session.
 static s16 _gShelterB4WaterSupplyWaterY = -2500;
 
-TaskDesc D_shelter_b4_water_supply_8018263C[1] = {
-    { { { TASK_BODY_NONE, 96 } }, _shelterB4WaterSupplyWaterTask, { .value = 0 } },
-};
+/// Bodyless water-rendering recipe started when the room receiver initializes.
+///
+/// Spawn arguments are unused; the task borrows this room's water geometry and
+/// an actor-load packet arena until room teardown.
+static TaskDesc _gShelterB4WaterSupplyWaterTaskDesc = { { { TASK_BODY_NONE, SHELTER_B4_WATER_SUPPLY_WATER_PRIORITY } }, _shelterB4WaterSupplyWaterTask, { .value = 0 } };
 
 /// The Z-running water rectangle, followed by the compact descriptor's list end.
 static RoomCompactWaterSurface _gShelterB4WaterSupplyWaterWaveSurfaces[] = {
@@ -158,142 +146,129 @@ static RoomCompactWaterSurface _gShelterB4WaterSupplyWaterWaveSurfaces[] = {
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-RoomCompactWaterSurface D_shelter_b4_water_supply_8018265C[2] = {
+/// X-running water rectangle in world X/Z units, followed by the list end.
+///
+/// Its 8150-by-1800 extent is drawn as two strips of sixteen quads, sharing the
+/// room's water Y. The sentinel is part of the complete two-record list.
+static RoomCompactWaterSurface _gShelterB4WaterSupplyXWaterWaveSurfaces[] = {
     { 4400, -1900, 8150, 1800, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-SVECTOR D_shelter_b4_water_supply_80182670[2] = {
+/// World-space endpoints of the light beam drawn in mapped views 2, 3 and 4.
+static SVECTOR _gShelterB4WaterSupplyViews234LightBeamEndpoints[] = {
     { 0x36C4, -5130, -1910, 0 },
     { 0x337C, -4540, -1910, 0 },
 };
 
-SVECTOR D_shelter_b4_water_supply_80182680[2] = {
+/// World-space endpoints of the light beam drawn in mapped views 5 and 6.
+static SVECTOR _gShelterB4WaterSupplyViews56LightBeamEndpoints[] = {
     { 6520, -3790, -1910, 0 },
     { 5500, -3790, -1910, 0 },
 };
 
-// Indexed views below share one contiguous table.
-SVECTOR D_shelter_b4_water_supply_80182690[10] = {
-    { 10480, -3840, -100, 0 },
-    { 9500, -3750, -100, 0 },
-    { 1990, -5790, -80, 0 },
-    { 1000, -5790, -80, 0 },
-    { 10920, -3790, -3560, 0 },
-    { 10920, -3790, -4550, 0 },
-    { 10920, -3790, -11570, 0 },
-    { 10920, -3790, -12550, 0 },
-    { 9130, -3790, -7950, 0 },
-    { 9130, -3790, -6970, 0 },
+/// Five world-space endpoint pairs selected by the mapped view's light beams.
+///
+/// Pairs 0/2 draw in views 4 and 8, pair 1 in views 6 and 7, pair 3 in views
+/// 9..11 and pair 4 additionally in view 9. Each drawer borrows both points.
+static SVECTOR _gShelterB4WaterSupplyLightBeamEndpoints[][2] = {
+    { { 10480, -3840, -100, 0 }, { 9500, -3750, -100, 0 } },
+    { { 1990, -5790, -80, 0 }, { 1000, -5790, -80, 0 } },
+    { { 10920, -3790, -3560, 0 }, { 10920, -3790, -4550, 0 } },
+    { { 10920, -3790, -11570, 0 }, { 10920, -3790, -12550, 0 } },
+    { { 9130, -3790, -7950, 0 }, { 9130, -3790, -6970, 0 } },
 };
 
-SVECTOR D_shelter_b4_water_supply_801826E0[2] = { 0 };
+/// View-space splash-position history for player-model coordinates 14 and 17.
+///
+/// XYZ narrow to signed halfwords. Initialization samples the existing composed
+/// matrices; later samples refresh them and compare full-width translations.
+/// Paused or out-of-water sampling retains these positions, so movement is
+/// measured since the last sample. The vector's fourth halfword is unused.
+static SVECTOR _gShelterB4WaterSupplyPlayerSplashPositionHistory[2] = { 0 };
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-// Four 16-byte direction-facing rows used by directionAwaitStairClimb.
-u8 D_shelter_b4_water_supply_801826FC[64] = {
-    2,
-    2,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    0,
-    2,
-    2,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    0,
-    0,
-    0,
+u8 gShelterB4WaterSupplyStairSurfaceRows[4][16] = {
+    { 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+    { 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0 },
+    { 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 },
+    { 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0 },
 };
 
 u8* gShelterB4WaterSupplyViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b4_water_supply_80182740[1] = { 11 };
+ViewCount gShelterB4WaterSupplyViewCounts[1] = { 11 };
 
-DirectionWarpEntry D_shelter_b4_water_supply_80182744[3] = {
-    { { { .word = 1024 }, 640, -4000, -1024 }, { 0, 0, 0, 0 }, { { .word = 768 }, 5350, -2000, -1600 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x542E0005, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, 9450, -2000, -0x32C8 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 0x283C, -2000, -0x3520 }, { 0, 0, 0, 0 }, 0x542E0002, 0x542E0001, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 0x3CF0, -3600, -1000 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x3CF0, -3600, -1000 }, { 0, 0, 0, 0 }, 0x542E0004, DIRECTION_WARP_SOUND_NONE, 0x542E0006, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_WATER },
+DirectionWarpEntry gShelterB4WaterSupplyWarpEntries[3] = {
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 640, -4000, -1024 },
+      .companion      = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 16 }, 5350, -2000, -1600 },
+      .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+      .departureSound = SOUND_SHELTER_B4_WATER_SUPPLY_EXIT_TRANSIT,
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 7,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 9450, -2000, -13000 },
+      .companion      = { { .word = 15 * ACTOR_TRANSFORM_ANGLE_TURN / 16 }, 10300, -2000, -13600 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, 2),
+      .departureSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, 1),
+      .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+      .initialView    = 11,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE },
+    { .player         = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 15600, -3600, -1000 },
+      .companion      = { { .word = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4 }, 15600, -3600, -1000 },
+      .arrivalSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, 4),
+      .departureSound = DIRECTION_WARP_SOUND_NONE,
+      .blockedSound   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, 6),
+      .initialView    = 2,
+      .flags          = DIRECTION_WARP_FLAG_NONE,
+      .mapFlagId      = GAME_FLAG_MAP_MARK_WATER },
 };
 
-static SVECTOR _gShelterB4WaterSupplyCollision0587CNormals[12] = {
+/// Collision-grid face normals in room space, with 4096 representing unit length.
+static SVECTOR _gShelterB4WaterSupplyCollisionGridNormals[] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_normals.inc"
 };
 
-static SVECTOR _gShelterB4WaterSupplyCollision0587CVerts[59] = {
+/// Collision-grid vertices in signed room-space game units.
+static SVECTOR _gShelterB4WaterSupplyCollisionGridVerts[] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB4WaterSupplyCollision0587CFaces[45] = {
+/// Collision-grid faces indexing this asset's vertex and normal pools.
+static WorldCollisionGridFace _gShelterB4WaterSupplyCollisionGridFaces[] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_faces.inc"
 };
 
-static s16 _gShelterB4WaterSupplyCollision0587CCells[222] = {
+/// Concatenated cell face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB4WaterSupplyCollisionGridCells[] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB4WaterSupplyCollision0587CCells[i])
-static s16* _gShelterB4WaterSupplyCollision0587CTable[16] = {
+#define GRID_CELL(i) (&_gShelterB4WaterSupplyCollisionGridCells[i])
+/// X-major 4-by-4 collision-cell directory; NULL entries contain no faces.
+static s16* _gShelterB4WaterSupplyCollisionGridTable[] = {
 #include "assets/shelter_b4_water_supply_collision_0587C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b4_water_supply_80182E3C = { NULL, _gShelterB4WaterSupplyCollision0587CNormals, _gShelterB4WaterSupplyCollision0587CVerts, _gShelterB4WaterSupplyCollision0587CFaces, _gShelterB4WaterSupplyCollision0587CTable, -400, 0x364C, 4, 4, 4000, 45 };
+WorldCollisionGrid gShelterB4WaterSupplyCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB4WaterSupplyCollisionGridNormals,
+    .vertices    = _gShelterB4WaterSupplyCollisionGridVerts,
+    .faces       = _gShelterB4WaterSupplyCollisionGridFaces,
+    .cellFaceIds = _gShelterB4WaterSupplyCollisionGridTable,
+    .xBias       = -400,
+    .zBias       = 13900,
+    .cellCountX  = 4,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB4WaterSupplyCollisionGridFaces),
+};
 
 ViewCamera gShelterB4WaterSupplyViewCameras[11] = {
     { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -6828, 0x7D00, 6785 } }, 447 },
@@ -676,7 +651,7 @@ WorldCoordRoomLights gShelterB4WaterSupplyRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b4_water_supply_801843EC[18] = {
+WorldCollisionTrigger gShelterB4WaterSupplyViewBoundaryTriggers[18] = {
     { NULL, NULL, NULL, { 0x359F, -3328, -1152, 0 }, { { 0, -4160, 1376, 0 }, { 0, -4160, -1376, 0 }, { 0, 4160, 1376, 0 }, { 0, 4160, -1376, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4374, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x3541, -3392, -1089, 0 }, { { 0, -4160, -1504, 0 }, { 0, -4160, 1504, 0 }, { 0, 4160, -1504, 0 }, { 0, 4160, 1504, 0 } }, { 4100, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4404, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x2DE0, -3361, -1056, 0 }, { { 0, -4160, 1376, 0 }, { 0, -4160, -1376, 0 }, { 0, 4160, 1376, 0 }, { 0, 4160, -1376, 0 } }, { -4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4374, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -697,14 +672,25 @@ WorldCollisionTrigger D_shelter_b4_water_supply_801843EC[18] = {
     { NULL, NULL, NULL, { 9984, -3616, -0x2E40, 0 }, { { -1408, -4160, -16, 0 }, { 1408, -4160, 16, 0 }, { -1408, 4160, -16, 0 }, { 1408, 4160, 16, 0 } }, { 46, 0, -4109, 0 }, { 0, 0, 4096, 0 }, 4374, 0, 11, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b4_water_supply_80184944[7] = {
-    { NULL, NULL, NULL, { 2496, -4063, -1056, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 170, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4800, -2056, -1056, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4095, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_FACING, 170, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2FA0, -2064, -1056, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4097, 0, -39, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_FACING, 184, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3640, -3647, -1024, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 184, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9536, -2072, -0x32D0, 0 }, { { -416, 0, -944, 0 }, { 416, 0, -944, 0 }, { -416, 0, 944, 0 }, { 416, 0, 944, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_WARP, 45, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 544, -4062, -1120, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, 44, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3D40, -3645, -1024, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 32, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed stair and warp selectors used by this room's action triggers.
+enum {
+    SHELTER_B4_WATER_SUPPLY_STAIR_DESCEND       = 1 << 8,
+    SHELTER_B4_WATER_SUPPLY_STAIR_FLIGHT_2      = 0x80 | (2 << 4) | 10, // Indexed surfaces, flight 2, ten steps
+    SHELTER_B4_WATER_SUPPLY_STAIR_FLIGHT_3      = 0x80 | (3 << 4) | 8,  // Indexed surfaces, flight 3, eight steps
+    SHELTER_B4_WATER_SUPPLY_STAIR_YAW_SHIFT     = 4,                    // Parameter1 uses sixteen angle units per step
+    SHELTER_B4_WATER_SUPPLY_RESERVOIR_WARP      = (2 << 4) | 1,         // Departure warp 2, destination arrival 1
+    SHELTER_B4_WATER_SUPPLY_UPPER_SEWER_WARP    = (1 << 4) | 3,         // Departure warp 1, destination arrival 3
+    SHELTER_B4_WATER_SUPPLY_VALVE_TRAVEL_ACTION = 10,
+};
+
+WorldCollisionTrigger gShelterB4WaterSupplyActionTriggers[7] = {
+    { NULL, NULL, NULL, { 2496, -4063, -1056, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_FACING | SHELTER_B4_WATER_SUPPLY_STAIR_DESCEND, SHELTER_B4_WATER_SUPPLY_STAIR_FLIGHT_2, (ACTOR_TRANSFORM_ANGLE_TURN / 4) >> SHELTER_B4_WATER_SUPPLY_STAIR_YAW_SHIFT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4800, -2056, -1056, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4095, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_FACING, SHELTER_B4_WATER_SUPPLY_STAIR_FLIGHT_2, (3 * ACTOR_TRANSFORM_ANGLE_TURN / 4) >> SHELTER_B4_WATER_SUPPLY_STAIR_YAW_SHIFT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2FA0, -2064, -1056, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4097, 0, -39, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_FACING, SHELTER_B4_WATER_SUPPLY_STAIR_FLIGHT_3, (ACTOR_TRANSFORM_ANGLE_TURN / 4) >> SHELTER_B4_WATER_SUPPLY_STAIR_YAW_SHIFT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3640, -3647, -1024, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_FACING | SHELTER_B4_WATER_SUPPLY_STAIR_DESCEND, SHELTER_B4_WATER_SUPPLY_STAIR_FLIGHT_3, (3 * ACTOR_TRANSFORM_ANGLE_TURN / 4) >> SHELTER_B4_WATER_SUPPLY_STAIR_YAW_SHIFT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9536, -2072, -0x32D0, 0 }, { { -416, 0, -944, 0 }, { 416, 0, -944, 0 }, { -416, 0, 944, 0 }, { 416, 0, 944, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_RESERVOIR, SHELTER_B4_WATER_SUPPLY_RESERVOIR_WARP, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 544, -4062, -1120, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_UPPER_SEWER, SHELTER_B4_WATER_SUPPLY_UPPER_SEWER_WARP, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3D40, -3645, -1024, 0 }, { { -416, 0, -1024, 0 }, { 416, 0, -1024, 0 }, { -416, 0, 1024, 0 }, { 416, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B4_WATER_SUPPLY_VALVE_TRAVEL_ACTION, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Resource-entry keys used by this room's actor placements.
@@ -772,32 +758,47 @@ static AreaPlacement _gShelterB4WaterSupplyVariant1Placements[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b4_water_supply_80184BE4[5] = {
-    { 72, 0, 0, 0x2710, -2000, -1900, 0, 0, 2, 3, 0 },
-    { 72, 0, 0, 7800, -2000, -1000, 2600, 0, 2, 3, 0 },
-    { 70, 0, 0, 9500, -2000, -900, 2048, 0, 0, 2, 0 },
-    { 70, 0, 0, 0x27D8, -2000, -5400, -200, 0, 0, 2, 0 },
+/// Variant-2 placements for two Creeping Strangers and two Slouches, then list end.
+///
+/// All use world-unit positions, 4096-unit yaw, base files and zero actor
+/// arguments/parameter rows. Strangers shift texture pages by 2 and CLUT rows
+/// by 3; Slouches shift only CLUT rows by 2. Actors borrow these records.
+static AreaPlacement _gShelterB4WaterSupplyVariant2Placements[] = {
+    { SHELTER_B4_WATER_SUPPLY_CREEPING_STRANGER_ENTRY_ID, 0, 0, 10000, -2000, -1900, 0, 0, 2, 3, 0 },
+    { SHELTER_B4_WATER_SUPPLY_CREEPING_STRANGER_ENTRY_ID, 0, 0, 7800, -2000, -1000, 2600, 0, 2, 3, 0 },
+    { SHELTER_B4_WATER_SUPPLY_SLOUCH_ENTRY_ID, 0, 0, 9500, -2000, -900, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
+    { SHELTER_B4_WATER_SUPPLY_SLOUCH_ENTRY_ID, 0, 0, 10200, -2000, -5400, -200, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b4_water_supply_80184C34[4] = {
-    { 24, 0, 0, 0x2710, -2000, -1000, 0, 0, 0, 2, 0 },
-    { 24, 0, 0, 0x2710, -2000, -7000, 0, 0, 0, 2, 0 },
-    { 24, 0, 0, 0x2710, -2000, -4000, 0, 0, 0, 2, 0 },
+/// Variant-3 placements for three Amoebas along X 10000, followed by list end.
+///
+/// World-unit positions use Y -2000 and Z -1000/-7000/-4000, with zero yaw.
+/// Base files have no page shift and CLUT row offset 2; actor arguments and
+/// parameter rows are zero. Actors borrow these records while the room is loaded.
+static AreaPlacement _gShelterB4WaterSupplyVariant3Placements[] = {
+    { SHELTER_B4_WATER_SUPPLY_AMOEBA_ENTRY_ID, 0, 0, 10000, -2000, -1000, 0, 0, 0, 2, 0 },
+    { SHELTER_B4_WATER_SUPPLY_AMOEBA_ENTRY_ID, 0, 0, 10000, -2000, -7000, 0, 0, 0, 2, 0 },
+    { SHELTER_B4_WATER_SUPPLY_AMOEBA_ENTRY_ID, 0, 0, 10000, -2000, -4000, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b4_water_supply_80184C74[3] = {
-    { 4, 0, 0, 0x2710, -2000, -1000, 2048, 0, 0, 2, 0 },
-    { 4, 0, 0, 0x2710, -2000, -6500, 0, 0, 0, 2, 0 },
+/// Variant-11 placements for two Bog Divers, followed by list end.
+///
+/// World positions are (10000, -2000, -1000/-6500), with half-turn/zero yaw.
+/// Base files have no page shift and CLUT row offset 2; actor arguments and
+/// parameter rows are zero. Actors borrow these records while the room is loaded.
+static AreaPlacement _gShelterB4WaterSupplyVariant11Placements[] = {
+    { SHELTER_B4_WATER_SUPPLY_BOG_DIVER_ENTRY_ID, 0, 0, 10000, -2000, -1000, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
+    { SHELTER_B4_WATER_SUPPLY_BOG_DIVER_ENTRY_ID, 0, 0, 10000, -2000, -6500, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b4_water_supply_80184CA4[12] = {
+AreaVariant gShelterB4WaterSupplyPlacementVariants[12] = {
     { NULL, NULL },
     { _gShelterB4WaterSupplyVariant1Placements, _gShelterB4WaterSupplyVariant1Resources },
-    { D_shelter_b4_water_supply_80184BE4, _gShelterB4WaterSupplyVariant2Resources },
-    { D_shelter_b4_water_supply_80184C34, _gShelterB4WaterSupplyVariant3Resources },
+    { _gShelterB4WaterSupplyVariant2Placements, _gShelterB4WaterSupplyVariant2Resources },
+    { _gShelterB4WaterSupplyVariant3Placements, _gShelterB4WaterSupplyVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -805,10 +806,10 @@ AreaVariant D_shelter_b4_water_supply_80184CA4[12] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b4_water_supply_80184C74, _gShelterB4WaterSupplyVariant11Resources },
+    { _gShelterB4WaterSupplyVariant11Placements, _gShelterB4WaterSupplyVariant11Resources },
 };
 
-WorldCollisionOccluder D_shelter_b4_water_supply_80184D04[2] = {
+WorldCollisionOccluder gShelterB4WaterSupplyOccluders[2] = {
     { NULL, NULL, { 4608, -3408, -7120, 0 }, { { -4256, 4336, -4880, 0 }, { 4256, 4336, 4880, 0 }, { -4256, -4336, -4880, 0 }, { 4256, -4336, 4880, 0 } }, { -3089, 0, 2693, 0 }, 7781, 1, 0 },
     { NULL, NULL, { 0x371F, -3712, -7649, 0 }, { { 3162, 4336, -5651, 0 }, { -3161, 4336, 5652, 0 }, { 3162, -4336, -5651, 0 }, { -3161, -4336, 5652, 0 } }, { -3578, 0, -2002, 0 }, 7781, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -903,18 +904,28 @@ WorldCollisionSurfaceProperties* gShelterB4WaterSupplySurfacePropertiesByClass[8
     &_gShelterB4WaterSupplyDefaultSurface,
 };
 
-RoomFadeStorage D_shelter_b4_water_supply_80184E34 = { 0 };
+/// Upper-sewer departure's subtractive fade, borrowed until session teardown.
+///
+/// The fade holds black after its thirty-update ramp. The containing storage's
+/// trailing word has no established use and remains intact.
+static RoomFadeStorage _gShelterB4WaterSupplyUpperSewerFade = { 0 };
 
-RoomEventMsg D_shelter_b4_water_supply_80184E3C = { 0 };
+/// Saved-location cell staging the CAP-gated upper-sewer destination.
+///
+/// Only `loc.area`, `loc.warp` and `loc.room` are written and later committed;
+/// the other bytes retain their zero initialization. Keep this room-owned cell
+/// stable until the deferred departure finishes its fade and transit sound.
+static GameLoc _gShelterB4WaterSupplyUpperSewerDestination = { 0 };
 
 RoomDeparture gRoomDeparture = { 0 };
 
 #include "../../shared/room_event_departure_task.inc.c"
 
-/// The room task's state table, dispatched by
-/// `shelterB4WaterSupplyRoomTask` from a stack copy: install the
-/// message table and spawn the room's tasks, idle, then kill.
-static const TaskFuncTable3 D_shelter_b4_water_supply_8017D5D8 = {
+/// Room receiver states 0..2: initialize, idle and release the task.
+///
+/// The dispatcher copies this complete three-callback record to the stack;
+/// the state must stay in range and the room code must remain loaded.
+static const TaskFuncTable3 _gShelterB4WaterSupplyRoomStates = {
     {
         _shelterB4WaterSupplyInitializeRoom,
         _shelterB4WaterSupplyIdleRoom,
@@ -938,10 +949,10 @@ static inline void _shelterB4WaterSupplyStartUpperSewerFade(Task* departureTask)
            FADE_OT_AUTO   = 0 };
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
     sceneQueueBattleEscapeResult();
-    D_shelter_b4_water_supply_80184E34.fade.blend      = SCREEN_FADE_SUBTRACT;
-    D_shelter_b4_water_supply_80184E34.fade.phase      = SCREEN_FADE_RUNNING;
-    D_shelter_b4_water_supply_80184E34.fade.rampFrames = FADE_FRAMES;
-    taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, FADE_OT_AUTO, &D_shelter_b4_water_supply_80184E34.fade);
+    _gShelterB4WaterSupplyUpperSewerFade.fade.blend      = SCREEN_FADE_SUBTRACT;
+    _gShelterB4WaterSupplyUpperSewerFade.fade.phase      = SCREEN_FADE_RUNNING;
+    _gShelterB4WaterSupplyUpperSewerFade.fade.rampFrames = FADE_FRAMES;
+    taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, FADE_OT_AUTO, &_gShelterB4WaterSupplyUpperSewerFade.fade);
     departureTask->killCountdown = FADE_FRAMES;
 }
 
@@ -1003,9 +1014,9 @@ static void _shelterB4WaterSupplyUpperSewerDepartureTask(Task* task)
         case SHELTER_B4_WATER_SUPPLY_SEWER_RELOAD:
             // Publish the staged selectors only after the fade and transit sound finish.
             gDisplayState.spriteVariant                                = SHELTER_B4_WATER_SUPPLY_RELOAD_SPRITE_VARIANT;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_water_supply_80184E3C.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1];
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = _gShelterB4WaterSupplyUpperSewerDestination.loc.area;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = _gShelterB4WaterSupplyUpperSewerDestination.loc.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = _gShelterB4WaterSupplyUpperSewerDestination.loc.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(task);
             break;
@@ -1037,10 +1048,10 @@ static s32 _shelterB4WaterSupplyResolveRoomEvent(Task* unusedTask, s32 unusedMes
     mapShelterRoomVariantResolve(request, reply);
     if (request->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b4_water_supply_80184E3C.warp              = (u8)reply->areaId;
-            D_shelter_b4_water_supply_80184E3C.field_4           = reply->warp;
-            ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1] = reply->room;
-            taskSpawnFromTable(D_shelter_b4_water_supply_80182620, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_DESCRIPTOR, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_CAP, 0);
+            _gShelterB4WaterSupplyUpperSewerDestination.loc.area = reply->areaId;
+            _gShelterB4WaterSupplyUpperSewerDestination.loc.warp = reply->warp;
+            _gShelterB4WaterSupplyUpperSewerDestination.loc.room = reply->room;
+            taskSpawnFromTable(_gShelterB4WaterSupplyDepartureTaskDescs, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_DESCRIPTOR, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_CAP, 0);
         }
         return SHELTER_B4_WATER_SUPPLY_DEPARTURE_DEFERRED;
     }
@@ -1080,7 +1091,7 @@ static s32 _shelterB4WaterSupplyHandleRoomAction(Task* unusedTask, s32 unusedMes
                     gameFlagSetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE, SHELTER_B4_WATER_SUPPLY_VALVE_USED);
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     capRunCommandWithTransition(SHELTER_B4_WATER_SUPPLY_CAP_FIRST_VALVE_USE);
-                    taskSpawnFromTable(D_shelter_b4_water_supply_80182620, SHELTER_B4_WATER_SUPPLY_FIRST_VALVE_DEPARTURE_DESCRIPTOR, 0, 0);
+                    taskSpawnFromTable(_gShelterB4WaterSupplyDepartureTaskDescs, SHELTER_B4_WATER_SUPPLY_FIRST_VALVE_DEPARTURE_DESCRIPTOR, 0, 0);
                 }
             } else {
                 capRunCommandWithTransition(SHELTER_B4_WATER_SUPPLY_CAP_ROUTE_BLOCKED);
@@ -1149,7 +1160,7 @@ static void _shelterB4WaterSupplyDepartToWaterHole(void)
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     _shelterB4WaterSupplyResolveDeparture(&departure, resolveDestination);
     gRoomDeparture = departure;
-    taskSpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
+    taskSpawnFromTable(&_gShelterB4WaterSupplyWaterHoleDepartureTaskDesc, 0, 0, 0);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
         gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_FOLLOW_UP_SCHEDULE);
     }
@@ -1199,7 +1210,7 @@ static void _shelterB4WaterSupplyFirstValveDepartureTask(Task* task)
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         SHELTER_B4_WATER_SUPPLY_RESOLVE_FIRST_VALVE_DESTINATION(departure);
         gRoomDeparture = departure;
-        taskSpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
+        taskSpawnFromTable(&_gShelterB4WaterSupplyWaterHoleDepartureTaskDesc, 0, 0, 0);
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_FOLLOW_UP_SCHEDULE);
         }
@@ -1214,9 +1225,9 @@ static void _shelterB4WaterSupplyFirstValveDepartureTask(Task* task)
 /// loaded while the receiver occupies `GAME_TASK_SLOT_ROOM`.
 static void _shelterB4WaterSupplyInitializeRoom(Task* task)
 {
-    task->msgTable = D_shelter_b4_water_supply_801825F0;
+    task->msgTable = _gShelterB4WaterSupplyRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_shelter_b4_water_supply_8018263C, 0, 0, 0);
+    taskSpawnFromTable(&_gShelterB4WaterSupplyWaterTaskDesc, 0, 0, 0);
     task->state = task->state + 1;
 }
 
@@ -1229,7 +1240,7 @@ void shelterB4WaterSupplyRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b4_water_supply_8017D5D8;
+    states = _gShelterB4WaterSupplyRoomStates;
     states.funcs[task->state](task);
 }
 
@@ -1333,7 +1344,7 @@ static void _shelterB4WaterSupplyDrawXWaveStrips(Task* task)
     setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                            \
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), drawMode)
 
-    surface                    = D_shelter_b4_water_supply_8018265C;
+    surface                    = _gShelterB4WaterSupplyXWaterWaveSurfaces;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     scratchTop                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     wavePhase                  = -(gDisplayState.animFrame * SHELTER_B4_WATER_SUPPLY_WAVE_PHASE_PER_FRAME);
@@ -1530,9 +1541,9 @@ static inline void _shelterB4WaterSupplyEmitPartSplashes(EffectWork* controllerW
     u32      randomRoll;
     actorRenderComposeCoord(trackedPart);
     // Odds narrow to s16 before each comparison; ripple gets the bias first.
-    controllerWork->angle = ABS(D_shelter_b4_water_supply_801826E0[historyIndex].vx - trackedPart->workm.t[0]) +
-                            ABS(D_shelter_b4_water_supply_801826E0[historyIndex].vy - trackedPart->workm.t[1]) +
-                            ABS(D_shelter_b4_water_supply_801826E0[historyIndex].vz - trackedPart->workm.t[2]) + RIPPLE_ODDS_BIAS;
+    controllerWork->angle = ABS(_gShelterB4WaterSupplyPlayerSplashPositionHistory[historyIndex].vx - trackedPart->workm.t[0]) +
+                            ABS(_gShelterB4WaterSupplyPlayerSplashPositionHistory[historyIndex].vy - trackedPart->workm.t[1]) +
+                            ABS(_gShelterB4WaterSupplyPlayerSplashPositionHistory[historyIndex].vz - trackedPart->workm.t[2]) + RIPPLE_ODDS_BIAS;
     // Place both effects on the water plane in the view coordinate's local space.
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &trackedPart->workm, &surfaceCoord.coord);
     surfaceCoord.parent       = &gGfxViewCoord;
@@ -1548,16 +1559,16 @@ static inline void _shelterB4WaterSupplyEmitPartSplashes(EffectWork* controllerW
     if ((s32)((randomRoll >> SPLASH_ROLL_SHIFT) & SPLASH_ROLL_MASK) < controllerWork->angle) {
         effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, SPRAY_SPAWN_ARG, NULL);
     }
-    D_shelter_b4_water_supply_801826E0[historyIndex].vx = trackedPart->workm.t[0];
-    D_shelter_b4_water_supply_801826E0[historyIndex].vy = trackedPart->workm.t[1];
-    D_shelter_b4_water_supply_801826E0[historyIndex].vz = trackedPart->workm.t[2];
+    _gShelterB4WaterSupplyPlayerSplashPositionHistory[historyIndex].vx = trackedPart->workm.t[0];
+    _gShelterB4WaterSupplyPlayerSplashPositionHistory[historyIndex].vy = trackedPart->workm.t[1];
+    _gShelterB4WaterSupplyPlayerSplashPositionHistory[historyIndex].vz = trackedPart->workm.t[2];
 }
 
 void shelterB4WaterSupplySplashAndLightBeamsTask(Task* task)
 {
     enum { SPLASH_INITIALIZE   = 0,
            SPLASH_ACTIVE       = 1,
-           SPLASH_SAMPLE_COUNT = ARRAY_SIZE(D_shelter_b4_water_supply_801826E0),
+           SPLASH_SAMPLE_COUNT = ARRAY_SIZE(_gShelterB4WaterSupplyPlayerSplashPositionHistory),
            SPLASH_FIRST_PART   = 14,
            SPLASH_PART_STRIDE  = 3,
            BEAM_RADIUS_SCALE   = 512 };
@@ -1579,10 +1590,10 @@ void shelterB4WaterSupplySplashAndLightBeamsTask(Task* task)
         gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B4_WATER_SUPPLY_ORANGE_BURST_2;
         task->state               = SPLASH_ACTIVE;
         for (sampleIndex = 0; sampleIndex < SPLASH_SAMPLE_COUNT; sampleIndex++) {
-            trackedPart                                        = &playerTask->extra.tmd->coords[SPLASH_FIRST_PART + sampleIndex * SPLASH_PART_STRIDE];
-            D_shelter_b4_water_supply_801826E0[sampleIndex].vx = trackedPart->workm.t[0];
-            D_shelter_b4_water_supply_801826E0[sampleIndex].vy = trackedPart->workm.t[1];
-            D_shelter_b4_water_supply_801826E0[sampleIndex].vz = trackedPart->workm.t[2];
+            trackedPart                                                       = &playerTask->extra.tmd->coords[SPLASH_FIRST_PART + sampleIndex * SPLASH_PART_STRIDE];
+            _gShelterB4WaterSupplyPlayerSplashPositionHistory[sampleIndex].vx = trackedPart->workm.t[0];
+            _gShelterB4WaterSupplyPlayerSplashPositionHistory[sampleIndex].vy = trackedPart->workm.t[1];
+            _gShelterB4WaterSupplyPlayerSplashPositionHistory[sampleIndex].vz = trackedPart->workm.t[2];
         }
     } else if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < playerRoot->coord.t[1]) {
         sampleIndex = 0;
@@ -1594,32 +1605,32 @@ void shelterB4WaterSupplySplashAndLightBeamsTask(Task* task)
     // View-specific beams keep drawing while splash sampling is paused.
     switch ((u8)viewGetMappedIndex()) {
         case 4:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[0], BEAM_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[4], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyLightBeamEndpoints[0], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyLightBeamEndpoints[2], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             /* fallthrough */
         case 2:
         case 3:
-            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182670, BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyViews234LightBeamEndpoints, BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             break;
         case 6:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[2], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyLightBeamEndpoints[1], BEAM_RADIUS_SCALE, 0);
             /* fallthrough */
         case 5:
-            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182680, BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyViews56LightBeamEndpoints, BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             break;
         case 7:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[2], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyLightBeamEndpoints[1], BEAM_RADIUS_SCALE, 0);
             break;
         case 8:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[0], BEAM_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[4], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyLightBeamEndpoints[0], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyLightBeamEndpoints[2], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             break;
         case 9:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[8], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyLightBeamEndpoints[4], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             /* fallthrough */
         case 10:
         case 11:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[6], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
+            glowDrawDimGreyCapsule(_gShelterB4WaterSupplyLightBeamEndpoints[3], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             break;
     }
 }

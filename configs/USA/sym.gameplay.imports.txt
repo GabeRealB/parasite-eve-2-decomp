@@ -1377,7 +1377,7 @@ shelterR48PinkRingFlashTask = 0x80181704; // type:func absolute:True owner=shelt
 
 D_acropolis_bridge_80189A9C = 0x80189A9C; // absolute:True owner=acropolis_bridge shared=rooms
 
-D_shelter_b4_water_supply_801826FC = 0x801826FC; // absolute:True owner=shelter_b4_water_supply
+gShelterB4WaterSupplyStairSurfaceRows = 0x801826FC; // absolute:True owner=shelter_b4_water_supply
 
 gAcropolisPlazaSequenceTaskDescriptors = 0x80183824; // absolute:True owner=acropolis_plaza
 
@@ -1667,7 +1667,7 @@ gShelterB4ReservoirAreaVariants = 0x80187350; // absolute:True owner=shelter_b4_
 
 D_shelter_b4_upper_sewer_80188B9C = 0x80188B9C; // absolute:True owner=shelter_b4_upper_sewer
 
-D_shelter_b4_water_supply_80184CA4 = 0x80184CA4; // absolute:True owner=shelter_b4_water_supply shared=rooms
+gShelterB4WaterSupplyPlacementVariants = 0x80184CA4; // absolute:True owner=shelter_b4_water_supply shared=rooms
 
 D_shelter_b6_corridor_80180304 = 0x80180304; // absolute:True owner=shelter_b6_corridor
 

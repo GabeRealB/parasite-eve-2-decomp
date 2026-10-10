@@ -12,9 +12,20 @@
 
 #include "main/task_types.h"
 
-extern u8 D_shelter_b4_water_supply_801826FC[64];
+/// Per-step surface classes for this area's two stair flights.
+///
+/// Rows 0/1 are ascent/descent for direction flight 2 (ten steps), and rows
+/// 2/3 for flight 3 (eight steps). Step zero through the final landing selects
+/// a byte for `GameActor.surfaceClass`; remaining row bytes have no proven use.
+/// Gameplay borrows the rows while this room overlay is loaded.
+extern u8 gShelterB4WaterSupplyStairSurfaceRows[4][16];
 
-extern AreaVariant D_shelter_b4_water_supply_80184CA4[12];
+/// Placement/resource layouts indexed by this area's saved placement variant.
+///
+/// The twelve slots publish variants 1, 2, 3 and 11; slot 0 and slots 4..10
+/// have no tables. Variant 1 is the default. These are placement variants,
+/// independent of room/view selectors; keep the room loaded during use.
+extern AreaVariant gShelterB4WaterSupplyPlacementVariants[12];
 
 /// Logical-view map directory for the water-supply area's single room.
 ///
@@ -22,11 +33,26 @@ extern AreaVariant D_shelter_b4_water_supply_80184CA4[12];
 /// 1-based camera, image and sprite indices. Keep this overlay loaded during lookup.
 extern u8* gShelterB4WaterSupplyViewMaps[1];
 
-extern ViewCount D_shelter_b4_water_supply_80182740[];
+/// Eleven logical views for the water-supply area's single room.
+///
+/// Indexed by room minus one; this is a view count, not the identity map's
+/// capacity. The logical views map to camera/image/sprite indices 1..11.
+extern ViewCount gShelterB4WaterSupplyViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b4_water_supply_80182744[];
+/// Three 1-based arrival/departure endpoints for this area's warps.
+///
+/// Warp 1 connects the upper sewer (initial view 7), warp 2 the reservoir
+/// (view 11), and warp 3 the valve's Water Hole route (view 2). Positions use
+/// world units and yaw uses 4096 units per turn. The map overlay borrows these
+/// records while this room is loaded; there is no terminator.
+extern DirectionWarpEntry gShelterB4WaterSupplyWarpEntries[3];
 
-extern WorldCollisionGrid D_shelter_b4_water_supply_80182E3C;
+/// Collision mesh and cell index for the water-supply area's single room.
+///
+/// The 4-by-4 X-major grid has 4000-unit cells and origin (400, -13900) in X/Z;
+/// its 45 faces reference 59 vertices and 12 normals. The private pools remain
+/// live with this mutable record; room setup binds the current view coordinate.
+extern WorldCollisionGrid gShelterB4WaterSupplyCollisionGrid;
 
 /// Cameras for mapped views 1..11, indexed by mapped view minus one.
 ///
@@ -47,11 +73,25 @@ extern SpriteView gShelterB4WaterSupplySpriteViews[11];
 /// Keep this overlay loaded while the lighting directory borrows the collection.
 extern WorldCoordRoomLights gShelterB4WaterSupplyRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b4_water_supply_801843EC[];
+/// Eighteen directed view boundaries joining logical views 2..11.
+///
+/// Each adjacent boundary has both travel directions. Room setup binds and
+/// links these writable records; the last live record carries LAST.
+extern WorldCollisionTrigger gShelterB4WaterSupplyViewBoundaryTriggers[18];
 
-extern WorldCollisionTrigger D_shelter_b4_water_supply_80184944[];
+/// Seven facing-gated actions: four stair ends, two exits and the valve route.
+///
+/// Stair selectors borrow flights 2/3 from `gShelterB4WaterSupplyStairSurfaceRows`.
+/// Exits request the reservoir or upper sewer; the valve sends room action 10
+/// with the nighttime Water Hole area. Setup mutates links, coordinates and
+/// hit state; LAST marks the final live record. Keep the room overlay loaded.
+extern WorldCollisionTrigger gShelterB4WaterSupplyActionTriggers[7];
 
-extern WorldCollisionOccluder D_shelter_b4_water_supply_80184D04[];
+/// Two room-space quads blocking line-of-sight segments.
+///
+/// Room setup links and enables these mutable records. LAST marks the second
+/// included quad; low flag bit 0 has no established interpretation.
+extern WorldCollisionOccluder gShelterB4WaterSupplyOccluders[2];
 
 /// Minimum ambient colours for logical views 1..11, following a view-count header.
 ///

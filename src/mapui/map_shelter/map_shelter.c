@@ -839,7 +839,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b4_lower_sewer_80181FAC,
     D_shelter_b4_upper_sewer_80186598,
     gShelterB4ReservoirWarpEntries,
-    D_shelter_b4_water_supply_80182744,
+    gShelterB4WaterSupplyWarpEntries,
     D_shelter_r47_8018767C,
     D_shelter_r48_80183034,
     D_shelter_r49_8017DA38,
@@ -891,7 +891,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b4_lower_sewer_80181FA8,
     D_shelter_b4_upper_sewer_80186594,
     gShelterB4ReservoirRoomViewCounts,
-    D_shelter_b4_water_supply_80182740,
+    gShelterB4WaterSupplyViewCounts,
     D_shelter_r47_80187678,
     D_shelter_r48_80183030,
     D_shelter_r49_8017DA2C,
@@ -1009,7 +1009,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B2C4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2D4[1] = {
-    { &D_shelter_b4_water_supply_80182E3C, D_shelter_b4_water_supply_801843EC, D_shelter_b4_water_supply_80184944, D_shelter_b4_water_supply_80184D04 },
+    { &gShelterB4WaterSupplyCollisionGrid, gShelterB4WaterSupplyViewBoundaryTriggers, gShelterB4WaterSupplyActionTriggers, gShelterB4WaterSupplyOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2E4[1] = {
