@@ -1485,136 +1485,220 @@ static AnimationSet _gMm1ParasiteEnergyReleaseFamily0Animation = {
     },
 };
 
-static AnimationPackedPose _gMm1Animation053A8Bank1[3] = {
+/// Family-0 charge translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1ParasiteEnergyChargeFamily0AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_053A8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation053A8Bank4[22] = {
+/// Family-0 charge rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1ParasiteEnergyChargeFamily0AnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_053A8_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation053A8Records[76] = {
+/// Keyframes, repeat jumps and retained track stops for the MM1 Parasite Energy family-0 charge.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words and jump targets count records.
+static const AnimationRecord _gMm1ParasiteEnergyChargeFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_053A8_records.inc"
 };
 
-static u16 _gMm1Animation053A8Indices[20] = {
+/// Family-0 charge track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1ParasiteEnergyChargeFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_053A8_indices.inc"
 };
 
-static AnimationSet _gMm1Animation053A8 = {
-    _gMm1Animation053A8Records,
-    _gMm1Animation053A8Indices,
-    { NULL, _gMm1Animation053A8Bank1, NULL, NULL, _gMm1Animation053A8Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-0 charge loop, selected by MM1 bank slot 27.
+///
+/// Repeats two one-frame keyframes per track while the attachment countdown runs.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1ParasiteEnergyChargeFamily0Animation = {
+    .records           = _gMm1ParasiteEnergyChargeFamily0AnimationRecords,
+    .trackStartIndices = _gMm1ParasiteEnergyChargeFamily0AnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1ParasiteEnergyChargeFamily0AnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1ParasiteEnergyChargeFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation05680Bank1[6] = {
+/// Family-0 cast translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1ParasiteEnergyCastFamily0AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_05680_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation05680Bank4[57] = {
+/// Family-0 cast rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1ParasiteEnergyCastFamily0AnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_05680_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation05680Records[87] = {
+/// Keyframes and track stops for the MM1 Parasite Energy family-0 cast.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1ParasiteEnergyCastFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_05680_records.inc"
 };
 
-static u16 _gMm1Animation05680Indices[20] = {
+/// Family-0 cast track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1ParasiteEnergyCastFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_05680_indices.inc"
 };
 
-static AnimationSet _gMm1Animation05680 = {
-    _gMm1Animation05680Records,
-    _gMm1Animation05680Indices,
-    { NULL, _gMm1Animation05680Bank1, NULL, NULL, _gMm1Animation05680Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-0 cast, selected by MM1 bank slot 28.
+///
+/// Plays once when the attachment countdown expires, then holds its final poses.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1ParasiteEnergyCastFamily0Animation = {
+    .records           = _gMm1ParasiteEnergyCastFamily0AnimationRecords,
+    .trackStartIndices = _gMm1ParasiteEnergyCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1ParasiteEnergyCastFamily0AnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1ParasiteEnergyCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation05924Bank1[4] = {
+/// Family-1 release translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1ParasiteEnergyReleaseFamily1AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_05924_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation05924Bank4[55] = {
+/// Family-1 release rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1ParasiteEnergyReleaseFamily1AnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_05924_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation05924Records[82] = {
+/// Keyframes and track stops for the MM1 Parasite Energy family-1 release.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1ParasiteEnergyReleaseFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_05924_records.inc"
 };
 
-static u16 _gMm1Animation05924Indices[20] = {
+/// Family-1 release track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1ParasiteEnergyReleaseFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_05924_indices.inc"
 };
 
-static AnimationSet _gMm1Animation05924 = {
-    _gMm1Animation05924Records,
-    _gMm1Animation05924Indices,
-    { NULL, _gMm1Animation05924Bank1, NULL, NULL, _gMm1Animation05924Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-1 release, selected by MM1 bank slot 29.
+///
+/// Begins the family-1 release/charge/cast sequence while the attachment countdown starts.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1ParasiteEnergyReleaseFamily1Animation = {
+    .records           = _gMm1ParasiteEnergyReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gMm1ParasiteEnergyReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1ParasiteEnergyReleaseFamily1AnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1ParasiteEnergyReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation05B24Bank1[3] = {
+/// Family-1 charge translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1ParasiteEnergyChargeFamily1AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_05B24_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation05B24Bank4[23] = {
+/// Family-1 charge rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1ParasiteEnergyChargeFamily1AnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_05B24_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation05B24Records[76] = {
+/// Keyframes, repeat jumps and retained track stops for the MM1 Parasite Energy family-1 charge.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words and jump targets count records.
+static const AnimationRecord _gMm1ParasiteEnergyChargeFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_05B24_records.inc"
 };
 
-static u16 _gMm1Animation05B24Indices[20] = {
+/// Family-1 charge track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1ParasiteEnergyChargeFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_05B24_indices.inc"
 };
 
-static AnimationSet _gMm1Animation05B24 = {
-    _gMm1Animation05B24Records,
-    _gMm1Animation05B24Indices,
-    { NULL, _gMm1Animation05B24Bank1, NULL, NULL, _gMm1Animation05B24Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-1 charge loop, selected by MM1 bank slot 30.
+///
+/// Repeats two one-frame keyframes per track while the attachment countdown runs.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1ParasiteEnergyChargeFamily1Animation = {
+    .records           = _gMm1ParasiteEnergyChargeFamily1AnimationRecords,
+    .trackStartIndices = _gMm1ParasiteEnergyChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1ParasiteEnergyChargeFamily1AnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1ParasiteEnergyChargeFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation05E78Bank1[8] = {
+/// Family-1 cast translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1ParasiteEnergyCastFamily1AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_05E78_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation05E78Bank4[68] = {
+/// Family-1 cast rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1ParasiteEnergyCastFamily1AnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_05E78_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation05E78Records[101] = {
+/// Keyframes and track stops for the MM1 Parasite Energy family-1 cast.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1ParasiteEnergyCastFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_05E78_records.inc"
 };
 
-static u16 _gMm1Animation05E78Indices[20] = {
+/// Family-1 cast track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1ParasiteEnergyCastFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_05E78_indices.inc"
 };
 
-static AnimationSet _gMm1Animation05E78 = {
-    _gMm1Animation05E78Records,
-    _gMm1Animation05E78Indices,
-    { NULL, _gMm1Animation05E78Bank1, NULL, NULL, _gMm1Animation05E78Bank4, NULL, NULL, NULL },
+/// Player Parasite Energy family-1 cast, selected by MM1 bank slot 31.
+///
+/// Plays once when the attachment countdown expires, then holds its final poses.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1ParasiteEnergyCastFamily1Animation = {
+    .records           = _gMm1ParasiteEnergyCastFamily1AnimationRecords,
+    .trackStartIndices = _gMm1ParasiteEnergyCastFamily1AnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1ParasiteEnergyCastFamily1AnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1ParasiteEnergyCastFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation0612CBank1[5] = {
+/// Part-4 hit-reaction translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1Part4HitReactionAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0612C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation0612CBank4[55] = {
+/// Part-4 hit-reaction rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1Part4HitReactionAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_0612C_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation0612CRecords[83] = {
+/// Keyframes and track stops for the MM1 player's part-4 hit reaction.
+///
+/// Durations are whole normal-rate frames; pose offsets count u32 words.
+static const AnimationRecord _gMm1Part4HitReactionAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0612C_records.inc"
 };
 
-static u16 _gMm1Animation0612CIndices[20] = {
+/// Part-4 hit-reaction track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1Part4HitReactionAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_0612C_indices.inc"
 };
 
-static AnimationSet _gMm1Animation0612C = {
-    _gMm1Animation0612CRecords,
-    _gMm1Animation0612CIndices,
-    { NULL, _gMm1Animation0612CBank1, NULL, NULL, _gMm1Animation0612CBank4, NULL, NULL, NULL },
+/// Player hit reaction for the collision body on model part 4, selected by MM1 bank slot 16.
+///
+/// Blended into active child slots over three normal-rate frames after a part-4 hit.
+/// Tracks 0 and 1 carry translation/rotation; 2..18 carry packed rotation.
+/// Keep the package loaded while slots or cached record pointers borrow the clip.
+static AnimationSet _gMm1Part4HitReactionAnimation = {
+    .records           = _gMm1Part4HitReactionAnimationRecords,
+    .trackStartIndices = _gMm1Part4HitReactionAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1Part4HitReactionAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1Part4HitReactionAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gMm1Animation0644CBank1[6] = {
@@ -2074,7 +2158,7 @@ AnimationBank D_mm1_8012D184 = { { {
     &_gMm1Animation0ACFC,
     &_gMm1Animation0CE20,
     &_gMm1Animation0CE20,
-    &_gMm1Animation0612C,
+    &_gMm1Part4HitReactionAnimation,
     &_gMm1Animation0644C,
     &_gMm1Animation06C10,
     &_gMm1UnarmedWalkAnimation,
@@ -2085,11 +2169,11 @@ AnimationBank D_mm1_8012D184 = { { {
     &_gMm1Animation0913C,
     &_gMm1Animation08A20,
     &_gMm1ParasiteEnergyReleaseFamily0Animation,
-    &_gMm1Animation053A8,
-    &_gMm1Animation05680,
-    &_gMm1Animation05924,
-    &_gMm1Animation05B24,
-    &_gMm1Animation05E78,
+    &_gMm1ParasiteEnergyChargeFamily0Animation,
+    &_gMm1ParasiteEnergyCastFamily0Animation,
+    &_gMm1ParasiteEnergyReleaseFamily1Animation,
+    &_gMm1ParasiteEnergyChargeFamily1Animation,
+    &_gMm1ParasiteEnergyCastFamily1Animation,
     &_gMm1Animation095BC,
     &_gMm1Animation09794,
     &_gMm1Animation095BC,
