@@ -16,9 +16,21 @@ extern AreaVariant D_neo_ark_shrine_801866C8[13];
 // neo_ark_shrine
 extern WorldCollisionRoomResources D_neo_ark_shrine_80182724[];
 
-extern WorldCoordRoomLighting D_neo_ark_shrine_80182784[];
+/// Lighting bindings for the shrine's six room selectors.
+///
+/// Indexed by room - 1 (rooms 1..6). Every entry borrows the same mutable
+/// light collection and uses the default ambient minima. The room overlay
+/// must remain loaded while its records and lights are in use.
+extern WorldCoordRoomLighting gNeoArkShrineRoomLighting[6];
 
-extern u8* D_neo_ark_shrine_801827F0[];
+/// Logical-view maps for the shrine's six room selectors.
+///
+/// Indexed by room - 1 (rooms 1..6), then logical view - 1 (views 1..18).
+/// Entries are 1-based camera/image/sprite indices in 1..18, without a
+/// terminator. Rooms 1 and 3 borrow `gViewIdentityMap`; rooms 4 and 6 share
+/// a remap. The private remaps retain two trailing zero bytes outside the
+/// logical-view domain. Borrowed room storage requires this overlay loaded.
+extern u8* gNeoArkShrineViewMaps[6];
 
 extern ViewCount D_neo_ark_shrine_80182808[];
 
@@ -28,7 +40,13 @@ extern ViewCamera D_neo_ark_shrine_801836BC[];
 
 extern SpriteView D_neo_ark_shrine_80185280[];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_shrine_80186844[];
+/// Collision policies and footstep cues for the shrine's eight surface classes.
+///
+/// Indexed directly by class 0..7, independently of the room selector.
+/// All classes block probes, allow weapon impacts and apply pushback. Class 1
+/// supplies no footstep cues; the others share the room's walking, running
+/// and scripted-jump cue bases. The overlay must stay loaded while borrowed.
+extern WorldCollisionSurfaceProperties* gNeoArkShrineSurfaceProperties[8];
 
 /// Draws the shrine's fixed light flares selected by the current mapped view.
 ///

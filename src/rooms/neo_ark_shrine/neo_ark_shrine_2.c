@@ -225,7 +225,7 @@ extern WorldCollisionTrigger  D_neo_ark_shrine_80185A80[14];
 extern WorldCollisionTrigger  D_neo_ark_shrine_80185EA8[9];
 extern WorldCollisionTrigger  D_neo_ark_shrine_80186154[8];
 extern WorldCollisionTrigger  D_neo_ark_shrine_801863B4[8];
-extern WorldCoordRoomLights   D_neo_ark_shrine_80185A68[1];
+static WorldCoordRoomLights   _gNeoArkShrineRoomLights;
 
 SVECTOR D_neo_ark_shrine_8018268C[1] = {
     { 3560, -1200, 6310, 0 },
@@ -276,16 +276,21 @@ WorldCollisionRoomResources D_neo_ark_shrine_80182724[6] = {
     { D_neo_ark_shrine_80183698, D_neo_ark_shrine_80185A80, D_neo_ark_shrine_801863B4, D_neo_ark_shrine_80186730 },
 };
 
-WorldCoordRoomLighting D_neo_ark_shrine_80182784[6] = {
-    { D_neo_ark_shrine_80185A68, NULL },
-    { D_neo_ark_shrine_80185A68, NULL },
-    { D_neo_ark_shrine_80185A68, NULL },
-    { D_neo_ark_shrine_80185A68, NULL },
-    { D_neo_ark_shrine_80185A68, NULL },
-    { D_neo_ark_shrine_80185A68, NULL },
+WorldCoordRoomLighting gNeoArkShrineRoomLighting[6] = {
+    { &_gNeoArkShrineRoomLights, NULL },
+    { &_gNeoArkShrineRoomLights, NULL },
+    { &_gNeoArkShrineRoomLights, NULL },
+    { &_gNeoArkShrineRoomLights, NULL },
+    { &_gNeoArkShrineRoomLights, NULL },
+    { &_gNeoArkShrineRoomLights, NULL },
 };
 
-u8 D_neo_ark_shrine_801827B4[20] = {
+/// Room 2's logical-view map, substituting mapped views 16 and 18 for views 4 and 5.
+///
+/// The first eighteen bytes map logical view - 1 to a 1-based resource index.
+/// The two retained trailing zeros are outside the lookup and reverse-search
+/// domain; they are not a terminator.
+static u8 _gNeoArkShrineRoom2ViewMap[] = {
     1,
     2,
     3,
@@ -308,7 +313,10 @@ u8 D_neo_ark_shrine_801827B4[20] = {
     0,
 };
 
-u8 D_neo_ark_shrine_801827C8[20] = {
+/// Logical-view map shared by rooms 4 and 6, exchanging mapped views 10 and 17.
+///
+/// Eighteen logical entries followed by two retained, unsearched zero bytes.
+static u8 _gNeoArkShrineRoom4ViewMap[] = {
     1,
     2,
     3,
@@ -331,7 +339,10 @@ u8 D_neo_ark_shrine_801827C8[20] = {
     0,
 };
 
-u8 D_neo_ark_shrine_801827DC[20] = {
+/// Room 5's logical-view map, combining the room-2 substitutions and room-4 exchange.
+///
+/// Eighteen logical entries followed by two retained, unsearched zero bytes.
+static u8 _gNeoArkShrineRoom5ViewMap[] = {
     1,
     2,
     3,
@@ -354,13 +365,13 @@ u8 D_neo_ark_shrine_801827DC[20] = {
     0,
 };
 
-u8* D_neo_ark_shrine_801827F0[6] = {
+u8* gNeoArkShrineViewMaps[6] = {
     gViewIdentityMap,
-    D_neo_ark_shrine_801827B4,
+    _gNeoArkShrineRoom2ViewMap,
     gViewIdentityMap,
-    D_neo_ark_shrine_801827C8,
-    D_neo_ark_shrine_801827DC,
-    D_neo_ark_shrine_801827C8,
+    _gNeoArkShrineRoom4ViewMap,
+    _gNeoArkShrineRoom5ViewMap,
+    _gNeoArkShrineRoom4ViewMap,
 };
 
 ViewCount D_neo_ark_shrine_80182808[6] = { 18, 18, 18, 18, 18, 18 };
@@ -470,17 +481,20 @@ ViewCamera D_neo_ark_shrine_801836BC[18] = {
     { { { { 4082, 0, -331 }, { -43, 4061, -529 }, { 329, 531, 4047 } }, { -6720, 1475, 5 } }, 329 },
 };
 
-SpriteBatch D_neo_ark_shrine_80183944[2] = {
+/// Decoded-background selection and an empty sprite list for mapped shrine view 1.
+static SpriteBatch _gNeoArkShrineView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_shrine_80183954[2] = {
+/// Decoded-background selection and an empty sprite list for mapped shrine view 2.
+static SpriteBatch _gNeoArkShrineView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_80183964[57] = {
+/// Authored texture rectangles and sorting depths for mapped shrine view 3.
+static SpriteSource _gNeoArkShrineView3SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -72, -72, 1175, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 40, 48 } }, -136, -120, 750, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 40, 48 } }, -136, -72, 750, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
@@ -540,17 +554,23 @@ SpriteSource D_neo_ark_shrine_80183964[57] = {
     { 143, 0x3FC0, { .fields = { 48, 16 } }, -136, -104, 812, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_shrine_80183DD8[7] = {
+/// Five sprite ranges covering mapped shrine view 3's sources over its decoded background.
+///
+/// The zero-count first record selects the background; `SPRITE_BATCH_END`
+/// terminates the list. The final two bytes of each record retain authored
+/// metadata whose meaning is unproven.
+static SpriteBatch _gNeoArkShrineView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 0, 0 } },
     { 14, 16, 0, 0, { 3, 0 } },
     { 30, 15, 0, 0, { 2, 0 } },
     { 45, 5, 0, 0, { 4, 0 } },
-    { 50, 7, 0, 0, { 1, 0 } },
+    { 50, ARRAY_SIZE(_gNeoArkShrineView3SpriteSources) - 50, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_80183E10[36] = {
+/// Authored texture rectangles and sorting depths for mapped shrine view 4.
+static SpriteSource _gNeoArkShrineView4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, -120, 1200, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -72, 1200, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 1087, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
@@ -589,15 +609,20 @@ SpriteSource D_neo_ark_shrine_80183E10[36] = {
     { 142, 0x3FC0, { .fields = { 24, 40 } }, -72, -120, 2125, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_shrine_801840E0[5] = {
+/// Three sprite ranges covering mapped shrine view 4's sources over its decoded background.
+///
+/// The first record selects background strips; the last ends the list.
+/// The final two bytes of each record retain metadata of unproven meaning.
+static SpriteBatch _gNeoArkShrineView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 1, 0 } },
     { 16, 17, 0, 0, { 2, 0 } },
-    { 33, 3, 0, 0, { 0, 0 } },
+    { 33, ARRAY_SIZE(_gNeoArkShrineView4SpriteSources) - 33, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_80184108[9] = {
+/// Authored texture rectangles and sorting depths for mapped shrine view 5.
+static SpriteSource _gNeoArkShrineView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -120, 862, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 862, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 862, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
@@ -609,13 +634,15 @@ SpriteSource D_neo_ark_shrine_80184108[9] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -112, -120, 1000, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_shrine_801841BC[3] = {
+/// One range covering mapped shrine view 5's sources over its decoded background.
+static SpriteBatch _gNeoArkShrineView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkShrineView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_801841D4[61] = {
+/// Authored texture rectangles and sorting depths for mapped shrine view 6.
+static SpriteSource _gNeoArkShrineView6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 56, 56 } }, 104, 24, 987, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 56 } }, 104, -32, 987, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 56 } }, 104, -88, 987, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
@@ -679,7 +706,11 @@ SpriteSource D_neo_ark_shrine_801841D4[61] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 40, 625, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_shrine_80184698[10] = {
+/// Eight sprite ranges covering mapped shrine view 6's sources over its decoded background.
+///
+/// The first record selects background strips; the last ends the list.
+/// The final two bytes of each record retain metadata of unproven meaning.
+static SpriteBatch _gNeoArkShrineView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 6, 0 } },
     { 10, 12, 0, 0, { 1, 0 } },
@@ -688,16 +719,18 @@ SpriteBatch D_neo_ark_shrine_80184698[10] = {
     { 37, 3, 0, 0, { 5, 0 } },
     { 40, 4, 0, 0, { 3, 0 } },
     { 44, 9, 0, 0, { 7, 0 } },
-    { 53, 8, 0, 0, { 2, 0 } },
+    { 53, ARRAY_SIZE(_gNeoArkShrineView6SpriteSources) - 53, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_shrine_801846E8[2] = {
+/// Decoded-background selection and an empty sprite list for mapped shrine view 7.
+static SpriteBatch _gNeoArkShrineView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_801846F8[16] = {
+/// Authored texture rectangles and sorting depths for mapped shrine view 8.
+static SpriteSource _gNeoArkShrineView8SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 925, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 925, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 925, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
@@ -716,13 +749,15 @@ SpriteSource D_neo_ark_shrine_801846F8[16] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 16, -24, 1125, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_shrine_80184838[3] = {
+/// One range covering mapped shrine view 8's sources over its decoded background.
+static SpriteBatch _gNeoArkShrineView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 16, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkShrineView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_80184850[18] = {
+/// Authored texture rectangles and sorting depths for mapped shrine view 9.
+static SpriteSource _gNeoArkShrineView9SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -120, 937, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -72, 937, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, -24, 937, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
@@ -743,13 +778,15 @@ SpriteSource D_neo_ark_shrine_80184850[18] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 24, 1425, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_shrine_801849B8[3] = {
+/// One range covering mapped shrine view 9's sources over its decoded background.
+static SpriteBatch _gNeoArkShrineView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 18, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkShrineView9SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_shrine_801849D0[14] = {
+/// Authored texture rectangles and sorting depths for mapped shrine view 10.
+static SpriteSource _gNeoArkShrineView10SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 450, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, 104, 450, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 32, 450, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
@@ -766,19 +803,25 @@ SpriteSource D_neo_ark_shrine_801849D0[14] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 104, 450, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_shrine_80184AE8[4] = {
+/// Two sprite ranges covering mapped shrine view 10's sources over its decoded background.
+///
+/// The first record selects background strips; the last ends the list.
+/// The final two bytes of each record retain metadata of unproven meaning.
+static SpriteBatch _gNeoArkShrineView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
-    { 7, 7, 0, 0, { 0, 0 } },
+    { 7, ARRAY_SIZE(_gNeoArkShrineView10SpriteSources) - 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_shrine_80184B08[2] = {
+/// Decoded-background selection and an empty sprite list for mapped shrine view 11.
+static SpriteBatch _gNeoArkShrineView11SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_shrine_80184B18[2] = {
+/// Decoded-background selection and an empty sprite list for mapped shrine view 12.
+static SpriteBatch _gNeoArkShrineView12SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -920,18 +963,18 @@ SpriteBatch D_neo_ark_shrine_80185268[3] = {
 };
 
 SpriteView D_neo_ark_shrine_80185280[18] = {
-    { { .empty = D_neo_ark_shrine_80183944 }, D_neo_ark_shrine_80183944, NULL },
-    { { .empty = D_neo_ark_shrine_80183954 }, D_neo_ark_shrine_80183954, NULL },
-    { { .elements = D_neo_ark_shrine_80183964 }, D_neo_ark_shrine_80183DD8, NULL },
-    { { .elements = D_neo_ark_shrine_80183E10 }, D_neo_ark_shrine_801840E0, NULL },
-    { { .elements = D_neo_ark_shrine_80184108 }, D_neo_ark_shrine_801841BC, NULL },
-    { { .elements = D_neo_ark_shrine_801841D4 }, D_neo_ark_shrine_80184698, NULL },
-    { { .empty = D_neo_ark_shrine_801846E8 }, D_neo_ark_shrine_801846E8, NULL },
-    { { .elements = D_neo_ark_shrine_801846F8 }, D_neo_ark_shrine_80184838, NULL },
-    { { .elements = D_neo_ark_shrine_80184850 }, D_neo_ark_shrine_801849B8, NULL },
-    { { .elements = D_neo_ark_shrine_801849D0 }, D_neo_ark_shrine_80184AE8, NULL },
-    { { .empty = D_neo_ark_shrine_80184B08 }, D_neo_ark_shrine_80184B08, NULL },
-    { { .empty = D_neo_ark_shrine_80184B18 }, D_neo_ark_shrine_80184B18, NULL },
+    { { .empty = _gNeoArkShrineView1SpriteBatches }, _gNeoArkShrineView1SpriteBatches, NULL },
+    { { .empty = _gNeoArkShrineView2SpriteBatches }, _gNeoArkShrineView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView3SpriteSources }, _gNeoArkShrineView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView4SpriteSources }, _gNeoArkShrineView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView5SpriteSources }, _gNeoArkShrineView5SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView6SpriteSources }, _gNeoArkShrineView6SpriteBatches, NULL },
+    { { .empty = _gNeoArkShrineView7SpriteBatches }, _gNeoArkShrineView7SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView8SpriteSources }, _gNeoArkShrineView8SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView9SpriteSources }, _gNeoArkShrineView9SpriteBatches, NULL },
+    { { .elements = _gNeoArkShrineView10SpriteSources }, _gNeoArkShrineView10SpriteBatches, NULL },
+    { { .empty = _gNeoArkShrineView11SpriteBatches }, _gNeoArkShrineView11SpriteBatches, NULL },
+    { { .empty = _gNeoArkShrineView12SpriteBatches }, _gNeoArkShrineView12SpriteBatches, NULL },
     { { .elements = D_neo_ark_shrine_80184B28 }, D_neo_ark_shrine_80184D58, NULL },
     { { .empty = D_neo_ark_shrine_80184D78 }, D_neo_ark_shrine_80184D78, NULL },
     { { .empty = D_neo_ark_shrine_80184D88 }, D_neo_ark_shrine_80184D88, NULL },
@@ -940,33 +983,44 @@ SpriteView D_neo_ark_shrine_80185280[18] = {
     { { .elements = D_neo_ark_shrine_801851A0 }, D_neo_ark_shrine_80185268, NULL },
 };
 
-WorldCoordLight D_neo_ark_shrine_80185358[2] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -332, -462, -388 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 745, 740 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 267, -272, 272 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 348, 286, 245 }, { 0, 0 } },
+/// Two mutable directional lights contributing in every shrine view and room selector.
+static WorldCoordLight _gNeoArkShrineDirectionalLights[] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -332, -462, -388 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 750, 745, 740 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 267, -272, 272 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 348, 286, 245 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_neo_ark_shrine_80185408[17] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1198, -2188, 3758 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4100, 4038, 3936 }, { 0, 0 } }, 832, 4161 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6232, -1290, -505 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1845, 1765, 1703 }, { 0, 0 } }, 1685, 3529 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6055, -1410, 3087 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1475, 1311, 1232 }, { 0, 0 } }, 992, 2101 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3560, -1430, 3820 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1843, 1515, 1187 }, { 0, 0 } }, 600, 1400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4910, -1430, 3820 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2170, 1843 }, { 0, 0 } }, 900, 1180 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4579, -1430, 5537 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1621, 1496, 1375 }, { 0, 0 } }, 900, 1902 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3560, -1430, 6155 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1293, 1272, 1232 }, { 0, 0 } }, 363, 941 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7688, -1235, 4382 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1478, 1434, 1372 }, { 0, 0 } }, 1201, 1931 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CEB, -1360, 713 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2170, 1844 }, { 0, 0 } }, 881, 1663 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2E28, -1320, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2461, 2174, 1847 }, { 0, 0 } }, 1159, 1985 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x27BB, -1360, 2967 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } }, 5, 357 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9402, -1360, 2037 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2458, 2171, 1844 }, { 0, 0 } }, 1182, 2084 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2869, -1360, 285 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 309, 226, 184 }, { 0, 0 } }, 150, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9060, -1360, 445 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2170, 1843 }, { 0, 0 } }, 900, 1603 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7005, -2049, -3922 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2376, 2338, 2276 }, { 0, 0 } }, 850, 3850 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -10, -2789, 1661 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4567, 4550, 4508 }, { 0, 0 } }, 2520, 6612 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -25, -2065, 1050 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1802, 1863, 1884 }, { 0, 0 } }, 200, 2200 },
+/// Seventeen mutable point lights shared by every shrine view and room selector.
+///
+/// Positions and falloff radii use world units; RGB intensities use twelve
+/// fractional bits. Coordinate caches and attenuation remain writable.
+static WorldCoordPointLight _gNeoArkShrinePointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1198, -2188, 3758 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4100, 4038, 3936 }, { 0, 0 } }, 832, 4161 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6232, -1290, -505 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1845, 1765, 1703 }, { 0, 0 } }, 1685, 3529 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6055, -1410, 3087 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1475, 1311, 1232 }, { 0, 0 } }, 992, 2101 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3560, -1430, 3820 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1843, 1515, 1187 }, { 0, 0 } }, 600, 1400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4910, -1430, 3820 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2170, 1843 }, { 0, 0 } }, 900, 1180 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4579, -1430, 5537 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1621, 1496, 1375 }, { 0, 0 } }, 900, 1902 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3560, -1430, 6155 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1293, 1272, 1232 }, { 0, 0 } }, 363, 941 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7688, -1235, 4382 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1478, 1434, 1372 }, { 0, 0 } }, 1201, 1931 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2CEB, -1360, 713 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2460, 2170, 1844 }, { 0, 0 } }, 881, 1663 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2E28, -1320, 2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2461, 2174, 1847 }, { 0, 0 } }, 1159, 1985 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x27BB, -1360, 2967 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0, 0, 0 }, { 0, 0 } }, 5, 357 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9402, -1360, 2037 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2458, 2171, 1844 }, { 0, 0 } }, 1182, 2084 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2869, -1360, 285 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 309, 226, 184 }, { 0, 0 } }, 150, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9060, -1360, 445 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2170, 1843 }, { 0, 0 } }, 900, 1603 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7005, -2049, -3922 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2376, 2338, 2276 }, { 0, 0 } }, 850, 3850 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -10, -2789, 1661 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4567, 4550, 4508 }, { 0, 0 } }, 2520, 6612 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -25, -2065, 1050 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1802, 1863, 1884 }, { 0, 0 } }, 200, 2200 },
 };
 
-WorldCoordRoomLights D_neo_ark_shrine_80185A68[1] = {
-    { ARRAY_SIZE(D_neo_ark_shrine_80185358), D_neo_ark_shrine_80185358, ARRAY_SIZE(D_neo_ark_shrine_80185408), D_neo_ark_shrine_80185408, 0, NULL },
+/// Authored light collection shared by all six shrine room selectors, with no cone lights.
+static WorldCoordRoomLights _gNeoArkShrineRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gNeoArkShrineDirectionalLights),
+    .directionalLights     = _gNeoArkShrineDirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkShrinePointLights),
+    .pointLights           = _gNeoArkShrinePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_neo_ark_shrine_80185A80[14] = {
@@ -1079,33 +1133,57 @@ WorldCollisionOccluder D_neo_ark_shrine_80186730[4] = {
     { NULL, NULL, { 0x2840, -1984, 4256, 0 }, { { 1904, 3376, 1617, 0 }, { -1904, 3376, -1616, 0 }, { 1904, -3376, 1617, 0 }, { -1904, -3376, -1616, 0 } }, { 2664, 0, -3139, 0 }, 4190, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_shrine_80186820 = {
-    0x1000003D,
-    0x1000003F,
-    0x1000003D,
+/// Cue-2 script bases in the loaded shrine sound bank; cue 1 uses the following entry.
+enum {
+    NEO_ARK_SHRINE_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3D,
+    NEO_ARK_SHRINE_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3F,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_shrine_8018682C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_shrine_80186820 },
+/// Paired footstep cues for shrine surfaces 0 and 2..7, with walking cues for scripted jumps.
+///
+/// Cue 1 adds one to these bases; companion playback adds another hundred.
+static WorldCollisionFootstepSounds _gNeoArkShrineFootstepSounds = {
+    .walk         = NEO_ARK_SHRINE_FOOTSTEP_WALK,
+    .run          = NEO_ARK_SHRINE_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_SHRINE_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_shrine_80186834[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Classes 0 and 3..7: probe blocking, weapon impacts, pushback and shrine footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkShrineSurface0Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkShrineFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_shrine_8018683C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_shrine_80186820 },
+/// Class 1: probe blocking, weapon impacts and pushback without surface footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkShrineSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_shrine_80186844[8] = {
-    D_neo_ark_shrine_8018682C,
-    D_neo_ark_shrine_80186834,
-    D_neo_ark_shrine_8018683C,
-    D_neo_ark_shrine_8018682C,
-    D_neo_ark_shrine_8018682C,
-    D_neo_ark_shrine_8018682C,
-    D_neo_ark_shrine_8018682C,
-    D_neo_ark_shrine_8018682C,
+/// Class 2's distinct record for probe blocking, weapon impacts, pushback and shrine footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkShrineSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkShrineFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkShrineSurfaceProperties[8] = {
+    &_gNeoArkShrineSurface0Properties,
+    &_gNeoArkShrineSurface1Properties,
+    &_gNeoArkShrineSurface2Properties,
+    &_gNeoArkShrineSurface0Properties,
+    &_gNeoArkShrineSurface0Properties,
+    &_gNeoArkShrineSurface0Properties,
+    &_gNeoArkShrineSurface0Properties,
+    &_gNeoArkShrineSurface0Properties,
 };
 
 Task* D_neo_ark_shrine_80186864 = NULL;
