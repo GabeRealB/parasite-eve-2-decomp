@@ -97,32 +97,37 @@ TmdSource gMappicS202GeneralStoreShape = {
     .stream           = _gMappicS202GeneralStoreShapeStream,
 };
 
-static TmdBone _gMappicS202MappicS400Model0005C00258Skeleton[1] = {
+/// Identity transform and self-parented root for the Back Street shape.
+static TmdBone _gMappicS202BackStreetShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_00258_skeleton.inc"
 };
 
-static u32 _gMappicS202MappicS400Model0005C00258PartVerts[1] = {
+/// Vertex count of the Back Street shape's sole part (six vertices).
+static u32 _gMappicS202BackStreetShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00258_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202MappicS400Model0005C00258Verts[6] = {
+/// Back Street's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202BackStreetShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00258_verts.inc"
 };
 
-static u32 _gMappicS202MappicS400Model0005C00258Stream[12] = {
+/// Packed command stream for the Back Street shape's two unlit quads.
+///
+/// Four SVECTOR byte offsets and white colour per quad; two group ends precede
+/// the stream end. The map reads only the first group.
+static u32 _gMappicS202BackStreetShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_00258_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012F188 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS202MappicS400Model0005C00258PartVerts,
-    _gMappicS202MappicS400Model0005C00258Verts,
-    &_gMappicS202MappicS400Model0005C00258Verts[6],
-    _gMappicS202MappicS400Model0005C00258Skeleton,
-    _gMappicS202MappicS400Model0005C00258Stream,
+TmdSource gMappicS202BackStreetShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202BackStreetShapeSkeleton),
+    .partVertexCounts = _gMappicS202BackStreetShapePartVerts,
+    .verts            = _gMappicS202BackStreetShapeVerts,
+    .normals          = &_gMappicS202BackStreetShapeVerts[ARRAY_SIZE(_gMappicS202BackStreetShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202BackStreetShapeSkeleton,
+    .stream           = _gMappicS202BackStreetShapeStream,
 };
 
 static TmdBone _gMappicS202Model00C48002E8Skeleton[1] = {
