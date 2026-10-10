@@ -194,4 +194,4 @@ _gActor01100Actor101100Animation155B8 = 0x801473D8; // size:0x28 defined:True
 gActor01100Tasks = 0x80147400; // size:0x24 defined:True
 Actor01100_D15604 = 0x80147424; // size:0x5C defined:True
 Actor01100_D15660 = 0x80147480; // size:0x10 defined:True
-Actor01100_D15670 = 0x80147490; // size:0x1 defined:True
+_gActor01100SpitSoundPlacementIndex = 0x80147490; // size:0x4 defined:True

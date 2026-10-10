@@ -105,10 +105,6 @@ typedef struct {
 } _Actor120500Work;
 STATIC_ASSERT_SIZEOF(_Actor120500Work, 0x4CC);
 
-/// The actor task, published by `_actor120500InitBody` so the setters,
-/// which take no task, can reach its work block.
-extern Task* D_actor_120500_80138454;
-
 /// The actor's five-entry task table: 0 the streamed sequence
 /// (`_actor120500MovieTask`), 1 the fade from black, 2 the fade to black,
 /// 3 `taskKill`, 4 the actor itself.
@@ -348,7 +344,12 @@ TaskDesc gActor120500EmptyPlacementTaskDesc = { { { TASK_BODY_NONE, 192 } }, tas
 
 TaskDesc D_actor_120500_80138448 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120500SceneTask, { .model = &_gActor120500KyleMadiganBody } };
 
-Task* D_actor_120500_80138454 = NULL;
+/// Borrowed Kyle Madigan body task for the motel-room movie's request channels.
+///
+/// Successful body setup publishes the singleton for event setters and skip
+/// handling. Those consumers require its initialized work to remain live;
+/// teardown does not clear the cache and a later spawn replaces it.
+static Task* _gActor120500SceneBodyTask = NULL;
 
 static void _actor120500RunPlayerRequest(Task* task);
 static void _actor120500InitBody(Task* task);
@@ -615,14 +616,14 @@ static void _actor120500InitBody(Task* task)
     }
     work = allocatedWork;
     memFillBytes(work, 0, sizeof(*work));
-    work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    D_actor_120500_80138454 = task;
-    coord->parent           = &gGfxViewCoord;
-    tmd->lightMtx           = &work->light;
-    tmd->flags              = 0;
-    tmd->colorMtx           = &work->color;
-    place                   = areaGetVariant(&gGameSession->location.loc)->placements;
-    entryId                 = place->entryId;
+    work->playerTask           = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    _gActor120500SceneBodyTask = task;
+    coord->parent              = &gGfxViewCoord;
+    tmd->lightMtx              = &work->light;
+    tmd->flags                 = 0;
+    tmd->colorMtx              = &work->color;
+    place                      = areaGetVariant(&gGameSession->location.loc)->placements;
+    entryId                    = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
         if (entryId == ACTOR_120500_BODY_TEXTURE_ENTRY_ID) {
             break;
@@ -788,7 +789,7 @@ static void _actor120500SceneTask(Task* task)
 /// performs the request later; this callback sends no player message.
 static void _actor120500PostPlayerRequest(s16 requestId)
 {
-    _Actor120500Work* work = D_actor_120500_80138454->work;
+    _Actor120500Work* work = _gActor120500SceneBodyTask->work;
 
     work->playerRequest     = requestId;
     work->playerRequestStep = 0;
@@ -803,7 +804,7 @@ static void _actor120500PostPlayerRequest(s16 requestId)
 /// that this scene does not read. This callback performs no rendering or fade.
 static void _actor120500PostBodyRequest(s16 requestId)
 {
-    _Actor120500Work* work = D_actor_120500_80138454->work;
+    _Actor120500Work* work = _gActor120500SceneBodyTask->work;
 
     work->bodyRequest     = requestId;
     work->bodyRequestStep = 0;
@@ -817,7 +818,7 @@ static void _actor120500PostBodyRequest(s16 requestId)
 /// unsupported codes are cleared without effect. Performs no screen operation.
 static void _actor120500PostScreenRequest(s16 requestId)
 {
-    _Actor120500Work* work = D_actor_120500_80138454->work;
+    _Actor120500Work* work = _gActor120500SceneBodyTask->work;
 
     work->screenRequest     = requestId;
     work->screenRequestStep = 0;
@@ -859,7 +860,7 @@ static void _actor120500SkipScene(void)
     _Actor120500Work*    animWork;
     AnimationPlayRequest request;
 
-    task = D_actor_120500_80138454;
+    task = _gActor120500SceneBodyTask;
     work = task->work;
     sndEvtRequestScriptStop(SOUND_MOTEL_ROOM_6_MOVIE_SFX, ACTOR_120500_SKIP_SOUND_FADE_UPDATES);
     taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);

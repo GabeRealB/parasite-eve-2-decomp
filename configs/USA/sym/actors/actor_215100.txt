@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_215100.
 gActor215100GalleryTrainingActive = 0x8014D038; // size:0x4 defined:True
-D_actor_215100_8014D03C = 0x8014D03C; // size:0x4 defined:True
+gActor215100GalleryExitInputBlocked = 0x8014D03C; // size:0x4 defined:True
 D_actor_215100_8014D040 = 0x8014D040; // size:0x4 defined:True
 _gCapCaptionSceneClockSchedule = 0x80154514; // size:0xD0 defined:True
 _gCapCaptionCaretPulseLevel = 0x801545E4; // size:0x4 defined:True

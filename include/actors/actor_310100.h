@@ -5,7 +5,13 @@
 
 #include "main/task_types.h"
 
-extern AnimationSet* D_actor_310100_801797FC[13];
+/// Player choreography clips used by the Acropolis police-officer scenes.
+///
+/// Indices 0..9 and 11 hold clips; 10 and 12 are NULL and cannot be played.
+/// Actor-310100 officer controllers and Acropolis Plaza borrow this table for
+/// animation messages to the player. Both this actor overlay's table and the
+/// room overlay's clip resources must remain loaded through playback.
+extern AnimationSet* gActor310100PlayerAnimationSets[13];
 
 /// Police officer 1 spawn recipes: 0 movie controller, 1 animated body, 2 culled body.
 ///

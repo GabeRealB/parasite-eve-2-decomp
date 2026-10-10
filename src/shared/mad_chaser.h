@@ -20,6 +20,15 @@
 
 #include "main/task_types.h"
 
+/// Carrier's shared enemy-parameter record used by both spawn fragments.
+///
+/// Bind to an EnemyParams object that remains loaded for each spawned enemy.
+/// The default is a private per-TU instance; actor_342400 binds its record
+/// shared between its definition and spawn translation units.
+#ifndef MAD_CHASER_ENEMY_PARAMS
+#define MAD_CHASER_ENEMY_PARAMS _gMadChaserEnemyParams
+#endif
+
 /// Values of `MadChaserWork::animRequest`.
 enum {
     MAD_CHASER_ANIM_REQUEST_BLEND   = 1, // blend into `animId` over `animBlendFrames` frames

@@ -260,7 +260,13 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-extern Task* Actor04000_D0C710[2];
+/// Two borrowed task handles for Blood Sucklers released from the hanging pool.
+///
+/// NULL marks a free slot. Refilling transfers a hanging task into a slot and
+/// requests its drop; a subsequent refill clears a task whose Enemy HP is nonpositive.
+/// Initialization clears both slots. Handles and their Enemy must remain live
+/// until that check removes them; this table neither owns nor destroys tasks.
+static Task* _gActor04000ActiveDropTasks[2];
 
 static Task* _gActor04000HangingTasksByPlacement[8];
 
@@ -1226,8 +1232,6 @@ TaskFunc Actor04000_D0C6EC[4] = {
 TaskDesc Actor04000_D0C6FC = { { { TASK_BODY_NONE, 96 } }, _actor04000HangingPoolTask, { .value = 0 } };
 
 SVECTOR ActorContact_ScratchPosition;
-
-Task* Actor04000_D0C710[2];
 
 /// Borrowed hanging-enemy tasks indexed by the placement's high-nibble index.
 ///
@@ -3172,12 +3176,12 @@ static void _actor04000RefillDropSlots(Task* task)
     s16           selectedPoolIndex;
 
     selectedPoolIndex = 0;
-    for (dropSlot = 0; dropSlot < ARRAY_SIZE(Actor04000_D0C710); dropSlot++) {
-        if (Actor04000_D0C710[dropSlot] != NULL) {
-            if (((Enemy*)Actor04000_D0C710[dropSlot]->spawnArg2.pointer)->hp <= 0) {
-                Actor04000_D0C710[dropSlot] = NULL;
+    for (dropSlot = 0; dropSlot < ARRAY_SIZE(_gActor04000ActiveDropTasks); dropSlot++) {
+        if (_gActor04000ActiveDropTasks[dropSlot] != NULL) {
+            if (((Enemy*)_gActor04000ActiveDropTasks[dropSlot]->spawnArg2.pointer)->hp <= 0) {
+                _gActor04000ActiveDropTasks[dropSlot] = NULL;
             }
-            if (Actor04000_D0C710[dropSlot] != NULL) {
+            if (_gActor04000ActiveDropTasks[dropSlot] != NULL) {
                 continue;
             }
         }
@@ -3209,7 +3213,7 @@ static void _actor04000RefillDropSlots(Task* task)
             return;
         }
         ((_Actor04000Work*)_gActor04000HangingTasksByPlacement[selectedPoolIndex]->work)->state = ACTOR_04000_STATE_DROP;
-        Actor04000_D0C710[dropSlot]                                                             = _gActor04000HangingTasksByPlacement[selectedPoolIndex];
+        _gActor04000ActiveDropTasks[dropSlot]                                                   = _gActor04000HangingTasksByPlacement[selectedPoolIndex];
         _gActor04000HangingTasksByPlacement[selectedPoolIndex]                                  = NULL;
     }
 }
@@ -3566,11 +3570,11 @@ static void _actor04000InitHangingPool(Task* task)
     for (poolIndex = 0; poolIndex < ACTOR_04000_HANGING_POOL_COUNT; poolIndex++) {
         _gActor04000HangingTasksByPlacement[poolIndex] = NULL;
     }
-    Actor04000_D0C710[1]      = NULL;
-    command.context.loc.stage = GAME_STAGE_DRYFIELD_NIGHT;
-    command.context.loc.area  = GAME_AREA_DRYFIELD_NIGHT_TOILET;
-    Actor04000_D0C710[0]      = NULL;
-    command.command           = ACTOR_04000_POOL_COMMAND_HANG;
+    _gActor04000ActiveDropTasks[1] = NULL;
+    command.context.loc.stage      = GAME_STAGE_DRYFIELD_NIGHT;
+    command.context.loc.area       = GAME_AREA_DRYFIELD_NIGHT_TOILET;
+    _gActor04000ActiveDropTasks[0] = NULL;
+    command.command                = ACTOR_04000_POOL_COMMAND_HANG;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &command, ACTOR_COMMAND_MESSAGE_APPLY);
     task->state++;
 }

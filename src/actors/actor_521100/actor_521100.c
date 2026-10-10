@@ -179,17 +179,10 @@ extern VECTOR D_actor_521100_8015F654[];
 
 /// Sixteen frames of the burn-out effect the state bodies at `subState == 1`
 /// pick between on their last frame, indexed by the 4 bits under the top half
-/// of an LCG draw (`(rng >> 16) & 0xF`). The sibling state body
-/// `_actor521100FlinchState` reads the table one slot down at 0x8015F5F4.
+/// of an LCG draw (`(rng >> 16) & 0xF`).
 extern u16 D_actor_521100_8015F634[];
 
-/// The other sixteen-frame burn-out table, read by the state-5 body
-/// `_actor521100FlinchState` off the same LCG draw bits the state-3 body
-/// `_actor521100StaggerState` indexes `D_actor_521100_8015F634` with.
-extern u16 D_actor_521100_8015F5F4[];
-
-/// The burn-out effect table the sequence resets read, one 0x20-byte table
-/// below `D_actor_521100_8015F5F4`: the state-1 body
+/// The burn-out effect table the sequence resets read: the state-1 body
 /// `_actor521100StanceAttack` draws from it the frames its stance is held,
 /// into `stateCounter`.
 extern u16 D_actor_521100_8015F5D4[];
@@ -1577,7 +1570,12 @@ s16 D_actor_521100_8015F5C8[3][2] = {
 
 u16 D_actor_521100_8015F5D4[16] = { 0 };
 
-u16 D_actor_521100_8015F5F4[16] = {
+/// No. 9 GOLEM's sixteen-entry distribution of approach and attack-recovery waits.
+///
+/// A four-bit LCG draw selects 0 (eight entries), 15 (four) or 30 (four) frames
+/// for stateCounter, including after flinch, grabs and ordinary attacks.
+/// The approach state decrements before testing; zero may still occupy a tick.
+static u16 _gActor521100ApproachWaitFrames[16] = {
     0,
     0,
     0,
@@ -2170,7 +2168,7 @@ static void _actor521100ApproachState(Task* task)
                 if (remainingFrames <= 0) {
                     work->turnSpeed    = 0x78;
                     work->forwardSpeed = 0;
-                    idleWaitTable      = D_actor_521100_8015F5F4;
+                    idleWaitTable      = _gActor521100ApproachWaitFrames;
                     idleRandomState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     gRandomLcgState    = idleRandomState;
                     remainingFrames    = idleWaitTable[(idleRandomState >> 16) & ACTOR_521100_RECOVERY_WAIT_INDEX_MASK];
@@ -2422,7 +2420,7 @@ static void _actor521100SlashAttack(Task* task)
         work->animationId  = ACTOR_521100_ANIM_IDLE;
         work->state        = ACTOR_521100_STATE_APPROACH;
         work->subState     = ACTOR_521100_APPROACH_WAIT;
-        recoveryWaitTable  = D_actor_521100_8015F5F4;
+        recoveryWaitTable  = _gActor521100ApproachWaitFrames;
         gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->stateCounter = recoveryWaitTable[(gRandomLcgState >> 16) & ACTOR_521100_RECOVERY_WAIT_INDEX_MASK];
         work->attackLive   = 0;
@@ -2513,7 +2511,7 @@ static void _actor521100LongSlashAttack(Task* task)
         work->animationId   = ACTOR_521100_ANIM_IDLE;
         work->state         = ACTOR_521100_STATE_APPROACH;
         work->subState      = ACTOR_521100_APPROACH_WAIT;
-        recoveryWaitTable   = D_actor_521100_8015F5F4;
+        recoveryWaitTable   = _gActor521100ApproachWaitFrames;
         recoveryRandomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState     = recoveryRandomState;
         work->stateCounter  = recoveryWaitTable[(recoveryRandomState >> 16) & ACTOR_521100_RECOVERY_WAIT_INDEX_MASK];
@@ -2574,7 +2572,7 @@ static void _actor521100StanceAttack(Task* task)
                 break;
             }
             if (work->playerDistance >= ACTOR_521100_STANCE_MAX_DISTANCE) {
-                u16* waitFrameTable = D_actor_521100_8015F5F4;
+                u16* waitFrameTable = _gActor521100ApproachWaitFrames;
                 work->state         = ACTOR_521100_STATE_APPROACH;
                 work->subState      = ACTOR_521100_APPROACH_WAIT;
                 work->attackStep    = ACTOR_521100_STANCE_ENTER;
@@ -2632,7 +2630,7 @@ static void _actor521100StanceAttack(Task* task)
                 work->state    = ACTOR_521100_STATE_WALK_ROUTE;
                 work->subState = ACTOR_521100_STANCE_ROUTE_RETURN;
             } else {
-                u16* waitFrameTable = D_actor_521100_8015F5F4;
+                u16* waitFrameTable = _gActor521100ApproachWaitFrames;
                 work->state         = ACTOR_521100_STATE_APPROACH;
                 work->subState      = ACTOR_521100_APPROACH_WAIT;
                 work->animationId   = ACTOR_521100_ANIM_IDLE;
@@ -2898,7 +2896,7 @@ static void _actor521100GrabState(Task* task)
                 taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             }
             if (work->animationFrame >= ACTOR_521100_THROW_END_FRAME) {
-                recoveryWaitTable   = D_actor_521100_8015F5F4;
+                recoveryWaitTable   = _gActor521100ApproachWaitFrames;
                 work->animationId   = ACTOR_521100_ANIM_IDLE;
                 work->state         = ACTOR_521100_STATE_APPROACH;
                 work->subState      = ACTOR_521100_APPROACH_WAIT;
@@ -3609,7 +3607,7 @@ static void _actor521100FlinchState(Task* task)
             return;
         case ACTOR_521100_REACTION_WAIT:
             if (work->animationFrame >= ACTOR_521100_FLINCH_FRAMES) {
-                ACTOR_521100_RESUME_AFTER_HIT(work, D_actor_521100_8015F5F4);
+                ACTOR_521100_RESUME_AFTER_HIT(work, _gActor521100ApproachWaitFrames);
             }
             return;
     }

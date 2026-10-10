@@ -16,12 +16,12 @@ static __inline__ void _madChaserBindHiddenResources(Task* task, TmdObject* mode
     task->msgTable             = _gMadChaserMsgTable;
     model->lightMtx            = &work->lightMtx;
     model->colorMtx            = &work->colorMtx;
-    enemy->param               = &gMadChaserEnemyParams;
+    enemy->param               = &MAD_CHASER_ENEMY_PARAMS;
     enemy->recs                = work->contacts;
     work->effectArg.coord      = &task->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = MAD_CHASER_HIDDEN_HIT_EFFECT_SPAN;
     work->effectArg.spawnArgHi = MAD_CHASER_HIDDEN_HIT_EFFECT_COUNT;
-    enemy->hp = enemy->hpMax = gMadChaserEnemyParams.hpMax;
+    enemy->hp = enemy->hpMax = MAD_CHASER_ENEMY_PARAMS.hpMax;
     animationInitContext(&work->anim, _gMadChaserAnimBank, model, work->poses, work->slots);
 }
 

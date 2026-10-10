@@ -54,8 +54,6 @@
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/mad_chaser.h"
 
-extern EnemyParams gMadChaserEnemyParams;        // the main enemy's `Enemy::param` record
-
 static const TaskFuncTable3 gMadChaserWalkSteps; // dispatcher table _madChaserWalkState copies onto its stack
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
@@ -249,7 +247,11 @@ static DamageAttack _gMadChaserAttacks[1] = {
     { 22, MAD_CHASER_ATTACK_ORDINARY_REACTION },
 };
 
-EnemyParams gMadChaserEnemyParams = { _gMadChaserAttacks, 110, 20, 40, 1, 100, 10, 100, 0 };
+/// Shared Mad Chaser tuning and release rewards for this overlay's instances.
+///
+/// Ordinary and hidden spawn paths borrow the record and seed current/maximum
+/// HP to 110. Its attack table is overlay-owned; rewards are 20 EXP, 40 BP, 1 MP.
+static EnemyParams _gMadChaserEnemyParams = { _gMadChaserAttacks, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 static AnimationPackedPose _gActor04400Actor104400Animation0D554Bank1[6] = {
 #include "assets/actor_104400_animation_0D554_bank1.inc"

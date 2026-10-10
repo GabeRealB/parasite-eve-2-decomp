@@ -20,11 +20,11 @@ static void _viewFigureSpawnState(Enemy* enemy, Task* task)
     TmdObject*      model;
     GfxCoord*       rootCoord;
 
-    model           = task->extra.tmd;
-    rootCoord       = model->coords;
-    work            = memCalloc(sizeof(ViewFigureWork), false);
-    gViewFigureWork = work;
-    task->work      = work;
+    model            = task->extra.tmd;
+    rootCoord        = model->coords;
+    work             = memCalloc(sizeof(ViewFigureWork), false);
+    _gViewFigureWork = work;
+    task->work       = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
@@ -38,17 +38,17 @@ static void _viewFigureSpawnState(Enemy* enemy, Task* task)
     model->otOffset                  = 0;
     rootCoord->composeStamp          = GRAPHICS_COORD_DIRTY;
     ACTOR_MESSAGE_BODY_TASK          = task;
-    gActorHelperTask                 = taskSpawnFromTable(VIEW_FIGURE_TASK_DESCS, VIEW_FIGURE_TASK_HELPER, 0, 0);
-    animationInitContext(&gViewFigureWork->rig.anim, (AnimationSet**)gViewFigureAnimSets, model,
-                         gViewFigureWork->rig.poses, gViewFigureWork->rig.slots);
-    gViewFigureWork->st.animId = VIEW_FIGURE_ANIM_IDLE;
-    gViewFigureWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
+    _gActorMsgHelperTask             = taskSpawnFromTable(VIEW_FIGURE_TASK_DESCS, VIEW_FIGURE_TASK_HELPER, 0, 0);
+    animationInitContext(&_gViewFigureWork->rig.anim, (AnimationSet**)gViewFigureAnimSets, model,
+                         _gViewFigureWork->rig.poses, _gViewFigureWork->rig.slots);
+    _gViewFigureWork->st.animId = VIEW_FIGURE_ANIM_IDLE;
+    _gViewFigureWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
     _viewFigureStepAnim(task);
     lightingSample.vx = rootCoord->workm.t[0];
     lightingSample.vy = rootCoord->workm.t[1];
     lightingSample.vz = rootCoord->workm.t[2];
     worldCoordSetModelLighting(model, &lightingSample, 0, VIEW_FIGURE_LIGHT_COUNT);
-    gViewFigureWork->st.field_6++;
+    _gViewFigureWork->st.field_6++;
     task->msgTable = gViewFigureMessages;
     task->state++;
 }

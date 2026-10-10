@@ -100,13 +100,6 @@ STATIC_ASSERT_SIZEOF(_Actor113100PierceCarradineWork, 0x540);
 
 extern TaskMessageEntry D_actor_113100_80144338[];
 
-extern AnimationSet** D_actor_113100_801442E0[1];
-
-/// Per-animation byte the same handler copies into
-/// `_Actor113100PierceCarradineWork::turnUp` from
-/// `AnimationPlayRequest::animationId`.
-extern u8 D_actor_113100_801442E4[];
-
 static void _actor113100SpawnPierceCarradine(Task* task);
 static void _actor113100UpdatePierceCarradine(Task* task);
 static void _actor113100TurnAndBeginWalk(Task* task);
@@ -1104,47 +1097,63 @@ static AnimationSet* _gActor113100PierceAnimationBank[36] = {
     &_gActor113100Animation12408,
 };
 
-AnimationSet** D_actor_113100_801442E0[1] = {
+/// Body animation banks for Pierce Carradine; bank 0 is the sole 36-entry clip table.
+///
+/// An animation request's source index selects this table, independently of
+/// its animationId. The context borrows the selected bank while the rig lives;
+/// callers must select bank 0 and a non-NULL clip in that bank.
+static AnimationSet** _gActor113100PierceAnimationBanks[1] = {
     _gActor113100PierceAnimationBank,
 };
 
-u8 D_actor_113100_801442E4[36] = {
-    0,
-    1,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    0,
-    1,
-    1,
-    1,
-    0,
-    1,
-    0,
-    1,
-    1,
-    1,
-    0,
-    1,
-    1,
-    0,
+/// Directions of Pierce's Q12 head-aim weight ramp.
+enum {
+    ACTOR_113100_HEAD_TURN_RELEASE = 0,
+    ACTOR_113100_HEAD_TURN_AIM     = 1,
+};
+
+/// Head-aim ramp direction for each of Pierce Carradine's 36 body-clip indices.
+///
+/// Values are 0 to lower the Q12 head-aim weight toward zero, or 1 to raise it
+/// toward full player tracking. Every play request selects its byte even when
+/// repeating a clip; later actor commands may override that direction.
+static u8 _gActor113100HeadTurnByClip[36] = {
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_RELEASE,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_AIM,
+    ACTOR_113100_HEAD_TURN_RELEASE,
 };
 
 static TmdSource _gActor113100Model07BC4;
@@ -1412,7 +1421,7 @@ static inline void _actor113100ApplyAnimationRequest(_Actor113100PierceCarradine
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_113100_801442E0[work->model.bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor113100PierceAnimationBanks[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
     // Repeated clips keep their cursor; a bank change invalidates the previous clip.
@@ -1433,7 +1442,7 @@ static inline void _actor113100ApplyAnimationRequest(_Actor113100PierceCarradine
         }
         work->model.ticking = 1;
     }
-    work->turnUp = D_actor_113100_801442E4[request->animationId];
+    work->turnUp = _gActor113100HeadTurnByClip[request->animationId];
 }
 
 /// Turns to the queued heading, then starts the walk at 32 parent-space units per tick.
@@ -1962,8 +1971,6 @@ static s32 _actor113100ApplyCommand(Task* task, s32 messageId, const ActorComman
         ACTOR_113100_COMMAND_HIDE_BILLBOARD = 1,
         ACTOR_113100_COMMAND_AIM_HEAD       = 2,
         ACTOR_113100_COMMAND_RELEASE_HEAD   = 3,
-        ACTOR_113100_HEAD_TURN_RELEASE      = 0,
-        ACTOR_113100_HEAD_TURN_AIM          = 1,
     };
 
     work = task->work;

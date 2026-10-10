@@ -2158,7 +2158,7 @@ void actor215100CheckGalleryExitInput(void)
         if (gActor215100GallerySelectedCourseLevel >= ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
             if (gGameSession->location.loc.view == ACTOR_215100_GALLERY_EXIT_INPUT_VIEW) {
                 mistShootingGallerySetTrainingBarrierLowered(0);
-                D_actor_215100_8014D03C = 0;
+                gActor215100GalleryExitInputBlocked = 0;
             }
             // Rearm the interaction only after the attachment action has settled.
             if ((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) < 2U) {
@@ -2168,7 +2168,7 @@ void actor215100CheckGalleryExitInput(void)
                 D_actor_215100_8014D044 -= 1;
                 return;
             }
-            if ((player->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (D_actor_215100_8014D03C == 0) &&
+            if ((player->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (gActor215100GalleryExitInputBlocked == 0) &&
                 (D_80115768 == 0) && (rootCoord->coord.t[0] < ACTOR_215100_GALLERY_EXIT_ZONE_MAX_X)) {
                 rootZ = rootCoord->coord.t[2];
                 if (rootZ < ACTOR_215100_GALLERY_EXIT_ZONE_END_Z) {
@@ -2228,7 +2228,7 @@ void actor215100GalleryExitDecisionTask(Task* task)
             }
             gActor215100GalleryTrainingActive = 0;
             mistShootingGallerySetTrainingBarrierLowered(1);
-            D_actor_215100_8014D03C = 1;
+            gActor215100GalleryExitInputBlocked = 1;
             taskCallExit(D_mist_shooting_gallery_8018E0C4);
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
@@ -2310,7 +2310,7 @@ void actor215100FinishGalleryCourse(void)
         mistShootingGallerySelectRoomLights(0);
     } else {
         mistShootingGallerySetTrainingBarrierLowered(1);
-        D_actor_215100_8014D03C = 1;
+        gActor215100GalleryExitInputBlocked = 1;
     }
     if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_GALLERY_FIRST_SWAP_COURSE) {
         gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
@@ -2323,8 +2323,8 @@ void actor215100RequestGalleryAbort(void)
     if (gActor215100GallerySelectedCourseLevel == ACTOR_215100_GALLERY_BONUS_COURSE) {
         gActor215100GalleryTrainingActive = 0;
         mistShootingGallerySetTrainingBarrierLowered(1);
-        D_actor_215100_8014D03C          = 1;
-        gGameSession->battleResetPending = 1;
+        gActor215100GalleryExitInputBlocked = 1;
+        gGameSession->battleResetPending    = 1;
         sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     }

@@ -340,9 +340,11 @@ extern EnemyParams   Actor01100_D074E8;
 extern EnemyParams   Actor01100_D07510;
 extern AnimationSet* Actor01100_D15604[23];
 
-/// Actor id the set-up `_actor01100Init` stores for the secondary tasks,
-/// which shift it into bits 8-15 of their sound ids.
-extern u8 Actor01100_D15670;
+/// Last initialized Mossback's placement index for its spawned spit sounds.
+///
+/// Shared by every body instance in this overlay. Setup stores a full word;
+/// spit impact and cloud cues encode only its low byte in sound-id bits 8..15.
+static s32 _gActor01100SpitSoundPlacementIndex;
 
 /// Pair table the spawn state packs into the collision body's `WorldCollisionBody.key`.
 extern DamageAttack Actor01100_D074F8[6];
@@ -1079,8 +1081,6 @@ TaskMessageEntry Actor01100_D15660[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u8 Actor01100_D15670;
-
 static __inline__ void _actor01100SetSlotRates(_Actor01100Work* work, s8 rate);
 static __inline__ s32  _actor01100FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts);
 static __inline__ s32  _actor01100PushOut(GfxCoord* coord, const WorldCollisionContact* contacts);
@@ -1192,11 +1192,11 @@ static void _actor01100Init(Enemy* enemy, Task* task, _Actor01100Work* unusedWor
         enemy->param = &Actor01100_D074E8;
     }
 
-    placeIndex                = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    work->placeIndex          = placeIndex;
-    *(s32*)&Actor01100_D15670 = placeIndex;
-    model->lightMtx           = &work->lightMtx;
-    model->colorMtx           = &work->colorMtx;
+    placeIndex                          = enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    work->placeIndex                    = placeIndex;
+    _gActor01100SpitSoundPlacementIndex = placeIndex;
+    model->lightMtx                     = &work->lightMtx;
+    model->colorMtx                     = &work->colorMtx;
     animationInitContext(&work->rig.anim, Actor01100_D15604, model, work->rig.poses, work->rig.slots);
     animationInitContext(&work->flinchRig.anim, Actor01100_D15604, model, work->flinchRig.poses, work->flinchRig.slots);
     work->startedMotion = ACTOR_01100_MOTION_IDLE;
@@ -3767,7 +3767,7 @@ static __inline__ void _actor01100SpitGlobImpact(Task* task, _Actor01100SpitWork
            ACTOR_01100_SOUND_PLACE_SHIFT      = 8 };
     s32 soundId;
 
-    soundId = (waterRoom << ACTOR_01100_SOUND_WATER_SHIFT) | (ACTOR_01100_SPIT_IMPACT_SOUND | (Actor01100_D15670 << ACTOR_01100_SOUND_PLACE_SHIFT));
+    soundId = (waterRoom << ACTOR_01100_SOUND_WATER_SHIFT) | (ACTOR_01100_SPIT_IMPACT_SOUND | ((u8)_gActor01100SpitSoundPlacementIndex << ACTOR_01100_SOUND_PLACE_SHIFT));
     sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(soundCoord), (s8)worldCoordGetOriginAudioDepth(soundCoord));
     work->body.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     task->killCountdown = ACTOR_01100_SPIT_POST_IMPACT_TICKS;
@@ -3874,7 +3874,7 @@ static void _actor01100SpitCloudInit(Task* task)
     }
     task->work  = work;
     soundBaseId = (waterRoom << ACTOR_01100_SOUND_WATER_VARIANT_SHIFT) | ACTOR_01100_SOUND_SPIT_CLOUD;
-    soundId     = soundBaseId | (Actor01100_D15670 << ACTOR_01100_SOUND_PLACEMENT_SHIFT);
+    soundId     = soundBaseId | ((u8)_gActor01100SpitSoundPlacementIndex << ACTOR_01100_SOUND_PLACEMENT_SHIFT);
     pan         = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
     smoke = effectSpawn(EFFECT_SMOKE_PUFF, coord, ACTOR_01100_SPIT_CLOUD_SMOKE_ARGUMENT, NULL);

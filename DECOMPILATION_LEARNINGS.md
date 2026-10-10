@@ -5075,17 +5075,17 @@ even though the arms share a tail. `_actor202900StepAnim` scores 44.4%
 and 100% on the first build as an if-chain:
 
 ```c
-if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_BLEND) {
+if (_gActor202900Work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
     _actor202900BlendAnim();
-    D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
+    _gActor202900Work->st.state = ACTOR_ENEMY_ANIM_TICK;
     return;
 }
-if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_RESET) {
+if (_gActor202900Work->st.state == ACTOR_ENEMY_ANIM_RESET) {
     _actor202900ResetAnim();
-    D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
+    _gActor202900Work->st.state = ACTOR_ENEMY_ANIM_TICK;
     return;
 }
-if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_TICK) {
+if (_gActor202900Work->st.state == ACTOR_ENEMY_ANIM_TICK) {
     _actor202900TickAnim();
 }
 ```
@@ -5094,7 +5094,7 @@ The explicit `return` after each step store is what does the merging: the two
 copies of `st.state = ACTOR_ENEMY_ANIM_TICK` are then identical statements in two different
 blocks, jump.c cross-jumps them into the single advance at `join`, and the
 global is reloaded there through `$s0` - which is why the prologue keeps
-`D_actor_202900_80156E54` in `$s0` across the calls. Collapsing the two stores
+`_gActor202900Work` in `$s0` across the calls. Collapsing the two stores
 into one shared statement by hand (the `goto block_4` m2c produced) reaches the
 same target but leaves the block where the first user sits and loses the
 reload's home. The same body exists at 0x474 in `actor_110300` and 0x4B4 in
@@ -86416,9 +86416,9 @@ before the loop stays ahead of it. The indexed form's offset init is created by
 strength reduction *after* that hoist, which is what moves it behind.
 
 ```c
-    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(D_actor_202900_80156E54->rig.slots); slotIndex++) {
-        animationTickDirectSlot(&D_actor_202900_80156E54->rig.anim,
-                        &D_actor_202900_80156E54->rig.slots[slotIndex]);
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(_gActor202900Work->rig.slots); slotIndex++) {
+        animationTickDirectSlot(&_gActor202900Work->rig.anim,
+                        &_gActor202900Work->rig.slots[slotIndex]);
     }
 ```
 
@@ -86506,7 +86506,7 @@ a front-end conversion, not a `combine` or peephole fold.
     /* ActorEnemyState              */ s16 animId;        /* st.animId */
     ...
     if (request->animationId < ACTOR_202900_ANIM_ID_LIMIT) {
-        D_actor_202900_80156E54->st.animId = request->animationId;  /* lw compare, lhu store */
+        _gActor202900Work->st.animId = request->animationId;  /* lw compare, lhu store */
 ```
 
 Pick the width from the *store* and leave the load alone: declaring the source
@@ -100599,7 +100599,7 @@ disassembly *text*, so a twin that reads different data is not a copy, and
 neither is one whose **call carries a different literal**. Here
 `_actor303600FadeToWhiteTask` is `ActorsShared80133b5c`
 (`src/actors/lib/`) with exactly two edits: `fadeDrawOverlay`'s mode argument is
-`1` where the twin passes `2`, and one extra `D_actor_303600_8016E4C4 = NULL;`
+`1` where the twin passes `2`, and one extra `_gActor303600FadeTaskSlot = NULL;`
 before the exit. `find` reports one copy — the function itself.
 
 Reading the twin's *compiled object* is the cheap way to see the whole diff
@@ -107975,8 +107975,8 @@ in three `switch` arms:
 
 ```c
     case 0: tbl = D_actor_521100_8015F5D4; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
-    case 1: tbl = D_actor_521100_8015F5F4; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
-    case 3: tbl = D_actor_521100_8015F5F4; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
+    case 1: tbl = _gActor521100ApproachWaitFrames; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
+    case 3: tbl = _gActor521100ApproachWaitFrames; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
 ```
 
 Each arm wants `lui $a0,%hi(tbl)` + `addiu $a0,$a0,%lo(tbl)`, one register, and
@@ -125934,7 +125934,7 @@ animation head -- `AnimationContext anim; AnimationSlot slots[20]; byte field_33
 ActorModelState model;` (its `s8 ticking; s8 animId; s8 bank;`) replacing a `byte pad_0[0x475]`, which
 keeps every later offset -- and writing the body the way the matched sibling
 `func_actor_503500_8014652C` writes it (two field stores, then
-`D_actor_113100_801442E0[work->model.bank]`) reached 100.000% in one build. That
+`_gActor113100PierceAnimationBanks[work->model.bank]`) reached 100.000% in one build. That
 sibling's *store order* is the part that decides the reload, which is why it is
 worth copying rather than re-deriving:
 

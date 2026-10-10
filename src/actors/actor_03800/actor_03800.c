@@ -218,7 +218,6 @@ static TmdSource _gActor03800BlackBeetleEffect5;
 
 extern s16           Actor03800_D05F90[];
 extern s16           Actor03800_D05FA8[];
-extern DamageAttack  Actor03800_D05F40[1];
 extern EnemyParams   Actor03800_D05F44;
 extern AnimationSet* Actor03800_D05F60[12];
 
@@ -714,11 +713,18 @@ static AnimationSet _gActor03800Actor103800Animation05F18 = {
     { NULL, _gActor03800Actor103800Animation05F18Bank1, NULL, NULL, _gActor03800Actor103800Animation05F18Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack Actor03800_D05F40[1] = {
-    { 6, 7 },
+/// Player hit presentation requested by Black Beetle body contact.
+enum { ACTOR_03800_CONTACT_REACTION_SPARK_AND_PUFFS = 7 };
+
+/// Black Beetle's single body-contact attack: power 6 with spark-and-puff presentation.
+///
+/// Enemy parameters borrow the entry; movement scales its power by positive
+/// forward speed before packing the attack sphere's key. Lifetime is the overlay's.
+static DamageAttack _gActor03800ContactAttacks[1] = {
+    { 6, ACTOR_03800_CONTACT_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams Actor03800_D05F44 = { Actor03800_D05F40, 280, 15, 53, 1, 0, 10, 100, 0 };
+EnemyParams Actor03800_D05F44 = { _gActor03800ContactAttacks, 280, 15, 53, 1, 0, 10, 100, 0 };
 
 TaskDesc gActor03800BlackBeetleTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor03800Task, { .model = &_gActor03800BlackBeetleBody } };
 
@@ -2153,11 +2159,11 @@ static void _actor03800MoveRoot(Task* task)
     speed = attackWork->speed;
     if (speed > 0) {
         speedBonusBasisPoints = speed * ACTOR_03800_ATTACK_BONUS_PER_SPEED;
-        attackPower           = Actor03800_D05F40[0].power + ((Actor03800_D05F40[0].power * speedBonusBasisPoints) / ACTOR_03800_BASIS_POINTS_ONE);
+        attackPower           = _gActor03800ContactAttacks[0].power + ((_gActor03800ContactAttacks[0].power * speedBonusBasisPoints) / ACTOR_03800_BASIS_POINTS_ONE);
     } else {
-        attackPower = Actor03800_D05F40[0].power;
+        attackPower = _gActor03800ContactAttacks[0].power;
     }
-    attackWork->attackBody.key = (((s16)attackPower | (Actor03800_D05F40[0].reaction << DAMAGE_ATTACK_REACTION_SHIFT)) & 0xFFFF) |
+    attackWork->attackBody.key = (((s16)attackPower | (_gActor03800ContactAttacks[0].reaction << DAMAGE_ATTACK_REACTION_SHIFT)) & 0xFFFF) |
                                  DAMAGE_ATTACK_CATEGORY;
     // Preserve the pre-move position for an opposed room-grid contact.
     work->prevPos.vx       = (s16)rootCoord->coord.t[0];

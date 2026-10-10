@@ -551,7 +551,7 @@ AnimationSet* D_actor_310100_80179794[26] = {
     NULL,
 };
 
-AnimationSet* D_actor_310100_801797FC[13] = {
+AnimationSet* gActor310100PlayerAnimationSets[13] = {
     &gAcropolisPlazaAnimation18F98,
     &gAcropolisPlazaAnimation19610,
     &gAcropolisPlazaAnimation19AD8,
@@ -795,7 +795,7 @@ static void _actor310100UpdateOfficerAnimation(Task* task)
         if (D_actor_310100_8017989C[ACTOR_310100_FOLLOW_UP_PLAYER][work->playerAnimationId] >= 0) {
             playerWork = (_Actor310100PoliceOfficerWork*)task->work;
             if (playerWork->playerTask != NULL) {
-                playerRequest.source.sets          = D_actor_310100_801797FC;
+                playerRequest.source.sets          = gActor310100PlayerAnimationSets;
                 playerRequest.animationId          = followUpAnimationId;
                 playerRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
                 playerRequest.blendFrames          = ACTOR_310100_PLAYER_BLEND_FRAMES;
@@ -1320,7 +1320,7 @@ static s32 _actor310100PlayOfficerOrPlayerAnimation(Task* task, s32 messageId, c
         playerAnimationId            = animation->animationId;
         playerBlend                  = animation->blend;
         if (playerWork->playerTask != NULL) {
-            playerRequest.source.sets          = D_actor_310100_801797FC;
+            playerRequest.source.sets          = gActor310100PlayerAnimationSets;
             playerRequest.animationId          = playerAnimationId;
             playerRequest.blend                = playerBlend;
             playerRequest.blendFrames          = ACTOR_310100_PLAYER_BLEND_FRAMES;

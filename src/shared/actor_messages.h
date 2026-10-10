@@ -5,7 +5,7 @@
  * the handlers its table names; a file with a second copy of one includes the
  * fragment again under that copy's name. actorMsgSetPairVisibility reads the
  * package's published body task through ACTOR_MESSAGE_BODY_TASK and its
- * gActorHelperTask.
+ * _gActorMsgHelperTask.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -169,7 +169,7 @@ enum {
 /// Replaces the flags of the carrier's published actor and helper models.
 ///
 /// Requires live TMD tasks in the carrier's `ACTOR_MESSAGE_BODY_TASK` and
-/// `gActorHelperTask` globals. SHOW clears every model flag; without it both
+/// `_gActorMsgHelperTask` globals. SHOW clears every model flag; without it both
 /// receive only active-draw exclusion. SKIP_AUTO_BUFFER adds that bit to both.
 /// Other request bits are ignored. Neither allocates nor releases buffers.
 /// The receiver, message ID and second payload are ignored. Returns 0.

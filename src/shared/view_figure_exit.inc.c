@@ -2,7 +2,7 @@
 
 /// Begins teardown of the helper model, then releases the figure and its enemy.
 ///
-/// `task` must own a live `Enemy` in `spawnArg2.pointer`; `gActorHelperTask`
+/// `task` must own a live `Enemy` in `spawnArg2.pointer`; `_gActorMsgHelperTask`
 /// must be its live helper from the spawn state. Default task teardown releases
 /// their work and follows `taskKill`'s immediate/deferred model-release rules.
 /// The published task and work pointers retain their values and must no longer
@@ -10,6 +10,6 @@
 static void _viewFigureExit(Task* task)
 {
     // The helper's model root borrows a coordinate owned by the figure's model.
-    taskKill(gActorHelperTask);
+    taskKill(_gActorMsgHelperTask);
     enemyDestroy(task->spawnArg2.pointer, task);
 }

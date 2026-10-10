@@ -329,7 +329,7 @@ static DamageAttack _gMadChaserAttacks[1] = {
     { 22, MAD_CHASER_ATTACK_REACTION_NORMAL },
 };
 
-EnemyParams gMadChaserEnemyParams = { _gMadChaserAttacks, 110, 20, 40, 1, 100, 10, 100, 0 };
+EnemyParams gActor342400MadChaserEnemyParams = { _gMadChaserAttacks, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 static void _actor342400SpawnEncounterSlot(s16 slotIndex, s16 enemyKind, s16 command);
 

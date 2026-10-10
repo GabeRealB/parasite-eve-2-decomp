@@ -134,8 +134,13 @@ enum {
 /// Fractional bits of the shaft's translation, speed, acceleration and limit.
 enum { ACTOR_303600_SHAFT_FRACTION_BITS = 16 };
 
-extern Task*    D_actor_303600_8016E4C0;
-extern Task*    D_actor_303600_8016E4C4;
+extern Task* D_actor_303600_8016E4C0;
+/// Cutscene fade cancellation slot, left unpopulated by this package.
+///
+/// Initialization, fade completion and cancellation only write NULL; fade
+/// spawn results are discarded. Conditional task kills retain the original
+/// behavior, although this package never publishes a live handle here.
+static Task*    _gActor303600FadeTaskSlot;
 extern TaskDesc D_actor_303600_80162E98[];
 extern TaskDesc D_actor_303600_8016E468[];
 // Handler views preserve the signatures used by this TU. The dispatcher
@@ -409,8 +414,6 @@ GsF_LIGHT D_actor_303600_8016E490[3] = {
 
 Task* D_actor_303600_8016E4C0;
 
-Task* D_actor_303600_8016E4C4;
-
 static void _actor303600DispatchCutsceneCue(Task* task);
 static void _actor303600InitShaft(Task* task);
 static void _actor303600ScrollShaft(Task* task);
@@ -498,9 +501,9 @@ static void _actor303600DispatchCutsceneCue(Task* task)
             break;
         case ACTOR_303600_CUTSCENE_CUE_SHOW_SHAFT_AND_FLASH:
             ACTOR_303600_BROADCAST_ACTOR_CUE(ACTOR_303600_CUTSCENE_CUE_SHOW_SHAFT_AND_FLASH);
-            if (D_actor_303600_8016E4C4 != NULL) {
-                taskKill(D_actor_303600_8016E4C4);
-                D_actor_303600_8016E4C4 = NULL;
+            if (_gActor303600FadeTaskSlot != NULL) {
+                taskKill(_gActor303600FadeTaskSlot);
+                _gActor303600FadeTaskSlot = NULL;
             }
             taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_FLASH_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
             break;
@@ -514,9 +517,9 @@ static void _actor303600DispatchCutsceneCue(Task* task)
             taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_WHITE_FADE_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
             break;
         case ACTOR_303600_CUTSCENE_CUE_BLACK_COVER_AND_FLASH:
-            if (D_actor_303600_8016E4C4 != NULL) {
-                taskKill(D_actor_303600_8016E4C4);
-                D_actor_303600_8016E4C4 = NULL;
+            if (_gActor303600FadeTaskSlot != NULL) {
+                taskKill(_gActor303600FadeTaskSlot);
+                _gActor303600FadeTaskSlot = NULL;
             }
             taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_BLACK_COVER_TASK, 0, 0);
             taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_FLASH_TASK, ACTOR_303600_FADE_SLOW_STEP, 0);
@@ -542,9 +545,9 @@ static inline void _actor303600InitializeCutscene(Task* task)
         taskKill(task);
     } else {
         memFillBytes(work, 0, sizeof(*work));
-        work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        D_actor_303600_8016E4C0 = task;
-        D_actor_303600_8016E4C4 = NULL;
+        work->player              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        D_actor_303600_8016E4C0   = task;
+        _gActor303600FadeTaskSlot = NULL;
     }
 }
 
@@ -639,7 +642,7 @@ static void _actor303600FadeFromWhiteTask(Task* task)
             work->g -= (u16)task->spawnArg1.value;
             work->b -= (u16)task->spawnArg1.value;
             if (work->r < 0) {
-                D_actor_303600_8016E4C4 = NULL;
+                _gActor303600FadeTaskSlot = NULL;
                 taskKill(task);
             }
             break;
@@ -671,7 +674,7 @@ static void _actor303600FadeToWhiteTask(Task* task)
             work->g += (u16)task->spawnArg1.value;
             work->b += (u16)task->spawnArg1.value;
             if (work->r >= ACTOR_303600_WHITE_FADE_END_INTENSITY) {
-                D_actor_303600_8016E4C4 = NULL;
+                _gActor303600FadeTaskSlot = NULL;
                 taskKill(task);
             }
             break;
@@ -737,9 +740,9 @@ static void _actor303600FinishSkippedCutscene(void)
     _Actor303600CutsceneWork* work;
     ActorCommand              endCommand;
 
-    if (D_actor_303600_8016E4C4 != NULL) {
-        taskKill(D_actor_303600_8016E4C4);
-        D_actor_303600_8016E4C4 = NULL;
+    if (_gActor303600FadeTaskSlot != NULL) {
+        taskKill(_gActor303600FadeTaskSlot);
+        _gActor303600FadeTaskSlot = NULL;
     }
 
     work = D_actor_303600_8016E4C0->work;

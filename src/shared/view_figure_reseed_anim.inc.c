@@ -2,7 +2,7 @@
 
 /// Captures the figure's body poses and blends each track to the requested clip start.
 ///
-/// Requires live `gViewFigureWork` with initialized slots 1..19 of its twenty-
+/// Requires live `_gViewFigureWork` with initialized slots 1..19 of its twenty-
 /// part rig and a loaded `st.animId` set supporting their current encodings.
 /// Slot 0 stays under view placement. Each driven slot first ticks and captures
 /// its pose, then blends to track-relative record zero over eight normal-rate
@@ -16,8 +16,8 @@ static void _viewFigureReseedAnim(void)
            VIEW_FIGURE_RESEED_BLEND_FRAMES = 8 };
     s32 slotIndex;
 
-    for (slotIndex = VIEW_FIGURE_RESEED_FIRST_SLOT; slotIndex < ARRAY_SIZE(gViewFigureWork->rig.slots); slotIndex++) {
-        animationSeekSlotWithBlend(&gViewFigureWork->rig.anim, slotIndex, gViewFigureWork->st.animId, 0, VIEW_FIGURE_RESEED_BLEND_FRAMES);
+    for (slotIndex = VIEW_FIGURE_RESEED_FIRST_SLOT; slotIndex < ARRAY_SIZE(_gViewFigureWork->rig.slots); slotIndex++) {
+        animationSeekSlotWithBlend(&_gViewFigureWork->rig.anim, slotIndex, _gViewFigureWork->st.animId, 0, VIEW_FIGURE_RESEED_BLEND_FRAMES);
     }
-    gViewFigureWork->st.appliedAnimId = gViewFigureWork->st.animId;
+    _gViewFigureWork->st.appliedAnimId = _gViewFigureWork->st.animId;
 }

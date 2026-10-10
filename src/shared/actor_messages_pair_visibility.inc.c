@@ -6,7 +6,7 @@ s32 actorMsgSetPairVisibility(Task* task, s32 msgId, s32 flags, s32 unusedArg)
     TmdObject* helperModel;
 
     model       = ACTOR_MESSAGE_BODY_TASK->extra.tmd;
-    helperModel = gActorHelperTask->extra.tmd;
+    helperModel = _gActorMsgHelperTask->extra.tmd;
 
     if (flags & ACTOR_MESSAGE_PAIR_SHOW) {
         model->flags       = 0;

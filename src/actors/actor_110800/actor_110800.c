@@ -29,9 +29,12 @@ static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const A
 
 static void _viewFigureStepAnim(Task* task);
 
-/// The block above, published by `_actor110800ViewFigureTask` from the task's
-/// `Task::work`.
-extern ViewFigureWork* gViewFigureWork;
+/// Borrowed singleton work for this carrier's camera-parented scripted figure.
+///
+/// Spawn and dispatch publish the allocation also held by Task::work. Animation
+/// and message fragments require the initialized current instance; a later spawn
+/// replaces it and enemy teardown frees the work without clearing this cache.
+static ViewFigureWork* _gViewFigureWork;
 
 /// Borrowed body task of this package's active scripted actor.
 ///
@@ -41,10 +44,12 @@ extern ViewFigureWork* gViewFigureWork;
 /// leaves it dangling rather than clearing it. This cache owns no task.
 static Task* _gActor110800BodyTask;
 
-/// The helper task `taskSpawnFromTable` returns in the step-0 handler; the
-/// visibility handler drives its model alongside the actor's, and the exit
-/// callback kills it.
-extern Task* gActorHelperTask;
+/// Borrowed helper-model task paired with this carrier's published body task.
+///
+/// Successful body setup publishes the handle for paired visibility and model
+/// parenting. Teardown kills the helper before releasing the body; neither
+/// published handle is cleared. Consumers require the current pair to be live.
+static Task* _gActorMsgHelperTask;
 
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 gViewFigureAnimSets[];
@@ -277,10 +282,6 @@ u8 gViewFigureAnimSets[28] = {
     0,
 };
 
-ViewFigureWork* gViewFigureWork;
-
-Task* gActorHelperTask;
-
 static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task);
 
 /// Selects this package's public TaskDesc array for the shared spawn state.
@@ -296,17 +297,17 @@ static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task);
 /// Requires the live singleton rig. Track/record/script arguments select one
 /// of this carrier's established cues; held records compare against the single
 /// latch shared by both tracks. Playback and sound resources must be loaded.
-/// Standalone compound statements only; captures gViewFigureWork. trackIndex
+/// Standalone compound statements only; captures _gViewFigureWork. trackIndex
 /// is read repeatedly and must be side-effect-free; cueRecordIndex is evaluated
 /// once and soundScript only on a new cue. No argument or payload is retained.
-#define ACTOR_110800_CUE_ANIMATION_SOUND(trackIndex, cueRecordIndex, soundScript)                                                                              \
-    {                                                                                                                                                          \
-        if ((gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == (cueRecordIndex)) {                  \
-            if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) { \
-                sndEvtRequestScriptStart((soundScript), 0, 0);                                                                                                 \
-            }                                                                                                                                                  \
-            gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;          \
-        }                                                                                                                                                      \
+#define ACTOR_110800_CUE_ANIMATION_SOUND(trackIndex, cueRecordIndex, soundScript)                                                                                \
+    {                                                                                                                                                            \
+        if ((_gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == (cueRecordIndex)) {                   \
+            if (_gViewFigureWork->st.cueRecord != (_gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) { \
+                sndEvtRequestScriptStart((soundScript), 0, 0);                                                                                                   \
+            }                                                                                                                                                    \
+            _gViewFigureWork->st.cueRecord = _gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;          \
+        }                                                                                                                                                        \
     }
 
 /// Advances the figure animation, emits record cues and refreshes root lighting.
@@ -331,7 +332,7 @@ static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task)
     rootCoord = task->extra.tmd->coords;
     model     = task->extra.tmd;
     _viewFigureStepAnim(task);
-    switch (gViewFigureWork->st.animId) {
+    switch (_gViewFigureWork->st.animId) {
         case ACTOR_110800_CUED_CLIP_4:
             ACTOR_110800_CUE_ANIMATION_SOUND(19, 0xC8, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x11));
             ACTOR_110800_CUE_ANIMATION_SOUND(19, 0xCA, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0D));
@@ -364,7 +365,7 @@ static void _actor110800ViewFigureTask(Task* task)
         _actor110800UpdateViewFigure,
     };
 
-    gViewFigureWork = task->work;
+    _gViewFigureWork = task->work;
     stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 

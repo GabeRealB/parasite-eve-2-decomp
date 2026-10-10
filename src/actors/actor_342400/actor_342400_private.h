@@ -7,6 +7,16 @@
 
 #include "main/tmd_types.h"
 
+/// Mad Chaser tuning shared by this overlay's data and spawn translation units.
+///
+/// Spawned enemies borrow the record and its attack table for the overlay's
+/// lifetime; ordinary and hidden setup seed current/maximum HP to 110.
+/// Release rewards are 20 EXP, 40 BP and 1 MP.
+extern EnemyParams gActor342400MadChaserEnemyParams;
+
+/// Selects this overlay's cross-TU record for the included spawn fragments.
+#define MAD_CHASER_ENEMY_PARAMS gActor342400MadChaserEnemyParams
+
 extern TmdSource gMadChaserChunkModel0;
 
 extern TmdSource gMadChaserChunkModel1;
@@ -14,8 +24,6 @@ extern TmdSource gMadChaserChunkModel1;
 extern TmdSource gMadChaserChunkModel2;
 
 extern TmdSource gActor342400MadChaserBody;
-
-extern EnemyParams gMadChaserEnemyParams;
 
 /// Next sequential placement index assigned to an incinerator encounter enemy.
 ///

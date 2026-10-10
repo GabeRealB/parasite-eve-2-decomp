@@ -215,10 +215,6 @@ extern u16 Actor01500_D09FE8[];
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-/// Pair packed into `attackBody`'s `key` at spawn.
-extern DamageAttack Actor01500_D09FB4;
-/// The enemy's parameter record; `hpMax` seeds the hit points.
-extern EnemyParams Actor01500_D09FB8;
 /// Animation bank handed to `animationInitContext`.
 extern AnimationSet* Actor01500_D0A014[15];
 
@@ -739,9 +735,20 @@ static AnimationSet _gActor01500Actor101500Animation09F8C = {
     { NULL, _gActor01500Actor101500Animation09F8CBank1, NULL, NULL, _gActor01500Actor101500Animation09F8CBank4, NULL, NULL, NULL },
 };
 
-DamageAttack Actor01500_D09FB4 = { 8, 7 };
+/// Player hit presentation requested by the Mind Suckler's contact attack.
+enum { ACTOR_01500_CONTACT_REACTION_SPARK_AND_PUFFS = 7 };
 
-EnemyParams Actor01500_D09FB8 = { &Actor01500_D09FB4, 50, 12, 36, 2, 100, 1, 100, 0 };
+/// Mind Suckler contact attack: base power 8 with spark-and-puff hit presentation.
+///
+/// The enemy parameters borrow this single entry, also packed into the
+/// stinger attack sphere at spawn. The record lives for the overlay's lifetime.
+static DamageAttack _gActor01500ContactAttack = { 8, ACTOR_01500_CONTACT_REACTION_SPARK_AND_PUFFS };
+
+/// Shared Mind Suckler combat tuning and rewards.
+///
+/// Spawns borrow this record and start at 50 HP; crippled and perch behavior
+/// compare against that same maximum. Rewards are 12 EXP, 36 BP and 2 MP.
+static EnemyParams _gActor01500EnemyParams = { &_gActor01500ContactAttack, 50, 12, 36, 2, 100, 1, 100, 0 };
 
 u16 Actor01500_D09FC8[16] = {
     30,
@@ -939,9 +946,9 @@ static void _actor01500Spawn(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &Actor01500_D09FB8;
+    enemy->param                  = &_gActor01500EnemyParams;
     enemy->recs                   = work->contacts;
-    enemy->hp                     = Actor01500_D09FB8.hpMax;
+    enemy->hp                     = _gActor01500EnemyParams.hpMax;
     work->hitEffectArg.coord      = rootCoord;
     work->hitEffectArg.spawnArgLo = 0x300;
     work->hitEffectArg.spawnArgHi = 1;
@@ -1020,7 +1027,7 @@ static void _actor01500Spawn(Enemy* enemy, Task* task)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 400;
     work->roomBody.flags             |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
-    work->attackBody.key              = damagePackAttackKey(&Actor01500_D09FB4, 0);
+    work->attackBody.key              = damagePackAttackKey(&_gActor01500ContactAttack, 0);
     work->attackBody.radius           = 300;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -1264,7 +1271,7 @@ static void _actor01500ApplyDamage(Task* actor, s32 damage)
     soundEnemy   = actor->spawnArg2.pointer;
     soundRequest = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01500_SOUND_DAMAGE;
     sndEvtRequestScriptStart(soundRequest, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
-    if (enemy->hp <= (Actor01500_D09FB8.hpMax * ACTOR_01500_CRIPPLED_HP_PERCENT) / 100) {
+    if (enemy->hp <= (_gActor01500EnemyParams.hpMax * ACTOR_01500_CRIPPLED_HP_PERCENT) / 100) {
         work->posture = ACTOR_01500_POSTURE_CRIPPLED;
         if (work->action != ACTOR_01500_ACTION_GROUNDED) {
             work->action          = ACTOR_01500_ACTION_FALL;
@@ -1373,7 +1380,7 @@ static void _actor01500PerchAction(Task* actor)
             work->hoverOffset = ((gRandomLcgState >> 16) & 0x1F) + 1;
         }
         enemy = actor->spawnArg2.pointer;
-        if (enemy->hp != Actor01500_D09FB8.hpMax) {
+        if (enemy->hp != _gActor01500EnemyParams.hpMax) {
             takeOffPending = 1;
         }
         if (takeOffPending != 0) {

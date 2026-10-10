@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_303600.
 D_actor_303600_8016E490 = 0x8016E490; // size:0x30 defined:True
 D_actor_303600_8016E4C0 = 0x8016E4C0; // size:0x4 defined:True
-D_actor_303600_8016E4C4 = 0x8016E4C4; // size:0x4 defined:True
+_gActor303600FadeTaskSlot = 0x8016E4C4; // size:0x4 defined:True
 D_actor_303600_8016E468 = 0x8016E468; // size:0x18 defined:True
 D_actor_303600_8016E480 = 0x8016E480; // size:0x10 defined:True
 D_actor_303600_80162AE8 = 0x80162AE8; // size:0x6 defined:True

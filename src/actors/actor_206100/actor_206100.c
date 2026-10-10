@@ -90,13 +90,6 @@ extern AnimationSet* D_actor_206100_80158B24[];
 /// it, so the tail entry is reachable.
 extern AreaPlacement D_actor_206100_80155134[];
 
-/// The eight positions of the ring the actor circles, walked by the index at
-/// `_Actor206100Work::waypointIndex`.
-///
-/// Each is a point in the root coordinate's translation units: radius 7600 in
-/// the XZ plane, one 45-degree step per entry, at a constant height of 3000.
-extern SVECTOR D_actor_206100_80158B68[8];
-
 /// Frames a Bog Diver slot stays empty after the diver in it has died.
 #define ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN 0xB4
 
@@ -911,7 +904,12 @@ AnimationSet* D_actor_206100_80158B24[17] = {
     &_gActor206100Animation0ECA8,
 };
 
-SVECTOR D_actor_206100_80158B68[8] = {
+/// Sea Diver's eight room-space waypoint positions, 45 degrees apart on its swim ring.
+///
+/// The XZ radius is approximately 7600 and Y is 3000 (positive down). Placement
+/// publishes the table through work->waypoints; the waypoint index wraps 0..7
+/// using ARRAY_SIZE minus one. Bodies borrow the table for this overlay's life.
+static SVECTOR _gActor206100WaypointRing[8] = {
     { 0, 3000, 7600, 0 },
     { 5373, 3000, 5373, 0 },
     { 7600, 3000, 0, 0 },
@@ -2552,7 +2550,7 @@ static void _actor206100SwimWaypointRing(Task* task)
     waypointOffset.vz = ringWork->waypoints[ringWork->waypointIndex].vz - rootCoord->coord.t[2];
     ringWork->goalY   = ringWork->waypoints[ringWork->waypointIndex].vy;
     if ((s16)SquareRoot0(waypointOffset.vx * waypointOffset.vx + waypointOffset.vz * waypointOffset.vz) < ACTOR_206100_RING_ARRIVAL_RADIUS) {
-        ringWork->waypointIndex      = (ringWork->waypointIndex + 1) & (ARRAY_SIZE(D_actor_206100_80158B68) - 1);
+        ringWork->waypointIndex      = (ringWork->waypointIndex + 1) & (ARRAY_SIZE(_gActor206100WaypointRing) - 1);
         reachedCount                 = ringWork->waypointsSinceRoll + 1;
         ringWork->waypointsSinceRoll = reachedCount;
         if (reachedCount >= ACTOR_206100_RING_ROLL_WAYPOINT_INTERVAL) {
@@ -3428,7 +3426,7 @@ static void _actor206100PlaceOnWaypointRing(Task* task)
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     work->neckRetracted           = 1;
     work->waypointIndex           = 0;
-    work->waypoints               = D_actor_206100_80158B68;
+    work->waypoints               = _gActor206100WaypointRing;
     requestWork                   = task->work;
     requestWork->animStep         = ANIMATION_RATE_ONE;
     requestWork->animClip         = ACTOR_206100_RING_SWIM_CLIP;
@@ -3437,7 +3435,7 @@ static void _actor206100PlaceOnWaypointRing(Task* task)
     rootCoord->coord.t[0]         = work->waypoints[work->waypointIndex].vx;
     rootCoord->coord.t[1]         = work->waypoints[work->waypointIndex].vy;
     rootCoord->coord.t[2]         = work->waypoints[work->waypointIndex].vz;
-    work->waypointIndex           = (work->waypointIndex + 1) & (ARRAY_SIZE(D_actor_206100_80158B68) - 1);
+    work->waypointIndex           = (work->waypointIndex + 1) & (ARRAY_SIZE(_gActor206100WaypointRing) - 1);
     // Begin swimming toward the next vertex; the summon state drives the ring.
     worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     work->stateFrames = 0;

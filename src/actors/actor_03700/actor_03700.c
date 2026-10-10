@@ -132,12 +132,6 @@ extern DamageAttack Actor03700_D07F08;
 /// Halfword table `_actor03700AttackHeldPlayer` indexes by a 4-bit LCG draw.
 extern s16 Actor03700_D07F1C[];
 
-/// Halfword bob table, one row of 15 per `arg1`: the row runs
-/// 0, 10, 19, 24, 25, 22, 15, 5, -5, -15, -22, -25 before returning to 0.
-/// Every use reads it as a signed halfword through `lh` and adds it to a
-/// coordinate's Y translation, so it is the amplitude of an idle bob.
-extern s16 Actor03700_D07F98[];
-
 /// Halfword wave table `_actor03700StepSway` indexes by `swayPhase`.
 extern s16 Actor03700_D07FD4[];
 
@@ -616,7 +610,13 @@ u16 Actor03700_D07F7C[8] = {
 
 TaskDesc gActor03700BatTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor03700Task, { .model = &_gActor03700BatBody } };
 
-s16 Actor03700_D07F98[30] = {
+/// Signed per-tick Y displacements for the Bat's vertical flight bob, in root units.
+///
+/// The phase advances before sampling. Supported windows are indices 0..14,
+/// 15..29 and 0..21; the longer window crosses the 15-entry amplitude boundary.
+/// Positive displacement is down. This is one 30-entry table, not independent
+/// rows whose playback always ends at the row boundary.
+static s16 _gActor03700BobYDisplacements[30] = {
     0,
     10,
     19,
@@ -789,7 +789,7 @@ static inline void _actor03700ApplyBobStep(Task* task, s32 row, s32 period)
     if (period < ++work->bobPhase) {
         work->bobPhase = 0;
     }
-    coord->coord.t[1] += Actor03700_D07F98[(row * ACTOR_03700_BOB_ROW_STRIDE) + work->bobPhase];
+    coord->coord.t[1] += _gActor03700BobYDisplacements[(row * ACTOR_03700_BOB_ROW_STRIDE) + work->bobPhase];
 }
 
 /// Adds the next sideways flight-sway displacement along the root's local X axis.

@@ -14,10 +14,10 @@ static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const A
     Task* figureTask;
 
     if (request->animationId < VIEW_FIGURE_ANIMATION_ID_LIMIT) {
-        gViewFigureWork->st.animId  = request->animationId;
-        figureTask                  = ACTOR_MESSAGE_BODY_TASK;
-        gViewFigureWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
-        gViewFigureWork->st.field_6 = 0;
+        _gViewFigureWork->st.animId  = request->animationId;
+        figureTask                   = ACTOR_MESSAGE_BODY_TASK;
+        _gViewFigureWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
+        _gViewFigureWork->st.field_6 = 0;
         _viewFigureStepAnim(figureTask);
         return 0;
     }

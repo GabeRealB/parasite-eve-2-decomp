@@ -388,5 +388,5 @@ _gActor03800Actor103800Animation05F18Bank4 = 0x8014FC8C; // size:0x30 defined:Tr
 _gActor03800Actor103800Animation05F18Records = 0x8014FCBC; // size:0x70 defined:True
 _gActor03800Actor103800Animation05F18Indices = 0x8014FD2C; // size:0xC defined:True
 _gActor03800Actor103800Animation05F18 = 0x8014FD38; // size:0x28 defined:True
-Actor03800_D05F40 = 0x8014FD60; // size:0x4 defined:True
+_gActor03800ContactAttacks = 0x8014FD60; // size:0x4 defined:True
 Actor03800_D05F44 = 0x8014FD64; // size:0x10 defined:True

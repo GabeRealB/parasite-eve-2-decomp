@@ -28,9 +28,12 @@ static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const A
 
 static void _viewFigureStepAnim(Task* task);
 
-/// The block above, published by `_actor110300ViewFigureTask` from the task's
-/// `Task::work`.
-extern ViewFigureWork* gViewFigureWork;
+/// Borrowed singleton work for this carrier's camera-parented scripted figure.
+///
+/// Spawn and dispatch publish the allocation also held by Task::work. Animation
+/// and message fragments require the initialized current instance; a later spawn
+/// replaces it and enemy teardown frees the work without clearing this cache.
+static ViewFigureWork* _gViewFigureWork;
 
 /// Borrowed body task of this package's active scripted actor.
 ///
@@ -40,10 +43,12 @@ extern ViewFigureWork* gViewFigureWork;
 /// leaves it dangling rather than clearing it. This cache owns no task.
 static Task* _gActor110300BodyTask;
 
-/// The helper task `taskSpawnFromTable` returns in the step-0 handler; the
-/// visibility handler drives its model alongside the actor's, and the exit
-/// callback kills it.
-extern Task* gActorHelperTask;
+/// Borrowed helper-model task paired with this carrier's published body task.
+///
+/// Successful body setup publishes the handle for paired visibility and model
+/// parenting. Teardown kills the helper before releasing the body; neither
+/// published handle is cleared. Consumers require the current pair to be live.
+static Task* _gActorMsgHelperTask;
 
 /// Animation-set table bound to the work block's context by `animationInitContext`.
 extern u8 gViewFigureAnimSets[];
@@ -278,10 +283,6 @@ u8 gViewFigureAnimSets[28] = {
     0,
 };
 
-ViewFigureWork* gViewFigureWork;
-
-Task* gActorHelperTask;
-
 /// Selects this package's public TaskDesc array for the shared spawn state.
 ///
 /// Requires a live two-entry array with the body at VIEW_FIGURE_TASK_BODY and
@@ -302,7 +303,7 @@ static void _actor110300ViewFigureTask(Task* task)
         _actor110300UpdateViewFigure,
     };
 
-    gViewFigureWork = task->work;
+    _gViewFigureWork = task->work;
     stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 

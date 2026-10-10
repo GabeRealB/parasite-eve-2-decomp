@@ -112,47 +112,62 @@ enum {
     ACTOR_01600_REAR_ARC_MAX       = ACTOR_TRANSFORM_ANGLE_HALF_TURN + 0x80,
 };
 
-/// Playback requests used when no clip should advance, or when a resting actor is hit.
-enum {
-    ACTOR_01600_ANIMATION_NONE     = 0xFF,
-    ACTOR_01600_ANIMATION_REST     = 1,
-    ACTOR_01600_ANIMATION_HIT_WAKE = 0xA,
-    ACTOR_01600_ANIMATION_STAGGER  = 0xE,
-};
-
-/// Animation requests interpreted by roaming and attack selection.
+/// Indices of the Scavenger body clip table; NONE bypasses playback.
 ///
-/// Values are indices of the package's animation table; the names describe
-/// the behavior that requests them, rather than the contents of every clip.
+/// UNSET is the NULL table entry and invalidates the last-playing/scripted
+/// selection. Names describe established requesting behaviors. CLIP_12,
+/// CLIP_13, CLIP_15, CLIP_18 and CLIP_20 have no observed request here; their
+/// contents are unproven. QUIET_16 is only known to suppress idle sound cues.
 enum {
-    ACTOR_01600_ANIMATION_WAKE          = 2,
-    ACTOR_01600_ANIMATION_ROAM_IDLE     = 3,
-    ACTOR_01600_ANIMATION_ROAM_HOP      = 4,
-    ACTOR_01600_ANIMATION_TURN          = 7,
-    ACTOR_01600_ANIMATION_TURN_WRAPPED  = 8,
-    ACTOR_01600_ANIMATION_ROAM_REPEAT   = 0x17,
-    ACTOR_01600_ANIMATION_ROAM_LAND     = 0x18,
-    ACTOR_01600_ANIMATION_LOOK_AROUND   = 0x19,
-    ACTOR_01600_ANIMATION_LUNGE         = 0x1A,
-    ACTOR_01600_ANIMATION_GRAB_APPROACH = 0x1C,
-};
-
-/// Animation requests interpreted by reaction, attack and staged motion.
-///
-/// Names describe the requesting behavior; request 16 is only proven silent.
-enum {
+    ACTOR_01600_ANIMATION_UNSET          = 0,
+    ACTOR_01600_ANIMATION_REST           = 1,
+    ACTOR_01600_ANIMATION_WAKE           = 2,
+    ACTOR_01600_ANIMATION_ROAM_IDLE      = 3,
+    ACTOR_01600_ANIMATION_ROAM_HOP       = 4,
     ACTOR_01600_ANIMATION_ADVANCE        = 5,
     ACTOR_01600_ANIMATION_ZIGZAG         = 6,
+    ACTOR_01600_ANIMATION_TURN           = 7,
+    ACTOR_01600_ANIMATION_TURN_WRAPPED   = 8,
     ACTOR_01600_ANIMATION_SETTLE         = 9,
-    ACTOR_01600_ANIMATION_THROWN_FORWARD = 0xB,
-    ACTOR_01600_ANIMATION_QUIET_16       = 0x10,
-    ACTOR_01600_ANIMATION_POSED          = 0x11,
-    ACTOR_01600_ANIMATION_BUILDUP        = 0x13,
-    ACTOR_01600_ANIMATION_RISE_FORWARD   = 0x15,
-    ACTOR_01600_ANIMATION_RISE_BACK      = 0x16,
-    ACTOR_01600_ANIMATION_LUNGE_LAND     = 0x1B,
-    ACTOR_01600_ANIMATION_GRAB_HOLD      = 0x1D,
-    ACTOR_01600_ANIMATION_GRAB_RELEASE   = 0x1E,
+    ACTOR_01600_ANIMATION_HIT_WAKE       = 10,
+    ACTOR_01600_ANIMATION_THROWN_FORWARD = 11,
+    ACTOR_01600_ANIMATION_CLIP_12        = 12,
+    ACTOR_01600_ANIMATION_CLIP_13        = 13,
+    ACTOR_01600_ANIMATION_STAGGER        = 14,
+    ACTOR_01600_ANIMATION_CLIP_15        = 15,
+    ACTOR_01600_ANIMATION_QUIET_16       = 16,
+    ACTOR_01600_ANIMATION_POSED          = 17,
+    ACTOR_01600_ANIMATION_CLIP_18        = 18,
+    ACTOR_01600_ANIMATION_BUILDUP        = 19,
+    ACTOR_01600_ANIMATION_CLIP_20        = 20,
+    ACTOR_01600_ANIMATION_RISE_FORWARD   = 21,
+    ACTOR_01600_ANIMATION_RISE_BACK      = 22,
+    ACTOR_01600_ANIMATION_ROAM_REPEAT    = 23,
+    ACTOR_01600_ANIMATION_ROAM_LAND      = 24,
+    ACTOR_01600_ANIMATION_LOOK_AROUND    = 25,
+    ACTOR_01600_ANIMATION_LUNGE          = 26,
+    ACTOR_01600_ANIMATION_LUNGE_LAND     = 27,
+    ACTOR_01600_ANIMATION_GRAB_APPROACH  = 28,
+    ACTOR_01600_ANIMATION_GRAB_HOLD      = 29,
+    ACTOR_01600_ANIMATION_GRAB_RELEASE   = 30,
+    ACTOR_01600_ANIMATION_COUNT          = 31,
+    ACTOR_01600_ANIMATION_NONE           = 0xFF,
+};
+
+/// Attack-table indices used by held-target damage and the lunge sphere.
+enum {
+    ACTOR_01600_ATTACK_GRAB_BITE  = 0,
+    ACTOR_01600_ATTACK_LUNGE_BITE = 1,
+    ACTOR_01600_ATTACK_COUNT      = 2,
+};
+
+/// Clip indices in the grabbed-target bank, distinct from the body bank.
+enum {
+    ACTOR_01600_GRAB_TARGET_ANIMATION_UNSET          = 0,
+    ACTOR_01600_GRAB_TARGET_ANIMATION_COMPANION_HOLD = 1,
+    ACTOR_01600_GRAB_TARGET_ANIMATION_PLAYER_HOLD    = 2,
+    ACTOR_01600_GRAB_TARGET_ANIMATION_PLAYER_RELEASE = 3,
+    ACTOR_01600_GRAB_TARGET_ANIMATION_COUNT          = 4,
 };
 
 /// Sound-script keys before the enemy placement index is packed into bits 8..15.
@@ -493,17 +508,17 @@ STATIC_ASSERT_SIZEOF(_Actor01600PathProbeAimScratch, 0x30);
 
 static s32 _actor01600SelectNearestPlayer(Task* actor);
 
-extern GameActorButtonPressHold Actor01600_D12878;
-extern ActorTransform           Actor01600_D12890;
-
-extern s32 Actor01600_D12874;
-extern s32 Actor01600_D12870;
+/// Reusable placement payload making a grabbed target face the Scavenger.
+///
+/// Keeps the target's parent-frame XYZ, with pitch/roll zero and signed yaw in
+/// 4096 units per turn. `GAME_ACTOR_MESSAGE_PLACE` borrows it synchronously;
+/// vector pad halfwords stay zero and are not part of the placement contract.
+static ActorTransform _gActor01600GrabTargetPlacement;
 
 /// Models effect 0x80005 spawns, set in `gTaskBank8Descs[TASK_BANK8_BURST_MODEL_PART_SLOT].data.model`.
 static TmdSource _gActor01600ScavengerBurstHead;
 static TmdSource _gActor01600ScavengerBurstLeg;
 static TmdSource _gActor01600ScavengerBurstEar;
-extern SVECTOR   Actor01600_D12868;
 
 static void _actor01600CopyBurstTextures(Task* burstPart, Task* actor);
 
@@ -551,8 +566,6 @@ STATIC_ASSERT_SIZEOF(_Actor01600SidestepScratch, 0x3C);
 
 static void _actor01600StepTurn(Task* actor);
 
-extern AnimationPlayRequest Actor01600_D127D8;
-
 static s32  _actor01600TryAcquireGrab(Task* actor);
 static s32  _actor01600TryBeginGrab(Task* actor, s32 relativeYaw, s32 horizontalDistance, s32 playerIndex);
 static void _actor01600Sidestep(Task* actor, s32 lateralDistance);
@@ -560,18 +573,10 @@ static s32  _actor01600ResumeRoamIfBlocked(Task* actor);
 static s32  _actor01600TryBeginAttackTurn(Task* actor, s32 relativeYaw, s32 unusedDistance);
 static s32  _actor01600TryBeginLunge(Task* actor, s32 relativeYaw, s32 horizontalDistance);
 
-extern EnemyParams   Actor01600_D09F0C;
-extern AnimationSet* Actor01600_D127EC[31];
 // Typed callback views for the task message dispatcher.
 
-extern TaskMessageEntry Actor01600_D127A4[3];
-static void             _actor01600InitPlacement(Task* actor);
-static void             _actor01600Exit(Task* actor);
-
-extern DamageAttack Actor01600_D09F04[2];
-
-extern SVECTOR Actor01600_D09F1C[];
-extern SVECTOR Actor01600_D09F3C[];
+static void _actor01600InitPlacement(Task* actor);
+static void _actor01600Exit(Task* actor);
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
@@ -633,8 +638,6 @@ static AnimationSet _gActor01600Actor101600Animation12074;
 static AnimationSet _gActor01600Actor101600Animation1277C;
 static s32          _actor01600HandleCommand(Task* actor, s32 messageId, const ActorCommand* request, s32 unusedArg);
 static s32          _actor01600HandleReleaseHold(Task* actor, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
-
-extern AnimationSet* Actor01600_D127C8[4];
 
 static TmdBone _gActor01600ScavengerBodySkeleton[9] = {
 #include "assets/scavenger_body_skeleton.inc"
@@ -764,21 +767,40 @@ static TmdSource _gActor01600ScavengerBurstEar = {
     _gActor01600ScavengerBurstEarStream,
 };
 
-DamageAttack Actor01600_D09F04[2] = {
-    { 12, 7 },
-    { 14, 7 },
+/// Player hit presentation requested by both Scavenger bite attacks.
+enum { ACTOR_01600_BITE_REACTION_SPARK_AND_PUFFS = 7 };
+
+/// Scavenger grab and lunge bites, indexed by `ACTOR_01600_ATTACK_*`.
+///
+/// Base powers are 12 for the held target and 14 for the lunge sphere;
+/// both request spark-and-puff presentation. The enemy parameters borrow this table.
+static DamageAttack _gActor01600Attacks[ACTOR_01600_ATTACK_COUNT] = {
+    { 12, ACTOR_01600_BITE_REACTION_SPARK_AND_PUFFS },
+    { 14, ACTOR_01600_BITE_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams Actor01600_D09F0C = { Actor01600_D09F04, 85, 10, 62, 2, 100, 20, 100, 0 };
+/// Shared Scavenger combat tuning, attacks and release rewards.
+///
+/// Spawned enemies borrow this record and start at 85 HP. Release credits
+/// 10 EXP, 62 BP and 2 MP; the record and attack table belong to this overlay.
+static EnemyParams _gActor01600EnemyParams = { _gActor01600Attacks, 85, 10, 62, 2, 100, 20, 100, 0 };
 
-SVECTOR Actor01600_D09F1C[4] = {
+/// Second-wave root positions in the night Dryfield parking lot, in room units.
+///
+/// Indexed by the placement ordinal, not by ordinal within a wave. Variant 3
+/// has four Scavenger placements (0..3); its mode-2 placement selects entry 2.
+static SVECTOR _gActor01600ParkingLotSecondWavePositions[4] = {
     { 5632, 0, 3040, 0 },
     { 3168, 0, 1408, 0 },
     { 992, 0, 2880, 0 },
     { -2688, 0, 1408, 0 },
 };
 
-SVECTOR Actor01600_D09F3C[5] = {
+/// Second-wave root positions in Mine Tunnel, in room coordinate units.
+///
+/// Variant 1 has five Scavenger placements (0..4); mode-2 placements select
+/// entries 0, 2 and 4. Waiting bodies borrow the selected XYZ during activation.
+static SVECTOR _gActor01600MineTunnelSecondWavePositions[5] = {
     { 0x32E0, 0, 832, 0 },
     { 9632, 0, 2432, 0 },
     { 6592, 0, 864, 0 },
@@ -1512,7 +1534,11 @@ static AnimationSet _gActor01600Actor101600Animation1277C = {
     { NULL, _gActor01600Actor101600Animation1277CBank1, NULL, NULL, _gActor01600Actor101600Animation1277CBank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry Actor01600_D127A4[3] = {
+/// Scavenger command and held-target-release handlers, ending at `TASK_MESSAGE_TABLE_END`.
+///
+/// Every initialized body borrows this table through its task's message table.
+/// Payloads are borrowed synchronously; the dispatcher transports word arguments.
+static TaskMessageEntry _gActor01600Messages[3] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor01600HandleCommand },
     { ACTOR_MESSAGE_RELEASE_HOLD, _actor01600HandleReleaseHold },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -1520,61 +1546,93 @@ TaskMessageEntry Actor01600_D127A4[3] = {
 
 TaskDesc gActor01600ScavengerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor01600Task, { .model = &_gActor01600ScavengerBody } };
 
-AnimationSet* Actor01600_D127C8[4] = {
+/// Grabbed-target clips, indexed by `ACTOR_01600_GRAB_TARGET_ANIMATION_*`.
+///
+/// Entry 0 is NULL; entries 1 and 2 hold the companion and player, and entry 3
+/// releases the player. Borrowed by shared synchronous animation/hold requests;
+/// receivers keep the clip resources while playback uses them.
+static AnimationSet* _gActor01600GrabTargetAnimationSets[ACTOR_01600_GRAB_TARGET_ANIMATION_COUNT] = {
     NULL,
     &_gActor01600Actor101600Animation11820,
     &_gActor01600Actor101600Animation12074,
     &_gActor01600Actor101600Animation1277C,
 };
 
-AnimationPlayRequest Actor01600_D127D8 = { { .sets = Actor01600_D127C8 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Reusable animation message for the Scavenger's held companion or player.
+///
+/// Shares the target clip table with the button-press hold. Acquisition selects
+/// the target's hold clip; player release selects clip 3 with a one-frame blend.
+/// Ending a grab clears the selection to 0. Dispatch borrows this payload.
+static AnimationPlayRequest _gActor01600GrabTargetAnimationRequest = { { .sets = _gActor01600GrabTargetAnimationSets }, ACTOR_01600_GRAB_TARGET_ANIMATION_UNSET, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationSet* Actor01600_D127EC[31] = {
-    NULL,
-    &_gActor01600Actor101600Animation0A1A8,
-    &_gActor01600Actor101600Animation0A4C0,
-    &_gActor01600Actor101600Animation0A610,
-    &_gActor01600Actor101600Animation0AA20,
-    &_gActor01600Actor101600Animation0AC58,
-    &_gActor01600Actor101600Animation0B03C,
-    &_gActor01600Actor101600Animation0B3DC,
-    &_gActor01600Actor101600Animation0B7C4,
-    &_gActor01600Actor101600Animation0BE80,
-    &_gActor01600Actor101600Animation0C370,
-    &_gActor01600Actor101600Animation0C6D8,
-    &_gActor01600Actor101600Animation0C898,
-    &_gActor01600Actor101600Animation0CA18,
-    &_gActor01600Actor101600Animation0CD10,
-    &_gActor01600Actor101600Animation0CFB0,
-    &_gActor01600Actor101600Animation0D0EC,
-    &_gActor01600Actor101600Animation0D584,
-    &_gActor01600Actor101600Animation0D7B4,
-    &_gActor01600Actor101600Animation0DCA4,
-    &_gActor01600Actor101600Animation0E168,
-    &_gActor01600Actor101600Animation0E5C8,
-    &_gActor01600Actor101600Animation0EA60,
-    &_gActor01600Actor101600Animation0EE58,
-    &_gActor01600Actor101600Animation0EFD4,
-    &_gActor01600Actor101600Animation0F394,
-    &_gActor01600Actor101600Animation0FB10,
-    &_gActor01600Actor101600Animation0FED4,
-    &_gActor01600Actor101600Animation10114,
-    &_gActor01600Actor101600Animation106BC,
-    &_gActor01600Actor101600Animation10B6C,
+/// Scavenger body clip table indexed by `ACTOR_01600_ANIMATION_*` (0..30).
+///
+/// Entry 0 is NULL. Requests 1..30 select clips for the nine-part rig; request
+/// NONE (0xFF) bypasses playback and is not an array index. Numbered CLIP names
+/// and QUIET_16 have unproven clip contents, as distinct from known consumers.
+static AnimationSet* _gActor01600BodyAnimationSets[ACTOR_01600_ANIMATION_COUNT] = {
+    NULL,                                   // ACTOR_01600_ANIMATION_UNSET
+    &_gActor01600Actor101600Animation0A1A8, // ACTOR_01600_ANIMATION_REST
+    &_gActor01600Actor101600Animation0A4C0, // ACTOR_01600_ANIMATION_WAKE
+    &_gActor01600Actor101600Animation0A610, // ACTOR_01600_ANIMATION_ROAM_IDLE
+    &_gActor01600Actor101600Animation0AA20, // ACTOR_01600_ANIMATION_ROAM_HOP
+    &_gActor01600Actor101600Animation0AC58, // ACTOR_01600_ANIMATION_ADVANCE
+    &_gActor01600Actor101600Animation0B03C, // ACTOR_01600_ANIMATION_ZIGZAG
+    &_gActor01600Actor101600Animation0B3DC, // ACTOR_01600_ANIMATION_TURN
+    &_gActor01600Actor101600Animation0B7C4, // ACTOR_01600_ANIMATION_TURN_WRAPPED
+    &_gActor01600Actor101600Animation0BE80, // ACTOR_01600_ANIMATION_SETTLE
+    &_gActor01600Actor101600Animation0C370, // ACTOR_01600_ANIMATION_HIT_WAKE
+    &_gActor01600Actor101600Animation0C6D8, // ACTOR_01600_ANIMATION_THROWN_FORWARD
+    &_gActor01600Actor101600Animation0C898, // ACTOR_01600_ANIMATION_CLIP_12
+    &_gActor01600Actor101600Animation0CA18, // ACTOR_01600_ANIMATION_CLIP_13
+    &_gActor01600Actor101600Animation0CD10, // ACTOR_01600_ANIMATION_STAGGER
+    &_gActor01600Actor101600Animation0CFB0, // ACTOR_01600_ANIMATION_CLIP_15
+    &_gActor01600Actor101600Animation0D0EC, // ACTOR_01600_ANIMATION_QUIET_16
+    &_gActor01600Actor101600Animation0D584, // ACTOR_01600_ANIMATION_POSED
+    &_gActor01600Actor101600Animation0D7B4, // ACTOR_01600_ANIMATION_CLIP_18
+    &_gActor01600Actor101600Animation0DCA4, // ACTOR_01600_ANIMATION_BUILDUP
+    &_gActor01600Actor101600Animation0E168, // ACTOR_01600_ANIMATION_CLIP_20
+    &_gActor01600Actor101600Animation0E5C8, // ACTOR_01600_ANIMATION_RISE_FORWARD
+    &_gActor01600Actor101600Animation0EA60, // ACTOR_01600_ANIMATION_RISE_BACK
+    &_gActor01600Actor101600Animation0EE58, // ACTOR_01600_ANIMATION_ROAM_REPEAT
+    &_gActor01600Actor101600Animation0EFD4, // ACTOR_01600_ANIMATION_ROAM_LAND
+    &_gActor01600Actor101600Animation0F394, // ACTOR_01600_ANIMATION_LOOK_AROUND
+    &_gActor01600Actor101600Animation0FB10, // ACTOR_01600_ANIMATION_LUNGE
+    &_gActor01600Actor101600Animation0FED4, // ACTOR_01600_ANIMATION_LUNGE_LAND
+    &_gActor01600Actor101600Animation10114, // ACTOR_01600_ANIMATION_GRAB_APPROACH
+    &_gActor01600Actor101600Animation106BC, // ACTOR_01600_ANIMATION_GRAB_HOLD
+    &_gActor01600Actor101600Animation10B6C, // ACTOR_01600_ANIMATION_GRAB_RELEASE
 };
 
-SVECTOR Actor01600_D12868 = { 0, -100, 0, 0 };
+/// Burst-particle spawn offset from body coordinate 1, in that part's local units.
+///
+/// XYZ is (0, -100, 0). Effects borrow this overlay-lifetime vector; it places
+/// the particle origin above the body in the game's downward-positive Y frame.
+static SVECTOR _gActor01600BurstOffset = { 0, -100, 0, 0 };
 
-s32 Actor01600_D12870 = 0;
+/// Overlay-wide Scavenger grab exclusion latch (0 available, 1 acquired).
+///
+/// Set after a target accepts scripted hold, before per-body holdingTarget is
+/// set. Normal release completion or release of a flagged hold clears it.
+/// Failed-damage and dead-target endings can retain 1; teardown does not reset
+/// an unflagged hold. Overlay loading restores the initial zero.
+static s32 _gActor01600GrabExclusionLatch = 0;
 
-s32 Actor01600_D12874 = 0;
+/// Signed population balance used to identify the final staged-wave handoff.
+///
+/// Waiting placements add one; normal death, command destruction and staged
+/// removal subtract one. Active mode-0 placements are not added but their deaths
+/// still subtract, so this is not a count of every live Scavenger and can go
+/// negative. A final-wave value of 1 keeps the last body for the room event.
+static s32 _gActor01600WavePopulation = 0;
 
-/// Hold sent as `GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES`. The static press
-/// count is 1; the grab overwrites it with 5 and selects the animation the
-/// fallback companion handler plays.
-GameActorButtonPressHold Actor01600_D12878 = { { { .sets = Actor01600_D127C8 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, 1 };
-
-ActorTransform Actor01600_D12890;
+/// Reusable scripted hold request for the grabbed player or companion.
+///
+/// Acquisition replaces the initial press count of 1 with five escape presses
+/// and selects the target's hold clip. Player and armed-companion hold handlers
+/// copy pressCount synchronously and ignore the embedded animation; the separate
+/// animation request starts playback. The payload and clips live in this overlay.
+static GameActorButtonPressHold _gActor01600GrabButtonPressHold = { { { .sets = _gActor01600GrabTargetAnimationSets }, ACTOR_01600_GRAB_TARGET_ANIMATION_UNSET, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE }, 1 };
 
 /// Samples the scavenger's lighting color at a coordinate's cached view-space position.
 ///
@@ -1600,7 +1658,11 @@ static __inline__ void _actor01600SampleColorAtCoord(Enemy* enemy, GfxCoord* sam
     SCRATCH_STACK_CURSOR(u8) = SCRATCH_STACK_CURSOR(u8) + sizeof(*position);
 }
 
-static const EnemyTaskFuncTable3 Actor01600_D00004 = {
+/// Task-state dispatch for Scavenger setup, live updates and death (states 0..2).
+///
+/// Copied as a whole onto the dispatcher stack; each handler receives the
+/// task's live Enemy and Task. The state index must fit the three-entry table.
+static const EnemyTaskFuncTable3 _gActor01600TaskStates = {
     { _actor01600Init, _actor01600Tick, _actor01600StepDeath },
 };
 
@@ -1647,19 +1709,19 @@ static void _actor01600Init(Enemy* enemy, Task* actor)
     enemy->coord                  = rootCoord;
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &Actor01600_D09F0C;
+    enemy->param                  = &_gActor01600EnemyParams;
     enemy->recs                   = work->bodySphere.contacts;
-    enemy->hp                     = (u16)Actor01600_D09F0C.hpMax;
+    enemy->hp                     = _gActor01600EnemyParams.hpMax;
     work->hitEffect.spawnArgLo    = 0x280;
     work->hitEffect.spawnArgHi    = 2;
     work->hitEffect.coord         = bodyCoord;
-    animationInitContext(&work->anim, Actor01600_D127EC, model, work->poses, work->slots);
+    animationInitContext(&work->anim, _gActor01600BodyAnimationSets, model, work->poses, work->slots);
     for (partIndex = 1; partIndex < ARRAY_SIZE(work->slots); partIndex++) {
         animationResetSlot(&work->anim, partIndex, 1);
     }
     sceneAcquireBattleRef(0);
-    work->animRequest     = 1;
-    work->animPlaying     = 1;
+    work->animRequest     = ACTOR_01600_ANIMATION_REST;
+    work->animPlaying     = ACTOR_01600_ANIMATION_REST;
     work->idleSoundTimer  = 0x14;
     work->pathSearchPhase = ACTOR_01600_PATH_SEARCH_PROBE_TARGET;
     work->biteLanded      = 0;
@@ -1688,7 +1750,7 @@ static void _actor01600Init(Enemy* enemy, Task* actor)
     work->yaw = ratan2(facingAxis.vx, facingAxis.vz);
     _actor01600InitPlacement(actor);
     actor->exitCallback = &_actor01600Exit;
-    actor->msgTable     = Actor01600_D127A4;
+    actor->msgTable     = _gActor01600Messages;
     actor->state        = actor->state + 1;
 }
 
@@ -1777,7 +1839,7 @@ static __inline__ void _actor01600LinkBiteSphere(_Actor01600Work* work, GfxCoord
     work->bite.body.pos.vy           = ACTOR_01600_BITE_CENTER_Y;
     work->bite.body.pos.vz           = 0;
     work->pathProbe.body.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    work->bite.body.key              = damagePackAttackKey(Actor01600_D09F04, 1);
+    work->bite.body.key              = damagePackAttackKey(_gActor01600Attacks, ACTOR_01600_ATTACK_LUNGE_BITE);
     work->bite.body.radius           = ACTOR_01600_BITE_RADIUS;
     work->bite.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->bite.body);
@@ -1938,7 +2000,7 @@ static void _actor01600ConsumeReactions(Task* actor)
         work->behavior       = ACTOR_01600_BEHAVIOR_STAGGER;
         work->animRate       = 0x14;
         work->stateTimer     = 0;
-        work->animRequest    = 0xE;
+        work->animRequest    = ACTOR_01600_ANIMATION_STAGGER;
     }
     remainingReactions = enemy->reactionFlags;
     if ((remainingReactions & ENEMY_REACTION_BUILDUP) && (work->behavior != ACTOR_01600_BEHAVIOR_STAGGER) && (work->airborne == 0)) {
@@ -1957,7 +2019,7 @@ static void _actor01600ConsumeReactions(Task* actor)
             behavior = work->behavior;
             if ((behavior != ACTOR_01600_BEHAVIOR_STAGGER) && (behavior != ACTOR_01600_BEHAVIOR_BUILDUP_DOWN)) {
                 work->behavior    = ACTOR_01600_BEHAVIOR_ROAM;
-                work->animRequest = 0xA;
+                work->animRequest = ACTOR_01600_ANIMATION_HIT_WAKE;
             }
             _actor01600ApplyDamage(actor, damage);
         }
@@ -2510,7 +2572,7 @@ static void _actor01600StepRoam(Task* actor)
             }
             if (work->animFrame >= 0x57) {
                 work->animFrame   = 0;
-                work->animPlaying = 0;
+                work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
                 work->animRequest = ACTOR_01600_ANIMATION_LOOK_AROUND;
             }
             break;
@@ -2670,7 +2732,7 @@ static void _actor01600StepRoam(Task* actor)
                 _actor01600StepTurn(actor);
             }
             if (work->animFrame >= 0x1C) {
-                work->animPlaying       = 0;
+                work->animPlaying       = ACTOR_01600_ANIMATION_UNSET;
                 work->animFrame         = 0;
                 work->sight.body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                 if (work->turnMode == ACTOR_01600_TURN_HOLD) {
@@ -2872,7 +2934,7 @@ static void _actor01600StepAttack(Task* actor)
                 _actor01600StepTurn(actor);
             }
             if (work->animFrame >= 0x1C) {
-                work->animPlaying = 0;
+                work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
                 work->animFrame   = 0;
                 if (work->turnMode == ACTOR_01600_TURN_HOLD) {
                     work->animFrame    = 0;
@@ -2899,7 +2961,7 @@ static void _actor01600StepAttack(Task* actor)
                 _actor01600StepTurn(actor);
             }
             if (work->animFrame >= 0x1C) {
-                work->animPlaying = 0;
+                work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
                 work->animFrame   = 0;
                 if (work->turnMode == ACTOR_01600_TURN_HOLD) {
                     work->animFrame    = 0;
@@ -3122,7 +3184,7 @@ static void _actor01600StepAttack(Task* actor)
                             grabTargetIndex = work->grabTargetIndex;
                             if (grabTargetIndex == PLAYER_ACTOR_TASK_COMPANION) {
                                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp > 0) {
-                                    if (taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0) == grabTargetIndex) {
+                                    if (taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_01600_ATTACK_GRAB_BITE), 0) == grabTargetIndex) {
                                         work->animRequest   = ACTOR_01600_ANIMATION_SETTLE;
                                         work->forwardSpeed  = 0;
                                         work->animFrame     = 0;
@@ -3149,13 +3211,13 @@ static void _actor01600StepAttack(Task* actor)
                             soundKey              = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_SCRIPT_D;
                             _actor01600PlaySoundAtRoot(soundKey, rootCoord);
                             if (work->grabTargetIndex != 0) {
-                                Actor01600_D127D8.animationId = 1;
-                                TASK_MESSAGE_DISPATCH_POINTER(work->grabTarget, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &Actor01600_D127D8, 0);
+                                _gActor01600GrabTargetAnimationRequest.animationId = ACTOR_01600_GRAB_TARGET_ANIMATION_COMPANION_HOLD;
+                                TASK_MESSAGE_DISPATCH_POINTER(work->grabTarget, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor01600GrabTargetAnimationRequest, 0);
                                 soundKey = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_COMPANION_GRAB;
                                 _actor01600PlaySoundAtRoot(soundKey, rootCoord);
                             } else {
-                                Actor01600_D127D8.animationId = 2;
-                                TASK_MESSAGE_DISPATCH_POINTER(work->grabTarget, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor01600_D127D8, 0);
+                                _gActor01600GrabTargetAnimationRequest.animationId = ACTOR_01600_GRAB_TARGET_ANIMATION_PLAYER_HOLD;
+                                TASK_MESSAGE_DISPATCH_POINTER(work->grabTarget, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &_gActor01600GrabTargetAnimationRequest, 0);
                                 soundKey = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_PLAYER_GRAB;
                                 _actor01600PlaySoundAtRoot(soundKey, rootCoord);
                             }
@@ -3188,19 +3250,19 @@ static void _actor01600StepAttack(Task* actor)
                         soundKey = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_SCRIPT_D;
                         _actor01600PlaySoundAtRoot(soundKey, rootCoord);
                         if (work->grabTargetIndex == PLAYER_ACTOR_TASK_PLAYER) {
-                            taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
+                            taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_01600_ATTACK_GRAB_BITE), 0);
                         }
                         if (playerStatus->hp <= 0) {
                             if (work->grabTargetIndex == PLAYER_ACTOR_TASK_PLAYER) {
-                                work->animRequest             = ACTOR_01600_ANIMATION_SETTLE;
-                                work->forwardSpeed            = 0;
-                                work->animFrame               = 0;
-                                playerReleaseHeight           = rootCoord->coord.t[1];
-                                work->holdingTarget           = 0;
-                                work->grabEndHeight           = playerReleaseHeight;
-                                Actor01600_D127D8.animationId = 0;
-                                Actor01600_D127D8.blend       = ANIMATION_BLEND_RESET;
-                                Actor01600_D127D8.blendFrames = 0;
+                                work->animRequest                                  = ACTOR_01600_ANIMATION_SETTLE;
+                                work->forwardSpeed                                 = 0;
+                                work->animFrame                                    = 0;
+                                playerReleaseHeight                                = rootCoord->coord.t[1];
+                                work->holdingTarget                                = 0;
+                                work->grabEndHeight                                = playerReleaseHeight;
+                                _gActor01600GrabTargetAnimationRequest.animationId = ACTOR_01600_GRAB_TARGET_ANIMATION_UNSET;
+                                _gActor01600GrabTargetAnimationRequest.blend       = ANIMATION_BLEND_RESET;
+                                _gActor01600GrabTargetAnimationRequest.blendFrames = 0;
                                 taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                                 return;
                             }
@@ -3209,11 +3271,11 @@ static void _actor01600StepAttack(Task* actor)
                     if (work->grabTargetIndex == PLAYER_ACTOR_TASK_PLAYER) {
                         if (work->animFrame >= 0x31) {
                             if (work->grabBiteCount >= ACTOR_01600_GRAB_RELEASE_BITE_COUNT) {
-                                Actor01600_D127D8.animationId = 3;
-                                Actor01600_D127D8.blend       = ANIMATION_BLEND_INTERPOLATE;
-                                Actor01600_D127D8.blendFrames = 1;
-                                TASK_MESSAGE_DISPATCH_POINTER(work->grabTarget, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor01600_D127D8, 0);
-                                work->animPlaying = 0;
+                                _gActor01600GrabTargetAnimationRequest.animationId = ACTOR_01600_GRAB_TARGET_ANIMATION_PLAYER_RELEASE;
+                                _gActor01600GrabTargetAnimationRequest.blend       = ANIMATION_BLEND_INTERPOLATE;
+                                _gActor01600GrabTargetAnimationRequest.blendFrames = 1;
+                                TASK_MESSAGE_DISPATCH_POINTER(work->grabTarget, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &_gActor01600GrabTargetAnimationRequest, 0);
+                                work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
                                 work->animFrame   = 0;
                                 work->animRequest = ACTOR_01600_ANIMATION_GRAB_RELEASE;
                             }
@@ -3224,15 +3286,15 @@ static void _actor01600StepAttack(Task* actor)
                         }
                     } else {
                         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0) {
-                            work->animRequest             = ACTOR_01600_ANIMATION_SETTLE;
-                            work->forwardSpeed            = 0;
-                            work->animFrame               = 0;
-                            companionReleaseHeight        = rootCoord->coord.t[1];
-                            work->holdingTarget           = 0;
-                            work->grabEndHeight           = companionReleaseHeight;
-                            Actor01600_D127D8.animationId = 0;
-                            Actor01600_D127D8.blend       = ANIMATION_BLEND_RESET;
-                            Actor01600_D127D8.blendFrames = 0;
+                            work->animRequest                                  = ACTOR_01600_ANIMATION_SETTLE;
+                            work->forwardSpeed                                 = 0;
+                            work->animFrame                                    = 0;
+                            companionReleaseHeight                             = rootCoord->coord.t[1];
+                            work->holdingTarget                                = 0;
+                            work->grabEndHeight                                = companionReleaseHeight;
+                            _gActor01600GrabTargetAnimationRequest.animationId = ACTOR_01600_GRAB_TARGET_ANIMATION_UNSET;
+                            _gActor01600GrabTargetAnimationRequest.blend       = ANIMATION_BLEND_RESET;
+                            _gActor01600GrabTargetAnimationRequest.blendFrames = 0;
                             taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                             return;
                         }
@@ -3261,16 +3323,16 @@ static void _actor01600StepAttack(Task* actor)
                         rootCoord->coord.t[2] = releaseRootCoord->coord.t[2] + releaseGrabOffset->coord.t[2];
                     }
                     if (work->animFrame >= 0x2D) {
-                        work->holdingTarget           = 0;
-                        Actor01600_D127D8.animationId = 0;
-                        Actor01600_D127D8.blend       = ANIMATION_BLEND_RESET;
-                        Actor01600_D127D8.blendFrames = 0;
+                        work->holdingTarget                                = 0;
+                        _gActor01600GrabTargetAnimationRequest.animationId = ACTOR_01600_GRAB_TARGET_ANIMATION_UNSET;
+                        _gActor01600GrabTargetAnimationRequest.blend       = ANIMATION_BLEND_RESET;
+                        _gActor01600GrabTargetAnimationRequest.blendFrames = 0;
                         taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                     }
                     if (work->animFrame >= 0x38) {
-                        work->animRequest  = ACTOR_01600_ANIMATION_SETTLE;
-                        work->forwardSpeed = 0;
-                        Actor01600_D12870  = 0;
+                        work->animRequest              = ACTOR_01600_ANIMATION_SETTLE;
+                        work->forwardSpeed             = 0;
+                        _gActor01600GrabExclusionLatch = 0;
                     }
                     if (work->animFrame == 0x13) {
                         soundKey = (((u16)((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_01600_SOUND_SCRIPT_B;
@@ -3566,13 +3628,13 @@ static void _actor01600StepAnimation(Task* actor)
         }
         // Keep locomotion in the root instead of the selected clips' body-part translation.
         animationId = work->animRequest;
-        if (animationId == 28 || animationId == 30 || animationId == 9 || animationId == 21 || animationId == 22 || animationId == 5 || animationId == 6 || animationId == 27) {
+        if (animationId == ACTOR_01600_ANIMATION_GRAB_APPROACH || animationId == ACTOR_01600_ANIMATION_GRAB_RELEASE || animationId == ACTOR_01600_ANIMATION_SETTLE || animationId == ACTOR_01600_ANIMATION_RISE_FORWARD || animationId == ACTOR_01600_ANIMATION_RISE_BACK || animationId == ACTOR_01600_ANIMATION_ADVANCE || animationId == ACTOR_01600_ANIMATION_ZIGZAG || animationId == ACTOR_01600_ANIMATION_LUNGE_LAND) {
             actor->extra.tmd->coords[1].coord.t[0] = 0;
             actor->extra.tmd->coords[1].coord.t[2] = 0;
             actor->extra.tmd->coords[1].coord.t[0] = 0;
             actor->extra.tmd->coords[1].coord.t[2] = 0;
             return;
-        } else if (animationId == 29) {
+        } else if (animationId == ACTOR_01600_ANIMATION_GRAB_HOLD) {
             actor->extra.tmd->coords[1].coord.t[0] = 0;
             rootCoord                              = actor->extra.tmd->coords;
             rootCoord[1].coord.t[2]                = rootCoord[1].coord.t[2] - 0x2BC;
@@ -3750,7 +3812,7 @@ static void _actor01600StepDeath(Enemy* enemy, Task* actor)
         case ACTOR_01600_DEATH_REMOVE:
             // The final survivor remains alive while the room takes over its event.
             if (gSceneCombatState.actor01600Wave >= ACTOR_01600_WAVE_FINAL) {
-                if (Actor01600_D12874 == 1) {
+                if (_gActor01600WavePopulation == 1) {
                     attachment = &gAttachmentState;
                     if (attachment->mode == ATTACHMENT_MODE_WHEEL) {
                         break;
@@ -3770,7 +3832,7 @@ static void _actor01600StepDeath(Enemy* enemy, Task* actor)
             }
             work->exitTimer          = 0x3C;
             actor->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            Actor01600_D12874--;
+            _gActor01600WavePopulation--;
             actor->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->deathPhase         = ACTOR_01600_DEATH_EXIT;
             break;
@@ -3851,20 +3913,20 @@ static s32 _actor01600TryAcquireGrab(Task* actor)
     targetCoord = target->extra.tmd->coords;
     rootCoord   = actor->extra.tmd->coords;
     if (((GameActor*)gPlayerActorTasks[work->grabTargetIndex]->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        if (Actor01600_D12870 != 1) {
+        if (_gActor01600GrabExclusionLatch != 1) {
             yawMagnitude = _actor01600MeasureTarget(actor, &horizontalDistance);
             if (yawMagnitude < 0) {
                 yawMagnitude = -yawMagnitude;
             }
             if (yawMagnitude < ACTOR_01600_GRAB_TAKE_YAW + 1) {
                 if (horizontalDistance < ACTOR_01600_GRAB_REACH) {
-                    Actor01600_D12878.pressCount = ACTOR_01600_GRAB_ESCAPE_PRESSES;
+                    _gActor01600GrabButtonPressHold.pressCount = ACTOR_01600_GRAB_ESCAPE_PRESSES;
                     if (work->grabTargetIndex != PLAYER_ACTOR_TASK_PLAYER) {
-                        Actor01600_D12878.animation.animationId = 1;
+                        _gActor01600GrabButtonPressHold.animation.animationId = ACTOR_01600_GRAB_TARGET_ANIMATION_COMPANION_HOLD;
                     } else {
-                        Actor01600_D12878.animation.animationId = 2;
+                        _gActor01600GrabButtonPressHold.animation.animationId = ACTOR_01600_GRAB_TARGET_ANIMATION_PLAYER_HOLD;
                     }
-                    if (TASK_MESSAGE_DISPATCH_POINTER(target, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &Actor01600_D12878, 0) == 0) {
+                    if (TASK_MESSAGE_DISPATCH_POINTER(target, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &_gActor01600GrabButtonPressHold, 0) == 0) {
                         targetCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                         targetToRoot.vx           = rootCoord->coord.t[0] - targetCoord->coord.t[0];
                         targetToRoot.vy           = 0;
@@ -3876,14 +3938,14 @@ static s32 _actor01600TryAcquireGrab(Task* actor)
                         } else if (targetYaw < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
                             wrappedYaw = targetYaw + ACTOR_TRANSFORM_ANGLE_TURN;
                         }
-                        Actor01600_D12890.rot.vx = 0;
-                        Actor01600_D12890.rot.vy = wrappedYaw;
-                        Actor01600_D12890.rot.vz = 0;
-                        Actor01600_D12890.pos.vx = targetCoord->coord.t[0];
-                        Actor01600_D12890.pos.vy = targetCoord->coord.t[1];
-                        Actor01600_D12890.pos.vz = targetCoord->coord.t[2];
-                        TASK_MESSAGE_DISPATCH_POINTER(target, GAME_ACTOR_MESSAGE_PLACE, &Actor01600_D12890, 0);
-                        Actor01600_D12870 = 1;
+                        _gActor01600GrabTargetPlacement.rot.vx = 0;
+                        _gActor01600GrabTargetPlacement.rot.vy = wrappedYaw;
+                        _gActor01600GrabTargetPlacement.rot.vz = 0;
+                        _gActor01600GrabTargetPlacement.pos.vx = targetCoord->coord.t[0];
+                        _gActor01600GrabTargetPlacement.pos.vy = targetCoord->coord.t[1];
+                        _gActor01600GrabTargetPlacement.pos.vz = targetCoord->coord.t[2];
+                        TASK_MESSAGE_DISPATCH_POINTER(target, GAME_ACTOR_MESSAGE_PLACE, &_gActor01600GrabTargetPlacement, 0);
+                        _gActor01600GrabExclusionLatch = 1;
                         return 1;
                     }
                     return 0;
@@ -3933,7 +3995,7 @@ static s32 _actor01600TryBeginGrab(Task* actor, s32 relativeYaw, s32 horizontalD
     rootCoord   = actor->extra.tmd->coords;
     playerCoord = (*gPlayerActorTasks)->extra.tmd->coords;
     if (((GameActor*)gPlayerActorTasks[playerIndex]->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        if (Actor01600_D12870 == 0) {
+        if (_gActor01600GrabExclusionLatch == 0) {
             playerHeight    = playerCoord->coord.t[1];
             heightOrYawSign = rootCoord->coord.t[1];
             heightGap       = playerHeight - heightOrYawSign;
@@ -4362,7 +4424,7 @@ static void _actor01600InitPlacement(Task* actor)
             work->scriptedRotation.vx     = 0;
             work->scriptedRotation.vy     = (u16)enemy->place->yaw;
             work->scriptedRotation.vz     = 0;
-            Actor01600_D12874            += 1;
+            _gActor01600WavePopulation   += 1;
             return;
         case ACTOR_01600_PLACEMENT_FIRST_WAVE:
             work->reactionDelay = placementMode;
@@ -4378,7 +4440,7 @@ static void _actor01600InitPlacement(Task* actor)
             work->shadowHidden            = 1;
             work->active                  = 0;
             work->suspended               = 1;
-            Actor01600_D12874            += 1;
+            _gActor01600WavePopulation   += 1;
             return;
     }
 }
@@ -4465,7 +4527,7 @@ static s32 _actor01600StepActivation(Task* actor)
             } else if (wave == ACTOR_01600_WAVE_SECOND) {
                 if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 15, 0, 0)) {
 
-                    firstEntryPositions   = Actor01600_D09F1C;
+                    firstEntryPositions   = _gActor01600ParkingLotSecondWavePositions;
                     firstEntryPosition    = &firstEntryPositions[(u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
                     rootCoord->coord.t[0] = firstEntryPosition->vx;
                     rootCoord->coord.t[1] = firstEntryPosition->vy;
@@ -4473,7 +4535,7 @@ static s32 _actor01600StepActivation(Task* actor)
                 }
                 if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 4, 0, 0)) {
 
-                    secondEntryPositions  = Actor01600_D09F3C;
+                    secondEntryPositions  = _gActor01600MineTunnelSecondWavePositions;
                     secondEntryPosition   = &secondEntryPositions[(u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT];
                     rootCoord->coord.t[0] = secondEntryPosition->vx;
                     rootCoord->coord.t[1] = secondEntryPosition->vy;
@@ -4494,7 +4556,7 @@ static s32 _actor01600StepActivation(Task* actor)
             visibleModel->flags  &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->behavior        = ACTOR_01600_BEHAVIOR_ATTACK;
             work->animBlendFrames = 0;
-            work->animPlaying     = 0;
+            work->animPlaying     = ACTOR_01600_ANIMATION_UNSET;
             work->animFrame       = 0;
             work->biteLanded      = 0;
             return 0;
@@ -4514,7 +4576,7 @@ static s32 _actor01600StepActivation(Task* actor)
                     work->active          = 1;
                     work->behavior        = ACTOR_01600_BEHAVIOR_ATTACK;
                     work->animBlendFrames = 0;
-                    work->animPlaying     = 0;
+                    work->animPlaying     = ACTOR_01600_ANIMATION_UNSET;
                     work->animFrame       = 0;
                     work->biteLanded      = 0;
                     work->animRequest     = ACTOR_01600_ANIMATION_LUNGE;
@@ -4553,7 +4615,7 @@ static s32 _actor01600StepActivation(Task* actor)
             work->attackAction       = ACTOR_01600_ACTION_LUNGE_RECOVER;
             work->behavior           = ACTOR_01600_BEHAVIOR_ATTACK;
             work->animBlendFrames    = 0;
-            work->animPlaying        = 0;
+            work->animPlaying        = ACTOR_01600_ANIMATION_UNSET;
             work->animFrame          = 0;
             work->biteLanded         = 0;
             work->longLeap           = 1;
@@ -4606,18 +4668,18 @@ static s32 _actor01600HandleCommand(Task* actor, s32 messageId, const ActorComma
             if (placementVariant == 2) {
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->animFrame     = 0;
-                work->animPlaying   = 0;
-                work->animRequest   = 3;
-                work->scriptedAnim  = 9;
+                work->animPlaying   = ACTOR_01600_ANIMATION_UNSET;
+                work->animRequest   = ACTOR_01600_ANIMATION_ROAM_IDLE;
+                work->scriptedAnim  = ACTOR_01600_ANIMATION_SETTLE;
                 work->scriptedDelay = (gRandomLcgState >> 16) % 20;
             }
             if (placementVariant == 4) {
-                work->animRequest = 0x11;
-                work->animPlaying = 0;
+                work->animRequest = ACTOR_01600_ANIMATION_POSED;
+                work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
             }
             if (placementVariant == 3) {
-                work->animRequest     = 0x11;
-                work->animPlaying     = 0;
+                work->animRequest     = ACTOR_01600_ANIMATION_POSED;
+                work->animPlaying     = ACTOR_01600_ANIMATION_UNSET;
                 rootCoord->coord.t[0] = 0x4021;
                 rootCoord->coord.t[1] = -0x190;
                 rootCoord->coord.t[2] = -0x6C0;
@@ -4634,15 +4696,15 @@ static s32 _actor01600HandleCommand(Task* actor, s32 messageId, const ActorComma
         case ACTOR_01600_COMMAND_CUE_2:
             work->colorRefresh = 1;
             if (placementVariant == 1) {
-                work->animRequest = 0x1A;
-                work->animPlaying = 0;
+                work->animRequest = ACTOR_01600_ANIMATION_LUNGE;
+                work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
             }
             if (placementVariant == 2) {
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->animFrame     = 0;
-                work->animPlaying   = 0;
-                work->animRequest   = 3;
-                work->scriptedAnim  = 9;
+                work->animPlaying   = ACTOR_01600_ANIMATION_UNSET;
+                work->animRequest   = ACTOR_01600_ANIMATION_ROAM_IDLE;
+                work->scriptedAnim  = ACTOR_01600_ANIMATION_SETTLE;
                 work->scriptedDelay = (gRandomLcgState >> 16) % 20;
             }
             if (placementVariant == 3) {
@@ -4661,15 +4723,15 @@ static s32 _actor01600HandleCommand(Task* actor, s32 messageId, const ActorComma
                 model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
             if (placementVariant == 1) {
-                work->animRequest = 9;
-                work->animPlaying = 0;
+                work->animRequest = ACTOR_01600_ANIMATION_SETTLE;
+                work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
             }
             if (placementVariant == 2) {
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->animFrame     = 0;
-                work->animPlaying   = 0;
-                work->animRequest   = 3;
-                work->scriptedAnim  = 9;
+                work->animPlaying   = ACTOR_01600_ANIMATION_UNSET;
+                work->animRequest   = ACTOR_01600_ANIMATION_ROAM_IDLE;
+                work->scriptedAnim  = ACTOR_01600_ANIMATION_SETTLE;
                 work->scriptedDelay = (gRandomLcgState >> 16) % 20;
             }
             break;
@@ -4677,20 +4739,20 @@ static s32 _actor01600HandleCommand(Task* actor, s32 messageId, const ActorComma
             work->colorRefresh = 1;
             if (placementVariant == 1) {
                 work->animRequest = ACTOR_01600_ANIMATION_NONE;
-                work->animPlaying = 0;
+                work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
                 work->animFrame   = 0;
             }
             if (placementVariant == 2) {
-                work->animRequest   = 3;
+                work->animRequest   = ACTOR_01600_ANIMATION_ROAM_IDLE;
                 work->scriptedDelay = 0xA;
                 work->animFrame     = 0;
-                work->animPlaying   = 0;
-                work->scriptedAnim  = 7;
+                work->animPlaying   = ACTOR_01600_ANIMATION_UNSET;
+                work->scriptedAnim  = ACTOR_01600_ANIMATION_TURN;
             }
             if (placementVariant == 4) {
                 work->animFrame     = 0;
                 work->scriptedDelay = 7;
-                work->scriptedAnim  = 7;
+                work->scriptedAnim  = ACTOR_01600_ANIMATION_TURN;
             }
             break;
         case ACTOR_01600_COMMAND_REFRESH_COLOR:
@@ -4721,7 +4783,7 @@ static s32 _actor01600HandleCommand(Task* actor, s32 messageId, const ActorComma
         case ACTOR_01600_COMMAND_DESTROY:
             sceneReleaseBattleRefWithRewards(actor, 0x10);
             enemyDestroy(enemy, actor);
-            Actor01600_D12874 -= 1;
+            _gActor01600WavePopulation -= 1;
             break;
         default:
             return -1;
@@ -4781,7 +4843,7 @@ static void _actor01600StepStagedMotion(Task* actor)
                 }
                 if (work->animFrame >= 0x31) {
                     work->animRequest = ACTOR_01600_ANIMATION_TURN_WRAPPED;
-                    work->animPlaying = 0;
+                    work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
                     work->animFrame   = 0;
                 }
                 break;
@@ -4794,7 +4856,7 @@ static void _actor01600StepStagedMotion(Task* actor)
                 }
                 if (work->animFrame >= 0x1C) {
                     work->animRequest = ACTOR_01600_ANIMATION_SETTLE;
-                    work->animPlaying = 0;
+                    work->animPlaying = ACTOR_01600_ANIMATION_UNSET;
                     work->animFrame   = 0;
                 }
                 break;
@@ -4860,7 +4922,7 @@ static void _actor01600StepStagedMotion(Task* actor)
                     if (work->animFrame >= 0x1C) {
                         work->scriptedAnim = ACTOR_01600_ANIMATION_SETTLE;
                         work->animRequest  = ACTOR_01600_ANIMATION_SETTLE;
-                        work->animPlaying  = 0;
+                        work->animPlaying  = ACTOR_01600_ANIMATION_UNSET;
                         work->animFrame    = 0;
                     }
                     break;
@@ -4868,9 +4930,9 @@ static void _actor01600StepStagedMotion(Task* actor)
                     work->animRequest = scriptedAnimation;
                     if (work->animFrame >= 0x32) {
                         work->animFrame    = 0;
-                        work->animPlaying  = 0;
+                        work->animPlaying  = ACTOR_01600_ANIMATION_UNSET;
                         work->animRequest  = ACTOR_01600_ANIMATION_ROAM_IDLE;
-                        work->scriptedAnim = 0;
+                        work->scriptedAnim = ACTOR_01600_ANIMATION_UNSET;
                     }
                     break;
             }
@@ -4893,7 +4955,7 @@ static void _actor01600StepStagedMotion(Task* actor)
                 if (work->animFrame >= 0x1C) {
                     work->scriptedAnim = ACTOR_01600_ANIMATION_SETTLE;
                     work->animRequest  = ACTOR_01600_ANIMATION_SETTLE;
-                    work->animPlaying  = 0;
+                    work->animPlaying  = ACTOR_01600_ANIMATION_UNSET;
                     work->animFrame    = 0;
                 }
             }
@@ -4925,7 +4987,7 @@ static void _actor01600SpawnBurstParts(Task* actor)
         ACTOR_01600_SPAWN_BURST_PART(actor, &_gActor01600ScavengerBurstHead, 1, effect);
         ACTOR_01600_SPAWN_BURST_PART(actor, &_gActor01600ScavengerBurstEar, 2, effect);
         ACTOR_01600_SPAWN_BURST_PART(actor, &_gActor01600ScavengerBurstEar, 3, effect);
-        effectSpawn(EFFECT_030, actor->extra.tmd->coords + 1, ACTOR_01600_MULTI_PART_BURST_SIZE, &Actor01600_D12868);
+        effectSpawn(EFFECT_030, actor->extra.tmd->coords + 1, ACTOR_01600_MULTI_PART_BURST_SIZE, &_gActor01600BurstOffset);
         return;
     }
     randomState     = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
@@ -4943,7 +5005,7 @@ static void _actor01600SpawnBurstParts(Task* actor)
             ACTOR_01600_SPAWN_BURST_PART(actor, &_gActor01600ScavengerBurstLeg, 6, effect);
             break;
     }
-    effectSpawn(EFFECT_030, actor->extra.tmd->coords + 1, ACTOR_01600_SINGLE_PART_BURST_SIZE, &Actor01600_D12868);
+    effectSpawn(EFFECT_030, actor->extra.tmd->coords + 1, ACTOR_01600_SINGLE_PART_BURST_SIZE, &_gActor01600BurstOffset);
     hiddenModel         = actor->extra.tmd;
     hiddenModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     bufferModel         = actor->extra.tmd;
@@ -4961,7 +5023,7 @@ static void _actor01600Task(Task* actor)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor01600_D00004;
+    handlers = _gActor01600TaskStates;
     handlers.funcs[actor->state](((Enemy*)actor->spawnArg2.pointer), actor);
 }
 
@@ -5224,7 +5286,7 @@ static s32 _actor01600TryBeginLunge(Task* actor, s32 relativeYaw, s32 horizontal
                 randomProduct         = gRandomLcgState * RANDOM_LCG_MULTIPLIER;
                 randomState           = randomProduct + RANDOM_LCG_INCREMENT;
                 work->animBlendFrames = 0;
-                work->animPlaying     = 0;
+                work->animPlaying     = ACTOR_01600_ANIMATION_UNSET;
                 work->biteLanded      = 0;
                 gRandomLcgState       = randomState;
                 if ((u32)(((randomState >> 16) % 100) & 0xFFFF) < (u32)ACTOR_01600_LUNGE_RECOVER_PERCENT) {
@@ -5275,13 +5337,13 @@ static void _actor01600ReleaseGrab(Task* actor)
     work = actor->work;
     if (work->holdingTarget != 0) {
         taskMessageDispatch(work->grabTarget, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-        Actor01600_D127D8.animationId = 0;
-        work->holdingTarget           = 0;
-        Actor01600_D12870             = 0;
-        work->forwardSpeed            = 0;
-        work->attackAction            = ACTOR_01600_ACTION_ADVANCE;
-        work->animFrame               = 0;
-        work->shadowUnderBody         = 0;
+        _gActor01600GrabTargetAnimationRequest.animationId = ACTOR_01600_GRAB_TARGET_ANIMATION_UNSET;
+        work->holdingTarget                                = 0;
+        _gActor01600GrabExclusionLatch                     = 0;
+        work->forwardSpeed                                 = 0;
+        work->attackAction                                 = ACTOR_01600_ACTION_ADVANCE;
+        work->animFrame                                    = 0;
+        work->shadowUnderBody                              = 0;
     }
 }
 
@@ -5340,7 +5402,7 @@ static void _actor01600Remove(Task* actor, s32 skipBodyUnlink)
     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
     sceneReleaseBattleRefWithRewards(actor, 0x10);
     enemyDestroy(enemy, actor);
-    Actor01600_D12874 -= 1;
+    _gActor01600WavePopulation -= 1;
 }
 
 /// Gives a spawned burst part the source actor's texture-page and CLUT-row offsets.

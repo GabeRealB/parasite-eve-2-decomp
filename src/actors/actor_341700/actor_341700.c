@@ -59,8 +59,6 @@
 
 /// Psy-Q `RotMatrixY`, taking the angle as a `long`.
 
-extern EnemyParams gMadChaserEnemyParams; // the main enemy's `Enemy::param` record
-
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
@@ -355,7 +353,11 @@ static DamageAttack _gMadChaserAttacks[1] = {
     { 22, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams gMadChaserEnemyParams = { _gMadChaserAttacks, 110, 20, 40, 1, 100, 10, 100, 0 };
+/// Shared Mad Chaser tuning and release rewards for this overlay's instances.
+///
+/// Ordinary and hidden spawn paths borrow the record and seed current/maximum
+/// HP to 110. Its attack table is overlay-owned; rewards are 20 EXP, 40 BP, 1 MP.
+static EnemyParams _gMadChaserEnemyParams = { _gMadChaserAttacks, 110, 20, 40, 1, 100, 10, 100, 0 };
 
 static AnimationPackedPose _gActor341700Animation0FCA8Bank1[6] = {
 #include "assets/actor_341700_animation_0FCA8_bank1.inc"

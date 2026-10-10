@@ -10,7 +10,12 @@
 
 extern TaskDesc D_actor_215100_8014CF6C[2];
 
-extern s32 D_actor_215100_8014D03C;
+/// Movement-triggered gallery exit gate (0 armed, 1 blocked).
+///
+/// Training startup and completed/aborted sessions block it. During an active
+/// free-movement course, view 18 restores the firing barrier and rearms exit
+/// confirmation by clearing it. Independent of the active-training latch.
+extern s32 gActor215100GalleryExitInputBlocked;
 
 extern s32 D_actor_215100_8014D044;
 

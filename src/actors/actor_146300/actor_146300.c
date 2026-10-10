@@ -68,11 +68,12 @@ static _Actor146300Work* _gScriptedWalkWork;
 /// leaves it dangling rather than clearing it. This cache owns no task.
 static Task* _gActor146300BodyTask;
 
-/// The companion task the spawn routine starts from
-/// `gActor146300FigureTasks`; its `extra` is the model whose texture page and
-/// CLUT row come out of the area record, and the actor's own task is reparented
-/// under it.
-extern Task* gActorHelperTask;
+/// Borrowed helper-model task paired with this carrier's published body task.
+///
+/// Successful body setup publishes the handle for paired visibility and model
+/// parenting. Teardown kills the helper before releasing the body; neither
+/// published handle is cleared. Consumers require the current pair to be live.
+static Task* _gActorMsgHelperTask;
 
 /// Animation stream the spawn routine binds into the work block's animation
 /// context with `animationInitContext`.
@@ -1651,8 +1652,6 @@ u8 D_actor_146300_801427E0[68] = {
 
 s32 D_actor_146300_80142824 = 0;
 
-Task* gActorHelperTask;
-
 static void _actor146300SpawnScriptedWalker(Enemy* enemy, Task* task);
 
 /// Runs one ice-bag handover or follow-up conversation, then releases scripted control.
@@ -1920,9 +1919,9 @@ static void _actor146300SpawnScriptedWalker(Enemy* enemy, Task* task)
     model->flags                     = 0;
     _gActor146300BodyTask            = task;
     attachmentTask                   = taskSpawnFromTable(gActor146300FigureTasks, ACTOR146300_TASK_ATTACHMENT, 0, 0);
-    gActorHelperTask                 = attachmentTask;
+    _gActorMsgHelperTask             = attachmentTask;
     _actorRenderApplyTaskPlacementTextureOffsets(attachmentTask, enemy);
-    taskReparent(task, gActorHelperTask);
+    taskReparent(task, _gActorMsgHelperTask);
     model->lightMtx = &_gScriptedWalkWork->light;
     model->colorMtx = &_gScriptedWalkWork->color;
     ACTOR_146300_RELIGHT_SPAWN(model, rootCoord, lightPosition);

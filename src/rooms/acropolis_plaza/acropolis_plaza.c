@@ -3162,7 +3162,7 @@ static void _acropolisPlazaStreamSceneTask(Task* task)
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
-            animationRequest.source.sets          = D_actor_310100_801797FC;
+            animationRequest.source.sets          = gActor310100PlayerAnimationSets;
             animationRequest.animationId          = ACROPOLIS_PLAZA_STREAM_SCENE_PLAYER_ANIMATION;
             animationRequest.blend                = ANIMATION_BLEND_RESET;
             animationRequest.blendFrames          = 0;

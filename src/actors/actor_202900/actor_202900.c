@@ -51,10 +51,6 @@ STATIC_ASSERT_SIZEOF(_Actor202900Work, 0x564);
 extern TaskMessageEntry D_actor_202900_80156E0C[3];
 extern AnimationSet*    D_actor_202900_80156E3C[6];
 
-/// The actor's work block, published so the overlay's functions can reach it
-/// without the task in hand.
-extern _Actor202900Work* D_actor_202900_80156E54;
-
 /// Borrowed body task of this package's active scripted actor.
 ///
 /// Published after successful spawn for animation messages, paired visibility
@@ -63,10 +59,12 @@ extern _Actor202900Work* D_actor_202900_80156E54;
 /// leaves it dangling rather than clearing it. This cache owns no task.
 static Task* _gActor202900BodyTask;
 
-/// The second task the setup handler starts. Its model is textured from the
-/// area record the actor was placed from, shown and hidden together with the
-/// actor's, and the task is killed when the actor's exit callback runs.
-extern Task* gActorHelperTask;
+/// Borrowed helper-model task paired with this carrier's published body task.
+///
+/// Successful body setup publishes the handle for paired visibility and model
+/// parenting. Teardown kills the helper before releasing the body; neither
+/// published handle is cleared. Consumers require the current pair to be live.
+static Task* _gActorMsgHelperTask;
 
 static void _actor202900UpdateState(Enemy* unusedEnemy, Task* task);
 static void _viewFigureExit(Task* task);
@@ -246,9 +244,12 @@ AnimationSet* D_actor_202900_80156E3C[6] = {
     NULL,
 };
 
-_Actor202900Work* D_actor_202900_80156E54 = NULL;
-
-Task* gActorHelperTask;
+/// Borrowed singleton work of the cafeteria woman's body and animation messages.
+///
+/// Dispatch publishes Task::work and successful setup replaces it with the
+/// allocated block. Animation, cue and message handlers require the current
+/// initialized instance; enemy teardown frees it without clearing this pointer.
+static _Actor202900Work* _gActor202900Work = NULL;
 
 static void _actor202900SpawnBody(Enemy* enemy, Task* task);
 
@@ -281,8 +282,8 @@ static void _actor202900SpawnBody(Enemy* enemy, Task* task)
 
     model      = task->extra.tmd;
     rootCoord  = model->coords;
-    task->work = (D_actor_202900_80156E54 = memCalloc(sizeof(_Actor202900Work), false));
-    if (D_actor_202900_80156E54 == NULL) {
+    task->work = (_gActor202900Work = memCalloc(sizeof(_Actor202900Work), false));
+    if (_gActor202900Work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -295,18 +296,18 @@ static void _actor202900SpawnBody(Enemy* enemy, Task* task)
     model->otOffset                  = ACTOR_202900_BODY_OT_OFFSET;
     model->flags                     = 0;
     _gActor202900BodyTask            = task;
-    gActorHelperTask                 = taskSpawnFromTable(gActor202900WomanTaskDescriptors, ACTOR_202900_CARRIED_MODEL_TASK, 0, 0);
-    _actorRenderApplyTaskPlacementTextureOffsets(gActorHelperTask, enemy);
-    model->lightMtx = &D_actor_202900_80156E54->light;
-    model->colorMtx = &D_actor_202900_80156E54->color;
+    _gActorMsgHelperTask             = taskSpawnFromTable(gActor202900WomanTaskDescriptors, ACTOR_202900_CARRIED_MODEL_TASK, 0, 0);
+    _actorRenderApplyTaskPlacementTextureOffsets(_gActorMsgHelperTask, enemy);
+    model->lightMtx = &_gActor202900Work->light;
+    model->colorMtx = &_gActor202900Work->color;
     // Bind work-owned lighting before sampling it and starting the body tracks.
     ACTOR_202900_RELIGHT_SPAWN_MODEL();
-    animationBindModelContext(&D_actor_202900_80156E54->rig.anim, D_actor_202900_80156E3C, model,
-                              D_actor_202900_80156E54->rig.poses);
-    D_actor_202900_80156E54->st.animId    = ACTOR_202900_INITIAL_CLIP;
-    D_actor_202900_80156E54->st.state     = ACTOR_ENEMY_ANIM_RESET;
-    D_actor_202900_80156E54->st.cueRecord = 0;
-    task->msgTable                        = D_actor_202900_80156E0C;
+    animationBindModelContext(&_gActor202900Work->rig.anim, D_actor_202900_80156E3C, model,
+                              _gActor202900Work->rig.poses);
+    _gActor202900Work->st.animId    = ACTOR_202900_INITIAL_CLIP;
+    _gActor202900Work->st.state     = ACTOR_ENEMY_ANIM_RESET;
+    _gActor202900Work->st.cueRecord = 0;
+    task->msgTable                  = D_actor_202900_80156E0C;
     _actor202900StepAnim(task);
     task->state++;
 
@@ -329,7 +330,7 @@ static void _actor202900BodyTask(Task* task)
         _actor202900UpdateState,
     };
 
-    D_actor_202900_80156E54 = task->work;
+    _gActor202900Work = task->work;
     stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -385,7 +386,7 @@ static void _actor202900UpdateState(Enemy* unusedEnemy, Task* task)
     model = task->extra.tmd;
     _actor202900RelightModel(model);
     _actor202900StepAnim(task);
-    if (D_actor_202900_80156E54->st.animId == ACTOR_202900_SOUND_ANIM && _actor202900LatchSoundCue()) {
+    if (_gActor202900Work->st.animId == ACTOR_202900_SOUND_ANIM && _actor202900LatchSoundCue()) {
         sndEvtRequestScriptStart(SOUND_ACROPOLIS_CAFETERIA_WOMAN_CUE, 0, 0);
     }
 }
@@ -398,17 +399,17 @@ static void _actor202900UpdateState(Enemy* unusedEnemy, Task* task)
 /// `ACTOR_ENEMY_ANIM_TICK` without a further tick, and other states do nothing.
 static void _actor202900StepAnim(Task* unusedTask)
 {
-    if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_BLEND) {
+    if (_gActor202900Work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         _actor202900BlendAnim();
-        D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
+        _gActor202900Work->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_RESET) {
+    if (_gActor202900Work->st.state == ACTOR_ENEMY_ANIM_RESET) {
         _actor202900ResetAnim();
-        D_actor_202900_80156E54->st.state = ACTOR_ENEMY_ANIM_TICK;
+        _gActor202900Work->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
-    if (D_actor_202900_80156E54->st.state == ACTOR_ENEMY_ANIM_TICK) {
+    if (_gActor202900Work->st.state == ACTOR_ENEMY_ANIM_TICK) {
         _actor202900TickAnim();
     }
 }
@@ -423,8 +424,8 @@ static void _actor202900TickAnim(void)
 {
     s32 slotIndex;
 
-    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(D_actor_202900_80156E54->rig.slots); slotIndex++) {
-        animationTickDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[slotIndex]);
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(_gActor202900Work->rig.slots); slotIndex++) {
+        animationTickDirectSlot(&_gActor202900Work->rig.anim, &_gActor202900Work->rig.slots[slotIndex]);
     }
 }
 
@@ -440,12 +441,12 @@ static void _actor202900ResetAnim(void)
 
     s32 slotIndex;
 
-    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(D_actor_202900_80156E54->rig.slots); slotIndex++) {
-        D_actor_202900_80156E54->rig.slots[slotIndex].rate = ACTOR_202900_PRE_RESET_RATE;
-        animationInitDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[slotIndex], slotIndex,
-                                D_actor_202900_80156E54->st.animId);
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(_gActor202900Work->rig.slots); slotIndex++) {
+        _gActor202900Work->rig.slots[slotIndex].rate = ACTOR_202900_PRE_RESET_RATE;
+        animationInitDirectSlot(&_gActor202900Work->rig.anim, &_gActor202900Work->rig.slots[slotIndex], slotIndex,
+                                _gActor202900Work->st.animId);
     }
-    D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;
+    _gActor202900Work->st.appliedAnimId = _gActor202900Work->st.animId;
 }
 
 /// Reseeds body parts 1 through 18 with an eight-frame blend in demo scene 1.
@@ -462,11 +463,11 @@ static void _actor202900BlendAnim(void)
 
     s32 slotIndex;
 
-    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(D_actor_202900_80156E54->rig.slots); slotIndex++) {
-        animationStartDirectSlot(&D_actor_202900_80156E54->rig.anim, &D_actor_202900_80156E54->rig.slots[slotIndex], slotIndex,
-                                 D_actor_202900_80156E54->st.animId, 0, ACTOR_202900_BLEND_FRAMES);
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(_gActor202900Work->rig.slots); slotIndex++) {
+        animationStartDirectSlot(&_gActor202900Work->rig.anim, &_gActor202900Work->rig.slots[slotIndex], slotIndex,
+                                 _gActor202900Work->st.animId, 0, ACTOR_202900_BLEND_FRAMES);
     }
-    D_actor_202900_80156E54->st.appliedAnimId = D_actor_202900_80156E54->st.animId;
+    _gActor202900Work->st.appliedAnimId = _gActor202900Work->st.animId;
 }
 
 /// Reports slot 1's first visit to sound-cue record 21 since setup.
@@ -480,13 +481,13 @@ static u8 _actor202900LatchSoundCue(void)
 
     u16 recordIndex;
 
-    recordIndex = D_actor_202900_80156E54->rig.slots[1].currentPose.indices.recordIndex;
+    recordIndex = _gActor202900Work->rig.slots[1].currentPose.indices.recordIndex;
     if ((recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_202900_SOUND_CUE_RECORD) {
-        if (D_actor_202900_80156E54->st.cueRecord != (recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-            D_actor_202900_80156E54->st.cueRecord = recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        if (_gActor202900Work->st.cueRecord != (recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
+            _gActor202900Work->st.cueRecord = recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
             return 1;
         }
-        D_actor_202900_80156E54->st.cueRecord = recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+        _gActor202900Work->st.cueRecord = recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
     }
     return 0;
 }
@@ -508,10 +509,10 @@ static s32 _actor202900PlayAnimation(Task* unusedTask, s32 messageId, const Anim
     Task* actorTask;
 
     if (request->animationId < ACTOR_202900_ANIM_ID_LIMIT) {
-        D_actor_202900_80156E54->st.animId  = request->animationId;
-        actorTask                           = _gActor202900BodyTask;
-        D_actor_202900_80156E54->st.state   = ACTOR_ENEMY_ANIM_RESET;
-        D_actor_202900_80156E54->st.field_6 = 0;
+        _gActor202900Work->st.animId  = request->animationId;
+        actorTask                     = _gActor202900BodyTask;
+        _gActor202900Work->st.state   = ACTOR_ENEMY_ANIM_RESET;
+        _gActor202900Work->st.field_6 = 0;
         _actor202900StepAnim(actorTask);
         return 0;
     }

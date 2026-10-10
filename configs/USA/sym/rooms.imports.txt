@@ -635,7 +635,7 @@ mapShelterRoomVariantResolve = 0x80179A04; // type:func absolute:True owner=map_
 
 mapNeoArkResolveRoomVariant = 0x80179B14; // type:func absolute:True owner=map_neo_ark
 
-D_actor_310100_801797FC = 0x801797FC; // absolute:True
+gActor310100PlayerAnimationSets = 0x801797FC; // absolute:True owner=actor_310100
 
 gActor310100Officer1TaskDescriptors = 0x801798FC; // absolute:True owner=actor_310100
 
