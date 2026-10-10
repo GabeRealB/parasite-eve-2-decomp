@@ -656,15 +656,9 @@ extern AnimationBank D_m4a1_javelin_8012EA20;
 
 extern AnimationBank D_mp5a5_8012B3CC;
 
-extern GpuImageUpload* D_aya_10400_8011CC94[];
-
 extern GpuImageUpload* D_8011D168[];
 
-extern GpuImageUpload* D_aya_10400_8011CC9C[];
-
 extern GpuImageUpload* D_8011D170[];
-
-extern GpuImageUpload* D_aya_10400_8011CCAC[];
 
 extern GpuImageUpload* D_8011D180[];
 
@@ -1069,7 +1063,7 @@ u16 D_80112E30[33] = {
     96,
     96
 };
-GpuImageUpload* const* D_80112E74[16] = { D_aya_10400_8011CC94, gAya10300EyesRestSequence, gAya10200EyesRestSequence, D_8011D168, D_aya_10400_8011CC9C, gAya10300EyesClosingSequence, gAya10200EyesClosingSequence, D_8011D170, D_aya_10400_8011CCAC, gAya10300EyesOpeningSequence, gAya10200EyesOpeningSequence, D_8011D180, D_aya_10400_8011CCBC, D_aya_10300_8011CD44, gAya10200EyesBlinkSequence, D_8011D190 };
+GpuImageUpload* const* D_80112E74[16] = { gAya10400EyesRestSequence, gAya10300EyesRestSequence, gAya10200EyesRestSequence, D_8011D168, gAya10400EyesClosingSequence, gAya10300EyesClosingSequence, gAya10200EyesClosingSequence, D_8011D170, gAya10400EyesOpeningSequence, gAya10300EyesOpeningSequence, gAya10200EyesOpeningSequence, D_8011D180, D_aya_10400_8011CCBC, D_aya_10300_8011CD44, gAya10200EyesBlinkSequence, D_8011D190 };
 GpuImageUpload**       D_80112EB4[8]  = { D_aya_10400_8011CCDC, D_aya_10300_8011CD64, gAya10200MouthAlternateSequence, D_8011D1B0, D_aya_10400_8011CCD4, D_aya_10300_8011CD5C, gAya10200MouthRestSequence, D_8011D1A8 };
 /// Unused, probably stale program data: likely per-weapon boolean flags.
 /// No reader identified; the original flag meaning is unknown.

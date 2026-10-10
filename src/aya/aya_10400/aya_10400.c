@@ -1,16 +1,11 @@
-#include <psyq/sys/types.h>
+#include "aya/aya.h"
 
-#include "types.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgpu.h>
+
+#include "common.h"
 
 #include "gameplay/collision.h"
-#include "gameplay/gpu_image_upload.h"
-#include "main/tmd_types.h"
-
-extern GpuImageUpload* D_aya_10400_8011CC94[];
-
-extern GpuImageUpload* D_aya_10400_8011CC9C[];
-
-extern GpuImageUpload* D_aya_10400_8011CCAC[];
 
 extern GpuImageUpload* D_aya_10400_8011CCBC[];
 
@@ -18,189 +13,234 @@ extern GpuImageUpload* D_aya_10400_8011CCD4[];
 
 extern GpuImageUpload* D_aya_10400_8011CCDC[];
 
-static TmdBone _gAya10400Model01A48Skeleton[19] = {
+/// Facial-frame dimensions in 16-bit VRAM words and rows.
+enum {
+    AYA_10400_EYES_FRAME_WIDTH_WORDS  = 25,
+    AYA_10400_EYES_FRAME_HEIGHT_ROWS  = 16,
+    AYA_10400_MOUTH_FRAME_WIDTH_WORDS = 14,
+    AYA_10400_MOUTH_FRAME_HEIGHT_ROWS = 20,
+};
+
+/// Nineteen initial local transforms and parent indices copied into each player body.
+///
+/// Read-only pose and count tables retain their serialized positions in .data.
+static const TmdBone _gAya10400BodyModelSkeleton[19] __attribute__((section(".data"))) = {
 #include "assets/aya_10400_model_01A48_skeleton.inc"
 };
 
-static u32 _gAya10400Model01A48PartVerts[19] = {
+/// Vertex counts for consecutive part-local groups in skeleton order, totaling 362.
+static const u32 _gAya10400BodyModelPartVerts[ARRAY_SIZE(_gAya10400BodyModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/aya_10400_model_01A48_partVerts.inc"
 };
 
-static SVECTOR _gAya10400Model01A48Verts[362] = {
+/// Writable body vertices in integer coordinates local to their skeletal parts.
+static SVECTOR _gAya10400BodyModelVerts[362] = {
 #include "assets/aya_10400_model_01A48_verts.inc"
 };
 
-static SVECTOR _gAya10400Model01A48Normals[383] = {
+/// Writable body lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gAya10400BodyModelNormals[383] = {
 #include "assets/aya_10400_model_01A48_normals.inc"
 };
 
-static u32 _gAya10400Model01A48Stream[4017] = {
+/// Writable commands for nineteen skeletal groups and a final pre-transformed group.
+///
+/// Handler slots resolve in place; `TMD_STREAM_END` is the last word.
+/// Projection commands populate the first region of each primitive-buffer half.
+static u32 _gAya10400BodyModelStream[4017] = {
 #include "assets/aya_10400_model_01A48_stream.inc"
 };
 
-TmdSource D_aya_10400_8011B078 = {
-    0,
-    22360,
-    5800,
-    19,
-    _gAya10400Model01A48PartVerts,
-    _gAya10400Model01A48Verts,
-    _gAya10400Model01A48Normals,
-    _gAya10400Model01A48Skeleton,
-    _gAya10400Model01A48Stream,
+TmdSource gAya10400BodyModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (260 * sizeof(POLY_GT3)) + (230 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = (80 * sizeof(POLY_GT3)) + (50 * sizeof(POLY_GT4)),
+    .partCount           = ARRAY_SIZE(_gAya10400BodyModelSkeleton),
+    .partVertexCounts    = _gAya10400BodyModelPartVerts,
+    .verts               = _gAya10400BodyModelVerts,
+    .normals             = _gAya10400BodyModelNormals,
+    .skeleton            = _gAya10400BodyModelSkeleton,
+    .stream              = _gAya10400BodyModelStream,
 };
 
-static TmdBone _gAya10400Model05AC4Skeleton[1] = {
+/// Initial local transform and self-parented root for hand slot 0 in either pair.
+static const TmdBone _gAya10400Hand0ModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/aya_10400_model_05AC4_skeleton.inc"
 };
 
-static u32 _gAya10400Model05AC4PartVerts[1] = {
+/// Vertex count of the shared hand's sole part: 23.
+static const u32 _gAya10400Hand0ModelPartVerts[ARRAY_SIZE(_gAya10400Hand0ModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/aya_10400_model_05AC4_partVerts.inc"
 };
 
-static SVECTOR _gAya10400Model05AC4Verts[23] = {
+/// Writable shared hand-0 vertices in integer coordinates local to the wrist.
+static SVECTOR _gAya10400Hand0ModelVerts[23] = {
 #include "assets/aya_10400_model_05AC4_verts.inc"
 };
 
-static SVECTOR _gAya10400Model05AC4Normals[23] = {
+/// Writable shared hand-0 lighting normals with twelve fractional bits.
+static SVECTOR _gAya10400Hand0ModelNormals[23] = {
 #include "assets/aya_10400_model_05AC4_normals.inc"
 };
 
-static u32 _gAya10400Model05AC4Stream[166] = {
+/// Writable commands for four textured triangles and nineteen textured quads, ending in `TMD_STREAM_END`.
+static u32 _gAya10400Hand0ModelStream[166] = {
 #include "assets/aya_10400_model_05AC4_stream.inc"
 };
 
-TmdSource D_aya_10400_8011B4CC = {
-    0,
-    1148,
-    0,
-    1,
-    _gAya10400Model05AC4PartVerts,
-    _gAya10400Model05AC4Verts,
-    _gAya10400Model05AC4Normals,
-    _gAya10400Model05AC4Skeleton,
-    _gAya10400Model05AC4Stream,
+TmdSource gAya10400Hand0Model = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (4 * sizeof(POLY_GT3)) + (19 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gAya10400Hand0ModelSkeleton),
+    .partVertexCounts    = _gAya10400Hand0ModelPartVerts,
+    .verts               = _gAya10400Hand0ModelVerts,
+    .normals             = _gAya10400Hand0ModelNormals,
+    .skeleton            = _gAya10400Hand0ModelSkeleton,
+    .stream              = _gAya10400Hand0ModelStream,
 };
 
-static TmdBone _gAya10400Model05F58Skeleton[1] = {
+/// Initial local transform and self-parented root for first-pair hand slot 1.
+static const TmdBone _gAya10400FirstPairHand1ModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/aya_10400_model_05F58_skeleton.inc"
 };
 
-static u32 _gAya10400Model05F58PartVerts[1] = {
+/// Vertex count of the first-pair hand's sole part: 27.
+static const u32 _gAya10400FirstPairHand1ModelPartVerts[ARRAY_SIZE(_gAya10400FirstPairHand1ModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/aya_10400_model_05F58_partVerts.inc"
 };
 
-static SVECTOR _gAya10400Model05F58Verts[27] = {
+/// Writable first-pair hand-1 vertices in integer coordinates local to the wrist.
+static SVECTOR _gAya10400FirstPairHand1ModelVerts[27] = {
 #include "assets/aya_10400_model_05F58_verts.inc"
 };
 
-static SVECTOR _gAya10400Model05F58Normals[27] = {
+/// Writable first-pair hand-1 lighting normals with twelve fractional bits.
+static SVECTOR _gAya10400FirstPairHand1ModelNormals[27] = {
 #include "assets/aya_10400_model_05F58_normals.inc"
 };
 
-static u32 _gAya10400Model05F58Stream[189] = {
+/// Writable commands for two textured triangles and twenty-four textured quads, ending in `TMD_STREAM_END`.
+static u32 _gAya10400FirstPairHand1ModelStream[189] = {
 #include "assets/aya_10400_model_05F58_stream.inc"
 };
 
-TmdSource D_aya_10400_8011B9BC = {
-    0,
-    1328,
-    0,
-    1,
-    _gAya10400Model05F58PartVerts,
-    _gAya10400Model05F58Verts,
-    _gAya10400Model05F58Normals,
-    _gAya10400Model05F58Skeleton,
-    _gAya10400Model05F58Stream,
+TmdSource gAya10400FirstPairHand1Model = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (24 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gAya10400FirstPairHand1ModelSkeleton),
+    .partVertexCounts    = _gAya10400FirstPairHand1ModelPartVerts,
+    .verts               = _gAya10400FirstPairHand1ModelVerts,
+    .normals             = _gAya10400FirstPairHand1ModelNormals,
+    .skeleton            = _gAya10400FirstPairHand1ModelSkeleton,
+    .stream              = _gAya10400FirstPairHand1ModelStream,
 };
 
-static TmdBone _gAya10400Model06408Skeleton[1] = {
+/// Initial local transform and self-parented root for second-pair hand slot 1.
+static const TmdBone _gAya10400SecondPairHand1ModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/aya_10400_model_06408_skeleton.inc"
 };
 
-static u32 _gAya10400Model06408PartVerts[1] = {
+/// Vertex count of the second-pair hand's sole part: 23.
+static const u32 _gAya10400SecondPairHand1ModelPartVerts[ARRAY_SIZE(_gAya10400SecondPairHand1ModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/aya_10400_model_06408_partVerts.inc"
 };
 
-static SVECTOR _gAya10400Model06408Verts[23] = {
+/// Writable second-pair hand-1 vertices in integer coordinates local to the wrist.
+static SVECTOR _gAya10400SecondPairHand1ModelVerts[23] = {
 #include "assets/aya_10400_model_06408_verts.inc"
 };
 
-static SVECTOR _gAya10400Model06408Normals[23] = {
+/// Writable second-pair hand-1 lighting normals with twelve fractional bits.
+static SVECTOR _gAya10400SecondPairHand1ModelNormals[23] = {
 #include "assets/aya_10400_model_06408_normals.inc"
 };
 
-static u32 _gAya10400Model06408Stream[166] = {
+/// Writable commands for four textured triangles and nineteen textured quads, ending in `TMD_STREAM_END`.
+static u32 _gAya10400SecondPairHand1ModelStream[166] = {
 #include "assets/aya_10400_model_06408_stream.inc"
 };
 
-TmdSource D_aya_10400_8011BE10 = {
-    0,
-    1148,
-    0,
-    1,
-    _gAya10400Model06408PartVerts,
-    _gAya10400Model06408Verts,
-    _gAya10400Model06408Normals,
-    _gAya10400Model06408Skeleton,
-    _gAya10400Model06408Stream,
+TmdSource gAya10400SecondPairHand1Model = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (4 * sizeof(POLY_GT3)) + (19 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gAya10400SecondPairHand1ModelSkeleton),
+    .partVertexCounts    = _gAya10400SecondPairHand1ModelPartVerts,
+    .verts               = _gAya10400SecondPairHand1ModelVerts,
+    .normals             = _gAya10400SecondPairHand1ModelNormals,
+    .skeleton            = _gAya10400SecondPairHand1ModelSkeleton,
+    .stream              = _gAya10400SecondPairHand1ModelStream,
 };
-
-/* The costume's texture animation: five images, each with the one-image upload
- * list that places it, and the frame lists that sequence those uploads. The
- * image bytes are assets, generated from the extracted package.
- */
 
 static u_long _gAya10400Image066C4[] = {
 #include "assets/aya_10400_image_066C4.inc"
 };
-static GpuImageUpload D_aya_10400_8011C154[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 16 }, _gAya10400Image066C4 },
+/// One-copy upload list for open eyes: 50x16 8-bit texels.
+///
+/// Playback supplies the destination at texture U/V (0, 78). Records remain
+/// writable; their payload must stay loaded until the GPU transfer completes.
+static GpuImageUpload _gAya10400EyesOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_EYES_FRAME_WIDTH_WORDS, AYA_10400_EYES_FRAME_HEIGHT_ROWS }, _gAya10400Image066C4 },
     { GP_IMG_REC_END },
 };
 
 static u_long _gAya10400Image06A04[] = {
 #include "assets/aya_10400_image_06A04.inc"
 };
-static GpuImageUpload D_aya_10400_8011C494[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 16 }, _gAya10400Image06A04 },
+/// One-copy upload list for half-closed eyes: 50x16 8-bit texels.
+///
+/// Placement, writable records and payload lifetime follow `_gAya10400EyesOpenUploads`.
+static GpuImageUpload _gAya10400EyesHalfClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_EYES_FRAME_WIDTH_WORDS, AYA_10400_EYES_FRAME_HEIGHT_ROWS }, _gAya10400Image06A04 },
     { GP_IMG_REC_END },
 };
 
 static u_long _gAya10400Image06D44[] = {
 #include "assets/aya_10400_image_06D44.inc"
 };
-static GpuImageUpload D_aya_10400_8011C7D4[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 16 }, _gAya10400Image06D44 },
+/// One-copy upload list for closed eyes: 50x16 8-bit texels.
+///
+/// Placement, writable records and payload lifetime follow `_gAya10400EyesOpenUploads`.
+static GpuImageUpload _gAya10400EyesClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_EYES_FRAME_WIDTH_WORDS, AYA_10400_EYES_FRAME_HEIGHT_ROWS }, _gAya10400Image06D44 },
     { GP_IMG_REC_END },
 };
 
 static u_long _gAya10400Image07084[] = {
 #include "assets/aya_10400_image_07084.inc"
 };
-static GpuImageUpload D_aya_10400_8011CA24[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, _gAya10400Image07084 },
+/// One-copy upload list for the resting, closed mouth: 28x20 8-bit texels.
+///
+/// Playback supplies the destination at texture U/V (12, 104), with an eight-tick
+/// frame cadence. Records remain writable; keep the payload through GPU completion.
+static GpuImageUpload _gAya10400MouthClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_MOUTH_FRAME_WIDTH_WORDS, AYA_10400_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10400Image07084 },
     { GP_IMG_REC_END },
 };
 
 static u_long _gAya10400Image072D4[] = {
 #include "assets/aya_10400_image_072D4.inc"
 };
-static GpuImageUpload D_aya_10400_8011CC74[] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, _gAya10400Image072D4 },
+/// One-copy upload list for the open mouth: 28x20 8-bit texels.
+///
+/// Placement, writable records and payload lifetime follow `_gAya10400MouthClosedUploads`.
+static GpuImageUpload _gAya10400MouthOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, AYA_10400_MOUTH_FRAME_WIDTH_WORDS, AYA_10400_MOUTH_FRAME_HEIGHT_ROWS }, _gAya10400Image072D4 },
     { GP_IMG_REC_END },
 };
 
-GpuImageUpload* D_aya_10400_8011CC94[] = { D_aya_10400_8011C154, NULL };
-GpuImageUpload* D_aya_10400_8011CC9C[] = { D_aya_10400_8011C154, D_aya_10400_8011C494, D_aya_10400_8011C7D4, NULL };
-GpuImageUpload* D_aya_10400_8011CCAC[] = { D_aya_10400_8011C7D4, D_aya_10400_8011C494, D_aya_10400_8011C154, NULL };
-GpuImageUpload* D_aya_10400_8011CCBC[] = {
-    D_aya_10400_8011C154,
-    D_aya_10400_8011C494,
-    D_aya_10400_8011C7D4,
-    D_aya_10400_8011C494,
-    D_aya_10400_8011C154,
+GpuImageUpload* const gAya10400EyesRestSequence[2] __attribute__((section(".data")))    = { _gAya10400EyesOpenUploads, NULL };
+GpuImageUpload* const gAya10400EyesClosingSequence[4] __attribute__((section(".data"))) = { _gAya10400EyesOpenUploads, _gAya10400EyesHalfClosedUploads, _gAya10400EyesClosedUploads, NULL };
+GpuImageUpload* const gAya10400EyesOpeningSequence[4] __attribute__((section(".data"))) = { _gAya10400EyesClosedUploads, _gAya10400EyesHalfClosedUploads, _gAya10400EyesOpenUploads, NULL };
+GpuImageUpload*       D_aya_10400_8011CCBC[]                                            = {
+    _gAya10400EyesOpenUploads,
+    _gAya10400EyesHalfClosedUploads,
+    _gAya10400EyesClosedUploads,
+    _gAya10400EyesHalfClosedUploads,
+    _gAya10400EyesOpenUploads,
     NULL,
 };
-GpuImageUpload* D_aya_10400_8011CCD4[] = { D_aya_10400_8011CA24, NULL };
-GpuImageUpload* D_aya_10400_8011CCDC[] = { D_aya_10400_8011CC74, NULL };
+GpuImageUpload* D_aya_10400_8011CCD4[] = { _gAya10400MouthClosedUploads, NULL };
+GpuImageUpload* D_aya_10400_8011CCDC[] = { _gAya10400MouthOpenUploads, NULL };

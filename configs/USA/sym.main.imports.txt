@@ -154,13 +154,13 @@ modelObjectChildTask = 0x8010B610; // type:func absolute:True
 
 // Overlay and dev-kit symbols main's task descriptor tables name.
 gAya10300BodyModel = 0x8011ACE8; // absolute:True owner=aya_10300
-D_aya_10400_8011B078 = 0x8011B078; // absolute:True owner=aya_10400
+gAya10400BodyModel = 0x8011B078; // absolute:True owner=aya_10400
 gAya10300FirstPairHand0Model = 0x8011B128; // absolute:True owner=aya_10300
-D_aya_10400_8011B4CC = 0x8011B4CC; // absolute:True owner=aya_10400
+gAya10400Hand0Model = 0x8011B4CC; // absolute:True owner=aya_10400
 D_aya_10300_8011B568 = 0x8011B568; // absolute:True owner=aya_10300
-D_aya_10400_8011B9BC = 0x8011B9BC; // absolute:True owner=aya_10400
+gAya10400FirstPairHand1Model = 0x8011B9BC; // absolute:True owner=aya_10400
 gAya10300FirstPairHand1Model = 0x8011BA58; // absolute:True owner=aya_10300
-D_aya_10400_8011BE10 = 0x8011BE10; // absolute:True owner=aya_10400
+gAya10400SecondPairHand1Model = 0x8011BE10; // absolute:True owner=aya_10400
 gAya10300SecondPairHand1Model = 0x8011BE98; // absolute:True owner=aya_10300
 gAya10200BodyModel = 0x8011C210; // absolute:True owner=aya_10200
 D_aya_10500_8011C2E4 = 0x8011C2E4; // absolute:True owner=aya_10500

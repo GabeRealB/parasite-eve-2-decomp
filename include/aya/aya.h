@@ -28,7 +28,11 @@ extern TmdSource D_aya_10500_80116900;
 /// loaded until all referring models are released and queued GPU work finishes.
 extern TmdSource gAya10300BodyModel;
 
-extern TmdSource D_aya_10400_8011B078;
+/// Aya's nineteen-part player-body model for resource variant 1.
+///
+/// Objects borrow the writable geometry and command stream. Keep this package
+/// loaded until all referring objects are released and queued GPU draws finish.
+extern TmdSource gAya10400BodyModel;
 
 /// One-part hand model for variant 2's first pair, attachment slot 0 at body joint 12.
 ///
@@ -36,24 +40,56 @@ extern TmdSource D_aya_10400_8011B078;
 /// The model borrows this package under `gAya10300BodyModel`'s lifetime contract.
 extern TmdSource gAya10300FirstPairHand0Model;
 
-extern TmdSource D_aya_10400_8011B4CC;
+/// One-part hand model shared by both pairs at attachment slot 0, body joint 12.
+///
+/// Resource variant 1 uses this same source for pair selectors 0 and 1.
+/// It borrows this package under `gAya10400BodyModel`'s lifetime contract.
+extern TmdSource gAya10400Hand0Model;
 
 extern TmdSource D_aya_10300_8011B568;
 
-extern TmdSource D_aya_10400_8011B9BC;
+/// One-part hand model for variant 1's first pair, attachment slot 1 at body joint 8.
+///
+/// Pair selector 0 chooses this source. The model borrows this package under
+/// `gAya10400BodyModel`'s lifetime contract.
+extern TmdSource gAya10400FirstPairHand1Model;
 
 /// One-part hand model for variant 2's first pair, attachment slot 1 at body joint 8.
 ///
 /// The model borrows this package under `gAya10300BodyModel`'s lifetime contract.
 extern TmdSource gAya10300FirstPairHand1Model;
 
-extern TmdSource D_aya_10400_8011BE10;
+/// One-part hand model for variant 1's second pair, attachment slot 1 at body joint 8.
+///
+/// Pair selector 1 chooses this source, the equipped weapon's parent hand.
+/// It borrows this package under `gAya10400BodyModel`'s lifetime contract.
+extern TmdSource gAya10400SecondPairHand1Model;
 
 /// One-part hand model for variant 2's second pair, attachment slot 1 at body joint 8.
 ///
 /// This is the equipped weapon's parent hand. The model borrows this package
 /// under `gAya10300BodyModel`'s lifetime contract.
 extern TmdSource gAya10300SecondPairHand1Model;
+
+/// Restores open eyes with one frame, then terminates (eye selector 1; reset command 0).
+///
+/// Variant 1's sequences hold read-only frame pointers to writable upload lists.
+/// Eye frames contain 50x16 8-bit texels (25x16 VRAM words), placed at texture
+/// U/V (0, 78), and advance every four actor ticks. Each list has one copy and
+/// an operation terminator; playback rewrites its destination. Keep the package
+/// loaded through playback and GPU transfer completion. The final NULL stops
+/// playback and leaves the last frame's texels in place.
+extern GpuImageUpload* const gAya10400EyesRestSequence[2];
+
+/// Closes the eyes through open, half-closed and closed frames (eye selector 2; command 1).
+///
+/// Frame format, tick cadence and package lifetime follow `gAya10400EyesRestSequence`.
+extern GpuImageUpload* const gAya10400EyesClosingSequence[4];
+
+/// Opens the eyes through closed, half-closed and open frames (eye selector 3; command 2).
+///
+/// Frame format, tick cadence and package lifetime follow `gAya10400EyesRestSequence`.
+extern GpuImageUpload* const gAya10400EyesOpeningSequence[4];
 
 /// Restores open eyes with one frame, then terminates (eye selector 1; reset command 0).
 ///
