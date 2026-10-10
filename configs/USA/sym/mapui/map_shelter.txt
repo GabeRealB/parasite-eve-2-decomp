@@ -14,11 +14,11 @@ D_mine_mesa_80187030 = 0x80187030; // absolute:True owner=mine_mesa
 D_mine_mesa_80188744 = 0x80188744; // absolute:True owner=mine_mesa
 gMineMesaSurfacePropertiesByClass = 0x80189A60; // absolute:True owner=mine_mesa
 mineCavernRoomTask = 0x8017DF54; // type:func absolute:True owner=mine_cavern
-D_mine_cavern_80188FE0 = 0x80188FE0; // absolute:True owner=mine_cavern
+gMineCavernRoomCollisionResources = 0x80188FE0; // absolute:True owner=mine_cavern
 gMineCavernRoomLighting = 0x80189010; // absolute:True owner=mine_cavern
 gMineCavernRoomViewMaps = 0x80189060; // absolute:True owner=mine_cavern
 gMineCavernRoomViewCounts = 0x8018906C; // absolute:True owner=mine_cavern
-D_mine_cavern_80189074 = 0x80189074; // absolute:True owner=mine_cavern shared=rooms
+gMineCavernWarpEntries = 0x80189074; // absolute:True owner=mine_cavern shared=rooms
 gMineCavernViewCameras = 0x80189840; // absolute:True owner=mine_cavern
 gMineCavernSpriteViews = 0x8018CD10; // absolute:True owner=mine_cavern
 gMineCavernSurfacePropertiesByClass = 0x8018E30C; // absolute:True owner=mine_cavern

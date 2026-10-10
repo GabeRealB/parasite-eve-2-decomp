@@ -795,7 +795,7 @@ WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
 
 DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_mine_mesa_80186558,
-    D_mine_cavern_80189074,
+    gMineCavernWarpEntries,
     D_mine_tunnel_entrance_8017DB78,
     D_mine_tunnel_8017E174,
     D_mine_gorge_8017E7F0,
@@ -1018,7 +1018,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B2E4[1] = {
 
 static WorldCollisionRoomResources* D_map_shelter_8017B2F4[49] = {
     D_mine_mesa_80186538,
-    D_mine_cavern_80188FE0,
+    gMineCavernRoomCollisionResources,
     D_mine_tunnel_entrance_8017DB60,
     D_mine_tunnel_8017E15C,
     D_mine_gorge_8017E7B8,

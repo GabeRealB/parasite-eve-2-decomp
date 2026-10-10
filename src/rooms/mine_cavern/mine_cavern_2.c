@@ -162,11 +162,11 @@ STATIC_ASSERT_SIZEOF(_MineCavernTargetHitScratch, 0x28);
         worldCoordSetModelLighting((taskPtr)->extra.tmd, &(position), 0, 3); \
     }
 
-extern WorldCollisionGrid     D_mine_cavern_8018981C[1];
-extern WorldCollisionOccluder D_mine_cavern_8018E078[2];
-extern WorldCollisionTrigger  D_mine_cavern_8018D154[20];
-extern WorldCollisionTrigger  D_mine_cavern_8018D744[18];
-extern WorldCollisionTrigger  D_mine_cavern_8018DC9C[13];
+static WorldCollisionGrid     _gMineCavernCollisionGrid;
+static WorldCollisionOccluder _gMineCavernSightOccluders[2];
+static WorldCollisionTrigger  _gMineCavernRoom1ViewBoundaryTriggers[20];
+static WorldCollisionTrigger  _gMineCavernRooms2And3ViewBoundaryTriggers[18];
+static WorldCollisionTrigger  _gMineCavernActionTriggers[13];
 static WorldCoordRoomLights   _gMineCavernRoomLights;
 
 static void _mineCavernActivateRoom2(void);
@@ -568,7 +568,13 @@ static AnimationSet* _gMineCavernSceneAnimationSets[17] = {
     &_gMineCavernAnimation0A38C,
 };
 
-AnimationBankCopyRequest D_mine_cavern_801879C4 = { { .sets = _gMineCavernSceneAnimationSets }, ARRAY_SIZE(_gMineCavernSceneAnimationSets) };
+/// Installs the cavern's scene clips in the player's equipped-weapon bank extension.
+///
+/// Copies all 17 pointer words into slots 47..63 of the loaded, writable bank,
+/// within its 32-word extension capacity. Slot 47 is NULL and is not playable;
+/// slots 48..63 borrow room clips. Dispatch borrows this request and directory;
+/// the cavern must remain loaded for subsequent playback of the copied pointers.
+static AnimationBankCopyRequest _gMineCavernSceneAnimationBankCopyRequest = { { .sets = _gMineCavernSceneAnimationSets }, ARRAY_SIZE(_gMineCavernSceneAnimationSets) };
 
 AnimationPlayRequest D_mine_cavern_801879CC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -587,17 +593,60 @@ static AnimationPlayRequest _gMineCavernPlayerSceneAnimationRequest = {
     { .index = 1 }, MINE_CAVERN_PLAYER_SCENE_CLIP, ANIMATION_BLEND_INTERPOLATE, MINE_CAVERN_PLAYER_SCENE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE
 };
 
-AnimationPlayRequest D_mine_cavern_801879F4 = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_DISABLE };
+// Equipped-weapon extension slots and transition durations used by the intro.
+enum {
+    MINE_CAVERN_PLAYER_INTRO_CLIP49             = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    MINE_CAVERN_PLAYER_INTRO_CLIP50             = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    MINE_CAVERN_PLAYER_INTRO_CLIP51             = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    MINE_CAVERN_PLAYER_INTRO_CLIP52             = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    MINE_CAVERN_PLAYER_INTRO_CLIP53             = ANIMATION_BANK_BASE_SET_COUNT + 6,
+    MINE_CAVERN_PLAYER_INTRO_CLIP54             = ANIMATION_BANK_BASE_SET_COUNT + 7,
+    MINE_CAVERN_PLAYER_INTRO_QUICK_BLEND_FRAMES = 5,
+    MINE_CAVERN_PLAYER_INTRO_LONG_BLEND_FRAMES  = 20,
+    MINE_CAVERN_PLAYER_FINAL_BATTLE_AIM_CLIP    = 9
+};
 
-AnimationPlayRequest D_mine_cavern_80187A08 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 49 at the intro's first animation cue, with a 30-frame blend.
+///
+/// Uses extension slot 2 after the scene bank copy, with grid collision disabled.
+/// The interpreter copies the request and replaces its bank selector with the
+/// equipped weapon's; the borrowed room clip must stay loaded through playback.
+static AnimationPlayRequest _gMineCavernPlayerIntroClip49Request = { { .index = 1 }, MINE_CAVERN_PLAYER_INTRO_CLIP49, ANIMATION_BLEND_INTERPOLATE, MINE_CAVERN_PLAYER_SCENE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mine_cavern_80187A1C = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 50 when the intro starts area music, with a five-frame blend.
+///
+/// Uses extension slot 3 with grid collision disabled. Dispatch copies this
+/// request and resolves the equipped-weapon bank; install the scene extension
+/// first and keep its borrowed room clip loaded through playback.
+static AnimationPlayRequest _gMineCavernPlayerIntroClip50Request = { { .index = 1 }, MINE_CAVERN_PLAYER_INTRO_CLIP50, ANIMATION_BLEND_INTERPOLATE, MINE_CAVERN_PLAYER_INTRO_QUICK_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mine_cavern_80187A30 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 51 at the intro's timed pause, with a five-frame blend.
+///
+/// Uses extension slot 4 with grid collision disabled. Dispatch copies this
+/// request and resolves the equipped-weapon bank; install the scene extension
+/// first and keep its borrowed room clip loaded through playback.
+static AnimationPlayRequest _gMineCavernPlayerIntroClip51Request = { { .index = 1 }, MINE_CAVERN_PLAYER_INTRO_CLIP51, ANIMATION_BLEND_INTERPOLATE, MINE_CAVERN_PLAYER_INTRO_QUICK_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mine_cavern_80187A44 = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 52 before the intro reveals the Blizzard Chaser, with a five-frame blend.
+///
+/// Uses extension slot 5 with grid collision disabled. Dispatch copies this
+/// request and resolves the equipped-weapon bank; install the scene extension
+/// first and keep its borrowed room clip loaded through playback.
+static AnimationPlayRequest _gMineCavernPlayerIntroClip52Request = { { .index = 1 }, MINE_CAVERN_PLAYER_INTRO_CLIP52, ANIMATION_BLEND_INTERPOLATE, MINE_CAVERN_PLAYER_INTRO_QUICK_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mine_cavern_80187A58 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 53 at the intro's battle placement, with a 20-frame blend.
+///
+/// Normal and skip paths use extension slot 6 with grid collision disabled.
+/// Dispatch copies this request and resolves the equipped-weapon bank; install
+/// the scene extension first and keep its borrowed room clip loaded through playback.
+static AnimationPlayRequest _gMineCavernPlayerIntroClip53Request = { { .index = 1 }, MINE_CAVERN_PLAYER_INTRO_CLIP53, ANIMATION_BLEND_INTERPOLATE, MINE_CAVERN_PLAYER_INTRO_LONG_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// Player clip 54 at the intro's second animation cue, with a 20-frame blend.
+///
+/// Uses extension slot 7 with grid collision disabled. Dispatch copies this
+/// request and resolves the equipped-weapon bank; install the scene extension
+/// first and keep its borrowed room clip loaded through playback.
+static AnimationPlayRequest _gMineCavernPlayerIntroClip54Request = { { .index = 1 }, MINE_CAVERN_PLAYER_INTRO_CLIP54, ANIMATION_BLEND_INTERPOLATE, MINE_CAVERN_PLAYER_INTRO_LONG_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_DISABLE };
 
 AnimationPlayRequest D_mine_cavern_80187A6C = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -617,17 +666,35 @@ AnimationPlayRequest D_mine_cavern_80187AF8 = { { .index = 1 }, 62, ANIMATION_BL
 
 AnimationPlayRequest D_mine_cavern_80187B0C = { { .index = 1 }, 63, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mine_cavern_80187B20 = { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Blends the player into the equipped weapon's aim clip before the final event battle.
+///
+/// Normal and skip paths use base clip 9 with a 30-frame blend and restore grid
+/// collision. Dispatch copies the request and resolves its bank selector; the
+/// equipped-weapon bank must remain loaded through playback.
+static AnimationPlayRequest _gMineCavernPlayerFinalBattleAnimationRequest = { { .index = 1 }, MINE_CAVERN_PLAYER_FINAL_BATTLE_AIM_CLIP, ANIMATION_BLEND_INTERPOLATE, MINE_CAVERN_PLAYER_SCENE_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE };
 
-ActorTransform D_mine_cavern_80187B34 = { { 0x4402, 0, 1680, 0 }, { 0, -1024, 0, 0 } };
+/// Player's initial placement for the cavern intro, facing along negative X.
+///
+/// XYZ is in whole room-coordinate units; yaw is -1/4 turn. Dispatch copies
+/// position and Euler rotation to the player root and retains no record pointer.
+static ActorTransform _gMineCavernPlayerIntroStartPlacement = { { 17410, 0, 1680, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_mine_cavern_80187B4C = { { 0x31A6, 0, 1680, 0 }, { 0, -1024, 0, 0 } };
+/// Player's walk destination in the intro, also its placement when the intro is skipped.
+///
+/// XYZ is in whole room-coordinate units. The walk copies XYZ and ignores
+/// rotation; the skip placement copies all Euler angles, with yaw -1/4 turn.
+/// Both uses borrow this record only through dispatch.
+static ActorTransform _gMineCavernPlayerIntroArrivalPlacement = { { 12710, 0, 1680, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
 ActorTransform D_mine_cavern_80187B64 = { { 6660, 0, 7200, 0 }, { 0, 569, 0, 0 } };
 
 ActorTransform D_mine_cavern_80187B7C = { { 6550, 0, 7100, 0 }, { 0, 910, 0, 0 } };
 
-ActorTransform D_mine_cavern_80187B94 = { { 3880, 0, 6678, 0 }, { 0, 910, 0, 0 } };
+/// Player placement shared by the final battle scene and its skip path.
+///
+/// XYZ is in whole room-coordinate units; yaw is 910 in a 4096-unit turn.
+/// Dispatch copies position and Euler rotation to the player root, retaining no pointer.
+static ActorTransform _gMineCavernPlayerFinalBattlePlacement = { { 3880, 0, 6678, 0 }, { 0, 910, 0, 0 } };
 
 ActorTransform D_mine_cavern_80187BAC = { { 1900, 0, 160, 0 }, { 0, -114, 0, 0 } };
 
@@ -637,7 +704,12 @@ ActorTransform D_mine_cavern_80187BCC = { { 7400, 0, 1750, 0 }, { 0, 1024, 0, 0 
 
 ActorTransform D_mine_cavern_80187BE4 = { { 9250, 0, 1300, 0 }, { 0, 1024, 0, 0 } };
 
-ActorTransform D_mine_cavern_80187BFC = { { 9250, 0, 1800, 0 }, { 0, 1024, 0, 0 } };
+/// Blizzard Chaser placement for the battle reached by the intro and its skip path.
+///
+/// Addresses cavern placement slot 0. XYZ is in whole room-coordinate units;
+/// yaw is +1/4 turn. Dispatch copies the transform into the actor's root and
+/// records its heading, retaining no pointer to this record.
+static ActorTransform _gMineCavernBlizzardChaserIntroBattlePlacement = { { 9250, 0, 1800, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
 ActorTransform D_mine_cavern_80187C14 = { { 7550, 0, 7360, 0 }, { 0, -455, 0, 0 } };
 
@@ -647,7 +719,15 @@ ActorCommand D_mine_cavern_80187C44 = { { .loc = { 4, 2 } }, 0 };
 
 ActorCommand D_mine_cavern_80187C48 = { { .loc = { 4, 2 } }, 1 };
 
-ActorCommand D_mine_cavern_80187C4C = { { .loc = { 4, 2 } }, 2 };
+enum { MINE_CAVERN_ACTOR_COMMAND_RESET_CLIP25 = 2 };
+
+/// Restores the Blizzard Chaser's normal health and starts scripted clip 25.
+///
+/// Normal and skip intro paths address cavern placement slot 0 in the
+/// Mine/Shelter cavern namespace. The receiver resets colour, reaction flags
+/// and normal parameters, fills HP and restarts scripted state entry.
+/// This record is borrowed only through synchronous dispatch.
+static ActorCommand _gMineCavernActorResetClip25Command = { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN } }, MINE_CAVERN_ACTOR_COMMAND_RESET_CLIP25 };
 
 ActorCommand D_mine_cavern_80187C50 = { { .loc = { 4, 2 } }, 3 };
 
@@ -680,43 +760,43 @@ ActorCommand D_mine_cavern_80187C70 = { { .loc = { 4, 2 } }, 13 };
 EvsCommand D_mine_cavern_80187C74[41] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernSetAreaMusicEnabled }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187B34 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_cavern_801879C4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineCavernPlayerIntroStartPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMineCavernSceneAnimationBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C44 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1010 }, { .message = { .pointer = &D_mine_cavern_80187B4C } }, { .message = { .pointer = &D_mine_cavern_80187BC4 } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .pointer = &_gMineCavernPlayerIntroArrivalPlacement } }, { .message = { .pointer = &D_mine_cavern_80187BC4 } } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_801879F4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerIntroClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A58 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerIntroClip54Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerIntroClip50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A1C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerIntroClip51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C64 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187BCC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A30 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerIntroClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C48 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187BE4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A44 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C4C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187BFC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerIntroClip53Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineCavernActorResetClip25Command } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineCavernBlizzardChaserIntroBattlePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = mineCavernSelectCountdownMusicEntry }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernEngageScriptedBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineCavernActorStartTurnCommand } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187BFC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineCavernBlizzardChaserIntroBattlePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -725,11 +805,11 @@ EvsCommand D_mine_cavern_8018804C[19] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = mineCavernSetAreaMusicEnabled }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187B4C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_cavern_801879C4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187A44 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C4C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187BFC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineCavernPlayerIntroArrivalPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMineCavernSceneAnimationBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerIntroClip53Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMineCavernActorResetClip25Command } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineCavernBlizzardChaserIntroBattlePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = mineCavernSelectCountdownMusicEntry }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -752,7 +832,7 @@ EvsCommand D_mine_cavern_80188214[60] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187B64 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_cavern_801879C4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMineCavernSceneAnimationBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187C14 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C58 } }, { .value = 0 } },
@@ -778,8 +858,8 @@ EvsCommand D_mine_cavern_80188214[60] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54020013 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 17 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187B94 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187B20 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineCavernPlayerFinalBattlePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerFinalBattleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C54 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x401E0014 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -811,8 +891,8 @@ EvsCommand D_mine_cavern_801887B4[27] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187B94 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mine_cavern_80187B20 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gMineCavernPlayerFinalBattlePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerFinalBattleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187C14 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C58 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C50 } }, { .value = 0 } },
@@ -844,7 +924,7 @@ EvsCommand D_mine_cavern_80188A3C[31] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187BAC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_cavern_801879C4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMineCavernSceneAnimationBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187C2C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C70 } }, { .value = 0 } },
@@ -877,7 +957,7 @@ EvsCommand D_mine_cavern_80188D24[24] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mine_cavern_80187BAC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mine_cavern_801879C4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMineCavernSceneAnimationBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMineCavernPlayerSceneAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_mine_cavern_80187C2C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mine_cavern_80187C70 } }, { .value = 0 } },
@@ -952,10 +1032,10 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-WorldCollisionRoomResources D_mine_cavern_80188FE0[3] = {
-    { D_mine_cavern_8018981C, D_mine_cavern_8018D154, D_mine_cavern_8018DC9C, D_mine_cavern_8018E078 },
-    { D_mine_cavern_8018981C, D_mine_cavern_8018D744, D_mine_cavern_8018DC9C, D_mine_cavern_8018E078 },
-    { D_mine_cavern_8018981C, D_mine_cavern_8018D744, D_mine_cavern_8018DC9C, D_mine_cavern_8018E078 },
+WorldCollisionRoomResources gMineCavernRoomCollisionResources[3] = {
+    { &_gMineCavernCollisionGrid, _gMineCavernRoom1ViewBoundaryTriggers, _gMineCavernActionTriggers, _gMineCavernSightOccluders },
+    { &_gMineCavernCollisionGrid, _gMineCavernRooms2And3ViewBoundaryTriggers, _gMineCavernActionTriggers, _gMineCavernSightOccluders },
+    { &_gMineCavernCollisionGrid, _gMineCavernRooms2And3ViewBoundaryTriggers, _gMineCavernActionTriggers, _gMineCavernSightOccluders },
 };
 
 WorldCoordRoomLighting gMineCavernRoomLighting[3] = {
@@ -1048,35 +1128,53 @@ ViewCount gMineCavernRoomViewCounts[3] = {
     MINE_CAVERN_LOGICAL_VIEW_COUNT, MINE_CAVERN_LOGICAL_VIEW_COUNT, MINE_CAVERN_LOGICAL_VIEW_COUNT
 };
 
-DirectionWarpEntry D_mine_cavern_80189074[2] = {
-    { { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4524, 0, 2500 }, { 0, 0, 0, 0 }, 0x54020002, 0x54020001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 448 },
-    { { { .word = 0 }, 2840, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2840, 0, 0 }, { 0, 0, 0, 0 }, 0x54020004, 0x54020003, 0x54020012, 23, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_MINE_CAVERN },
+enum { MINE_CAVERN_GORGE_WARP_MAP_FLAG = 0x1C0 };
+
+DirectionWarpEntry gMineCavernWarpEntries[2] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 17700, 0, 2500 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 17700, 0, 2500 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 2), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 1), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, MINE_CAVERN_GORGE_WARP_MAP_FLAG },
+    { { { .word = 0 }, 2840, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2840, 0, 0 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 4), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 3), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 0x12), 23, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_MINE_CAVERN },
 };
 
-static SVECTOR _gMineCavernCollision0C25CNormals[30] = {
+enum {
+    MINE_CAVERN_COLLISION_GRID_CELL_COUNT_X = 6,
+    MINE_CAVERN_COLLISION_GRID_CELL_COUNT_Z = 3
+};
+
+/// Room-space plane normals for the cavern collision grid, with 4096 per unit.
+static SVECTOR _gMineCavernCollisionGridNormals[30] = {
 #include "assets/mine_cavern_collision_0C25C_normals.inc"
 };
 
-static SVECTOR _gMineCavernCollision0C25CVerts[88] = {
+/// Signed room-space vertex pool for the cavern collision grid, in whole game units.
+static SVECTOR _gMineCavernCollisionGridVerts[88] = {
 #include "assets/mine_cavern_collision_0C25C_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineCavernCollision0C25CFaces[38] = {
+/// Cavern collision quads indexing the grid's vertex and normal pools.
+static WorldCollisionGridFace _gMineCavernCollisionGridFaces[38] = {
 #include "assets/mine_cavern_collision_0C25C_faces.inc"
 };
 
-static s16 _gMineCavernCollision0C25CCells[188] = {
+/// Packed face-index lists for the cavern grid's cells, each ending at -1.
+static s16 _gMineCavernCollisionGridCells[188] = {
 #include "assets/mine_cavern_collision_0C25C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineCavernCollision0C25CCells[i])
-static s16* _gMineCavernCollision0C25CTable[18] = {
+#define GRID_CELL(i) (&_gMineCavernCollisionGridCells[i])
+/// X-major pointers to the cavern grid's 6 by 3 terminated face-index lists.
+static s16* _gMineCavernCollisionGridTable[MINE_CAVERN_COLLISION_GRID_CELL_COUNT_X * MINE_CAVERN_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/mine_cavern_collision_0C25C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_cavern_8018981C[1] = {
-    { NULL, _gMineCavernCollision0C25CNormals, _gMineCavernCollision0C25CVerts, _gMineCavernCollision0C25CFaces, _gMineCavernCollision0C25CTable, 1000, 1200, 6, 3, 4000, 38 },
+/// Collision mesh and cell index shared by cavern rooms 1..3.
+///
+/// Covers 6 by 3 cells of 4000 whole game units, with origin (-1000, -1200)
+/// on X/Z. All 38 faces are quads, referencing 88 vertices and 30 Q12 normals.
+/// Activation binds the descriptor to the current view. The descriptor and
+/// its private pools remain borrowed while the cavern overlay is loaded.
+static WorldCollisionGrid _gMineCavernCollisionGrid = {
+    NULL, _gMineCavernCollisionGridNormals, _gMineCavernCollisionGridVerts, _gMineCavernCollisionGridFaces, _gMineCavernCollisionGridTable, 1000, 1200, MINE_CAVERN_COLLISION_GRID_CELL_COUNT_X, MINE_CAVERN_COLLISION_GRID_CELL_COUNT_Z, 4000, ARRAY_SIZE(_gMineCavernCollisionGridFaces)
 };
 
 ViewCamera gMineCavernViewCameras[25] = {
@@ -2187,7 +2285,12 @@ static WorldCoordRoomLights _gMineCavernRoomLights = {
     0, NULL, ARRAY_SIZE(_gMineCavernPointLights), _gMineCavernPointLights, 0, NULL
 };
 
-WorldCollisionTrigger D_mine_cavern_8018D154[20] = {
+/// Directed view boundaries for cavern room 1, in whole room-coordinate units.
+///
+/// Source/destination bytes are logical views 2..8 and 20..22. Setup mutates
+/// coordinates, links and enable flags; the twentieth record is included and
+/// carries LAST. Storage must stay loaded until the runtime list is unlinked.
+static WorldCollisionTrigger _gMineCavernRoom1ViewBoundaryTriggers[20] = {
     { NULL, NULL, NULL, { 1520, -2688, 6880, 0 }, { { -2544, -3456, 1376, 0 }, { 2544, -3456, -1376, 0 }, { -2544, 3456, 1376, 0 }, { 2544, 3456, -1376, 0 } }, { -1959, 0, -3621, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1377, -2496, 6754, 0 }, { { 2656, -3456, -1408, 0 }, { -2656, -3456, 1408, 0 }, { 2656, 3456, -1408, 0 }, { -2656, 3456, 1408, 0 } }, { 1920, 0, 3621, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 7890, -2528, 7376, 0 }, { { 144, -3456, 2947, 0 }, { -147, -3456, -2950, 0 }, { 144, 3456, 2947, 0 }, { -147, 3456, -2950, 0 } }, { -4105, 0, 202, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -2210,7 +2313,13 @@ WorldCollisionTrigger D_mine_cavern_8018D154[20] = {
     { NULL, NULL, NULL, { 6559, -2560, 1343, 0 }, { { 438, -3456, 2858, 0 }, { -439, -3456, -2859, 0 }, { 438, 3456, 2858, 0 }, { -439, 3456, -2859, 0 } }, { -4068, 0, 623, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 22, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mine_cavern_8018D744[18] = {
+/// Directed view boundaries shared by cavern rooms 2 and 3.
+///
+/// Source/destination bytes are logical views 2..8 and 22..23; geometry uses
+/// whole room-coordinate units. Setup mutates coordinates, links and enable
+/// flags. The eighteenth record carries LAST and is included before stopping;
+/// keep storage loaded until the runtime list is unlinked.
+static WorldCollisionTrigger _gMineCavernRooms2And3ViewBoundaryTriggers[18] = {
     { NULL, NULL, NULL, { 1520, -2688, 6880, 0 }, { { -2544, -3456, 1376, 0 }, { 2544, -3456, -1376, 0 }, { -2544, 3456, 1376, 0 }, { 2544, 3456, -1376, 0 } }, { -1959, 0, -3621, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1377, -2496, 6754, 0 }, { { 2656, -3456, -1408, 0 }, { -2656, -3456, 1408, 0 }, { 2656, 3456, -1408, 0 }, { -2656, 3456, 1408, 0 } }, { 1920, 0, 3621, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 7890, -2528, 7376, 0 }, { { 144, -3456, 2947, 0 }, { -147, -3456, -2950, 0 }, { 144, 3456, 2947, 0 }, { -147, 3456, -2950, 0 } }, { -4105, 0, 202, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -2231,23 +2340,48 @@ WorldCollisionTrigger D_mine_cavern_8018D744[18] = {
     { NULL, NULL, NULL, { 3263, -2464, 1151, 0 }, { { 298, -3456, 2877, 0 }, { -298, -3456, -2877, 0 }, { 298, 3456, 2877, 0 }, { -298, 3456, -2877, 0 } }, { -4095, 0, 423, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 23, 22, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mine_cavern_8018DC9C[13] = {
-    { NULL, NULL, NULL, { 0x4740, -48, 1888, 0 }, { { -544, 0, -1824, 0 }, { 544, 0, -1824, 0 }, { -544, 0, 1824, 0 }, { 544, 0, 1824, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1902, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1792, -48, -352, 0 }, { { 1024, 0, -544, 0 }, { 1024, 0, 544, 0 }, { -1024, 0, -544, 0 }, { -1024, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, 8, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 896, -64, 1440, 0 }, { { -1056, 0, -864, 0 }, { 1088, 0, -864, 0 }, { -1056, 0, 1920, 0 }, { 1024, 0, -192, 0 } }, { 0, 4104, 0, 0 }, { 2275, 0, 3405, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6880, -64, 832, 0 }, { { -1344, 0, -864, 0 }, { 1344, 0, -864, 0 }, { -1344, 0, 864, 0 }, { 1344, 0, 864, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 1593, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1360, -64, 32, 0 }, { { -560, 0, -1216, 0 }, { 592, 0, -1216, 0 }, { -560, 0, 1216, 0 }, { 528, 0, 1216, 0 } }, { 0, 4099, 0, 0 }, { 4076, 0, 401, 0 }, 1348, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4512, -64, 224, 0 }, { { -1514, 0, -997, 0 }, { 166, 0, -99, 0 }, { -455, 0, 1954, 0 }, { 2505, 0, -316, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 2521, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4320, -64, 8864, 0 }, { { 1906, 0, 290, 0 }, { -66, 0, 293, 0 }, { -19, 0, -1958, 0 }, { -1910, 0, 269, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1958, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3580, -64, 8832, 0 }, { { 1906, 0, 226, 0 }, { -66, 0, 229, 0 }, { -19, 0, -1670, 0 }, { -1846, 0, 173, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 1915, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3546, -64, 356, 0 }, { { -1912, 0, -262, 0 }, { 60, 0, -265, 0 }, { 13, 0, 1570, 0 }, { 1840, 0, -305, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1928, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8848, -64, 5312, 0 }, { { -2576, 0, -448, 0 }, { 2576, 0, -448, 0 }, { -2576, 0, 448, 0 }, { 2576, 0, 448, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 2610, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9200, -64, 2432, 0 }, { { -5504, 0, -448, 0 }, { 5504, 0, -448, 0 }, { -5504, 0, 448, 0 }, { 5504, 0, 448, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 5514, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4784, -64, 6048, 0 }, { { -1472, 0, -448, 0 }, { 1472, 0, -448, 0 }, { -1472, 0, 448, 0 }, { 1472, 0, 448, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x3300, -64, 6112, 0 }, { { -1472, 0, -448, 0 }, { 1472, 0, -448, 0 }, { -1472, 0, 448, 0 }, { 1472, 0, 448, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+// Warp requests pack this area's departure endpoint above the destination slot.
+enum {
+    MINE_CAVERN_TRIGGER_GORGE_WARP_REQUEST      = (1 << 4) | 3,
+    MINE_CAVERN_TRIGGER_PASSAGE_WARP_REQUEST    = (2 << 4) | 1,
+    MINE_CAVERN_TRIGGER_PASSAGE_STATUS_COMMAND  = 1,
+    MINE_CAVERN_TRIGGER_PROGRESS_CAPTION_ACTION = 6,
+    MINE_CAVERN_TRIGGER_TARGET0_CAP_COMMAND     = 8,
+    MINE_CAVERN_TRIGGER_TARGET1_CAP_COMMAND     = 14,
+    MINE_CAVERN_TRIGGER_TARGET2_CAP_COMMAND     = 15,
+    MINE_CAVERN_TRIGGER_TARGET3_CAP_COMMAND     = 16,
+    MINE_CAVERN_TRIGGER_TARGET_CAP_COMMAND      = 12
 };
 
-WorldCollisionOccluder D_mine_cavern_8018E078[2] = {
+/// Interaction regions shared by all three cavern rooms.
+///
+/// Includes warps to the gorge and secret passage, room CAP interactions,
+/// a progress caption outside battle and CAP 12 around the four targets.
+/// Geometry uses whole room-coordinate units and Q12 normals. Setup mutates
+/// coordinates, links and enable flags, including the thirteenth LAST record;
+/// keep storage loaded until the runtime list is unlinked.
+static WorldCollisionTrigger _gMineCavernActionTriggers[13] = {
+    { NULL, NULL, NULL, { 0x4740, -48, 1888, 0 }, { { -544, 0, -1824, 0 }, { 544, 0, -1824, 0 }, { -544, 0, 1824, 0 }, { 544, 0, 1824, 0 } }, { 0, 4097, 0, 0 }, { -4096, 0, 0, 0 }, 1902, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_GORGE, MINE_CAVERN_TRIGGER_GORGE_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1792, -48, -352, 0 }, { { 1024, 0, -544, 0 }, { 1024, 0, 544, 0 }, { -1024, 0, -544, 0 }, { -1024, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_SECRET_PASSAGE, MINE_CAVERN_TRIGGER_PASSAGE_WARP_REQUEST, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 896, -64, 1440, 0 }, { { -1056, 0, -864, 0 }, { 1088, 0, -864, 0 }, { -1056, 0, 1920, 0 }, { 1024, 0, -192, 0 } }, { 0, 4104, 0, 0 }, { 2275, 0, 3405, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_PASSAGE_STATUS_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6880, -64, 832, 0 }, { { -1344, 0, -864, 0 }, { 1344, 0, -864, 0 }, { -1344, 0, 864, 0 }, { 1344, 0, 864, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 1593, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE, MINE_CAVERN_TRIGGER_PROGRESS_CAPTION_ACTION, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1360, -64, 32, 0 }, { { -560, 0, -1216, 0 }, { 592, 0, -1216, 0 }, { -560, 0, 1216, 0 }, { 528, 0, 1216, 0 } }, { 0, 4099, 0, 0 }, { 4076, 0, 401, 0 }, 1348, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_PASSAGE_STATUS_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4512, -64, 224, 0 }, { { -1514, 0, -997, 0 }, { 166, 0, -99, 0 }, { -455, 0, 1954, 0 }, { 2505, 0, -316, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 2521, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_TARGET0_CAP_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4320, -64, 8864, 0 }, { { 1906, 0, 290, 0 }, { -66, 0, 293, 0 }, { -19, 0, -1958, 0 }, { -1910, 0, 269, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1958, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_TARGET2_CAP_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3580, -64, 8832, 0 }, { { 1906, 0, 226, 0 }, { -66, 0, 229, 0 }, { -19, 0, -1670, 0 }, { -1846, 0, 173, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 1915, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_TARGET3_CAP_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3546, -64, 356, 0 }, { { -1912, 0, -262, 0 }, { 60, 0, -265, 0 }, { 13, 0, 1570, 0 }, { 1840, 0, -305, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 1928, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_TARGET1_CAP_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8848, -64, 5312, 0 }, { { -2576, 0, -448, 0 }, { 2576, 0, -448, 0 }, { -2576, 0, 448, 0 }, { 2576, 0, 448, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 2610, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_TARGET_CAP_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9200, -64, 2432, 0 }, { { -5504, 0, -448, 0 }, { 5504, 0, -448, 0 }, { -5504, 0, 448, 0 }, { 5504, 0, 448, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 5514, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_TARGET_CAP_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4784, -64, 6048, 0 }, { { -1472, 0, -448, 0 }, { 1472, 0, -448, 0 }, { -1472, 0, 448, 0 }, { 1472, 0, 448, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_TARGET_CAP_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x3300, -64, 6112, 0 }, { { -1472, 0, -448, 0 }, { 1472, 0, -448, 0 }, { -1472, 0, 448, 0 }, { 1472, 0, 448, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1536, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_CAVERN_TRIGGER_TARGET_CAP_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Two room-space sight-blocking quads shared by cavern rooms 1..3.
+///
+/// Geometry uses whole game units and Q12 normals. The low flag bit is retained
+/// with no proven interpretation. Setup links and enables both records; the
+/// second carries LAST. Keep mutable storage loaded until the list is unlinked.
+static WorldCollisionOccluder _gMineCavernSightOccluders[2] = {
     { NULL, NULL, { 9216, -2384, 4448, 0 }, { { -5856, -3408, -1088, 0 }, { 5856, -3408, 1088, 0 }, { -5856, 3408, -1088, 0 }, { 5856, 3408, 1088, 0 } }, { 750, 0, -4041, 0 }, 6850, 1, 0 },
     { NULL, NULL, { 9183, -2320, 4399, 0 }, { { -5890, -3344, 1060, 0 }, { 5891, -3344, -1059, 0 }, { -5890, 3344, 1060, 0 }, { 5891, 3344, -1059, 0 } }, { -726, 0, -4034, 0 }, 6850, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -2469,14 +2603,18 @@ static u8 _gMineCavernFixedGlowRimBlue     = 0;
 /// it, so its role is unproven.
 u16 D_mine_cavern_8018E356 = 1128;
 
-/// Colour of the glow fan drawn at the spot of each destroyed target, laid out
-/// and read as the fixed glow's colour is.
-static u8 _gMineCavernTargetGlowCenterRed   = 42;
+/// Red intensity (0..255) at the centre of each destroyed target's additive glow.
+static u8 _gMineCavernTargetGlowCenterRed = 42;
+/// Green intensity (0..255) at the centre of each destroyed target's additive glow.
 static u8 _gMineCavernTargetGlowCenterGreen = 25;
-static u8 _gMineCavernTargetGlowCenterBlue  = 0;
-static u8 _gMineCavernTargetGlowRimRed      = 0;
-static u8 _gMineCavernTargetGlowRimGreen    = 0;
-static u8 _gMineCavernTargetGlowRimBlue     = 0;
+/// Blue intensity (0..255) at the centre of each destroyed target's additive glow.
+static u8 _gMineCavernTargetGlowCenterBlue = 0;
+/// Red intensity at both rim vertices of each target glow; zero fades red to black.
+static u8 _gMineCavernTargetGlowRimRed = 0;
+/// Green intensity at both rim vertices of each target glow; zero fades green to black.
+static u8 _gMineCavernTargetGlowRimGreen = 0;
+/// Blue intensity at both rim vertices of each target glow; zero adds no blue at the rim.
+static u8 _gMineCavernTargetGlowRimBlue = 0;
 
 /// Halfword stored after the target glow's colours. Nothing in the package
 /// reads it, so its role is unproven.
@@ -3587,8 +3725,12 @@ static const EnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
     },
 };
 
-/// The second enemy's state handlers, run by `mineCavernTargetRemainsTask`.
-static const EnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
+/// State handlers of the cavern target remains: 0 spawn, 1 reveal/update, 2 destroy.
+///
+/// Indexed directly by Task::state with no bounds check or terminator. The
+/// dispatcher copies all three two-argument enemy callbacks by value; the
+/// overlay must stay loaded while a remains task can dispatch them.
+static const EnemyTaskFuncTable3 _gMineCavernTargetRemainsStates = {
     { _mineCavernTargetRemainsSpawn, _mineCavernTargetRemainsTick, enemyDestroy },
 };
 
@@ -3713,6 +3855,6 @@ void mineCavernTargetRemainsTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = D_mine_cavern_8017D80C;
+    handlers = _gMineCavernTargetRemainsStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

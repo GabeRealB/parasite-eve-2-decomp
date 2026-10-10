@@ -13,8 +13,13 @@
 
 extern AreaVariant D_mine_cavern_8018E238[22];
 
-// mine_cavern
-extern WorldCollisionRoomResources D_mine_cavern_80188FE0[];
+/// Collision resources for cavern rooms 1..3, indexed by room minus one.
+///
+/// All rooms share a grid, action regions and sight occluders. Room 1 uses its
+/// own view boundaries; rooms 2 and 3 share another set. There is no terminator.
+/// The Shelter map borrows this directory. Keep the cavern loaded while the
+/// grid is active and until the mutable trigger and occluder lists are unlinked.
+extern WorldCollisionRoomResources gMineCavernRoomCollisionResources[3];
 
 /// Lighting for cavern rooms 1..3, indexed by room minus one.
 ///
@@ -38,7 +43,14 @@ extern u8* gMineCavernRoomViewMaps[3];
 /// there is no terminator. Borrowed by the Shelter map while the cavern is loaded.
 extern ViewCount gMineCavernRoomViewCounts[3];
 
-extern DirectionWarpEntry D_mine_cavern_80189074[];
+/// Cavern warp endpoints 1 and 2: the gorge entrance and secret-passage entrance.
+///
+/// Indexed by warp minus one, without a terminator. Both actor placements use
+/// whole room-coordinate units and yaw in a 4096-unit turn. Arrival views are
+/// 2 and 23; endpoint 1 marks nibble 448 and endpoint 2 marks
+/// `GAME_FLAG_MAP_MARK_MINE_CAVERN`. Consumers copy the full 56-byte record;
+/// the Shelter map borrows this array only while the cavern overlay is loaded.
+extern DirectionWarpEntry gMineCavernWarpEntries[2];
 
 /// Cameras for cavern mapped view indices 1..25, indexed by mapped index minus one.
 ///
