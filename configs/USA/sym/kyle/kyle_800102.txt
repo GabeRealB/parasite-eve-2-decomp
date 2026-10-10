@@ -1,7 +1,7 @@
 // Overlay-local symbols for kyle_800102 (file 800102).
 gKyle800102KyleMadiganBody = 0x8016CE38; // model named by a task descriptor
 gKyle800102KyleMadiganHandRight = 0x8016D28C; // model named by a task descriptor
-D_kyle_800102_8016D77C = 0x8016D77C; // model named by a task descriptor
+gKyle800102KyleMadiganHandRightSecondPair = 0x8016D77C; // model named by a task descriptor
 gKyle800102KyleMadiganHandLeftFirstPair = 0x8016DBD0; // Kyle Madigan left hand, attachment pair 0
 gKyle800102KyleMadiganHandLeft = 0x8016E0C0; // model named by a task descriptor
 D_kyle_800102_8016E93C = 0x8016E93C; // model named by a task descriptor

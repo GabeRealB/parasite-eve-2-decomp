@@ -89,36 +89,45 @@ TmdSource gKyle800103KyleMadiganHandRight = {
     .stream              = _gKyle800103KyleMadiganHandRightStream,
 };
 
-static TmdBone _gKyle800103Kyle800101Model05174Skeleton[1] = {
-#include "assets/kyle_800101_model_05174_skeleton.inc"
+/// Identity rest transform for the right hand's single root, copied into each model.
+static TmdBone _gKyle800103KyleMadiganHandRightSecondPairSkeleton[] = {
+#include "assets/kyle_madigan_hand_right_second_pair_skeleton.inc"
 };
 
-static u32 _gKyle800103Kyle800101Model05174PartVerts[1] = {
-#include "assets/kyle_800101_model_05174_partVerts.inc"
+/// Vertex count for the single part-local right-hand group (27 vertices).
+static u32 _gKyle800103KyleMadiganHandRightSecondPairPartVerts[] = {
+#include "assets/kyle_madigan_hand_right_second_pair_partVerts.inc"
 };
 
-static SVECTOR _gKyle800103Kyle800101Model05174Verts[27] = {
-#include "assets/kyle_800101_model_05174_verts.inc"
+/// Right-hand vertices in integer coordinates local to the hand root.
+static SVECTOR _gKyle800103KyleMadiganHandRightSecondPairVerts[] = {
+#include "assets/kyle_madigan_hand_right_second_pair_verts.inc"
 };
 
-static SVECTOR _gKyle800103Kyle800101Model05174Normals[27] = {
-#include "assets/kyle_800101_model_05174_normals.inc"
+/// Hand lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gKyle800103KyleMadiganHandRightSecondPairNormals[] = {
+#include "assets/kyle_madigan_hand_right_second_pair_normals.inc"
 };
 
-static u32 _gKyle800103Kyle800101Model05174Stream[189] = {
-#include "assets/kyle_800101_model_05174_stream.inc"
+/// Writable draw commands for two textured Gouraud triangles and twenty-four quads.
+///
+/// One skeletal group and an empty final group end in `TMD_STREAM_END`.
+/// First model creation resolves the command handler slots in place.
+static u32 _gKyle800103KyleMadiganHandRightSecondPairStream[] = {
+#include "assets/kyle_madigan_hand_right_second_pair_stream.inc"
 };
 
-TmdSource D_kyle_800103_8016CED8 = {
-    0,
-    1328,
-    0,
-    1,
-    _gKyle800103Kyle800101Model05174PartVerts,
-    _gKyle800103Kyle800101Model05174Verts,
-    _gKyle800103Kyle800101Model05174Normals,
-    _gKyle800103Kyle800101Model05174Skeleton,
-    _gKyle800103Kyle800101Model05174Stream,
+TmdSource gKyle800103KyleMadiganHandRightSecondPair = {
+    .handlersResolved = false,
+    .bufferHalfBytes  = (2 * sizeof(POLY_GT3)) + (24 * sizeof(POLY_GT4)),
+    // All faces transform directly from the single hand part.
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gKyle800103KyleMadiganHandRightSecondPairSkeleton),
+    .partVertexCounts    = _gKyle800103KyleMadiganHandRightSecondPairPartVerts,
+    .verts               = _gKyle800103KyleMadiganHandRightSecondPairVerts,
+    .normals             = _gKyle800103KyleMadiganHandRightSecondPairNormals,
+    .skeleton            = _gKyle800103KyleMadiganHandRightSecondPairSkeleton,
+    .stream              = _gKyle800103KyleMadiganHandRightSecondPairStream,
 };
 
 /// Identity rest transform for the left hand's single root, copied into each model.

@@ -1055,7 +1055,7 @@ ivory_stalker_burst_head	One-part body chunk of the Ivory Stalker flung from bod
 jodie_bouquet_body_1	19-part body of Jodie Bouquet spawned hidden by actor_213100 as placed actor 1 in mist_parking variants 1 and 2 and drawn only in view 4, with a held model.	
 jodie_bouquet_body_2	19-part body of Jodie Bouquet as a non-combat talker (actor_260500) at the Shelter 1F heliport in variant 1, shown or hidden by the room according to the view.	
 kyle_800101_animation_06214	Animation bank of companion Kyle in package 800101: idle, walk, run, turns, weapon raise/hold/fire, reload, hit and collapse clips, also borrowed by the mine mesa arrival scene; several slots unused.	
-kyle_800101_model_05174	One-part model spawned by gameplay as attachment 0 of the companion on body joint 12 at companion init, the same mesh in all four Kyle packages.	
+kyle_madigan_hand_right_second_pair	Kyle Madigan's one-part right hand in attachment pair 1, parented to body joint 12 at armed-companion initialization; identical in all four Kyle resource packages.	
 kyle_800102_animation_06EF0	Animation bank of companion Kyle in package 800102, where he fires the MM1: idle, walk, run, turns, weapon raise/hold/fire, reload, hit and collapse clips; several slots unused.	
 kyle_800102_model_069CC	One-part MM1 grenade launcher spawned as companion Kyle's held weapon in package 800102, origin of his muzzle flash and sounds.	
 kyle_800102_model_0FA78	One-part shell of the MM1 fired by companion Kyle, spawned per round and flown and exploded by the package's own grenade shell task.	
