@@ -43321,19 +43321,19 @@ live range. `global_alloc` gives it a callee-saved register, and every
 `p = &Global;` site then rematerialises through a short-lived temp:
 
 ```
-lui    v0, %hi(D_80189400)
-addiu  s0, v0, %lo(D_80189400)
+lui    v0, %hi(_gDryfieldNightTrailerCoachView3GlowStripPoints)
+addiu  s0, v0, %lo(_gDryfieldNightTrailerCoachView3GlowStripPoints)
 ```
 
 The target wanted the coalesced form that a *single-site* pseudo emits:
 
 ```
-lui    s0, %hi(D_80189400)
-addiu  s0, s0, %lo(D_80189400)
+lui    s0, %hi(_gDryfieldNightTrailerCoachView3GlowStripPoints)
+addiu  s0, s0, %lo(_gDryfieldNightTrailerCoachView3GlowStripPoints)
 ```
 
 Giving each case its own local (`firstStripPoints` / `secondStripPoints` /
-`markerPoints` in `dryfieldNightTrailerCoachDrawGlowsTask`) shrank each live range to one
+`markerPoint` in `dryfieldNightTrailerCoachDrawGlowsTask`) shrank each live range to one
 block, so `local_alloc` handed all three the same `$s0` and folded the `HIGH`
 temp into it — 99.59% → byte match, with no pins. This is the mirror image of
 "Pinned `s0` entry after a clear loop": reuse of the local is what *causes* the

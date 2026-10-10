@@ -30,7 +30,12 @@ extern TmdSource gDryfieldNightTrailerCoachAcropolisSanctuaryModel090F0;
 /// eight-view ambient table. Records and lights require this room to stay loaded.
 extern WorldCoordRoomLighting gDryfieldNightTrailerCoachRoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_trailer_coach_80189508[];
+/// Collision resources for the nighttime coach's sole room (room ID 1).
+///
+/// Borrows the three-cell mesh, four view boundaries and fourteen action
+/// triggers, with no sight occluders. Activation mutates the mesh and trigger
+/// links; keep this room overlay loaded until those resources are unlinked.
+extern WorldCollisionRoomResources gDryfieldNightTrailerCoachRoomCollisionResources[1];
 
 /// Logical-view map directory for the nighttime coach's sole room (room ID 1).
 ///
@@ -38,11 +43,26 @@ extern WorldCollisionRoomResources D_dryfield_night_trailer_coach_80189508[];
 /// 1-based camera/image/sprite indices. The directory lives with this room overlay.
 extern u8* gDryfieldNightTrailerCoachViewMaps[1];
 
-extern ViewCount D_dryfield_night_trailer_coach_8018951C[];
+/// Logical-view search count for the nighttime coach's sole room (room ID 1).
+///
+/// Eight entries of the identity view map are searchable. This signed-halfword
+/// count is borrowed by the night-stage map directory while the room is loaded.
+extern ViewCount gDryfieldNightTrailerCoachViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_trailer_coach_80189520[];
+/// Arrival/departure records for the coach's 1-based warp slots 1..3.
+///
+/// Both actors arrive at (1579, 0, -800), facing half a turn in game angle
+/// units. Warp 1 starts view 2; warps 2/3 start view 5 and select room arrival
+/// scripts. All use room sounds 2/1 for arrival/departure and map nibble 471.
+/// The night-stage directory borrows these records while the room is loaded.
+extern DirectionWarpEntry gDryfieldNightTrailerCoachWarpEntries[3];
 
-extern ViewCamera D_dryfield_night_trailer_coach_80189A44[];
+/// Camera records for the nighttime coach's identity-mapped views 1..8.
+///
+/// Rotations use 4096 per unit and translations are negated world origins.
+/// View 7 uses projection distance 257 pixels; the others use 230. The map
+/// directory borrows this array while loaded; application copies each record.
+extern ViewCamera gDryfieldNightTrailerCoachViewCameras[8];
 
 /// Sprite resources for the nighttime coach's mapped views 1..8.
 ///

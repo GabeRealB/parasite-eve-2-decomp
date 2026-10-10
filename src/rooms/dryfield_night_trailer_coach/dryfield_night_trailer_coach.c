@@ -1026,7 +1026,7 @@ static void _dryfieldNightTrailerCoachInitRoomTask(Task* task)
         evsStartScriptWithSkip(_gDryfieldNightTrailerCoachWarp2ArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightTrailerCoachWarp2ArrivalSkipScript);
     }
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_WARP_3) {
-        evsStartScriptWithSkip(D_dryfield_night_trailer_coach_80189080, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_trailer_coach_801892C0);
+        evsStartScriptWithSkip(gDryfieldNightTrailerCoachWarp3ArrivalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gDryfieldNightTrailerCoachWarp3ArrivalSkipScript);
         areaSetCurrentObjectState(DRYFIELD_NIGHT_TRAILER_COACH_ARRIVAL_OBJECT, 1);
     }
     if (gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE) == DRYFIELD_NIGHT_TRAILER_COACH_OBJECTIVE_BEFORE_ENTRY) {
@@ -1082,18 +1082,18 @@ static void _dryfieldNightTrailerCoachTalkTask(Task* task)
             if (capGetVariantKey() == DRYFIELD_NIGHT_TRAILER_COACH_TALK_VARIANT_SHOP) {
                 evsStartScript(_gDryfieldNightTrailerCoachShopChoiceScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else if (capGetVariantKey() == DRYFIELD_NIGHT_TRAILER_COACH_TALK_VARIANT_CAP_11) {
-                evsStartScript(D_dryfield_night_trailer_coach_80188708, EVENT_SCRIPT_HUD_KEEP);
+                evsStartScript(gDryfieldNightTrailerCoachCap11ReplyScript, EVENT_SCRIPT_HUD_KEEP);
             } else if (capGetVariantKey() == DRYFIELD_NIGHT_TRAILER_COACH_TALK_VARIANT_STORY) {
                 if (gameFlagGetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN) == 0) {
                     gameFlagSetNibble(GAME_FLAG_NIGHT_TRAILER_COACH_STORY_SCENE_SEEN, 1);
                     gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
-                    areaApplySavedUpdates(D_dryfield_night_trailer_coach_8018C208);
-                    evsStartScriptWithSkip(D_dryfield_night_trailer_coach_801889A8, EVENT_SCRIPT_HUD_KEEP,
-                                           D_dryfield_night_trailer_coach_80188F00);
+                    areaApplySavedUpdates(gDryfieldNightTrailerCoachStoryAreaUpdates);
+                    evsStartScriptWithSkip(gDryfieldNightTrailerCoachStoryScript, EVENT_SCRIPT_HUD_KEEP,
+                                           gDryfieldNightTrailerCoachStorySkipScript);
                     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_TRAILER_COACH_STORY_OBJECTIVE);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = DRYFIELD_NIGHT_TRAILER_COACH_STORY_SOUND_EVENT;
                 } else {
-                    evsStartScript(D_dryfield_night_trailer_coach_80188858, EVENT_SCRIPT_HUD_KEEP);
+                    evsStartScript(gDryfieldNightTrailerCoachStoryRepeatScript, EVENT_SCRIPT_HUD_KEEP);
                 }
             }
             task->state++;
@@ -1163,21 +1163,21 @@ static inline void _dryfieldNightTrailerCoachQueueCutscene(void)
     };
 
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_WARP;
-    D_dryfield_night_trailer_coach_8018C21C.view               = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_VIEW;
-    D_dryfield_night_trailer_coach_8018C21C.capSlot            = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_SLOT;
+    gDryfieldNightTrailerCoachCutscene.view                    = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_VIEW;
+    gDryfieldNightTrailerCoachCutscene.capSlot                 = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_SLOT;
     if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < DRYFIELD_NIGHT_TRAILER_COACH_LATE_CHAPTER) {
-        D_dryfield_night_trailer_coach_8018C21C.capTPageX = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TPAGE_X_EARLY;
-        D_dryfield_night_trailer_coach_8018C21C.capFile   = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_FILE_EARLY;
+        gDryfieldNightTrailerCoachCutscene.capTPageX = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TPAGE_X_EARLY;
+        gDryfieldNightTrailerCoachCutscene.capFile   = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_FILE_EARLY;
     } else {
-        D_dryfield_night_trailer_coach_8018C21C.capTPageX = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TPAGE_X_LATE;
-        D_dryfield_night_trailer_coach_8018C21C.capFile   = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_FILE_LATE;
+        gDryfieldNightTrailerCoachCutscene.capTPageX = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TPAGE_X_LATE;
+        gDryfieldNightTrailerCoachCutscene.capFile   = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_FILE_LATE;
     }
-    D_dryfield_night_trailer_coach_8018C21C.skipScene       = false;
-    D_dryfield_night_trailer_coach_8018C21C.startSound      = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_START_SOUND;
-    D_dryfield_night_trailer_coach_8018C21C.endSound        = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_END_SOUND;
-    D_dryfield_night_trailer_coach_8018C21C.sceneSound      = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_SCENE_SOUND;
-    D_dryfield_night_trailer_coach_8018C21C.afterSceneSound = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_AFTER_SCENE_SOUND;
-    taskSpawnFromTable(_gRoomCutsceneTaskDescs, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TASK, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_FOLLOWUP_COMMAND, &D_dryfield_night_trailer_coach_8018C21C);
+    gDryfieldNightTrailerCoachCutscene.skipScene       = false;
+    gDryfieldNightTrailerCoachCutscene.startSound      = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_START_SOUND;
+    gDryfieldNightTrailerCoachCutscene.endSound        = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_END_SOUND;
+    gDryfieldNightTrailerCoachCutscene.sceneSound      = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_SCENE_SOUND;
+    gDryfieldNightTrailerCoachCutscene.afterSceneSound = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_AFTER_SCENE_SOUND;
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TASK, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_FOLLOWUP_COMMAND, &gDryfieldNightTrailerCoachCutscene);
 }
 
 /// Handles the night trailer coach's CAP room commands.

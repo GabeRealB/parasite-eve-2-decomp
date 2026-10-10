@@ -156,19 +156,55 @@ extern AnimationPlayRequest gDryfieldNightTrailerCoachGaryStoryClosingAnimation;
 /// The source table's trailing NULL is excluded from the copy.
 extern const AnimationBankCopyRequest gDryfieldNightTrailerCoachPlayerDialogueBankCopyRequest;
 
-extern EvsCommand D_dryfield_night_trailer_coach_80188708[14];
+/// CAP-11 reply selected by conversation variant key 12.
+///
+/// Cues Gary's reply and closing animations, then restores player control and
+/// the HUD. The interpreter borrows all fourteen commands, including END,
+/// and their animation requests until completion; keep this room loaded.
+extern EvsCommand gDryfieldNightTrailerCoachCap11ReplyScript[14];
 
-extern EvsCommand D_dryfield_night_trailer_coach_80188858[14];
+/// CAP-13 reply after the story conversation has already been seen.
+///
+/// Cues Gary's reply and closing animations, then restores player control and
+/// the HUD. The interpreter borrows all fourteen commands, including END,
+/// and their animation requests until completion; keep this room loaded.
+extern EvsCommand gDryfieldNightTrailerCoachStoryRepeatScript[14];
 
-extern EvsCommand D_dryfield_night_trailer_coach_801889A8[57];
+/// First story conversation, selected by variant key 13 and playing CAP 12.
+///
+/// Installs player dialogue clips, places the player and cues both actors under
+/// a temporary ambient/weapon override. Finishes in view 3 with control and HUD
+/// restored. The interpreter borrows 57 commands through END and their payloads;
+/// installed animation tracks also require this room to remain loaded.
+extern EvsCommand gDryfieldNightTrailerCoachStoryScript[57];
 
-extern EvsCommand D_dryfield_night_trailer_coach_80188F00[16];
+/// Restoration script when the first story conversation is skipped.
+///
+/// Fades through player placement and actor/weapon/ambient restoration, selects
+/// view 3, releases event control and starts CAP 17. Its sixteen commands and
+/// animation payloads remain borrowed until the interpreter reaches END.
+extern EvsCommand gDryfieldNightTrailerCoachStorySkipScript[16];
 
-extern EvsCommand D_dryfield_night_trailer_coach_80189080[24];
+/// CAP-25 arrival conversation for saved warp 3.
+///
+/// Installs player dialogue clips, places the player and cues both actors, then
+/// restores weapons, ambient lighting, view 3 and player control. Borrows all
+/// 24 commands through END and their payloads; installed tracks stay room-owned.
+extern EvsCommand gDryfieldNightTrailerCoachWarp3ArrivalScript[24];
 
-extern EvsCommand D_dryfield_night_trailer_coach_801892C0[13];
+/// Restoration script when the saved-warp-3 arrival conversation is skipped.
+///
+/// Fades through actor, weapon and ambient restoration, returns to view 3 and
+/// releases event/player control. The thirteen commands, including END, and
+/// animation payloads require this room to stay loaded through completion.
+extern EvsCommand gDryfieldNightTrailerCoachWarp3ArrivalSkipScript[13];
 
-extern AreaApplyRec D_dryfield_night_trailer_coach_8018C208[2];
+/// Saved garage update committed before the first story conversation starts.
+///
+/// In every save mode, selects night garage placement variant 4, removes its
+/// saved enemy poses and sets its map mark. One update precedes AREA_APPLY_END;
+/// the list is borrowed only during synchronous application.
+extern AreaApplyRec gDryfieldNightTrailerCoachStoryAreaUpdates[2];
 
 /// Displayed weapon-supply quantity in signed 24.8 fixed point.
 ///
@@ -185,6 +221,11 @@ extern const EquipmentWeaponSupply* gShopRefillSupply;
 
 extern Task* gRoomCutsceneSoundTask;
 
-extern RoomCutsceneRec D_dryfield_night_trailer_coach_8018C21C;
+/// Persistent playback record for the nighttime coach's view-8 cutscene.
+///
+/// The room configures CAP slot 1 and file/page X by chapter, with sounds 3..6.
+/// Texture-page Y retains its initialized zero. The runner borrows this record
+/// until completion: keep the room loaded and do not overwrite it meanwhile.
+extern RoomCutsceneRec gDryfieldNightTrailerCoachCutscene;
 
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_TRAILER_COACH_DRYFIELD_NIGHT_TRAILER_COACH_PRIVATE_H
