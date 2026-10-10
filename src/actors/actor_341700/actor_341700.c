@@ -884,8 +884,6 @@ static u8 _gMadChaserSettleAnims[19] = {
 /// Unreferenced bytes before this package's prop geometry; their role is unproven.
 static u8 _gActor341700Unknown12F90[20] = { 2, 70, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 62, 200, 210, 1 };
 
-extern void* D_800678F0[1];
-
 extern TmdSource gMadChaserChunkModel0;
 
 extern TmdSource gMadChaserChunkModel1;
@@ -896,13 +894,8 @@ static __inline__ void _madChaserResetBehaviorStateS16(Task* task, s16 behaviorS
 
 #include "../../shared/mad_chaser_limb_shadow.inc.c"
 
-/* `D_800678F0` selects the model stream the next `effectSpawn` copies into
- * its effect's `TmdObject`. It is declared as a one-element array for the
- * same reason as in `actor_400500`: as a bare scalar, GCC 2.8.1 decides the
- * store cannot alias the `TmdObject` loads and sinks it past them. */
-
 /* The records closing three of the overlay's model streams, selected through
-   `D_800678F0`. */
+   `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`. */
 
 #include "../../shared/mad_chaser_spawn_gibs.inc.c"
 

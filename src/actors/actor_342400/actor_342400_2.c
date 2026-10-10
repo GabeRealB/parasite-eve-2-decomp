@@ -754,16 +754,9 @@ static u8 _gActor342400Unknown11C8B = 1;
 
 u16 gActor342400EncounterNextPlaceIndex = 0;
 
-extern void* D_800678F0[1];
-
 static __inline__ void set_state_s16(Task* arg0, s16 state);
 
 #include "../../shared/mad_chaser_limb_shadow.inc.c"
-
-/* `D_800678F0` selects the model stream the next `effectSpawn` copies into
- * its effect's `TmdObject`. It is declared as a one-element array for the
- * same reason as in `actor_400500`: as a bare scalar, GCC 2.8.1 decides the
- * store cannot alias the `TmdObject` loads and sinks it past them. */
 
 #include "../../shared/mad_chaser_spawn_gibs.inc.c"
 

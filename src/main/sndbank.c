@@ -98,7 +98,7 @@ STATIC_ASSERT_SIZEOF(_SndHeapBlockHeader, 0x10);
 
 /// One registration in the sound driver's list of per-update polls.
 ///
-/// The list hangs from a sentinel node, `AudioTick_List`, of which only `next`
+/// The list hangs from a sentinel node, `_gAudioTickSentinel`, of which only `next`
 /// is ever used: it addresses the first registration, and the sentinel's other
 /// members stay cleared. Each registration is a block of the sound heap, linked
 /// in ascending order of `id`, and no two in the list share an id.
@@ -132,41 +132,76 @@ enum {
 
 #define SNDHEAP_MAGIC 0xA52B
 
-/* Define BSS before API headers to preserve first-declaration order. */
-static _SndHeapBlockHeader* SndHeap_Start;
+// Audio work and polling are admitted by separate gates; neither waits for a running update.
+enum {
+    SPU_AUDIO_WORK_HELD        = 0,
+    SPU_AUDIO_WORK_AVAILABLE   = 1,
+    AUDIO_TICK_POLLING_HELD    = 0,
+    AUDIO_TICK_POLLING_ENABLED = 1,
+    SPU_PAL_EXTRA_UPDATE_IDLE  = 0,
+    SPU_PAL_EXTRA_UPDATE_ARMED = 1
+};
 
-/// Unreferenced.
+/* Define BSS before API headers to preserve first-declaration order. */
+/// First block header in the sound heap's address-ordered chain.
+///
+/// Reset establishes this header at the arena base. It stays the first block
+/// through splitting and coalescing; all headers and payloads expire at reset.
+static _SndHeapBlockHeader* _gSndHeapFirstBlock;
+
+/// Unreferenced storage; its role and element grouping are unproven.
 static u8 D_8007A3A8[8];
 
-static u8 SndHeap_Buffer[SNDHEAP_SIZE];
+/// Byte arena for variable-sized sound allocations, including their block headers.
+///
+/// Blocks and payloads start on four-byte boundaries. This is raw storage,
+/// partitioned by the allocator rather than an array of equal-sized headers.
+/// Reset invalidates all allocations; callers must serialize heap operations.
+static u8 _gSndHeapArena[SNDHEAP_SIZE];
 
-static _AudioTickNode AudioTick_List;
+/// Sentinel preceding the first registration in the ascending-id audio poll list.
+///
+/// Only `next` is read; reset clears the complete node. The first registration's
+/// `prev` points here. Nodes belong to the sound heap and expire at heap reset.
+static _AudioTickNode _gAudioTickSentinel;
 
-static u32 AudioTick_Enabled;
+/// Word gate for registered audio polls (0 skip this update, 1 permit polling).
+///
+/// Insert and remove temporarily clear it. Sorted insertion releases it before
+/// its final link stores, so it does not serialize the complete edit.
+static u32 _gAudioTickPollingEnabled;
 
-static u8 D_8007E0CC;
+/// PAL root-counter events remaining before the armed extra audio update.
+///
+/// Arming loads six; the timer interrupt decrements this byte only while armed.
+/// Zero triggers one update and clears the arm. Byte wrap behavior is retained.
+static u8 _gSpuPalTimerEventsRemaining;
 
-static volatile long D648E0_SpuTimerED;
+/// BIOS event handle for the installed PAL counter-zero interrupt.
+///
+/// Valid only while `_gSpuPalTimerInstalled` is set; timer replacement disables
+/// and closes that event before opening and enabling its successor.
+static volatile long _gSpuPalTimerEvent;
 
-void* Snd_SequenceBankBuffer;
+void* gSndBankSequenceTableBlock;
 
-SndBank Snd_Banks[16];
+SndBank gSndBankDescriptors[SOUND_BANK_DESCRIPTOR_COUNT];
 
-/// Unreferenced.
+/// Unreferenced storage; its role and element grouping are unproven.
 static u8 D_8007E2D8[8];
 
 #include "sound.h"
 
-static u8 D_800680A4;
+static u8 _gSpuPalExtraAudioUpdateArmed;
 
-static u8 D58028_SpuTimerEnabled;
+static u8 _gSpuPalTimerInstalled;
 
-/// Unreferenced.
+/// Unreferenced initialized word; its role and representation are unproven.
 static s32 D_800680A8;
 
-static u32 D_800680BC;
+static u32 _gSpuCompletedAudioUpdates;
 
-static volatile u32 D_800680C0;
+static volatile u32 _gSpuAudioWorkAvailable;
 
 void func_807257A0(Task* arg0);
 
@@ -228,7 +263,7 @@ static inline void _audioTickUnlinkNode(_AudioTickNode* previous, const _AudioTi
     }
 }
 
-TaskDesc D_80067828[] = {
+TaskDesc gTaskBank2Descs[TASK_BANK2_DESCRIPTOR_COUNT] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -248,7 +283,7 @@ TaskDesc D_80067828[] = {
     { { { TASK_BODY_TMD, 0x60 } }, effectBurstModelPartTask },
 };
 
-TaskDesc D_800678F4[] = {
+TaskDesc gTaskBank7Descs[TASK_BANK7_DESCRIPTOR_COUNT] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
@@ -415,13 +450,36 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, acropolisCafeteriaLoosePropTask, { &gAcropolisCafeteriaModel09A20 } },
 };
 
-static u8 D_800680A4             = 0;
-static u8 D58028_SpuTimerEnabled = 0;
-/// Unreferenced.
-static s32          D_800680A8            = 0;
-s8                  Snd_BankSlotsByType[] = { 0, 1, 2, 3, 4, 7, 0xC, 0xD, -1, -1, -1, -1, -1, -1, 8, 0xA };
-static u32          D_800680BC            = 0;
-static volatile u32 D_800680C0            = 0;
+/// Arm for one PAL timer audio update (0 idle, 1 count root-counter events).
+///
+/// Published after loading the countdown and resetting the counter; consumed
+/// before attempting the guarded update, even if that update is skipped.
+static u8 _gSpuPalExtraAudioUpdateArmed = SPU_PAL_EXTRA_UPDATE_IDLE;
+/// Whether the optional PAL counter-zero BIOS event is installed (0 no, 1 yes).
+///
+/// Initialization uses this byte to decide whether to disable and close the
+/// previous event. Hardware initialization clears it before rebuilding state.
+static u8 _gSpuPalTimerInstalled = false;
+/// Unreferenced initialized word; its role and representation are unproven.
+static s32 D_800680A8                                 = 0;
+s8         gSndBankSlotsByType[SOUND_BANK_TYPE_COUNT] = {
+    0, 1, 2, 3, 4, 7, 12, 13,
+    SOUND_BANK_SLOT_UNSUPPORTED, SOUND_BANK_SLOT_UNSUPPORTED,
+    SOUND_BANK_SLOT_UNSUPPORTED, SOUND_BANK_SLOT_UNSUPPORTED,
+    SOUND_BANK_SLOT_UNSUPPORTED, SOUND_BANK_SLOT_UNSUPPORTED,
+    8, 10
+};
+/// Wrapping count of executed VBlank and extra PAL timer audio updates.
+///
+/// Hardware and wait-transfer initialization reset it. Playback-only rebuilding
+/// retains it; a skipped update does not increment it. No reader is known.
+static u32 _gSpuCompletedAudioUpdates = 0;
+/// Interrupt-visible audio-work gate (0 held, 1 available), initially held.
+///
+/// Initialization and both update paths clear it while working. It suppresses
+/// new work without waiting for work already running. VBlank increments its
+/// counter before releasing this gate; timer work releases before incrementing.
+static volatile u32 _gSpuAudioWorkAvailable = SPU_AUDIO_WORK_HELD;
 
 /// Rebuilds sound playback ownership, silent voices and boot bank reservations.
 ///
@@ -470,13 +528,13 @@ static inline void _spuInitSystemState(s32 initMode)
     switch (initMode) {
         case SPU_INIT_HARDWARE:
             SpuInit();
-            D58028_SpuTimerEnabled = false;
-            D_800680BC             = 0;
+            _gSpuPalTimerInstalled     = false;
+            _gSpuCompletedAudioUpdates = 0;
             spuResetCommonOutput();
             break;
         case SPU_INIT_WAIT_TRANSFER:
             SpuIsTransferCompleted(SPU_TRANSFER_WAIT);
-            D_800680BC = 0;
+            _gSpuCompletedAudioUpdates = 0;
             spuResetCommonOutput();
             break;
         case SPU_INIT_PLAYBACK_ONLY:
@@ -493,27 +551,27 @@ static inline void _spuInitSystemState(s32 initMode)
 
     audioTickInsert(&spuTickReverbWarmup, NULL, AUDIO_TICK_ID_REVERB_WARMUP, reverbWarmupUpdates);
     // Replace any previous PAL extra-update timer before enabling a new one.
-    if (D58028_SpuTimerEnabled) {
-        DisableEvent(D648E0_SpuTimerED);
-        CloseEvent(D648E0_SpuTimerED);
+    if (_gSpuPalTimerInstalled) {
+        DisableEvent(_gSpuPalTimerEvent);
+        CloseEvent(_gSpuPalTimerEvent);
         StopRCnt(RCntCNT0);
-        D58028_SpuTimerEnabled = false;
+        _gSpuPalTimerInstalled = false;
     }
 
     if (gDisplayState.region == MODE_PAL) {
-        D_800680A4 = 0;
-        D_8007E0CC = 0;
+        _gSpuPalExtraAudioUpdateArmed = SPU_PAL_EXTRA_UPDATE_IDLE;
+        _gSpuPalTimerEventsRemaining  = 0;
         SetRCnt(RCntCNT0, SPU_PAL_TIMER_PERIOD, RCntMdINTR | RCntMdSC);
         ResetRCnt(RCntCNT0);
         StartRCnt(RCntCNT0);
         EnterCriticalSection();
-        D648E0_SpuTimerED = OpenEvent(RCntCNT0, EvSpINT, EvMdINTR, _spuTimerCallback);
+        _gSpuPalTimerEvent = OpenEvent(RCntCNT0, EvSpINT, EvMdINTR, _spuTimerCallback);
         ExitCriticalSection();
-        EnableEvent(D648E0_SpuTimerED);
-        D58028_SpuTimerEnabled = true;
+        EnableEvent(_gSpuPalTimerEvent);
+        _gSpuPalTimerInstalled = true;
     }
-    D_800680A4 = 0;
-    D_8007E0CC = 0;
+    _gSpuPalExtraAudioUpdateArmed = SPU_PAL_EXTRA_UPDATE_IDLE;
+    _gSpuPalTimerEventsRemaining  = 0;
 }
 
 /// Initializes the sound system while suppressing vertical-blank and PAL timer audio work.
@@ -528,14 +586,9 @@ static inline void _spuInitSystemState(s32 initMode)
 /// without waiting for an update already in progress.
 static void _spuInitSystem(s32 initMode)
 {
-    enum {
-        SPU_AUDIO_WORK_HELD      = 0,
-        SPU_AUDIO_WORK_AVAILABLE = 1
-    };
-
-    D_800680C0 = SPU_AUDIO_WORK_HELD;
+    _gSpuAudioWorkAvailable = SPU_AUDIO_WORK_HELD;
     _spuInitSystemState(initMode);
-    D_800680C0 = SPU_AUDIO_WORK_AVAILABLE;
+    _gSpuAudioWorkAvailable = SPU_AUDIO_WORK_AVAILABLE;
 }
 
 SndBank* sndBankAllocTables(const SndBankPayload* payload)
@@ -547,14 +600,13 @@ SndBank* sndBankAllocTables(const SndBankPayload* payload)
         SOUND_BANK_TYPE_2                  = 0x2000,
         SOUND_BANK_TYPE_4                  = 0x4000,
         SOUND_BANK_TYPE_14                 = 0xE000,
-        SOUND_BANK_TYPE_4_FIRST_SLOT       = 4,
-        SOUND_BANK_SLOT_UNSUPPORTED        = -1
+        SOUND_BANK_TYPE_4_FIRST_SLOT       = 4
     };
     SndBank* bank;
     s32      tableBytes;
     u8*      tableCursor;
     u16      bankType       = payload->bankId & SOUND_BANK_TYPE_MASK;
-    s32      mappedSlot     = Snd_BankSlotsByType[bankType >> 12];
+    s32      mappedSlot     = gSndBankSlotsByType[bankType >> 12];
     s8       descriptorSlot = mappedSlot;
 
     if (mappedSlot == SOUND_BANK_SLOT_UNSUPPORTED) {
@@ -566,11 +618,11 @@ SndBank* sndBankAllocTables(const SndBankPayload* payload)
     }
 
     // Sequence reloads retain their table block; other slots release theirs first.
-    if (bankType == SOUND_BANK_TYPE_SEQUENCE && Snd_SequenceBankBuffer != NULL) {
-        bank            = &Snd_Banks[descriptorSlot];
-        bank->heapBlock = Snd_SequenceBankBuffer;
+    if (bankType == SOUND_BANK_TYPE_SEQUENCE && gSndBankSequenceTableBlock != NULL) {
+        bank            = &gSndBankDescriptors[descriptorSlot];
+        bank->heapBlock = gSndBankSequenceTableBlock;
     } else {
-        bank = &Snd_Banks[descriptorSlot];
+        bank = &gSndBankDescriptors[descriptorSlot];
         sndBankFree(bank);
 
         tableBytes = payload->groupCount * (s32)sizeof(*bank->groups) + payload->layerCount * (s32)sizeof(*bank->layers) + payload->groupCount * (s32)sizeof(*bank->groupFirstLayer);
@@ -627,35 +679,29 @@ void spuResetSystem(void)
 static inline void _spuArmPalExtraAudioUpdate(void)
 {
     enum {
-        SPU_PAL_EXTRA_UPDATE_TIMER_EVENTS = 6,
-        SPU_PAL_EXTRA_UPDATE_ARMED        = 1
+        SPU_PAL_EXTRA_UPDATE_TIMER_EVENTS = 6
     };
 
-    D_8007E0CC = SPU_PAL_EXTRA_UPDATE_TIMER_EVENTS;
+    _gSpuPalTimerEventsRemaining = SPU_PAL_EXTRA_UPDATE_TIMER_EVENTS;
     ResetRCnt(RCntCNT0);
-    D_800680A4 = SPU_PAL_EXTRA_UPDATE_ARMED;
+    _gSpuPalExtraAudioUpdateArmed = SPU_PAL_EXTRA_UPDATE_ARMED;
 }
 
 void spuRunVBlankAudioUpdate(void)
 {
-    enum {
-        SPU_AUDIO_WORK_HELD      = 0,
-        SPU_AUDIO_WORK_AVAILABLE = 1
-    };
-
-    if (D_800680C0 != 0) {
-        D_800680C0 = SPU_AUDIO_WORK_HELD;
+    if (_gSpuAudioWorkAvailable != SPU_AUDIO_WORK_HELD) {
+        _gSpuAudioWorkAvailable = SPU_AUDIO_WORK_HELD;
         // Requests are drained before polls so this update can advance new playback.
         spuTickVoices();
         sndEvtDrainQueue();
         _audioTickProcess();
         spuFlushVoiceUpdates();
-        D_800680BC += 1;
+        _gSpuCompletedAudioUpdates += 1;
         if (gDisplayState.region == MODE_PAL) {
             // Schedule the extra PAL audio update from this VBlank's timer origin.
             _spuArmPalExtraAudioUpdate();
         }
-        D_800680C0 = SPU_AUDIO_WORK_AVAILABLE;
+        _gSpuAudioWorkAvailable = SPU_AUDIO_WORK_AVAILABLE;
     }
 }
 
@@ -671,25 +717,25 @@ static void _sndBankResetDescriptors(void)
     u16      freeId;
 
     // Clear the complete descriptor array with word stores before marking ids free.
-    words     = (s32*)Snd_Banks;
+    words     = (s32*)gSndBankDescriptors;
     wordIndex = 0;
     do {
         *words = 0;
         wordIndex++;
         words++;
-    } while ((u32)wordIndex < sizeof(Snd_Banks) / sizeof(*words));
+    } while ((u32)wordIndex < sizeof(gSndBankDescriptors) / sizeof(*words));
 
     freeId    = SOUND_BANK_ID_FREE;
-    bankIndex = ARRAY_SIZE(Snd_Banks) - 1;
-    bank      = Snd_Banks;
-    bank     += ARRAY_SIZE(Snd_Banks) - 1;
+    bankIndex = ARRAY_SIZE(gSndBankDescriptors) - 1;
+    bank      = gSndBankDescriptors;
+    bank     += ARRAY_SIZE(gSndBankDescriptors) - 1;
     do {
         bank->bankId = freeId;
         bankIndex--;
         bank--;
     } while (bankIndex >= 0);
 
-    Snd_SequenceBankBuffer = NULL;
+    gSndBankSequenceTableBlock = NULL;
 }
 
 void sndBankFree(SndBank* bank)
@@ -716,7 +762,7 @@ SndBank* sndBankFind(u16 bankId)
     }
     lookupId = bankId;
 
-    for (bankIndex = 0, bank = Snd_Banks; bankIndex < ARRAY_SIZE(Snd_Banks); bankIndex++, bank++) {
+    for (bankIndex = 0, bank = gSndBankDescriptors; bankIndex < ARRAY_SIZE(gSndBankDescriptors); bankIndex++, bank++) {
         if (bank->bankId == lookupId) {
             return bank;
         }
@@ -867,15 +913,15 @@ s32 audioTickInsert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32*
     _AudioTickNode* previous;
     _AudioTickNode* next;
 
-    head = &AudioTick_List;
+    head = &_gAudioTickSentinel;
     if (head == NULL) {
         return AUDIO_TICK_NO_MEMORY;
     }
     // Disable polling during allocation and the ordered-id search.
-    AudioTick_Enabled = 0;
-    node              = sndHeapAlloc(sizeof(*node));
+    _gAudioTickPollingEnabled = AUDIO_TICK_POLLING_HELD;
+    node                      = sndHeapAlloc(sizeof(*node));
     if (node == NULL) {
-        AudioTick_Enabled = 1;
+        _gAudioTickPollingEnabled = AUDIO_TICK_POLLING_ENABLED;
         return AUDIO_TICK_NO_MEMORY;
     }
     node->poll     = poll;
@@ -889,23 +935,23 @@ s32 audioTickInsert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32*
     for (;;) {
         next = previous->next;
         if (next == NULL) {
-            previous->next    = node;
-            node->prev        = previous;
-            node->next        = NULL;
-            AudioTick_Enabled = 1;
+            previous->next            = node;
+            node->prev                = previous;
+            node->next                = NULL;
+            _gAudioTickPollingEnabled = AUDIO_TICK_POLLING_ENABLED;
             return AUDIO_TICK_INSERTED;
         }
         if (next->id == id) {
             sndHeapFree(node);
-            AudioTick_Enabled = 1;
+            _gAudioTickPollingEnabled = AUDIO_TICK_POLLING_ENABLED;
             return AUDIO_TICK_DUPLICATE_ID;
         }
         if (id < next->id) {
-            node->next           = next;
-            AudioTick_Enabled    = 1;
-            previous->next->prev = node;
-            previous->next       = node;
-            node->prev           = previous;
+            node->next                = next;
+            _gAudioTickPollingEnabled = AUDIO_TICK_POLLING_ENABLED;
+            previous->next->prev      = node;
+            previous->next            = node;
+            node->prev                = previous;
             return AUDIO_TICK_INSERTED;
         }
         previous = next;
@@ -917,12 +963,12 @@ s32 audioTickInsert(AudioTickPoll poll, AudioTickOnRemove onRemove, u16 id, s32*
 /// Invalidates every prior payload; callers and audio callbacks must be quiescent.
 static void _sndHeapReset(void)
 {
-    SndHeap_Start              = (_SndHeapBlockHeader*)SndHeap_Buffer;
-    SndHeap_Start->size        = sizeof(SndHeap_Buffer);
-    SndHeap_Start->magic       = SNDHEAP_START_MAGIC;
-    SndHeap_Start->isAllocated = false;
-    SndHeap_Start->prev        = NULL;
-    SndHeap_Start->next        = NULL;
+    _gSndHeapFirstBlock              = (_SndHeapBlockHeader*)_gSndHeapArena;
+    _gSndHeapFirstBlock->size        = sizeof(_gSndHeapArena);
+    _gSndHeapFirstBlock->magic       = SNDHEAP_START_MAGIC;
+    _gSndHeapFirstBlock->isAllocated = false;
+    _gSndHeapFirstBlock->prev        = NULL;
+    _gSndHeapFirstBlock->next        = NULL;
 }
 
 void* sndHeapAlloc(size_t payloadBytes)
@@ -941,10 +987,10 @@ void* sndHeapAlloc(size_t payloadBytes)
     // Header plus payload, rounded up to the block alignment.
     blockBytes = (payloadBytes + sizeof(_SndHeapBlockHeader) + SOUND_HEAP_BLOCK_ALIGNMENT - 1) & ~(SOUND_HEAP_BLOCK_ALIGNMENT - 1);
 
-    for (block = SndHeap_Start; block != NULL; block = block->next) {
+    for (block = _gSndHeapFirstBlock; block != NULL; block = block->next) {
         // A header outside the buffer is not a sound-heap block.
-        if ((uintptr)block < (uintptr)SndHeap_Buffer ||
-            (uintptr)(SndHeap_Buffer + sizeof(SndHeap_Buffer)) < (uintptr)block) {
+        if ((uintptr)block < (uintptr)_gSndHeapArena ||
+            (uintptr)(_gSndHeapArena + sizeof(_gSndHeapArena)) < (uintptr)block) {
             return NULL;
         }
 
@@ -992,12 +1038,12 @@ void sndHeapFree(void* payload)
     // this allocation; relational C pointer comparisons would not be defined.
     // Keep the original inclusive upper-bound test. A valid input is still
     // required to be a payload returned by sndHeapAlloc.
-    heapStart = (uintptr)SndHeap_Buffer;
+    heapStart = (uintptr)_gSndHeapArena;
     if ((uintptr)payload < heapStart) {
         return;
     }
 
-    heapEnd = heapStart + sizeof(SndHeap_Buffer);
+    heapEnd = heapStart + sizeof(_gSndHeapArena);
     if (heapEnd < (uintptr)payload) {
         return;
     }
@@ -1042,10 +1088,10 @@ void sndHeapFree(void* payload)
 /// Does not process queued sound events. The SDK interrupt callback returns zero.
 static long _spuTimerCallback(void)
 {
-    if (D_800680A4 != 0) {
-        D_8007E0CC--;
-        if (D_8007E0CC == 0) {
-            D_800680A4 = 0;
+    if (_gSpuPalExtraAudioUpdateArmed != SPU_PAL_EXTRA_UPDATE_IDLE) {
+        _gSpuPalTimerEventsRemaining--;
+        if (_gSpuPalTimerEventsRemaining == 0) {
+            _gSpuPalExtraAudioUpdateArmed = SPU_PAL_EXTRA_UPDATE_IDLE;
             _spuRunTimerAudioUpdate();
         }
     }
@@ -1060,15 +1106,15 @@ static long _spuTimerCallback(void)
 /// counter. Returns zero whether the update ran or was skipped.
 static s32 _spuRunTimerAudioUpdate(void)
 {
-    if (D_800680C0 == 0) {
+    if (_gSpuAudioWorkAvailable == SPU_AUDIO_WORK_HELD) {
         return 0;
     }
-    D_800680C0 = 0;
+    _gSpuAudioWorkAvailable = SPU_AUDIO_WORK_HELD;
     spuTickVoices();
     _audioTickProcess();
     spuFlushVoiceUpdates();
-    D_800680C0  = 1;
-    D_800680BC += 1;
+    _gSpuAudioWorkAvailable     = SPU_AUDIO_WORK_AVAILABLE;
+    _gSpuCompletedAudioUpdates += 1;
     return 0;
 }
 
@@ -1077,13 +1123,13 @@ static s32 _spuRunTimerAudioUpdate(void)
 /// Existing nodes are forgotten, not freed; the sound heap was reset first.
 static void _audioTickReset(void)
 {
-    AudioTick_List.poll     = NULL;
-    AudioTick_List.onRemove = NULL;
-    AudioTick_List.id       = 0;
-    AudioTick_List.arg      = NULL;
-    AudioTick_List.next     = NULL;
-    AudioTick_List.prev     = NULL;
-    AudioTick_Enabled       = 1;
+    _gAudioTickSentinel.poll     = NULL;
+    _gAudioTickSentinel.onRemove = NULL;
+    _gAudioTickSentinel.id       = 0;
+    _gAudioTickSentinel.arg      = NULL;
+    _gAudioTickSentinel.next     = NULL;
+    _gAudioTickSentinel.prev     = NULL;
+    _gAudioTickPollingEnabled    = AUDIO_TICK_POLLING_ENABLED;
 }
 
 /// Polls registrations in ascending id order once for an audio update.
@@ -1097,8 +1143,8 @@ static void _audioTickProcess(void)
     _AudioTickNode* node;
     AudioTickPoll   poll;
 
-    head = &AudioTick_List;
-    if (AudioTick_Enabled != 0) {
+    head = &_gAudioTickSentinel;
+    if (_gAudioTickPollingEnabled != AUDIO_TICK_POLLING_HELD) {
         if (head != NULL) {
             node = head->next;
             while (1) {
@@ -1130,9 +1176,9 @@ static _AudioTickNode* _audioTickRemove(_AudioTickNode* node)
     _AudioTickNode*   previous;
     _AudioTickNode*   current;
 
-    head              = &AudioTick_List;
-    onRemove          = node->onRemove;
-    AudioTick_Enabled = 0;
+    head                      = &_gAudioTickSentinel;
+    onRemove                  = node->onRemove;
+    _gAudioTickPollingEnabled = AUDIO_TICK_POLLING_HELD;
     if (onRemove != NULL) {
         onRemove();
     }
@@ -1144,12 +1190,12 @@ static _AudioTickNode* _audioTickRemove(_AudioTickNode* node)
             current = previous->next;
             if (current->id == node->id) {
                 _audioTickUnlinkNode(previous, node);
-                AudioTick_Enabled = 1;
+                _gAudioTickPollingEnabled = AUDIO_TICK_POLLING_ENABLED;
                 return previous->next;
             }
             previous = current;
         } while (previous->next != NULL);
     }
-    AudioTick_Enabled = 1;
+    _gAudioTickPollingEnabled = AUDIO_TICK_POLLING_ENABLED;
     return NULL;
 }

@@ -30,9 +30,15 @@ extern TaskDesc gTaskBank5Descs[5];
 /// is TASK_DESC_END. Callback code must remain loaded for each spawned task.
 extern TaskDesc gTaskBank9Descs[19];
 
-extern TaskDesc D_80067828[];
+/// Complete extent of resident character/model task bank 7.
+enum { TASK_BANK7_DESCRIPTOR_COUNT = 164 };
 
-extern TaskDesc D_800678F4[];
+/// Resident bank 7 for character bodies, model attachments, projectiles and room props.
+///
+/// Slots 0..163 have program lifetime; there is no terminator. Each selected
+/// callback and borrowed model source must remain loaded while the spawned task
+/// uses them. Bodyless teardown slots are valid entries, not end markers.
+extern TaskDesc gTaskBank7Descs[TASK_BANK7_DESCRIPTOR_COUNT];
 
 /// Bank-14 spawn descriptors: four bodyless teardown slots and one development-RAM callback.
 ///

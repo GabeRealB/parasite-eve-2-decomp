@@ -8412,10 +8412,10 @@ jr    ra
 `_cdAudioSetBaseSector` (`_gCdAudioState.playback.baseSector = baseSector`) is a pure example — only a
 volatile `_gCdAudioState` matches.
 
-`D_800680C0` is another interrupt-shared flag: the SPU timer callback
+`_gSpuAudioWorkAvailable` is another interrupt-shared flag: the SPU timer callback
 `_spuTimerCallback` / `_spuRunTimerAudioUpdate` reads and writes it while main-line
 `_spuInitSystem` does the same. Marking it `volatile` keeps stores out of
-`jal` delay slots (target has `nop` after `D_800680C0 = 0`).
+`jal` delay slots (target has `nop` after `_gSpuAudioWorkAvailable = 0`).
 
 `D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
 `displayRunTaskFrame` writes them (copies of `gDisplayState.control.flags.imageSource` /
@@ -11169,7 +11169,7 @@ return 0;
 The `if (flag != 0) { ...; return 0; } return 0;` form often becomes
 `bnez` + an explicit jump to the shared epilogue, which mis-schedules the
 success-path setup. `_spuRunTimerAudioUpdate` needs this shape (with `volatile`
-`D_800680C0`) to free `$v0` for the return value before the `D_800680BC`
+`_gSpuAudioWorkAvailable`) to free `$v0` for the return value before the `_gSpuCompletedAudioUpdates`
 update.
 
 ## Fall-through return vs delay-slot return
@@ -17425,7 +17425,7 @@ loop:
     }
 ```
 
-`Snd_BankSlotsByType[entry->bankType]` and `&Snd_Banks[slotIndex]` preserve
+`gSndBankSlotsByType[entry->bankType]` and `&gSndBankDescriptors[slotIndex]` preserve
 offset-first `addu` with their symbol bases visible to the compiler.
 `sndScriptInitSystem`'s indexed `for` calls
 `_sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex])`; the loop pass
@@ -17449,7 +17449,7 @@ code:
 
 ```c
 song->sequenceData = sequenceData;
-bank = &Snd_Banks[Snd_BankSlotsByType[SOUND_BANK_TYPE_SEQUENCE >> 12]];
+bank = &gSndBankDescriptors[gSndBankSlotsByType[SOUND_BANK_TYPE_SEQUENCE >> 12]];
 song->bank = bank;
 bank->bankId = MIDI_SEQUENCE_BANK_BOOT_ID;
 song->bank->heapBlock = sndHeapAlloc(SOUND_BANK_SEQUENCE_TABLE_BYTES);
@@ -45715,16 +45715,17 @@ D_80115417 = 1;
 SOFT_BARRIER();
 ```
 
-Declaring the global as a one-element array also works, because an aggregate
-stops the heuristic firing:
+Declaring the global through its containing aggregate also works, because an
+aggregate stops the heuristic firing:
 
 ```c
-extern void* D_800678F0[1];     /* not: extern void* D_800678F0; */
+extern TaskDesc gTaskBank2Descs[TASK_BANK2_DESCRIPTOR_COUNT];
+/* The selected pointer is gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model. */
 ```
 
 Measured on `actor_400600`, on two globals in the same file: the byte store to
 `D_80115417` matches with the barrier and needs no array, while the pointer
-store to `D_800678F0` checksums wrong with the barrier and matches only as an
+store to `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model` checksums wrong with the barrier and matches only as an
 aggregate. `SCHED_BARRIER()` behaves like `SOFT_BARRIER()` wherever the barrier
 works at all; `volatile` works for neither and lands two instructions off.
 
@@ -91067,7 +91068,7 @@ Writing `0x100 < diff` does not work, because fold canonicalizes it back to
 then spawns an effect. Written the obvious way - the `if/else` stores the
 pointer, the `effectSpawn` call follows the join - the object was 97%: the
 target loads the call's first argument (`li $a0, 0x20010`) *inside each arm*,
-before the `sw` to `D_800678F0`, while the natural form emits it once after the
+before the `sw` to `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`, while the natural form emits it once after the
 join.
 
 **Symptom.** `branch`/`insert`/`delete` penalties on a block boundary that
@@ -91078,7 +91079,7 @@ argument setup exists twice.
 **Cause.** The original duplicated the whole call in both arms; `jump2`
 cross-jumped the identical tails, merging them back from the `sw` onwards.
 Within each arm sched had already sunk the store past the argument load - the
-same aliasing effect that moves these `D_800678F0` stores everywhere - so the
+same aliasing effect that moves these `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model` stores everywhere - so the
 merge point lands after the load, leaving one copy per arm. GCC never
 duplicates a call on its own, so a register setup that appears in both arms and
 converges later is evidence the *source* had it twice.
@@ -91087,16 +91088,16 @@ converges later is evidence the *source* had it twice.
 
 ```c
 if ((gRandomLcgState >> 16) & 1) {
-    D_800678F0[0] = _gActor00400DiverBurstLegRight;
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor00400DiverBurstLegRight;
     eff = effectSpawn(0x20010, &coord[8], 0x200, NULL);
 } else {
-    D_800678F0[0] = _gActor00400DiverBurstArmLeft2;
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor00400DiverBurstArmLeft2;
     eff = effectSpawn(0x20010, &coord[8], 0x200, NULL);
 }
 ```
 
-A ternary (`D_800678F0[0] = cond ? A : B;`) is the other natural guess and is
-wrong in the same place - it hoists the address of `D_800678F0` above the
+A ternary (`gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = cond ? A : B;`) is the other natural guess and is
+wrong in the same place - it hoists the address of `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model` above the
 branch instead.
 
 ## A bare `li` feeding `slt` is an inlined constant parameter, not `if (K < x)`
@@ -148078,13 +148079,13 @@ inside the helper (or keep it `void`) rather than returning a status.
 
 A byte array has no multiplication to put first: `map[i]` through a pointer
 local stays base first even as an inline argument. There the fix was the other
-finding - name the global (`Snd_BankSlotsByType[entry->bankType]`), whose
+finding - name the global (`gSndBankSlotsByType[entry->bankType]`), whose
 symbol is a constant and swaps to the end. Its `lui`/`addiu` is hoisted only
 out of a real loop: a `loop:`/`goto` body has no loop notes, so the address is
 rebuilt per iteration. `sndScriptInitSystem` matched as a plain
 `for (entryIndex = 0; entryIndex < (s32)ARRAY_SIZE(Snd_BankInitTable); entryIndex++)`
 over `_sndScriptReserveBootBank(&Snd_BankInitTable[entryIndex])`, whose inline
-body uses `Snd_BankSlotsByType[...]` and `&Snd_Banks[slotIndex]` directly;
+body uses `gSndBankSlotsByType[...]` and `&gSndBankDescriptors[slotIndex]` directly;
 the early `entryIndex = 0`, the mid-body `entryIndex++` and the hoist order
 in the target were all the scheduler and loop pass.
 
@@ -150297,8 +150298,8 @@ attempts; left as it was.
 ### Goto removal, batch 24: a body between two volatile stores is an inline, nested switches with a silent case (2026-10-06)
 
 - **`goto end;` to a store into a `volatile` global is a `return` from an inline.**
-  `_spuInitSystem` clears `D_800680C0`, dispatches on its argument and sets the
-  flag again at `end:`. Writing `default: D_800680C0 = 1; return;` leaves a
+  `_spuInitSystem` clears `_gSpuAudioWorkAvailable`, dispatches on its argument and sets the
+  flag again at `end:`. Writing `default: _gSpuAudioWorkAvailable = 1; return;` leaves a
   second store in the image (4 insns longer): cross-jumping did not merge the
   two stores to the volatile object. The body is a `static inline`
   between the two stores, and its `default: return;` is the jump to the second

@@ -217,16 +217,6 @@ STATIC_ASSERT_SIZEOF(_Actor405800IvoryStalkerWork, 0x89C);
 /// this package's own. `stalker_zebra_ivory.h` lists the members they reach.
 typedef _Actor405800IvoryStalkerWork StalkerZebraIvoryWork;
 
-/* `D_800678F0` selects the model stream the next `effectSpawn` uses as the
- * source for the effect's own `TmdObject`.
- *
- * Storing to a bare `extern` pointer next to pointer-based struct traffic lets
- * GCC 2.8.1's `fixed_scalar_and_varying_struct_p` conclude the two cannot
- * alias, so the scheduler sinks the store past the loads that follow. The
- * one-element array is the remedy measured on `actor_400600`, where an
- * empty-asm barrier was enough for a byte store but not for this pointer one. */
-extern void* D_800678F0[1];
-
 extern TaskDesc      D_actor_405800_801514B4[];
 extern EnemyParams   D_actor_405800_801418FC;
 extern AnimationSet* D_actor_405800_801513F8[6];
@@ -236,7 +226,7 @@ extern AnimationSet* D_actor_405800_80151410[35];
 extern TaskMessageEntry D_actor_405800_8015149C[3];
 
 /* The records closing four of the overlay's model streams, selected through
-   `D_800678F0`. */
+   `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`. */
 static TmdSource _gActor405800IvoryStalkerBurstHead;
 static TmdSource _gActor405800StalkerBurstTorso;
 static TmdSource _gActor405800StalkerEffect;
@@ -3396,23 +3386,23 @@ static void _actor405800SpawnCorpseChunks(Task* task)
     EffectWork* leftHandChunk;
 
     // Each source selection must precede the spawn that consumes it.
-    D_800678F0[0] = &_gActor405800IvoryStalkerBurstHead;
-    headChunk     = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_BURST_HEAD_PART], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor405800IvoryStalkerBurstHead;
+    headChunk                                                    = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_BURST_HEAD_PART], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
     if (headChunk != NULL) {
         _actor405800CopyArmTexture(task, headChunk->task);
     }
-    D_800678F0[0] = &_gActor405800StalkerBurstTorso;
-    torsoChunk    = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_BURST_TORSO_PART], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor405800StalkerBurstTorso;
+    torsoChunk                                                   = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_BURST_TORSO_PART], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
     if (torsoChunk != NULL) {
         _actor405800CopyArmTexture(task, torsoChunk->task);
     }
-    D_800678F0[0] = &_gActor405800StalkerEffect;
-    part16Chunk   = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_BURST_PART_16], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor405800StalkerEffect;
+    part16Chunk                                                  = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_BURST_PART_16], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
     if (part16Chunk != NULL) {
         _actor405800CopyArmTexture(task, part16Chunk->task);
     }
-    D_800678F0[0] = &_gActor405800StalkerBurstHandLeft;
-    leftHandChunk = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_PART_LEFT_ARM], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor405800StalkerBurstHandLeft;
+    leftHandChunk                                                = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_405800_PART_LEFT_ARM], ACTOR_405800_CORPSE_CHUNK_PUFF_SIZE, NULL);
     if (leftHandChunk != NULL) {
         _actor405800CopyArmTexture(task, leftHandChunk->task);
     }

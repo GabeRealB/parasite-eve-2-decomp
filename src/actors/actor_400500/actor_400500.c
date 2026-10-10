@@ -373,19 +373,8 @@ static void _actor400500DrawLimbShadow(Task* task, s16 firstJoint, s16 secondJoi
 static void _actor400500FinishGrabRecovery(Task* task);
 static s32  _actor400500LocalizeWorldRotation(const GfxCoord* joint, MATRIX* worldRotation);
 
-/* `D_800678F0` selects the model stream a following `effectSpawn` uses as the
- * source for the effect's own `TmdObject`.
- *
- * Storing to a bare `extern` pointer next to pointer-based struct traffic lets
- * GCC 2.8.1's `fixed_scalar_and_varying_struct_p` conclude the two cannot
- * alias, so the scheduler sinks the store past the `TmdObject` loads that
- * follow. Declared as a scalar, `_actor400500SpawnDeathFragments` scores 87.27%
- * (12 register and 8 reorder penalties); as a one-element array it is exact,
- * the same remedy `actor_400600` needed for the same global. */
-extern void* D_800678F0[1];
-
 /* The records closing three of the overlay's model streams, selected through
-   `D_800678F0`. */
+   `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`. */
 static TmdSource _gActor400500GrayStalkerBurstHead;
 static TmdSource _gActor400500GrayStalkerBurstLegRight;
 static TmdSource _gActor400500GrayStalkerBurstLegLeft;
@@ -3093,18 +3082,18 @@ static void _actor400500SpawnDeathFragments(Task* task)
     EffectWork* rightLegEffect;
     EffectWork* leftLegEffect;
 
-    D_800678F0[0] = &_gActor400500GrayStalkerBurstHead;
-    headEffect    = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_400500_PART_BODY], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor400500GrayStalkerBurstHead;
+    headEffect                                                   = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[ACTOR_400500_PART_BODY], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
     if (headEffect != NULL) {
         _actor400500ApplyFragmentTexturePlacement(task, headEffect);
     }
-    D_800678F0[0]  = &_gActor400500GrayStalkerBurstLegRight;
-    rightLegEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[1], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor400500GrayStalkerBurstLegRight;
+    rightLegEffect                                               = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[1], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
     if (rightLegEffect != NULL) {
         _actor400500ApplyFragmentTexturePlacement(task, rightLegEffect);
     }
-    D_800678F0[0] = &_gActor400500GrayStalkerBurstLegLeft;
-    leftLegEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[1], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor400500GrayStalkerBurstLegLeft;
+    leftLegEffect                                                = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[1], ACTOR_400500_DEATH_FRAGMENT_SIZE, NULL);
     if (leftLegEffect != NULL) {
         _actor400500ApplyFragmentTexturePlacement(task, leftLegEffect);
     }

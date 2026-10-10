@@ -21,7 +21,8 @@ enum {
     /// burn effect on it; actor_01100 uses it for the burst arm/head pieces of its
     /// model.
     EFFECT_FLYING_BODY_PART = EFFECT_ID(1, 0x032),
-    /// Bank-2 effect that flings one model chunk (the model put in D_800678F0[0], with
+    /// Bank-2 effect that flings one model chunk (the model put in
+    /// `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`, with
     /// the enemy texture page/CLUT) from an enemy joint when the body bursts; spawned
     /// by _madChaserSpawnGibs and the diver/actor_400500/400600/405800 burst code.
     EFFECT_BODY_CHUNK = EFFECT_ID(2, 0x010),

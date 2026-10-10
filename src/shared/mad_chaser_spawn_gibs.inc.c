@@ -40,18 +40,18 @@ static void _madChaserSpawnGibs(Task* task)
     EffectWork* headEffect;
     EffectWork* secondaryEffect;
 
-    D_800678F0[0] = &gMadChaserChunkModel0;
-    headEffect    = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[6], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &gMadChaserChunkModel0;
+    headEffect                                                   = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[6], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     if (headEffect != NULL) {
         _madChaserBindGibTexture(task, headEffect);
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
-        D_800678F0[0]   = &gMadChaserChunkModel1;
-        secondaryEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[8], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+        gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &gMadChaserChunkModel1;
+        secondaryEffect                                              = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[8], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     } else {
-        D_800678F0[0]   = &gMadChaserChunkModel2;
-        secondaryEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[2], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
+        gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &gMadChaserChunkModel2;
+        secondaryEffect                                              = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[2], MAD_CHASER_GIB_PARTICLE_SIZE, NULL);
     }
     if (secondaryEffect != NULL) {
         _madChaserBindGibTexture(task, secondaryEffect);

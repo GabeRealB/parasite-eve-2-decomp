@@ -473,7 +473,7 @@ static volatile u8 _gSndScriptTypeRequestsEnabled[16];
 
 /// Stable sound-script bank slots owning images and borrowing sample descriptors.
 ///
-/// Slot indices are 0..15. Bank types select them through `Snd_BankSlotsByType`,
+/// Slot indices are 0..15. Bank types select them through `gSndBankSlotsByType`,
 /// with type 4 using successive slots 4..6. Boot reserves image buffers for
 /// types 2 and 14; completed script loads transfer their sound-heap images here.
 /// MIDI sequence images are held separately.
@@ -689,7 +689,7 @@ void sndScriptResetForArea(s32 stage, s32 area)
     loadMode = (s8)D_80082135;
     switch (loadMode) {
         case SOUND_LOAD_CHARACTER_RESTART_NONE:
-            sndBankFree(&Snd_Banks[SOUND_BANK_SLOT_CHARACTER_FIRST]);
+            sndBankFree(&gSndBankDescriptors[SOUND_BANK_SLOT_CHARACTER_FIRST]);
             sndBankSlotReleaseImage(SOUND_BANK_SLOT_CHARACTER_FIRST);
         case SOUND_LOAD_CHARACTER_RESTART_PENDING:
             D_80082122 = 0;
@@ -698,7 +698,7 @@ void sndScriptResetForArea(s32 stage, s32 area)
             D_80082122 = 1;
             break;
     }
-    bankBase = &Snd_Banks[SOUND_BANK_SLOT_TYPE_1];
+    bankBase = &gSndBankDescriptors[SOUND_BANK_SLOT_TYPE_1];
 
     // Reset the in-flight loader and discard the transient sample descriptors.
     SndLoad_State.imageBuffer = NULL;
@@ -752,8 +752,8 @@ s32 sndLoadPlaceScriptSamples(s32 waveBytes, s32 bankId)
                 D_80082135 = SOUND_LOAD_CHARACTER_RESTARTED;
             } else {
                 if ((s8)D_80082122 > 0 && (s8)D_80082122 < SOUND_LOAD_CHARACTER_BANK_LIMIT) {
-                    spuAddr = Snd_Banks[(s8)D_80082122 + 3].spuAddr +
-                              Snd_Banks[(s8)D_80082122 + 3].waveBytes;
+                    spuAddr = gSndBankDescriptors[(s8)D_80082122 + 3].spuAddr +
+                              gSndBankDescriptors[(s8)D_80082122 + 3].waveBytes;
                     D_80082122 += 1;
                     D_80082130  = alignedWaveBytes + spuAddr;
                     break;
@@ -913,7 +913,7 @@ static void _sndBankSetAmbientRetention(s32 retainBank)
     enum { SOUND_BANK_SLOT_AMBIENT = 12 };
 
     if (retainBank == 0) {
-        sndBankFree(&Snd_Banks[SOUND_BANK_SLOT_AMBIENT]);
+        sndBankFree(&gSndBankDescriptors[SOUND_BANK_SLOT_AMBIENT]);
         D_80082134 = false;
         return;
     }
@@ -1060,10 +1060,10 @@ static inline void _sndScriptReserveBootBank(const _SndBankInitEntry* entry)
     SndBank*     bank;
     s32          bankId;
 
-    slotIndex                       = Snd_BankSlotsByType[entry->bankType];
+    slotIndex                       = gSndBankSlotsByType[entry->bankType];
     bankSlot                        = sndBankSlotGet(slotIndex);
     bankId                          = entry->bankId;
-    bank                            = &Snd_Banks[slotIndex];
+    bank                            = &gSndBankDescriptors[slotIndex];
     bankSlot->bank                  = bank;
     bankSlot->bankId                = bankId;
     bank->bankId                    = entry->bankId;

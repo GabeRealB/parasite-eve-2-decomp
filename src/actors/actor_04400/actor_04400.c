@@ -99,11 +99,6 @@ static void _madChaserShrinkDeathStart(Task* task);
 static void _madChaserShrinkDeathTurnTranslucent(Task* task);
 static void _madChaserShrinkDeathStartDespawn(Task* task);
 
-/* `D_800678F0` selects the model stream the next `effectSpawn` copies into
- * its effect's `TmdObject`. Declared as a one-element array so GCC 2.8.1
- * cannot treat the store as a non-aliasing scalar and sink it past the
- * `TmdObject` loads. */
-extern void*     D_800678F0[1];
 extern TmdSource gMadChaserChunkModel0;
 extern TmdSource gMadChaserChunkModel1;
 extern TmdSource gMadChaserChunkModel2;

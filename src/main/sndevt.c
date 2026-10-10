@@ -338,7 +338,6 @@ enum {
     SOUND_LOAD_SEQUENCE_ID_MASK          = 0xFF,
     SOUND_LOAD_IMAGE_KIND_BYTE_MASK      = 0xFF,
     SOUND_LOAD_BANK_ID_MASK              = 0xFFFF,
-    SOUND_BANK_SLOT_UNSUPPORTED          = -1,
     SOUND_LOAD_FAILURE_NONE              = 0,
     SOUND_LOAD_FAILURE_INVALID_TYPE      = 1,
     SOUND_LOAD_FAILURE_NO_SAMPLE_ADDRESS = 4,
@@ -913,14 +912,14 @@ s32 midiInitSystem(u32 unused)
     song->sequenceBytes = MIDI_INITIAL_LENGTH_BYTES;
     song->sequenceData  = D_8007F8E0;
     // Reserve the type-F tables; a later load partitions the retained block.
-    bank                        = &Snd_Banks[Snd_BankSlotsByType[MIDI_SEQUENCE_BANK_TYPE_INDEX]];
+    bank                        = &gSndBankDescriptors[gSndBankSlotsByType[MIDI_SEQUENCE_BANK_TYPE_INDEX]];
     song->bank                  = bank;
     bank->bankId                = MIDI_SEQUENCE_BANK_BOOT_ID;
     song->bank->heapBlock       = sndHeapAlloc(SOUND_BANK_SEQUENCE_TABLE_BYTES);
     song->bank->groups          = song->bank->heapBlock;
     song->bank->layers          = song->bank->heapBlock;
     song->bank->groupFirstLayer = song->bank->heapBlock;
-    Snd_SequenceBankBuffer      = song->bank->heapBlock;
+    gSndBankSequenceTableBlock  = song->bank->heapBlock;
     song->waveBytes             = MIDI_INITIAL_LENGTH_BYTES;
     return -1;
 }
@@ -2509,7 +2508,7 @@ static s32 _sndLoadInstallScriptBank(SndLoadState* load)
         gSndLoadBankId = SOUND_LOAD_BANK_NONE;
         return SOUND_LOAD_RESULT_ERROR;
     }
-    slotIndex = Snd_BankSlotsByType[bankId >> 12];
+    slotIndex = gSndBankSlotsByType[bankId >> 12];
     if (slotIndex == SOUND_BANK_SLOT_UNSUPPORTED) {
         goto fail;
     }
@@ -2724,7 +2723,7 @@ static void* _sndLoadAllocImageBuffer(s32 bankId, s32 imageKind, u32 imageBytes)
     if ((imageKind & SOUND_LOAD_IMAGE_KIND_BYTE_MASK) == SOUND_BANK_IMAGE_SEQUENCE) {
         return _midiGetSequenceBuffer(0, imageBytes & SOUND_LOAD_IMAGE_SIZE_MASK);
     }
-    if (Snd_BankSlotsByType[truncatedBankId >> 12] == SOUND_BANK_SLOT_UNSUPPORTED) {
+    if (gSndBankSlotsByType[truncatedBankId >> 12] == SOUND_BANK_SLOT_UNSUPPORTED) {
         return 0;
     }
     switch (bankId & SOUND_BANK_TYPE_MASK) {
@@ -2826,14 +2825,14 @@ static s32 _sndLoadPrepareBankSlot(u16 bankId, s32 imageKind)
     if ((imageKind & SOUND_LOAD_IMAGE_KIND_BYTE_MASK) == SOUND_BANK_IMAGE_SEQUENCE) {
         return 0;
     }
-    slotIndex = Snd_BankSlotsByType[requestedBankId >> 12];
+    slotIndex = gSndBankSlotsByType[requestedBankId >> 12];
     if ((s8)slotIndex == SOUND_BANK_SLOT_UNSUPPORTED) {
         return SOUND_LOAD_RESULT_ERROR;
     }
     switch ((u32)(bankId & SOUND_BANK_TYPE_MASK) >> 12) {
         case SOUND_BANK_TYPE_CHARACTER:
             descriptorIndex = SOUND_LOAD_CHARACTER_FIRST_SLOT;
-            descriptors     = Snd_Banks;
+            descriptors     = gSndBankDescriptors;
             descriptor      = descriptors + SOUND_LOAD_CHARACTER_FIRST_SLOT;
             do {
                 if (descriptor->bankId == requestedBankId) {
@@ -2847,7 +2846,7 @@ static s32 _sndLoadPrepareBankSlot(u16 bankId, s32 imageKind)
         case SOUND_BANK_TYPE_SEQUENCE >> 12:
             break;
         default:
-            if (Snd_Banks[(s8)slotIndex].bankId == (bankId & SOUND_LOAD_BANK_ID_MASK)) {
+            if (gSndBankDescriptors[(s8)slotIndex].bankId == (bankId & SOUND_LOAD_BANK_ID_MASK)) {
                 return SOUND_LOAD_RESULT_ERROR;
             }
             break;

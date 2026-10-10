@@ -230,18 +230,18 @@ static TaskDesc _gTaskSystemDescs[39] = {
 TaskDesc* gTaskDescBanks[15] = {
     _gTaskSystemDescs,
     gTaskBank1Descs,
-    D_80067828,
+    gTaskBank2Descs,
     gTaskBank3Descs,
     gTaskBank4Descs,
     gTaskBank5Descs,
     gEffectTaskDescriptors,
-    D_800678F4,
+    gTaskBank7Descs,
     gTaskBank8Descs,
     gTaskBank9Descs,
     gEffectBurstTaskDescriptors,
-    D_80067828,
-    D_80067828,
-    D_80067828,
+    gTaskBank2Descs,
+    gTaskBank2Descs,
+    gTaskBank2Descs,
     gTaskBank14Descs,
 };
 

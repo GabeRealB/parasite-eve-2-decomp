@@ -28,13 +28,26 @@ extern u16 gSpuPanGainTable[128];
 /// MIDI indexes note velocity; scripts index their clamped attenuated gain.
 extern u16 gSpuVelocityGainTable[128];
 
-extern SndBank Snd_Banks[];
+/// Resident sample-bank descriptors, indexed by slots 0..15.
+///
+/// Each owns its program/layer table block and records its SPU sample-pool
+/// address and byte length. Script and sequence images are stored separately.
+/// Sound initialization clears the whole array and marks every bank id free;
+/// descriptor addresses stay valid for the program lifetime, while their tables
+/// expire on release/reload or sound-heap reset. Type 4 uses slots 4..6.
+extern SndBank gSndBankDescriptors[SOUND_BANK_DESCRIPTOR_COUNT];
 
 extern SndLoadState SndLoad_State;
 
 extern volatile u8 D_80082120;
 
-extern s8 Snd_BankSlotsByType[];
+/// Maps bank-id high nibbles 0..15 to resident descriptor and script-slot indices.
+///
+/// Types 8..13 store `SOUND_BANK_SLOT_UNSUPPORTED` (-1); all other entries are
+/// slots 0..15. Type 4 maps to the first character slot, with the loader choosing
+/// slots 4..6 by its upload ordinal. Sequence type 15 maps to descriptor 10.
+/// This embedded mapping has program lifetime and no known writers.
+extern s8 gSndBankSlotsByType[SOUND_BANK_TYPE_COUNT];
 
 /// Value of `gSndLoadBankId` when no sound-bank load has published its id.
 ///
@@ -104,7 +117,15 @@ extern volatile u8 D_80082135;
 
 extern volatile u8 D_80082136;
 
-extern void* Snd_SequenceBankBuffer;
+/// Retained sound-heap allocation for sequence-bank program/layer tables.
+///
+/// MIDI initialization reserves `SOUND_BANK_SEQUENCE_TABLE_BYTES` and publishes
+/// the descriptor's `heapBlock` here. Type-15 loads reuse and repartition it
+/// without freeing or checking its capacity; all incoming tables must fit the
+/// actual allocated payload. This is heterogeneous table storage, separate from
+/// the sequence image. Sound initialization resets the heap and clears this
+/// pointer; every earlier table pointer then expires.
+extern void* gSndBankSequenceTableBlock;
 
 /// Waits for outstanding SPU DMA, then rebuilds the resident sound system.
 ///

@@ -274,12 +274,12 @@ NULL.
 |------|--------|--:|------------|
 | 0 | `_gTaskSystemDescs` | 39 | System: boot, title, gameflow, memcard, view, HUD |
 | 1 | `gTaskBank1Descs` | 51 | Enemies / room coords / TMD helpers + `0x807xxxxx` overlay |
-| 2 (=11–13) | `D_80067828` | 17 | Caption, pad helpers, script-18, room overlay, one stage overlay |
+| 2 (=11–13) | `gTaskBank2Descs` | 17 | CAP playback, pad scripts, Acropolis room tasks, model-part effects and a development callback |
 | 3 | `gTaskBank3Descs` | 8 | Four `taskKill` stubs + four `0x807xxxxx` |
 | 4 | `gTaskBank4Descs` | 9 | Stubs + TMD / overlay |
 | 5 | `gTaskBank5Descs` | 5 | Stubs + `taskDebugLaunchCallback` + one overlay |
 | 6 | `gEffectTaskDescriptors` | **667** | Resident effects and loaded-overlay task callbacks |
-| 7 | `D_800678F4` | 164 | Equipped TMD attaches (`modelObjectChildTask` + per-item `data.model`) |
+| 7 | `gTaskBank7Descs` | 164 | Character bodies, hand/weapon attachments, projectiles, companions and Acropolis cafeteria props |
 | 8 | `gTaskBank8Descs` | 6 | Stubs + shared `effectBurstModelPartTask` |
 | 9 | `gTaskBank9Descs` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
 | 10 | `gEffectBurstTaskDescriptors` | 6 | Stubs + `effectBurstModelPartTask`; actors set the last descriptor's model |

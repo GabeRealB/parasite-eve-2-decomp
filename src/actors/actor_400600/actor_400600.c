@@ -219,8 +219,7 @@ typedef struct {
 } _Actor400600LimbShadowQuadScratch;
 STATIC_ASSERT_SIZEOF(_Actor400600LimbShadowQuadScratch, 0x3C);
 
-/* `D_800678F0` selects the model stream a following `effectSpawn` uses as the
- * source for the effect's own `TmdObject`; `gSceneCombatState.zebraStalkerGroupPhase` and `gSceneCombatState.zebraStalkerDeathAlert` are
+/* `gSceneCombatState.zebraStalkerGroupPhase` and `gSceneCombatState.zebraStalkerDeathAlert` are
  * bytes of the run of gameplay flags at 0x80115408..0x8011541B.
  *
  * Storing to a bare `extern` global next to pointer-based struct traffic lets
@@ -228,16 +227,13 @@ STATIC_ASSERT_SIZEOF(_Actor400600LimbShadowQuadScratch, 0x3C);
  * alias, so the scheduler sinks the store past the `_Actor400600ZebraStalkerWork` loads
  * that follow. Two remedies work and which one is needed was measured, not
  * chosen: the byte store to `gSceneCombatState.zebraStalkerDeathAlert` matched with an empty-asm barrier after
- * it, so that one is declared as the scalar it is; the pointer store to
- * `D_800678F0` checksums wrong with the barrier and matches only as an
- * aggregate, so its one-element array stays and is doing real work.
+ * it, so that one is declared as the scalar it is.
  * `gSceneCombatState.zebraStalkerGroupPhase` is the aggregate case too: one of its stores sits between
  * struct stores on both sides, and the barrier trades the sink for a hoist
  * above the preceding flag updates. */
-extern void* D_800678F0[1];
 
 /// The records closing four of the overlay's model streams, selected through
-/// `D_800678F0`.
+/// `gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model`.
 static TmdSource _gActor400600ZebraStalkerBurstHead;
 static TmdSource _gActor400600StalkerEffect;
 static TmdSource _gActor400600StalkerBurstHandLeft;
@@ -4249,23 +4245,23 @@ static void _actor400600SpawnBodyChunks(Task* task)
     EffectWork* chunkAtPart16;
     EffectWork* chunkAtPart10;
 
-    D_800678F0[0] = &_gActor400600ZebraStalkerBurstHead;
-    chunkAtPart4  = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[4], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor400600ZebraStalkerBurstHead;
+    chunkAtPart4                                                 = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[4], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
     if (chunkAtPart4 != NULL) {
         _actor400600CopyModelTextureOffsets(task->extra.tmd, chunkAtPart4->task->extra.tmd);
     }
-    D_800678F0[0] = &_gActor400600StalkerEffect;
-    chunkAtPart2  = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[2], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor400600StalkerEffect;
+    chunkAtPart2                                                 = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[2], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
     if (chunkAtPart2 != NULL) {
         _actor400600CopyModelTextureOffsets(task->extra.tmd, chunkAtPart2->task->extra.tmd);
     }
-    D_800678F0[0] = &_gActor400600StalkerBurstHandLeft;
-    chunkAtPart16 = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[16], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor400600StalkerBurstHandLeft;
+    chunkAtPart16                                                = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[16], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
     if (chunkAtPart16 != NULL) {
         _actor400600CopyModelTextureOffsets(task->extra.tmd, chunkAtPart16->task->extra.tmd);
     }
-    D_800678F0[0] = &_gActor400600StalkerBurstFootRight;
-    chunkAtPart10 = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[10], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
+    gTaskBank2Descs[TASK_BANK2_BURST_MODEL_PART_SLOT].data.model = &_gActor400600StalkerBurstFootRight;
+    chunkAtPart10                                                = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[10], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
     if (chunkAtPart10 != NULL) {
         _actor400600CopyModelTextureOffsets(task->extra.tmd, chunkAtPart10->task->extra.tmd);
     }

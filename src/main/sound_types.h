@@ -21,8 +21,8 @@
 /// of PAL mode, so a poll runs in interrupt context. Polls are called in
 /// ascending order of their registration ids, after the voices have been
 /// ticked; SPU attribute changes a poll queues are sent at the end of the
-/// same update. An update that arrives while a registration is being added
-/// or removed calls no poll at all.
+/// same update. An update that arrives while the poll-list gate is clear calls
+/// no poll. Sorted insertion releases that gate before its final link stores.
 ///
 /// The game registers three: the MIDI sequencer and the sound-script driver,
 /// which never leave and take no argument, and a one-shot that counts the
@@ -30,12 +30,12 @@
 /// to, then raises the reverb depth from zero and leaves.
 typedef s32 (*AudioTickPoll)(s32* arg);
 
-/// Notifies a per-frame audio callback's owner that its registration has ended.
+/// Notifies an audio poll's owner that its registration has ended.
 ///
 /// An optional companion to `AudioTickPoll`, supplied with it at registration
 /// and NULL when the owner needs no notice. It runs once, when the poll asks
-/// to be removed, before the registration leaves the list and while per-frame
-/// processing is held off. It is handed nothing - not the poll's argument, nor
+/// to be removed, before the registration leaves the list and while polling
+/// is held off. It is handed nothing - not the poll's argument, nor
 /// the registration - so an owner must find its own state, and its result is
 /// not used. Every registration in the game passes NULL.
 typedef void (*AudioTickOnRemove)(void);
@@ -124,6 +124,13 @@ enum {
 
 // Sequence table preallocation size in bytes; reused layouts must fit the retained block.
 enum { SOUND_BANK_SEQUENCE_TABLE_BYTES = 0x582 };
+
+// Resident descriptor/map extents and the signed map's unmapped-type sentinel.
+enum {
+    SOUND_BANK_DESCRIPTOR_COUNT = 16,
+    SOUND_BANK_TYPE_COUNT       = 16,
+    SOUND_BANK_SLOT_UNSUPPORTED = -1
+};
 
 /// Runtime sound-bank descriptor: program/layer tables and their SPU sample pool.
 ///

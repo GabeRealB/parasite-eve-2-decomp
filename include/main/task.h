@@ -37,6 +37,21 @@ enum {
     TASK_BANK8_BURST_MODEL_PART_SLOT = 5,
 };
 
+/// Complete extent of the shared bank-2 table and its caller-selected model slot.
+enum {
+    TASK_BANK2_DESCRIPTOR_COUNT      = 17,
+    TASK_BANK2_BURST_MODEL_PART_SLOT = 16
+};
+
+/// Resident table shared by banks 2 and 11..13 for CAP, pad, room and model-part tasks.
+///
+/// Slots 0..16 have program lifetime; there is no terminator. Before spawning
+/// `EFFECT_BODY_CHUNK`, publish the borrowed TmdSource in slot
+/// `TASK_BANK2_BURST_MODEL_PART_SLOT`'s `data.model`. The spawn reads it
+/// synchronously; the source and its overlay must outlive the new model.
+/// Other slots require their selected callback code to remain loaded.
+extern TaskDesc gTaskBank2Descs[TASK_BANK2_DESCRIPTOR_COUNT];
+
 /// Resident bank 8: five teardown stubs and one caller-selected flying model part.
 ///
 /// Slots 0..5 have program lifetime. Before spawning EFFECT_BURST_BODY_PART_BANK8,
