@@ -632,9 +632,9 @@ s32 streamReadSceneImageSector(s32 unused0, s32 unused1)
         default:                                                                                        \
             break;                                                                                      \
         case STREAM_SCENE_BUFFER_ACTOR_0:                                                               \
-            D_80114D10 = (u8*)Fs_ActorLoadBase0;                                                        \
+            D_80114D10 = gFsActorBuffer0Base;                                                           \
             if ((queue)->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {          \
-                D_80114D10 = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;                           \
+                D_80114D10 = gFsActorBuffer0Base + STREAM_VLC_TABLE_BYTES;                              \
             }                                                                                           \
             if ((queue)->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) { \
                 D_80114D10 += (queue)->sceneStream->data.scene.timingBufferBytes;                       \

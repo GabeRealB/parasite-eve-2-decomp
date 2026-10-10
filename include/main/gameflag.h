@@ -64,8 +64,13 @@ extern GameFlagMineShelterBank gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_CO
 /// The B6 nursery and growth room share slot 21.
 extern GameFlagNeoArkBank gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_COUNT];
 
-/// Live stage headers, indexed by GameLocationKey.stage (1..5; slot 0 is NULL).
-extern GameFlagStageHeader* Gp_FlagBanks[6];
+/// Resident directory of live visited-area headers, indexed by stage ID.
+///
+/// Slots 1..5 borrow the live Acropolis, Dryfield, Dryfield-night, mine/Shelter
+/// and Shelter/Neo Ark headers; slot 0 is NULL. Map and area-visit code updates
+/// or reads the two visited-area words through these stable pointers. Night
+/// visits have their own header even though day and night share area records.
+extern GameFlagStageHeader* gGameFlagStageHeaders[6];
 
 /// Writes a four-bit game-flag value in the current session's save bank.
 ///

@@ -142,7 +142,7 @@ void waterDistortBandTask(Task* task)
     if (areaId == GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL && location->variant == 3) {
         freeBytes   = WATER_DISTORT_ACTOR_ARENA_BYTES - Fs_ChunkOutputSizes[0];
         freeBytes  &= ~7;
-        packetBytes = (u8*)Fs_ActorLoadBase0 - (freeBytes - WATER_DISTORT_ACTOR_ARENA_BYTES);
+        packetBytes = gFsActorBuffer0Base - (freeBytes - WATER_DISTORT_ACTOR_ARENA_BYTES);
         if (freeBytes < sizeof(POLY_FT4) * WATER_DISTORT_PACKETS_PER_BUFFER * 2) {
             return;
         }

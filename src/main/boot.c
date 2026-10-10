@@ -76,7 +76,7 @@ extern u8 D_80400000[];
 
 /// Fixed byte address of actor work buffer 0 (actor-overlay slot 1).
 ///
-/// Initializes `Fs_ActorLoadBase0`. Actor packages, scene/movie workspaces
+/// Initializes `gFsActorBuffer0Base`. Actor packages, scene/movie workspaces
 /// and GPU packets share this RAM; previous users must finish before reuse.
 /// The address specifies no object layout, capacity or reservation.
 #define FILE_SYSTEM_ACTOR_BUFFER_0_BASE ((u8*)0x80131E20)
@@ -112,7 +112,7 @@ static const char _gBootBuildStamp[sizeof("2000/05/01 19:24 ver2.49")] = "2000/0
 FsImgBuffers* gFsImageWorkspacePtr = &gFsImageWorkspace;
 /// Unreferenced.
 static void* Mem_UnusedTopRamPointer = D_801FD000;
-void*        Fs_ActorLoadBase0       = FILE_SYSTEM_ACTOR_BUFFER_0_BASE;
+u8*          gFsActorBuffer0Base     = FILE_SYSTEM_ACTOR_BUFFER_0_BASE;
 u8*          gFsActorBuffer1Base     = FILE_SYSTEM_ACTOR_BUFFER_1_BASE;
 u8*          gFsActorBuffer2Base     = FILE_SYSTEM_ACTOR_BUFFER_2_BASE;
 /// Retained unused byte pointer to development RAM address 0x80400000.

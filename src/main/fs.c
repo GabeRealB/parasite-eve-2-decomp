@@ -976,7 +976,7 @@ static u8 _fsReadChunkPayloadSector(void)
             } else if (D5B498_8006D748 != FILE_SYSTEM_STREAM_DECODE_NEEDS_INPUT || (u32)Fs_ReqSector >= (u32)_gFsPayloadEndSector) {
                 switch (D5B498_8006ADF4 - 1) {
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE0:
-                        Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase0;
+                        Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - gFsActorBuffer0Base;
                         break;
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE1:
                         Fs_ChunkOutputSizes[1] = Fs_ChunkWritePtr - gFsActorBuffer1Base;
@@ -988,14 +988,14 @@ static u8 _fsReadChunkPayloadSector(void)
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE0_INVALIDATE_BASE1:
                         outputSizes            = Fs_ChunkOutputSizes;
                         outputSizes[1]         = FILE_SYSTEM_PACKAGE_OUTPUT_PENDING_BYTES;
-                        Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase0;
+                        Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - gFsActorBuffer0Base;
                         break;
                     case FILE_SYSTEM_PACKAGE_OUTPUT_BASE0_INVALIDATE_OTHERS: {
                         s32* pendingOutputSizes;
                         pendingOutputSizes     = Fs_ChunkOutputSizes;
                         pendingOutputSizes[1]  = FILE_SYSTEM_PACKAGE_OUTPUT_PENDING_BYTES;
                         pendingOutputSizes[2]  = FILE_SYSTEM_PACKAGE_OUTPUT_PENDING_BYTES;
-                        Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - (u8*)Fs_ActorLoadBase0;
+                        Fs_ChunkOutputSizes[0] = Fs_ChunkWritePtr - gFsActorBuffer0Base;
                         break;
                     }
                 }

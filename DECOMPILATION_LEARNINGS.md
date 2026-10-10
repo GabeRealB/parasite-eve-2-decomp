@@ -6360,7 +6360,7 @@ register Task* keep asm("a0");
 keep        = arg0;
 color       = 0x5D7;
 session     = gGameSession;
-banks       = Gp_FlagBanks;
+banks       = gGameFlagStageHeaders;
 shapeTables = (keep, Gp_MapMarkTables);
 ```
 
@@ -8823,7 +8823,7 @@ Match with an unsigned counter and a `do`/`while` (`asyncCbReset`):
 u32 i;
 s32* ptr;
 
-ptr = AsyncCb_Queue;
+ptr = (s32*)&_gAsyncCbQueue;
 i = 0;
 do {
     *ptr = 0;
@@ -11902,7 +11902,7 @@ the `s32` + `(s8)` form.
 
 `_gSndBankSlots` is a `SndBankSlot[16]` array (stride `0x10`, via
 `sndBankSlotGet` / `sndBankSlotReleaseImage`). `_sndVoiceAlloc` indexes the separate
-`SndScript_Voices[8]` array (stride `0x40`) by `spuVoiceIndex - SOUND_SCRIPT_FIRST_SPU_VOICE`: SPU voices
+`_gSndScriptVoices[8]` array (stride `0x40`) by `spuVoiceIndex - SOUND_SCRIPT_FIRST_SPU_VOICE`: SPU voices
 `0..15` belong to the MIDI sequencer, and scripts allocate voices `16..23`.
 The current declaration and access express those separate arrays directly;
 no `SndVoice*` cast of `_gSndBankSlots` remains. Preserve each array's own
@@ -14850,11 +14850,11 @@ operand order:
 
 ```c
 /* Matches: sll v0,v0,1 ; addu s0,v0,v1  (offset then base) */
-temp  = ((D_80062738 + product) & 0xFFFF) * 2;
+temp  = ((_gStageMusicColumn + product) & 0xFFFF) * 2;
 entry = (StageMusicEntry*)(temp + (s32)D_8006273C[idx]);
 
 /* Mismatches: addu s0,v1,v0 */
-entry = D_8006273C[idx] + ((D_80062738 + product) & 0xFFFF);
+entry = D_8006273C[idx] + ((_gStageMusicColumn + product) & 0xFFFF);
 ```
 
 `stageMusicRequestAreaStop` is the pure example. Pair with a `register ... asm("v1")` pin
@@ -23039,7 +23039,7 @@ D5B498_8006C234 = t;          /* sb of low 8 bits; li stays -3 */
 ## Force 3-way `%hi` s-reg order: pin + `lui` asm, then `%lo` accesses
 
 When three loop-live globals need a fixed s-reg coloring for split-address
-form (e.g. target `s5=Stage_CdEntry`, `s7=Fs_ChunkMode`, `s6=D5B498_8006C233`)
+form (e.g. target `s5=_gMdecSceneImageHeader`, `s7=Fs_ChunkMode`, `s6=D5B498_8006C233`)
 but natural allocation rotates them, pin and materialise with one asm block,
 then do every load/store through those his:
 
@@ -23049,12 +23049,12 @@ register s32 hiMode asm("s7");
 register s32 hi233 asm("s6");
 register s32 hi364 asm("s4");
 __asm__ volatile(
-    "lui %0, %%hi(Stage_CdEntry)\n\t"
+    "lui %0, %%hi(_gMdecSceneImageHeader)\n\t"
     "lui %1, %%hi(Fs_ChunkMode)\n\t"
     "lui %2, %%hi(D5B498_8006C233)\n\t"
-    "lui %3, %%hi(Mdec_DecodeBase)"
+    "lui %3, %%hi(_gMdecScenePayloadBase)"
     : "=&r"(hi368), "=&r"(hiMode), "=&r"(hi233), "=r"(hi364));
-/* loads: */  __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)" : "=r"(base) : "r"(hi368));
+/* loads: */  __asm__ volatile("lw %0, %%lo(_gMdecSceneImageHeader)(%1)" : "=r"(base) : "r"(hi368));
 /* stores with branch-delay `li`: use tab-noreorder */
 __asm__ volatile(
     ".set\tnoreorder\n\t"
@@ -23148,7 +23148,7 @@ stolen into an earlier delay slot. `_sndLoadComplete` is the pure example.
 
 ## spuGetVoiceRef: dual `lhu`/`lh` count + keep `$a0` for `sb`
 
-Leaf that looks up or allocates into `Spu_LVoiceTable` (stride `0x44` =
+Leaf that looks up or allocates into `_gSpuVoiceUpdateList` (stride `0x44` =
 `sizeof(SpuLVoiceAttr)`). Target keeps the voice id in `$a0` for every
 `sb …,0(a1)` while sign-extending a copy into `$a3` for indexing, and loads
 `count` twice (`lhu` for the +1 store, `lh` for the `*0x44` index). Pure C
@@ -23163,7 +23163,7 @@ Most of the leaf is ordinary C with s-reg pins (`t1` base, `a2` slot/count,
 
 1. Prologue: `lui $v1` / `addiu $t1` plus `sll $v0,$4,24` / `sra $a3,$v0,24`
    so the voice id stays in `$a0` for later `sb` (a C `(s8)` extend renames `$a0`).
-2. Alloc count: `lhu` then `lh` of `Spu_LVoiceTable` via the kept `%hi` in `$v1`.
+2. Alloc count: `lhu` then `lh` of `_gSpuVoiceUpdateList` via the kept `%hi` in `$v1`.
 3. Alloc tail: noreorder `*0x44` / `sh voiceNum` / `addiu count+1` / attr `+8`
    — pure C reorders `count+1` ahead of the entry pointer and clobbers `$t1`.
 
@@ -65992,10 +65992,10 @@ with `lb`) and `updates->count`.
 In the allocation arm, write `slot = updates->count; updates->count++;` as
 separate statements. The `s16 count = updates->count++` version emitted an
 `lhu` followed by sign-extension shifts; the s32 version emits the target's
-separate `lhu` and `lh`. Keep `_SpuVoiceUpdateList* updates = &Spu_LVoiceTable`
+separate `lhu` and `lh`. Keep `_SpuVoiceUpdateList* updates = &_gSpuVoiceUpdateList`
 local to the inline helper. In the existing-slot arm, stage
 `queuedEntry = &updates->attrs[slot - 1]` then use `&queuedEntry->attr`; direct
-`&Spu_LVoiceTable.attrs[slot - 1].attr` hoisted extra base addresses across
+`&_gSpuVoiceUpdateList.attrs[slot - 1].attr` hoisted extra base addresses across
 the outer loop and grew the saved-register set.
 
 Pass the outer s32 index directly into the inline release helper, whose

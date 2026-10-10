@@ -195,8 +195,8 @@ static void _streamAssignMovieBuffers(const GameLocationKey* location)
     gCdCmdQueue.field_24A        = 0;
     gCdCmdQueue.movieVramStaging = 0;
     D_8006AC24                   = STREAM_MOVIE_TEXTURE_RING_SECTORS;
-    D_8006AC38                   = Fs_ActorLoadBase0;
-    D_8006AC60                   = (u16*)((u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES);
+    D_8006AC38                   = (u16*)gFsActorBuffer0Base;
+    D_8006AC60                   = (u16*)(gFsActorBuffer0Base + STREAM_VLC_TABLE_BYTES);
     D_8006AC64                   = D_8006AC40;
 
     switch ((s8)(location->stage + 1)) {

@@ -46,7 +46,13 @@ extern FsResourceSlot D_8006C338[50];
 
 extern s8 D5B498_8006C234;
 
-extern void* Fs_ActorLoadBase0;
+/// Published byte base of actor-overlay slot 1 at 0x80131E20.
+///
+/// Actor packages, streamed payloads, VLC tables, timing words and GPU packets
+/// borrow overlapping RAM here. The base supplies neither a single layout nor
+/// a capacity; each user must establish its reservation and alignment, exclude
+/// other occupants and finish previous CPU, GPU and decoder uses before reuse.
+extern u8* gFsActorBuffer0Base;
 
 /// Published byte base of actor-overlay slot 2 at 0x80149E20.
 ///

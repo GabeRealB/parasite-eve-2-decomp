@@ -102,7 +102,7 @@ title	optional	attract demo = scene	801000,801100,801200 by demo scene - 1	0	0	C
 # --- uploads without a queued file ---
 # src/main/fs.c:1517 fsScanIsoDirectory(bootMode 1): at cold boot the ISO file INIT.BS (16 sectors, not a
 #   stage-zero file) is read as a background payload and MDEC-decoded as the startup image (boot.c:269, 274).
-# src/main/stage.c:1233..1261 _mdecStepSceneImageDecode: a streamed scene's payload (Stage_CdEntry) carries its own
+# src/main/stage.c:1233..1261 _mdecStepSceneImageDecode: a streamed scene's payload, described by _gMdecSceneImageHeader, carries its own
 #   strip lists and image chunks; where its relocate flags are set the code itself sets Fs_ChunkMode = 2 with
 #   D5B498_8006C233 = -8 (strip lists) or D5B498_8006C234 = -3 (image chunks), the MENU profile's numbers, then
 #   resets them. The data comes from the stream, not from a stage-zero file.

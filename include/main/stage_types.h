@@ -3,6 +3,12 @@
 
 #include "common.h"
 
+/// Values of the resident stage-music request completion byte; storage is u8.
+enum {
+    STAGE_MUSIC_LOAD_ACTIVE = 0,
+    STAGE_MUSIC_LOAD_IDLE   = 0xFF,
+};
+
 /// How a stage music task disposes of the song it replaces.
 ///
 /// A requester fills this in and then spawns the task, which reads it once

@@ -119,7 +119,7 @@ enum { GAME_FLAG_ACROPOLIS_BANK_BYTES = 0x6C };
 /// Checksummed save bank for `GAME_STAGE_ACROPOLIS`.
 ///
 /// That stage is Akropolis Tower together with the MIST areas reached from
-/// it. The live header is the `Gp_FlagBanks` entry for the stage, and the
+/// it. The live header is the `gGameFlagStageHeaders` entry for the stage, and the
 /// Akropolis map reads this bank's object-state words. The stage area table
 /// addresses `areas`: a slot's index is the area id minus one up to
 /// `GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD`, and the area id minus two for
@@ -142,7 +142,7 @@ enum { GAME_FLAG_DRYFIELD_BANK_BYTES = 0xB0 };
 
 /// Checksummed save bank for Dryfield by day (`GAME_STAGE_DRYFIELD`).
 ///
-/// The live header is the `Gp_FlagBanks` entry for that stage. Dryfield by
+/// The live header is the `gGameFlagStageHeaders` entry for that stage. Dryfield by
 /// night (`GAME_STAGE_DRYFIELD_NIGHT`) keeps its own stage header in
 /// `GameFlagDryfieldNightBank`. Night area tables and night object-state words
 /// address this live bank. Where the day and night tables both have a record
@@ -165,7 +165,7 @@ enum { GAME_FLAG_DRYFIELD_NIGHT_BANK_BYTES = 0x24 };
 
 /// Checksummed save bank for Dryfield by night (`GAME_STAGE_DRYFIELD_NIGHT`).
 ///
-/// The live header is the `Gp_FlagBanks` entry for that stage, so night areas
+/// The live header is the `gGameFlagStageHeaders` entry for that stage, so night areas
 /// set their visited bits here; the night map also shows areas visited by day.
 /// The bank holds no area records. Night area tables and night object-state
 /// words address `GameFlagDryfieldBank`, so this header's object-state words
@@ -186,7 +186,7 @@ enum { GAME_FLAG_MINE_SHELTER_BANK_BYTES = 0xE4 };
 ///
 /// That stage is the mine together with the Shelter from B1 to B4; the
 /// Shelter's 1F and B6 belong to `GameFlagNeoArkBank`. The live header is the
-/// `Gp_FlagBanks` entry for the stage, and the Shelter map reads this bank's
+/// `gGameFlagStageHeaders` entry for the stage, and the Shelter map reads this bank's
 /// object-state words. The stage area table addresses `areas`: a slot's index
 /// is the area id minus one, except `GAME_AREA_SHELTER_R49`, which shares the
 /// refuge's slot 5. `GAME_AREA_SHELTER_R37` and
@@ -209,7 +209,7 @@ enum { GAME_FLAG_NEO_ARK_BANK_BYTES = 0xA4 };
 /// Checksummed save bank for `GAME_STAGE_SHELTER_NEO_ARK`.
 ///
 /// That stage is the Shelter's 1F and B6 together with the Neo Ark. The live
-/// header is the `Gp_FlagBanks` entry for the stage, and the Neo Ark map reads
+/// header is the `gGameFlagStageHeaders` entry for the stage, and the Neo Ark map reads
 /// this bank's object-state words. The stage area table addresses `areas`. A
 /// slot's index is the area id minus one, except
 /// `GAME_AREA_SHELTER_B6_GROWTH_ROOM`, which shares the nursery's slot. Slots

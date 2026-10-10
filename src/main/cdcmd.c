@@ -114,7 +114,7 @@ void* cdCmdReservePlaybackBuffers(void)
                     break;
                 case STREAM_VLC_BUFFER_ACTOR_0:
                     gGameSession->field_7C = 0;
-                    queue->vlcTable        = Fs_ActorLoadBase0;
+                    queue->vlcTable        = (u16*)gFsActorBuffer0Base;
                     break;
                 case STREAM_VLC_BUFFER_ACTOR_1:
                     gGameSession->field_7E = 0;
@@ -142,9 +142,9 @@ void* cdCmdReservePlaybackBuffers(void)
                 break;
             case STREAM_TIMING_BUFFER_ACTOR_0:
                 gGameSession->field_7C = 0;
-                queue->timingBuffer    = Fs_ActorLoadBase0;
+                queue->timingBuffer    = (u32*)gFsActorBuffer0Base;
                 if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
-                    queue->timingBuffer = (u32*)((u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES);
+                    queue->timingBuffer = (u32*)(gFsActorBuffer0Base + STREAM_VLC_TABLE_BYTES);
                 }
                 break;
             case STREAM_TIMING_BUFFER_ACTOR_1:
@@ -1121,7 +1121,7 @@ void cdCmdPrepareViewMovie(void)
 {
     gCdCmdQueue.movieFrame = 1;
     if (streamHasLoadedViewMovie(&gGameSession->location.loc.view) != 0) {
-        DecDCTvlcBuild(Fs_ActorLoadBase0);
+        DecDCTvlcBuild((u16*)gFsActorBuffer0Base);
         gGameSession->field_7C = 0;
     }
 }

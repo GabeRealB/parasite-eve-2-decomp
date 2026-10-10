@@ -710,7 +710,7 @@ enum {
 
 /// Other bank types.
 enum {
-    /// Stage ambient loop toggled by gStageAmbientOn; faded on restart/disk swap.
+    /// Stage ambient loop requested by stage music; faded on restart/disk swap.
     SOUND_STAGE_AMBIENT = 0x60010001,
     /// Played at the player from the CD-loaded death bank (file 9/0x1E) after a hold
     /// kill.

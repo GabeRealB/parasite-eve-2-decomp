@@ -469,13 +469,13 @@ static void _evsExecuteInterpreterTask(Task* task)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = (u8)work->command->operand0.value;
                 D_801156C9                                          = 1;
                 gStageMusicParams.fadeOutTicks                      = work->command->operand1.value;
-                gStageMusicLoadState                                = 0;
+                gStageMusicLoadState                                = STAGE_MUSIC_LOAD_ACTIVE;
                 gStageMusicParams.field_2                           = work->command->operand2.value;
                 taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD:
-                if (gStageMusicLoadState == 0) {
+                if (gStageMusicLoadState == STAGE_MUSIC_LOAD_ACTIVE) {
                     return;
                 }
                 break;

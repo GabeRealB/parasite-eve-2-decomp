@@ -39,13 +39,23 @@ static u8 _gSndOutputStereoEnabled;
 /// Unreferenced.
 static u8 D_8006EBC0[8];
 
-static SpuCommonAttr Fs_SpuAttr;
+/// Software mirror of the SPU common output attributes last submitted here.
+///
+/// Reset seeds master, CD and external-input controls. Later CD-volume writes
+/// select only the two CD gain bits in `mask`, retaining the other fields;
+/// reading this record does not query hardware. It is separate from the fade cursor.
+static SpuCommonAttr _gSpuCommonOutputAttr;
 
 static s16 D5B498_8006EBF0;
 
 static s16 D_8006EBF2;
 
-static volatile s32 D_8006EBF4;
+/// CD-input fade cursor in seven-bit gain levels (0 silent, 127 full).
+///
+/// Fade start captures the software CD gain; movie presets replace the cursor
+/// and gain together. Each fade step subtracts eight, clamps to zero and applies
+/// the level at 256 SPU register units per level. Volatile accesses are retained.
+static volatile s32 _gCdVolFadeLevel;
 
 /// Unreferenced.
 static u8 D_8006EBF8[8];
@@ -63,9 +73,9 @@ static void _cdVolSetLevel(s32 level);
 /// Other fields are retained and the separate fade cursor is unchanged.
 static inline void _cdVolApplyRegisterVolume(s16 registerVolume)
 {
-    Fs_SpuAttr.cd.volume.right = registerVolume;
-    Fs_SpuAttr.cd.volume.left  = registerVolume;
-    SpuSetCommonAttr(&Fs_SpuAttr);
+    _gSpuCommonOutputAttr.cd.volume.right = registerVolume;
+    _gSpuCommonOutputAttr.cd.volume.left  = registerVolume;
+    SpuSetCommonAttr(&_gSpuCommonOutputAttr);
 }
 
 void fsSoundBankReadyCallback(u8 interruptStatus, u8* unusedResult)
@@ -225,25 +235,25 @@ void spuResetCommonOutput(void)
         SPU_OUTPUT_INPUT_SILENT          = 0,
     };
 
-    Fs_SpuAttr.mask = SPU_OUTPUT_ALL_COMMON_ATTRIBUTES;
+    _gSpuCommonOutputAttr.mask = SPU_OUTPUT_ALL_COMMON_ATTRIBUTES;
 
     // Restore direct master gain and keep the silent CD input in the mix.
-    Fs_SpuAttr.mvol.left       = SPU_OUTPUT_MASTER_GAIN;
-    Fs_SpuAttr.mvol.right      = SPU_OUTPUT_MASTER_GAIN;
-    Fs_SpuAttr.mvolmode.left   = SPU_VOICE_DIRECT;
-    Fs_SpuAttr.mvolmode.right  = SPU_VOICE_DIRECT;
-    Fs_SpuAttr.cd.volume.left  = SPU_OUTPUT_INPUT_SILENT;
-    Fs_SpuAttr.cd.volume.right = SPU_OUTPUT_INPUT_SILENT;
-    Fs_SpuAttr.cd.reverb       = SPU_OFF;
-    Fs_SpuAttr.cd.mix          = SPU_ON;
+    _gSpuCommonOutputAttr.mvol.left       = SPU_OUTPUT_MASTER_GAIN;
+    _gSpuCommonOutputAttr.mvol.right      = SPU_OUTPUT_MASTER_GAIN;
+    _gSpuCommonOutputAttr.mvolmode.left   = SPU_VOICE_DIRECT;
+    _gSpuCommonOutputAttr.mvolmode.right  = SPU_VOICE_DIRECT;
+    _gSpuCommonOutputAttr.cd.volume.left  = SPU_OUTPUT_INPUT_SILENT;
+    _gSpuCommonOutputAttr.cd.volume.right = SPU_OUTPUT_INPUT_SILENT;
+    _gSpuCommonOutputAttr.cd.reverb       = SPU_OFF;
+    _gSpuCommonOutputAttr.cd.mix          = SPU_ON;
 
     // Disable the external input and its reverb send.
-    Fs_SpuAttr.ext.volume.left  = SPU_OUTPUT_INPUT_SILENT;
-    Fs_SpuAttr.ext.volume.right = SPU_OUTPUT_INPUT_SILENT;
-    Fs_SpuAttr.ext.reverb       = SPU_OFF;
-    Fs_SpuAttr.ext.mix          = SPU_OFF;
+    _gSpuCommonOutputAttr.ext.volume.left  = SPU_OUTPUT_INPUT_SILENT;
+    _gSpuCommonOutputAttr.ext.volume.right = SPU_OUTPUT_INPUT_SILENT;
+    _gSpuCommonOutputAttr.ext.reverb       = SPU_OFF;
+    _gSpuCommonOutputAttr.ext.mix          = SPU_OFF;
 
-    SpuSetCommonAttr(&Fs_SpuAttr);
+    SpuSetCommonAttr(&_gSpuCommonOutputAttr);
     D5B498_8006EBF0 = 0;
 }
 
@@ -296,7 +306,7 @@ u8 sndOutputIsStereo(void)
 
 void cdVolBeginFadeOut(void)
 {
-    D_8006EBF4 = (Fs_SpuAttr.cd.volume.left / CD_VOLUME_REGISTER_SCALE) & CD_VOLUME_LEVEL_MASK;
+    _gCdVolFadeLevel = (_gSpuCommonOutputAttr.cd.volume.left / CD_VOLUME_REGISTER_SCALE) & CD_VOLUME_LEVEL_MASK;
 }
 
 /// Queues drive initialization and retains its one-based cancellation handle.
@@ -346,7 +356,7 @@ static s32 _cdSyncCancelDiscInit(AsyncCbEntry* entry)
 /// This standalone entry currently has no callers.
 static s32 _cdVolGetLevel(void)
 {
-    return (Fs_SpuAttr.cd.volume.left / CD_VOLUME_REGISTER_SCALE) & CD_VOLUME_LEVEL_MASK;
+    return (_gSpuCommonOutputAttr.cd.volume.left / CD_VOLUME_REGISTER_SCALE) & CD_VOLUME_LEVEL_MASK;
 }
 
 void cdVolApplyMoviePreset(u16 presetIndex)
@@ -359,7 +369,7 @@ void cdVolApplyMoviePreset(u16 presetIndex)
     if (presetIndex >= CD_VOLUME_MOVIE_PRESET_COUNT) {
         presetIndex = CD_VOLUME_MOVIE_SILENT_PRESET;
     }
-    D_8006EBF4 = D_80068AF0[presetIndex];
+    _gCdVolFadeLevel = D_80068AF0[presetIndex];
     _cdVolSetLevel(D_80068AF0[presetIndex]);
 }
 
@@ -371,8 +381,8 @@ static void _cdVolSetLevel(s32 level)
 {
     s16 registerVolume;
 
-    Fs_SpuAttr.mask = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
-    registerVolume  = (level & CD_VOLUME_LEVEL_MASK) << CD_VOLUME_REGISTER_SHIFT;
+    _gSpuCommonOutputAttr.mask = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
+    registerVolume             = (level & CD_VOLUME_LEVEL_MASK) << CD_VOLUME_REGISTER_SHIFT;
     _cdVolApplyRegisterVolume(registerVolume);
 }
 
@@ -381,12 +391,12 @@ s32 cdVolStepFadeOut(void)
     enum { CD_VOLUME_FADE_STEP_LEVELS = 8 };
     s16 registerVolume;
 
-    D_8006EBF4 -= CD_VOLUME_FADE_STEP_LEVELS;
-    if (D_8006EBF4 < CD_VOLUME_LEVEL_SILENT) {
-        D_8006EBF4 = CD_VOLUME_LEVEL_SILENT;
+    _gCdVolFadeLevel -= CD_VOLUME_FADE_STEP_LEVELS;
+    if (_gCdVolFadeLevel < CD_VOLUME_LEVEL_SILENT) {
+        _gCdVolFadeLevel = CD_VOLUME_LEVEL_SILENT;
     }
-    Fs_SpuAttr.mask = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
-    registerVolume  = (D_8006EBF4 & CD_VOLUME_LEVEL_MASK) << CD_VOLUME_REGISTER_SHIFT;
+    _gSpuCommonOutputAttr.mask = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
+    registerVolume             = (_gCdVolFadeLevel & CD_VOLUME_LEVEL_MASK) << CD_VOLUME_REGISTER_SHIFT;
     _cdVolApplyRegisterVolume(registerVolume);
-    return D_8006EBF4;
+    return _gCdVolFadeLevel;
 }

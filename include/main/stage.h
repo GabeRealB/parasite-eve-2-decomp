@@ -5,10 +5,20 @@
 
 #include "main/stage_types.h"
 
+/// Pending outgoing-song parameters shared by all stage-music requesters.
+///
+/// Write both halfwords before spawning `Stage_MusicTaskDesc`. The selection
+/// state reads the fade from this resident block, rather than a task-local
+/// snapshot, so another request must not replace it before selection runs.
+/// The block is retained afterwards; the second halfword has no established
+/// reader or meaning.
 extern StageMusicParams gStageMusicParams;
 
-/// 0 while a music-load task runs, 0xFF once it has finished or given up; code
-/// that must wait for the music checks it.
+/// Completion status shared by stage-music tasks and their requesters.
+///
+/// `STAGE_MUSIC_LOAD_ACTIVE` (0) records loading; `STAGE_MUSIC_LOAD_IDLE`
+/// (255) records completion or abandonment. Requesters also reset this byte,
+/// so it does not establish task existence, successful loading or playback.
 extern u8 gStageMusicLoadState;
 
 /// Byte index of the active stage's selected countdown-music entry.

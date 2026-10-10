@@ -493,8 +493,12 @@ static SndBankSlot _gSndBankSlots[16];
 /// Addresses remain stable across starts, stops and bank reloads.
 static _SndScript _gSndScriptInstances[8];
 
-/// Script voices use SPU slots 16..23, after the MIDI sequencer's sixteen slots.
-static _SndVoice SndScript_Voices[8];
+/// Resident sound-script voice records indexed by hardware voice minus 16.
+///
+/// Eight stable records cover voices 16..23 in the script and shared ranges.
+/// An allocated record borrows its owner's bank bytes and script list; its SPU
+/// callback detaches it on completion or takeover. Sound boot clears the full array.
+static _SndVoice _gSndScriptVoices[8];
 
 /// Current sound-script master gain (0 silent, 127 full), shared by script instances.
 ///
@@ -510,17 +514,39 @@ static s8 _gSndScriptMasterVolume;
 /// the audio ramp clears this byte only after crossing the saved target.
 static s8 _gSndScriptUnduckedVolume;
 
-static s8 D_8008274A;
+/// Signed master-gain step per audio update (0 idle, -8 duck, +8 restore).
+///
+/// First eligible acquisition starts ducking toward 48; last release starts
+/// restoring the saved gain. Exact endpoint equality leaves the step active
+/// for one more update; boot clears it independently of request nesting.
+static s8 _gSndScriptDuckStep;
 
-static s8 D_8008274B;
+/// Sound-script reverb admission setting for notes keyed on after the change.
+///
+/// Negative requests store -1 (disabled), zero becomes 1, positive signed bytes
+/// remain unchanged. Levels 1/2 admit note thresholds up to that level; level-3
+/// notes also pass at level 2, while setting 3 admits only level-3 notes.
+static s8 _gSndScriptReverbLevel;
 
-static volatile s32 D_8008274C;
+/// Nested sound-script duck requests, independent of whether a ramp is active.
+///
+/// Acquire increments even when the gain is too low to duck. Release decrements
+/// only a positive count and the last release starts restoration if a gain was
+/// saved. Area reset and audio initialization clear the count; volatile accesses
+/// preserve the request paths' repeated reads and writes.
+static volatile s32 _gSndScriptDuckRequests;
 
-static u8 D_80068A54[];
+/// Stage reverb rows contain two literal area IDs, including retained 255 slots.
+enum {
+    SOUND_SCRIPT_REVERB_AREAS_PER_STAGE = 2,
+    SOUND_SCRIPT_REVERB_UNUSED_AREA     = 0xFF,
+};
+
+static u8 _gSndScriptHighReverbAreas[GAME_STAGE_SHELTER_NEO_ARK + 1][SOUND_SCRIPT_REVERB_AREAS_PER_STAGE];
 
 static _SndBankInitEntry Snd_BankInitTable[];
 
-static s16 SndScript_VoiceRanges[];
+static s16 _gSndScriptVoiceRangeIndices[];
 
 static void _sndBankReleaseAmbientTables(void);
 
@@ -572,13 +598,32 @@ static s32 _sndScriptApplyAdsrOverride(const SndBankHdr* image, s16 adsrOffset, 
 
 static void _sndScriptResetStageSlots(void);
 
-static u8                D_80068A54[]        = { 0xFF, 0xFF, 0xFF, 0xFF, 0x20, 0x26, 0x20, 0x26, 0x2E, 0x05, 0x1E, 0xFF };
+/// Two high-reverb area IDs per stage, indexed directly by stage 0..5.
+///
+/// A literal match selects level 2, except Mine Gorge which selects level 3
+/// before lookup. The 255 slots are retained comparisons, not skipped entries;
+/// callers should supply valid stage/area location bytes (area 255 can match).
+static u8 _gSndScriptHighReverbAreas[GAME_STAGE_SHELTER_NEO_ARK + 1][SOUND_SCRIPT_REVERB_AREAS_PER_STAGE] = {
+    [GAME_STAGE_NONE]            = { SOUND_SCRIPT_REVERB_UNUSED_AREA, SOUND_SCRIPT_REVERB_UNUSED_AREA },
+    [GAME_STAGE_ACROPOLIS]       = { SOUND_SCRIPT_REVERB_UNUSED_AREA, SOUND_SCRIPT_REVERB_UNUSED_AREA },
+    [GAME_STAGE_DRYFIELD]        = { GAME_AREA_DRYFIELD_WATER_HOLE, GAME_AREA_DRYFIELD_UNDERPASS },
+    [GAME_STAGE_DRYFIELD_NIGHT]  = { GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS },
+    [GAME_STAGE_MINE_SHELTER]    = { GAME_AREA_SHELTER_B4_WATER_SUPPLY, GAME_AREA_MINE_GORGE },
+    [GAME_STAGE_SHELTER_NEO_ARK] = { GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, SOUND_SCRIPT_REVERB_UNUSED_AREA },
+};
 static _SndBankInitEntry Snd_BankInitTable[] = {
     { 0x0002, 0x20FF, 0x00CE, 0x0210, 0x73810 },
     { 0x000E, 0xE0FF, 0x0078, 0x0168, 0x6F810 },
 };
 volatile s32 gSndBankInitializationBusy = 0;
-static s16   SndScript_VoiceRanges[]    = { 1, 2 };
+/// Ordered allocation preferences: script-exclusive voices, then shared voices.
+///
+/// These signed-halfword values index the SPU range directory, not hardware
+/// voices or range records. Their configured runs must stay within voices 16..23
+/// so the chosen hardware voice indexes the resident script-voice records.
+static s16 _gSndScriptVoiceRangeIndices[] = {
+    SPU_VOICE_RANGE_SOUND_SCRIPTS, SPU_VOICE_RANGE_SHARED
+};
 
 /// Selects the sound-script reverb setting for a stage and area.
 ///
@@ -587,14 +632,13 @@ static s16   SndScript_VoiceRanges[]    = { 1, 2 };
 /// areas select level 1. The caller supplies the unpacked location bytes.
 static inline s32 _sndScriptSelectStageReverbLevel(s32 stage, s32 area)
 {
-    enum { SOUND_SCRIPT_REVERB_AREAS_PER_STAGE = 2 };
     s32 areaIndex;
 
     if (area == GAME_AREA_MINE_GORGE && stage == GAME_STAGE_MINE_SHELTER) {
         return SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL;
     }
     for (areaIndex = 0; areaIndex < SOUND_SCRIPT_REVERB_AREAS_PER_STAGE; areaIndex++) {
-        if (D_80068A54[areaIndex + stage * SOUND_SCRIPT_REVERB_AREAS_PER_STAGE] == area) {
+        if (_gSndScriptHighReverbAreas[stage][areaIndex] == area) {
             return SOUND_SCRIPT_REVERB_HIGH_LEVEL;
         }
     }
@@ -621,7 +665,7 @@ void sndScriptResetForArea(s32 stage, s32 area)
     s32      loadMode;
 
     // Retain voice lists for deferred key-off before releasing transient images.
-    D_8008274C = 0;
+    _gSndScriptDuckRequests = 0;
     _sndScriptResetStageSlots();
     stage = stage & SOUND_SCRIPT_LOCATION_BYTE_MASK;
     _sndEvtRequestScriptKeyOff();
@@ -915,14 +959,14 @@ void audioTickInitPlayback(void)
     audioTickInsert(_sndScriptTickSlots, NULL, AUDIO_TICK_ID_SOUND_SCRIPTS, NULL);
 
     // Reset upward character allocation and downward type-1/area allocation.
-    D_80082130 = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
-    D_80082128 = SOUND_LOAD_COMMON_SAMPLE_BASE;
-    D_80082124 = D_80082128;
-    D_80082122 = 0;
-    D_8008212C = 0;
-    D_80082135 = SOUND_LOAD_CHARACTER_RESTART_NONE;
-    D_80082121 = SOUND_LOAD_CHARACTER_RESTART_NONE;
-    D_8008274C = 0;
+    D_80082130              = SOUND_LOAD_CHARACTER_SAMPLE_BASE;
+    D_80082128              = SOUND_LOAD_COMMON_SAMPLE_BASE;
+    D_80082124              = D_80082128;
+    D_80082122              = 0;
+    D_8008212C              = 0;
+    D_80082135              = SOUND_LOAD_CHARACTER_RESTART_NONE;
+    D_80082121              = SOUND_LOAD_CHARACTER_RESTART_NONE;
+    _gSndScriptDuckRequests = 0;
 }
 
 /// Stamps the loaded type-1 script bank onto a request whose top nibble is 1.
@@ -1392,21 +1436,21 @@ static void _sndScriptStepDucking(void)
     s8  unduckedVolume;
 
     masterVolume = sndScriptGetMasterVolume();
-    if (D_8008274A > 0) {
-        masterVolume   = masterVolume + D_8008274A;
+    if (_gSndScriptDuckStep > 0) {
+        masterVolume   = masterVolume + _gSndScriptDuckStep;
         unduckedVolume = (u8)_gSndScriptUnduckedVolume;
         if (unduckedVolume < masterVolume) {
             if (unduckedVolume != 0) {
                 masterVolume              = unduckedVolume;
                 _gSndScriptUnduckedVolume = 0;
             }
-            D_8008274A = 0;
+            _gSndScriptDuckStep = 0;
         }
-    } else if (D_8008274A < 0) {
-        masterVolume = masterVolume + D_8008274A;
+    } else if (_gSndScriptDuckStep < 0) {
+        masterVolume = masterVolume + _gSndScriptDuckStep;
         if (masterVolume < SOUND_SCRIPT_DUCK_LEVEL) {
-            masterVolume = SOUND_SCRIPT_DUCK_LEVEL;
-            D_8008274A   = 0;
+            masterVolume        = SOUND_SCRIPT_DUCK_LEVEL;
+            _gSndScriptDuckStep = 0;
         }
     }
     sndScriptSetMasterVolume(masterVolume);
@@ -1440,7 +1484,7 @@ static s32 _sndScriptTickSlots(s32* unused)
     s8            mixStep;
     s16           nextAttenuation;
 
-    if (D_8008274A != 0) {
+    if (_gSndScriptDuckStep != 0) {
         _sndScriptStepDucking();
     }
 
@@ -1768,14 +1812,14 @@ static inline u8 _sndScriptUseReverb(const _SndScriptNote* note)
 {
     s32 reverbEnabled;
 
-    if (note->reverbLevel == SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL && D_8008274B >= SOUND_SCRIPT_REVERB_HIGH_LEVEL) {
+    if (note->reverbLevel == SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL && _gSndScriptReverbLevel >= SOUND_SCRIPT_REVERB_HIGH_LEVEL) {
         reverbEnabled = 1;
-    } else if (note->reverbLevel != SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL && D_8008274B == SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL) {
+    } else if (note->reverbLevel != SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL && _gSndScriptReverbLevel == SOUND_SCRIPT_REVERB_EXCLUSIVE_LEVEL) {
         reverbEnabled = 0;
     } else {
         reverbEnabled = 0;
         if (note->reverbLevel >= 0) {
-            reverbEnabled = D_8008274B >= note->reverbLevel;
+            reverbEnabled = _gSndScriptReverbLevel >= note->reverbLevel;
         }
     }
     return reverbEnabled;
@@ -2222,14 +2266,14 @@ void sndScriptAcquireDuck(void)
 {
     s8 masterVolume;
 
-    D_8008274C += 1;
-    if (D_8008274C == 1) {
-        if (D_8008274A == 0) {
+    _gSndScriptDuckRequests += 1;
+    if (_gSndScriptDuckRequests == 1) {
+        if (_gSndScriptDuckStep == 0) {
             if (_gSndScriptUnduckedVolume == 0) {
                 masterVolume = sndScriptGetMasterVolume();
                 if (masterVolume >= SOUND_SCRIPT_DUCK_LEVEL) {
                     _gSndScriptUnduckedVolume = masterVolume;
-                    D_8008274A                = -SOUND_SCRIPT_DUCK_STEP;
+                    _gSndScriptDuckStep       = -SOUND_SCRIPT_DUCK_STEP;
                 }
             }
         }
@@ -2238,11 +2282,11 @@ void sndScriptAcquireDuck(void)
 
 void sndScriptReleaseDuck(void)
 {
-    if (D_8008274C > 0) {
-        D_8008274C -= 1;
-        if (D_8008274C == 0) {
+    if (_gSndScriptDuckRequests > 0) {
+        _gSndScriptDuckRequests -= 1;
+        if (_gSndScriptDuckRequests == 0) {
             if (_gSndScriptUnduckedVolume != 0) {
-                D_8008274A = SOUND_SCRIPT_DUCK_STEP;
+                _gSndScriptDuckStep = SOUND_SCRIPT_DUCK_STEP;
             }
         }
     }
@@ -2277,9 +2321,9 @@ static void _sndScriptInit(void)
 {
     _sndScriptClearWords(_gSndScriptInstances, sizeof(_gSndScriptInstances) / sizeof(s32));
     _sndScriptClearWords(_gSndBankSlots, sizeof(_gSndBankSlots) / sizeof(s32));
-    _sndScriptClearWords(SndScript_Voices, sizeof(SndScript_Voices) / sizeof(s32));
+    _sndScriptClearWords(_gSndScriptVoices, sizeof(_gSndScriptVoices) / sizeof(s32));
 
-    D_8008274A                = 0;
+    _gSndScriptDuckStep       = 0;
     _gSndScriptUnduckedVolume = 0;
     sndScriptSetMasterVolume(SOUND_SCRIPT_VOLUME_UNITY);
     _sndScriptSetReverbLevel(SOUND_SCRIPT_REVERB_DEFAULT_LEVEL);
@@ -2293,12 +2337,12 @@ static void _sndScriptInit(void)
 static void _sndScriptSetReverbLevel(s8 reverbLevel)
 {
     if (reverbLevel < 0) {
-        D_8008274B = SOUND_SCRIPT_REVERB_DISABLED;
+        _gSndScriptReverbLevel = SOUND_SCRIPT_REVERB_DISABLED;
         return;
     }
-    D_8008274B = reverbLevel;
+    _gSndScriptReverbLevel = reverbLevel;
     if (reverbLevel == 0) {
-        D_8008274B = SOUND_SCRIPT_REVERB_DEFAULT_LEVEL;
+        _gSndScriptReverbLevel = SOUND_SCRIPT_REVERB_DEFAULT_LEVEL;
     }
 }
 
@@ -2616,12 +2660,12 @@ static _SndVoice* _sndVoiceAlloc(s32 voicePriority)
     s32        spuVoiceIndex;
     _SndVoice* voice;
 
-    spuVoiceIndex = (s8)spuAllocVoice(SndScript_VoiceRanges, ARRAY_SIZE(SndScript_VoiceRanges), voicePriority & SOUND_SCRIPT_VOICE_PRIORITY_MASK);
+    spuVoiceIndex = (s8)spuAllocVoice(_gSndScriptVoiceRangeIndices, ARRAY_SIZE(_gSndScriptVoiceRangeIndices), voicePriority & SOUND_SCRIPT_VOICE_PRIORITY_MASK);
     if (spuVoiceIndex < 0) {
         return NULL;
     }
     /* Ranges 1 and 2 cover hardware voices 16..23. */
-    voice           = &SndScript_Voices[spuVoiceIndex - SOUND_SCRIPT_FIRST_SPU_VOICE];
+    voice           = &_gSndScriptVoices[spuVoiceIndex - SOUND_SCRIPT_FIRST_SPU_VOICE];
     voice->spuVoice = spuVoiceIndex;
     spuSetVoiceCallback(spuVoiceIndex, _sndVoiceDetach, voice);
     voice->allocated = 1;

@@ -1465,7 +1465,7 @@ static void _menuMapDrawAreas(const Task* mapTask)
 
     scaleQ12    = MENU_MAP_AREA_DEFAULT_SCALE_Q12;
     session     = gGameSession;
-    banks       = Gp_FlagBanks;
+    banks       = gGameFlagStageHeaders;
     shapeTables = Gp_MapMarkTables;
     stage       = session->location.loc.stage;
     mapObject   = mapTask->spawnArg2.pointer;
@@ -1623,7 +1623,7 @@ static void _menuMapDrawFlagMarkers(const Task* mapTask)
     stage       = gGameSession->location.loc.stage;
     mapObject   = mapTask->spawnArg2.pointer;
     markers     = D_8010F0E0[stage - 1];
-    flagBank    = Gp_FlagBanks[stage];
+    flagBank    = gGameFlagStageHeaders[stage];
     // Marker visibility uses this stage's visit bits without merging daytime visits.
     visited[0] = flagBank->visitedAreas[0];
     visited[1] = flagBank->visitedAreas[1];
@@ -1847,7 +1847,7 @@ static s8 _menuMapPageIsAvailable(u32 page, u8 flagId)
     s32                  bitSeed;
     s32                  noPage;
 
-    bank = Gp_FlagBanks[gGameSession->location.loc.stage];
+    bank = gGameFlagStageHeaders[gGameSession->location.loc.stage];
     if (gGameSession->location.loc.stage != GAME_STAGE_SHELTER_NEO_ARK) {
         if (flagId != MENU_MAP_PAGE_FLAG_END) {
             if (flagId == MENU_MAP_PAGE_FLAG_UNAVAILABLE) {
@@ -1862,7 +1862,7 @@ static s8 _menuMapPageIsAvailable(u32 page, u8 flagId)
             visited[1] = bank->visitedAreas[1];
             areaIndex  = 0;
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
-                bank        = Gp_FlagBanks[GAME_STAGE_DRYFIELD];
+                bank        = gGameFlagStageHeaders[GAME_STAGE_DRYFIELD];
                 visited[0] |= bank->visitedAreas[0];
                 visited[1] |= bank->visitedAreas[1];
             }

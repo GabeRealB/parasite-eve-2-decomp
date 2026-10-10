@@ -107,8 +107,11 @@ typedef struct {
 } _AsyncCbQueue;
 STATIC_ASSERT_SIZEOF(_AsyncCbQueue, 0x54);
 
-/// The SPU ADPCM block uploaded to SPU address 0x7B440 at start-up.
-static _AsyncCbQueue AsyncCb_Queue;
+/// Resident asyncCb job ring, holding at most three live jobs in four slots.
+///
+/// Callback polling and cancellation borrow its entries until retirement;
+/// reset clears the full storage only when existing jobs no longer need it.
+static _AsyncCbQueue _gAsyncCbQueue;
 
 /// Resident allocation and completion state for all 24 hardware voices.
 ///
@@ -121,9 +124,15 @@ static _SpuVoiceState _gSpuVoiceState;
 /// Unreferenced.
 static u8 D_8007E510[8];
 
-static _SpuVoiceUpdateList Spu_LVoiceTable;
+/// Resident pending voice-attribute batch; references expire at the next flush.
+static _SpuVoiceUpdateList _gSpuVoiceUpdateList;
 
-static _SpuVoiceRange Spu_VoiceRanges[4];
+/// Registered hardware-voice runs, indexed by `SPU_VOICE_RANGE_*` (0..3).
+///
+/// Zero-initialized counts disable unregistered ranges. Clients replace these
+/// signed-halfword runs during sound initialization; runs may overlap and must
+/// stay within hardware voices 0..23. Allocation does not check range indices.
+static _SpuVoiceRange _gSpuVoiceRanges[SPU_VOICE_RANGE_CD_STREAM + 1];
 
 /// Pending ordinary or silent-block key-ons, with one bit per voice 0..23.
 ///
@@ -146,7 +155,11 @@ static u32 _gSpuPendingStreamKeyOnMask;
 /// and empties this mask before sending the new key-ons.
 static u32 _gSpuPendingKeyOffMask;
 
-static _SpuReverbConfig Spu_ReverbCfg;
+/// Resident batch of pending reverb routing, mode and stereo-depth changes.
+///
+/// Requests accumulate until the audio flush applies and clears their masks.
+/// Startup applies attributes immediately without seeding `activeMode`.
+static _SpuReverbConfig _gSpuReverbConfig;
 
 static u8 Spu_InitialAdpcmBlock[];
 
@@ -213,9 +226,9 @@ void asyncCbPoll(void)
     AsyncCbEntry* entry;
     s8            readIdx;
 
-    readIdx = AsyncCb_Queue.readIdx;
-    if (AsyncCb_Queue.writeIdx != readIdx) {
-        entry = &AsyncCb_Queue.entries[readIdx];
+    readIdx = _gAsyncCbQueue.readIdx;
+    if (_gAsyncCbQueue.writeIdx != readIdx) {
+        entry = &_gAsyncCbQueue.entries[readIdx];
         if (entry->status.active) {
             if (entry->pollFn(entry) != 0) {
                 if (entry->doneFn != NULL) {
@@ -223,8 +236,8 @@ void asyncCbPoll(void)
                 }
                 entry->status.active    = 0;
                 entry->status.cancelled = 0;
-                if (++AsyncCb_Queue.readIdx >= ARRAY_SIZE(AsyncCb_Queue.entries)) {
-                    AsyncCb_Queue.readIdx = 0;
+                if (++_gAsyncCbQueue.readIdx >= ARRAY_SIZE(_gAsyncCbQueue.entries)) {
+                    _gAsyncCbQueue.readIdx = 0;
                 }
             }
         } else {
@@ -239,8 +252,8 @@ void asyncCbPoll(void)
                 }
             }
             entry->status.cancelled = 0;
-            if (++AsyncCb_Queue.readIdx >= ARRAY_SIZE(AsyncCb_Queue.entries)) {
-                AsyncCb_Queue.readIdx = 0;
+            if (++_gAsyncCbQueue.readIdx >= ARRAY_SIZE(_gAsyncCbQueue.entries)) {
+                _gAsyncCbQueue.readIdx = 0;
             }
         }
     }
@@ -251,13 +264,13 @@ void asyncCbReset(void)
     u32  wordsCleared;
     s32* clearWord;
 
-    clearWord    = (s32*)&AsyncCb_Queue;
+    clearWord    = (s32*)&_gAsyncCbQueue;
     wordsCleared = 0;
     do {
         *clearWord = 0;
         wordsCleared++;
         clearWord++;
-    } while (wordsCleared < sizeof(AsyncCb_Queue) / sizeof(*clearWord));
+    } while (wordsCleared < sizeof(_gAsyncCbQueue) / sizeof(*clearWord));
 }
 
 s16 asyncCbEnqueue(const AsyncCbEntry* callbacks)
@@ -267,17 +280,17 @@ s16 asyncCbEnqueue(const AsyncCbEntry* callbacks)
     s32           queueIndex;
     s8            writeIdx;
 
-    writeIdx     = AsyncCb_Queue.writeIdx;
-    queueIndex   = AsyncCb_Queue.readIdx;
+    writeIdx     = _gAsyncCbQueue.writeIdx;
+    queueIndex   = _gAsyncCbQueue.readIdx;
     nextWriteIdx = writeIdx;
     nextWriteIdx++;
-    if (nextWriteIdx >= ARRAY_SIZE(AsyncCb_Queue.entries)) {
+    if (nextWriteIdx >= ARRAY_SIZE(_gAsyncCbQueue.entries)) {
         nextWriteIdx = 0;
     }
     if (nextWriteIdx == queueIndex) {
         return 0;
     } else {
-        entry           = &AsyncCb_Queue.entries[writeIdx];
+        entry           = &_gAsyncCbQueue.entries[writeIdx];
         entry->pollFn   = callbacks->pollFn;
         entry->doneFn   = callbacks->doneFn;
         entry->cancelFn = callbacks->cancelFn;
@@ -287,8 +300,8 @@ s16 asyncCbEnqueue(const AsyncCbEntry* callbacks)
         entry->status.cancelPending = 0;
         entry->status.pollState     = 0;
         entry->status.firstPoll     = 1;
-        queueIndex                  = AsyncCb_Queue.writeIdx;
-        AsyncCb_Queue.writeIdx      = nextWriteIdx;
+        queueIndex                  = _gAsyncCbQueue.writeIdx;
+        _gAsyncCbQueue.writeIdx     = nextWriteIdx;
         return queueIndex + 1;
     }
 }
@@ -298,7 +311,7 @@ void asyncCbCancel(s16 handle)
     AsyncCbEntry* entry;
 
     if ((handle << 0x10) != 0) {
-        entry = &AsyncCb_Queue.entries[(s16)(handle - 1)];
+        entry = &_gAsyncCbQueue.entries[(s16)(handle - 1)];
         if (entry->status.active) {
             entry->status.active    = 0;
             entry->status.cancelled = 1;
@@ -320,7 +333,7 @@ void spuInitVoices(void)
     SpuWrite(Spu_InitialAdpcmBlock, sizeof(Spu_InitialAdpcmBlock));
     SpuIsTransferCompleted(SPU_TRANSFER_WAIT);
 
-    clearWord                   = (s32*)&Spu_LVoiceTable;
+    clearWord                   = (s32*)&_gSpuVoiceUpdateList;
     index                       = 0;
     _gSpuPendingKeyOnMask       = 0;
     _gSpuPendingStreamKeyOnMask = 0;
@@ -329,7 +342,7 @@ void spuInitVoices(void)
         *clearWord = 0;
         index++;
         clearWord++;
-    } while ((u32)index < sizeof(Spu_LVoiceTable) / sizeof(*clearWord));
+    } while ((u32)index < sizeof(_gSpuVoiceUpdateList) / sizeof(*clearWord));
 
     clearWord = (s32*)&_gSpuVoiceState;
     index     = 0;
@@ -407,7 +420,7 @@ s32 spuAllocVoice(const s16* rangeIndices, s32 rangeCount, s32 priority)
     // Prefer the first free, inactive voice in the caller's range order.
     if (rangeCount > 0) {
         do {
-            range           = &Spu_VoiceRanges[*rangeIndices];
+            range           = &_gSpuVoiceRanges[*rangeIndices];
             voiceIdx        = range->first;
             rangeVoiceIndex = 0;
             if (range->count > 0) {
@@ -478,7 +491,7 @@ static inline s32 _spuGetVoiceRef(s8 voiceIdx, SpuVoiceRef* ref)
     s32                  slot;
     _SpuVoiceUpdateList* updates;
     SpuLVoiceAttr*       queuedEntry;
-    updates = &Spu_LVoiceTable;
+    updates = &_gSpuVoiceUpdateList;
     slot    = updates->slotByVoice[voiceIdx];
     if (slot != 0) {
         // Already queued: the stored slot is one past the voice's entry.
@@ -550,9 +563,9 @@ void spuFlushVoiceUpdates(void)
     s32                  voiceIdx;
     _SpuVoiceUpdateList* list;
 
-    if (Spu_ReverbCfg.isDirty) {
+    if (_gSpuReverbConfig.isDirty) {
         _spuApplyReverbUpdates();
-        Spu_ReverbCfg.isDirty = false;
+        _gSpuReverbConfig.isDirty = false;
     }
 
     // Stop pending sound key-ons first, then apply attributes before restarting them.
@@ -562,7 +575,7 @@ void spuFlushVoiceUpdates(void)
         _gSpuPendingKeyOffMask = 0;
     }
 
-    list = &Spu_LVoiceTable;
+    list = &_gSpuVoiceUpdateList;
     if (list->count != 0) {
         SpuLSetVoiceAttr(list->count, list->attrs);
 
@@ -609,7 +622,7 @@ s32 spuSetVoiceRange(s32 rangeIndex, s32 firstVoice, s32 voiceCount)
     s16             rangeSlot;
 
     rangeSlot    = rangeIndex;
-    range        = &Spu_VoiceRanges[rangeSlot];
+    range        = &_gSpuVoiceRanges[rangeSlot];
     range->first = firstVoice;
     range->count = voiceCount;
     return 0;
@@ -683,24 +696,24 @@ void spuInitReverb(s32 mode)
     SpuSetReverbVoice(SPU_OFF, SPU_ALLCH);
     SpuSetReverb(SPU_ON);
 
-    Spu_ReverbCfg.attr.mask = SPU_REV_MODE;
-    Spu_ReverbCfg.attr.mode = mode;
-    SpuSetReverbModeParam(&Spu_ReverbCfg.attr);
+    _gSpuReverbConfig.attr.mask = SPU_REV_MODE;
+    _gSpuReverbConfig.attr.mode = mode;
+    SpuSetReverbModeParam(&_gSpuReverbConfig.attr);
 
-    Spu_ReverbCfg.attr.mask        = SPU_REV_DEPTHR | SPU_REV_DEPTHL;
-    Spu_ReverbCfg.attr.depth.right = 0;
-    Spu_ReverbCfg.attr.depth.left  = 0;
-    SpuSetReverbDepth(&Spu_ReverbCfg.attr);
+    _gSpuReverbConfig.attr.mask        = SPU_REV_DEPTHR | SPU_REV_DEPTHL;
+    _gSpuReverbConfig.attr.depth.right = 0;
+    _gSpuReverbConfig.attr.depth.left  = 0;
+    SpuSetReverbDepth(&_gSpuReverbConfig.attr);
 
-    Spu_ReverbCfg.attr.mask = 0;
+    _gSpuReverbConfig.attr.mask = 0;
 }
 
 void spuSetReverbDepth(s16 depth)
 {
-    Spu_ReverbCfg.isDirty          = true;
-    Spu_ReverbCfg.attr.depth.right = depth;
-    Spu_ReverbCfg.attr.depth.left  = depth;
-    Spu_ReverbCfg.attr.mask       |= SPU_REV_DEPTHR | SPU_REV_DEPTHL;
+    _gSpuReverbConfig.isDirty          = true;
+    _gSpuReverbConfig.attr.depth.right = depth;
+    _gSpuReverbConfig.attr.depth.left  = depth;
+    _gSpuReverbConfig.attr.mask       |= SPU_REV_DEPTHR | SPU_REV_DEPTHL;
 }
 
 /// Queues a mode change only away from a non-OFF mode recorded by this helper.
@@ -711,12 +724,12 @@ void spuSetReverbDepth(s16 depth)
 /// initial value prevents this helper from making a first change.
 static void _spuSetReverbMode(u32 mode)
 {
-    if (Spu_ReverbCfg.activeMode != mode && Spu_ReverbCfg.activeMode != SPU_REV_MODE_OFF) {
-        SpuClearReverbWorkArea(Spu_ReverbCfg.activeMode);
-        Spu_ReverbCfg.isDirty    = true;
-        Spu_ReverbCfg.attr.mask |= SPU_REV_MODE;
-        Spu_ReverbCfg.attr.mode  = mode;
-        Spu_ReverbCfg.activeMode = mode;
+    if (_gSpuReverbConfig.activeMode != mode && _gSpuReverbConfig.activeMode != SPU_REV_MODE_OFF) {
+        SpuClearReverbWorkArea(_gSpuReverbConfig.activeMode);
+        _gSpuReverbConfig.isDirty    = true;
+        _gSpuReverbConfig.attr.mask |= SPU_REV_MODE;
+        _gSpuReverbConfig.attr.mode  = mode;
+        _gSpuReverbConfig.activeMode = mode;
     }
 }
 
@@ -725,10 +738,10 @@ void spuEnableVoiceReverb(u32 voiceIdx)
     u32 voiceMask;
     voiceIdx = (s8)voiceIdx;
 
-    Spu_ReverbCfg.isDirty        = true;
-    voiceMask                    = SPU_VOICECH(voiceIdx);
-    Spu_ReverbCfg.enableVoices  |= voiceMask;
-    Spu_ReverbCfg.disableVoices &= ~voiceMask;
+    _gSpuReverbConfig.isDirty        = true;
+    voiceMask                        = SPU_VOICECH(voiceIdx);
+    _gSpuReverbConfig.enableVoices  |= voiceMask;
+    _gSpuReverbConfig.disableVoices &= ~voiceMask;
 }
 
 void spuDisableVoiceReverb(u32 voiceIdx)
@@ -736,10 +749,10 @@ void spuDisableVoiceReverb(u32 voiceIdx)
     u32 voiceMask;
     voiceIdx = (s8)voiceIdx;
 
-    Spu_ReverbCfg.isDirty        = true;
-    voiceMask                    = SPU_VOICECH(voiceIdx);
-    Spu_ReverbCfg.disableVoices |= voiceMask;
-    Spu_ReverbCfg.enableVoices  &= ~voiceMask;
+    _gSpuReverbConfig.isDirty        = true;
+    voiceMask                        = SPU_VOICECH(voiceIdx);
+    _gSpuReverbConfig.disableVoices |= voiceMask;
+    _gSpuReverbConfig.enableVoices  &= ~voiceMask;
 }
 
 /// Tests a voice's cached reverb routing; retained without callers.
@@ -756,24 +769,24 @@ static bool _spuIsVoiceReverbEnabled(u32 voiceIdx)
 /// The flush owns isDirty; depth requests always select both stereo channels.
 static void _spuApplyReverbUpdates(void)
 {
-    if (Spu_ReverbCfg.disableVoices != 0) {
-        SpuSetReverbVoice(SPU_OFF, Spu_ReverbCfg.disableVoices);
-        Spu_ReverbCfg.disableVoices = 0;
+    if (_gSpuReverbConfig.disableVoices != 0) {
+        SpuSetReverbVoice(SPU_OFF, _gSpuReverbConfig.disableVoices);
+        _gSpuReverbConfig.disableVoices = 0;
     }
 
-    if (Spu_ReverbCfg.enableVoices != 0) {
-        SpuSetReverbVoice(SPU_ON, Spu_ReverbCfg.enableVoices);
-        Spu_ReverbCfg.enableVoices = 0;
+    if (_gSpuReverbConfig.enableVoices != 0) {
+        SpuSetReverbVoice(SPU_ON, _gSpuReverbConfig.enableVoices);
+        _gSpuReverbConfig.enableVoices = 0;
     }
 
-    if ((Spu_ReverbCfg.attr.mask & SPU_REV_MODE) != 0) {
-        SpuSetReverbModeParam(&Spu_ReverbCfg.attr);
+    if ((_gSpuReverbConfig.attr.mask & SPU_REV_MODE) != 0) {
+        SpuSetReverbModeParam(&_gSpuReverbConfig.attr);
     }
-    if ((Spu_ReverbCfg.attr.mask & SPU_REV_DEPTHL) != 0) {
-        SpuSetReverbDepth(&Spu_ReverbCfg.attr);
+    if ((_gSpuReverbConfig.attr.mask & SPU_REV_DEPTHL) != 0) {
+        SpuSetReverbDepth(&_gSpuReverbConfig.attr);
     }
 
-    Spu_ReverbCfg.attr.mask = 0;
+    _gSpuReverbConfig.attr.mask = 0;
 }
 
 u16 spuCalcPitch(s32 key, s32 pitchOffset, s32 rootKey, s32 fineTune)

@@ -159,11 +159,18 @@ static u8 _gMcSavePointTitleWhereAmIText[2 * 11 + 1];
 /// Unreferenced.
 static s32 D_80067638;
 
-static UiListRowCallback Ui_DialogLineCallbacks[];
+/// Option-dialog row pitch in pixels, ordering-table seed in tags and task priority.
+enum {
+    USER_INTERFACE_OPTION_DIALOG_ROW_HEIGHT_PIXELS = 15,
+    USER_INTERFACE_OPTION_DIALOG_OT_INDEX          = 32,
+    USER_INTERFACE_OPTION_DIALOG_TASK_PRIORITY     = 192,
+};
 
-static UiList Ui_DialogLineList;
+static UiListRowCallback _gUiOptionDialogRowCallbacks[];
 
-static UiObjectDesc Ui_DialogListDesc;
+static UiList _gUiOptionDialogList;
+
+static UiObjectDesc _gUiOptionDialogDesc;
 
 void func_80707534(Task* arg0);
 
@@ -668,10 +675,26 @@ static s32 _gUiCursorScreenXFixed = -170;
 /// is in accumulator units, rather than whole pixels.
 static s32 _gUiCursorScreenYFixed = -130;
 
-static UiListRowCallback Ui_DialogLineCallbacks[] = { _uiDrawOptionDialogRow };
-static UiList            Ui_DialogLineList        = { Ui_DialogLineCallbacks, 1, 1, 0, 0x0F };
-static UiObjectDesc      Ui_DialogListDesc        = { USER_INTERFACE_PANEL_TITLE_STYLE, { -48, -32, 0x60, 0x40 }, 0x20, 0, TASK_BODY_NONE, 0xC0, _uiUpdateOptionDialogTask, 0 };
-UiObject*                gUiPromptObject          = NULL;
+/// Single callback shared by every row of the option-dialog list.
+static UiListRowCallback _gUiOptionDialogRowCallbacks[] = { _uiDrawOptionDialogRow };
+/// Mutable list state shared by option dialogs, with fifteen-pixel row spacing.
+///
+/// Only one dialog may use it at a time. The content task replaces its item
+/// and viewport counts from a positive request count fitting 1..127, then
+/// enables entry-zero callback dispatch for all rows. List fitting clears
+/// scrolling but can retain the previous selection according to cursor policy.
+static UiList _gUiOptionDialogList = {
+    _gUiOptionDialogRowCallbacks, 1, { 1 }, 0, USER_INTERFACE_OPTION_DIALOG_ROW_HEIGHT_PIXELS
+};
+/// Bodyless titled-panel recipe for the option dialog's content task.
+///
+/// The initial 96x64-pixel rectangle is centered at (-48,-32), with OT seed 32
+/// and task priority 192. Spawning sizes it from the borrowed request's labels
+/// and row count and selects the untitled panel style when no title is supplied.
+static UiObjectDesc _gUiOptionDialogDesc = {
+    USER_INTERFACE_PANEL_TITLE_STYLE, { -48, -32, 96, 64 }, USER_INTERFACE_OPTION_DIALOG_OT_INDEX, 0, TASK_BODY_NONE, USER_INTERFACE_OPTION_DIALOG_TASK_PRIORITY, _uiUpdateOptionDialogTask, 0
+};
+UiObject* gUiPromptObject = NULL;
 
 /// Panel lifecycle dispatch in initial, opening, open, closing, hiding and hidden order.
 ///
@@ -2313,7 +2336,6 @@ UiObject* uiSpawnOptionDialog(UiOptionDialogRequest* request, s32 unused2, s32 u
 {
     enum {
         USER_INTERFACE_OPTION_DIALOG_UNTITLED_STYLE      = 3,
-        USER_INTERFACE_OPTION_DIALOG_ROW_HEIGHT_PIXELS   = 15,
         USER_INTERFACE_OPTION_DIALOG_WIDTH_MARGIN_PIXELS = 12,
         USER_INTERFACE_OPTION_DIALOG_OPENING_DELAY_TICKS = 1
     };
@@ -2327,7 +2349,7 @@ UiObject* uiSpawnOptionDialog(UiOptionDialogRequest* request, s32 unused2, s32 u
     object = NULL;
     if (request->optionCount > 0) {
         requestArg.pointer = request;
-        object             = USER_INTERFACE_SPAWN_OBJECT(&Ui_DialogListDesc, requestArg, USER_INTERFACE_PANEL_ACTIVE, USER_INTERFACE_OPTION_DIALOG_OPENING_DELAY_TICKS, NULL);
+        object             = USER_INTERFACE_SPAWN_OBJECT(&_gUiOptionDialogDesc, requestArg, USER_INTERFACE_PANEL_ACTIVE, USER_INTERFACE_OPTION_DIALOG_OPENING_DELAY_TICKS, NULL);
         if (object != NULL) {
             RECT contentRect;
 
@@ -3248,7 +3270,7 @@ static inline void _uiCloseOptionDialogTree(UiObject* object)
 /// Updates the shared option list, publishes its answer and begins dialog teardown.
 ///
 /// owningTask owns a live UiObject in spawnArg2 and borrows its writable request
-/// in spawnArg1. A single option dialog may use Ui_DialogLineList at a time;
+/// in spawnArg1. A single option dialog may use _gUiOptionDialogList at a time;
 /// its positive count must fit 1..127. State zero initializes the viewport from
 /// the count's low byte. Every call clears the transient result, draws any title
 /// and runs rows; the panel lifecycle supplies layout, clipping and GPU resources.
@@ -3267,7 +3289,7 @@ static void _uiUpdateOptionDialogTask(Task* owningTask)
 
     object         = owningTask->spawnArg2.pointer;
     request        = owningTask->spawnArg1.pointer;
-    list           = &Ui_DialogLineList;
+    list           = &_gUiOptionDialogList;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (owningTask->state == USER_INTERFACE_OPTION_DIALOG_TASK_INITIAL) {
         optionCount                         = request->optionCount;

@@ -308,7 +308,7 @@ static void _areaClearStageVisits(s32 stageId)
 {
     GameFlagStageHeader* bank;
 
-    bank                  = Gp_FlagBanks[stageId];
+    bank                  = gGameFlagStageHeaders[stageId];
     bank->visitedAreas[0] = 0;
     bank->visitedAreas[1] = 0;
 }
@@ -323,7 +323,7 @@ void areaMarkVisited(const GameLocationKey* location)
     s32                  mask;
     s32                  visitedAreas;
 
-    bank = Gp_FlagBanks[location->stage];
+    bank = gGameFlagStageHeaders[location->stage];
     save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     if ((((s8)save->state.visitFlags >> location->stage) & 1) == 0) {
         save->state.visitFlags |= 1 << location->stage;

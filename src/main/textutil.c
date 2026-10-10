@@ -83,7 +83,7 @@ static GpuImageUpload Text_OutlineClut[2] = {
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-GameFlagStageHeader* Gp_FlagBanks[] = {
+GameFlagStageHeader* gGameFlagStageHeaders[] = {
     NULL,
     &gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].header,
     &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header,

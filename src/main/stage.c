@@ -123,17 +123,47 @@ STATIC_ASSERT_SIZEOF(StageCtx, 0x38);
 /// Cleared in place for each new mode controller; never allocated or released.
 static StageCtx _gStageTransitionStorage;
 
-static s32 D_8007A358;
+/// Polls spent waiting for a scene-image header or its decoded output.
+///
+/// Both waits time out on poll 91. Decode start and timeout clear the counter;
+/// standalone requests also clear it. Scene requests do not reset a header wait.
+static s32 _gMdecSceneWaitPolls;
 
-static u16 D_8007A35C;
+/// Current MDEC image-output strip index (0..19 for the observed multiplier 1).
+///
+/// Requests and bookkeeping completion reset it; the output callback advances
+/// it only when chaining another fixed-size DMA transfer into the shared workspace.
+static u16 _gMdecImageStripIndex;
 
-static u16 D_8007A35E;
+/// Observed image-output layout: one native 16-pixel strip per DMA transfer.
+enum { MDEC_IMAGE_NATIVE_STRIP_WIDTH_MULTIPLIER = 1 };
 
-static void* D_8007A360;
+/// Multiplier of the strip width used to derive the image-output transfer count.
+///
+/// Both decode starts store 1, yielding twenty strips. The DMA word count stays
+/// fixed; no other multiplier or image layout is established by the writers.
+static u16 _gMdecImageStripWidthMultiplier;
 
-static u8* Mdec_DecodeBase;
+/// Borrowed word-aligned BS input for the next image's VLC expansion.
+///
+/// A standalone request supplies words directly; a scene request selects a byte
+/// offset within its payload. Keep the complete input readable until VLC consumes
+/// it in the decode-start state; expanded commands go to the auxiliary workspace.
+static u_long* _gMdecImageBitstream;
 
-static StreamSceneImageHeader* Stage_CdEntry;
+/// Borrowed scene payload byte base for the selected image header's offsets.
+///
+/// Selects decode, actor or external storage after any VLC/timing reservations.
+/// Image/list/chunk/timing extents must fit the reserved payload and remain live
+/// through their consumption. This is compressed input storage, not VLC output.
+static u8* _gMdecScenePayloadBase;
+
+/// Borrowed cached scene-image header selected by the requested view ID.
+///
+/// Points into the resident CD queue's five-header cache after successful lookup.
+/// Failed lookup retains the prior pointer; timeout also reads it. The selected
+/// header and corresponding payload must remain valid through decode completion.
+static const StreamSceneImageHeader* _gMdecSceneImageHeader;
 
 /// Resident storage for diagnostic controls, input overrides and loading status.
 ///
@@ -1111,52 +1141,52 @@ void mdecRequestSceneImageDecode(const u8* viewId)
     }
 
     // Payload bytes follow any VLC and timing reservations in a shared actor arena.
-    Stage_CdEntry = &queue->sceneImageHeaders[headerIndex];
-    bufferKind    = Stage_CdEntry->bufferKind;
+    _gMdecSceneImageHeader = &queue->sceneImageHeaders[headerIndex];
+    bufferKind             = _gMdecSceneImageHeader->bufferKind;
     switch (bufferKind) {
         case STREAM_SCENE_BUFFER_DECODE:
-            Mdec_DecodeBase = queue->decodeBuffer;
+            _gMdecScenePayloadBase = queue->decodeBuffer;
             break;
         case STREAM_SCENE_BUFFER_ACTOR_0:
-            Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0;
+            _gMdecScenePayloadBase = gFsActorBuffer0Base;
             if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_0) {
-                Mdec_DecodeBase = (u8*)Fs_ActorLoadBase0 + STREAM_VLC_TABLE_BYTES;
+                _gMdecScenePayloadBase = gFsActorBuffer0Base + STREAM_VLC_TABLE_BYTES;
             }
             if (queue->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_0) {
-                Mdec_DecodeBase = Mdec_DecodeBase + queue->sceneStream->data.scene.timingBufferBytes;
+                _gMdecScenePayloadBase = _gMdecScenePayloadBase + queue->sceneStream->data.scene.timingBufferBytes;
             }
             gGameSession->field_7C = 0;
             break;
         case STREAM_SCENE_BUFFER_ACTOR_1:
-            Mdec_DecodeBase = gFsActorBuffer1Base;
+            _gMdecScenePayloadBase = gFsActorBuffer1Base;
             if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_1) {
-                Mdec_DecodeBase = gFsActorBuffer1Base + STREAM_VLC_TABLE_BYTES;
+                _gMdecScenePayloadBase = gFsActorBuffer1Base + STREAM_VLC_TABLE_BYTES;
             }
             if (queue->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_1) {
-                Mdec_DecodeBase = Mdec_DecodeBase + queue->sceneStream->data.scene.timingBufferBytes;
+                _gMdecScenePayloadBase = _gMdecScenePayloadBase + queue->sceneStream->data.scene.timingBufferBytes;
             }
             gGameSession->field_7E = 0;
             break;
         case STREAM_SCENE_BUFFER_ACTOR_2:
-            Mdec_DecodeBase = gFsActorBuffer2Base;
+            _gMdecScenePayloadBase = gFsActorBuffer2Base;
             if (queue->sceneStream->data.scene.vlcBufferKind == STREAM_VLC_BUFFER_ACTOR_2) {
-                Mdec_DecodeBase = gFsActorBuffer2Base + STREAM_VLC_TABLE_BYTES;
+                _gMdecScenePayloadBase = gFsActorBuffer2Base + STREAM_VLC_TABLE_BYTES;
             }
             if (queue->sceneStream->control.scene.timingBufferKind == STREAM_TIMING_BUFFER_ACTOR_2) {
-                Mdec_DecodeBase = Mdec_DecodeBase + queue->sceneStream->data.scene.timingBufferBytes;
+                _gMdecScenePayloadBase = _gMdecScenePayloadBase + queue->sceneStream->data.scene.timingBufferBytes;
             }
             gGameSession->field_80 = 0;
             break;
         case STREAM_SCENE_BUFFER_EXTERNAL:
-            Mdec_DecodeBase = queue->externalScenePayloadBuffer;
+            _gMdecScenePayloadBase = queue->externalScenePayloadBuffer;
             break;
     }
-    imageDataOffset           = Stage_CdEntry->imageDataOffset;
-    D_8007A35C                = 0;
+    imageDataOffset           = _gMdecSceneImageHeader->imageDataOffset;
+    _gMdecImageStripIndex     = 0;
     queue->imageDecodePending = 1;
     queue->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
     queue->imageDecodeStep    = CD_COMMAND_IMAGE_START;
-    D_8007A360                = Mdec_DecodeBase + imageDataOffset;
+    _gMdecImageBitstream      = (u_long*)(_gMdecScenePayloadBase + imageDataOffset);
 }
 
 /// Releases image-decode bookkeeping and restores model buffers when requested.
@@ -1172,7 +1202,7 @@ static __inline__ void _mdecFinishImageDecode(void)
     }
     queue->imageLoadStatus      = CD_COMMAND_IMAGE_COMPLETE;
     queue->imageDecodePending   = 0;
-    D_8007A35C                  = 0;
+    _gMdecImageStripIndex       = 0;
     queue->imageDecodeStep      = CD_COMMAND_IMAGE_START;
     queue->scenePayloadReusable = 0;
 }
@@ -1201,10 +1231,10 @@ static void _mdecStepSceneImageDecode(void)
     switch (queue->imageDecodeStep) {
         case CD_COMMAND_IMAGE_WAIT_HEADER:
             mdecRequestSceneImageDecode(&gGameSession->location.loc.view);
-            if ((u32)++D_8007A358 >= MDEC_SCENE_TIMEOUT_POLLS) {
-                D_8007A358 = 0;
+            if ((u32)++_gMdecSceneWaitPolls >= MDEC_SCENE_TIMEOUT_POLLS) {
+                _gMdecSceneWaitPolls = 0;
                 gpuResetAndInvalidateModelBuffers();
-                if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
+                if (_gMdecSceneImageHeader->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     queue->decodeBufferBytes = queue->nextDecodeBufferBytes;
                 }
                 _mdecFinishImageDecode();
@@ -1220,26 +1250,26 @@ static void _mdecStepSceneImageDecode(void)
             }
             DecDCTReset(0);
             DecDCTvlcSize2(MDEC_VLC_UNLIMITED_OUTPUT);
-            DecDCTvlc2(D_8007A360, gMemActiveAuxHeap,
+            DecDCTvlc2(_gMdecImageBitstream, gMemActiveAuxHeap,
                        queue->vlcTable);
-            D_8007A35E = 1;
+            _gMdecImageStripWidthMultiplier = MDEC_IMAGE_NATIVE_STRIP_WIDTH_MULTIPLIER;
             DecDCToutCallback(_mdecImageStripCallback);
             DecDCTin(gMemActiveAuxHeap, queue->imageMdecMode);
             queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16;
             DecDCTout(gFsImageWorkspacePtr->strips[0], FILE_SYSTEM_IMAGE_STRIP_WORDS);
-            D_8007A358 = 0;
+            _gMdecSceneWaitPolls = 0;
             queue->imageDecodeStep++;
             /* fallthrough */
         case CD_COMMAND_IMAGE_WAIT_OUTPUT:
             if (queue->mdecOutputPending == 0) {
                 // Upload the payload's optional strip lists and image chunks.
-                for (imageIndex = 0; imageIndex < ARRAY_SIZE(Stage_CdEntry->stripListOffsets); imageIndex++) {
-                    if (Stage_CdEntry->stripListOffsets[imageIndex] != 0) {
-                        if (Stage_CdEntry->relocateStripLists[imageIndex] != 0) {
+                for (imageIndex = 0; imageIndex < ARRAY_SIZE(_gMdecSceneImageHeader->stripListOffsets); imageIndex++) {
+                    if (_gMdecSceneImageHeader->stripListOffsets[imageIndex] != 0) {
+                        if (_gMdecSceneImageHeader->relocateStripLists[imageIndex] != 0) {
                             Fs_ChunkMode    = 2;
                             D5B498_8006C233 = STREAM_SCENE_STRIP_X_SHIFT_PAGES;
                         }
-                        fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[imageIndex]));
+                        fsBeginImageColumns((FsImageColumn*)(_gMdecScenePayloadBase + _gMdecSceneImageHeader->stripListOffsets[imageIndex]));
                         // Both upload polls are retained; a retry restarts this column stream.
                         while (fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_RESIDENT_INPUT) != FILE_SYSTEM_IMAGE_STRIPS_COMPLETE) {
                             stripUploadResult = fsUploadImageStrips(FILE_SYSTEM_IMAGE_STRIPS_RESIDENT_INPUT);
@@ -1247,39 +1277,39 @@ static void _mdecStepSceneImageDecode(void)
                                 break;
                             }
                             if (stripUploadResult == FILE_SYSTEM_IMAGE_STRIPS_RETRY) {
-                                fsBeginImageColumns((FsImageColumn*)(Mdec_DecodeBase + Stage_CdEntry->stripListOffsets[imageIndex]));
+                                fsBeginImageColumns((FsImageColumn*)(_gMdecScenePayloadBase + _gMdecSceneImageHeader->stripListOffsets[imageIndex]));
                             }
                         }
                         Fs_ChunkMode    = 0;
                         D5B498_8006C233 = 0;
                     }
                 }
-                for (imageIndex = 0; imageIndex < ARRAY_SIZE(Stage_CdEntry->imageChunkOffsets); imageIndex++) {
-                    if (Stage_CdEntry->imageChunkOffsets[imageIndex] != 0) {
-                        if (Stage_CdEntry->relocateImageChunks[imageIndex] != 0) {
+                for (imageIndex = 0; imageIndex < ARRAY_SIZE(_gMdecSceneImageHeader->imageChunkOffsets); imageIndex++) {
+                    if (_gMdecSceneImageHeader->imageChunkOffsets[imageIndex] != 0) {
+                        if (_gMdecSceneImageHeader->relocateImageChunks[imageIndex] != 0) {
                             Fs_ChunkMode    = 2;
                             D5B498_8006C234 = STREAM_SCENE_CHUNK_Y_SHIFT_ROWS;
                         }
-                        while (fsUploadImageChunk((const FsImageChunk*)(Mdec_DecodeBase + Stage_CdEntry->imageChunkOffsets[imageIndex]), 1)) {
+                        while (fsUploadImageChunk((const FsImageChunk*)(_gMdecScenePayloadBase + _gMdecSceneImageHeader->imageChunkOffsets[imageIndex]), 1)) {
                         }
                         Fs_ChunkMode    = 0;
                         D5B498_8006C234 = 0;
                     }
                 }
                 queue->imageLayout = FILE_SYSTEM_IMAGE_STRIPS;
-                if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
+                if (_gMdecSceneImageHeader->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     queue->decodeBufferBytes = queue->nextDecodeBufferBytes;
                 }
                 // Refresh timing data before releasing the completed decode operation.
                 if (queue->sceneStream->control.scene.timingBufferKind != STREAM_TIMING_BUFFER_NONE) {
-                    memCopyBytes(&Mdec_DecodeBase[Stage_CdEntry->timingDataOffset], queue->timingBuffer,
-                                 Stage_CdEntry->timingDataBytes);
+                    memCopyBytes(&_gMdecScenePayloadBase[_gMdecSceneImageHeader->timingDataOffset], queue->timingBuffer,
+                                 _gMdecSceneImageHeader->timingDataBytes);
                 }
                 _mdecFinishImageDecode();
-            } else if ((u32)++D_8007A358 >= MDEC_SCENE_TIMEOUT_POLLS) {
-                D_8007A358 = 0;
+            } else if ((u32)++_gMdecSceneWaitPolls >= MDEC_SCENE_TIMEOUT_POLLS) {
+                _gMdecSceneWaitPolls = 0;
                 gpuResetAndInvalidateModelBuffers();
-                if (Stage_CdEntry->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
+                if (_gMdecSceneImageHeader->bufferKind == STREAM_SCENE_BUFFER_DECODE) {
                     queue->decodeBufferBytes = queue->nextDecodeBufferBytes;
                 }
                 _mdecFinishImageDecode();
@@ -1314,9 +1344,9 @@ static void _mdecStepStandaloneImageDecode(void)
             queue->mdecOutputPending = 1;
             DecDCTReset(0);
             DecDCTvlcSize2(MDEC_VLC_UNLIMITED_OUTPUT);
-            DecDCTvlc2((u_long*)D_8007A360, gMemActiveAuxHeap,
+            DecDCTvlc2(_gMdecImageBitstream, gMemActiveAuxHeap,
                        (u_short*)((u8*)gFsImageWorkspacePtr + FILE_SYSTEM_IMAGE_VLC_OFFSET));
-            D_8007A35E = 1;
+            _gMdecImageStripWidthMultiplier = MDEC_IMAGE_NATIVE_STRIP_WIDTH_MULTIPLIER;
             DecDCToutCallback(_mdecImageStripCallback);
             DecDCTin(gMemActiveAuxHeap, queue->imageMdecMode);
             queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16;
@@ -1380,13 +1410,13 @@ void mdecRequestImageDecode(u_long* bitstream)
 {
     CdCmdQueue* queue;
 
-    D_8007A35C                = 0;
+    _gMdecImageStripIndex     = 0;
     queue                     = &gCdCmdQueue;
     queue->imageDecodePending = 1;
     queue->imageLoadStatus    = CD_COMMAND_IMAGE_PENDING;
     queue->imageDecodeStep    = CD_COMMAND_IMAGE_START;
-    D_8007A360                = bitstream;
-    D_8007A358                = 0;
+    _gMdecImageBitstream      = bitstream;
+    _gMdecSceneWaitPolls      = 0;
 }
 
 void mdecRequestImageVlcRebuild(void)
@@ -1404,14 +1434,14 @@ static void _mdecImageStripCallback(void)
     s32         stripCount;
     CdCmdQueue* queue;
 
-    stripCount = FILE_SYSTEM_IMAGE_WIDTH / (D_8007A35E * FILE_SYSTEM_IMAGE_STRIP_WIDTH);
+    stripCount = FILE_SYSTEM_IMAGE_WIDTH / (_gMdecImageStripWidthMultiplier * FILE_SYSTEM_IMAGE_STRIP_WIDTH);
     queue      = &gCdCmdQueue;
-    if (D_8007A35C == stripCount - 1) {
+    if (_gMdecImageStripIndex == stripCount - 1) {
         queue->mdecOutputPending = 0;
         DecDCToutCallback(NULL);
     } else {
-        D_8007A35C = D_8007A35C + 1;
-        DecDCTout(gFsImageWorkspacePtr->strips[D_8007A35C], FILE_SYSTEM_IMAGE_STRIP_WORDS);
+        _gMdecImageStripIndex = _gMdecImageStripIndex + 1;
+        DecDCTout(gFsImageWorkspacePtr->strips[_gMdecImageStripIndex], FILE_SYSTEM_IMAGE_STRIP_WORDS);
     }
 }
 

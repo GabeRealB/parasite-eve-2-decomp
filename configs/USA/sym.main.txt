@@ -2702,7 +2702,7 @@ Fs_CdErrorCount             = 0x8006EA18; // type:u8
 D5B498_8006EA1A             = 0x8006EA1A; // type:u16
 Fs_Streams                  = 0x8006EA20; // type:StreamSlot size:0x190
 D5B498_8006EBB0             = 0x8006EBB0; // type:u16
-Fs_SpuAttr                  = 0x8006EBC8; // type:SpuCommonAttr size:0x28
+_gSpuCommonOutputAttr                  = 0x8006EBC8; // type:SpuCommonAttr size:0x28
 D5B498_8006EBF0             = 0x8006EBF0; // type:s16 size:0x2
 
 //--------------------------------------------------------------------
@@ -2772,12 +2772,12 @@ AudioTick_List             = 0x8007E0B0; // size:0x18
 AudioTick_Enabled             = 0x8007E0C8; // type:u32
 D648E0_SpuTimerED           = 0x8007E0D0; // type:s32
 _gSpuVoiceState             = 0x8007E338; // size:0x1D4
-Spu_LVoiceTable             = 0x8007E518; // size:0x67C
-Spu_VoiceRanges                  = 0x8007EB98; // size:0x10
+_gSpuVoiceUpdateList             = 0x8007E518; // size:0x67C
+_gSpuVoiceRanges                  = 0x8007EB98; // size:0x10
 _gSpuPendingKeyOnMask             = 0x8007EBA8; // type:u32
 _gSpuPendingStreamKeyOnMask             = 0x8007EBAC; // type:u32
 _gSpuPendingKeyOffMask             = 0x8007EBB0; // type:u32
-Spu_ReverbCfg         = 0x8007EBB8; // size:0x24
+_gSpuReverbConfig         = 0x8007EBB8; // size:0x24
 CdAudio_Phase                  = 0x80082798; // type:CdAudioProgress size:0x6
 _gCdStreamRuntime            = 0x80082818; // type:CdStreamRuntime size:0xD8
 _gCdReadyQueue               = 0x800828F0; // size:0x58
@@ -2791,7 +2791,7 @@ main_BSS_END                = 0x80082948; // absolute:True
 Snd_Banks                   = 0x8007E0D8; // type:SndBank size:0x200
 gGpuTaskOrderingTables          = 0x8007A0E8; // type:GsOT size:0x28
 gDisplayTaskList            = 0x8007A110; // type:TaskNode
-AsyncCb_Queue               = 0x8007E2E0; // size:0x54
+_gAsyncCbQueue               = 0x8007E2E0; // size:0x54
 _gFontGlyphsMedium          = 0x8005EFB0; // type:u8 size:0xA80 // medium _FontGlyph[224], byte representation for splitting
 _gFontGlyphsLarge           = 0x8005FA30; // type:u8 size:0xA80 // large _FontGlyph[224], byte representation for splitting
 _gFontGlyphsSmall           = 0x800604B0; // type:u8 size:0x444 // small _FontGlyph[91], byte representation for splitting
@@ -2860,8 +2860,8 @@ _gMcDialogTitle            = 0x8001398C;
 // Globals naming pass 2
 Display_PendingFlip         = 0x8005EC70;
 GameMain_HaltFlags          = 0x8005EC80;
-Mdec_DecodeBase             = 0x8007A364;
-Stage_CdEntry               = 0x8007A368;
+_gMdecScenePayloadBase             = 0x8007A364;
+_gMdecSceneImageHeader               = 0x8007A368;
 
 // CD stream diagnostic counters
 _gCdStreamUnderrunCount                  = 0x80068B5E; // size:0x1
@@ -2874,10 +2874,10 @@ D_8005EAEE                  = 0x8005EAEE; // type:u16 size:0x2
 D_8005ED8A                  = 0x8005ED8A; // type:u16 size:0x2
 gStageMusicLoadState        = 0x80062734; // type:u8 size:0x1
 gStageCountdownMusicEntry       = 0x80062735; // type:u8 size:0x1
-gStageAmbientOn             = 0x80062736; // type:u8 size:0x1
+_gStageAmbientRequested             = 0x80062736; // type:u8 size:0x1
 gStageRoomMusicSequence              = 0x80062737; // type:u8 size:0x1
-gStageMusicRow              = 0x80062738; // type:u8 size:0x1
-gStageCurrentSong           = 0x80062739; // type:u8 size:0x1
+_gStageMusicColumn              = 0x80062738; // type:u8 size:0x1
+_gStageMusicSequenceId           = 0x80062739; // type:u8 size:0x1
 _gCdStreamSectorPositionErrorCount                  = 0x80068B5F; // type:u8 size:0x1
 _gCdStreamMissingIrqCount                  = 0x80068B61; // type:u8 size:0x1
 _gCdStreamDmaWaitCount                  = 0x80068B62; // type:u8 size:0x1
@@ -2960,7 +2960,7 @@ gStageMusicParams = 0x8007A39C;
 
 Fs_ChunkOutputSizes = 0x8006D860; // size:0xC
 
-SndScript_Voices = 0x80082548; // type:SndVoice size:0x200 // _SndVoice[8]
+_gSndScriptVoices = 0x80082548; // size:0x200 // _SndVoice[8]
 
 _gFsCdfExtension = 0x800132F4;
 
@@ -3134,7 +3134,7 @@ _gMcSavePointTitleMotelRoom6Text = 0x800675BC;
 
 _gMcSavePointTitleWhereAmIText = 0x800675D8;
 
-Fs_ActorLoadBase0 = 0x8005C36C;
+gFsActorBuffer0Base = 0x8005C36C;
 
 gFsActorBuffer1Base = 0x8005C370;
 
@@ -3162,15 +3162,15 @@ Stage_MusicTables = 0x8006273C;
 
 Stage_CountdownMusicTables = 0x80062750;
 
-Stage_MusicRowLengths = 0x80062764;
+_gStageMusicColumnCounts = 0x80062764;
 
-Stage_SceneEventLimits = 0x8006276C;
+_gStageMusicSceneEventBases = 0x8006276C;
 
 Stage_MusicTaskDesc = 0x80062774;
 
-Stage_MusicCountdownActive = 0x8007A398;
+_gStageMusicCountdownActive = 0x8007A398;
 
-Stage_MusicCountdownFrames = 0x8007A39A;
+_gStageMusicCountdownFrames = 0x8007A39A;
 
 gSpuSemitonePitchTable = 0x80068BB8; // size:0xC0
 
@@ -3180,7 +3180,7 @@ gSpuPanGainTable = 0x80068D78; // size:0x100
 
 gSpuVelocityGainTable = 0x80068E78; // size:0x100
 
-SndScript_VoiceRanges = 0x80068A7C;
+_gSndScriptVoiceRangeIndices = 0x80068A7C;
 
 Spu_InitialAdpcmBlock = 0x80068184;
 
@@ -3232,11 +3232,11 @@ Text_OutlineClut = 0x80060A10;
 
 Ui_OverlayLoadingDesc = 0x800608F4;
 
-Ui_DialogLineCallbacks = 0x80067650;
+_gUiOptionDialogRowCallbacks = 0x80067650;
 
-Ui_DialogLineList = 0x80067654;
+_gUiOptionDialogList = 0x80067654;
 
-Ui_DialogListDesc = 0x80067678;
+_gUiOptionDialogDesc = 0x80067678;
 
 _gCdStreamReadStepPollCount = 0x800827E8;
 
@@ -3269,7 +3269,7 @@ gGameFlagDryfieldBanks = 0x800734C8; // size:0x160
 gGameFlagDryfieldNightBanks = 0x80073628; // size:0x48
 gGameFlagMineShelterBanks = 0x80073670; // size:0x1C8
 gGameFlagNeoArkBanks = 0x80073838; // size:0x148
-Gp_FlagBanks = 0x80060A30; // size:0x18
+gGameFlagStageHeaders = 0x80060A30; // size:0x18
 
 gItemMenuInfoPanel = 0x80067634; // size:0x4 defined:True
 gSndLoadBankId = 0x800689E4; // size:0x4
@@ -3312,3 +3312,12 @@ gSndBankInitializationBusy = 0x80068a78;
 _gFsBackgroundWriteOffset = 0x8006adf8; // type:u32 size:0x4
 _gFsFolderFileSectors = 0x8006c158; // type:s32 size:0xCC
 gFsLzssInputEnd = 0x8006c4d4; // size:0x4
+_gSndScriptHighReverbAreas = 0x80068a54;
+_gCdVolFadeLevel = 0x8006ebf4;
+_gMdecSceneWaitPolls = 0x8007a358;
+_gMdecImageStripIndex = 0x8007a35c;
+_gMdecImageStripWidthMultiplier = 0x8007a35e;
+_gMdecImageBitstream = 0x8007a360;
+_gSndScriptDuckStep = 0x8008274a;
+_gSndScriptReverbLevel = 0x8008274b;
+_gSndScriptDuckRequests = 0x8008274c;

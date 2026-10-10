@@ -390,7 +390,7 @@ D_80115768 = 0x80115768; // absolute:True
 
 // --- still unnamed in their own overlay (235)
 RotMatrixY = 0x8004BFF8; // type:func absolute:True
-Fs_ActorLoadBase0 = 0x8005C36C; // absolute:True
+gFsActorBuffer0Base = 0x8005C36C; // absolute:True
 gFsActorBuffer1Base = 0x8005C370; // absolute:True
 gFsActorBuffer2Base = 0x8005C374; // absolute:True
 D_8005EAEC = 0x8005EAEC; // absolute:True

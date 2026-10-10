@@ -223,7 +223,7 @@ cdAudioOpenTrack = 0x800577AC; // type:func absolute:True
 cdAudioPlay = 0x800578C4; // type:func absolute:True
 cdAudioLoadWaves = 0x800578E4; // type:func absolute:True
 gFsImageWorkspacePtr = 0x8005C364; // absolute:True
-Fs_ActorLoadBase0 = 0x8005C36C; // absolute:True
+gFsActorBuffer0Base = 0x8005C36C; // absolute:True
 gFsActorBuffer1Base = 0x8005C370; // absolute:True
 gFsActorBuffer2Base = 0x8005C374; // absolute:True
 GameMain_HaltFlags = 0x8005EC80; // absolute:True
@@ -488,7 +488,7 @@ gGameFlagDryfieldBanks = 0x800734C8; // absolute:True size:0x160
 gGameFlagDryfieldNightBanks = 0x80073628; // absolute:True size:0x48
 gGameFlagMineShelterBanks = 0x80073670; // absolute:True size:0x1C8
 gGameFlagNeoArkBanks = 0x80073838; // absolute:True size:0x148
-Gp_FlagBanks = 0x80060A30; // absolute:True size:0x18
+gGameFlagStageHeaders = 0x80060A30; // absolute:True size:0x18
 
 dryfieldNightMotelLoftFallingShardTask = 0x8017E090; // type:func absolute:True owner=dryfield_night_motel_loft shared=rooms
 

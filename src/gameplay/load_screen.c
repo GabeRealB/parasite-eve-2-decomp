@@ -707,7 +707,7 @@ static void _areaInitializeStageVisit(GameLocationKey* location)
     GameFlagStageHeader** stageFlagBanks;
     GameFlagStageHeader*  stageFlags;
 
-    stageFlagBanks = Gp_FlagBanks;
+    stageFlagBanks = gGameFlagStageHeaders;
     liveSave       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     if ((liveSave->state.visitFlags & AREA_NEW_GAME_SETUP_DONE) == 0) {
         _areaInitializeNewGameState(liveSave);
