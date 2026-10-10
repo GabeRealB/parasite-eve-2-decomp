@@ -28,6 +28,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -59,12 +60,6 @@ extern RoomEventMsg D_neo_ark_island_80184008;
 
 static void _neoArkIslandInitializeRoom(Task* task);
 static void _neoArkIslandRoomIdleState(Task* unusedTask);
-
-extern AreaResource D_neo_ark_island_80183EDC[2];
-extern AreaResource D_neo_ark_island_80183EF4[2];
-extern AreaResource D_neo_ark_island_80183F0C[2];
-extern AreaResource D_neo_ark_island_80183F24[1];
-extern AreaResource D_neo_ark_island_80183F30[2];
 
 // Height override read by the shared waypoint actor.
 s16 D_neo_ark_island_80181C24 = 300;
@@ -124,434 +119,532 @@ SVECTOR D_neo_ark_island_80181CF8[7] = {
     { 0, 0, 0, -1 },
 };
 
-static SVECTOR _gNeoArkIslandCollision05108Normals[13] = {
+/// Grid dimensions in cells; the cell table is X-major.
+enum {
+    NEO_ARK_ISLAND_GRID_CELL_COUNT_X = 4,
+    NEO_ARK_ISLAND_GRID_CELL_COUNT_Z = 5,
+};
+
+/// Room-space unit normals, with ONE (4096) representing unit length.
+static SVECTOR _gNeoArkIslandCollisionGridNormals[13] = {
 #include "assets/neo_ark_island_collision_05108_normals.inc"
 };
 
-static SVECTOR _gNeoArkIslandCollision05108Verts[127] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkIslandCollisionGridVerts[127] = {
 #include "assets/neo_ark_island_collision_05108_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkIslandCollision05108Faces[61] = {
+/// Indexed room triangles/quads carrying the island's surface classes.
+static WorldCollisionGridFace _gNeoArkIslandCollisionGridFaces[61] = {
 #include "assets/neo_ark_island_collision_05108_faces.inc"
 };
 
-static s16 _gNeoArkIslandCollision05108Cells[262] = {
+/// Serialized face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+static s16 _gNeoArkIslandCollisionGridCells[262] = {
 #include "assets/neo_ark_island_collision_05108_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkIslandCollision05108Cells[i])
-static s16* _gNeoArkIslandCollision05108Table[20] = {
+#define GRID_CELL(i) (&_gNeoArkIslandCollisionGridCells[i])
+/// X-major pointers to the grid's 4-by-5 cell face-index lists.
+static s16* _gNeoArkIslandCollisionGridTable[NEO_ARK_ISLAND_GRID_CELL_COUNT_X * NEO_ARK_ISLAND_GRID_CELL_COUNT_Z] = {
 #include "assets/neo_ark_island_collision_05108_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_island_801826C8[1] = {
-    { NULL, _gNeoArkIslandCollision05108Normals, _gNeoArkIslandCollision05108Verts, _gNeoArkIslandCollision05108Faces, _gNeoArkIslandCollision05108Table, 5100, 7000, 4, 5, 4000, 61 },
+WorldCollisionGrid gNeoArkIslandCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkIslandCollisionGridNormals,
+    .vertices    = _gNeoArkIslandCollisionGridVerts,
+    .faces       = _gNeoArkIslandCollisionGridFaces,
+    .cellFaceIds = _gNeoArkIslandCollisionGridTable,
+    .xBias       = 5100,
+    .zBias       = 7000,
+    .cellCountX  = NEO_ARK_ISLAND_GRID_CELL_COUNT_X,
+    .cellCountZ  = NEO_ARK_ISLAND_GRID_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkIslandCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_island_801826EC[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4555, 0x7530, 800 } }, 447 },
+ViewCamera gNeoArkIslandViewCameras[NEO_ARK_ISLAND_VIEW_RESOURCE_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -4555, 30000, 800 } }, 447 },
     { { { { 4047, 0, 627 }, { 37, 4088, -243 }, { -626, 246, 4040 } }, { -3460, 985, -1480 } }, 257 },
     { { { { 4045, 0, 640 }, { 178, 3932, -1130 }, { -614, 1144, 3884 } }, { -3600, 1865, 2360 } }, 257 },
     { { { { 4091, 0, 182 }, { 148, 2392, -3321 }, { -106, 3324, 2390 } }, { -4500, 5495, 7970 } }, 230 },
     { { { { 4007, 0, -846 }, { -825, 918, -3905 }, { 189, 3991, 898 } }, { -5920, 1425, 1855 } }, 257 },
 };
 
-SpriteBatch D_neo_ark_island_801827A0[2] = {
+/// View 1's empty sprite list; the first zero-count batch keeps decoded background strips.
+static SpriteBatch _gNeoArkIslandView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_island_801827B0[33] = {
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 112, 8, 1814, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 16, 1314, { .fields = { 72, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 16, 1450, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -64, 24, 1425, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 24, 1425, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -80, 32, 1375, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, 8, 32, 1375, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -96, 40, 1125, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, 0, 40, 1125, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -104, 48, 975, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, 0, 48, 975, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 120, 8 } }, -128, 56, 900, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 120, 8 } }, -8, 56, 900, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 136, 8 } }, -144, 64, 800, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 120, 8 } }, -8, 64, 800, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -160, 72, 725, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -56, 72, 725, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, 40, 72, 725, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -160, 80, 675, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -64, 80, 675, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, 40, 80, 675, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -160, 88, 637, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -64, 88, 637, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, 40, 88, 637, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -160, 96, 625, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -64, 96, 625, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, 40, 96, 625, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -160, 104, 562, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -64, 104, 562, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 112, 8 } }, 40, 104, 562, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -160, 112, 500, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -64, 112, 500, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 8 } }, 40, 112, 500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// Encoded 8-bit view-image pages at VRAM X 832, 896 and 960, Y 0.
+///
+/// The view palette is the 256-colour row at Y 255; RGB 128 is neutral modulation.
+enum {
+    NEO_ARK_ISLAND_SPRITE_PAGE_832    = getTPage(1, 0, 832, 0),
+    NEO_ARK_ISLAND_SPRITE_PAGE_896    = getTPage(1, 0, 896, 0),
+    NEO_ARK_ISLAND_SPRITE_PAGE_960    = getTPage(1, 0, 960, 0),
+    NEO_ARK_ISLAND_SPRITE_PALETTE     = getClut(0, 255),
+    NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB = 128,
 };
 
-SpriteBatch D_neo_ark_island_80182A44[4] = {
+/// View 2's 33 depth-sorted image rectangles, in pixels relative to the view centre.
+static SpriteSource _gNeoArkIslandView2SpriteSources[] = {
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 32 } }, 112, 8, 1814, { .fields = { 80, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 8 } }, 64, 16, 1314, { .fields = { 72, 8 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 24, 8 } }, -48, 16, 1450, { .fields = { 104, 32 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -64, 24, 1425, { .fields = { 24, 56 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, 64, 24, 1425, { .fields = { 112, 48 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -80, 32, 1375, { .fields = { 40, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, 8, 32, 1375, { .fields = { 48, 64 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -96, 40, 1125, { .fields = { 32, 88 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, 0, 40, 1125, { .fields = { 32, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -104, 48, 975, { .fields = { 24, 136 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, 0, 48, 975, { .fields = { 24, 96 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 120, 8 } }, -128, 56, 900, { .fields = { 8, 120 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 120, 8 } }, -8, 56, 900, { .fields = { 8, 112 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 136, 8 } }, -144, 64, 800, { .fields = { 120, 104 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 120, 8 } }, -8, 64, 800, { .fields = { 8, 128 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -160, 72, 725, { .fields = { 24, 152 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -56, 72, 725, { .fields = { 32, 144 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, 40, 72, 725, { .fields = { 48, 72 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -160, 80, 675, { .fields = { 32, 160 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -64, 80, 675, { .fields = { 24, 168 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, 40, 80, 675, { .fields = { 40, 176 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -160, 88, 637, { .fields = { 32, 184 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -64, 88, 637, { .fields = { 24, 192 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, 40, 88, 637, { .fields = { 32, 200 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -160, 96, 625, { .fields = { 32, 208 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -64, 96, 625, { .fields = { 24, 216 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, 40, 96, 625, { .fields = { 24, 224 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -160, 104, 562, { .fields = { 32, 232 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -64, 104, 562, { .fields = { 24, 240 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 112, 8 } }, 40, 104, 562, { .fields = { 16, 248 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -160, 112, 500, { .fields = { 16, 48 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -64, 112, 500, { .fields = { 0, 32 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 112, 8 } }, 40, 112, 500, { .fields = { 96, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+};
+
+/// View 2's source ranges; the first zero-count batch keeps decoded background strips.
+static SpriteBatch _gNeoArkIslandView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
-    { 1, 32, 0, 0, { 0, 0 } },
+    { 1, ARRAY_SIZE(_gNeoArkIslandView2SpriteSources) - 1, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_island_80182A64[68] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, 56, 775, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 56, 775, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 80, 64, 775, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, 64, 775, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, 80, 72, 775, { .fields = { 16, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, 80, 80, 775, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 96, 88, 775, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 96, 96, 725, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 96, 104, 700, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 96, 112, 675, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, 88, 610, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -32, 2375, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -16, -32, 2375, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -24, -24, 2250, { .fields = { 56, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -32, -16, 2125, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -40, -8, 1875, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -48, 0, 1650, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 8, 0, 1650, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, 8, 1475, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 8, 8, 1475, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -64, 16, 1350, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, 0, 16, 1350, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -72, 24, 1250, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, 0, 24, 1250, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -80, 32, 1150, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -8, 32, 1150, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -88, 40, 1100, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -8, 40, 1100, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -96, 48, 1000, { .fields = { 0, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -8, 48, 1000, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -104, 56, 950, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -16, 56, 950, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -112, 64, 900, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -24, 64, 900, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -128, 80, 825, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -48, 80, 825, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 24, 80, 825, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -112, 72, 875, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -48, 72, 875, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 24, 72, 875, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -136, 88, 775, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -56, 88, 775, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 16, 88, 775, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -152, 96, 725, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -72, 96, 725, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 16, 96, 725, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -160, 104, 700, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -72, 104, 700, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, 16, 104, 700, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -160, 112, 675, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -72, 112, 675, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, 16, 112, 675, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 0, 657, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -136, 0, 671, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -128, 0, 674, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -120, 0, 689, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -112, 16, 693, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 80, 724, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 72, 8, 613, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 80, 8, 595, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 88, 8, 592, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 96, 8, 581, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 16, 567, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -16, 871, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 16, 946, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, 48, 774, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, 80, 644, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 72, -48, 2500, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+/// View 3's 68 depth-sorted image rectangles, in pixels relative to the view centre.
+static SpriteSource _gNeoArkIslandView3SpriteSources[] = {
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 8 } }, 80, 56, 775, { .fields = { 112, 248 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 8 } }, 104, 56, 775, { .fields = { 16, 32 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 32, 8 } }, 80, 64, 775, { .fields = { 120, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, 120, 64, 775, { .fields = { 80, 232 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, 80, 72, 775, { .fields = { 16, 8 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, 80, 80, 775, { .fields = { 16, 248 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, 96, 88, 775, { .fields = { 32, 240 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, 96, 96, 725, { .fields = { 32, 152 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, 96, 104, 700, { .fields = { 32, 144 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, 96, 112, 675, { .fields = { 24, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 32 } }, 80, 88, 610, { .fields = { 96, 224 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 8 } }, 48, -32, 2375, { .fields = { 56, 184 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, -16, -32, 2375, { .fields = { 120, 56 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -24, -24, 2250, { .fields = { 56, 8 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -32, -16, 2125, { .fields = { 48, 24 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -40, -8, 1875, { .fields = { 104, 120 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 56, 8 } }, -48, 0, 1650, { .fields = { 88, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 56, 8 } }, 8, 0, 1650, { .fields = { 88, 32 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, -56, 8, 1475, { .fields = { 40, 176 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, 8, 8, 1475, { .fields = { 24, 32 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, -64, 16, 1350, { .fields = { 16, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, 0, 16, 1350, { .fields = { 8, 96 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, -72, 24, 1250, { .fields = { 16, 24 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, 0, 24, 1250, { .fields = { 8, 48 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, -80, 32, 1150, { .fields = { 8, 56 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -8, 32, 1150, { .fields = { 0, 64 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -88, 40, 1100, { .fields = { 0, 104 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -8, 40, 1100, { .fields = { 8, 160 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -96, 48, 1000, { .fields = { 0, 16 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -8, 48, 1000, { .fields = { 8, 224 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -104, 56, 950, { .fields = { 8, 168 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -16, 56, 950, { .fields = { 112, 72 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -112, 64, 900, { .fields = { 120, 112 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -24, 64, 900, { .fields = { 104, 88 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -128, 80, 825, { .fields = { 0, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, -48, 80, 825, { .fields = { 8, 232 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, 24, 80, 825, { .fields = { 104, 176 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, -112, 72, 875, { .fields = { 16, 128 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, -48, 72, 875, { .fields = { 8, 136 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, 24, 72, 875, { .fields = { 96, 144 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -136, 88, 775, { .fields = { 112, 216 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, -56, 88, 775, { .fields = { 112, 184 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, 16, 88, 775, { .fields = { 88, 152 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -152, 96, 725, { .fields = { 112, 208 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -72, 96, 725, { .fields = { 56, 128 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, 16, 96, 725, { .fields = { 72, 248 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -160, 104, 700, { .fields = { 48, 96 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -72, 104, 700, { .fields = { 48, 136 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, 16, 104, 700, { .fields = { 56, 48 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -160, 112, 675, { .fields = { 104, 192 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -72, 112, 675, { .fields = { 104, 200 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, 16, 112, 675, { .fields = { 80, 240 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 40 } }, -144, 0, 657, { .fields = { 88, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 80 } }, -136, 0, 671, { .fields = { 96, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 96 } }, -128, 0, 674, { .fields = { 112, 112 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 96 } }, -120, 0, 689, { .fields = { 104, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 80 } }, -112, 16, 693, { .fields = { 96, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 16 } }, -104, 80, 724, { .fields = { 96, 160 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 112 } }, 72, 8, 613, { .fields = { 112, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 112 } }, 80, 8, 595, { .fields = { 120, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 112 } }, 88, 8, 592, { .fields = { 120, 112 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 88 } }, 96, 8, 581, { .fields = { 104, 96 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 40 } }, 104, 16, 567, { .fields = { 112, 208 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 32 } }, 64, -16, 871, { .fields = { 120, 224 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 32 } }, 56, 16, 946, { .fields = { 80, 112 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 32 } }, 56, 48, 774, { .fields = { 80, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 40 } }, 56, 80, 644, { .fields = { 80, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 40 } }, 72, -48, 2500, { .fields = { 64, 184 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_island_80182FB4[6] = {
+/// View 3's source ranges; the first zero-count batch keeps decoded background strips.
+static SpriteBatch _gNeoArkIslandView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 3, 0 } },
     { 11, 41, 0, 0, { 0, 0 } },
     { 52, 15, 0, 0, { 2, 0 } },
-    { 67, 1, 0, 0, { 1, 0 } },
+    { 67, ARRAY_SIZE(_gNeoArkIslandView3SpriteSources) - 67, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_island_80182FE4[140] = {
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 104, -120, 2233, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -8, -96, 2264, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -8, -88, 2213, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -8, -80, 2146, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 88, -112, 2295, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 80, -104, 2321, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 72, -96, 2422, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 64, -88, 2342, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 56, -80, 2233, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 56, -72, 2217, { .fields = { 16, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 128, -24, 1500, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 104, 8, 1500, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 104, 16, 1500, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 104, 24, 1500, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 112, 32, 1500, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 112, 40, 1500, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 128, 48, 1500, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -80, 64, 1000, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -104, 72, 1000, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -112, 80, 1000, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -104, 88, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -104, 96, 1000, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -112, 104, 1000, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -104, 112, 1000, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 88, 1263, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -48, 96, 1293, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 16, 80, 1125, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 32, 88, 1125, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 24, 96, 1125, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 16, 104, 1125, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 16, 112, 1125, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 112, -16, 1500, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 112, 0, 1524, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 112, -8, 1539, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 96, -8, 1875, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 96, 0, 1875, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -160, -112, 2125, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -160, -104, 2125, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 8 } }, -160, -96, 2187, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -120, -104, 2125, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -120, -112, 2062, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 64, 8 } }, -160, -88, 2250, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 64, 8 } }, -160, -80, 2250, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 8 } }, -160, -72, 2250, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 56, 8 } }, -160, -64, 2125, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -160, -56, 2000, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -160, -48, 2000, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 48, 8 } }, -160, -40, 2000, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 8 } }, -160, -32, 2000, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -136, -24, 2000, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 64, 8 } }, -55, -120, 2650, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 80, 8 } }, -71, -112, 2525, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 80, 8 } }, -71, -104, 2500, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 80, 8 } }, -63, -96, 2400, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 80, 8 } }, -63, -88, 2325, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 80, 8 } }, -63, -80, 2250, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 96, 8 } }, -79, -72, 2187, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 72, 8 } }, -95, -64, 2100, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 72, 8 } }, -23, -64, 2100, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 72, 8 } }, 49, -64, 2100, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 96, 8 } }, 17, -72, 2150, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 88, 8 } }, 17, -80, 2250, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 96, 8 } }, 17, -88, 2300, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 104, 8 } }, 17, -96, 2375, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 40, 8 } }, 81, -104, 2321, { .fields = { 120, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 89, -112, 2295, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, 105, -120, 2227, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 80, 8 } }, -111, -56, 2025, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 141, 0x3FC0, { .fields = { 88, 8 } }, -31, -56, 2025, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, 57, -56, 2025, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -111, -48, 1975, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -31, -48, 1975, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, 57, -48, 1975, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -119, -40, 1937, { .fields = { 32, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -31, -40, 1937, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, 57, -40, 1937, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -119, -32, 1875, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -31, -32, 1875, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, 57, -32, 1875, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -119, -24, 1837, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -31, -24, 1837, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, 57, -24, 1837, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -127, -16, 1750, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -23, -16, 1750, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, 81, -16, 1750, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -127, -8, 1725, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -31, -8, 1725, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, 73, -8, 1725, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -135, 0, 1700, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -39, 0, 1700, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, 65, 0, 1700, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -143, 8, 1650, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -47, 8, 1650, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, 57, 8, 1650, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -143, 16, 1600, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 8 } }, -47, 16, 1600, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, 57, 16, 1600, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -151, 24, 1575, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 112, 8 } }, -55, 24, 1575, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, 57, 24, 1575, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -151, 32, 1550, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 8 } }, -55, 32, 1550, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 57, 32, 1550, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -151, 40, 1525, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 8 } }, -63, 40, 1525, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, 49, 40, 1525, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -151, 48, 1450, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -63, 48, 1450, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, 41, 48, 1450, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -143, 56, 1425, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 41, 56, 1425, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -47, 56, 1425, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -143, 64, 1400, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -47, 64, 1400, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, 41, 64, 1400, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -143, 72, 1375, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -55, 72, 1500, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 33, 72, 1498, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -135, 80, 1500, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -47, 80, 1500, { .fields = { 80, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 33, 80, 1468, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -135, 88, 1250, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -47, 88, 1375, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 33, 88, 1301, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -119, 96, 1312, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -23, 96, 1312, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -111, 104, 1375, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -23, 104, 1375, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -103, 112, 1375, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -23, 112, 1375, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, -120, 2168, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, -104, 2250, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -8, -112, 2250, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, -120, 2250, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, -96, 2250, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -8, -96, 2250, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, -96, 2250, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, -96, 2250, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, -112, 2250, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, -112, 2250, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
+/// View 4's 140 depth-sorted image rectangles, in pixels relative to the view centre.
+static SpriteSource _gNeoArkIslandView4SpriteSources[] = {
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 8 } }, 104, -120, 2233, { .fields = { 48, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, -8, -96, 2264, { .fields = { 24, 224 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, -8, -88, 2213, { .fields = { 24, 160 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 32, 8 } }, -8, -80, 2146, { .fields = { 32, 8 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 32, 8 } }, 88, -112, 2295, { .fields = { 40, 240 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 40, 8 } }, 80, -104, 2321, { .fields = { 32, 104 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 40, 8 } }, 72, -96, 2422, { .fields = { 32, 96 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 64, -88, 2342, { .fields = { 24, 120 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 56, -80, 2233, { .fields = { 24, 112 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 56, -72, 2217, { .fields = { 16, 16 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 24, 8 } }, 128, -24, 1500, { .fields = { 40, 248 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 40, 8 } }, 104, 8, 1500, { .fields = { 24, 192 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 104, 16, 1500, { .fields = { 8, 32 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 104, 24, 1500, { .fields = { 8, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 40, 8 } }, 112, 32, 1500, { .fields = { 24, 128 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 32, 8 } }, 112, 40, 1500, { .fields = { 32, 56 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, 128, 48, 1500, { .fields = { 48, 152 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 24, 8 } }, -80, 64, 1000, { .fields = { 40, 144 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, -104, 72, 1000, { .fields = { 24, 72 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 56, 8 } }, -112, 80, 1000, { .fields = { 56, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 56, 8 } }, -104, 88, 1000, { .fields = { 56, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 56, 8 } }, -104, 96, 1000, { .fields = { 40, 48 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, -112, 104, 1000, { .fields = { 40, 88 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 40, 8 } }, -104, 112, 1000, { .fields = { 104, 88 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, -48, 88, 1263, { .fields = { 0, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, -48, 96, 1293, { .fields = { 112, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 16, 80, 1125, { .fields = { 96, 208 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 32, 8 } }, 32, 88, 1125, { .fields = { 64, 144 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 40, 8 } }, 24, 96, 1125, { .fields = { 40, 64 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 16, 104, 1125, { .fields = { 32, 24 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 16, 112, 1125, { .fields = { 24, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 112, -16, 1500, { .fields = { 32, 232 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 40, 8 } }, 112, 0, 1524, { .fields = { 56, 208 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, 112, -8, 1539, { .fields = { 48, 184 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, 96, -8, 1875, { .fields = { 64, 8 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, 96, 0, 1875, { .fields = { 72, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, -160, -112, 2125, { .fields = { 8, 72 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, -160, -104, 2125, { .fields = { 8, 48 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 56, 8 } }, -160, -96, 2187, { .fields = { 96, 120 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, -120, -104, 2125, { .fields = { 8, 112 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, -120, -112, 2062, { .fields = { 16, 104 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, -160, -88, 2250, { .fields = { 96, 96 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, -160, -80, 2250, { .fields = { 88, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 56, 8 } }, -160, -72, 2250, { .fields = { 104, 232 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 56, 8 } }, -160, -64, 2125, { .fields = { 96, 128 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, -160, -56, 2000, { .fields = { 96, 104 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, -160, -48, 2000, { .fields = { 88, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 48, 8 } }, -160, -40, 2000, { .fields = { 96, 16 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 40, 8 } }, -160, -32, 2000, { .fields = { 112, 160 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, -136, -24, 2000, { .fields = { 8, 192 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 64, 8 } }, -55, -120, 2650, { .fields = { 88, 224 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -71, -112, 2525, { .fields = { 80, 56 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -71, -104, 2500, { .fields = { 96, 152 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -63, -96, 2400, { .fields = { 96, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -63, -88, 2325, { .fields = { 96, 200 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -63, -80, 2250, { .fields = { 96, 184 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -79, -72, 2187, { .fields = { 88, 168 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, -95, -64, 2100, { .fields = { 112, 136 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, -23, -64, 2100, { .fields = { 112, 208 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, 49, -64, 2100, { .fields = { 112, 176 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, 17, -72, 2150, { .fields = { 80, 216 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, 17, -80, 2250, { .fields = { 80, 248 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, 17, -88, 2300, { .fields = { 72, 240 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, 17, -96, 2375, { .fields = { 56, 24 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 40, 8 } }, 81, -104, 2321, { .fields = { 120, 8 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 32, 8 } }, 89, -112, 2295, { .fields = { 8, 64 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 16, 8 } }, 105, -120, 2227, { .fields = { 24, 48 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -111, -56, 2025, { .fields = { 88, 144 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_832, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -31, -56, 2025, { .fields = { 80, 88 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, 57, -56, 2025, { .fields = { 48, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -111, -48, 1975, { .fields = { 40, 48 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -31, -48, 1975, { .fields = { 32, 56 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, 57, -48, 1975, { .fields = { 32, 32 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -119, -40, 1937, { .fields = { 32, 8 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -31, -40, 1937, { .fields = { 32, 16 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, 57, -40, 1937, { .fields = { 32, 24 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -119, -32, 1875, { .fields = { 32, 64 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -31, -32, 1875, { .fields = { 32, 104 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, 57, -32, 1875, { .fields = { 32, 112 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -119, -24, 1837, { .fields = { 32, 120 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -31, -24, 1837, { .fields = { 32, 96 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, 57, -24, 1837, { .fields = { 24, 72 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -127, -16, 1750, { .fields = { 16, 80 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -23, -16, 1750, { .fields = { 16, 88 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, 81, -16, 1750, { .fields = { 40, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -127, -8, 1725, { .fields = { 32, 176 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -31, -8, 1725, { .fields = { 24, 168 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, 73, -8, 1725, { .fields = { 48, 184 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -135, 0, 1700, { .fields = { 32, 160 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -39, 0, 1700, { .fields = { 24, 136 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, 65, 0, 1700, { .fields = { 40, 144 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -143, 8, 1650, { .fields = { 32, 152 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -47, 8, 1650, { .fields = { 24, 192 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, 57, 8, 1650, { .fields = { 40, 232 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -143, 16, 1600, { .fields = { 32, 240 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -47, 16, 1600, { .fields = { 24, 248 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, 57, 16, 1600, { .fields = { 32, 224 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -151, 24, 1575, { .fields = { 32, 200 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 112, 8 } }, -55, 24, 1575, { .fields = { 16, 208 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, 57, 24, 1575, { .fields = { 32, 216 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -151, 32, 1550, { .fields = { 24, 128 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 112, 8 } }, -55, 32, 1550, { .fields = { 48, 216 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, 57, 32, 1550, { .fields = { 72, 224 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -151, 40, 1525, { .fields = { 72, 240 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 112, 8 } }, -63, 40, 1525, { .fields = { 48, 200 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, 49, 40, 1525, { .fields = { 64, 152 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -151, 48, 1450, { .fields = { 72, 160 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 104, 8 } }, -63, 48, 1450, { .fields = { 56, 176 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, 41, 48, 1450, { .fields = { 56, 32 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -143, 56, 1425, { .fields = { 56, 168 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, 41, 56, 1425, { .fields = { 64, 192 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -47, 56, 1425, { .fields = { 64, 248 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -143, 64, 1400, { .fields = { 56, 136 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -47, 64, 1400, { .fields = { 64, 56 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, 41, 64, 1400, { .fields = { 72, 72 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -143, 72, 1375, { .fields = { 64, 128 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -55, 72, 1500, { .fields = { 72, 120 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, 33, 72, 1498, { .fields = { 96, 144 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -135, 80, 1500, { .fields = { 80, 232 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -47, 80, 1500, { .fields = { 80, 8 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 72, 8 } }, 33, 80, 1468, { .fields = { 96, 48 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -135, 88, 1250, { .fields = { 88, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -47, 88, 1375, { .fields = { 96, 184 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 56, 8 } }, 33, 88, 1301, { .fields = { 112, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 96, 8 } }, -119, 96, 1312, { .fields = { 64, 16 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -23, 96, 1312, { .fields = { 72, 96 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -111, 104, 1375, { .fields = { 72, 104 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 88, 8 } }, -23, 104, 1375, { .fields = { 72, 112 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -103, 112, 1375, { .fields = { 80, 64 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_896, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 80, 8 } }, -23, 112, 1375, { .fields = { 80, 24 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 8 } }, -8, -120, 2168, { .fields = { 24, 32 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 8 } }, -56, -104, 2250, { .fields = { 24, 56 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 16 } }, -8, -112, 2250, { .fields = { 120, 56 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 24 } }, 0, -120, 2250, { .fields = { 120, 0 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 16 } }, 0, -96, 2250, { .fields = { 120, 72 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 16 } }, -8, -96, 2250, { .fields = { 120, 24 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 16 } }, -56, -96, 2250, { .fields = { 120, 40 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 16 } }, -64, -96, 2250, { .fields = { 120, 120 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 16 } }, -64, -112, 2250, { .fields = { 120, 104 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
+    { NEO_ARK_ISLAND_SPRITE_PAGE_960, NEO_ARK_ISLAND_SPRITE_PALETTE, { .fields = { 8, 16 } }, -72, -112, 2250, { .fields = { 120, 88 } }, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, NEO_ARK_ISLAND_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_neo_ark_island_80183AD4[6] = {
+/// View 4's source ranges; the first zero-count batch keeps decoded background strips.
+static SpriteBatch _gNeoArkIslandView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 36, 0, 0, { 3, 0 } },
     { 36, 14, 0, 0, { 0, 0 } },
     { 50, 80, 0, 0, { 2, 0 } },
-    { 130, 10, 0, 0, { 1, 0 } },
+    { 130, ARRAY_SIZE(_gNeoArkIslandView4SpriteSources) - 130, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_island_80183B04[2] = {
+/// View 5's empty sprite list; the first zero-count batch keeps decoded background strips.
+static SpriteBatch _gNeoArkIslandView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_island_80183B14[5] = {
-    { { .empty = D_neo_ark_island_801827A0 }, D_neo_ark_island_801827A0, NULL },
-    { { .elements = D_neo_ark_island_801827B0 }, D_neo_ark_island_80182A44, NULL },
-    { { .elements = D_neo_ark_island_80182A64 }, D_neo_ark_island_80182FB4, NULL },
-    { { .elements = D_neo_ark_island_80182FE4 }, D_neo_ark_island_80183AD4, NULL },
-    { { .empty = D_neo_ark_island_80183B04 }, D_neo_ark_island_80183B04, NULL },
+SpriteView gNeoArkIslandSpriteViews[NEO_ARK_ISLAND_VIEW_RESOURCE_COUNT] = {
+    { { .empty = _gNeoArkIslandView1SpriteBatches }, _gNeoArkIslandView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkIslandView2SpriteSources }, _gNeoArkIslandView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkIslandView3SpriteSources }, _gNeoArkIslandView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkIslandView4SpriteSources }, _gNeoArkIslandView4SpriteBatches, NULL },
+    { { .empty = _gNeoArkIslandView5SpriteBatches }, _gNeoArkIslandView5SpriteBatches, NULL },
 };
 
-WorldCoordLight D_neo_ark_island_80183B50[4] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 500, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -500, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, -500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
+/// Four white directional lights admitted in every view; RGB intensities have 12 fractional bits.
+///
+/// Coordinate setup and shading overwrite the parent, composition cache and attenuation.
+static WorldCoordLight _gNeoArkIslandDirectionalLights[4] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 500, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -500, -1000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1028, 1028, 1028 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, -500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -1000, 500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2052, 2052, 2052 }, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_neo_ark_island_80183CB0[1] = {
-    { ARRAY_SIZE(D_neo_ark_island_80183B50), D_neo_ark_island_80183B50, 0, NULL, 0, NULL },
+WorldCoordRoomLights gNeoArkIslandRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gNeoArkIslandDirectionalLights),
+    .directionalLights     = _gNeoArkIslandDirectionalLights,
+    .pointLightCount       = 0,
+    .pointLights           = NULL,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_island_80183CC8[4] = {
-    { NULL, NULL, NULL, { 3104, -993, 3616, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3103, -961, 3328, 0 }, { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 800, -1089, -320, 0 }, { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, 4096, 0 }, 3840, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 479, -993, -129, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4190, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gNeoArkIslandViewBoundaryTriggers[4] = {
+    { NULL, NULL, NULL, { 3104, -993, 3616, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, ONE, 0 }, 4190, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3103, -961, 3328, 0 }, { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, ONE, 0 }, 3840, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 800, -1089, -320, 0 }, { { 3344, -1904, 0, 0 }, { -3344, -1904, 0, 0 }, { 3344, 1904, 0, 0 }, { -3344, 1904, 0, 0 } }, { 0, 0, 4101, 0 }, { 0, 0, ONE, 0 }, 3840, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 479, -993, -129, 0 }, { { -3760, -1904, 0, 0 }, { 3760, -1904, 0, 0 }, { -3760, 1904, 0, 0 }, { 3760, 1904, 0, 0 } }, { 0, 0, -4101, 0 }, { 0, 0, ONE, 0 }, 4190, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_island_80183DF8[3] = {
-    { NULL, NULL, NULL, { 2976, -48, 6768, 0 }, { { -1024, 0, -496, 0 }, { 1024, 0, -496, 0 }, { -1024, 0, 496, 0 }, { 1024, 0, 496, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, 13, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6272, -48, -1488, 0 }, { { -768, 0, -608, 0 }, { 768, 0, -608, 0 }, { -768, 0, 608, 0 }, { 768, 0, 608, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 979, WORLD_COLLISION_TRIGGER_ACTION_WARP, 30, 33, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 3424, -64, -6304, 0 }, { { -768, 0, -416, 0 }, { 768, 0, -416, 0 }, { -768, 0, 416, 0 }, { 768, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// CAP command selected by the island's facing-gated object interaction.
+enum { NEO_ARK_ISLAND_INTERACTION_CAP_COMMAND = 2 };
+
+WorldCollisionTrigger gNeoArkIslandActionTriggers[3] = {
+    { NULL, NULL, NULL, { 2976, -48, 6768, 0 }, { { -1024, 0, -496, 0 }, { 1024, 0, -496, 0 }, { -1024, 0, 496, 0 }, { 1024, 0, 496, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -ONE, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_PAVILION, (1 << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6272, -48, -1488, 0 }, { { -768, 0, -608, 0 }, { 768, 0, -608, 0 }, { -768, 0, 608, 0 }, { 768, 0, 608, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ONE, 0 }, 979, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 3424, -64, -6304, 0 }, { { -768, 0, -416, 0 }, { 768, 0, -416, 0 }, { -768, 0, 416, 0 }, { 768, 0, 416, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, ONE, 0 }, 872, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_ISLAND_INTERACTION_CAP_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_island_80183EDC[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's Bog Diver resource, keyed to placement entry 4 and ending at `AREA_PLACEMENT_END`.
+///
+/// Loads file 100400; task index 0 borrows the loaded actor's descriptors.
+static AreaResource _gNeoArkIslandVariant1Resources[] = {
+    { .entryId = 4, .fileNumber = 4, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor100400Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_island_80183EF4[2] = {
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 2's Mossback resource, keyed to placement entry 49 and ending at `AREA_PLACEMENT_END`.
+///
+/// Loads file 204900; task index 0 borrows the loaded actor's descriptors.
+static AreaResource _gNeoArkIslandVariant2Resources[] = {
+    { .entryId = 49, .fileNumber = 49, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor01100Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_island_80183F0C[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 3's Bog Diver resource, keyed to placement entry 4 and ending at `AREA_PLACEMENT_END`.
+///
+/// Loads file 100400; task index 0 borrows the loaded actor's descriptors.
+static AreaResource _gNeoArkIslandVariant3Resources[] = {
+    { .entryId = 4, .fileNumber = 4, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor100400Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_island_80183F24[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 4's empty, terminated resource table; its placement table is empty as well.
+static AreaResource _gNeoArkIslandVariant4Resources[] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_island_80183F30[2] = {
-    { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor05700RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 11's Rook GOLEM resource, keyed to placement entry 57 and ending at `AREA_PLACEMENT_END`.
+///
+/// Loads file 105700; task index 0 borrows the loaded actor's descriptors.
+static AreaResource _gNeoArkIslandVariant11Resources[] = {
+    { .entryId = 57, .fileNumber = 57, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor05700RookGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_neo_ark_island_80183F48[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B550, D_neo_ark_island_80183EDC },
-    { D_map_neo_ark_8017B590, D_neo_ark_island_80183EF4 },
-    { D_map_neo_ark_8017B5C0, D_neo_ark_island_80183F0C },
-    { D_map_neo_ark_8017B600, D_neo_ark_island_80183F24 },
+    { D_map_neo_ark_8017B550, _gNeoArkIslandVariant1Resources },
+    { D_map_neo_ark_8017B590, _gNeoArkIslandVariant2Resources },
+    { D_map_neo_ark_8017B5C0, _gNeoArkIslandVariant3Resources },
+    { D_map_neo_ark_8017B600, _gNeoArkIslandVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017B610, D_neo_ark_island_80183F30 },
+    { D_map_neo_ark_8017B610, _gNeoArkIslandVariant11Resources },
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_island_80183FB0 = {
-    0x10000039,
-    0x1000003B,
-    0x10000039,
+/// Type-1 cue-2 request bases; cue 1 uses the following script entry.
+enum {
+    NEO_ARK_ISLAND_SURFACE3_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x39,
+    NEO_ARK_ISLAND_SURFACE3_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3B,
+    NEO_ARK_ISLAND_SURFACE4_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    NEO_ARK_ISLAND_SURFACE4_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
 };
 
-WorldCollisionFootstepSounds D_neo_ark_island_80183FBC = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+/// Surface class 3's walking, running and scripted-jump footstep pairs.
+///
+/// Walking and scripted jumps share their base; playback selects the loaded type-1 bank.
+static WorldCollisionFootstepSounds _gNeoArkIslandSurface3FootstepSounds = {
+    .walk         = NEO_ARK_ISLAND_SURFACE3_FOOTSTEP_WALK,
+    .run          = NEO_ARK_ISLAND_SURFACE3_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_ISLAND_SURFACE3_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_island_80183FC8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 4's walking, running and scripted-jump footstep pairs.
+///
+/// Walking and scripted jumps share their base; playback selects the loaded type-1 bank.
+static WorldCollisionFootstepSounds _gNeoArkIslandSurface4FootstepSounds = {
+    .walk         = NEO_ARK_ISLAND_SURFACE4_FOOTSTEP_WALK,
+    .run          = NEO_ARK_ISLAND_SURFACE4_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_ISLAND_SURFACE4_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_island_80183FD0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Classes 0, 2 and 5..7 block probes and allow weapon impacts and pushback, without cues.
+static WorldCollisionSurfaceProperties _gNeoArkIslandSolidSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_island_80183FD8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_island_80183FB0 },
+/// Class 1 passes probes and suppresses weapon impacts, retaining pushback without cues.
+static WorldCollisionSurfaceProperties _gNeoArkIslandProbePassSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_island_80183FE0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_island_80183FBC },
+/// Class 3 blocks probes and allows weapon impacts, pushback and its footstep pairs.
+static WorldCollisionSurfaceProperties _gNeoArkIslandSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkIslandSurface3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_island_80183FE8[8] = {
-    D_neo_ark_island_80183FC8,
-    D_neo_ark_island_80183FD0,
-    D_neo_ark_island_80183FC8,
-    D_neo_ark_island_80183FD8,
-    D_neo_ark_island_80183FE0,
-    D_neo_ark_island_80183FC8,
-    D_neo_ark_island_80183FC8,
-    D_neo_ark_island_80183FC8,
+/// Class 4 blocks probes and allows weapon impacts, pushback and its footstep pairs.
+static WorldCollisionSurfaceProperties _gNeoArkIslandSurface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkIslandSurface4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkIslandSurfaceProperties[NEO_ARK_ISLAND_SURFACE_CLASS_COUNT] = {
+    &_gNeoArkIslandSolidSurface,
+    &_gNeoArkIslandProbePassSurface,
+    &_gNeoArkIslandSolidSurface,
+    &_gNeoArkIslandSurface3Properties,
+    &_gNeoArkIslandSurface4Properties,
+    &_gNeoArkIslandSolidSurface,
+    &_gNeoArkIslandSolidSurface,
+    &_gNeoArkIslandSolidSurface,
 };
 
 RoomEventMsg D_neo_ark_island_80184008;

@@ -14,6 +14,12 @@
 
 #include "main/task_types.h"
 
+/// Extents of the island's mapped view resources and collision surface directory.
+enum {
+    NEO_ARK_ISLAND_VIEW_RESOURCE_COUNT = 5,
+    NEO_ARK_ISLAND_SURFACE_CLASS_COUNT = 8,
+};
+
 // Room data exported to the shared waypoint actor.
 extern SVECTOR* D_neo_ark_island_80181CE8[4];
 
@@ -41,11 +47,30 @@ extern ViewCount D_neo_ark_island_80181BB0[];
 
 extern DirectionWarpEntry D_neo_ark_island_80181BB4[];
 
-extern ViewCamera D_neo_ark_island_801826EC[];
+/// The island's five cameras, indexed by mapped view minus one.
+///
+/// Mapped views 1..5 have no terminator; the room's identity map makes these
+/// the logical views as well. Rotation has 12 fractional bits, translation is
+/// the negated world-space camera origin, and screen distance is in pixels.
+/// Queued camera tasks borrow these records until application; keep this overlay loaded.
+extern ViewCamera gNeoArkIslandViewCameras[NEO_ARK_ISLAND_VIEW_RESOURCE_COUNT];
 
-extern SpriteView D_neo_ark_island_80183B14[];
+/// The island's five sprite views, indexed by mapped view minus one.
+///
+/// Views 1 and 5 have no source sprites; views 2..4 select 33, 68 and 140
+/// depth-sorted image rectangles. Every first batch keeps decoded background
+/// strips, every batch list ends at SPRITE_BATCH_END, and no view supplies
+/// clipping areas. Require a mapped view in 1..5 and keep this overlay loaded
+/// while caching or drawing the borrowed, mutable sources and batches.
+extern SpriteView gNeoArkIslandSpriteViews[NEO_ARK_ISLAND_VIEW_RESOURCE_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_island_80183FE8[];
+/// Collision policies and footstep cues indexed by island surface class (0..7).
+///
+/// All classes apply pushback. Class 1 passes probes and suppresses weapon
+/// impacts; every other class blocks probes and permits impacts. Only classes
+/// 3 and 4 supply footstep pairs; 0, 2 and 5..7 share the silent solid record.
+/// The directory, records and cue bases expire when this overlay is unloaded.
+extern WorldCollisionSurfaceProperties* gNeoArkIslandSurfaceProperties[NEO_ARK_ISLAND_SURFACE_CLASS_COUNT];
 
 /// Installs the island's flash, twin-trail, spark-burst and water effect IDs once.
 ///

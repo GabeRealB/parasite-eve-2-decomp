@@ -10,13 +10,36 @@
 
 #include "main/task_types.h"
 
-extern WorldCollisionGrid D_neo_ark_island_801826C8[1];
+/// The island's collision mesh and 4-by-5 XZ cell index.
+///
+/// Borrows this overlay's 13 normals, 127 vertices, 61 faces and 20 cell lists.
+/// Cells are 4000 game-coordinate units wide, from origin (-5100, -7000)
+/// on X/Z. Face-index lists end at WORLD_COLLISION_GRID_CELL_END.
+/// Activation binds the mutable grid to the view; keep this overlay loaded while active.
+extern WorldCollisionGrid gNeoArkIslandCollisionGrid;
 
-extern WorldCoordRoomLights D_neo_ark_island_80183CB0[1];
+/// Four directional lights shared by every island view, with no point or cone lights.
+///
+/// Borrows this overlay's mutable light array; coordinate setup and shading
+/// update transforms and attenuation. Keep this overlay loaded while used.
+extern WorldCoordRoomLights gNeoArkIslandRoomLights;
 
-extern WorldCollisionTrigger D_neo_ark_island_80183CC8[4];
+/// Directed view boundaries connecting island views 2 and 3, then 3 and 4.
+///
+/// Each direction has its own quad, and the fourth record carries LAST.
+/// Room setup binds, links and enables these mutable nodes; they must stay
+/// loaded until unlinked. Hit consumption checks the source view before
+/// requesting the destination. Positions use room units and normals use 4096 per unit.
+extern WorldCollisionTrigger gNeoArkIslandViewBoundaryTriggers[4];
 
-extern WorldCollisionTrigger D_neo_ark_island_80183DF8[3];
+/// Island interactions: pavilion warp, gallery warp and facing-gated CAP command 2.
+///
+/// Warp bytes select departure/arrival slots 1/3 for the pavilion and 2/1
+/// for the gallery; the room defers gallery departure to its prompt. The last
+/// record starts CAP command 2 and carries LAST. Room setup binds, links and
+/// enables these mutable nodes; keep them loaded until unlinked. Positions
+/// use room units and normals use 4096 per unit.
+extern WorldCollisionTrigger gNeoArkIslandActionTriggers[3];
 
 extern TaskMessageEntry D_neo_ark_island_80181B48[6];
 
