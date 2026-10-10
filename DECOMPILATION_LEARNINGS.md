@@ -51293,7 +51293,7 @@ the global (`lui $s0` in the first branch's delay slot, `lw` at the label)
 rather than keeping the first load live across both paths:
 
 ```c
-Task* task = D_mist_parking_8019532C.task;
+Task* task = gMistParkingShopPlayerHeadAimHandle.task;
 
 if (task == NULL) {
     return;
@@ -51307,8 +51307,8 @@ if (mode < 0) {
 task->spawnArg1.value = mode;
 return;
 kill:
-    taskKill(D_mist_parking_8019532C.task);
-    D_mist_parking_8019532C.task = NULL;
+    taskKill(gMistParkingShopPlayerHeadAimHandle.task);
+    gMistParkingShopPlayerHeadAimHandle.task = NULL;
 ```
 
 `_mistParkingControlShopPlayerHeadAim` matched on the first attempt with this shape after

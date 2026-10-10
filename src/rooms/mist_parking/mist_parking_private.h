@@ -77,9 +77,18 @@ extern TaskDesc gMistParkingShopTaskDescriptors[5];
 /// Tasks the room keeps a handle on while they run.
 extern Task* gRoomCutsceneSoundTask;
 
-extern Task* D_mist_parking_80195320;
+/// Held arrival-conversation model task, or NULL when absent or allocation failed.
+///
+/// Release kills the task and clears this handle; reset only forgets it.
+/// A held pointer must identify a live task with its room-owned model loaded.
+extern Task* gMistParkingCutsceneModelTask;
 
-extern Task* D_mist_parking_80195324;
+/// Held general-conversation player head-aim task, or NULL when none is held.
+///
+/// Spawn replaces the handle, control changes its aiming mode or kills/clears
+/// it, and reset only forgets it. Keep the task and borrowed player/partner
+/// models live while held; starting twice does not release the earlier task.
+extern Task* gMistParkingPlayerHeadAimTask;
 
 extern TmdSource gMistParkingModel09B9C;
 
@@ -215,7 +224,14 @@ extern EvsCommand D_mist_parking_80191304[8];
 
 extern EvsCommand D_mist_parking_801913C4[8];
 
-extern WorldCollisionGrid D_mist_parking_80192204;
+/// Writable parking collision mesh and 7-by-4 XZ cell index, shared by all room variants.
+///
+/// Has 13 normals, 125 vertices and 66 faces. Cells span 4000 world units from
+/// origin (-11000, -7000); each cell list ends with WORLD_COLLISION_GRID_CELL_END.
+/// Room setup binds the current view. Pierce's patch replaces the first two
+/// normals/faces and six vertices without rebuilding the cell lists. The grid
+/// and all borrowed pools must stay loaded while active.
+extern WorldCollisionGrid gMistParkingCollisionGrid;
 
 /// Displayed weapon-supply quantity in signed 24.8 fixed point.
 ///
@@ -230,13 +246,30 @@ extern s32 gShopRefillDisplayQuantityFixed;
 /// closes; gameplay and its catalogue must remain loaded throughout the session.
 extern const EquipmentWeaponSupply* gShopRefillSupply;
 
+/// Unproven-origin word read by the departure and shop choice continuations.
+///
+/// Initialized to zero; 2 selects departure or skipping the shop, respectively.
+/// Every other value selects staying or opening the shop. No writer has been
+/// identified, so its full value domain and connection to the option dialog
+/// are unproven. Storage remains a signed, aligned 32-bit word.
 extern s32 D_mist_parking_8019531C;
 
-extern RoomCutsceneRec D_mist_parking_8019533C;
+/// Singleton playback record for parking command 8's view-9 cutscene.
+///
+/// Configured before spawn for CAP file 3, slot 1 and four area sound events.
+/// Zero texture-page coordinates select the runner's default (960, 0).
+/// Borrowed until the runner and follow-up dialogue finish: do not overwrite
+/// it or unload the room while that task is live.
+extern RoomCutsceneRec gMistParkingCommandCutscene;
 
 extern MistParkingPrizeAnnouncementState D_mist_parking_80195328;
 
-extern MistParkingHeadAimHandle D_mist_parking_8019532C;
+/// Variant-1 shop conversation's held player head-aim task and retained unknown word.
+///
+/// Spawn stores a live task or NULL; control kills/clears it, while room setup
+/// only forgets it. The trailing four bytes remain zero and unreferenced.
+/// Requires a live held task and loaded player/partner models until stopped.
+extern MistParkingHeadAimHandle gMistParkingShopPlayerHeadAimHandle;
 
 extern MistParkingShopTalkState D_mist_parking_80195334;
 

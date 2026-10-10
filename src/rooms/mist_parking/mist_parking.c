@@ -863,15 +863,15 @@ static inline void _mistParkingStartCommandCutscene(void)
     GameSession* session;
 
     // Configure playback before queuing the task that borrows the record.
-    D_mist_parking_8019533C.view            = MIST_PARKING_CUTSCENE_VIEW;
-    D_mist_parking_8019533C.capSlot         = MIST_PARKING_CUTSCENE_CAP_SLOT;
-    D_mist_parking_8019533C.capFile         = MIST_PARKING_CUTSCENE_CAP_FILE;
-    D_mist_parking_8019533C.skipScene       = MIST_PARKING_CUTSCENE_PLAY;
-    D_mist_parking_8019533C.startSound      = MIST_PARKING_CUTSCENE_START_SOUND;
-    D_mist_parking_8019533C.endSound        = MIST_PARKING_CUTSCENE_END_SOUND;
-    D_mist_parking_8019533C.sceneSound      = MIST_PARKING_CUTSCENE_SCENE_SOUND;
-    D_mist_parking_8019533C.afterSceneSound = MIST_PARKING_CUTSCENE_AFTER_SOUND;
-    taskSpawnFromTable(_gRoomCutsceneTaskDescs, MIST_PARKING_CUTSCENE_DESCRIPTOR, MIST_PARKING_CUTSCENE_COMMAND, &D_mist_parking_8019533C);
+    gMistParkingCommandCutscene.view            = MIST_PARKING_CUTSCENE_VIEW;
+    gMistParkingCommandCutscene.capSlot         = MIST_PARKING_CUTSCENE_CAP_SLOT;
+    gMistParkingCommandCutscene.capFile         = MIST_PARKING_CUTSCENE_CAP_FILE;
+    gMistParkingCommandCutscene.skipScene       = MIST_PARKING_CUTSCENE_PLAY;
+    gMistParkingCommandCutscene.startSound      = MIST_PARKING_CUTSCENE_START_SOUND;
+    gMistParkingCommandCutscene.endSound        = MIST_PARKING_CUTSCENE_END_SOUND;
+    gMistParkingCommandCutscene.sceneSound      = MIST_PARKING_CUTSCENE_SCENE_SOUND;
+    gMistParkingCommandCutscene.afterSceneSound = MIST_PARKING_CUTSCENE_AFTER_SOUND;
+    taskSpawnFromTable(_gRoomCutsceneTaskDescs, MIST_PARKING_CUTSCENE_DESCRIPTOR, MIST_PARKING_CUTSCENE_COMMAND, &gMistParkingCommandCutscene);
     session                                                    = gGameSession;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = MIST_PARKING_CUTSCENE_WARP;
     session->location.loc.warp                                 = MIST_PARKING_CUTSCENE_WARP;

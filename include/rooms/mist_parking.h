@@ -15,15 +15,21 @@ extern TaskDesc D_mist_parking_8018668C;
 
 extern AreaVariant D_mist_parking_801951B4[13];
 
-// mist_parking
-extern WorldCollisionRoomResources D_mist_parking_8019155C[];
-
 /// Dimensions of the parking area's room variants, logical views and surface classes.
 enum {
     MIST_PARKING_ROOM_VARIANT_COUNT  = 4,
     MIST_PARKING_VIEW_COUNT          = 20,
+    MIST_PARKING_WARP_COUNT          = 4,
     MIST_PARKING_SURFACE_CLASS_COUNT = 8
 };
+
+/// Collision resources for parking room variants 1..4, indexed by room - 1.
+///
+/// All variants share the writable grid and view boundaries. Rooms 1/2 select
+/// the early-chapter action triggers; rooms 3/4 select the later set. There are
+/// no occluder records. The map directory borrows these resources while the
+/// parking overlay is loaded; linked grid and trigger storage must stay live.
+extern WorldCollisionRoomResources gMistParkingRoomCollisionResources[MIST_PARKING_ROOM_VARIANT_COUNT];
 
 /// Logical-view maps for the parking area's four room variants.
 ///
@@ -33,7 +39,12 @@ enum {
 /// stored. The map overlay borrows this directory while this room is loaded.
 extern u8* gMistParkingViewMaps[MIST_PARKING_ROOM_VARIANT_COUNT];
 
-extern ViewCount D_mist_parking_801915C0[];
+/// Logical-view search lengths for parking room variants 1..4, indexed by room - 1.
+///
+/// Each signed 16-bit element counts twenty entries in the variant's view map.
+/// These bound reverse searches; they do not count sprite source records.
+/// No terminator is stored. The map directory borrows the loaded room's array.
+extern ViewCount gMistParkingViewCounts[MIST_PARKING_ROOM_VARIANT_COUNT];
 
 /// Light collections and ambient minima for the parking area's four room variants.
 ///
@@ -43,11 +54,31 @@ extern ViewCount D_mist_parking_801915C0[];
 /// and attenuation stay writable. All borrowed data requires this overlay loaded.
 extern WorldCoordRoomLighting gMistParkingRoomLightingTable[MIST_PARKING_ROOM_VARIANT_COUNT];
 
-extern DirectionWarpEntry D_mist_parking_801915E8[];
+/// Four parking arrival/departure endpoints, indexed by 1-based warp ID minus one.
+///
+/// Player and companion share each endpoint's placement, in world units and
+/// 4096 yaw units per turn. Default logical views are 2, 3, 10 and 5. Endpoint 1
+/// has arrival/departure door sounds; the others are silent. No map marker or
+/// scripted-player/fade flags are set. Gameplay copies each complete entry;
+/// the map directory borrows this array only while the parking overlay is loaded.
+extern DirectionWarpEntry gMistParkingWarpEntries[MIST_PARKING_WARP_COUNT];
 
-extern ViewCamera D_mist_parking_80192228[];
+/// Cameras for mapped parking view slots 1..20, indexed by mapped index minus one.
+///
+/// Rotation coefficients use 4096 per unit, translations are negated world
+/// origins, and projection distances are pixels. All room variants share this
+/// array through their logical-view maps. Queued camera tasks borrow records
+/// until dispatch, requiring the parking overlay to remain loaded.
+extern ViewCamera gMistParkingViewCameras[MIST_PARKING_VIEW_COUNT];
 
-extern SpriteView D_mist_parking_8019399C[];
+/// Sprite resources for mapped parking view slots 1..20, indexed by mapped index minus one.
+///
+/// Every slot keeps the decoded background strips and has no draw-area list.
+/// Nonempty slots borrow source rectangles and sentinel-terminated drawing
+/// ranges; empty slots retain their batch address in `sources.empty` without
+/// supplying sprites. The map directory, allocation and drawing borrow these
+/// writable descriptors and lists while the parking overlay is loaded.
+extern SpriteView gMistParkingSpriteViews[MIST_PARKING_VIEW_COUNT];
 
 /// Collision policies and footstep cues indexed by parking surface class 0..7.
 ///

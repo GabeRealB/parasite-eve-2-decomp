@@ -184,13 +184,13 @@ gMistR18ViewCameras = 0x8018671C; // absolute:True owner=mist_r18 shared=rooms
 gMistR18SpriteViews = 0x80186B60; // absolute:True owner=mist_r18
 gMistR18SurfacePropertiesByClass = 0x80186E70; // absolute:True owner=mist_r18 shared=rooms
 mistParkingRoomTask = 0x80182898; // type:func absolute:True owner=mist_parking
-D_mist_parking_8019155C = 0x8019155C; // absolute:True owner=mist_parking
+gMistParkingRoomCollisionResources = 0x8019155C; // absolute:True owner=mist_parking
 gMistParkingViewMaps = 0x801915B0; // absolute:True owner=mist_parking
-D_mist_parking_801915C0 = 0x801915C0; // absolute:True owner=mist_parking
+gMistParkingViewCounts = 0x801915C0; // absolute:True owner=mist_parking
 gMistParkingRoomLightingTable = 0x801915C8; // absolute:True owner=mist_parking shared=rooms
-D_mist_parking_801915E8 = 0x801915E8; // absolute:True owner=mist_parking
-D_mist_parking_80192228 = 0x80192228; // absolute:True owner=mist_parking
-D_mist_parking_8019399C = 0x8019399C; // absolute:True owner=mist_parking
+gMistParkingWarpEntries = 0x801915E8; // absolute:True owner=mist_parking
+gMistParkingViewCameras = 0x80192228; // absolute:True owner=mist_parking
+gMistParkingSpriteViews = 0x8019399C; // absolute:True owner=mist_parking
 gMistParkingSurfacePropertiesByClass = 0x801952F0; // absolute:True owner=mist_parking
 mistShootingGalleryRoomTask = 0x8018018C; // type:func absolute:True owner=mist_shooting_gallery
 D_mist_shooting_gallery_801853A8 = 0x801853A8; // absolute:True owner=mist_shooting_gallery

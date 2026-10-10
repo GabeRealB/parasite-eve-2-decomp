@@ -31,6 +31,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task_types.h"
 
@@ -44,12 +45,19 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 
-/// World-space points the room's glow markers are drawn at. Every view draws
-/// its markers from this one table, by index.
+/// World-coordinate capsule endpoints and the separate pulsing point-glow centre.
+typedef struct {
+    SVECTOR capsuleEndpoints[26]; // Thirteen adjacent endpoint pairs; entries 2/3 are retained but unused
+    SVECTOR pointCenter;          // Centre shared by the cyan diamond and disc glows
+} _MistParkingGlowWorldPoints;
+STATIC_ASSERT_SIZEOF(_MistParkingGlowWorldPoints, 0xD8);
 
-extern WorldCollisionTrigger      D_mist_parking_80193A8C[12];
-extern WorldCollisionTrigger      D_mist_parking_80193E1C[13];
-extern WorldCollisionTrigger      D_mist_parking_801941F8[14];
+/// XZ cell-row stride of the parking grid's authored cell index.
+enum { MIST_PARKING_COLLISION_CELL_COUNT_Z = 4 };
+
+static WorldCollisionTrigger      _gMistParkingViewBoundaryTriggers[12];
+static WorldCollisionTrigger      _gMistParkingEarlyChapterActionTriggers[13];
+static WorldCollisionTrigger      _gMistParkingLaterChapterActionTriggers[14];
 static WorldCoordRoomAmbientEntry _gMistParkingRoom2AmbientByView[MIST_PARKING_VIEW_COUNT + 1];
 static WorldCoordRoomLights       _gMistParkingRoom1Lights;
 static WorldCoordRoomLights       _gMistParkingRoom2Lights;
@@ -100,41 +108,48 @@ EvsCommand D_mist_parking_801913C4[8] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_mist_parking_80191484[27] = {
-    { 11430, -2690, -4750, 0 },
-    { 10230, -2690, -4750, 0 },
-    { 8070, -2690, -4750, 0 },
-    { 6860, -2690, -4750, 0 },
-    { 3870, -3190, -4840, 0 },
-    { 3870, -3190, -3690, 0 },
-    { 3870, -3190, -1600, 0 },
-    { 3870, -3190, -450, 0 },
-    { 3870, -3190, 1020, 0 },
-    { 3870, -3190, 2180, 0 },
-    { -2000, -3190, -4840, 0 },
-    { -2000, -3190, -3690, 0 },
-    { -2000, -3190, -1600, 0 },
-    { -2000, -3190, -450, 0 },
-    { -2000, -3190, 1020, 0 },
-    { -2000, -3190, 2180, 0 },
-    { -5870, -3190, -4840, 0 },
-    { -5870, -3190, -3690, 0 },
-    { -5870, -3190, -1600, 0 },
-    { -5870, -3190, -450, 0 },
-    { -5870, -3190, 1020, 0 },
-    { -5870, -3190, 2180, 0 },
-    { -7780, -3190, -2000, 0 },
-    { -8940, -3190, -2000, 0 },
-    { -7780, -3190, -5000, 0 },
-    { -8940, -3190, -5000, 0 },
-    { -7412, -1345, 773, 0 },
+/// Authored parking glow positions in signed world-coordinate units.
+///
+/// Capsule drawers borrow adjacent endpoint pairs; row drawers borrow six
+/// consecutive endpoints within the flat array. The separate centre serves
+/// all point glows. Keep the unused second pair and all vector fourth halfwords.
+static _MistParkingGlowWorldPoints _gMistParkingGlowWorldPoints = {
+    .capsuleEndpoints = {
+        { 11430, -2690, -4750, 0 },
+        { 10230, -2690, -4750, 0 },
+        { 8070, -2690, -4750, 0 },
+        { 6860, -2690, -4750, 0 },
+        { 3870, -3190, -4840, 0 },
+        { 3870, -3190, -3690, 0 },
+        { 3870, -3190, -1600, 0 },
+        { 3870, -3190, -450, 0 },
+        { 3870, -3190, 1020, 0 },
+        { 3870, -3190, 2180, 0 },
+        { -2000, -3190, -4840, 0 },
+        { -2000, -3190, -3690, 0 },
+        { -2000, -3190, -1600, 0 },
+        { -2000, -3190, -450, 0 },
+        { -2000, -3190, 1020, 0 },
+        { -2000, -3190, 2180, 0 },
+        { -5870, -3190, -4840, 0 },
+        { -5870, -3190, -3690, 0 },
+        { -5870, -3190, -1600, 0 },
+        { -5870, -3190, -450, 0 },
+        { -5870, -3190, 1020, 0 },
+        { -5870, -3190, 2180, 0 },
+        { -7780, -3190, -2000, 0 },
+        { -8940, -3190, -2000, 0 },
+        { -7780, -3190, -5000, 0 },
+        { -8940, -3190, -5000, 0 },
+    },
+    .pointCenter = { -7412, -1345, 773, 0 },
 };
 
-WorldCollisionRoomResources D_mist_parking_8019155C[4] = {
-    { &D_mist_parking_80192204, D_mist_parking_80193A8C, D_mist_parking_80193E1C, NULL },
-    { &D_mist_parking_80192204, D_mist_parking_80193A8C, D_mist_parking_80193E1C, NULL },
-    { &D_mist_parking_80192204, D_mist_parking_80193A8C, D_mist_parking_801941F8, NULL },
-    { &D_mist_parking_80192204, D_mist_parking_80193A8C, D_mist_parking_801941F8, NULL },
+WorldCollisionRoomResources gMistParkingRoomCollisionResources[MIST_PARKING_ROOM_VARIANT_COUNT] = {
+    { &gMistParkingCollisionGrid, _gMistParkingViewBoundaryTriggers, _gMistParkingEarlyChapterActionTriggers, NULL },
+    { &gMistParkingCollisionGrid, _gMistParkingViewBoundaryTriggers, _gMistParkingEarlyChapterActionTriggers, NULL },
+    { &gMistParkingCollisionGrid, _gMistParkingViewBoundaryTriggers, _gMistParkingLaterChapterActionTriggers, NULL },
+    { &gMistParkingCollisionGrid, _gMistParkingViewBoundaryTriggers, _gMistParkingLaterChapterActionTriggers, NULL },
 };
 
 /// Early-chapter logical-view permutation for room variants 1 and 2.
@@ -171,7 +186,9 @@ u8* gMistParkingViewMaps[MIST_PARKING_ROOM_VARIANT_COUNT] = {
     gViewIdentityMap,
 };
 
-ViewCount D_mist_parking_801915C0[4] = { 20, 20, 20, 20 };
+ViewCount gMistParkingViewCounts[MIST_PARKING_ROOM_VARIANT_COUNT] = {
+    MIST_PARKING_VIEW_COUNT, MIST_PARKING_VIEW_COUNT, MIST_PARKING_VIEW_COUNT, MIST_PARKING_VIEW_COUNT
+};
 
 WorldCoordRoomLighting gMistParkingRoomLightingTable[MIST_PARKING_ROOM_VARIANT_COUNT] = {
     { &_gMistParkingRoom1Lights, NULL },
@@ -180,38 +197,55 @@ WorldCoordRoomLighting gMistParkingRoomLightingTable[MIST_PARKING_ROOM_VARIANT_C
     { &_gMistParkingRoom2Lights, _gMistParkingRoom2AmbientByView },
 };
 
-DirectionWarpEntry D_mist_parking_801915E8[4] = {
-    { { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, 0x51130015, 0x51130014, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gMistParkingWarpEntries[MIST_PARKING_WARP_COUNT] = {
+    { { { .word = ONE * 3 / 4 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, { { .word = ONE * 3 / 4 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0x15), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0x14), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 0 }, 8448, 0, -3014 }, { 0, 0, 0, 0 }, { { .word = 0 }, 8448, 0, -3014 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 5022, 0, -5260 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 5022, 0, -5260 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ONE * 3 / 4 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, { { .word = ONE * 3 / 4 }, 0x2EEC, 0, -5053 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ONE / 2 }, 5022, 0, -5260 }, { 0, 0, 0, 0 }, { { .word = ONE / 2 }, 5022, 0, -5260 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gMistParkingCollision14C44Normals[13] = {
+/// Room-space grid normals in 1/4096 units; the first two are reserved for Pierce's patch.
+static SVECTOR _gMistParkingCollisionGridNormals[] = {
 #include "assets/mist_parking_collision_14C44_normals.inc"
 };
 
-static SVECTOR _gMistParkingCollision14C44Verts[125] = {
+/// Grid vertices in signed world units; the first six are rewritten for Pierce's patch.
+static SVECTOR _gMistParkingCollisionGridVerts[] = {
 #include "assets/mist_parking_collision_14C44_verts.inc"
 };
 
-static WorldCollisionGridFace _gMistParkingCollision14C44Faces[66] = {
+/// Indexed grid faces, including the two initially disabled Pierce-patch faces.
+static WorldCollisionGridFace _gMistParkingCollisionGridFaces[] = {
 #include "assets/mist_parking_collision_14C44_faces.inc"
 };
 
-static s16 _gMistParkingCollision14C44Cells[434] = {
+/// Packed signed face-index lists; each cell's list ends with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gMistParkingCollisionGridCells[] = {
 #include "assets/mist_parking_collision_14C44_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistParkingCollision14C44Cells[i])
-static s16* _gMistParkingCollision14C44Table[28] = {
+#define GRID_CELL(i) (&_gMistParkingCollisionGridCells[i])
+/// X-major 7-by-4 grid cell pointers into the packed face-index lists.
+static s16* _gMistParkingCollisionGridTable[] = {
 #include "assets/mist_parking_collision_14C44_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_parking_80192204 = { NULL, _gMistParkingCollision14C44Normals, _gMistParkingCollision14C44Verts, _gMistParkingCollision14C44Faces, _gMistParkingCollision14C44Table, 0x2AF8, 7000, 7, 4, 4000, 66 };
+WorldCollisionGrid gMistParkingCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gMistParkingCollisionGridNormals,
+    .vertices    = _gMistParkingCollisionGridVerts,
+    .faces       = _gMistParkingCollisionGridFaces,
+    .cellFaceIds = _gMistParkingCollisionGridTable,
+    .xBias       = 11000,
+    .zBias       = 7000,
+    .cellCountX  = ARRAY_SIZE(_gMistParkingCollisionGridTable) / MIST_PARKING_COLLISION_CELL_COUNT_Z,
+    .cellCountZ  = MIST_PARKING_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gMistParkingCollisionGridFaces),
+};
 
-ViewCamera D_mist_parking_80192228[20] = {
+ViewCamera gMistParkingViewCameras[MIST_PARKING_VIEW_COUNT] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x6978, 0 } }, 257 },
     { { { { 1185, 0, -3920 }, { -1131, 3921, -341 }, { 3754, 1181, 1134 } }, { -4650, 1900, 5340 } }, 257 },
     { { { { -3872, 0, -1335 }, { -882, 3074, 2558 }, { 1002, 2706, -2906 } }, { -7880, 2620, 660 } }, 207 },
@@ -586,144 +620,194 @@ static SpriteBatch _gMistParkingView11SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_801932B4[2] = {
+/// Background-only batch list for mapped parking view 12.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView12SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_801932C4[2] = {
+/// Background-only batch list for mapped parking view 13.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView13SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_801932D4[2] = {
+/// Background-only batch list for mapped parking view 14.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView14SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_801932E4[2] = {
+/// Background-only batch list for mapped parking view 15.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView15SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_801932F4[2] = {
+/// Background-only batch list for mapped parking view 16.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView16SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_80193304[2] = {
+/// Background-only batch list for mapped parking view 17.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView17SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_parking_80193314[35] = {
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -160, -56, 1050, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -152, -48, 1075, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -40, 1125, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, -32, 115, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 16, 936, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 112 } }, -160, -40, 1050, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -136, -40, 1150, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -136, 16, 1100, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -120, -48, 1200, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -120, 0, 1150, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, -48, 1250, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, 0, 1200, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -88, -48, 1250, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -88, 0, 1250, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -80, -48, 1375, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 0, 1375, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, -24, 1375, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, 0, 1375, { .fields = { 24, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 0, 1375, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 40, 8, 1350, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 32, 0, 1350, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 96 } }, -160, 24, 1050, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 112 } }, -104, 8, 1050, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 120 } }, -72, 0, 1050, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -48, 0, 1050, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, 0, 1100, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -32, 48, 1100, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -16, 48, 1150, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -16, 0, 1150, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 0, 0, 1200, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 0, 48, 1200, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 16, 40, 1275, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 16, 0, 1275, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -8, 1375, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, -8, 1453, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped parking view 18.
+///
+/// Contains 35 source elements with no terminator. XY and dimensions use
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// Opaque 8-bit textures use neutral RGB and the view's palette at (0, 255).
+/// Batch ranges borrow these records while cached packets are allocated/drawn.
+static SpriteSource _gMistParkingView18SpriteSources[] = {
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, -160, -56, 1050, { .fields = { 64, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -152, -48, 1075, { .fields = { 56, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -144, -40, 1125, { .fields = { 32, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -136, -32, 115, { .fields = { 88, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -56, 16, 936, { .fields = { 120, 240 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 112 } }, -160, -40, 1050, { .fields = { 88, 120 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -136, -40, 1150, { .fields = { 16, 120 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -136, 16, 1100, { .fields = { 16, 64 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -120, -48, 1200, { .fields = { 56, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -120, 0, 1150, { .fields = { 16, 176 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -104, -48, 1250, { .fields = { 72, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -104, 0, 1200, { .fields = { 0, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -88, -48, 1250, { .fields = { 32, 64 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -88, 0, 1250, { .fields = { 48, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -80, -48, 1375, { .fields = { 40, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -80, 0, 1375, { .fields = { 64, 80 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -72, -24, 1375, { .fields = { 16, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -72, 0, 1375, { .fields = { 24, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -64, 0, 1375, { .fields = { 104, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 40, 8, 1350, { .fields = { 96, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 32, 0, 1350, { .fields = { 56, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 96 } }, -160, 24, 1050, { .fields = { 32, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 112 } }, -104, 8, 1050, { .fields = { 72, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 120 } }, -72, 0, 1050, { .fields = { 104, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 120 } }, -48, 0, 1050, { .fields = { 112, 120 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -32, 0, 1100, { .fields = { 0, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, -32, 48, 1100, { .fields = { 40, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -16, 48, 1150, { .fields = { 24, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -16, 0, 1150, { .fields = { 8, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 0, 0, 1200, { .fields = { 0, 48 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 0, 48, 1200, { .fields = { 40, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, 16, 40, 1275, { .fields = { 120, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 16, 0, 1275, { .fields = { 0, 192 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -32, -8, 1375, { .fields = { 88, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -16, -8, 1453, { .fields = { 112, 248 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_parking_801935D0[5] = {
+/// Drawing ranges for mapped parking view 18, with decoded background image strips.
+///
+/// The zero-count header keeps the background; subsequent ranges index source
+/// elements and the terminal record contributes none. Serialized tail bytes
+/// are preserved, including their nonzero values; their role is unproven.
+static SpriteBatch _gMistParkingView18SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 15, 0, 0, { 2, 0 } },
-    { 19, 16, 0, 0, { 0, 0 } },
+    { 19, ARRAY_SIZE(_gMistParkingView18SpriteSources) - 19, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_parking_801935F8[43] = {
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, -24, 1250, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 128, -24, 1250, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, 72, -16, 1250, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, 104, -16, 1250, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 64, 8, 1995, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 128, -8, 1050, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 128, 56, 1098, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 56 } }, 104, -16, 1150, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 56 } }, 104, 40, 1150, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, 88, -16, 1200, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, 88, 40, 1200, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 80, -16, 1250, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 72, -16, 1250, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 72, 32, 1250, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 80, 32, 1250, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, 40, 949, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 40, 938, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 40, 947, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 40, 958, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, 40, 978, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 40, 1775, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 24 } }, 16, -120, 1341, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 72 } }, 24, -96, 1250, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 64 } }, 16, -24, 1250, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, -64, 16, 1414, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, 16, 1525, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, -48, 8, 1500, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -48, 48, 1500, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -40, 8, 1500, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -40, 48, 1500, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -24, 8, 1500, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -24, 48, 1500, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -8, 8, 1500, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -8, 48, 1500, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 8, 8, 1450, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 24, 8, 1400, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 24, 48, 1400, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 8, 48, 1450, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, 24, 1350, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 40, 72, 1350, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, 56, 32, 1300, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 56, 72, 1300, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 72 } }, 72, 48, 1250, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped parking view 19.
+///
+/// Contains 43 source elements with no terminator. XY and dimensions use
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// Opaque 8-bit textures use neutral RGB and the view's palette at (0, 255).
+/// Batch ranges borrow these records while cached packets are allocated/drawn.
+static SpriteSource _gMistParkingView19SpriteSources[] = {
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 144, -24, 1250, { .fields = { 32, 64 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, 128, -24, 1250, { .fields = { 8, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 48 } }, 72, -16, 1250, { .fields = { 80, 48 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 48 } }, 104, -16, 1250, { .fields = { 96, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, 64, 8, 1995, { .fields = { 80, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, 128, -8, 1050, { .fields = { 0, 64 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, 128, 56, 1098, { .fields = { 24, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 56 } }, 104, -16, 1150, { .fields = { 112, 128 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 56 } }, 104, 40, 1150, { .fields = { 112, 184 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 56 } }, 88, -16, 1200, { .fields = { 112, 56 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 56 } }, 88, 40, 1200, { .fields = { 120, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 80, -16, 1250, { .fields = { 16, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 72, -16, 1250, { .fields = { 8, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, 72, 32, 1250, { .fields = { 104, 176 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, 80, 32, 1250, { .fields = { 96, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 24, 40, 949, { .fields = { 40, 136 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 32, 40, 938, { .fields = { 40, 128 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 40, 40, 947, { .fields = { 48, 64 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 48, 40, 958, { .fields = { 32, 128 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 56, 40, 978, { .fields = { 24, 128 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 40, 1775, { .fields = { 32, 136 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 72, 24 } }, 16, -120, 1341, { .fields = { 24, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 72 } }, 24, -96, 1250, { .fields = { 56, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 64 } }, 16, -24, 1250, { .fields = { 8, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, -64, 16, 1414, { .fields = { 104, 136 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -56, 16, 1525, { .fields = { 72, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, -48, 8, 1500, { .fields = { 104, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 32 } }, -48, 48, 1500, { .fields = { 88, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -40, 8, 1500, { .fields = { 96, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -40, 48, 1500, { .fields = { 64, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -24, 8, 1500, { .fields = { 112, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, -24, 48, 1500, { .fields = { 96, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -8, 8, 1500, { .fields = { 80, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, -8, 48, 1500, { .fields = { 80, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 8, 8, 1450, { .fields = { 88, 136 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 24, 8, 1400, { .fields = { 88, 176 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 24, 48, 1400, { .fields = { 112, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 8, 48, 1450, { .fields = { 112, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 40, 24, 1350, { .fields = { 56, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 40, 72, 1350, { .fields = { 40, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, 56, 32, 1300, { .fields = { 96, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 56, 72, 1300, { .fields = { 24, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 72 } }, 72, 48, 1250, { .fields = { 48, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_parking_80193954[7] = {
+/// Drawing ranges for mapped parking view 19, with decoded background image strips.
+///
+/// The zero-count header keeps the background; subsequent ranges index source
+/// elements and the terminal record contributes none. Serialized tail bytes
+/// are preserved, including their nonzero values; their role is unproven.
+static SpriteBatch _gMistParkingView19SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 0, 0 } },
     { 4, 1, 0, 0, { 3, 0 } },
     { 5, 10, 0, 0, { 2, 0 } },
     { 15, 9, 0, 0, { 4, 0 } },
-    { 24, 19, 0, 0, { 1, 0 } },
+    { 24, ARRAY_SIZE(_gMistParkingView19SpriteSources) - 24, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_8019398C[2] = {
+/// Background-only batch list for mapped parking view 20.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView20SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mist_parking_8019399C[20] = {
+SpriteView gMistParkingSpriteViews[MIST_PARKING_VIEW_COUNT] = {
     { { .empty = _gMistParkingView1SpriteBatches }, _gMistParkingView1SpriteBatches, NULL },
     { { .elements = _gMistParkingView2SpriteSources }, _gMistParkingView2SpriteBatches, NULL },
     { { .empty = _gMistParkingView3SpriteBatches }, _gMistParkingView3SpriteBatches, NULL },
@@ -735,18 +819,45 @@ SpriteView D_mist_parking_8019399C[20] = {
     { { .empty = _gMistParkingView9SpriteBatches }, _gMistParkingView9SpriteBatches, NULL },
     { { .elements = _gMistParkingView10SpriteSources }, _gMistParkingView10SpriteBatches, NULL },
     { { .elements = _gMistParkingView11SpriteSources }, _gMistParkingView11SpriteBatches, NULL },
-    { { .empty = D_mist_parking_801932B4 }, D_mist_parking_801932B4, NULL },
-    { { .empty = D_mist_parking_801932C4 }, D_mist_parking_801932C4, NULL },
-    { { .empty = D_mist_parking_801932D4 }, D_mist_parking_801932D4, NULL },
-    { { .empty = D_mist_parking_801932E4 }, D_mist_parking_801932E4, NULL },
-    { { .empty = D_mist_parking_801932F4 }, D_mist_parking_801932F4, NULL },
-    { { .empty = D_mist_parking_80193304 }, D_mist_parking_80193304, NULL },
-    { { .elements = D_mist_parking_80193314 }, D_mist_parking_801935D0, NULL },
-    { { .elements = D_mist_parking_801935F8 }, D_mist_parking_80193954, NULL },
-    { { .empty = D_mist_parking_8019398C }, D_mist_parking_8019398C, NULL },
+    { { .empty = _gMistParkingView12SpriteBatches }, _gMistParkingView12SpriteBatches, NULL },
+    { { .empty = _gMistParkingView13SpriteBatches }, _gMistParkingView13SpriteBatches, NULL },
+    { { .empty = _gMistParkingView14SpriteBatches }, _gMistParkingView14SpriteBatches, NULL },
+    { { .empty = _gMistParkingView15SpriteBatches }, _gMistParkingView15SpriteBatches, NULL },
+    { { .empty = _gMistParkingView16SpriteBatches }, _gMistParkingView16SpriteBatches, NULL },
+    { { .empty = _gMistParkingView17SpriteBatches }, _gMistParkingView17SpriteBatches, NULL },
+    { { .elements = _gMistParkingView18SpriteSources }, _gMistParkingView18SpriteBatches, NULL },
+    { { .elements = _gMistParkingView19SpriteSources }, _gMistParkingView19SpriteBatches, NULL },
+    { { .empty = _gMistParkingView20SpriteBatches }, _gMistParkingView20SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_mist_parking_80193A8C[12] = {
+/// CAP command slots and room actions selected by the parking interaction quads.
+///
+/// Numbered CAP entries identify the default dialogue resource's authored slots.
+/// Room-message entries instead invoke the room script or view-9 cutscene.
+enum {
+    MIST_PARKING_TRIGGER_CAP_COMMAND_5          = 5,
+    MIST_PARKING_TRIGGER_CAP_COMMAND_6          = 6,
+    MIST_PARKING_TRIGGER_CAP_COMMAND_7          = 7,
+    MIST_PARKING_TRIGGER_CAP_COMMAND_9          = 9,
+    MIST_PARKING_TRIGGER_CAP_COMMAND_11         = 11,
+    MIST_PARKING_TRIGGER_CAP_COMMAND_12         = 12,
+    MIST_PARKING_TRIGGER_CAP_COMMAND_21         = 21,
+    MIST_PARKING_TRIGGER_DEPARTURE_MENU         = 15,
+    MIST_PARKING_TRIGGER_SHOP_TALK              = 18,
+    MIST_PARKING_TRIGGER_ROOM_SCRIPT            = 1,
+    MIST_PARKING_TRIGGER_ROOM_CUTSCENE          = 8,
+    MIST_PARKING_TRIGGER_SELECT_ROOM_2          = 1,
+    MIST_PARKING_TRIGGER_SELECT_ROOM_1          = 2,
+    MIST_PARKING_TRIGGER_SHOOTING_GALLERY_WARPS = (1 << 4) | 1 // Current-area endpoint 1; destination arrival 1
+};
+
+/// Twelve directed logical-view boundaries shared by every parking room variant.
+///
+/// Source/destination pairs connect views 2/5, 2/3, 3/4, 5/6, 5/8 and 6/7.
+/// Room setup binds the view coordinate and links/enables all records, including
+/// the final LAST-marked boundary. Origins/corners/radii use world units;
+/// normals use 4096 per unit. Link and hit state remain writable while active.
+static WorldCollisionTrigger _gMistParkingViewBoundaryTriggers[12] = {
     { NULL, NULL, NULL, { 6687, -2240, -4768, 0 }, { { -114, -3264, -1385, 0 }, { 113, -3264, 1384, 0 }, { -114, 3264, -1385, 0 }, { 113, 3264, 1384, 0 } }, { 4103, 0, -337, 0 }, { 0, 0, 4096, 0 }, 3547, 0, 2, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 6800, -1648, -4864, 0 }, { { 171, -2672, 1615, 0 }, { -172, -2672, -1616, 0 }, { 171, 2672, 1615, 0 }, { -172, 2672, -1616, 0 } }, { -4090, 0, 433, 0 }, { 0, 0, 4096, 0 }, 3124, 0, 5, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 8543, -2160, -3041, 0 }, { { -1624, -3184, 13, 0 }, { 1625, -3184, -12, 0 }, { -1624, 3184, 13, 0 }, { 1625, 3184, -12, 0 } }, { -32, 0, -4104, 0 }, { 0, 0, 4096, 0 }, 3565, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -761,37 +872,49 @@ WorldCollisionTrigger D_mist_parking_80193A8C[12] = {
     { NULL, NULL, NULL, { -4321, -2208, -801, 0 }, { { -2936, -3232, 205, 0 }, { 2937, -3232, -204, 0 }, { -2936, 3232, 205, 0 }, { 2937, 3232, -204, 0 } }, { -286, 0, -4094, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mist_parking_80193E1C[13] = {
-    { NULL, NULL, NULL, { 4960, -64, 2664, 0 }, { { 925, 0, 1264, 0 }, { -964, 0, 1259, 0 }, { 917, 0, -1274, 0 }, { -876, 0, -1247, 0 } }, { 0, 4108, 0, 0 }, { -4051, 0, -600, 0 }, 1583, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 480, -64, -4193, 0 }, { { -2310, 0, 1056, 0 }, { -2511, 0, -726, 0 }, { 2512, 0, 727, 0 }, { 2311, 0, -1055, 0 } }, { 0, 4099, 0, 0 }, { -601, 0, -4051, 0 }, 2610, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 800, -64, 2047, 0 }, { { -2977, 0, 1622, 0 }, { -2953, 0, -1643, 0 }, { 2985, 0, 1676, 0 }, { 2945, 0, -1654, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4095, 0 }, 3415, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6976, -64, 479, 0 }, { { -865, 0, 918, 0 }, { -841, 0, -875, 0 }, { 841, 0, 876, 0 }, { 865, 0, -918, 0 } }, { 0, 4108, 0, 0 }, { 4095, 0, 0, 0 }, 1260, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -9736, -96, -3553, 0 }, { { -761, 0, 2422, 0 }, { -769, 0, -2443, 0 }, { 753, 0, 2444, 0 }, { 777, 0, -2422, 0 } }, { 0, 4098, 0, 0 }, { 4075, 0, -401, 0 }, 2560, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4513, -96, 3775, 0 }, { { 2427, 0, 747, 0 }, { -2438, 0, 784, 0 }, { 2440, 0, -767, 0 }, { -2426, 0, -762, 0 } }, { 0, 4098, 0, 0 }, { 401, 0, -4075, 0 }, 2560, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8639, -48, -3854, 0 }, { { 634, 0, -368, 0 }, { 623, 0, 369, 0 }, { -623, 0, -369, 0 }, { -634, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { -202, 0, -4092, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8448, -32, -2560, 0 }, { { 634, 0, -368, 0 }, { 623, 0, 369, 0 }, { -623, 0, -369, 0 }, { -634, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { -200, 0, 4091, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4752, -64, -5905, 0 }, { { -1219, 0, 1639, 0 }, { -1477, 0, -281, 0 }, { 1253, 0, 1561, 0 }, { 1444, 0, -167, 0 } }, { 0, 4109, 0, 0 }, { 4051, 0, -601, 0 }, 2039, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8432, -64, -1505, 0 }, { { -1070, 0, 252, 0 }, { -1051, 0, -453, 0 }, { 1052, 0, 455, 0 }, { 1071, 0, -251, 0 } }, { 0, 4107, 0, 0 }, { -201, 0, -4091, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x30C0, -64, -4656, 0 }, { { -878, 0, 1036, 0 }, { -859, 0, -1045, 0 }, { 860, 0, 1047, 0 }, { 879, 0, -1035, 0 } }, { 0, 4099, 0, 0 }, { -4091, 0, 201, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 544, -64, -3296, 0 }, { { -3238, 0, 1632, 0 }, { -3631, 0, -1526, 0 }, { 3472, 0, 1143, 0 }, { 3079, 0, -2015, 0 } }, { 0, 4113, 0, 0 }, { -601, 0, -4051, 0 }, 3932, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -8464, -32, -1408, 0 }, { { 1386, 32, -368, 0 }, { 1375, 32, 369, 0 }, { -1375, -32, -369, 0 }, { -1386, -32, 368, 0 } }, { -100, 4097, -9, 0 }, { -202, 0, -4092, 0 }, 1431, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Interaction and departure quads for parking room variants 1 and 2.
+///
+/// Dispatch CAP commands, room actions 1/2 and the shooting-gallery warp.
+/// Room setup binds and links this writable array through its LAST-marked
+/// record. Origins/corners/radii use world units; normals use 4096 per unit.
+/// CAP command 8 is sent to the room handler; other CAP entries run directly.
+static WorldCollisionTrigger _gMistParkingEarlyChapterActionTriggers[13] = {
+    { NULL, NULL, NULL, { 4960, -64, 2664, 0 }, { { 925, 0, 1264, 0 }, { -964, 0, 1259, 0 }, { 917, 0, -1274, 0 }, { -876, 0, -1247, 0 } }, { 0, 4108, 0, 0 }, { -4051, 0, -600, 0 }, 1583, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 480, -64, -4193, 0 }, { { -2310, 0, 1056, 0 }, { -2511, 0, -726, 0 }, { 2512, 0, 727, 0 }, { 2311, 0, -1055, 0 } }, { 0, 4099, 0, 0 }, { -601, 0, -4051, 0 }, 2610, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 800, -64, 2047, 0 }, { { -2977, 0, 1622, 0 }, { -2953, 0, -1643, 0 }, { 2985, 0, 1676, 0 }, { 2945, 0, -1654, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4095, 0 }, 3415, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6976, -64, 479, 0 }, { { -865, 0, 918, 0 }, { -841, 0, -875, 0 }, { 841, 0, 876, 0 }, { 865, 0, -918, 0 } }, { 0, 4108, 0, 0 }, { 4095, 0, 0, 0 }, 1260, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_ROOM_CUTSCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -9736, -96, -3553, 0 }, { { -761, 0, 2422, 0 }, { -769, 0, -2443, 0 }, { 753, 0, 2444, 0 }, { 777, 0, -2422, 0 } }, { 0, 4098, 0, 0 }, { 4075, 0, -401, 0 }, 2560, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4513, -96, 3775, 0 }, { { 2427, 0, 747, 0 }, { -2438, 0, 784, 0 }, { 2440, 0, -767, 0 }, { -2426, 0, -762, 0 } }, { 0, 4098, 0, 0 }, { 401, 0, -4075, 0 }, 2560, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8639, -48, -3854, 0 }, { { 634, 0, -368, 0 }, { 623, 0, 369, 0 }, { -623, 0, -369, 0 }, { -634, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { -202, 0, -4092, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MIST_PARKING_TRIGGER_SELECT_ROOM_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8448, -32, -2560, 0 }, { { 634, 0, -368, 0 }, { 623, 0, 369, 0 }, { -623, 0, -369, 0 }, { -634, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { -200, 0, 4091, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MIST_PARKING_TRIGGER_SELECT_ROOM_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4752, -64, -5905, 0 }, { { -1219, 0, 1639, 0 }, { -1477, 0, -281, 0 }, { 1253, 0, 1561, 0 }, { 1444, 0, -167, 0 } }, { 0, 4109, 0, 0 }, { 4051, 0, -601, 0 }, 2039, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_DEPARTURE_MENU, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8432, -64, -1505, 0 }, { { -1070, 0, 252, 0 }, { -1051, 0, -453, 0 }, { 1052, 0, 455, 0 }, { 1071, 0, -251, 0 } }, { 0, 4107, 0, 0 }, { -201, 0, -4091, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_SHOP_TALK, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x30C0, -64, -4656, 0 }, { { -878, 0, 1036, 0 }, { -859, 0, -1045, 0 }, { 860, 0, 1047, 0 }, { 879, 0, -1035, 0 } }, { 0, 4099, 0, 0 }, { -4091, 0, 201, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MIST_SHOOTING_GALLERY, MIST_PARKING_TRIGGER_SHOOTING_GALLERY_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 544, -64, -3296, 0 }, { { -3238, 0, 1632, 0 }, { -3631, 0, -1526, 0 }, { 3472, 0, 1143, 0 }, { 3079, 0, -2015, 0 } }, { 0, 4113, 0, 0 }, { -601, 0, -4051, 0 }, 3932, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -8464, -32, -1408, 0 }, { { 1386, 32, -368, 0 }, { 1375, 32, 369, 0 }, { -1375, -32, -369, 0 }, { -1386, -32, 368, 0 } }, { -100, 4097, -9, 0 }, { -202, 0, -4092, 0 }, 1431, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mist_parking_801941F8[14] = {
-    { NULL, NULL, NULL, { 2879, -64, -3537, 0 }, { { -1055, 0, -1286, 0 }, { 727, 0, -1487, 0 }, { -726, 0, 1488, 0 }, { 1056, 0, 1287, 0 } }, { 0, 4099, 0, 0 }, { 4051, 0, -601, 0 }, 1664, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4960, -64, 2664, 0 }, { { 925, 0, 1264, 0 }, { -964, 0, 1259, 0 }, { 917, 0, -1274, 0 }, { -876, 0, -1247, 0 } }, { 0, 4108, 0, 0 }, { -4051, 0, -600, 0 }, 1583, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -16, -64, -4193, 0 }, { { -1782, 0, 1056, 0 }, { -1983, 0, -726, 0 }, { 1984, 0, 727, 0 }, { 1783, 0, -1055, 0 } }, { 0, 4107, 0, 0 }, { -601, 0, -4051, 0 }, 2111, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 800, -64, 2047, 0 }, { { -2977, 0, 1622, 0 }, { -2953, 0, -1643, 0 }, { 2985, 0, 1676, 0 }, { 2945, 0, -1654, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4095, 0 }, 3415, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6976, -64, 479, 0 }, { { -865, 0, 918, 0 }, { -841, 0, -875, 0 }, { 841, 0, 876, 0 }, { 865, 0, -918, 0 } }, { 0, 4108, 0, 0 }, { 4095, 0, 0, 0 }, 1260, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -9736, -96, -3553, 0 }, { { -761, 0, 2422, 0 }, { -769, 0, -2443, 0 }, { 753, 0, 2444, 0 }, { 777, 0, -2422, 0 } }, { 0, 4098, 0, 0 }, { 4075, 0, -401, 0 }, 2560, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4513, -96, 3775, 0 }, { { 2427, 0, 747, 0 }, { -2438, 0, 784, 0 }, { 2440, 0, -767, 0 }, { -2426, 0, -762, 0 } }, { 0, 4098, 0, 0 }, { 401, 0, -4075, 0 }, 2560, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8751, -48, -3694, 0 }, { { 682, 0, -368, 0 }, { 671, 0, 369, 0 }, { -671, 0, -369, 0 }, { -682, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { -202, 0, -4092, 0 }, 773, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8480, -32, -2656, 0 }, { { 634, 0, -368, 0 }, { 623, 0, 369, 0 }, { -623, 0, -369, 0 }, { -634, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { -200, 0, 4091, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4752, -64, -5905, 0 }, { { -1219, 0, 1639, 0 }, { -1477, 0, -281, 0 }, { 1253, 0, 1561, 0 }, { 1444, 0, -167, 0 } }, { 0, 4109, 0, 0 }, { 4051, 0, -601, 0 }, 2039, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8464, -64, -1425, 0 }, { { -1038, 0, 236, 0 }, { -1019, 0, -469, 0 }, { 1020, 0, 471, 0 }, { 1039, 0, -235, 0 } }, { 0, 4096, 0, 0 }, { -201, 0, -4091, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x30C0, -64, -4656, 0 }, { { -878, 0, 1036, 0 }, { -859, 0, -1045, 0 }, { 860, 0, 1047, 0 }, { 879, 0, -1035, 0 } }, { 0, 4099, 0, 0 }, { -4091, 0, 201, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -3232, 0 }, { { -2934, 0, 1184, 0 }, { -3263, 0, -1590, 0 }, { 2400, 0, 631, 0 }, { 2071, 0, -2143, 0 } }, { 0, 4104, 0, 0 }, { -601, 0, -4051, 0 }, 3629, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -8784, -64, -1328, 0 }, { { 1530, 0, -544, 0 }, { 1519, 0, 545, 0 }, { -1519, 0, -545, 0 }, { -1530, 0, 544, 0 } }, { 0, 4097, 0, 0 }, { -202, 0, -4092, 0 }, 1619, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Interaction and departure quads for parking room variants 3 and 4.
+///
+/// Adds room CAP command 1 and uses direct command 21 at the shared location.
+/// Room setup binds and links this writable array through its LAST-marked
+/// record. Origins/corners/radii use world units; normals use 4096 per unit.
+/// Room actions 1/2 and the shooting-gallery warp remain available.
+static WorldCollisionTrigger _gMistParkingLaterChapterActionTriggers[14] = {
+    { NULL, NULL, NULL, { 2879, -64, -3537, 0 }, { { -1055, 0, -1286, 0 }, { 727, 0, -1487, 0 }, { -726, 0, 1488, 0 }, { 1056, 0, 1287, 0 } }, { 0, 4099, 0, 0 }, { 4051, 0, -601, 0 }, 1664, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_ROOM_SCRIPT, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4960, -64, 2664, 0 }, { { 925, 0, 1264, 0 }, { -964, 0, 1259, 0 }, { 917, 0, -1274, 0 }, { -876, 0, -1247, 0 } }, { 0, 4108, 0, 0 }, { -4051, 0, -600, 0 }, 1583, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -16, -64, -4193, 0 }, { { -1782, 0, 1056, 0 }, { -1983, 0, -726, 0 }, { 1984, 0, 727, 0 }, { 1783, 0, -1055, 0 } }, { 0, 4107, 0, 0 }, { -601, 0, -4051, 0 }, 2111, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 800, -64, 2047, 0 }, { { -2977, 0, 1622, 0 }, { -2953, 0, -1643, 0 }, { 2985, 0, 1676, 0 }, { 2945, 0, -1654, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4095, 0 }, 3415, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_7, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6976, -64, 479, 0 }, { { -865, 0, 918, 0 }, { -841, 0, -875, 0 }, { 841, 0, 876, 0 }, { 865, 0, -918, 0 } }, { 0, 4108, 0, 0 }, { 4095, 0, 0, 0 }, 1260, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_ROOM_CUTSCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -9736, -96, -3553, 0 }, { { -761, 0, 2422, 0 }, { -769, 0, -2443, 0 }, { 753, 0, 2444, 0 }, { 777, 0, -2422, 0 } }, { 0, 4098, 0, 0 }, { 4075, 0, -401, 0 }, 2560, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4513, -96, 3775, 0 }, { { 2427, 0, 747, 0 }, { -2438, 0, 784, 0 }, { 2440, 0, -767, 0 }, { -2426, 0, -762, 0 } }, { 0, 4098, 0, 0 }, { 401, 0, -4075, 0 }, 2560, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8751, -48, -3694, 0 }, { { 682, 0, -368, 0 }, { 671, 0, 369, 0 }, { -671, 0, -369, 0 }, { -682, 0, 368, 0 } }, { 0, 4100, 0, 0 }, { -202, 0, -4092, 0 }, 773, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MIST_PARKING_TRIGGER_SELECT_ROOM_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8480, -32, -2656, 0 }, { { 634, 0, -368, 0 }, { 623, 0, 369, 0 }, { -623, 0, -369, 0 }, { -634, 0, 368, 0 } }, { 0, 4099, 0, 0 }, { -200, 0, 4091, 0 }, 732, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MIST_PARKING_TRIGGER_SELECT_ROOM_1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4752, -64, -5905, 0 }, { { -1219, 0, 1639, 0 }, { -1477, 0, -281, 0 }, { 1253, 0, 1561, 0 }, { 1444, 0, -167, 0 } }, { 0, 4109, 0, 0 }, { 4051, 0, -601, 0 }, 2039, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_DEPARTURE_MENU, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8464, -64, -1425, 0 }, { { -1038, 0, 236, 0 }, { -1019, 0, -469, 0 }, { 1020, 0, 471, 0 }, { 1039, 0, -235, 0 } }, { 0, 4096, 0, 0 }, { -201, 0, -4091, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_SHOP_TALK, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x30C0, -64, -4656, 0 }, { { -878, 0, 1036, 0 }, { -859, 0, -1045, 0 }, { 860, 0, 1047, 0 }, { 879, 0, -1035, 0 } }, { 0, 4099, 0, 0 }, { -4091, 0, 201, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MIST_SHOOTING_GALLERY, MIST_PARKING_TRIGGER_SHOOTING_GALLERY_WARPS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, -3232, 0 }, { { -2934, 0, 1184, 0 }, { -3263, 0, -1590, 0 }, { 2400, 0, 631, 0 }, { 2071, 0, -2143, 0 } }, { 0, 4104, 0, 0 }, { -601, 0, -4051, 0 }, 3629, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -8784, -64, -1328, 0 }, { { 1530, 0, -544, 0 }, { 1519, 0, 545, 0 }, { -1519, 0, -545, 0 }, { -1530, 0, 544, 0 } }, { 0, 4097, 0, 0 }, { -202, 0, -4092, 0 }, 1619, WORLD_COLLISION_TRIGGER_ACTION_CAP, MIST_PARKING_TRIGGER_CAP_COMMAND_9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Authored point lights for parking room variants 1 and 3.
@@ -864,7 +987,13 @@ static WorldCoordRoomLights _gMistParkingRoom2Lights = {
     .coneLights            = NULL,
 };
 
-AreaResource D_mist_parking_80195190[3] = {
+/// Pierce Carradine and Jodie Bouquet resources for parking placement variants 1 and 2.
+///
+/// Entry IDs 143/115 match the map-owned placements; both use descriptor 0.
+/// File 131 in group bases 10/20 selects the two actor packages. The final
+/// AREA_PLACEMENT_END record terminates lookup. Loading/spawning borrows the
+/// table and actor descriptors while their overlays remain loaded.
+static AreaResource _gMistParkingActorResources[] = {
     { 143, 131, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor113100PierceCarradineTaskDescriptors },
     { 115, 131, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor213100JodieBouquetTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -872,8 +1001,8 @@ AreaResource D_mist_parking_80195190[3] = {
 
 AreaVariant D_mist_parking_801951B4[13] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BDBC, D_mist_parking_80195190 },
-    { D_map_akropolis_8017BDBC, D_mist_parking_80195190 },
+    { D_map_akropolis_8017BDBC, _gMistParkingActorResources },
+    { D_map_akropolis_8017BDBC, _gMistParkingActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -982,17 +1111,17 @@ Task* gRoomCutsceneSoundTask = NULL;
 
 s32 D_mist_parking_8019531C = 0;
 
-Task* D_mist_parking_80195320 = NULL;
+Task* gMistParkingCutsceneModelTask = NULL;
 
-Task* D_mist_parking_80195324 = NULL;
+Task* gMistParkingPlayerHeadAimTask = NULL;
 
 MistParkingPrizeAnnouncementState D_mist_parking_80195328 = { 0 };
 
-MistParkingHeadAimHandle D_mist_parking_8019532C = { 0 };
+MistParkingHeadAimHandle gMistParkingShopPlayerHeadAimHandle = { 0 };
 
 MistParkingShopTalkState D_mist_parking_80195334 = { 0, 0, 0, 0 };
 
-RoomCutsceneRec D_mist_parking_8019533C = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+RoomCutsceneRec gMistParkingCommandCutscene = { 0 };
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
@@ -1024,7 +1153,6 @@ void mistParkingDrawGlowsTask(Task* unused)
     enum {
         MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE       = 0x200, // Pixel radius = scale * 64 / (camera Z / 4)
         MIST_PARKING_GLOW_GREY_RGB_NIBBLES           = 0x444, // Each channel is 64, with bit 3 set on odd animation frames
-        MIST_PARKING_GLOW_POINT_INDEX                = 26,    // Single-point glow, separate from the capsule endpoint pairs
         MIST_PARKING_GLOW_POINT_PULSE_RATE           = 0x60,  // 4096 angle units per turn, per animation frame
         MIST_PARKING_GLOW_DIAMOND_RADIUS_SCALE       = 0x100, // Pixel half-extent = scale * 32 / (camera Z / 4)
         MIST_PARKING_GLOW_VIEW7_DIAMOND_RADIUS_SCALE = 0xE0,
@@ -1037,61 +1165,61 @@ void mistParkingDrawGlowsTask(Task* unused)
     mappedViewIndex = viewGetMappedIndex();
     switch (mappedViewIndex) {
         case 2:
-            _glowDrawCapsule(&D_mist_parking_80191484[0], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[0], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 18:
-            _mistParkingDrawGlowRow(&D_mist_parking_80191484[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _mistParkingDrawGlowRow(&_gMistParkingGlowWorldPoints.capsuleEndpoints[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 7:
-            _glowDrawCapsule(&D_mist_parking_80191484[12], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[14], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[18], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[20], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawDiamond(&D_mist_parking_80191484[MIST_PARKING_GLOW_POINT_INDEX], MIST_PARKING_GLOW_POINT_PULSE_RATE, MIST_PARKING_GLOW_VIEW7_DIAMOND_RADIUS_SCALE);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[12], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[14], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[18], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[20], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawDiamond(&_gMistParkingGlowWorldPoints.pointCenter, MIST_PARKING_GLOW_POINT_PULSE_RATE, MIST_PARKING_GLOW_VIEW7_DIAMOND_RADIUS_SCALE);
             break;
         case 20:
-            _glowDrawCapsule(&D_mist_parking_80191484[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[8], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[8], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 9:
-            _glowDrawPulsingDisc(&D_mist_parking_80191484[MIST_PARKING_GLOW_POINT_INDEX], MIST_PARKING_GLOW_POINT_PULSE_RATE, MIST_PARKING_GLOW_DISC_RADIUS_SCALE);
+            _glowDrawPulsingDisc(&_gMistParkingGlowWorldPoints.pointCenter, MIST_PARKING_GLOW_POINT_PULSE_RATE, MIST_PARKING_GLOW_DISC_RADIUS_SCALE);
             break;
         case 10:
-            _glowDrawCapsule(&D_mist_parking_80191484[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 11:
-            _glowDrawCapsule(&D_mist_parking_80191484[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 14:
-            _glowDrawCapsule(&D_mist_parking_80191484[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[8], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[14], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[8], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[14], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 15:
-            _glowDrawCapsule(&D_mist_parking_80191484[0], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[0], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 16:
-            _mistParkingDrawGlowRow(&D_mist_parking_80191484[10], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[16], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[18], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[22], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[24], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _mistParkingDrawGlowRow(&_gMistParkingGlowWorldPoints.capsuleEndpoints[10], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[16], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[18], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[22], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[24], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 5:
-            _mistParkingDrawGlowRow(&D_mist_parking_80191484[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _mistParkingDrawGlowRow(&_gMistParkingGlowWorldPoints.capsuleEndpoints[4], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
         case 6:
         case 19:
-            _mistParkingDrawGlowRow(&D_mist_parking_80191484[10], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _mistParkingDrawGlowRow(&D_mist_parking_80191484[16], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[22], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[24], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawDiamond(&D_mist_parking_80191484[MIST_PARKING_GLOW_POINT_INDEX], MIST_PARKING_GLOW_POINT_PULSE_RATE, MIST_PARKING_GLOW_DIAMOND_RADIUS_SCALE);
+            _mistParkingDrawGlowRow(&_gMistParkingGlowWorldPoints.capsuleEndpoints[10], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _mistParkingDrawGlowRow(&_gMistParkingGlowWorldPoints.capsuleEndpoints[16], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[22], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[24], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawDiamond(&_gMistParkingGlowWorldPoints.pointCenter, MIST_PARKING_GLOW_POINT_PULSE_RATE, MIST_PARKING_GLOW_DIAMOND_RADIUS_SCALE);
             break;
         case 8:
-            _glowDrawCapsule(&D_mist_parking_80191484[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
-            _glowDrawCapsule(&D_mist_parking_80191484[8], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[6], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
+            _glowDrawCapsule(&_gMistParkingGlowWorldPoints.capsuleEndpoints[8], MIST_PARKING_GLOW_CAPSULE_RADIUS_SCALE, MIST_PARKING_GLOW_GREY_RGB_NIBBLES);
             break;
     }
 }

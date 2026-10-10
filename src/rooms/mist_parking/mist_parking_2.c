@@ -1285,7 +1285,7 @@ static void _mistParkingReloadAcropolisArea(s32 areaId)
 /// Successful spawn owns its TMD body and borrows the loaded model source.
 static void _mistParkingSpawnCutsceneModel(s32 descriptorIndex)
 {
-    Task**     modelTaskHandle = descriptorIndex == MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX ? &D_mist_parking_80195320 : NULL;
+    Task**     modelTaskHandle = descriptorIndex == MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX ? &gMistParkingCutsceneModelTask : NULL;
     Task*      modelTask;
     TmdObject* model;
 
@@ -1306,10 +1306,10 @@ static void _mistParkingSpawnCutsceneModel(s32 descriptorIndex)
 static void _mistParkingReleaseCutsceneModel(s32 descriptorIndex)
 {
     if (descriptorIndex == MIST_PARKING_CUTSCENE_MODEL_DESCRIPTOR_INDEX) {
-        if (D_mist_parking_80195320 != NULL) {
-            taskKill(D_mist_parking_80195320);
+        if (gMistParkingCutsceneModelTask != NULL) {
+            taskKill(gMistParkingCutsceneModelTask);
         }
-        D_mist_parking_80195320 = NULL;
+        gMistParkingCutsceneModelTask = NULL;
     }
 }
 
@@ -1491,5 +1491,5 @@ static void _mistParkingStartPlayerHeadAim(void)
 {
     enum { MIST_PARKING_PLAYER_HEAD_AIM_DESCRIPTOR = 4 };
 
-    D_mist_parking_80195324 = taskSpawnFromTable(gMistParkingConversationTaskDescs, MIST_PARKING_PLAYER_HEAD_AIM_DESCRIPTOR, MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION, 0);
+    gMistParkingPlayerHeadAimTask = taskSpawnFromTable(gMistParkingConversationTaskDescs, MIST_PARKING_PLAYER_HEAD_AIM_DESCRIPTOR, MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION, 0);
 }

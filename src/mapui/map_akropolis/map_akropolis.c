@@ -734,7 +734,7 @@ static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
     D_acropolis_helicopter_landing_pad_80184F10,
     D_acropolis_west_elevator_hall_80185024,
     gMistR18CollisionRoomResources,
-    D_mist_parking_8019155C,
+    gMistParkingRoomCollisionResources,
     D_mist_shooting_gallery_801853A8,
 };
 
@@ -759,7 +759,7 @@ static SpriteView* D_map_akropolis_8017AACC[20] = {
     D_acropolis_helicopter_landing_pad_80187824,
     gAcropolisWestElevatorHallSpriteViews,
     gMistR18SpriteViews,
-    D_mist_parking_8019399C,
+    gMistParkingSpriteViews,
     D_mist_shooting_gallery_8018BD10,
 };
 
@@ -784,7 +784,7 @@ DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
     gAcropolisHelicopterLandingPadWarps,
     D_acropolis_west_elevator_hall_80185044,
     gMistR18WarpEntries,
-    D_mist_parking_801915E8,
+    gMistParkingWarpEntries,
     D_mist_shooting_gallery_801853C8,
 };
 
@@ -807,7 +807,7 @@ static ViewCount* D_map_akropolis_8017AB70[20] = {
     gAcropolisHelicopterLandingPadViewCounts,
     gAcropolisWestElevatorHallViewCounts,
     gMistR18ViewCounts,
-    D_mist_parking_801915C0,
+    gMistParkingViewCounts,
     gMistShootingGalleryViewCounts,
 };
 
@@ -832,7 +832,7 @@ static ViewCamera* D_map_akropolis_8017ABC4[20] = {
     D_acropolis_helicopter_landing_pad_80187968,
     gAcropolisWestElevatorHallViewCameras,
     gMistR18ViewCameras,
-    D_mist_parking_80192228,
+    gMistParkingViewCameras,
     D_mist_shooting_gallery_8018998C,
 };
 

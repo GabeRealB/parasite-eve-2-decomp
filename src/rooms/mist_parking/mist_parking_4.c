@@ -349,7 +349,7 @@ void mistParkingSetPierceCollisionPatchLowered(s32 lowerPatch)
     SVECTOR                   translation;
     s32                       elementIndex;
 
-    liveGrid    = &D_mist_parking_80192204;
+    liveGrid    = &gMistParkingCollisionGrid;
     sourcePatch = &D_mist_parking_8018FCB8;
 
     // Rebuild the reserved grid prefix without overwriting vector fourth halfwords.
@@ -790,7 +790,7 @@ static void _mistParkingStartShopPlayerHeadAim(void)
     enum {
         MIST_PARKING_SHOP_HEAD_AIM_DESCRIPTOR = 1,
     };
-    D_mist_parking_8019532C.task = taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_HEAD_AIM_DESCRIPTOR, MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION, 0);
+    gMistParkingShopPlayerHeadAimHandle.task = taskSpawnFromTable(gMistParkingShopTaskDescriptors, MIST_PARKING_SHOP_HEAD_AIM_DESCRIPTOR, MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION, 0);
 }
 
 /// Controls the existing head-aim task used by the variant-1 conversations.
@@ -800,7 +800,7 @@ static void _mistParkingStartShopPlayerHeadAim(void)
 /// must refer to a live task. Does nothing when absent and never spawns a task.
 static void _mistParkingControlShopPlayerHeadAim(s32 mode)
 {
-    Task* task = D_mist_parking_8019532C.task;
+    Task* task = gMistParkingShopPlayerHeadAimHandle.task;
 
     if (task == NULL) {
         return;
@@ -811,8 +811,8 @@ static void _mistParkingControlShopPlayerHeadAim(s32 mode)
             task->spawnArg1.value = mode;
             break;
         default:
-            taskKill(D_mist_parking_8019532C.task);
-            D_mist_parking_8019532C.task = NULL;
+            taskKill(gMistParkingShopPlayerHeadAimHandle.task);
+            gMistParkingShopPlayerHeadAimHandle.task = NULL;
             break;
     }
 }
@@ -878,5 +878,5 @@ static void _mistParkingSelectShopDialogueResource(s32 resourceOrdinal)
 
 void mistParkingForgetShopHeadAimTaskHandle(s32 unused)
 {
-    D_mist_parking_8019532C.task = NULL;
+    gMistParkingShopPlayerHeadAimHandle.task = NULL;
 }

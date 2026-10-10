@@ -158,7 +158,7 @@ static inline void _mistParkingApplyPreviousCutsceneModelPlacement(Task* task)
 
 void mistParkingControlPlayerHeadAim(s32 mode)
 {
-    Task* task = D_mist_parking_80195324;
+    Task* task = gMistParkingPlayerHeadAimTask;
 
     if (task == NULL) {
         return;
@@ -169,8 +169,8 @@ void mistParkingControlPlayerHeadAim(s32 mode)
             task->spawnArg1.value = mode;
             break;
         default:
-            taskKill(D_mist_parking_80195324);
-            D_mist_parking_80195324 = NULL;
+            taskKill(gMistParkingPlayerHeadAimTask);
+            gMistParkingPlayerHeadAimTask = NULL;
             break;
     }
 }
@@ -225,8 +225,8 @@ void mistParkingSetConversationProgress(s32 progress)
 
 void mistParkingResetCutsceneTaskHandles(s32 unused)
 {
-    D_mist_parking_80195320 = NULL;
-    D_mist_parking_80195324 = NULL;
+    gMistParkingCutsceneModelTask = NULL;
+    gMistParkingPlayerHeadAimTask = NULL;
 }
 
 /// Plays one of the two departure movies and restores game presentation.
