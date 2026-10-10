@@ -3595,7 +3595,7 @@ s32 shopOpenSession(s32 stockSelector)
     *(UiObject* volatile*)&Wip_UiHolder = NULL;
     switch (locationWord & (s32)GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0, 0):
-            displayQueueModeTask(&D_mist_parking_8018668C, stockSelector, 0, STAGE_ENTRY_RELOAD);
+            displayQueueModeTask(&gMistParkingShopSessionTaskDesc, stockSelector, 0, STAGE_ENTRY_RELOAD);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 0, 0):
             displayQueueModeTask(&gDryfieldTrailerCoachShopSessionTaskDesc, stockSelector, 0, STAGE_ENTRY_RELOAD);

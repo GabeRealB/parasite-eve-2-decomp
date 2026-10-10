@@ -11,7 +11,13 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_mist_parking_8018668C;
+/// Bodyless priority-192 display task for this room's shop UI session.
+///
+/// `spawnArg1.value` carries the packed stock-profile/category selector.
+/// The task creates and owns its UI tree, retaining the root in spawnArg2.
+/// Gameplay queues this exported recipe by saved stage/area; the parking
+/// overlay, shop panels and catalogue resources must remain loaded until exit.
+extern TaskDesc gMistParkingShopSessionTaskDesc;
 
 extern AreaVariant D_mist_parking_801951B4[13];
 

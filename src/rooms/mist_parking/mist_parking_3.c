@@ -30,41 +30,59 @@
 #include "main/tmd_types.h"
 #include "../../shared/actor_messages.h"
 
-extern ActorTransform D_mist_parking_8018FC3C;
-
 static void _mistParkingPlayDepartureMovieTask(Task* task);
 static void _mistParkingStartDepartureMovieTask(Task* task);
 
-TaskDesc D_mist_parking_8018FC24[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _mistParkingStartDepartureMovieTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistParkingPlayDepartureMovieTask, { .value = 0 } },
+enum { MIST_PARKING_DEPARTURE_MOVIE_TASK_PRIORITY = 192 };
+
+TaskDesc gMistParkingDepartureMovieTaskDescs[2] = {
+    { { { TASK_BODY_NONE, MIST_PARKING_DEPARTURE_MOVIE_TASK_PRIORITY } }, _mistParkingStartDepartureMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, MIST_PARKING_DEPARTURE_MOVIE_TASK_PRIORITY } }, _mistParkingPlayDepartureMovieTask, { .value = 0 } },
 };
 
-ActorTransform D_mist_parking_8018FC3C = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };
+/// Retained parent-frame placement of the arrival conversation's pitched model.
+///
+/// Position uses world-coordinate units; Euler angles use 4096 per turn.
+/// Setup uses the retained pitch, initially 20. Each positive update copies
+/// the complete placement before storing its next pitch, applying the preceding
+/// value. Shared by all instances, so only one model-pitch task may run at a time.
+static ActorTransform _gMistParkingCutsceneModelPlacement = { { 2105, -910, -3460, 0 }, { 20, 1081, 0, 0 } };
 
-static SVECTOR _gMistParkingCollision126F8Normals[2] = {
+static SVECTOR _gMistParkingPierceCollisionPatchNormals[2] = {
 #include "assets/mist_parking_collision_126F8_normals.inc"
 };
 
-static SVECTOR _gMistParkingCollision126F8Verts[6] = {
+static SVECTOR _gMistParkingPierceCollisionPatchVerts[6] = {
 #include "assets/mist_parking_collision_126F8_verts.inc"
 };
 
-static WorldCollisionGridFace _gMistParkingCollision126F8Faces[2] = {
+static WorldCollisionGridFace _gMistParkingPierceCollisionPatchFaces[2] = {
 #include "assets/mist_parking_collision_126F8_faces.inc"
 };
 
-static s16 _gMistParkingCollision126F8Cells[4] = {
+static s16 _gMistParkingPierceCollisionPatchCells[4] = {
 #include "assets/mist_parking_collision_126F8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMistParkingCollision126F8Cells[i])
-static s16* _gMistParkingCollision126F8Table[1] = {
+#define GRID_CELL(i) (&_gMistParkingPierceCollisionPatchCells[i])
+static s16* _gMistParkingPierceCollisionPatchTable[1] = {
 #include "assets/mist_parking_collision_126F8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mist_parking_8018FCB8 = { NULL, _gMistParkingCollision126F8Normals, _gMistParkingCollision126F8Verts, _gMistParkingCollision126F8Faces, _gMistParkingCollision126F8Table, -4800, 6558, 1, 1, 4000, 2 };
+WorldCollisionGrid gMistParkingPierceCollisionPatch = {
+    .viewCoord   = NULL,
+    .normals     = _gMistParkingPierceCollisionPatchNormals,
+    .vertices    = _gMistParkingPierceCollisionPatchVerts,
+    .faces       = _gMistParkingPierceCollisionPatchFaces,
+    .cellFaceIds = _gMistParkingPierceCollisionPatchTable,
+    .xBias       = -4800,
+    .zBias       = 6558,
+    .cellCountX  = 1,
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gMistParkingPierceCollisionPatchFaces)
+};
 
 static AnimationPackedPose _gMistParkingAnimation129F8Bank1[6] = {
 #include "assets/mist_parking_animation_129F8_bank1.inc"
@@ -150,9 +168,9 @@ enum {
 /// synchronously, and the shared placement retains the new pitch for the next call.
 static inline void _mistParkingApplyPreviousCutsceneModelPlacement(Task* task)
 {
-    ActorTransform previousPlacement = D_mist_parking_8018FC3C;
+    ActorTransform previousPlacement = _gMistParkingCutsceneModelPlacement;
 
-    D_mist_parking_8018FC3C.rot.vx = task->killCountdown;
+    _gMistParkingCutsceneModelPlacement.rot.vx = task->killCountdown;
     actorMsgPlaceEulerZyx(task, 0, &previousPlacement, 0);
 }
 
@@ -324,7 +342,7 @@ static void _mistParkingPlayDepartureMovieTask(Task* task)
 /// camera and packets before teardown. Requires the room's live display resources.
 static void _mistParkingStartDepartureMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_mist_parking_8018FC24, 1, task->spawnArg1.value, 0);
+    displaySpawnTaskFromTable(gMistParkingDepartureMovieTaskDescs, 1, task->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
     taskKill(task);
@@ -337,7 +355,7 @@ static void _mistParkingInitCutsceneModelPitch(Task* task)
 
     model->flags       &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     task->killCountdown = MIST_PARKING_CUTSCENE_MODEL_PITCH_START;
-    actorMsgPlaceEulerZyx(task, 0, &D_mist_parking_8018FC3C, 0);
+    actorMsgPlaceEulerZyx(task, 0, &_gMistParkingCutsceneModelPlacement, 0);
     task->state = task->state + 1;
 }
 

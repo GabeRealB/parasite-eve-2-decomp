@@ -87,7 +87,9 @@ static void _mistParkingSpawnCapEventIfIdle(s32 commandIndex);
 
 #include "../../shared/shop_panels.inc.c"
 
-TaskDesc D_mist_parking_8018668C = { { { TASK_BODY_NONE, 192 } }, _shopSessionTask, { .value = 0 } };
+enum { MIST_PARKING_SHOP_SESSION_TASK_PRIORITY = 192 };
+
+TaskDesc gMistParkingShopSessionTaskDesc = { { { TASK_BODY_NONE, MIST_PARKING_SHOP_SESSION_TASK_PRIORITY } }, _shopSessionTask, { .value = 0 } };
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -125,9 +127,11 @@ static AnimationSet _gMistParkingAnimation095D0 = {
     { NULL, _gMistParkingAnimation095D0Bank1, NULL, NULL, _gMistParkingAnimation095D0Bank4, NULL, NULL, NULL },
 };
 
-// Message-table callbacks use the argument views required by this TU.
-
-TaskMessageEntry D_mist_parking_80186BB8[5] = {
+/// Room receiver for transition replies, direction actions, key-item refusal and CAP commands.
+///
+/// The four callbacks interpret their payloads by message ID. The terminal
+/// entry makes every unsupported message return zero. Borrowed by the room task.
+static TaskMessageEntry _gMistParkingRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mistParkingCopyRoomEventReply },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mistParkingHandleDirectionAction },
     { ROOM_MESSAGE_USE_KEY_ITEM, _mistParkingRefuseKeyItemUse },
@@ -135,68 +139,117 @@ TaskMessageEntry D_mist_parking_80186BB8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-ActorTransform D_mist_parking_80186BE0 = { { 8448, 1, -2599, 0 }, { 0, 0, 0, 0 } };
+/// Player placement after direction action 1 selects room 2, or room 4 in a later chapter.
+///
+/// Position is in world units; yaw is zero. Consumed synchronously during the fade.
+static ActorTransform _gMistParkingRoom2PlayerPlacement = { { 8448, 1, -2599, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_mist_parking_80186BF8 = { { 8448, 1, -3828, 0 }, { 0, 2048, 0, 0 } };
+/// Player placement after direction action 2 selects room 1, or room 3 in a later chapter.
+///
+/// Position is in world units; yaw is half a turn. Consumed synchronously during the fade.
+static ActorTransform _gMistParkingRoom1PlayerPlacement = { { 8448, 1, -3828, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-ActorTransform D_mist_parking_80186C10 = { { 3310, 0, -3550, 0 }, { 0, -1024, 0, 0 } };
+/// World placement for room command 1's player presentation, facing minus a quarter-turn.
+static ActorTransform _gMistParkingCommand1PlayerPlacement = { { 3310, 0, -3550, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-AnimationSet* D_mist_parking_80186C28[1] = {
+/// Single player clip installed at extension index zero for room command 1.
+///
+/// Playback borrows this room's clip data after the pointer word is copied.
+static AnimationSet* _gMistParkingCommand1PlayerAnimationSets[1] = {
     &_gMistParkingAnimation095D0,
 };
 
-AnimationBankCopyRequest D_mist_parking_80186C2C = { { .sets = D_mist_parking_80186C28 }, ARRAY_SIZE(D_mist_parking_80186C28) };
+/// Copies one clip pointer into set 47 of the equipped player's animation bank.
+///
+/// Dispatch borrows the request and source table synchronously. The loaded
+/// room's clip descriptor and data must remain live through subsequent playback.
+static AnimationBankCopyRequest _gMistParkingCommand1PlayerBankCopy = { { .sets = _gMistParkingCommand1PlayerAnimationSets }, ARRAY_SIZE(_gMistParkingCommand1PlayerAnimationSets) };
 
-AnimationPlayRequest D_mist_parking_80186C34 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts room command 1's installed player clip without world-grid response.
+///
+/// Requires the one-word extension copy first. Weapon-animation dispatch
+/// replaces the stored source index with the equipped bank before playback.
+static AnimationPlayRequest _gMistParkingCommand1PlayerAnimation = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mist_parking_80186C48 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    MIST_PARKING_PLAYER_ROOM_TRANSITION_CLIP = 1,
+    MIST_PARKING_ROOM_CHANGE_CAP_COMMAND     = 19,
+    MIST_PARKING_ROOM_CHANGE_FADE_FRAMES     = 32,
+    MIST_PARKING_ROOM_1_VIEW                 = 2,
+    MIST_PARKING_ROOM_2_VIEW                 = 3,
+    MIST_PARKING_COMMAND1_CAP_SLOT           = 1,
+    MIST_PARKING_COMMAND1_RETURN_VIEW        = 5,
+    MIST_PARKING_COMMAND1_AMBIENT_RGB        = 100,
+    MIST_PARKING_COMMAND1_RESTORE_UPDATES    = 3,
+    MIST_PARKING_EARLY_CHAPTER_ROOM_1        = 1,
+    MIST_PARKING_EARLY_CHAPTER_ROOM_2        = 2
+};
 
-EvsCommand D_mist_parking_80186C5C[15] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_80186C48 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSpawnCapEventIfIdle }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Restarts player clip 1 with scripted control and no world-grid response during a room change.
+///
+/// Weapon-animation dispatch replaces the stored index with the equipped bank.
+/// The transition scripts end scripted control after the fade returns.
+static AnimationPlayRequest _gMistParkingPlayerRoomTransitionAnimation = { { .index = 1 }, MIST_PARKING_PLAYER_ROOM_TRANSITION_CLIP, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+
+/// Direction action 1's faded transition to room 2, or room 4 in a later chapter.
+///
+/// Presents CAP command 19, changes to logical view 3, places the player and
+/// requests the chapter-selected room objects. Requires loaded room/CAP resources.
+static EvsCommand _gMistParkingSelectRoom2Script[15] = {
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerRoomTransitionAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSpawnCapEventIfIdle }, { .value = MIST_PARKING_ROOM_CHANGE_CAP_COMMAND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_parking_80186BE0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectChapterRoom }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 1) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES + 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MIST_PARKING_ROOM_2_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingRoom2PlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectChapterRoom }, { .value = MIST_PARKING_EARLY_CHAPTER_ROOM_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 2) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_80186DC4[13] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_80186C48 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_parking_80186BF8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectChapterRoom }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Direction action 2's faded transition to room 1, or room 3 in a later chapter.
+///
+/// Changes to logical view 2, places the player and requests chapter-selected
+/// room objects before restoring player control. Requires loaded room resources.
+static EvsCommand _gMistParkingSelectRoom1Script[13] = {
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingPlayerRoomTransitionAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 1) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES + 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MIST_PARKING_ROOM_1_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingRoom1PlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectChapterRoom }, { .value = MIST_PARKING_EARLY_CHAPTER_ROOM_1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51130002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 2) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_ROOM_CHANGE_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_mist_parking_80186EFC[12] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_parking_80186C10 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80186C2C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_80186C34 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
+/// Room command 1's player presentation and in-place CAP slot 1 playback.
+///
+/// Installs and plays extension clip 47 under an ambient override, waits for
+/// the CAP cue, returns to logical view 5 and restores HUD, lighting and control.
+/// Room animation and CAP data must remain loaded until the script finishes.
+static EvsCommand _gMistParkingCommand1Script[12] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistParkingCommand1PlayerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMistParkingCommand1PlayerBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistParkingCommand1PlayerAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = MIST_PARKING_COMMAND1_CAP_SLOT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = MIST_PARKING_COMMAND1_AMBIENT_RGB }, { .value = MIST_PARKING_COMMAND1_AMBIENT_RGB }, { .value = MIST_PARKING_COMMAND1_AMBIENT_RGB }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = MIST_PARKING_COMMAND1_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_SHOW_HUD }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = MIST_PARKING_COMMAND1_RESTORE_UPDATES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -782,17 +835,9 @@ static UiObjectDesc Shop_Data_80181B68;
 /// Descriptor of the panel `func_mist_parking_8017FF9C` opens.
 static UiObjectDesc Shop_Data_80181B30;
 
-extern EvsCommand D_mist_parking_80186EFC[];
-
 static void _mistParkingInitializeRoomTask(Task* task);
 
 static void _mistParkingIdleRoomState(Task* task);
-
-extern TaskMessageEntry D_mist_parking_80186BB8[5];
-
-extern EvsCommand D_mist_parking_80186C5C[];
-
-extern EvsCommand D_mist_parking_80186DC4[];
 
 #include "../../shared/shop.inc.c"
 #undef SHOP_REFILL_DISPLAY_QUANTITY
@@ -912,15 +957,16 @@ static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s
             }
             break;
         case MIST_PARKING_COMMAND_SCRIPT:
-            evsStartScript(D_mist_parking_80186EFC, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(_gMistParkingCommand1Script, EVENT_SCRIPT_HUD_KEEP);
             break;
     }
     return 0;
 }
 
-/// State handlers of the task `mistParkingRoomTask` runs: its set-up,
-/// an empty per-frame state and the kill.
-static const TaskFuncTable3 D_mist_parking_8017D7DC = {
+/// Room task's three state handlers: initialize, keep the receiver alive and release.
+///
+/// Indexed by state 0..2 without bounds checks; copied to the dispatcher's stack.
+static const TaskFuncTable3 _gMistParkingRoomStateHandlers = {
     {
         _mistParkingInitializeRoomTask,
         _mistParkingIdleRoomState,
@@ -963,10 +1009,10 @@ static s32 _mistParkingHandleDirectionAction(Task* task, s32 messageId, const Di
     };
 
     if (request->actionId == MIST_PARKING_ACTION_SELECT_ROOM_2) {
-        evsStartScript(D_mist_parking_80186C5C, EVENT_SCRIPT_HUD_KEEP);
+        evsStartScript(_gMistParkingSelectRoom2Script, EVENT_SCRIPT_HUD_KEEP);
     }
     if (request->actionId == MIST_PARKING_ACTION_SELECT_ROOM_1) {
-        evsStartScript(D_mist_parking_80186DC4, EVENT_SCRIPT_HUD_KEEP);
+        evsStartScript(_gMistParkingSelectRoom1Script, EVENT_SCRIPT_HUD_KEEP);
         gameFlagSetNibble(GAME_FLAG_0ED, MIST_PARKING_TALK_ENABLED);
     }
     return 1;
@@ -1010,7 +1056,7 @@ static void _mistParkingInitializeRoomTask(Task* task)
         MIST_PARKING_ARRIVAL_TALK_OBJECTIVE = 0x3C
     };
 
-    task->msgTable = D_mist_parking_80186BB8;
+    task->msgTable = _gMistParkingRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == MIST_PARKING_ARRIVAL_TALK_VARIANT) &&
         (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_INTRO_PENDING)) {
@@ -1039,7 +1085,7 @@ void mistParkingRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_mist_parking_8017D7DC;
+    stateHandlers = _gMistParkingRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

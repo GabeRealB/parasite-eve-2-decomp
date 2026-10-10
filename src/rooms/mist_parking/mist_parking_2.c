@@ -1027,7 +1027,7 @@ static void _mistParkingJodiePrizeAndShopTalkTask(Task* task)
     };
     s32                                courseIndex;
     s32                                prizeFlag;
-    MistParkingPrizeAnnouncementState* announcement = &D_mist_parking_80195328;
+    MistParkingPrizeAnnouncementState* announcement = &gMistParkingPrizeAnnouncement;
 
     switch (task->state) {
         case MIST_PARKING_JODIE_TALK_GREET:
@@ -1252,7 +1252,7 @@ static void _mistParkingStartDepartureMovie(s32 movieSelector)
 {
     enum { MIST_PARKING_DEPARTURE_MOVIE_LAUNCHER_DESCRIPTOR = 0 };
 
-    taskSpawnFromTable(D_mist_parking_8018FC24, MIST_PARKING_DEPARTURE_MOVIE_LAUNCHER_DESCRIPTOR, movieSelector, 0);
+    taskSpawnFromTable(gMistParkingDepartureMovieTaskDescs, MIST_PARKING_DEPARTURE_MOVIE_LAUNCHER_DESCRIPTOR, movieSelector, 0);
     gGameSession->freezeRoomObjs = 1;
 }
 

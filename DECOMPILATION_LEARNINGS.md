@@ -51239,16 +51239,16 @@ no gap in the `argN` names to notice.
 `_mistParkingInitCutsceneModelPitch` came out of m2c as a three-argument call:
 
 ```c
-Room_Util18(0, &D_mist_parking_8018FC3C, 0);
+Room_Util18(0, &_gMistParkingCutsceneModelPlacement, 0);
 ```
 
 which scores 82% with every instruction present and the whole argument block
 shifted down one register:
 
 ```
--lui     a2,%hi(D_mist_parking_8018FC3C)   # target
+-lui     a2,%hi(_gMistParkingCutsceneModelPlacement)   # target
 -move    a1,zero
-+lui     a1,%hi(D_mist_parking_8018FC3C)   # ours
++lui     a1,%hi(_gMistParkingCutsceneModelPlacement)   # ours
 +move    a0,zero
 ```
 
@@ -51257,7 +51257,7 @@ The tell is in the target, not in the diff: `$a0` is live from the prologue
 receiving it. Restoring the leading parameter matched on the first attempt:
 
 ```c
-Room_Util18(task, 0, &D_mist_parking_8018FC3C, 0);
+Room_Util18(task, 0, &_gMistParkingCutsceneModelPlacement, 0);
 ```
 
 Before pinning or permuting an argument-register shift, disassemble the callee

@@ -65,7 +65,13 @@ STATIC_ASSERT_SIZEOF(MistParkingShopTalkState, 8);
 /// while spawned tasks use them. Entry 1's external launcher is unproven.
 extern TaskDesc gMistParkingConversationTaskDescs[9];
 
-extern TaskDesc D_mist_parking_8018FC24[];
+/// Two bodyless priority-192 recipes for departure-movie launch and display playback.
+///
+/// Index 0 forwards spawnArg1 to a display task using index 1. Zero selects
+/// movie 100 in the current room, every nonzero word movie 101; spawnArg2 is
+/// unused. There is no terminator. Spawning copies the recipe, but the room's
+/// callback code and loaded movie resources must outlive playback and restoration.
+extern TaskDesc gMistParkingDepartureMovieTaskDescs[2];
 
 /// Bodyless variant-1 tasks: departure, player head aim, display exit, Jodie talk and menu.
 ///
@@ -164,7 +170,15 @@ extern EvsCommand D_mist_parking_8018F0A4[10];
 
 extern EvsCommand D_mist_parking_8018F194[10];
 
-extern WorldCollisionGrid D_mist_parking_8018FCB8;
+/// Authored collision patch restored into the live room grid with Pierce's visibility.
+///
+/// Two normals, six vertices and two quads supply the live grid's reserved
+/// prefix. Vertices use signed world-coordinate units; normals use 4096 per
+/// unit length. The source remains unchanged when the live patch is lowered.
+/// Its one 4000-unit XZ cell begins at (4800, -6558) and lists faces 0/1 then
+/// WORLD_COLLISION_GRID_CELL_END. This template is never activated as a grid;
+/// its view pointer stays NULL. The room owns the record and borrowed pools.
+extern WorldCollisionGrid gMistParkingPierceCollisionPatch;
 
 extern AnimationSet gMistParkingAnimation129F8;
 
@@ -216,13 +230,33 @@ extern AnimationPlayRequest gMistParkingJodieReplyAnimation;
 /// Her handler ignores the collision word and uses her own loaded bank.
 extern AnimationPlayRequest gMistParkingJodieReplyEndAnimation;
 
-extern EvsCommand D_mist_parking_80191154[8];
+/// Player/Jodie pose sequence shared by variant-1 greeting and prize exchanges.
+///
+/// Installs the player shop extension and restarts its talk pose. A twenty-update
+/// countdown precedes Jodie's greeting; the CAP cue returns her to idle.
+/// Borrows the room's animation data and the live scene-placement-1 Jodie task.
+extern EvsCommand gMistParkingJodieShopTalkScript[8];
 
-extern EvsCommand D_mist_parking_80191214[10];
+/// Variant-1 menu key 6's shop session followed by Jodie's closing reply poses.
+///
+/// Installs the player extension and queues MIST stock, then uses a twenty-update
+/// countdown before restoring the talk pose. The CAP cue selects Jodie's reply-end
+/// pose; a thirty-update countdown precedes closure. Requires loaded shop/CAP/actors.
+extern EvsCommand gMistParkingJodieOpenShopScript[10];
 
-extern EvsCommand D_mist_parking_80191304[8];
+/// Variant-1 menu key 7's reply sequence, returning Jodie to idle after the CAP cue.
+///
+/// Installs/restarts the player's shop talk pose and starts Jodie's reply.
+/// The cue selects her reply-end pose; a thirty-update countdown precedes idle.
+/// Borrows the loaded room clips and the live player and scene-placement-1 tasks.
+extern EvsCommand gMistParkingJodieShopReplyScript[8];
 
-extern EvsCommand D_mist_parking_801913C4[8];
+/// Variant-1 shop menu's farewell sequence for choices other than keys 6 and 7.
+///
+/// Installs/restarts the player's talk pose and starts Jodie's reply. The CAP
+/// cue selects her reply-end pose; a thirty-update countdown precedes closure.
+/// Borrows the loaded room clips and the live player and scene-placement-1 tasks.
+extern EvsCommand gMistParkingJodieShopFarewellScript[8];
 
 /// Writable parking collision mesh and 7-by-4 XZ cell index, shared by all room variants.
 ///
@@ -262,7 +296,12 @@ extern s32 D_mist_parking_8019531C;
 /// it or unload the room while that task is live.
 extern RoomCutsceneRec gMistParkingCommandCutscene;
 
-extern MistParkingPrizeAnnouncementState D_mist_parking_80195328;
+/// Singleton prize-announcement cursor and timer for Jodie's talk outside variant 1.
+///
+/// Cleared as the talk starts. The signed halfwords track courses 0..4, ending
+/// at cursor 5, and ten idle callback ticks per course, captioning at five left.
+/// No allocation or release occurs; only one such talk may use it at a time.
+extern MistParkingPrizeAnnouncementState gMistParkingPrizeAnnouncement;
 
 /// Variant-1 shop conversation's held player head-aim task and retained unknown word.
 ///
@@ -271,7 +310,12 @@ extern MistParkingPrizeAnnouncementState D_mist_parking_80195328;
 /// Requires a live held task and loaded player/partner models until stopped.
 extern MistParkingHeadAimHandle gMistParkingShopPlayerHeadAimHandle;
 
-extern MistParkingShopTalkState D_mist_parking_80195334;
+/// Singleton work of Jodie's variant-1 prize and shop-menu conversation.
+///
+/// All eight bytes are cleared at greeting. Keeps the prize cursor/timer,
+/// whether business occurred, and the prize-closing CAP command through the
+/// farewell. Only one talk may use it at a time; the room owns its lifetime.
+extern MistParkingShopTalkState gMistParkingShopTalk;
 
 /// Player head-aim controls; STOP releases the room's task handle.
 enum {
