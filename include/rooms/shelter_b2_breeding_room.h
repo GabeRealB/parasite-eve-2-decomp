@@ -22,9 +22,22 @@ extern TmdSource gShelterB2BreedingRoomModel02E04;
 /// and gameplay overlays loaded while borrowing this directory and its map.
 extern u8* gShelterB2BreedingRoomRoomViewMaps[1];
 
-extern ViewCount D_shelter_b2_breeding_room_80180560[];
+/// Logical-view search limits for the breeding room's single room.
+///
+/// Indexed by room - 1, without a terminator. Room 1 searches ten logical
+/// views; this count is separate from the capacity of its borrowed view map.
+/// Keep the room overlay loaded while reading the signed-halfword directory.
+extern ViewCount gShelterB2BreedingRoomRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b2_breeding_room_80180564[];
+/// The breeding room's two player/companion arrival and departure endpoints.
+///
+/// Warp IDs 1 and 2 select the main-corridor and north-maintenance-walkway
+/// doors at index warp - 1; there is no terminator. They enter logical views
+/// 2 and 6 with matching player/companion poses, world-unit positions and yaw
+/// in 4096 units per turn. Each supplies arrival/departure sounds, with no
+/// blocked sound, special spawn flags or map-marker update. Keep the room
+/// overlay loaded through endpoint lookup and the synchronous pose copies.
+extern DirectionWarpEntry gShelterB2BreedingRoomWarpEntries[2];
 
 /// The breeding room's collision mesh and XZ cell index.
 ///
@@ -34,9 +47,22 @@ extern DirectionWarpEntry D_shelter_b2_breeding_room_80180564[];
 /// view coordinate. Its private mesh pools and cell lists live with the room.
 extern WorldCollisionGrid gShelterB2BreedingRoomCollisionGrid;
 
-extern ViewCamera D_shelter_b2_breeding_room_80181118[];
+/// The breeding room's ten mapped camera transforms and projection distances.
+///
+/// A mapped view in 1..10 selects index view - 1, without a terminator.
+/// Rotation uses 4096 for 1.0; translation is the negated world-space camera
+/// origin, and projection distance is in pixels. Keep the room overlay loaded
+/// through direct application or until a queued camera task has applied it.
+extern ViewCamera gShelterB2BreedingRoomViewCameras[10];
 
-extern SpriteView D_shelter_b2_breeding_room_801833D4[];
+/// The breeding room's ten mapped sprite views, retaining decoded background strips.
+///
+/// A mapped view in 1..10 selects index view - 1. Each batch list starts with
+/// a zero-count header and ends with `SPRITE_BATCH_END`; views 2..9 supply
+/// source rectangles, while views 1 and 10 retain their empty batch addresses
+/// in the source slot. No view supplies draw-area clipping. The descriptors
+/// and their private mutable arrays live with the room overlay.
+extern SpriteView gShelterB2BreedingRoomSpriteViews[10];
 
 /// The breeding room's nine authored point lights, without directional or cone lights.
 ///
@@ -46,9 +72,25 @@ extern SpriteView D_shelter_b2_breeding_room_801833D4[];
 /// Keep the collection and its array loaded while borrowing them.
 extern WorldCoordRoomLights gShelterB2BreedingRoomRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b2_breeding_room_801837C4[];
+/// Fourteen directed view-change quads for the breeding room.
+///
+/// Source/destination logical-view pairs connect views 2..9. The final quad
+/// carries `WORLD_COLLISION_TRIGGER_LAST` and is included in the array scan.
+/// Geometry uses room units and normals use 4096 per unit. Room binding sets
+/// coordinates, list links and enable flags; contact tests mutate hit latches.
+/// Keep the room overlay loaded until the borrowed runtime list is cleared.
+extern WorldCollisionTrigger gShelterB2BreedingRoomViewBoundaryTriggers[14];
 
-extern WorldCollisionTrigger D_shelter_b2_breeding_room_80183F9C[];
+/// The breeding room's two door warps and twenty CAP/room-command interaction quads.
+///
+/// Door triggers request the main corridor's warp 5 and the north maintenance
+/// walkway's warp 2. The first scene routes command 22 through the room;
+/// other interactions select CAP commands directly. The final included quad
+/// carries `WORLD_COLLISION_TRIGGER_LAST`. Geometry uses room units and
+/// normals use 4096 per unit. Binding and contact tests mutate links,
+/// coordinates, flags and hit latches; keep the room and selected CAP resources
+/// loaded until the borrowed runtime list and pending interactions are retired.
+extern WorldCollisionTrigger gShelterB2BreedingRoomActionTriggers[22];
 
 /// Ambient-light minima for the breeding room: a count header and ten view colours.
 ///
@@ -57,7 +99,13 @@ extern WorldCollisionTrigger D_shelter_b2_breeding_room_80183F9C[];
 /// gameplay's default minima. The table remains live with the room overlay.
 extern WorldCoordRoomAmbientEntry gShelterB2BreedingRoomAmbientByView[11];
 
-extern WorldCollisionOccluder D_shelter_b2_breeding_room_8018467C[];
+/// Five room-space quads blocking line of sight in the breeding room.
+///
+/// Positions use room units and normals use 4096 per unit. The final included
+/// quad carries `WORLD_COLLISION_OCCLUDER_LAST`; binding mutates list links
+/// and enable flags. All records retain low flag bit 0, whose role is unproven.
+/// Keep the room overlay loaded until the borrowed occluder list is cleared.
+extern WorldCollisionOccluder gShelterB2BreedingRoomOccluders[5];
 
 /// Collision policies and footstep cues for the breeding room's surface classes 0..7.
 ///
@@ -67,7 +115,14 @@ extern WorldCollisionOccluder D_shelter_b2_breeding_room_8018467C[];
 /// There is no terminator. The directory and private records live with the room.
 extern WorldCollisionSurfaceProperties* gShelterB2BreedingRoomSurfacePropertiesByClass[8];
 
-extern AreaVariant D_shelter_b2_breeding_room_80183EEC[22];
+/// The breeding room's placement/resource layouts, indexed by area variant 0..21.
+///
+/// Variants 1, 2, 3, 4, 7, 11 and 21 publish paired tables; all other slots
+/// are absent. Variant 1 is the default. Each private table ends with
+/// `AREA_PLACEMENT_END`, independently of this directory's fixed extent.
+/// Loading and spawning borrow the tables, and live enemies retain placement
+/// pointers. Keep the room and selected actor packages loaded through teardown.
+extern AreaVariant gShelterB2BreedingRoomAreaVariants[22];
 
 /// Updates the placed breeding-room model's visibility from its object state.
 ///

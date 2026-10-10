@@ -553,7 +553,7 @@ AreaRecord D_8010CF14[50] = {
     { D_shelter_b2_operating_room_80184124, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[28].state },
     { D_shelter_b2_north_maintenance_walkway_80186258, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[29].state },
     { D_shelter_b2_laboratory_80186360, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[30].state },
-    { D_shelter_b2_breeding_room_80183EEC, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
+    { gShelterB2BreedingRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
     { D_shelter_b2_main_corridor_8018933C, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[32].state },
     { D_shelter_b2_septic_tank_80186F40, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
     { D_shelter_b2_pod_access_tunnel_801855AC, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[34].state },

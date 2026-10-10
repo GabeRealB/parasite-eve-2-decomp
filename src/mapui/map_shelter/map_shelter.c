@@ -947,7 +947,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b2_operating_room_80180BD0,
     D_shelter_b2_north_maintenance_walkway_80183C64,
     D_shelter_b2_laboratory_80182C10,
-    D_shelter_b2_breeding_room_80180564,
+    gShelterB2BreedingRoomWarpEntries,
     D_shelter_b2_main_corridor_801830D4,
     D_shelter_b2_septic_tank_80183574,
     D_shelter_b2_pod_access_tunnel_80183E30,
@@ -999,7 +999,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b2_operating_room_80180BCC,
     D_shelter_b2_north_maintenance_walkway_80183C60,
     D_shelter_b2_laboratory_80182C0C,
-    D_shelter_b2_breeding_room_80180560,
+    gShelterB2BreedingRoomRoomViewCounts,
     D_shelter_b2_main_corridor_801830D0,
     D_shelter_b2_septic_tank_80183570,
     D_shelter_b2_pod_access_tunnel_80183E2C,
@@ -1090,7 +1090,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B214[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B224[1] = {
-    { &gShelterB2BreedingRoomCollisionGrid, D_shelter_b2_breeding_room_801837C4, D_shelter_b2_breeding_room_80183F9C, D_shelter_b2_breeding_room_8018467C },
+    { &gShelterB2BreedingRoomCollisionGrid, gShelterB2BreedingRoomViewBoundaryTriggers, gShelterB2BreedingRoomActionTriggers, gShelterB2BreedingRoomOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B234[1] = {
@@ -1224,7 +1224,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     gShelterB2OperatingRoomViewCameras,
     gShelterB2NorthMaintenanceWalkwayViewCameras,
     D_shelter_b2_laboratory_80183580,
-    D_shelter_b2_breeding_room_80181118,
+    gShelterB2BreedingRoomViewCameras,
     D_shelter_b2_main_corridor_80184464,
     gShelterB2SepticTankViewCameras,
     gShelterB2PodAccessTunnelViewCameras,
@@ -1340,7 +1340,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB2OperatingRoomSpriteViews,
     gShelterB2NorthMaintenanceWalkwaySpriteViews,
     D_shelter_b2_laboratory_801854D0,
-    D_shelter_b2_breeding_room_801833D4,
+    gShelterB2BreedingRoomSpriteViews,
     D_shelter_b2_main_corridor_80188848,
     gShelterB2SepticTankSpriteViews,
     gShelterB2PodAccessTunnelSpriteViews,

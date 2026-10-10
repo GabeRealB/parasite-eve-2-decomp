@@ -494,7 +494,7 @@ dryfieldNightMotelLoftFallingShardTask = 0x8017E090; // type:func absolute:True 
 
 shelterB6NurserySparkShowerShardTask = 0x80182730; // type:func absolute:True owner=shelter_b6_nursery shared=rooms
 
-D_shelter_b2_breeding_room_80183EEC = 0x80183EEC; // absolute:True owner=shelter_b2_breeding_room shared=rooms
+gShelterB2BreedingRoomAreaVariants = 0x80183EEC; // absolute:True owner=shelter_b2_breeding_room shared=rooms
 
 D_acropolis_plaza_80199390 = 0x80199390; // absolute:True
 

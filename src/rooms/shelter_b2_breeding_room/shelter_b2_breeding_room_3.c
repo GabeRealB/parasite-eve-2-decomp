@@ -20,6 +20,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_ids.h"
 #include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -47,11 +48,43 @@ u8* gShelterB2BreedingRoomRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b2_breeding_room_80180560[1] = { 10 };
+ViewCount gShelterB2BreedingRoomRoomViewCounts[1] = { 10 };
 
-DirectionWarpEntry D_shelter_b2_breeding_room_80180564[2] = {
-    { { { .word = 1024 }, 100, 0, -900 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 100, 0, -900 }, { 0, 0, 0, 0 }, 0x54200004, 0x54200003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 0x2E9E, 0, 5960 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x2E9E, 0, 5960 }, { 0, 0, 0, 0 }, 0x54200002, 0x54200001, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// One-based door IDs shared by this room's endpoints and action triggers.
+enum {
+    SHELTER_B2_BREEDING_ROOM_WARP_MAIN_CORRIDOR             = 1,
+    SHELTER_B2_BREEDING_ROOM_WARP_NORTH_MAINTENANCE_WALKWAY = 2,
+};
+
+/// Arrival/departure script requests in this room's area sound bank.
+enum {
+    SHELTER_B2_BREEDING_ROOM_MAIN_CORRIDOR_ARRIVAL_SOUND       = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 4),
+    SHELTER_B2_BREEDING_ROOM_MAIN_CORRIDOR_DEPARTURE_SOUND     = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 3),
+    SHELTER_B2_BREEDING_ROOM_NORTH_MAINTENANCE_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 2),
+    SHELTER_B2_BREEDING_ROOM_NORTH_MAINTENANCE_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 1),
+};
+
+DirectionWarpEntry gShelterB2BreedingRoomWarpEntries[2] = {
+    [SHELTER_B2_BREEDING_ROOM_WARP_MAIN_CORRIDOR - 1] = {
+        .player         = { { .word = 1024 }, 100, 0, -900 },
+        .companion      = { { .word = 1024 }, 100, 0, -900 },
+        .arrivalSound   = SHELTER_B2_BREEDING_ROOM_MAIN_CORRIDOR_ARRIVAL_SOUND,
+        .departureSound = SHELTER_B2_BREEDING_ROOM_MAIN_CORRIDOR_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    [SHELTER_B2_BREEDING_ROOM_WARP_NORTH_MAINTENANCE_WALKWAY - 1] = {
+        .player         = { { .word = 2048 }, 11934, 0, 5960 },
+        .companion      = { { .word = 2048 }, 11934, 0, 5960 },
+        .arrivalSound   = SHELTER_B2_BREEDING_ROOM_NORTH_MAINTENANCE_ARRIVAL_SOUND,
+        .departureSound = SHELTER_B2_BREEDING_ROOM_NORTH_MAINTENANCE_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Room-space collision normals, with 4096 representing unit length.
@@ -96,8 +129,8 @@ WorldCollisionGrid gShelterB2BreedingRoomCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gShelterB2BreedingRoomCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b2_breeding_room_80181118[10] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
+ViewCamera gShelterB2BreedingRoomViewCameras[10] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
     { { { { -3857, 0, 1377 }, { 1258, 1663, 3524 }, { -559, 3742, -1566 } }, { -1443, 4445, -344 } }, 230 },
     { { { { -4069, 0, -460 }, { 13, 4094, -119 }, { 460, -120, -4068 } }, { -1354, 1031, -4688 } }, 230 },
     { { { { 4052, 0, -595 }, { 112, 4022, 764 }, { 585, -773, 3979 } }, { -1354, 531, -488 } }, 230 },
@@ -537,7 +570,12 @@ static SpriteBatch _gShelterB2BreedingRoomView7SpriteBatches[7] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b2_breeding_room_80182950[19] = {
+/// Nineteen opaque source rectangles and sorting depths for mapped view 8.
+///
+/// XY and sizes use pixels, UVs use texels and depths are unscaled OT values.
+/// RGB 128 is neutral modulation; the paired batch list spans every source.
+/// The mutable array lives with the room overlay.
+static SpriteSource _gShelterB2BreedingRoomView8SpriteSources[19] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -16, 973, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 80, -8, 959, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, 80, 0, 924, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
@@ -559,15 +597,25 @@ SpriteSource D_shelter_b2_breeding_room_80182950[19] = {
     { 143, 0x3FC0, { .fields = { 24, 104 } }, -160, -8, 866, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_80182ACC[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 1, 0 } },
-    { 12, 7, 0, 0, { 2, 0 } },
-    { 19, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 8's source ranges, with an image-strip header and an empty trailing range.
+///
+/// Ranges 0..11 and 12..18 cover the source array. The zero-count range at
+/// its end is retained before the sentinel. Visibility and packet exclusion
+/// start clear; the role of the serialized `field_6` bytes is unproven.
+static SpriteBatch _gShelterB2BreedingRoomView8SpriteBatches[5] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 12, .field_6 = { 1, 0 } },
+    { .firstSprite = 12, .spriteCount = ARRAY_SIZE(_gShelterB2BreedingRoomView8SpriteSources) - 12, .field_6 = { 2, 0 } },
+    { .firstSprite = ARRAY_SIZE(_gShelterB2BreedingRoomView8SpriteSources), .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b2_breeding_room_80182AF4[110] = {
+/// View 9's 110 source rectangles, including a final range of 22 translucent sprites.
+///
+/// XY and sizes use pixels, UVs use texels and depths are unscaled OT values.
+/// RGB 128 is neutral modulation; sources 0..87 are opaque and 88..109 carry
+/// `SPRITE_SOURCE_SEMI_TRANSPARENT`. The mutable array lives with the room.
+static SpriteSource _gShelterB2BreedingRoomView9SpriteSources[110] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 24, -72, 1301, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 16 } }, -136, -120, 640, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 8 } }, -104, -120, 697, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
@@ -680,22 +728,31 @@ SpriteSource D_shelter_b2_breeding_room_80182AF4[110] = {
     { 142, 0x4000, { .fields = { 32, 8 } }, 8, -96, 1035, { .fields = { 56, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_8018338C[7] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 41, 0, 0, { 0, 0 } },
-    { 41, 19, 0, 0, { 3, 0 } },
-    { 60, 22, 0, 0, { 2, 0 } },
-    { 82, 6, 0, 0, { 4, 0 } },
-    { 88, 22, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View 9's five contiguous source ranges, preceded by an image-strip header.
+///
+/// Ranges cover all 110 sources and end with `SPRITE_BATCH_END`. Visibility
+/// and packet exclusion start clear; the role of the serialized `field_6`
+/// bytes is unproven. The list and its sources live with the room overlay.
+static SpriteBatch _gShelterB2BreedingRoomView9SpriteBatches[7] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 41, .field_6 = { 0, 0 } },
+    { .firstSprite = 41, .spriteCount = 19, .field_6 = { 3, 0 } },
+    { .firstSprite = 60, .spriteCount = 22, .field_6 = { 2, 0 } },
+    { .firstSprite = 82, .spriteCount = 6, .field_6 = { 4, 0 } },
+    { .firstSprite = 88, .spriteCount = ARRAY_SIZE(_gShelterB2BreedingRoomView9SpriteSources) - 88, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_801833C4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty view-10 batch list retaining decoded image strips for the close-up.
+///
+/// A zero-count header precedes the sentinel; no source elements are read.
+/// Its address is also retained in the view's empty source slot.
+static SpriteBatch _gShelterB2BreedingRoomView10SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_shelter_b2_breeding_room_801833D4[10] = {
+SpriteView gShelterB2BreedingRoomSpriteViews[10] = {
     { { .empty = _gShelterB2BreedingRoomView1SpriteBatches }, _gShelterB2BreedingRoomView1SpriteBatches, NULL },
     { { .elements = _gShelterB2BreedingRoomView2SpriteSources }, _gShelterB2BreedingRoomView2SpriteBatches, NULL },
     { { .elements = _gShelterB2BreedingRoomView3SpriteSources }, _gShelterB2BreedingRoomView3SpriteBatches, NULL },
@@ -703,9 +760,9 @@ SpriteView D_shelter_b2_breeding_room_801833D4[10] = {
     { { .elements = _gShelterB2BreedingRoomView5SpriteSources }, _gShelterB2BreedingRoomView5SpriteBatches, NULL },
     { { .elements = _gShelterB2BreedingRoomView6SpriteSources }, _gShelterB2BreedingRoomView6SpriteBatches, NULL },
     { { .elements = _gShelterB2BreedingRoomView7SpriteSources }, _gShelterB2BreedingRoomView7SpriteBatches, NULL },
-    { { .elements = D_shelter_b2_breeding_room_80182950 }, D_shelter_b2_breeding_room_80182ACC, NULL },
-    { { .elements = D_shelter_b2_breeding_room_80182AF4 }, D_shelter_b2_breeding_room_8018338C, NULL },
-    { { .empty = D_shelter_b2_breeding_room_801833C4 }, D_shelter_b2_breeding_room_801833C4, NULL },
+    { { .elements = _gShelterB2BreedingRoomView8SpriteSources }, _gShelterB2BreedingRoomView8SpriteBatches, NULL },
+    { { .elements = _gShelterB2BreedingRoomView9SpriteSources }, _gShelterB2BreedingRoomView9SpriteBatches, NULL },
+    { { .empty = _gShelterB2BreedingRoomView10SpriteBatches }, _gShelterB2BreedingRoomView10SpriteBatches, NULL },
 };
 
 /// Nine room-owned point lights with world-unit positions and radii and Q12 RGB.
@@ -733,158 +790,236 @@ WorldCoordRoomLights gShelterB2BreedingRoomRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b2_breeding_room_801837C4[14] = {
-    { NULL, NULL, NULL, { 2176, -1664, -671, 0 }, { { -1552, -3136, 1808, 0 }, { 1552, -3136, -1808, 0 }, { -1552, 3136, 1808, 0 }, { 1552, 3136, -1808, 0 } }, { -3108, 0, -2668, 0 }, { 0, 0, 4096, 0 }, 3932, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1968, -1697, -751, 0 }, { { 1600, -3136, -1824, 0 }, { -1600, -3136, 1824, 0 }, { 1600, 3136, -1824, 0 }, { -1600, 3136, 1824, 0 } }, { 3083, 0, 2704, 0 }, { 0, 0, 4096, 0 }, 3957, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1712, -1632, 2593, 0 }, { { 2032, -3136, 64, 0 }, { -2032, -3136, -64, 0 }, { 2032, 3136, 64, 0 }, { -2032, 3136, -64, 0 } }, { -130, 0, 4105, 0 }, { 0, 0, 4096, 0 }, 3736, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1792, -1600, 2816, 0 }, { { -1904, -3136, -64, 0 }, { 1904, -3136, 64, 0 }, { -1904, 3136, -64, 0 }, { 1904, 3136, 64, 0 } }, { 138, 0, -4108, 0 }, { 0, 0, 4096, 0 }, 3665, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3968, -1729, 4432, 0 }, { { -960, -3136, -1776, 0 }, { 960, -3136, 1776, 0 }, { -960, 3136, -1776, 0 }, { 960, 3136, 1776, 0 } }, { 3613, 0, -1954, 0 }, { 0, 0, 4096, 0 }, 3727, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4272, -1761, 4544, 0 }, { { 912, -3136, 1616, 0 }, { -912, -3136, -1616, 0 }, { 912, 3136, 1616, 0 }, { -912, 3136, -1616, 0 } }, { -3570, 0, 2014, 0 }, { 0, 0, 4096, 0 }, 3638, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8048, -1761, 4384, 0 }, { { 16, -3136, -1776, 0 }, { -16, -3136, 1776, 0 }, { 16, 3136, -1776, 0 }, { -16, 3136, 1776, 0 } }, { 4111, 0, 37, 0 }, { 0, 0, 4096, 0 }, 3602, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8193, -1761, 4353, 0 }, { { 16, -3136, 1680, 0 }, { -16, -3136, -1680, 0 }, { 16, 3136, 1680, 0 }, { -16, 3136, -1680, 0 } }, { -4115, 0, 39, 0 }, { 0, 0, 4096, 0 }, 3556, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6849, -1729, 1056, 0 }, { { 2032, -3136, 64, 0 }, { -2032, -3136, -64, 0 }, { 2032, 3136, 64, 0 }, { -2032, 3136, -64, 0 } }, { -130, 0, 4105, 0 }, { 0, 0, 4096, 0 }, 3736, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6848, -1760, 1184, 0 }, { { -2096, -3136, -64, 0 }, { 2096, -3136, 64, 0 }, { -2096, 3136, -64, 0 }, { 2096, 3136, 64, 0 } }, { 125, 0, -4099, 0 }, { 0, 0, 4096, 0 }, 3771, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6160, -1889, 2832, 0 }, { { -1056, -3136, -16, 0 }, { 1056, -3136, 16, 0 }, { -1056, 3136, -16, 0 }, { 1056, 3136, 16, 0 } }, { 62, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 6112, -1792, 2672, 0 }, { { 1088, -3136, 0, 0 }, { -1088, -3136, 0, 0 }, { 1088, 3136, 0, 0 }, { -1088, 3136, 0, 0 } }, { 0, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 3318, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2920, -1824, 2592, 0 }, { { 1088, -3136, 0, 0 }, { -1088, -3136, 0, 0 }, { 1088, 3136, 0, 0 }, { -1088, 3136, 0, 0 } }, { 0, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 3318, 0, 6, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2920, -1696, 2752, 0 }, { { -1056, -3136, -16, 0 }, { 1056, -3136, 16, 0 }, { -1056, 3136, -16, 0 }, { 1056, 3136, 16, 0 } }, { 62, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 9, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB2BreedingRoomViewBoundaryTriggers[14] = {
+    { NULL, NULL, NULL, { 2176, -1664, -671, 0 }, { { -1552, -3136, 1808, 0 }, { 1552, -3136, -1808, 0 }, { -1552, 3136, 1808, 0 }, { 1552, 3136, -1808, 0 } }, { -3108, 0, -2668, 0 }, { 0, 0, ONE, 0 }, 3932, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1968, -1697, -751, 0 }, { { 1600, -3136, -1824, 0 }, { -1600, -3136, 1824, 0 }, { 1600, 3136, -1824, 0 }, { -1600, 3136, 1824, 0 } }, { 3083, 0, 2704, 0 }, { 0, 0, ONE, 0 }, 3957, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1712, -1632, 2593, 0 }, { { 2032, -3136, 64, 0 }, { -2032, -3136, -64, 0 }, { 2032, 3136, 64, 0 }, { -2032, 3136, -64, 0 } }, { -130, 0, 4105, 0 }, { 0, 0, ONE, 0 }, 3736, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1792, -1600, 2816, 0 }, { { -1904, -3136, -64, 0 }, { 1904, -3136, 64, 0 }, { -1904, 3136, -64, 0 }, { 1904, 3136, 64, 0 } }, { 138, 0, -4108, 0 }, { 0, 0, ONE, 0 }, 3665, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3968, -1729, 4432, 0 }, { { -960, -3136, -1776, 0 }, { 960, -3136, 1776, 0 }, { -960, 3136, -1776, 0 }, { 960, 3136, 1776, 0 } }, { 3613, 0, -1954, 0 }, { 0, 0, ONE, 0 }, 3727, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4272, -1761, 4544, 0 }, { { 912, -3136, 1616, 0 }, { -912, -3136, -1616, 0 }, { 912, 3136, 1616, 0 }, { -912, 3136, -1616, 0 } }, { -3570, 0, 2014, 0 }, { 0, 0, ONE, 0 }, 3638, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8048, -1761, 4384, 0 }, { { 16, -3136, -1776, 0 }, { -16, -3136, 1776, 0 }, { 16, 3136, -1776, 0 }, { -16, 3136, 1776, 0 } }, { 4111, 0, 37, 0 }, { 0, 0, ONE, 0 }, 3602, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8193, -1761, 4353, 0 }, { { 16, -3136, 1680, 0 }, { -16, -3136, -1680, 0 }, { 16, 3136, 1680, 0 }, { -16, 3136, -1680, 0 } }, { -4115, 0, 39, 0 }, { 0, 0, ONE, 0 }, 3556, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6849, -1729, 1056, 0 }, { { 2032, -3136, 64, 0 }, { -2032, -3136, -64, 0 }, { 2032, 3136, 64, 0 }, { -2032, 3136, -64, 0 } }, { -130, 0, 4105, 0 }, { 0, 0, ONE, 0 }, 3736, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6848, -1760, 1184, 0 }, { { -2096, -3136, -64, 0 }, { 2096, -3136, 64, 0 }, { -2096, 3136, -64, 0 }, { 2096, 3136, 64, 0 } }, { 125, 0, -4099, 0 }, { 0, 0, ONE, 0 }, 3771, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6160, -1889, 2832, 0 }, { { -1056, -3136, -16, 0 }, { 1056, -3136, 16, 0 }, { -1056, 3136, -16, 0 }, { 1056, 3136, 16, 0 } }, { 62, 0, -4103, 0 }, { 0, 0, ONE, 0 }, 3308, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 6112, -1792, 2672, 0 }, { { 1088, -3136, 0, 0 }, { -1088, -3136, 0, 0 }, { 1088, 3136, 0, 0 }, { -1088, 3136, 0, 0 } }, { 0, 0, 4099, 0 }, { 0, 0, ONE, 0 }, 3318, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2920, -1824, 2592, 0 }, { { 1088, -3136, 0, 0 }, { -1088, -3136, 0, 0 }, { 1088, 3136, 0, 0 }, { -1088, 3136, 0, 0 } }, { 0, 0, 4099, 0 }, { 0, 0, ONE, 0 }, 3318, 0, 6, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2920, -1696, 2752, 0 }, { { -1056, -3136, -16, 0 }, { 1056, -3136, 16, 0 }, { -1056, 3136, -16, 0 }, { 1056, 3136, 16, 0 } }, { 62, 0, -4103, 0 }, { 0, 0, ONE, 0 }, 3308, 0, 9, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b2_breeding_room_80183BEC[2] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Room-local resource keys matched by the placement and resource tables below.
+enum {
+    SHELTER_B2_BREEDING_ROOM_ENTRY_KNIGHT_GOLEM      = 22,
+    SHELTER_B2_BREEDING_ROOM_ENTRY_AMOEBA            = 24,
+    SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT            = 26,
+    SHELTER_B2_BREEDING_ROOM_ENTRY_BLACK_BEETLE      = 38,
+    SHELTER_B2_BREEDING_ROOM_ENTRY_BISHOP_GOLEM      = 39,
+    SHELTER_B2_BREEDING_ROOM_ENTRY_MAD_CHASER        = 44,
+    SHELTER_B2_BREEDING_ROOM_ENTRY_SLOUCH            = 70,
+    SHELTER_B2_BREEDING_ROOM_ENTRY_SUCKLERCEPH       = 71,
+    SHELTER_B2_BREEDING_ROOM_ENTRY_CREEPING_STRANGER = 72,
+    SHELTER_B2_BREEDING_ROOM_ENTRY_SKULL_STALKER     = 73,
 };
 
-AreaResource D_shelter_b2_breeding_room_80183C04[3] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202400Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Maggot and Mad Chaser starting behaviors used by these room placements.
+enum {
+    SHELTER_B2_BREEDING_ROOM_MAGGOT_DORMANT    = 0,
+    SHELTER_B2_BREEDING_ROOM_MAGGOT_AIMED      = 1,
+    SHELTER_B2_BREEDING_ROOM_MAD_CHASER_LURK   = 0,
+    SHELTER_B2_BREEDING_ROOM_MAD_CHASER_DANGLE = 1,
 };
 
-AreaResource D_shelter_b2_breeding_room_80183C28[4] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SlouchTaskDescs },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SucklercephTaskDescs },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's Maggot resource recipe, followed by `AREA_PLACEMENT_END`.
+///
+/// Loads actor-slot-1 file 102600 and borrows its body descriptor at index 0.
+/// Keep the room table and actor package live during loading and spawning.
+static AreaResource _gShelterB2BreedingRoomVariant1Resources[2] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .fileNumber = 26, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskTable = &gActor02600MaggotCaterpillarBodyTask },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b2_breeding_room_80183C58[4] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
-    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
-    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200SkullStalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 2's Maggot and Amoeba resource recipes, ending with `AREA_PLACEMENT_END`.
+///
+/// Loads actor-slot-1 files 102600 and 202400. Both spawn descriptor 0;
+/// the table and borrowed actor descriptors must remain loaded while used.
+static AreaResource _gShelterB2BreedingRoomVariant2Resources[3] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .fileNumber = 26, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskTable = &gActor02600MaggotCaterpillarBodyTask },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_AMOEBA, .fileNumber = 24, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskTable = gActor202400Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b2_breeding_room_80183C88[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 3's ordinary Mad Chaser, standing Slouch and standing Sucklerceph recipes.
+///
+/// File 104400 supplies the Chaser; 207000/207100 share the Slouch/Sucklerceph
+/// package. Each selects descriptor 0, and `AREA_PLACEMENT_END` ends the list.
+/// Keep the room table and borrowed actor descriptors loaded while used.
+static AreaResource _gShelterB2BreedingRoomVariant3Resources[4] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAD_CHASER, .fileNumber = 44, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = ACTOR_04400_MAD_CHASER_TASK_ORDINARY, .taskTable = gActor04400MadChaserTaskDescs },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_SLOUCH, .fileNumber = 70, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskTable = gActor207000SlouchTaskDescs },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_SUCKLERCEPH, .fileNumber = 71, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskTable = gActor207000SucklercephTaskDescs },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b2_breeding_room_80183CA0[3] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203800BlackBeetleTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 4's ordinary Mad Chaser, Creeping Stranger and Skull Stalker recipes.
+///
+/// Files 104400, 207200 and 207300 select descriptor 0 of their borrowed task
+/// tables. `AREA_PLACEMENT_END` ends the list; keep room and actor storage live.
+static AreaResource _gShelterB2BreedingRoomVariant4Resources[4] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAD_CHASER, .fileNumber = 44, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = ACTOR_04400_MAD_CHASER_TASK_ORDINARY, .taskTable = gActor04400MadChaserTaskDescs },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_CREEPING_STRANGER, .fileNumber = 72, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskTable = &gActor207200CreepingStrangerTaskDesc },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_SKULL_STALKER, .fileNumber = 73, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskTable = &gActor207200SkullStalkerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b2_breeding_room_80183CC4[2] = {
-    { 39, 39, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor403900GolemTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 7's Knight GOLEM recipe for file 402200, with an end record.
+///
+/// Spawns descriptor 0. The room table and borrowed actor descriptor stay live
+/// during loading and spawning; `AREA_PLACEMENT_END` ends the list.
+static AreaResource _gShelterB2BreedingRoomVariant7Resources[2] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_KNIGHT_GOLEM, .fileNumber = 22, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskTable = &gActor402200GolemTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_breeding_room_80183CDC[5] = {
-    { 26, 0, 1, 6500, 0, 2300, 3900, 0, 0, 2, 0 },
-    { 26, 0, 0, 6200, 0, 50, 1500, 0, 0, 2, 0 },
-    { 26, 0, 1, 0x2904, 0, 2000, 0, 0, 0, 2, 0 },
-    { 26, 0, 0, 0x2E7C, 0, 300, 300, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 11's Maggot and Black Beetle recipes for files 102600 and 203800.
+///
+/// Both select descriptor 0. `AREA_PLACEMENT_END` ends the table; keep the
+/// room table and borrowed actor descriptors loaded during loading and spawning.
+static AreaResource _gShelterB2BreedingRoomVariant11Resources[3] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .fileNumber = 26, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskTable = &gActor02600MaggotCaterpillarBodyTask },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_BLACK_BEETLE, .fileNumber = 38, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskTable = &gActor203800BlackBeetleTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_breeding_room_80183D2C[6] = {
-    { 26, 0, 0, 8400, 0, 3400, 1000, 0, 0, 2, 0 },
-    { 26, 0, 0, 6400, 0, 5200, 700, 0, 0, 2, 0 },
-    { 26, 0, 0, 2300, 0, 2400, 2900, 0, 0, 2, 0 },
-    { 24, 0, 0, 7500, 0, 300, 3800, 0, 2, 4, 0 },
-    { 24, 0, 0, 0x2AF8, 0, 900, 4000, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 21's Bishop GOLEM recipe for file 403900, with an end record.
+///
+/// Spawns descriptor 0. The room table and borrowed actor descriptor stay live
+/// during loading and spawning; `AREA_PLACEMENT_END` ends the list.
+static AreaResource _gShelterB2BreedingRoomVariant21Resources[2] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_BISHOP_GOLEM, .fileNumber = 39, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskTable = &gActor403900GolemTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_breeding_room_80183D8C[6] = {
-    { 44, 0, 1, 6800, -2350, 4800, 3072, 0, 0, 2, 0 },
-    { 44, 0, 1, 2400, -2900, 4700, 0, 0, 0, 2, 0 },
-    { 70, 0, 0, 6500, 0, 1600, 0, 0, 2, 4, 0 },
-    { 71, 0, 1, 0x2968, 0, 1250, 0, 0, 2, 4, 0 },
-    { 71, 0, 1, 0x2E7C, 0, 200, 3650, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 1's four Maggot placements, alternating aimed and dormant starts.
+///
+/// Positions use world units and yaw uses 4096 units per turn. Every placement
+/// selects base resource 26 with a two-row CLUT relocation and timing row 0.
+/// The end record terminates the table; live enemies borrow these placements.
+static AreaPlacement _gShelterB2BreedingRoomVariant1Placements[5] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .mode = SHELTER_B2_BREEDING_ROOM_MAGGOT_AIMED, .x = 6500, .z = 2300, .yaw = 3900, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .mode = SHELTER_B2_BREEDING_ROOM_MAGGOT_DORMANT, .x = 6200, .z = 50, .yaw = 1500, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .mode = SHELTER_B2_BREEDING_ROOM_MAGGOT_AIMED, .x = 0x2904, .z = 2000, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .mode = SHELTER_B2_BREEDING_ROOM_MAGGOT_DORMANT, .x = 0x2E7C, .z = 300, .yaw = 300, .clutRowOffset = 2 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_breeding_room_80183DEC[5] = {
-    { 44, 0, 0, 1800, 0, 2600, 1024, 0, 0, 2, 0 },
-    { 44, 0, 0, 8750, 0, 4000, 2048, 0, 0, 2, 0 },
-    { 72, 0, 0, 6250, 0, 0, 1024, 0, 2, 4, 0 },
-    { 73, 0, 1, 900, 0, -350, 2750, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 2's three dormant Maggots and two default-variant Amoebas.
+///
+/// Positions use world units and yaw uses 4096 units per turn. All use base
+/// files; Maggots add two CLUT rows, while Amoebas add two texture pages and
+/// four CLUT rows. The end record terminates the table; enemies borrow it.
+static AreaPlacement _gShelterB2BreedingRoomVariant2Placements[6] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .mode = SHELTER_B2_BREEDING_ROOM_MAGGOT_DORMANT, .x = 8400, .z = 3400, .yaw = 1000, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .mode = SHELTER_B2_BREEDING_ROOM_MAGGOT_DORMANT, .x = 6400, .z = 5200, .yaw = 700, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .mode = SHELTER_B2_BREEDING_ROOM_MAGGOT_DORMANT, .x = 2300, .z = 2400, .yaw = 2900, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_AMOEBA, .x = 7500, .z = 300, .yaw = 3800, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_AMOEBA, .x = 0x2AF8, .z = 900, .yaw = 4000, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_breeding_room_80183E3C[2] = {
-    { 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 3's two dangling Mad Chasers, one Slouch and two Sucklercephs.
+///
+/// Positions use world units and yaw uses 4096 units per turn. All use base
+/// files; Chasers add two CLUT rows, and the other actors add two texture pages
+/// and four CLUT rows. The end record terminates the borrowed placement table.
+static AreaPlacement _gShelterB2BreedingRoomVariant3Placements[6] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAD_CHASER, .mode = SHELTER_B2_BREEDING_ROOM_MAD_CHASER_DANGLE, .x = 6800, .y = -2350, .z = 4800, .yaw = 3072, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAD_CHASER, .mode = SHELTER_B2_BREEDING_ROOM_MAD_CHASER_DANGLE, .x = 2400, .y = -2900, .z = 4700, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_SLOUCH, .x = 6500, .z = 1600, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_SUCKLERCEPH, .mode = 1, .x = 0x2968, .z = 1250, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_SUCKLERCEPH, .mode = 1, .x = 0x2E7C, .z = 200, .yaw = 3650, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_breeding_room_80183E5C[7] = {
-    { 26, 0, 0, 0x2E7C, 0, 150, 500, 0, 0, 2, 1 },
-    { 26, 0, 0, 0x2F44, 0, 1950, 450, 0, 0, 2, 1 },
-    { 38, 0, 0, 6300, 0, 50, 3000, 0, 2, 4, 0 },
-    { 38, 0, 0, 6400, 0, 1100, 1024, 0, 2, 4, 0 },
-    { 38, 0, 0, 7300, 0, 1100, 0, 0, 2, 4, 0 },
-    { 38, 0, 0, 8000, 0, 2000, 2050, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 4's two lurking Mad Chasers, one Creeping Stranger and one Skull Stalker.
+///
+/// Positions use world units and yaw uses 4096 units per turn. All use base
+/// files; Chasers add two CLUT rows, and the other actors add two texture pages
+/// and four CLUT rows. The end record terminates the borrowed placement table.
+static AreaPlacement _gShelterB2BreedingRoomVariant4Placements[5] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAD_CHASER, .mode = SHELTER_B2_BREEDING_ROOM_MAD_CHASER_LURK, .x = 1800, .z = 2600, .yaw = 1024, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAD_CHASER, .mode = SHELTER_B2_BREEDING_ROOM_MAD_CHASER_LURK, .x = 8750, .z = 4000, .yaw = 2048, .clutRowOffset = 2 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_CREEPING_STRANGER, .x = 6250, .yaw = 1024, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_SKULL_STALKER, .mode = 1, .x = 900, .z = -350, .yaw = 2750, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b2_breeding_room_80183ECC[2] = {
-    { 39, 0, 0, 3000, 0, 4400, 3072, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 7's Knight GOLEM placement at world origin.
+///
+/// Uses base resource 22, zero yaw and a two-row CLUT relocation. The all-zero
+/// pose is a live placement; only the following end record terminates the list.
+/// The room table remains live while the enemy borrows its placement.
+static AreaPlacement _gShelterB2BreedingRoomVariant7Placements[2] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_KNIGHT_GOLEM, .clutRowOffset = 2 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b2_breeding_room_80183EEC[22] = {
-    { NULL, NULL },
-    { D_shelter_b2_breeding_room_80183CDC, D_shelter_b2_breeding_room_80183BEC },
-    { D_shelter_b2_breeding_room_80183D2C, D_shelter_b2_breeding_room_80183C04 },
-    { D_shelter_b2_breeding_room_80183D8C, D_shelter_b2_breeding_room_80183C28 },
-    { D_shelter_b2_breeding_room_80183DEC, D_shelter_b2_breeding_room_80183C58 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_breeding_room_80183E3C, D_shelter_b2_breeding_room_80183C88 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_breeding_room_80183E5C, D_shelter_b2_breeding_room_80183CA0 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_breeding_room_80183ECC, D_shelter_b2_breeding_room_80183CC4 },
+/// Variant 11's two dormant Maggots and four initially idle floor Black Beetles.
+///
+/// Positions use world units and yaw uses 4096 units per turn. Maggots use
+/// timing row 1 and add two CLUT rows; Beetles add two texture pages and four
+/// CLUT rows. All use base files. The end record terminates the borrowed table.
+static AreaPlacement _gShelterB2BreedingRoomVariant11Placements[7] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .mode = SHELTER_B2_BREEDING_ROOM_MAGGOT_DORMANT, .x = 0x2E7C, .z = 150, .yaw = 500, .clutRowOffset = 2, .rowIndex = 1 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_MAGGOT, .mode = SHELTER_B2_BREEDING_ROOM_MAGGOT_DORMANT, .x = 0x2F44, .z = 1950, .yaw = 450, .clutRowOffset = 2, .rowIndex = 1 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_BLACK_BEETLE, .x = 6300, .z = 50, .yaw = 3000, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_BLACK_BEETLE, .x = 6400, .z = 1100, .yaw = 1024, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_BLACK_BEETLE, .x = 7300, .z = 1100, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_BLACK_BEETLE, .x = 8000, .z = 2000, .yaw = 2050, .texturePageOffset = 2, .clutRowOffset = 4 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-WorldCollisionTrigger D_shelter_b2_breeding_room_80183F9C[22] = {
-    { NULL, NULL, NULL, { -62, -48, -1024, 0 }, { { -416, 0, -736, 0 }, { 416, 0, -736, 0 }, { -416, 0, 736, 0 }, { 416, 0, 736, 0 } }, { 0, 4103, 0, 0 }, { 4096, 0, 0, 0 }, 844, WORLD_COLLISION_TRIGGER_ACTION_WARP, 33, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2E60, -48, 6144, 0 }, { { -896, 0, 560, 0 }, { -896, 0, -560, 0 }, { 896, 0, 560, 0 }, { 896, 0, -560, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -4096, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_WARP, 30, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1712, -64, -1728, 0 }, { { -1120, 0, -736, 0 }, { 1120, 0, -736, 0 }, { -1120, 0, 736, 0 }, { 1120, 0, 736, 0 } }, { 0, 4097, 0, 0 }, { -201, 0, 4090, 0 }, 1336, WORLD_COLLISION_TRIGGER_ACTION_CAP, 22, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Variant 21's Bishop GOLEM placement at (3000, 0, 4400), facing yaw 3072.
+///
+/// Position uses world units and yaw uses 4096 units per turn. Uses base
+/// resource 39 with a two-row CLUT relocation. The following end record
+/// terminates the table, which stays live while the enemy borrows its placement.
+static AreaPlacement _gShelterB2BreedingRoomVariant21Placements[2] = {
+    { .entryId = SHELTER_B2_BREEDING_ROOM_ENTRY_BISHOP_GOLEM, .x = 3000, .z = 4400, .yaw = 3072, .clutRowOffset = 2 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+AreaVariant gShelterB2BreedingRoomAreaVariants[22] = {
+    [AREA_DEFAULT_VARIANT] = { .placements = _gShelterB2BreedingRoomVariant1Placements, .resources = _gShelterB2BreedingRoomVariant1Resources },
+    [2]                    = { .placements = _gShelterB2BreedingRoomVariant2Placements, .resources = _gShelterB2BreedingRoomVariant2Resources },
+    [3]                    = { .placements = _gShelterB2BreedingRoomVariant3Placements, .resources = _gShelterB2BreedingRoomVariant3Resources },
+    [4]                    = { .placements = _gShelterB2BreedingRoomVariant4Placements, .resources = _gShelterB2BreedingRoomVariant4Resources },
+    [7]                    = { .placements = _gShelterB2BreedingRoomVariant7Placements, .resources = _gShelterB2BreedingRoomVariant7Resources },
+    [11]                   = { .placements = _gShelterB2BreedingRoomVariant11Placements, .resources = _gShelterB2BreedingRoomVariant11Resources },
+    [21]                   = { .placements = _gShelterB2BreedingRoomVariant21Placements, .resources = _gShelterB2BreedingRoomVariant21Resources },
+};
+
+/// Packed exit warp selectors and the room-dispatched first-scene command.
+enum {
+    SHELTER_B2_BREEDING_ROOM_MAIN_CORRIDOR_WARP_SELECTOR     = (SHELTER_B2_BREEDING_ROOM_WARP_MAIN_CORRIDOR << 4) | 5,
+    SHELTER_B2_BREEDING_ROOM_NORTH_MAINTENANCE_WARP_SELECTOR = (SHELTER_B2_BREEDING_ROOM_WARP_NORTH_MAINTENANCE_WALKWAY << 4) | 2,
+    SHELTER_B2_BREEDING_ROOM_COMMAND_FIRST_SCENE             = 22,
+};
+
+WorldCollisionTrigger gShelterB2BreedingRoomActionTriggers[22] = {
+    { NULL, NULL, NULL, { -62, -48, -1024, 0 }, { { -416, 0, -736, 0 }, { 416, 0, -736, 0 }, { -416, 0, 736, 0 }, { 416, 0, 736, 0 } }, { 0, 4103, 0, 0 }, { ONE, 0, 0, 0 }, 844, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, SHELTER_B2_BREEDING_ROOM_MAIN_CORRIDOR_WARP_SELECTOR, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2E60, -48, 6144, 0 }, { { -896, 0, 560, 0 }, { -896, 0, -560, 0 }, { 896, 0, 560, 0 }, { 896, 0, -560, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, -ONE, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, SHELTER_B2_BREEDING_ROOM_NORTH_MAINTENANCE_WARP_SELECTOR, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1712, -64, -1728, 0 }, { { -1120, 0, -736, 0 }, { 1120, 0, -736, 0 }, { -1120, 0, 736, 0 }, { 1120, 0, 736, 0 } }, { 0, 4097, 0, 0 }, { -201, 0, 4090, 0 }, 1336, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_BREEDING_ROOM_COMMAND_FIRST_SCENE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 8976, -64, 5200, 0 }, { { -1104, 0, -432, 0 }, { 1104, 0, -432, 0 }, { -1104, 0, 432, 0 }, { 1104, 0, 432, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4097, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 6656, -64, 5184, 0 }, { { -1104, 0, -432, 0 }, { 1104, 0, -432, 0 }, { -1104, 0, 432, 0 }, { 1104, 0, 432, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4097, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2400, -64, 6080, 0 }, { { -848, 0, -1665, 0 }, { 656, 0, -1215, 0 }, { -848, 0, -289, 0 }, { 656, 0, 161, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1868, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 399, -64, -2127, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2605, -64, -608, 0 }, { { -640, 0, -560, 0 }, { 480, 0, -560, 0 }, { -320, 0, 560, 0 }, { 480, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 849, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2880, -64, 640, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2880, -64, 2112, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { -4096, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1120, -64, 992, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1120, -64, 2208, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1536, -64, 3392, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1088, -64, 4672, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2400, -64, 6080, 0 }, { { -848, 0, -1665, 0 }, { 656, 0, -1215, 0 }, { -848, 0, -289, 0 }, { 656, 0, 161, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1868, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 399, -64, -2127, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, ONE, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2605, -64, -608, 0 }, { { -640, 0, -560, 0 }, { 480, 0, -560, 0 }, { -320, 0, 560, 0 }, { 480, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { -ONE, 0, 0, 0 }, 849, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2880, -64, 640, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { -ONE, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2880, -64, 2112, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { -ONE, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1120, -64, 992, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { ONE, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1120, -64, 2208, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { ONE, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1536, -64, 3392, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { ONE, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1088, -64, 4672, 0 }, { { -560, 0, -560, 0 }, { 560, 0, -560, 0 }, { -560, 0, 560, 0 }, { 560, 0, 560, 0 } }, { 0, 4105, 0, 0 }, { ONE, 0, 0, 0 }, 791, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 3888, -64, 5856, 0 }, { { -928, 0, -560, 0 }, { 928, 0, -560, 0 }, { -928, 0, 560, 0 }, { 928, 0, 560, 0 } }, { 0, 4095, 0, 0 }, { 401, 0, -4076, 0 }, 1078, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5920, -64, -256, 0 }, { { -928, 0, -560, 0 }, { 928, 0, -560, 0 }, { -928, 0, 560, 0 }, { 928, 0, 560, 0 } }, { 0, 4095, 0, 0 }, { 401, 0, -4076, 0 }, 1078, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
     { NULL, NULL, NULL, { 8112, -64, 688, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { -4076, 0, 401, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -909,7 +1044,7 @@ WorldCoordRoomAmbientEntry gShelterB2BreedingRoomAmbientByView[11] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionOccluder D_shelter_b2_breeding_room_8018467C[5] = {
+WorldCollisionOccluder gShelterB2BreedingRoomOccluders[5] = {
     { NULL, NULL, { 4448, -1664, -176, 0 }, { { -1376, 2688, 3056, 0 }, { 1376, 2688, -3056, 0 }, { -1376, -2688, 3056, 0 }, { 1376, -2688, -3056, 0 } }, { 3755, 0, 1690, 0 }, 4283, 1, 0 },
     { NULL, NULL, { 3935, -1504, -289, 0 }, { { 1033, 2688, 3189, 0 }, { -1032, 2688, -3188, 0 }, { 1033, -2688, 3189, 0 }, { -1032, -2688, -3188, 0 } }, { 3917, 0, -1270, 0 }, 4283, 1, 0 },
     { NULL, NULL, { 8894, -1504, -161, 0 }, { { 63, 2688, 2967, 0 }, { -62, 2688, -2967, 0 }, { 63, -2688, 2967, 0 }, { -62, -2688, -2967, 0 } }, { 4097, 0, -87, 0 }, 3998, 1, 0 },
