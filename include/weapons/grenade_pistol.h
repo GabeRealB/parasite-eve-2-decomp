@@ -14,6 +14,24 @@
 /// and 33 textured Gouraud quads, all transformed from the weapon root.
 extern TmdSource gGrenadePistolWeaponModel;
 
+/// Single-part held MM1 model attached to the player's weapon hand.
+///
+/// Instances borrow its geometry and writable command stream; creation copies
+/// the read-only rest transform and resolves stream draw handlers in place.
+/// Each primitive-buffer half holds four textured Gouraud triangles and 41
+/// textured Gouraud quads, all transformed from the weapon root. Keep the MM1
+/// overlay and its textures loaded until every referring instance is released.
+extern TmdSource gMm1WeaponModel;
+
+/// Single-part MM1 grenade-projectile model shared by its flying shells.
+///
+/// Instances borrow its geometry and writable command stream; creation copies
+/// the read-only rest transform and resolves stream draw handlers in place.
+/// Each primitive-buffer half holds six textured Gouraud quads, transformed
+/// from the projectile root. Keep the MM1 overlay and its textures loaded
+/// until every referring projectile is released.
+extern TmdSource gMm1ShellModel;
+
 /// Runs the player's Grenade Pistol ready, fire and recovery phases.
 ///
 /// Requires live player `GameActor` work, native animation slots, equipment slot

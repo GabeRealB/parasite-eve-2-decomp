@@ -181,36 +181,44 @@ TmdSource gGrenadePistolWeaponModel = {
     .stream              = _gGrenadePistolWeaponModelStream,
 };
 #elif GRENADE_VARIANT == 1
-static TmdBone _gMm1Model00DD4Skeleton[1] = {
+/// Identity rest transform and self-parented root copied into each held MM1.
+static const TmdBone _gMm1WeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/mm1_model_00DD4_skeleton.inc"
 };
 
-static u32 _gMm1Model00DD4PartVerts[1] = {
+/// Vertex count of the held MM1's single part-local group: 52.
+static const u32 _gMm1WeaponModelPartVerts[ARRAY_SIZE(_gMm1WeaponModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/mm1_model_00DD4_partVerts.inc"
 };
 
-static SVECTOR _gMm1Model00DD4Verts[52] = {
+/// Shared held-MM1 vertices in integer coordinates local to the weapon root.
+static SVECTOR _gMm1WeaponModelVerts[] = {
 #include "assets/mm1_model_00DD4_verts.inc"
 };
 
-static SVECTOR _gMm1Model00DD4Normals[50] = {
+/// Shared held-MM1 lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gMm1WeaponModelNormals[] = {
 #include "assets/mm1_model_00DD4_normals.inc"
 };
 
-static u32 _gMm1Model00DD4Stream[320] = {
+/// Writable commands for four textured Gouraud triangles and 41 textured Gouraud quads.
+///
+/// One skeletal group and an empty final group end in `TMD_STREAM_END`.
+/// Model creation resolves each command's draw-handler slot in place.
+static u32 _gMm1WeaponModelStream[] = {
 #include "assets/mm1_model_00DD4_stream.inc"
 };
 
-TmdSource D_mm1_8011E494 = {
-    0,
-    2292,
-    0,
-    1,
-    _gMm1Model00DD4PartVerts,
-    _gMm1Model00DD4Verts,
-    _gMm1Model00DD4Normals,
-    _gMm1Model00DD4Skeleton,
-    _gMm1Model00DD4Stream,
+TmdSource gMm1WeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (4 * sizeof(POLY_GT3)) + (41 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gMm1WeaponModelSkeleton),
+    .partVertexCounts    = _gMm1WeaponModelPartVerts,
+    .verts               = _gMm1WeaponModelVerts,
+    .normals             = _gMm1WeaponModelNormals,
+    .skeleton            = _gMm1WeaponModelSkeleton,
+    .stream              = _gMm1WeaponModelStream,
 };
 #endif
 
@@ -1090,48 +1098,81 @@ AnimationBank D_grenade_pistol_8012B2E4 = { { {
     NULL,
 } } };
 #elif GRENADE_VARIANT == 1
-static AnimationPackedPose _gMm1Animation01488Bank1[2] = {
+enum {
+    MM1_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    MM1_ANIMATION_PACKED_ROTATION_BANK      = 4
+};
+
+/// Idle translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1IdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_01488_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation01488Bank4[8] = {
+/// Idle rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1IdleAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_01488_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation01488Records[76] = {
+/// Constant-pose keyframes and track-local loop/stop controls for the MM1 idle clip.
+///
+/// Keyframe durations are whole normal-rate frames; pose offsets count u32
+/// words, while control jumps select absolute record indices.
+static const AnimationRecord _gMm1IdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_01488_records.inc"
 };
 
-static u16 _gMm1Animation01488Indices[20] = {
+/// Idle track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1IdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_01488_indices.inc"
 };
 
-static AnimationSet _gMm1Animation01488 = {
-    _gMm1Animation01488Records,
-    _gMm1Animation01488Indices,
-    { NULL, _gMm1Animation01488Bank1, NULL, NULL, _gMm1Animation01488Bank4, NULL, NULL, NULL },
+/// Player idle pose in the MM1 bank, shared by set slots 1, 21, 22 and 41.
+///
+/// Playback reads 19 tracks: translation/rotation for 0 and 1, packed rotation
+/// for 2..18. The clip and its banks remain loaded while any slot borrows them.
+static AnimationSet _gMm1IdleAnimation = {
+    .records           = _gMm1IdleAnimationRecords,
+    .trackStartIndices = _gMm1IdleAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1IdleAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1IdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation01B2CBank1[12] = {
+/// Unarmed-walk translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1UnarmedWalkAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_01B2C_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation01B2CBank4[151] = {
+/// Unarmed-walk rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1UnarmedWalkAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_01B2C_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation01B2CRecords[218] = {
+/// Keyframes, footstep cues and track-local loop/stop controls for the MM1 unarmed walk.
+///
+/// Keyframe durations are whole normal-rate frames; pose offsets count u32
+/// words, while control jumps select absolute record indices.
+static const AnimationRecord _gMm1UnarmedWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_01B2C_records.inc"
 };
 
-static u16 _gMm1Animation01B2CIndices[20] = {
+/// Unarmed-walk track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1UnarmedWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_01B2C_indices.inc"
 };
 
-static AnimationSet _gMm1Animation01B2C = {
-    _gMm1Animation01B2CRecords,
-    _gMm1Animation01B2CIndices,
-    { NULL, _gMm1Animation01B2CBank1, NULL, NULL, _gMm1Animation01B2CBank4, NULL, NULL, NULL },
+/// Player forward walk without a held weapon, selected by MM1 bank slot 19.
+///
+/// Playback reads 19 tracks: translation/rotation for 0 and 1, packed rotation
+/// for 2..18. The clip and its banks remain loaded while any slot borrows them.
+static AnimationSet _gMm1UnarmedWalkAnimation = {
+    .records           = _gMm1UnarmedWalkAnimationRecords,
+    .trackStartIndices = _gMm1UnarmedWalkAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1UnarmedWalkAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1UnarmedWalkAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gMm1Animation02404Bank1[19] = {
@@ -1156,48 +1197,77 @@ static AnimationSet _gMm1Animation02404 = {
     { NULL, _gMm1Animation02404Bank1, NULL, NULL, _gMm1Animation02404Bank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gMm1Animation02C64Bank1[19] = {
+/// Negative-turn translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1NegativeTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_02C64_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation02C64Bank4[169] = {
+/// Negative-turn rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1NegativeTurnAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_02C64_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation02C64Records[290] = {
+/// Keyframes, footstep cues and track-local loop/stop controls for the MM1 negative turn.
+///
+/// Keyframe durations are whole normal-rate frames; pose offsets count u32
+/// words, while control jumps select absolute record indices.
+static const AnimationRecord _gMm1NegativeTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_02C64_records.inc"
 };
 
-static u16 _gMm1Animation02C64Indices[20] = {
+/// Negative-turn track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1NegativeTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_02C64_indices.inc"
 };
 
-static AnimationSet _gMm1Animation02C64 = {
-    _gMm1Animation02C64Records,
-    _gMm1Animation02C64Indices,
-    { NULL, _gMm1Animation02C64Bank1, NULL, NULL, _gMm1Animation02C64Bank4, NULL, NULL, NULL },
+/// Player turn toward decreasing yaw, selected by MM1 bank slot 5.
+///
+/// Playback reads 19 tracks: translation/rotation for 0 and 1, packed rotation
+/// for 2..18. The clip and its banks remain loaded while any slot borrows them.
+static AnimationSet _gMm1NegativeTurnAnimation = {
+    .records           = _gMm1NegativeTurnAnimationRecords,
+    .trackStartIndices = _gMm1NegativeTurnAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1NegativeTurnAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1NegativeTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMm1Animation034C8Bank1[19] = {
+/// Positive-turn translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gMm1PositiveTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_034C8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMm1Animation034C8Bank4[170] = {
+/// Positive-turn rotations for tracks 2..18, packed in signed 11/10/11-bit components at eight angle units per step.
+static const AnimationPackedRotation _gMm1PositiveTurnAnimationBank4[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/mm1_animation_034C8_bank4.inc"
 };
 
-static AnimationRecord _gMm1Animation034C8Records[290] = {
+/// Keyframes, footstep cues and track-local loop/stop controls for the MM1 positive turn.
+///
+/// Keyframe durations are whole normal-rate frames; pose offsets count u32
+/// words, while control jumps select absolute record indices.
+static const AnimationRecord _gMm1PositiveTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_034C8_records.inc"
 };
 
-static u16 _gMm1Animation034C8Indices[20] = {
+/// Positive-turn track starts for tracks 0..18, followed by the exporter's retained final halfword.
+static const u16 _gMm1PositiveTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mm1_animation_034C8_indices.inc"
 };
 
-static AnimationSet _gMm1Animation034C8 = {
-    _gMm1Animation034C8Records,
-    _gMm1Animation034C8Indices,
-    { NULL, _gMm1Animation034C8Bank1, NULL, NULL, _gMm1Animation034C8Bank4, NULL, NULL, NULL },
+/// Player turn toward increasing yaw, selected by MM1 bank slot 6.
+///
+/// Scripted turns also select this clip for a zero yaw delta. Playback reads
+/// 19 tracks: translation/rotation for 0 and 1, packed rotation for 2..18.
+/// The clip and its banks remain loaded while any slot borrows them.
+static AnimationSet _gMm1PositiveTurnAnimation = {
+    .records           = _gMm1PositiveTurnAnimationRecords,
+    .trackStartIndices = _gMm1PositiveTurnAnimationIndices,
+    .poseBanks         = {
+        [MM1_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMm1PositiveTurnAnimationBank1,
+        [MM1_ANIMATION_PACKED_ROTATION_BANK]      = _gMm1PositiveTurnAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gMm1Animation037DCBank1[3] = {
@@ -1906,12 +1976,12 @@ static AnimationSet _gMm1Animation0FF9C = {
 
 AnimationBank D_mm1_8012D184 = { { {
     NULL,
-    &_gMm1Animation01488,
+    &_gMm1IdleAnimation,
     &_gMm1Animation0EE28,
     &_gMm1Animation0F5C8,
     &_gMm1Animation0FF9C,
-    &_gMm1Animation02C64,
-    &_gMm1Animation034C8,
+    &_gMm1NegativeTurnAnimation,
+    &_gMm1PositiveTurnAnimation,
     &_gMm1Animation0DF5C,
     &_gMm1Animation0E570,
     &_gMm1Animation0A544,
@@ -1924,10 +1994,10 @@ AnimationBank D_mm1_8012D184 = { { {
     &_gMm1Animation0612C,
     &_gMm1Animation0644C,
     &_gMm1Animation06C10,
-    &_gMm1Animation01B2C,
+    &_gMm1UnarmedWalkAnimation,
     &_gMm1Animation0CE20,
-    &_gMm1Animation01488,
-    &_gMm1Animation01488,
+    &_gMm1IdleAnimation,
+    &_gMm1IdleAnimation,
     &_gMm1Animation07EA8,
     &_gMm1Animation0913C,
     &_gMm1Animation08A20,
@@ -1946,7 +2016,7 @@ AnimationBank D_mm1_8012D184 = { { {
     &_gMm1Animation04D24,
     &_gMm1Animation04994,
     &_gMm1Animation037DC,
-    &_gMm1Animation01488,
+    &_gMm1IdleAnimation,
     &_gMm1Animation09CF8,
     &_gMm1Animation09EEC,
     &_gMm1Animation0A36C,
@@ -2033,36 +2103,44 @@ TmdSource D_grenade_pistol_8012B5A4 = {
     _gGrenadePistolModel0E324Stream,
 };
 #elif GRENADE_VARIANT == 1
-static TmdBone _gMm1Model101C4Skeleton[1] = {
+/// Identity rest transform and self-parented root copied into each MM1 shell.
+static const TmdBone _gMm1ShellModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/mm1_model_101C4_skeleton.inc"
 };
 
-static u32 _gMm1Model101C4PartVerts[1] = {
+/// Vertex count of the shell's single part-local group: eight.
+static const u32 _gMm1ShellModelPartVerts[ARRAY_SIZE(_gMm1ShellModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/mm1_model_101C4_partVerts.inc"
 };
 
-static SVECTOR _gMm1Model101C4Verts[8] = {
+/// Shared shell vertices in integer coordinates local to the projectile root.
+static SVECTOR _gMm1ShellModelVerts[] = {
 #include "assets/mm1_model_101C4_verts.inc"
 };
 
-static SVECTOR _gMm1Model101C4Normals[8] = {
+/// Shared shell lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gMm1ShellModelNormals[] = {
 #include "assets/mm1_model_101C4_normals.inc"
 };
 
-static u32 _gMm1Model101C4Stream[48] = {
+/// Writable commands for six textured Gouraud quads.
+///
+/// One skeletal group and an empty final group end in `TMD_STREAM_END`.
+/// Model creation resolves the command's draw-handler slot in place.
+static u32 _gMm1ShellModelStream[] = {
 #include "assets/mm1_model_101C4_stream.inc"
 };
 
-TmdSource D_mm1_8012D444 = {
-    0,
-    312,
-    0,
-    1,
-    _gMm1Model101C4PartVerts,
-    _gMm1Model101C4Verts,
-    _gMm1Model101C4Normals,
-    _gMm1Model101C4Skeleton,
-    _gMm1Model101C4Stream,
+TmdSource gMm1ShellModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = 6 * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gMm1ShellModelSkeleton),
+    .partVertexCounts    = _gMm1ShellModelPartVerts,
+    .verts               = _gMm1ShellModelVerts,
+    .normals             = _gMm1ShellModelNormals,
+    .skeleton            = _gMm1ShellModelSkeleton,
+    .stream              = _gMm1ShellModelStream,
 };
 #endif
 

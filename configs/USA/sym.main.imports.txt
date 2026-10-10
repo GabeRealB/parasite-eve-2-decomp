@@ -180,7 +180,7 @@ gM249WeaponModel = 0x8011DE74; // absolute:True owner=m249
 gM4a1RifleModel = 0x8011DEC4; // absolute:True owner=m4a1
 gGrenadePistolWeaponModel = 0x8011E28C; // absolute:True owner=grenade_pistol
 D_tonfa_baton_8011E460 = 0x8011E460; // absolute:True owner=tonfa_baton
-D_mm1_8011E494 = 0x8011E494; // absolute:True owner=mm1
+gMm1WeaponModel = 0x8011E494; // absolute:True owner=mm1
 D_p229_8011E5E4 = 0x8011E5E4; // absolute:True owner=p229
 D_tonfa_baton_8011E5EC = 0x8011E5EC; // absolute:True owner=tonfa_baton
 D_m4a1_bayonet_8011E9FC = 0x8011E9FC; // absolute:True owner=m4a1_bayonet
@@ -195,7 +195,7 @@ gHypervelocitySlideModel = 0x801205E4; // absolute:True owner=hypervelocity
 gM4a1JavelinWeaponModel = 0x8012071C; // absolute:True owner=m4a1_javelin
 gHypervelocityHingeModel = 0x80120860; // absolute:True owner=hypervelocity
 D_grenade_pistol_8012B5A4 = 0x8012B5A4; // absolute:True owner=grenade_pistol
-D_mm1_8012D444 = 0x8012D444; // absolute:True owner=mm1
+gMm1ShellModel = 0x8012D444; // absolute:True owner=mm1
 gM4a1GrenadeProjectileModel = 0x8012E1FC; // absolute:True owner=m4a1_grenade
 actor800300Task = 0x801625F4; // type:func absolute:True owner=actor_800300
 actor800200Task = 0x801626EC; // type:func absolute:True owner=actor_800200

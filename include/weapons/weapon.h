@@ -81,8 +81,6 @@ extern TmdSource D_sp12_8011DB44;
 
 extern TmdSource D_tonfa_baton_8011E460;
 
-extern TmdSource D_mm1_8011E494;
-
 extern TmdSource D_p229_8011E5E4;
 
 extern TmdSource D_tonfa_baton_8011E5EC;
@@ -103,7 +101,5 @@ extern TmdSource gGunbladeModel;
 /// Model arguments of descriptors that point into the zeroed tail of their
 /// package, where the disc image holds no model record.
 extern TmdSource D_grenade_pistol_8012B5A4;
-
-extern TmdSource D_mm1_8012D444;
 
 #endif // INCLUDE_WEAPONS_WEAPON_H
