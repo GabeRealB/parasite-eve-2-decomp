@@ -1003,136 +1003,293 @@ static AnimationSet _gM4a1GrenadePeReleaseFamily0Animation = {
     },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation05068Bank1[3] = {
+/// Translation/rotation poses for `_gM4a1GrenadePeChargeFamily0Animation`.
+///
+/// Encoding 1 stores integer model coordinates and angles in 1/4096 turns.
+/// Each pose occupies three four-byte words; playback only reads this bank.
+static const AnimationPackedPose _gM4a1GrenadePeChargeFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05068_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation05068Bank4[22] = {
+/// Packed rotation poses for `_gM4a1GrenadePeChargeFamily0Animation`.
+///
+/// Encoding 4 stores signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadePeChargeFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05068_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation05068Records[76] = {
+/// Keyframes and track controls for `_gM4a1GrenadePeChargeFamily0Animation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Each track jumps to its first of two poses; the final stop is retained.
+static const AnimationRecord _gM4a1GrenadePeChargeFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05068_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation05068Indices[20] = {
+/// Track-start record indices for `_gM4a1GrenadePeChargeFamily0Animation`.
+///
+/// Nineteen model-part tracks followed by one retained export halfword.
+/// Playback indexes tracks 0..18; the final halfword is outside that table.
+static const u16 _gM4a1GrenadePeChargeFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05068_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation05068 = {
-    _gM4a1GrenadeAnimation05068Records,
-    _gM4a1GrenadeAnimation05068Indices,
-    { NULL, _gM4a1GrenadeAnimation05068Bank1, NULL, NULL, _gM4a1GrenadeAnimation05068Bank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-0 charge in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 27 repeats its two-pose tracks while the attachment countdown
+/// runs. The family-0 cast set replaces it when that countdown expires.
+/// Supplies 19 model-part tracks. The descriptor and its word-aligned,
+/// read-only payloads are borrowed: keep the package loaded while playback
+/// slots or cached record pointers refer to them.
+static AnimationSet _gM4a1GrenadePeChargeFamily0Animation = {
+    .records           = _gM4a1GrenadePeChargeFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1GrenadePeChargeFamily0AnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadePeChargeFamily0AnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadePeChargeFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation05340Bank1[6] = {
+/// Translation/rotation poses for `_gM4a1GrenadePeCastFamily0Animation`.
+///
+/// Encoding 1 stores integer model coordinates and angles in 1/4096 turns.
+/// Each pose occupies three four-byte words; playback only reads this bank.
+static const AnimationPackedPose _gM4a1GrenadePeCastFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05340_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation05340Bank4[57] = {
+/// Packed rotation poses for `_gM4a1GrenadePeCastFamily0Animation`.
+///
+/// Encoding 4 stores signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadePeCastFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05340_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation05340Records[87] = {
+/// Keyframes and track controls for `_gM4a1GrenadePeCastFamily0Animation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Each track ends with a stop control that holds its final pose.
+static const AnimationRecord _gM4a1GrenadePeCastFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05340_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation05340Indices[20] = {
+/// Track-start record indices for `_gM4a1GrenadePeCastFamily0Animation`.
+///
+/// Nineteen model-part tracks followed by one retained export halfword.
+/// Playback indexes tracks 0..18; the final halfword is outside that table.
+static const u16 _gM4a1GrenadePeCastFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05340_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation05340 = {
-    _gM4a1GrenadeAnimation05340Records,
-    _gM4a1GrenadeAnimation05340Indices,
-    { NULL, _gM4a1GrenadeAnimation05340Bank1, NULL, NULL, _gM4a1GrenadeAnimation05340Bank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-0 cast in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 28 follows the family-0 charge when the attachment countdown
+/// expires; completion allows the interrupted locomotion or aim to resume.
+/// Supplies 19 model-part tracks. The descriptor and its word-aligned,
+/// read-only payloads are borrowed: keep the package loaded while playback
+/// slots or cached record pointers refer to them.
+static AnimationSet _gM4a1GrenadePeCastFamily0Animation = {
+    .records           = _gM4a1GrenadePeCastFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1GrenadePeCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadePeCastFamily0AnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadePeCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation055E4Bank1[4] = {
+/// Translation/rotation poses for `_gM4a1GrenadePeReleaseFamily1Animation`.
+///
+/// Encoding 1 stores integer model coordinates and angles in 1/4096 turns.
+/// Each pose occupies three four-byte words; playback only reads this bank.
+static const AnimationPackedPose _gM4a1GrenadePeReleaseFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_055E4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation055E4Bank4[55] = {
+/// Packed rotation poses for `_gM4a1GrenadePeReleaseFamily1Animation`.
+///
+/// Encoding 4 stores signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadePeReleaseFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_055E4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation055E4Records[82] = {
+/// Keyframes and track controls for `_gM4a1GrenadePeReleaseFamily1Animation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Each track ends with a stop control that holds its final pose.
+static const AnimationRecord _gM4a1GrenadePeReleaseFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_055E4_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation055E4Indices[20] = {
+/// Track-start record indices for `_gM4a1GrenadePeReleaseFamily1Animation`.
+///
+/// Nineteen model-part tracks followed by one retained export halfword.
+/// Playback indexes tracks 0..18; the final halfword is outside that table.
+static const u16 _gM4a1GrenadePeReleaseFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_055E4_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation055E4 = {
-    _gM4a1GrenadeAnimation055E4Records,
-    _gM4a1GrenadeAnimation055E4Indices,
-    { NULL, _gM4a1GrenadeAnimation055E4Bank1, NULL, NULL, _gM4a1GrenadeAnimation055E4Bank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-1 release in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 29 starts the release/charge/cast sequence when the attachment
+/// selects clip family 1. Charge and cast use separate sets.
+/// Supplies 19 model-part tracks. The descriptor and its word-aligned,
+/// read-only payloads are borrowed: keep the package loaded while playback
+/// slots or cached record pointers refer to them.
+static AnimationSet _gM4a1GrenadePeReleaseFamily1Animation = {
+    .records           = _gM4a1GrenadePeReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1GrenadePeReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadePeReleaseFamily1AnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadePeReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation057E4Bank1[3] = {
+/// Translation/rotation poses for `_gM4a1GrenadePeChargeFamily1Animation`.
+///
+/// Encoding 1 stores integer model coordinates and angles in 1/4096 turns.
+/// Each pose occupies three four-byte words; playback only reads this bank.
+static const AnimationPackedPose _gM4a1GrenadePeChargeFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_057E4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation057E4Bank4[23] = {
+/// Packed rotation poses for `_gM4a1GrenadePeChargeFamily1Animation`.
+///
+/// Encoding 4 stores signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadePeChargeFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_057E4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation057E4Records[76] = {
+/// Keyframes and track controls for `_gM4a1GrenadePeChargeFamily1Animation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Each track jumps to its first of two poses; the final stop is retained.
+static const AnimationRecord _gM4a1GrenadePeChargeFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_057E4_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation057E4Indices[20] = {
+/// Track-start record indices for `_gM4a1GrenadePeChargeFamily1Animation`.
+///
+/// Nineteen model-part tracks followed by one retained export halfword.
+/// Playback indexes tracks 0..18; the final halfword is outside that table.
+static const u16 _gM4a1GrenadePeChargeFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_057E4_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation057E4 = {
-    _gM4a1GrenadeAnimation057E4Records,
-    _gM4a1GrenadeAnimation057E4Indices,
-    { NULL, _gM4a1GrenadeAnimation057E4Bank1, NULL, NULL, _gM4a1GrenadeAnimation057E4Bank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-1 charge in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 30 repeats its two-pose tracks while the attachment countdown
+/// runs. The family-1 cast set replaces it when that countdown expires.
+/// Supplies 19 model-part tracks. The descriptor and its word-aligned,
+/// read-only payloads are borrowed: keep the package loaded while playback
+/// slots or cached record pointers refer to them.
+static AnimationSet _gM4a1GrenadePeChargeFamily1Animation = {
+    .records           = _gM4a1GrenadePeChargeFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1GrenadePeChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadePeChargeFamily1AnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadePeChargeFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation05B38Bank1[8] = {
+/// Translation/rotation poses for `_gM4a1GrenadePeCastFamily1Animation`.
+///
+/// Encoding 1 stores integer model coordinates and angles in 1/4096 turns.
+/// Each pose occupies three four-byte words; playback only reads this bank.
+static const AnimationPackedPose _gM4a1GrenadePeCastFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05B38_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation05B38Bank4[68] = {
+/// Packed rotation poses for `_gM4a1GrenadePeCastFamily1Animation`.
+///
+/// Encoding 4 stores signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadePeCastFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05B38_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation05B38Records[101] = {
+/// Keyframes and track controls for `_gM4a1GrenadePeCastFamily1Animation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Each track ends with a stop control that holds its final pose.
+static const AnimationRecord _gM4a1GrenadePeCastFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05B38_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation05B38Indices[20] = {
+/// Track-start record indices for `_gM4a1GrenadePeCastFamily1Animation`.
+///
+/// Nineteen model-part tracks followed by one retained export halfword.
+/// Playback indexes tracks 0..18; the final halfword is outside that table.
+static const u16 _gM4a1GrenadePeCastFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05B38_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation05B38 = {
-    _gM4a1GrenadeAnimation05B38Records,
-    _gM4a1GrenadeAnimation05B38Indices,
-    { NULL, _gM4a1GrenadeAnimation05B38Bank1, NULL, NULL, _gM4a1GrenadeAnimation05B38Bank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-1 cast in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 31 follows the family-1 charge when the attachment countdown
+/// expires; completion allows the interrupted locomotion or aim to resume.
+/// Supplies 19 model-part tracks. The descriptor and its word-aligned,
+/// read-only payloads are borrowed: keep the package loaded while playback
+/// slots or cached record pointers refer to them.
+static AnimationSet _gM4a1GrenadePeCastFamily1Animation = {
+    .records           = _gM4a1GrenadePeCastFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1GrenadePeCastFamily1AnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadePeCastFamily1AnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadePeCastFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1GrenadeAnimation05DECBank1[5] = {
+/// Translation/rotation poses for `_gM4a1GrenadePart4HitAnimation`.
+///
+/// Encoding 1 stores integer model coordinates and angles in 1/4096 turns.
+/// Each pose occupies three four-byte words; playback only reads this bank.
+static const AnimationPackedPose _gM4a1GrenadePart4HitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05DEC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1GrenadeAnimation05DECBank4[55] = {
+/// Packed rotation poses for `_gM4a1GrenadePart4HitAnimation`.
+///
+/// Encoding 4 stores signed 11/10/11-bit angles in eight-unit steps.
+/// Each pose occupies one four-byte word and preserves the part's translation.
+static const AnimationPackedRotation _gM4a1GrenadePart4HitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05DEC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1GrenadeAnimation05DECRecords[83] = {
+/// Keyframes and track controls for `_gM4a1GrenadePart4HitAnimation`.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Each track ends with a stop control that holds its final pose.
+static const AnimationRecord _gM4a1GrenadePart4HitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05DEC_records.inc"
 };
 
-static u16 _gM4a1GrenadeAnimation05DECIndices[20] = {
+/// Track-start record indices for `_gM4a1GrenadePart4HitAnimation`.
+///
+/// Nineteen model-part tracks followed by one retained export halfword.
+/// Playback indexes tracks 0..18; the final halfword is outside that table.
+static const u16 _gM4a1GrenadePart4HitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_grenade_animation_05DEC_indices.inc"
 };
 
-static AnimationSet _gM4a1GrenadeAnimation05DEC = {
-    _gM4a1GrenadeAnimation05DECRecords,
-    _gM4a1GrenadeAnimation05DECIndices,
-    { NULL, _gM4a1GrenadeAnimation05DECBank1, NULL, NULL, _gM4a1GrenadeAnimation05DECBank4, NULL, NULL, NULL },
+/// Player-rig hit reaction for the part-4 collision body in the M4A1 grenade-launcher bank.
+///
+/// Bank slot 16 is selected for hit region 1, the sphere attached to model
+/// part 4. Damage playback blends child tracks 1..18 over three normal-rate
+/// frames, leaving the root track unchanged.
+/// Supplies 19 model-part tracks. The descriptor and its word-aligned,
+/// read-only payloads are borrowed: keep the package loaded while playback
+/// slots or cached record pointers refer to them.
+static AnimationSet _gM4a1GrenadePart4HitAnimation = {
+    .records           = _gM4a1GrenadePart4HitAnimationRecords,
+    .trackStartIndices = _gM4a1GrenadePart4HitAnimationIndices,
+    .poseBanks         = {
+        [M4A1_GRENADE_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1GrenadePart4HitAnimationBank1,
+        [M4A1_GRENADE_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1GrenadePart4HitAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1GrenadeAnimation0610CBank1[6] = {
@@ -1636,7 +1793,7 @@ AnimationBank D_m4a1_grenade_8012DF50 = { { {
     &_gM4a1GrenadeAnimation0AA44,
     &_gM4a1GrenadeAnimation0C388,
     &_gM4a1GrenadeAnimation0E6B8,
-    &_gM4a1GrenadeAnimation05DEC,
+    &_gM4a1GrenadePart4HitAnimation,
     &_gM4a1GrenadeAnimation0610C,
     &_gM4a1GrenadeAnimation068D0,
     &_gM4a1GrenadeUnarmedWalkAnimation,
@@ -1647,11 +1804,11 @@ AnimationBank D_m4a1_grenade_8012DF50 = { { {
     &_gM4a1GrenadeAnimation08DFC,
     &_gM4a1GrenadeAnimation086E0,
     &_gM4a1GrenadePeReleaseFamily0Animation,
-    &_gM4a1GrenadeAnimation05068,
-    &_gM4a1GrenadeAnimation05340,
-    &_gM4a1GrenadeAnimation055E4,
-    &_gM4a1GrenadeAnimation057E4,
-    &_gM4a1GrenadeAnimation05B38,
+    &_gM4a1GrenadePeChargeFamily0Animation,
+    &_gM4a1GrenadePeCastFamily0Animation,
+    &_gM4a1GrenadePeReleaseFamily1Animation,
+    &_gM4a1GrenadePeChargeFamily1Animation,
+    &_gM4a1GrenadePeCastFamily1Animation,
     &_gM4a1GrenadeAnimation0927C,
     &_gM4a1GrenadeAnimation09454,
     &_gM4a1GrenadeAnimation0927C,
