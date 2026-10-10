@@ -281,7 +281,7 @@ gKyle800104KyleMadiganHandLeftFirstPair = 0x8016D32C; // absolute:True owner=kyl
 gKyle800104KyleMadiganHandLeft = 0x8016D81C; // absolute:True owner=kyle_800104 shared=kyle
 gMapAkropolisImageSlots = 0x8017A048; // absolute:True owner=map_akropolis
 D_map_dryfield_80179A14 = 0x80179A14; // absolute:True owner=map_dryfield
-D_map_dryfield_full_801799A4 = 0x801799A4; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullImageSlots = 0x801799A4; // absolute:True owner=map_dryfield_full
 D_map_shelter_80179B40 = 0x80179B40; // absolute:True owner=map_shelter
 D_map_neo_ark_80179DB8 = 0x80179DB8; // absolute:True owner=map_neo_ark
 gMapAkropolisMovieWorkspaceBytesByArea = 0x8017A0F8; // absolute:True owner=map_akropolis

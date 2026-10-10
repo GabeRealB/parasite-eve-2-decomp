@@ -2930,17 +2930,17 @@ static AreaResource _gDryfieldNightGasStationVariant11Resources[3] = {
 
 AreaVariant D_dryfield_night_gas_station_80190624[12] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017AC48, _gDryfieldNightGasStationVariant1Resources },
-    { D_map_dryfield_full_8017AD18, _gDryfieldNightGasStationVariant2Resources },
-    { D_map_dryfield_full_8017AD48, _gDryfieldNightGasStationVariant3Resources },
+    { gMapDryfieldFullGasStationVariant1Placements, _gDryfieldNightGasStationVariant1Resources },
+    { gMapDryfieldFullGasStationVariant2Placements, _gDryfieldNightGasStationVariant2Resources },
+    { gMapDryfieldFullGasStationVariant3Placements, _gDryfieldNightGasStationVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017AD78, _gDryfieldNightGasStationVariant7Resources },
+    { gMapDryfieldFullGasStationVariant7Placements, _gDryfieldNightGasStationVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017ADA8, _gDryfieldNightGasStationVariant11Resources },
+    { gMapDryfieldFullGasStationVariant11Placements, _gDryfieldNightGasStationVariant11Resources },
 };
 
 /// Ambient minima for logical views 1..21, shared by all four room variants.

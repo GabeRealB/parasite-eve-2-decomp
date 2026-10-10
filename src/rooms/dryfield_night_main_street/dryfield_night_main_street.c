@@ -1660,13 +1660,13 @@ AreaResource D_dryfield_night_main_street_801889F0[2] = {
 
 AreaVariant D_dryfield_night_main_street_80188A08[13] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017ADF8, D_dryfield_night_main_street_801889B4 },
-    { D_map_dryfield_full_8017AE78, D_dryfield_night_main_street_801889D8 },
+    { gMapDryfieldFullMainStreetVariant1Placements, D_dryfield_night_main_street_801889B4 },
+    { gMapDryfieldFullMainStreetVariant2Placements, D_dryfield_night_main_street_801889D8 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017AE98, D_dryfield_night_main_street_801889F0 },
+    { gMapDryfieldFullMainStreetVariant7Placements, D_dryfield_night_main_street_801889F0 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

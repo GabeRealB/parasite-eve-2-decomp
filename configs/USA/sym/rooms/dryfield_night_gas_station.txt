@@ -135,11 +135,11 @@ gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_40010
 gActor400600ZebraStalkerTaskDesc = 0x80151B10; // absolute:True owner=actor_400600
 gActor05700RookGolemTasks = 0x801611F8; // absolute:True owner=actor_205700
 gActor01500MindSucklerTaskDesc = 0x8016BE28; // absolute:True owner=actor_301500
-D_map_dryfield_full_8017AC48 = 0x8017AC48; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017AD18 = 0x8017AD18; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017AD48 = 0x8017AD48; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017AD78 = 0x8017AD78; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017ADA8 = 0x8017ADA8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullGasStationVariant1Placements = 0x8017AC48; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullGasStationVariant2Placements = 0x8017AD18; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullGasStationVariant3Placements = 0x8017AD48; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullGasStationVariant7Placements = 0x8017AD78; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullGasStationVariant11Placements = 0x8017ADA8; // absolute:True owner=map_dryfield_full
 _gDryfieldNightGasStationJerryCanScript = 0x801840AC; // size:0x150 defined:True
 _gDryfieldNightGasStationJerryCanSkipScript = 0x801841FC; // size:0xD8 defined:True
 _gDryfieldNightGasStationCompanionWaitingCollisionGridNormals = 0x801842D4; // size:0x20 defined:True

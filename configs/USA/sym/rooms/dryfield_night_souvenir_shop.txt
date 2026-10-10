@@ -40,9 +40,9 @@ gDryfieldNightSouvenirShopSurfacePropertiesByClass = 0x8017F6CC; // size:0x20 de
 gActor00700MothTaskDesc = 0x801393C8; // absolute:True owner=actor_100700
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600
 gActor02500Tasks = 0x8014F9A8; // absolute:True owner=actor_202500
-D_map_dryfield_full_8017B2B8 = 0x8017B2B8; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017B308 = 0x8017B308; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017B358 = 0x8017B358; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullSouvenirShopVariant1Placements = 0x8017B2B8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullSouvenirShopVariant3Placements = 0x8017B308; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullSouvenirShopVariant11Placements = 0x8017B358; // absolute:True owner=map_dryfield_full
 
 dryfieldNightSouvenirShopPrismLightTask = 0x8017DFF4; // type:func
 _glowDrawPrism = 0x8017D6B4; // type:func

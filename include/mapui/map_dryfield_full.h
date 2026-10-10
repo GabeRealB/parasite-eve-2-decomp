@@ -13,11 +13,22 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/gfx_types.h"
 #include "main/stage_types.h"
 #include "main/task_types.h"
 
-extern GfxImageSlot D_map_dryfield_full_801799A4[];
+/// Highest area ID represented by the night stage's directories, including empty slots.
+enum { MAP_DRYFIELD_FULL_AREA_ID_LIMIT = GAME_AREA_DRYFIELD_NIGHT_UNDERPASS };
+
+/// Captured-frame and auxiliary-heap RAM regions for Dryfield at night.
+///
+/// Indexed directly by area ID (0..38), with no terminator. Areas 4, 10, 33
+/// and 35..37 are empty; frame transfers require a nonempty slot. Extents
+/// count bytes below the resident image workspace, not captured-frame bytes.
+/// Slot 0 repeats the MIST parking region used by stages 2..5; its use for
+/// this stage is unproven. The map overlay must remain loaded during lookup.
+extern GfxImageSlot gMapDryfieldFullImageSlots[MAP_DRYFIELD_FULL_AREA_ID_LIMIT + 1];
 
 extern StageMusicEntry D_map_dryfield_full_8017D238[];
 
@@ -41,8 +52,14 @@ extern MenuMapIcon D_map_dryfield_full_80179F04[];
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
 extern MenuMapAreaName D_map_dryfield_full_80179F4C[];
 
-/// This stage's `Gp_Bit2Banks` room table, ended by `AREA_OBJECT_ROOM_END`.
-extern AreaObjectRoom D_map_dryfield_full_8017A46C[];
+/// Placed-object lists and spawn recipes for Dryfield at night.
+///
+/// Indexed directly by area ID (0..38); empty areas have two NULL pointers.
+/// Entry 39 holds `AREA_OBJECT_ROOM_END` for flag-seeding walks. Place lists
+/// are borrowed from gameplay, while the spawn recipes belong to this map.
+/// The map and any models selected from room overlays must stay loaded while
+/// their spawned tasks use them.
+extern AreaObjectRoom gMapDryfieldFullObjectRooms[MAP_DRYFIELD_FULL_AREA_ID_LIMIT + 2];
 
 /// This stage's `D_8010FABC` entry: the task each room starts, keyed by
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
@@ -51,11 +68,13 @@ extern TaskDesc D_map_dryfield_full_8017A5AC[];
 /// This stage's flag table for `menuMapGetMarkerState`.
 extern u16 D_map_dryfield_full_8017A738[];
 
-/// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_WarpTables`,
-/// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
-/// `gViewIndexTables`, `gSpriteAreaTables` and `Gp_RoomParamTables`: each leads to
-/// one pointer per room into that room's package.
-extern WorldCoordRoomLighting* D_map_dryfield_full_8017A774[];
+/// Per-area directories of room lighting for Dryfield at night.
+///
+/// Indexed by area ID minus one (0..37), then by room ID minus one; neither
+/// level has a terminator. Areas 4, 10, 33 and 35..37 have NULL entries.
+/// Each nonempty pointer borrows the corresponding loaded room overlay's
+/// lighting array; its descriptors and mutable lights must remain loaded.
+extern WorldCoordRoomLighting* gMapDryfieldFullRoomLightingTables[MAP_DRYFIELD_FULL_AREA_ID_LIMIT];
 
 extern DirectionWarpEntry* D_map_dryfield_full_8017A80C[];
 
@@ -65,57 +84,204 @@ extern WorldCollisionStageResources D_map_dryfield_full_8017A9D8;
 
 extern ViewCameraTable D_map_dryfield_full_8017AA74;
 
-extern ViewIndexTable D_map_dryfield_full_8017AB10;
+/// Dryfield-at-night directory of room-local logical-view mappings.
+///
+/// `viewMaps[area - 1][room - 1][view - 1]` yields the unsigned, 1-based
+/// camera/image/sprite index. The area directory covers IDs 1..38, with NULL
+/// entries for 4, 10, 33 and 35..37; no level has a terminator. Lookups require
+/// populated slots and IDs within each borrowed room directory and byte map.
+/// Keep this map overlay and the selected room overlay loaded; the mappings
+/// are borrowed and may be changed during play.
+extern ViewIndexTable gMapDryfieldFullViewIndexTable;
 
 extern SpriteAreaTable D_map_dryfield_full_8017ABAC;
 
-extern WorldCollisionSurfaceProperties** D_map_dryfield_full_8017ABB0[];
+/// Per-area collision surface-class tables for Dryfield at night.
+///
+/// Indexed by area ID minus one (0..37), then by surface class (0..7),
+/// independently of room variant. Areas 4, 10, 33 and 35..37 have NULL entries;
+/// there is no terminator. Populated entries borrow eight property pointers
+/// from the selected room overlay. Both overlays must stay loaded for lookup.
+extern WorldCollisionSurfaceProperties** gMapDryfieldFullSurfacePropertiesByArea[MAP_DRYFIELD_FULL_AREA_ID_LIMIT];
 
-/// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
-/// records point at them, one list per location.
-extern AreaPlacement D_map_dryfield_full_8017AC48[];
+/// Twelve Scavengers for the night Gas Station scripted encounter.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullGasStationVariant1Placements[13];
 
-extern AreaPlacement D_map_dryfield_full_8017AD18[];
+/// Two Zebra Stalkers for night Gas Station placement variant 2.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullGasStationVariant2Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017AD48[];
+/// Two Desert Chasers for night Gas Station placement variant 3.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullGasStationVariant3Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017AD78[];
+/// Beam Sword and grenade-launcher Rook GOLEMs for night Gas Station variant 7.
+///
+/// The sword Rook patrols 5000 world units (`variant` counts thousands);
+/// the launcher Rook starts idle. Mode bit 0 enables patrol.
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullGasStationVariant7Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017ADA8[];
+/// Three Mind Sucklers and one Zebra Stalker for night Gas Station variant 11.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullGasStationVariant11Placements[5];
 
-extern AreaPlacement D_map_dryfield_full_8017ADF8[];
+/// Six moths and one Desert Chaser for night Main Street placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullMainStreetVariant1Placements[8];
 
-extern AreaPlacement D_map_dryfield_full_8017AE78[];
+/// Gary Douglas scene placement for night Main Street variant 2.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullMainStreetVariant2Placements[2];
 
-extern AreaPlacement D_map_dryfield_full_8017AE98[];
+/// Two Brain Stingers for night Main Street placement variant 7.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullMainStreetVariant7Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017AEC8[];
+/// Four moths for night General Store placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullGeneralStoreVariant1Placements[5];
 
-extern AreaPlacement D_map_dryfield_full_8017AF18[];
+/// Three Scavengers for night General Store placement variant 2.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullGeneralStoreVariant2Placements[4];
 
-extern AreaPlacement D_map_dryfield_full_8017AF58[];
+/// Four moths and four scorpions for night General Store placement variant 3.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullGeneralStoreVariant3Placements[9];
 
-extern AreaPlacement D_map_dryfield_full_8017AFE8[];
+/// Three rats and two Scavengers for night General Store placement variant 21.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullGeneralStoreVariant21Placements[6];
 
-extern AreaPlacement D_map_dryfield_full_8017B048[];
+/// Six scorpions for night Back Street placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullBackStreetVariant1Placements[7];
 
-extern AreaPlacement D_map_dryfield_full_8017B0B8[];
+/// Five Mind Sucklers and one Desert Chaser for night Back Street variant 3.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullBackStreetVariant3Placements[7];
 
-extern AreaPlacement D_map_dryfield_full_8017B128[];
+/// Two Desert Chasers and five moths for night Back Street placement variant 4.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullBackStreetVariant4Placements[8];
 
-extern AreaPlacement D_map_dryfield_full_8017B1A8[];
+/// One patrolling grenade-launcher Rook GOLEM for night Back Street variant 7.
+///
+/// Mode bit 0 enables patrol; `variant` 12 gives a 12000-world-unit leg.
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullBackStreetVariant7Placements[2];
 
-extern AreaPlacement D_map_dryfield_full_8017B1C8[];
+/// Fourteen perched bats for night Back Street placement variant 21.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullBackStreetVariant21Placements[15];
 
-extern AreaPlacement D_map_dryfield_full_8017B2B8[];
+/// Four moths for night Souvenir Shop placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullSouvenirShopVariant1Placements[5];
 
-extern AreaPlacement D_map_dryfield_full_8017B308[];
+/// Four Scavengers for night Souvenir Shop placement variant 3.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullSouvenirShopVariant3Placements[5];
 
-extern AreaPlacement D_map_dryfield_full_8017B358[];
+/// Seven moths and three scorpions for night Souvenir Shop placement variant 11.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullSouvenirShopVariant11Placements[11];
 
-extern AreaPlacement D_map_dryfield_full_8017B408[];
+/// Two scorpions for night Warehouse placement variant 1.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullWarehouseVariant1Placements[3];
 
-extern AreaPlacement D_map_dryfield_full_8017B438[];
+/// Six Blood Sucklers for night Warehouse placement variant 3.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Resource keys select this variant's room-owned
+/// task recipes; texture offsets use 64-word VRAM columns and CLUT rows.
+/// Actors borrow the records, so this map must stay loaded for their lives.
+extern AreaPlacement gMapDryfieldFullWarehouseVariant3Placements[7];
 
 extern AreaPlacement D_map_dryfield_full_8017B4A8[];
 

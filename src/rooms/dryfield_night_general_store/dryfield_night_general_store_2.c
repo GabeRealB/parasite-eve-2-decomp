@@ -1648,9 +1648,9 @@ static AreaResource _gDryfieldNightGeneralStoreVariant21Resources[3] = {
 
 AreaVariant D_dryfield_night_general_store_8018572C[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017AEC8, _gDryfieldNightGeneralStoreVariant1Resources },
-    { D_map_dryfield_full_8017AF18, _gDryfieldNightGeneralStoreVariant2Resources },
-    { D_map_dryfield_full_8017AF58, _gDryfieldNightGeneralStoreVariant3Resources },
+    { gMapDryfieldFullGeneralStoreVariant1Placements, _gDryfieldNightGeneralStoreVariant1Resources },
+    { gMapDryfieldFullGeneralStoreVariant2Placements, _gDryfieldNightGeneralStoreVariant2Resources },
+    { gMapDryfieldFullGeneralStoreVariant3Placements, _gDryfieldNightGeneralStoreVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1668,7 +1668,7 @@ AreaVariant D_dryfield_night_general_store_8018572C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017AFE8, _gDryfieldNightGeneralStoreVariant21Resources },
+    { gMapDryfieldFullGeneralStoreVariant21Placements, _gDryfieldNightGeneralStoreVariant21Resources },
 };
 
 /// Minimum model ambient colours for logical views 1..16, following a count header.

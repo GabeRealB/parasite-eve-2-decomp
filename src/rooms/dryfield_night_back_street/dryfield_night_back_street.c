@@ -461,15 +461,13 @@ static AreaResource _gDryfieldNightBackStreetVariant21Resources[2] = {
 
 AreaVariant D_dryfield_night_back_street_80181518[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017B048, _gDryfieldNightBackStreetVariant1Resources },
+    { gMapDryfieldFullBackStreetVariant1Placements, _gDryfieldNightBackStreetVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B0B8, _gDryfieldNightBackStreetVariant3Resources },
-    { D_map_dryfield_full_8017B128, _gDryfieldNightBackStreetVariant4Resources },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_map_dryfield_full_8017B1A8, _gDryfieldNightBackStreetVariant7Resources },
+    { gMapDryfieldFullBackStreetVariant3Placements, _gDryfieldNightBackStreetVariant3Resources },
+    { gMapDryfieldFullBackStreetVariant4Placements, _gDryfieldNightBackStreetVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
+    { gMapDryfieldFullBackStreetVariant7Placements, _gDryfieldNightBackStreetVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -481,7 +479,9 @@ AreaVariant D_dryfield_night_back_street_80181518[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B1C8, _gDryfieldNightBackStreetVariant21Resources },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullBackStreetVariant21Placements, _gDryfieldNightBackStreetVariant21Resources },
 };
 
 /// Minimum ambient RGB levels for the night back street's five views.

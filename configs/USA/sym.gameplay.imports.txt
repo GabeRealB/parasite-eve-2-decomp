@@ -389,7 +389,7 @@ D_map_shelter_8017B110 = 0x8017B110; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AB88 = 0x8017AB88; // absolute:True owner=map_neo_ark
 gMapAkropolisViewIndexTable = 0x8017AC68; // absolute:True owner=map_akropolis
 gMapDryfieldViewIndexTable = 0x8017ABFC; // absolute:True owner=map_dryfield
-D_map_dryfield_full_8017AB10 = 0x8017AB10; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullViewIndexTable = 0x8017AB10; // absolute:True owner=map_dryfield_full
 gMapShelterViewIndexTable = 0x8017B548; // absolute:True owner=map_shelter
 D_map_neo_ark_8017ADB0 = 0x8017ADB0; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AB1C = 0x8017AB1C; // absolute:True owner=map_akropolis
@@ -409,12 +409,12 @@ D_map_shelter_8017AF88 = 0x8017AF88; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AA80 = 0x8017AA80; // absolute:True owner=map_neo_ark
 gMapAkropolisAreaRoomLightingTables = 0x8017AA28; // absolute:True owner=map_akropolis shared=mapui
 gMapDryfieldRoomLightingTables = 0x8017A860; // absolute:True owner=map_dryfield
-D_map_dryfield_full_8017A774 = 0x8017A774; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullRoomLightingTables = 0x8017A774; // absolute:True owner=map_dryfield_full
 gMapShelterRoomLightingTables = 0x8017AEC4; // absolute:True owner=map_shelter
 D_map_neo_ark_8017A9FC = 0x8017A9FC; // absolute:True owner=map_neo_ark
 gMapAkropolisSurfacePropertiesByArea = 0x8017AC6C; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AC9C = 0x8017AC9C; // absolute:True owner=map_dryfield
-D_map_dryfield_full_8017ABB0 = 0x8017ABB0; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullSurfacePropertiesByArea = 0x8017ABB0; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017B614 = 0x8017B614; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AE3C = 0x8017AE3C; // absolute:True owner=map_neo_ark shared=mapui
 D_acropolis_bridge_8019004C = 0x8019004C; // absolute:True owner=acropolis_bridge
@@ -422,7 +422,7 @@ D_mist_parking_801951B4 = 0x801951B4; // absolute:True owner=mist_parking
 D_dryfield_night_gas_station_80190624 = 0x80190624; // absolute:True owner=dryfield_night_gas_station
 D_map_akropolis_8017A7FC = 0x8017A7FC; // absolute:True owner=map_akropolis
 D_map_dryfield_8017A564 = 0x8017A564; // absolute:True owner=map_dryfield
-D_map_dryfield_full_8017A46C = 0x8017A46C; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullObjectRooms = 0x8017A46C; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017A998 = 0x8017A998; // absolute:True owner=map_shelter
 D_map_neo_ark_8017A6EC = 0x8017A6EC; // absolute:True owner=map_neo_ark
 D_p08_8012A85C = 0x8012A85C; // absolute:True owner=p08

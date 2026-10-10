@@ -394,9 +394,9 @@ static AreaResource _gDryfieldNightWarehouseVariant11Resources[3] = {
 
 AreaVariant D_dryfield_night_warehouse_8017FB98[12] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017B408, _gDryfieldNightWarehouseVariant1Resources },
+    { gMapDryfieldFullWarehouseVariant1Placements, _gDryfieldNightWarehouseVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B438, _gDryfieldNightWarehouseVariant3Resources },
+    { gMapDryfieldFullWarehouseVariant3Placements, _gDryfieldNightWarehouseVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

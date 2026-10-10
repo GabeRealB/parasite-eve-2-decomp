@@ -435,17 +435,17 @@ static AreaResource _gDryfieldNightSouvenirShopVariant11Resources[3] = {
 
 AreaVariant D_dryfield_night_souvenir_shop_8017F62C[12] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017B2B8, _gDryfieldNightSouvenirShopVariant1Resources },
+    { gMapDryfieldFullSouvenirShopVariant1Placements, _gDryfieldNightSouvenirShopVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B308, _gDryfieldNightSouvenirShopVariant3Resources },
-    { NULL, NULL },
-    { NULL, NULL },
+    { gMapDryfieldFullSouvenirShopVariant3Placements, _gDryfieldNightSouvenirShopVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B358, _gDryfieldNightSouvenirShopVariant11Resources },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullSouvenirShopVariant11Placements, _gDryfieldNightSouvenirShopVariant11Resources },
 };
 
 /// Cue-2 bases in the currently loaded type-1 sound bank; cue 1 uses base + 1.

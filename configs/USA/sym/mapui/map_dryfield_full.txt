@@ -326,3 +326,30 @@ gMappicS303CellarShape = 0x8012F084; // absolute:True owner=mappic_s3_03 shared=
 D_mappic_s3_03_8012F180 = 0x8012F180; // absolute:True owner=mappic_s3_03 shared=mappic
 
 mapDryfieldFullResolveRoomVariant = 0x80179954; // type:func
+_gMapDryfieldFullEmptyObjectSpawns = 0x8017a40c;
+_gMapDryfieldFullGasStationObjectSpawns = 0x8017a41c;
+_gMapDryfieldFullTrailerCoachObjectSpawns = 0x8017a42c;
+_gMapDryfieldFullMotelLoftObjectSpawns = 0x8017a44c;
+_gMapDryfieldFullAreaViewMaps = 0x8017aa78;
+gMapDryfieldFullGasStationVariant1Placements = 0x8017ac48;
+gMapDryfieldFullGasStationVariant2Placements = 0x8017ad18;
+gMapDryfieldFullGasStationVariant3Placements = 0x8017ad48;
+gMapDryfieldFullGasStationVariant7Placements = 0x8017ad78;
+gMapDryfieldFullGasStationVariant11Placements = 0x8017ada8;
+gMapDryfieldFullMainStreetVariant1Placements = 0x8017adf8;
+gMapDryfieldFullMainStreetVariant2Placements = 0x8017ae78;
+gMapDryfieldFullMainStreetVariant7Placements = 0x8017ae98;
+gMapDryfieldFullGeneralStoreVariant1Placements = 0x8017aec8;
+gMapDryfieldFullGeneralStoreVariant2Placements = 0x8017af18;
+gMapDryfieldFullGeneralStoreVariant3Placements = 0x8017af58;
+gMapDryfieldFullGeneralStoreVariant21Placements = 0x8017afe8;
+gMapDryfieldFullBackStreetVariant1Placements = 0x8017b048;
+gMapDryfieldFullBackStreetVariant3Placements = 0x8017b0b8;
+gMapDryfieldFullBackStreetVariant4Placements = 0x8017b128;
+gMapDryfieldFullBackStreetVariant7Placements = 0x8017b1a8;
+gMapDryfieldFullBackStreetVariant21Placements = 0x8017b1c8;
+gMapDryfieldFullSouvenirShopVariant1Placements = 0x8017b2b8;
+gMapDryfieldFullSouvenirShopVariant3Placements = 0x8017b308;
+gMapDryfieldFullSouvenirShopVariant11Placements = 0x8017b358;
+gMapDryfieldFullWarehouseVariant1Placements = 0x8017b408;
+gMapDryfieldFullWarehouseVariant3Placements = 0x8017b438;

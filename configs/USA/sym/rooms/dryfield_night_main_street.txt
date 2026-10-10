@@ -108,9 +108,9 @@ gActor136100SceneTaskDescriptors = 0x80140744; // absolute:True owner=actor_1361
 gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actors
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
 gActor300700MothTaskDesc = 0x80165B88; // absolute:True owner=actor_300700
-D_map_dryfield_full_8017ADF8 = 0x8017ADF8; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017AE78 = 0x8017AE78; // absolute:True owner=map_dryfield_full
-D_map_dryfield_full_8017AE98 = 0x8017AE98; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMainStreetVariant1Placements = 0x8017ADF8; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMainStreetVariant2Placements = 0x8017AE78; // absolute:True owner=map_dryfield_full
+gMapDryfieldFullMainStreetVariant7Placements = 0x8017AE98; // absolute:True owner=map_dryfield_full
 gRoomEventStagedMsg = 0x80188BAC; // size:0x8 defined:True
 gMainStreetEventSpawned = 0x80188BB4; // size:0x8 defined:True
 _gRoomEventMsg = 0x80188BBC; // size:0x8 defined:True
