@@ -371,6 +371,9 @@ class Project:
                 for package in [key] + [slot["package"] for slot in overlay.get("slots", ()) if "package" in slot]:
                     self.family.setdefault(package, family)
                     self.load_of.setdefault(package, body["load_addr"])
+        # An actor's address follows from the slot it is linked for, not from its family: slots 2 and 3 load higher.
+        import asset_residency
+        self.load_of.update(asset_residency.package_loads(self.manifest))
         self.load = {"rooms": self.manifest["rooms"]["load_addr"], "mapui": self.manifest["mapui"]["load_addr"]}
         self.assets, self.embedded = asset_schema.load()
         self.tree = asset_schema.load_tree()
