@@ -780,136 +780,222 @@ static AnimationSet _gM93rPlayerHitOtherBodyAnimation = {
     },
 };
 
-static AnimationPackedPose _gM93rAnimation05918Bank1[18] = {
+/// Death translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+///
+/// Read-only animation tables retain their serialized positions in .data.
+static const AnimationPackedPose _gM93rPlayerDeathAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_05918_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation05918Bank4[184] = {
+/// Death Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerDeathAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_05918_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation05918Records[239] = {
+/// Death keyframes and stops; durations are normal-rate frames and keyframe offsets count u32 words.
+static const AnimationRecord _gM93rPlayerDeathAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_05918_records.inc"
 };
 
-static u16 _gM93rAnimation05918Indices[20] = {
+/// Absolute death record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerDeathAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_05918_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation05918 = {
-    _gM93rAnimation05918Records,
-    _gM93rAnimation05918Indices,
-    { NULL, _gM93rAnimation05918Bank1, NULL, NULL, _gM93rAnimation05918Bank4, NULL, NULL, NULL },
+/// Player death motion in the M93R animation bank, ending in a held pose.
+///
+/// Native clip 18, selected when HP reaches zero. Each of its 19 part tracks
+/// stops at its final keyframe; tracks 0..1 use translation/rotation and 2..18
+/// packed rotation. Playback borrows the set and tables; keep the M93R package
+/// loaded while any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerDeathAnimation = {
+    .records           = _gM93rPlayerDeathAnimationRecords,
+    .trackStartIndices = _gM93rPlayerDeathAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerDeathAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerDeathAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation06BB0Bank1[29] = {
+/// High-health idle translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerHighHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_06BB0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation06BB0Bank4[450] = {
+/// High-health idle Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerHighHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_06BB0_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation06BB0Records[633] = {
+/// High-health idle keyframes and controls; durations are normal-rate frames and keyframe offsets count u32 words.
+static const AnimationRecord _gM93rPlayerHighHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_06BB0_records.inc"
 };
 
-static u16 _gM93rAnimation06BB0Indices[20] = {
+/// Absolute high-health idle record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerHighHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_06BB0_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation06BB0 = {
-    _gM93rAnimation06BB0Records,
-    _gM93rAnimation06BB0Indices,
-    { NULL, _gM93rAnimation06BB0Bank1, NULL, NULL, _gM93rAnimation06BB0Bank4, NULL, NULL, NULL },
+/// Long-idle player motion above half maximum HP in the M93R animation bank.
+///
+/// Native clip 23, blended over five frames after 300 direction-free control
+/// ticks. The HP threshold truncates to an integer. All 19 part tracks repeat
+/// through control jumps; tracks 0..1 use translation/rotation and 2..18 packed
+/// rotation. Playback borrows the set and tables; keep the M93R package loaded
+/// while any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerHighHealthIdleAnimation = {
+    .records           = _gM93rPlayerHighHealthIdleAnimationRecords,
+    .trackStartIndices = _gM93rPlayerHighHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerHighHealthIdleAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerHighHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation07728Bank1[12] = {
+/// Low-health idle translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerLowHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_07728_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation07728Bank4[266] = {
+/// Low-health idle Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerLowHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_07728_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation07728Records[412] = {
+/// Low-health idle keyframes and controls; durations are normal-rate frames and keyframe offsets count u32 words.
+static const AnimationRecord _gM93rPlayerLowHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_07728_records.inc"
 };
 
-static u16 _gM93rAnimation07728Indices[20] = {
+/// Absolute low-health idle record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerLowHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_07728_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation07728 = {
-    _gM93rAnimation07728Records,
-    _gM93rAnimation07728Indices,
-    { NULL, _gM93rAnimation07728Bank1, NULL, NULL, _gM93rAnimation07728Bank4, NULL, NULL, NULL },
+/// Long-idle player motion at or below quarter maximum HP, also used for paralysis.
+///
+/// Native M93R clip 25. Normal control blends to it over five frames after 300
+/// direction-free ticks; paralysis blends all child tracks over six frames.
+/// The HP threshold truncates to an integer. All 19 part tracks repeat through
+/// control jumps; tracks 0..1 use translation/rotation and 2..18 packed rotation.
+/// Playback borrows the set and tables; keep the M93R package loaded while any
+/// slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerLowHealthIdleAnimation = {
+    .records           = _gM93rPlayerLowHealthIdleAnimationRecords,
+    .trackStartIndices = _gM93rPlayerLowHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerLowHealthIdleAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerLowHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation07E44Bank1[9] = {
+/// Mid-health idle translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerMidHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_07E44_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation07E44Bank4[144] = {
+/// Mid-health idle Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerMidHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_07E44_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation07E44Records[264] = {
+/// Mid-health idle keyframes and controls; durations are normal-rate frames and keyframe offsets count u32 words.
+static const AnimationRecord _gM93rPlayerMidHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_07E44_records.inc"
 };
 
-static u16 _gM93rAnimation07E44Indices[20] = {
+/// Absolute mid-health idle record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerMidHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_07E44_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation07E44 = {
-    _gM93rAnimation07E44Records,
-    _gM93rAnimation07E44Indices,
-    { NULL, _gM93rAnimation07E44Bank1, NULL, NULL, _gM93rAnimation07E44Bank4, NULL, NULL, NULL },
+/// Long-idle player motion above quarter and at or below half maximum HP in the M93R bank.
+///
+/// Native clip 24, blended over five frames after 300 direction-free control
+/// ticks. Both HP thresholds truncate to integers. All 19 part tracks repeat
+/// through control jumps; tracks 0..1 use translation/rotation and 2..18 packed
+/// rotation. Playback borrows the set and tables; keep the M93R package loaded
+/// while any slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerMidHealthIdleAnimation = {
+    .records           = _gM93rPlayerMidHealthIdleAnimationRecords,
+    .trackStartIndices = _gM93rPlayerMidHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerMidHealthIdleAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerMidHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation082C4Bank1[6] = {
+/// Presentation-entry translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerScriptedPresentationEnterAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_082C4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation082C4Bank4[107] = {
+/// Presentation-entry Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerScriptedPresentationEnterAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_082C4_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation082C4Records[143] = {
+/// Presentation-entry keyframes and stops; durations are normal-rate frames and keyframe offsets count u32 words.
+static const AnimationRecord _gM93rPlayerScriptedPresentationEnterAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_082C4_records.inc"
 };
 
-static u16 _gM93rAnimation082C4Indices[20] = {
+/// Absolute presentation-entry record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerScriptedPresentationEnterAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_082C4_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation082C4 = {
-    _gM93rAnimation082C4Records,
-    _gM93rAnimation082C4Indices,
-    { NULL, _gM93rAnimation082C4Bank1, NULL, NULL, _gM93rAnimation082C4Bank4, NULL, NULL, NULL },
+/// Player entry into a scripted presentation using the M93R animation bank.
+///
+/// Native clip 32, selected by a zero presentation variant before CAP/dialogue
+/// playback. Each of its 19 part tracks stops at its final keyframe; tracks
+/// 0..1 use translation/rotation and 2..18 packed rotation. Playback borrows
+/// the set and tables; keep the M93R package loaded while any slot or cached
+/// record pointer refers to them.
+static AnimationSet _gM93rPlayerScriptedPresentationEnterAnimation = {
+    .records           = _gM93rPlayerScriptedPresentationEnterAnimationRecords,
+    .trackStartIndices = _gM93rPlayerScriptedPresentationEnterAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerScriptedPresentationEnterAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerScriptedPresentationEnterAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM93rAnimation0849CBank1[3] = {
+/// Presentation-exit translations in model units and Euler rotations in 1/4096 turns for tracks 0 and 1.
+static const AnimationPackedPose _gM93rPlayerScriptedPresentationExitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0849C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM93rAnimation0849CBank4[32] = {
+/// Presentation-exit Euler rotations in eight-angle-unit steps for player tracks 2..18.
+static const AnimationPackedRotation _gM93rPlayerScriptedPresentationExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0849C_bank4.inc"
 };
 
-static AnimationRecord _gM93rAnimation0849CRecords[57] = {
+/// Presentation-exit keyframes and stops; durations are normal-rate frames and keyframe offsets count u32 words.
+static const AnimationRecord _gM93rPlayerScriptedPresentationExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0849C_records.inc"
 };
 
-static u16 _gM93rAnimation0849CIndices[20] = {
+/// Absolute presentation-exit record starts for tracks 0..18, followed by the retained serialized halfword.
+static const u16 _gM93rPlayerScriptedPresentationExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m93r_animation_0849C_indices.inc"
 };
 
-static AnimationSet _gM93rAnimation0849C = {
-    _gM93rAnimation0849CRecords,
-    _gM93rAnimation0849CIndices,
-    { NULL, _gM93rAnimation0849CBank1, NULL, NULL, _gM93rAnimation0849CBank4, NULL, NULL, NULL },
+/// Player exit from a scripted presentation using the M93R animation bank.
+///
+/// Native clip 33, selected by a nonzero presentation variant after CAP/dialogue
+/// playback and before control resumes. Each of its 19 part tracks stops at its
+/// final keyframe; tracks 0..1 use translation/rotation and 2..18 packed rotation.
+/// Playback borrows the set and tables; keep the M93R package loaded while any
+/// slot or cached record pointer refers to them.
+static AnimationSet _gM93rPlayerScriptedPresentationExitAnimation = {
+    .records           = _gM93rPlayerScriptedPresentationExitAnimationRecords,
+    .trackStartIndices = _gM93rPlayerScriptedPresentationExitAnimationIndices,
+    .poseBanks         = {
+        [M93R_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM93rPlayerScriptedPresentationExitAnimationBank1,
+        [M93R_ANIMATION_PACKED_ROTATION_BANK]      = _gM93rPlayerScriptedPresentationExitAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM93rAnimation08A00Bank1[11] = {
@@ -1217,22 +1303,22 @@ AnimationBank D_m93r_8012ADF8 = { { {
     &_gM93rPlayerIdleAnimation,
     &_gM93rPlayerHitPart4Animation,
     &_gM93rPlayerHitOtherBodyAnimation,
-    &_gM93rAnimation05918,
+    &_gM93rPlayerDeathAnimation,
     &_gM93rPlayerUnarmedWalkAnimation,
     &_gM93rAnimation0AF84,
     &_gM93rPlayerIdleAnimation,
     &_gM93rPlayerIdleAnimation,
-    &_gM93rAnimation06BB0,
-    &_gM93rAnimation07E44,
-    &_gM93rAnimation07728,
+    &_gM93rPlayerHighHealthIdleAnimation,
+    &_gM93rPlayerMidHealthIdleAnimation,
+    &_gM93rPlayerLowHealthIdleAnimation,
     &_gM93rPlayerParasiteEnergyReleaseFamily0Animation,
     &_gM93rPlayerParasiteEnergyChargeFamily0Animation,
     &_gM93rPlayerParasiteEnergyCastFamily0Animation,
     &_gM93rPlayerParasiteEnergyReleaseFamily1Animation,
     &_gM93rPlayerParasiteEnergyChargeFamily1Animation,
     &_gM93rPlayerParasiteEnergyCastFamily1Animation,
-    &_gM93rAnimation082C4,
-    &_gM93rAnimation0849C,
+    &_gM93rPlayerScriptedPresentationEnterAnimation,
+    &_gM93rPlayerScriptedPresentationExitAnimation,
     &_gM93rAnimation0BBE8,
     &_gM93rAnimation0C2B8,
     &_gM93rPlayerStairAscentAnimation,
