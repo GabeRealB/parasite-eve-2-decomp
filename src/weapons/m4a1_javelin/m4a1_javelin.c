@@ -1572,136 +1572,298 @@ static AnimationSet _gM4a1JavelinParasiteEnergyCastFamily1Animation = {
     },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation07ADCBank1[5] = {
+/// Translation/rotation poses for the part-4 hit reaction clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinPart4HitReactionAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_07ADC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation07ADCBank4[55] = {
+/// Packed rotations for the part-4 hit reaction clip's tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit
+/// steps of a 4096-unit turn. Record offsets count four-byte words.
+static const AnimationPackedRotation _gM4a1JavelinPart4HitReactionAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07ADC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation07ADCRecords[83] = {
+/// Keyframes and stop controls for the nineteen-track part-4 hit reaction clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Each track ends with a stop control.
+/// No cue flags are set.
+static const AnimationRecord _gM4a1JavelinPart4HitReactionAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07ADC_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation07ADCIndices[20] = {
+/// Absolute record starts for the part-4 hit reaction clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinPart4HitReactionAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07ADC_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation07ADC = {
-    _gM4a1JavelinAnimation07ADCRecords,
-    _gM4a1JavelinAnimation07ADCIndices,
-    { NULL, _gM4a1JavelinAnimation07ADCBank1, NULL, NULL, _gM4a1JavelinAnimation07ADCBank4, NULL, NULL, NULL },
+/// Player part-4 hit reaction with the M4A1 Javelin equipped.
+///
+/// Native bank entry 16, selected for hit region 1 (the model-part-4
+/// collision sphere) with a three-frame blend across child slots 1..18.
+/// Each track stops at its final pose before damage recovery.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinPart4HitReactionAnimation = {
+    .records           = _gM4a1JavelinPart4HitReactionAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinPart4HitReactionAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinPart4HitReactionAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinPart4HitReactionAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation07DFCBank1[6] = {
+/// Translation/rotation poses for the other-body hit reaction clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinOtherBodyHitReactionAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_07DFC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation07DFCBank4[66] = {
+/// Packed rotations for the other-body hit reaction clip's tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit
+/// steps of a 4096-unit turn. Record offsets count four-byte words.
+static const AnimationPackedRotation _gM4a1JavelinOtherBodyHitReactionAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07DFC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation07DFCRecords[96] = {
+/// Keyframes and stop controls for the nineteen-track other-body hit reaction clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Each track ends with a stop control.
+/// No cue flags are set.
+static const AnimationRecord _gM4a1JavelinOtherBodyHitReactionAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07DFC_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation07DFCIndices[20] = {
+/// Absolute record starts for the other-body hit reaction clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinOtherBodyHitReactionAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_07DFC_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation07DFC = {
-    _gM4a1JavelinAnimation07DFCRecords,
-    _gM4a1JavelinAnimation07DFCIndices,
-    { NULL, _gM4a1JavelinAnimation07DFCBank1, NULL, NULL, _gM4a1JavelinAnimation07DFCBank4, NULL, NULL, NULL },
+/// Player hit reaction for other body regions with the M4A1 Javelin equipped.
+///
+/// Native bank entry 17, selected for a pending hit outside the model-part-4
+/// region with a three-frame blend across child slots 1..18.
+/// Each track stops at its final pose before damage recovery.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinOtherBodyHitReactionAnimation = {
+    .records           = _gM4a1JavelinOtherBodyHitReactionAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinOtherBodyHitReactionAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinOtherBodyHitReactionAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinOtherBodyHitReactionAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation085C0Bank1[18] = {
+/// Translation/rotation poses for the stopped pose clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinStoppedPoseAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_085C0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation085C0Bank4[184] = {
+/// Packed rotations for the stopped pose clip's tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit
+/// steps of a 4096-unit turn. Record offsets count four-byte words.
+static const AnimationPackedRotation _gM4a1JavelinStoppedPoseAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_085C0_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation085C0Records[239] = {
+/// Keyframes and stop controls for the nineteen-track stopped pose clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Each track ends with a stop control.
+/// No cue flags are set.
+static const AnimationRecord _gM4a1JavelinStoppedPoseAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_085C0_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation085C0Indices[20] = {
+/// Absolute record starts for the stopped pose clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinStoppedPoseAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_085C0_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation085C0 = {
-    _gM4a1JavelinAnimation085C0Records,
-    _gM4a1JavelinAnimation085C0Indices,
-    { NULL, _gM4a1JavelinAnimation085C0Bank1, NULL, NULL, _gM4a1JavelinAnimation085C0Bank4, NULL, NULL, NULL },
+/// Player stopped damage-mode clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 18, used at zero HP and for forced stopped poses.
+/// Child slots 1..18 are reset or blended for the requested frame count;
+/// all tracks stop at their final poses. The stopped state has no automatic
+/// damage recovery. Selecting this clip does not itself change HP.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinStoppedPoseAnimation = {
+    .records           = _gM4a1JavelinStoppedPoseAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinStoppedPoseAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinStoppedPoseAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinStoppedPoseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation09858Bank1[29] = {
+/// Translation/rotation poses for the high-health idle clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinHighHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_09858_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation09858Bank4[450] = {
+/// Packed rotations for the high-health idle clip's tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit
+/// steps of a 4096-unit turn. Record offsets count four-byte words.
+static const AnimationPackedRotation _gM4a1JavelinHighHealthIdleAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_09858_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation09858Records[633] = {
+/// Keyframes and loop controls for the nineteen-track high-health idle clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Jumps target absolute record indices within the same track.
+/// A stop record follows each loop jump but is not reached by forward playback.
+/// No cue flags are set.
+static const AnimationRecord _gM4a1JavelinHighHealthIdleAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_09858_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation09858Indices[20] = {
+/// Absolute record starts for the high-health idle clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinHighHealthIdleAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_09858_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation09858 = {
-    _gM4a1JavelinAnimation09858Records,
-    _gM4a1JavelinAnimation09858Indices,
-    { NULL, _gM4a1JavelinAnimation09858Bank1, NULL, NULL, _gM4a1JavelinAnimation09858Bank4, NULL, NULL, NULL },
+/// Player idle clip above half HP with the M4A1 Javelin equipped.
+///
+/// Native bank entry 23, selected after 300 direction-free idle ticks when
+/// HP is greater than half maximum HP. Child slots 1..18 blend for five
+/// normal-rate frames. Every track loops over a trailing keyframe sequence.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinHighHealthIdleAnimation = {
+    .records           = _gM4a1JavelinHighHealthIdleAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinHighHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinHighHealthIdleAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinHighHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0A3D0Bank1[12] = {
+/// Translation/rotation poses for the low-health idle clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinLowHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0A3D0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0A3D0Bank4[266] = {
+/// Packed rotations for the low-health idle clip's tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit
+/// steps of a 4096-unit turn. Record offsets count four-byte words.
+static const AnimationPackedRotation _gM4a1JavelinLowHealthIdleAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0A3D0_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0A3D0Records[412] = {
+/// Keyframes and loop controls for the nineteen-track low-health idle clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Jumps target absolute record indices within the same track.
+/// A stop record follows each loop jump but is not reached by forward playback.
+/// No cue flags are set.
+static const AnimationRecord _gM4a1JavelinLowHealthIdleAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0A3D0_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0A3D0Indices[20] = {
+/// Absolute record starts for the low-health idle clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinLowHealthIdleAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0A3D0_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0A3D0 = {
-    _gM4a1JavelinAnimation0A3D0Records,
-    _gM4a1JavelinAnimation0A3D0Indices,
-    { NULL, _gM4a1JavelinAnimation0A3D0Bank1, NULL, NULL, _gM4a1JavelinAnimation0A3D0Bank4, NULL, NULL, NULL },
+/// Player low-health idle and paralysis clip with the M4A1 Javelin equipped.
+///
+/// Native bank entry 25, selected after 300 direction-free idle ticks when
+/// HP is at most one quarter of maximum HP, with a five-frame blend.
+/// Paralysis also selects it, with a six-frame blend. Both paths update
+/// child slots 1..18; every track loops over a trailing keyframe sequence.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinLowHealthIdleAnimation = {
+    .records           = _gM4a1JavelinLowHealthIdleAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinLowHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinLowHealthIdleAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinLowHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1JavelinAnimation0AAECBank1[9] = {
+/// Translation/rotation poses for the mid-health idle clip's tracks 0 and 1.
+///
+/// Translation uses model units; Euler angles use 1/4096 turns. Pose offsets
+/// count four-byte words, three per pose; the bank must remain word-aligned.
+static const AnimationPackedPose _gM4a1JavelinMidHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_javelin_animation_0AAEC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1JavelinAnimation0AAECBank4[144] = {
+/// Packed rotations for the mid-health idle clip's tracks 2..18.
+///
+/// Signed Euler components are packed in 11/10/11 bits, in eight-angle-unit
+/// steps of a 4096-unit turn. Record offsets count four-byte words.
+static const AnimationPackedRotation _gM4a1JavelinMidHealthIdleAnimationBank4[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0AAEC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1JavelinAnimation0AAECRecords[264] = {
+/// Keyframes and loop controls for the nineteen-track mid-health idle clip.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte
+/// words. Jumps target absolute record indices within the same track.
+/// A stop record follows each loop jump but is not reached by forward playback.
+/// No cue flags are set.
+static const AnimationRecord _gM4a1JavelinMidHealthIdleAnimationRecords[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0AAEC_records.inc"
 };
 
-static u16 _gM4a1JavelinAnimation0AAECIndices[20] = {
+/// Absolute record starts for the mid-health idle clip's tracks 0..18.
+///
+/// The exported final zero halfword is retained outside the playback track domain.
+static const u16 _gM4a1JavelinMidHealthIdleAnimationIndices[] SECTION(".data") = {
 #include "assets/m4a1_javelin_animation_0AAEC_indices.inc"
 };
 
-static AnimationSet _gM4a1JavelinAnimation0AAEC = {
-    _gM4a1JavelinAnimation0AAECRecords,
-    _gM4a1JavelinAnimation0AAECIndices,
-    { NULL, _gM4a1JavelinAnimation0AAECBank1, NULL, NULL, _gM4a1JavelinAnimation0AAECBank4, NULL, NULL, NULL },
+/// Player idle clip between quarter and half HP with the M4A1 Javelin equipped.
+///
+/// Native bank entry 24, selected after 300 direction-free idle ticks when
+/// HP is above one quarter and at most half maximum HP. Child slots 1..18
+/// blend for five normal-rate frames. Every track loops over a trailing
+/// keyframe sequence.
+/// The nineteen-track arrays and word-aligned pose banks are borrowed and
+/// must remain loaded while any playback slot refers to them.
+static AnimationSet _gM4a1JavelinMidHealthIdleAnimation = {
+    .records           = _gM4a1JavelinMidHealthIdleAnimationRecords,
+    .trackStartIndices = _gM4a1JavelinMidHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M4A1_JAVELIN_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1JavelinMidHealthIdleAnimationBank1,
+        [M4A1_JAVELIN_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1JavelinMidHealthIdleAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1JavelinAnimation0AF6CBank1[6] = {
@@ -2073,16 +2235,16 @@ AnimationBank D_m4a1_javelin_8012EA20 = { { {
     &_gM4a1JavelinAnimation0C69C,
     &_gM4a1JavelinAnimation0E5F4,
     &_gM4a1JavelinAnimation0E5F4,
-    &_gM4a1JavelinAnimation07ADC,
-    &_gM4a1JavelinAnimation07DFC,
-    &_gM4a1JavelinAnimation085C0,
+    &_gM4a1JavelinPart4HitReactionAnimation,
+    &_gM4a1JavelinOtherBodyHitReactionAnimation,
+    &_gM4a1JavelinStoppedPoseAnimation,
     &_gM4a1JavelinUnarmedWalkAnimation,
     &_gM4a1JavelinAnimation0E5F4,
     &_gM4a1JavelinIdleAnimation,
     &_gM4a1JavelinIdleAnimation,
-    &_gM4a1JavelinAnimation09858,
-    &_gM4a1JavelinAnimation0AAEC,
-    &_gM4a1JavelinAnimation0A3D0,
+    &_gM4a1JavelinHighHealthIdleAnimation,
+    &_gM4a1JavelinMidHealthIdleAnimation,
+    &_gM4a1JavelinLowHealthIdleAnimation,
     &_gM4a1JavelinParasiteEnergyReleaseFamily0Animation,
     &_gM4a1JavelinParasiteEnergyChargeFamily0Animation,
     &_gM4a1JavelinParasiteEnergyCastFamily0Animation,
