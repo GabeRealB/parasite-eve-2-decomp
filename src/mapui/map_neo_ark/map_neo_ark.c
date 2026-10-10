@@ -569,7 +569,7 @@ static WorldCoordRoomLighting D_map_neo_ark_8017A9F4[1] = {
 
 WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[33] = {
     gShelter1fParkingGarageRoomLighting,
-    D_shelter_1f_vehicular_airlock_8018210C,
+    gShelter1fVehicularAirlockRoomLighting,
     gShelter1fBulwarkRoomLighting,
     D_shelter_1f_heliport_801812E0,
     gShelter1fAirlockRoomLighting,
@@ -605,7 +605,7 @@ WorldCoordRoomLighting* D_map_neo_ark_8017A9FC[33] = {
 
 DirectionWarpEntry* D_map_neo_ark_8017AA80[33] = {
     gShelter1fParkingGarageWarps,
-    D_shelter_1f_vehicular_airlock_8018211C,
+    gShelter1fVehicularAirlockWarpEntries,
     gShelter1fBulwarkWarpEntries,
     D_shelter_1f_heliport_801812F0,
     D_shelter_1f_airlock_8017E5BC,
@@ -641,7 +641,7 @@ DirectionWarpEntry* D_map_neo_ark_8017AA80[33] = {
 
 static ViewCount* D_map_neo_ark_8017AB04[33] = {
     gShelter1fParkingGarageViewCounts,
-    D_shelter_1f_vehicular_airlock_80182118,
+    gShelter1fVehicularAirlockViewCounts,
     gShelter1fBulwarkRoomViewCounts,
     D_shelter_1f_heliport_801812EC,
     gShelter1fAirlockViewCounts,
@@ -715,7 +715,7 @@ static WorldCollisionRoomResources D_map_neo_ark_8017AC0C[1] = {
 
 static WorldCollisionRoomResources* D_map_neo_ark_8017AC1C[33] = {
     gShelter1fParkingGarageCollisionRooms,
-    D_shelter_1f_vehicular_airlock_801820FC,
+    gShelter1fVehicularAirlockCollisionResources,
     gShelter1fBulwarkCollisionResources,
     D_shelter_1f_heliport_801812D0,
     D_shelter_1f_airlock_8017E59C,
@@ -753,7 +753,7 @@ WorldCollisionStageResources D_map_neo_ark_8017ACA0 = { D_map_neo_ark_8017AC1C }
 
 static ViewCamera* D_map_neo_ark_8017ACA4[33] = {
     gShelter1fParkingGarageViewCameras,
-    D_shelter_1f_vehicular_airlock_8018245C,
+    gShelter1fVehicularAirlockViewCameras,
     gShelter1fBulwarkCameras,
     D_shelter_1f_heliport_80181998,
     gShelter1fAirlockViewCameras,
@@ -791,7 +791,7 @@ ViewCameraTable D_map_neo_ark_8017AD28 = { D_map_neo_ark_8017ACA4 };
 
 static u8** D_map_neo_ark_8017AD2C[33] = {
     gShelter1fParkingGarageViewMaps,
-    D_shelter_1f_vehicular_airlock_80182114,
+    gShelter1fVehicularAirlockViewMaps,
     gShelter1fBulwarkRoomViewMaps,
     D_shelter_1f_heliport_801812E8,
     gShelter1fAirlockViewMaps,
@@ -829,7 +829,7 @@ ViewIndexTable D_map_neo_ark_8017ADB0 = { D_map_neo_ark_8017AD2C };
 
 static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     gShelter1fParkingGarageSpriteViews,
-    D_shelter_1f_vehicular_airlock_801824F8,
+    gShelter1fVehicularAirlockSpriteViews,
     gShelter1fBulwarkSpriteViews,
     D_shelter_1f_heliport_80181EC0,
     gShelter1fAirlockSpriteViews,
@@ -867,7 +867,7 @@ SpriteAreaTable D_map_neo_ark_8017AE38 = { D_map_neo_ark_8017ADB4 };
 
 WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     gShelter1fParkingGarageSurfaceProperties,
-    D_shelter_1f_vehicular_airlock_80182A80,
+    gShelter1fVehicularAirlockSurfaceProperties,
     gShelter1fBulwarkSurfaceProperties,
     D_shelter_1f_heliport_80182C78,
     gShelter1fAirlockSurfaceProperties,

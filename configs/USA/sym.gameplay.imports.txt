@@ -1377,7 +1377,7 @@ shelterR48PinkRingFlashTask = 0x80181704; // type:func absolute:True owner=shelt
 
 D_acropolis_bridge_80189A9C = 0x80189A9C; // absolute:True owner=acropolis_bridge shared=rooms
 
-D_shelter_b4_water_supply_801826FC = 0x801826FC; // absolute:True owner=shelter_b4_water_supply shared=rooms
+D_shelter_b4_water_supply_801826FC = 0x801826FC; // absolute:True owner=shelter_b4_water_supply
 
 gAcropolisPlazaSequenceTaskDescriptors = 0x80183824; // absolute:True owner=acropolis_plaza
 

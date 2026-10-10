@@ -17,22 +17,51 @@ extern TmdSource gShelter1fVehicularAirlockModel03A58;
 
 extern AreaVariant D_shelter_1f_vehicular_airlock_80182A04[12];
 
-// shelter_1f_vehicular_airlock
-extern WorldCollisionRoomResources D_shelter_1f_vehicular_airlock_801820FC[];
+/// Room 1's collision grid, two view boundaries and seven action regions; no occluders.
+///
+/// The Neo Ark area directory borrows this record and its mutable resources
+/// while the vehicular airlock overlay remains loaded.
+extern WorldCollisionRoomResources gShelter1fVehicularAirlockCollisionResources[1];
 
-extern WorldCoordRoomLighting D_shelter_1f_vehicular_airlock_8018210C[];
+/// Room 1's model-shading light collection and per-view minimum ambient colours.
+///
+/// Borrows five mutable point lights and a count-prefixed ambient table from
+/// this overlay; keep them loaded while coordinate and lighting queries use them.
+extern WorldCoordRoomLighting gShelter1fVehicularAirlockRoomLighting[1];
 
-extern u8* D_shelter_1f_vehicular_airlock_80182114[];
+/// Room 1's logical-view map, borrowing gameplay's persistent identity mapping.
+///
+/// Logical views 1..3 map to camera/image/sprite indices 1..3. The room's
+/// three-view search limit is independent of the shared map's larger capacity.
+extern u8* gShelter1fVehicularAirlockViewMaps[1];
 
-extern ViewCount D_shelter_1f_vehicular_airlock_80182118[];
+/// Room 1's three-view reverse-search limit, stored as a signed 16-bit count.
+extern ViewCount gShelter1fVehicularAirlockViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_1f_vehicular_airlock_8018211C[];
+/// Three arrival/departure records for the Airlock, Guardroom and Bulwark doors.
+///
+/// Warp IDs 1..3 select entries at ID minus one. Positions use room-coordinate
+/// units and yaw uses 4096 per turn; initial mapped views are 2, 3 and 3.
+/// Transition handling borrows the records while this overlay is loaded.
+extern DirectionWarpEntry gShelter1fVehicularAirlockWarpEntries[3];
 
-extern ViewCamera D_shelter_1f_vehicular_airlock_8018245C[];
+/// Cameras for mapped views 1..3, with Q12 rotations and pixel projection distances.
+///
+/// Translations store negated camera origins in world units. The Neo Ark
+/// camera directory borrows this array while the room overlay is loaded.
+extern ViewCamera gShelter1fVehicularAirlockViewCameras[3];
 
-extern SpriteView D_shelter_1f_vehicular_airlock_801824F8[];
+/// Mapped views 1..3's empty sprite lists, selecting decoded image strips without clipping.
+///
+/// Each source slot retains its own batch-list address and supplies no sprites.
+/// The view descriptors and mutable batch lists remain borrowed from this overlay.
+extern SpriteView gShelter1fVehicularAirlockSpriteViews[3];
 
-extern WorldCollisionSurfaceProperties* D_shelter_1f_vehicular_airlock_80182A80[];
+/// Collision surface classes 0..7, all blocking probes and enabling impacts and pushback.
+///
+/// Class 1 supplies floor footsteps; the other classes have no footstep cues.
+/// Records and cue bases belong to this loaded overlay; selectors have no terminator.
+extern WorldCollisionSurfaceProperties* gShelter1fVehicularAirlockSurfaceProperties[8];
 
 /// Hides the placed airlock model while its saved two-bit object state is 2.
 ///

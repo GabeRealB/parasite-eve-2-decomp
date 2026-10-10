@@ -60,16 +60,6 @@
 #include "../../shared/room_events.h"
 #include "../../shared/glow_draw.h"
 
-extern s8 D_shelter_1f_vehicular_airlock_80182AB0;
-
-extern TaskDesc D_shelter_1f_vehicular_airlock_80182028;
-
-/// The room's message table, which its cap scripts index.
-extern TaskMessageEntry D_shelter_1f_vehicular_airlock_80182034[];
-
-extern SVECTOR D_shelter_1f_vehicular_airlock_8018205C[];
-extern SVECTOR D_shelter_1f_vehicular_airlock_8018206C[];
-
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
 
@@ -79,8 +69,6 @@ extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void _shelter1fVehicularAirlockDrawPulsingLight(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale, s32 packedColor);
-
-enum { SHELTER_1F_VEHICULAR_AIRLOCK_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static s32 _shelter1fVehicularAirlockResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelter1fVehicularAirlockRejectKeyItem(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg);
@@ -92,11 +80,11 @@ static SVECTOR _gShelter1fVehicularAirlockModel03A58Verts[116];
 static TmdBone _gShelter1fVehicularAirlockModel03A58Skeleton[1];
 static u32     _gShelter1fVehicularAirlockModel03A58Stream[1019];
 
-extern WorldCollisionGrid         D_shelter_1f_vehicular_airlock_80182438[1];
-extern WorldCollisionTrigger      D_shelter_1f_vehicular_airlock_80182714[2];
-extern WorldCollisionTrigger      D_shelter_1f_vehicular_airlock_801827AC[7];
-extern WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4];
-extern WorldCoordRoomLights       D_shelter_1f_vehicular_airlock_801826FC[1];
+static WorldCollisionGrid         _gShelter1fVehicularAirlockCollisionGrid;
+static WorldCollisionTrigger      _gShelter1fVehicularAirlockViewBoundaryTriggers[2];
+static WorldCollisionTrigger      _gShelter1fVehicularAirlockActionTriggers[7];
+static WorldCoordRoomAmbientEntry _gShelter1fVehicularAirlockViewAmbientLights[4];
+static WorldCoordRoomLights       _gShelter1fVehicularAirlockRoomLights;
 
 static TmdBone _gShelter1fVehicularAirlockModel03A58Skeleton[1] = {
 #include "assets/shelter_1f_vehicular_airlock_model_03A58_skeleton.inc"
@@ -126,22 +114,31 @@ TmdSource gShelter1fVehicularAirlockModel03A58 = {
     _gShelter1fVehicularAirlockModel03A58Stream,
 };
 
-TaskDesc D_shelter_1f_vehicular_airlock_80182028 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Bodyless priority-32 task recipe for a latched departure's CAP, sound and reload.
+///
+/// Borrows the room's singleton event records and fade storage until reload.
+static TaskDesc _gShelter1fVehicularAirlockStagedEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskMessageEntry D_shelter_1f_vehicular_airlock_80182034[5] = {
+/// Room receiver's transition, key-item, direction-action and CAP-command handlers.
+///
+/// The final sentinel makes unsupported IDs return zero. Installed tasks borrow
+/// this table and its callbacks while the room overlay remains loaded.
+static TaskMessageEntry _gShelter1fVehicularAirlockRoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fVehicularAirlockResolveRoomEvent },
-    { SHELTER_1F_VEHICULAR_AIRLOCK_MESSAGE_USE_KEY_ITEM, _shelter1fVehicularAirlockRejectKeyItem },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelter1fVehicularAirlockRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fVehicularAirlockIgnoreDirectionAction },
     { ROOM_MESSAGE_COMMAND, _shelter1fVehicularAirlockHandleRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_1f_vehicular_airlock_8018205C[2] = {
+/// World-space fixture endpoints and lamp centres for the room's light glows.
+///
+/// Entries 0..11 are six endpoint pairs, 12..13 another pair, and 14..17
+/// individual lamps. View 3 uses this base; view 2 uses the suffix at entry 2.
+/// The glow drawers borrow consecutive endpoints or one centre per call.
+static SVECTOR _gShelter1fVehicularAirlockLightPoints[18] = {
     { -0x2774, -3090, 1790, 0 },
     { -8900, -3090, 1790, 0 },
-};
-
-SVECTOR D_shelter_1f_vehicular_airlock_8018206C[16] = {
     { -6600, -3090, 1790, 0 },
     { -5400, -3090, 1790, 0 },
     { -3100, -3090, 1790, 0 },
@@ -162,114 +159,173 @@ SVECTOR D_shelter_1f_vehicular_airlock_8018206C[16] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_shelter_1f_vehicular_airlock_801820FC[1] = {
-    { D_shelter_1f_vehicular_airlock_80182438, D_shelter_1f_vehicular_airlock_80182714, D_shelter_1f_vehicular_airlock_801827AC, NULL },
+WorldCollisionRoomResources gShelter1fVehicularAirlockCollisionResources[1] = {
+    { &_gShelter1fVehicularAirlockCollisionGrid, _gShelter1fVehicularAirlockViewBoundaryTriggers, _gShelter1fVehicularAirlockActionTriggers, NULL },
 };
 
-WorldCoordRoomLighting D_shelter_1f_vehicular_airlock_8018210C[1] = {
-    { D_shelter_1f_vehicular_airlock_801826FC, D_shelter_1f_vehicular_airlock_801829C0 },
+WorldCoordRoomLighting gShelter1fVehicularAirlockRoomLighting[1] = {
+    { &_gShelter1fVehicularAirlockRoomLights, _gShelter1fVehicularAirlockViewAmbientLights },
 };
 
-u8* D_shelter_1f_vehicular_airlock_80182114[1] = {
+u8* gShelter1fVehicularAirlockViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_1f_vehicular_airlock_80182118[1] = { 3 };
+ViewCount gShelter1fVehicularAirlockViewCounts[1] = { 3 };
 
-DirectionWarpEntry D_shelter_1f_vehicular_airlock_8018211C[3] = {
-    { { { .word = 2048 }, -5000, 0, 1570 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -4960, 0, 1380 }, { 0, 0, 0, 0 }, 0x55020002, 0x55020001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, -8900, 0, -1730 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -4960, 0, 1380 }, { 0, 0, 0, 0 }, 0x55020002, 0x55020001, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -0x2710, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x2710, 0, 0 }, { 0, 0, 0, 0 }, 0x55020004, 0x55020003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, 428 },
+/// Door descriptor IDs and the optional marker set on Bulwark-door arrival.
+enum {
+    SHELTER_1F_VEHICULAR_AIRLOCK_WARP_AIRLOCK     = 1,
+    SHELTER_1F_VEHICULAR_AIRLOCK_WARP_GUARDROOM   = 2,
+    SHELTER_1F_VEHICULAR_AIRLOCK_WARP_BULWARK     = 3,
+    SHELTER_1F_VEHICULAR_AIRLOCK_BULWARK_MAP_FLAG = 428,
 };
 
-static SVECTOR _gShelter1fVehicularAirlockCollision04E78Normals[10] = {
+DirectionWarpEntry gShelter1fVehicularAirlockWarpEntries[3] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -5000, 0, 1570 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -4960, 0, 1380 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 2), SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 1), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -8900, 0, -1730 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -4960, 0, 1380 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 2), SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 1), DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN / 2 }, -10000, 0, 0 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN / 2 }, -10000, 0, 0 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 4), SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_VEHICULAR_AIRLOCK, 3), DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, SHELTER_1F_VEHICULAR_AIRLOCK_BULWARK_MAP_FLAG },
+};
+
+/// Unit normals for the vehicular airlock collision grid, with 4096 per unit.
+static SVECTOR _gShelter1fVehicularAirlockCollisionGridNormals[10] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_normals.inc"
 };
 
-static SVECTOR _gShelter1fVehicularAirlockCollision04E78Verts[33] = {
+/// Room-space vertices of the vehicular airlock collision grid, in game units.
+static SVECTOR _gShelter1fVehicularAirlockCollisionGridVerts[33] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelter1fVehicularAirlockCollision04E78Faces[12] = {
+/// Indexed collision quads; the main floor uses surface class 1 and the others class 0.
+static WorldCollisionGridFace _gShelter1fVehicularAirlockCollisionGridFaces[12] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_faces.inc"
 };
 
-static s16 _gShelter1fVehicularAirlockCollision04E78Cells[52] = {
+/// Packed signed face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelter1fVehicularAirlockCollisionGridCells[52] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fVehicularAirlockCollision04E78Cells[i])
-static s16* _gShelter1fVehicularAirlockCollision04E78Table[9] = {
+// The generated table supplies element offsets into the packed cell lists.
+#define GRID_CELL(i) (&_gShelter1fVehicularAirlockCollisionGridCells[i])
+/// X-major 3-by-3 cell directory; NULL entries select empty cells.
+static s16* _gShelter1fVehicularAirlockCollisionGridTable[9] = {
 #include "assets/shelter_1f_vehicular_airlock_collision_04E78_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_1f_vehicular_airlock_80182438[1] = {
-    { NULL, _gShelter1fVehicularAirlockCollision04E78Normals, _gShelter1fVehicularAirlockCollision04E78Verts, _gShelter1fVehicularAirlockCollision04E78Faces, _gShelter1fVehicularAirlockCollision04E78Table, 0x2CEC, 3000, 3, 3, 4000, 12 },
+/// Vehicular airlock's room-space collision mesh and 3-by-3 spatial index.
+///
+/// Cells span 4000 game units from origin (-11500, -3000) on X/Z. Room setup
+/// binds the mutable descriptor to the view coordinate while this overlay is live.
+static WorldCollisionGrid _gShelter1fVehicularAirlockCollisionGrid = {
+    NULL,
+    _gShelter1fVehicularAirlockCollisionGridNormals,
+    _gShelter1fVehicularAirlockCollisionGridVerts,
+    _gShelter1fVehicularAirlockCollisionGridFaces,
+    _gShelter1fVehicularAirlockCollisionGridTable,
+    11500,
+    3000,
+    3,
+    3,
+    4000,
+    ARRAY_SIZE(_gShelter1fVehicularAirlockCollisionGridFaces),
 };
 
-ViewCamera D_shelter_1f_vehicular_airlock_8018245C[3] = {
+ViewCamera gShelter1fVehicularAirlockViewCameras[3] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5334, 0 } }, 207 },
     { { { { 723, 0, -4031 }, { -887, 3995, -159 }, { 3932, 901, 706 } }, { 9160, 2690, 790 } }, 257 },
     { { { { 596, 0, 4052 }, { -95, 4094, 14 }, { -4051, -97, 596 } }, { 1760, 1260, 790 } }, 257 },
 };
 
-SpriteBatch D_shelter_1f_vehicular_airlock_801824C8[2] = {
+/// View 1's empty sprite range and terminator; the zero count selects image strips.
+static SpriteBatch _gShelter1fVehicularAirlockView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_vehicular_airlock_801824D8[2] = {
+/// View 2's empty sprite range and terminator; the zero count selects image strips.
+static SpriteBatch _gShelter1fVehicularAirlockView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_vehicular_airlock_801824E8[2] = {
+/// View 3's empty sprite range and terminator; the zero count selects image strips.
+static SpriteBatch _gShelter1fVehicularAirlockView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_1f_vehicular_airlock_801824F8[3] = {
-    { { .empty = D_shelter_1f_vehicular_airlock_801824C8 }, D_shelter_1f_vehicular_airlock_801824C8, NULL },
-    { { .empty = D_shelter_1f_vehicular_airlock_801824D8 }, D_shelter_1f_vehicular_airlock_801824D8, NULL },
-    { { .empty = D_shelter_1f_vehicular_airlock_801824E8 }, D_shelter_1f_vehicular_airlock_801824E8, NULL },
+SpriteView gShelter1fVehicularAirlockSpriteViews[3] = {
+    { { .empty = _gShelter1fVehicularAirlockView1SpriteBatches }, _gShelter1fVehicularAirlockView1SpriteBatches, NULL },
+    { { .empty = _gShelter1fVehicularAirlockView2SpriteBatches }, _gShelter1fVehicularAirlockView2SpriteBatches, NULL },
+    { { .empty = _gShelter1fVehicularAirlockView3SpriteBatches }, _gShelter1fVehicularAirlockView3SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_1f_vehicular_airlock_8018251C[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5000, -2130, 1990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 1638, 1638 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2500, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6000, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9500, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9000, -1635, -1950 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 500, 1000 },
+/// Five all-view model-shading lights with Q12 RGB intensities and world-unit radii.
+///
+/// Coordinate setup and shading queries update their parents, caches and attenuation.
+static WorldCoordPointLight _gShelter1fVehicularAirlockPointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5000, -2130, 1990 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 1638, 1638 }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2500, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -6000, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9500, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9000, -1635, -1950 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 500, 1000 },
 };
 
-WorldCoordRoomLights D_shelter_1f_vehicular_airlock_801826FC[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_1f_vehicular_airlock_8018251C), D_shelter_1f_vehicular_airlock_8018251C, 0, NULL },
+/// Model-shading light collection: five point lights, with no directional or cone lights.
+static WorldCoordRoomLights _gShelter1fVehicularAirlockRoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gShelter1fVehicularAirlockPointLights),
+    _gShelter1fVehicularAirlockPointLights,
+    0,
+    NULL,
 };
 
-WorldCollisionTrigger D_shelter_1f_vehicular_airlock_80182714[2] = {
+/// Reciprocal view-2/view-3 crossing quads, ending at the second record's LAST flag.
+///
+/// Room setup binds, links and enables these mutable triggers until room teardown.
+static WorldCollisionTrigger _gShelter1fVehicularAirlockViewBoundaryTriggers[2] = {
     { NULL, NULL, NULL, { -5709, -3248, -16, 0 }, { { -255, -3712, -3633, 0 }, { 254, -3712, 3632, 0 }, { -255, 3712, -3633, 0 }, { 254, 3712, 3632, 0 } }, { 4087, 0, -287, 0 }, { 0, 0, 4096, 0 }, 5196, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -5519, -3312, -32, 0 }, { { 238, -3712, 3884, 0 }, { -245, -3712, -3892, 0 }, { 238, 3712, 3884, 0 }, { -245, 3712, -3892, 0 } }, { -4090, 0, 253, 0 }, { 0, 0, 4096, 0 }, 5369, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_1f_vehicular_airlock_801827AC[7] = {
-    { NULL, NULL, NULL, { -4800, -48, 2080, 0 }, { { -576, 0, -416, 0 }, { 576, 0, -416, 0 }, { -576, 0, 416, 0 }, { 576, 0, 416, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 709, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -8864, -48, -2112, 0 }, { { -800, 0, -416, 0 }, { 800, 0, -416, 0 }, { -800, 0, 416, 0 }, { 800, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 900, WORLD_COLLISION_TRIGGER_ACTION_WARP, 6, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x2820, -48, 16, 0 }, { { 416, 0, -2512, 0 }, { 416, 0, 2512, 0 }, { -416, 0, -2512, 0 }, { -416, 0, 2512, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 2534, WORLD_COLLISION_TRIGGER_ACTION_WARP, 3, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -9072, -64, 704, 0 }, { { -1520, 0, -928, 0 }, { 1520, 0, 96, 0 }, { -1520, 0, -96, 0 }, { 1520, 0, 928, 0 } }, { 0, 4116, 0, 0 }, { 1380, 0, -3857, 0 }, 1778, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7168, -64, 1736, 0 }, { { -416, 0, -936, 0 }, { 416, 0, -648, 0 }, { -416, 0, 792, 0 }, { 416, 0, 792, 0 } }, { 0, 4100, 0, 0 }, { 4052, 0, 601, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Room response command carried by the three message-routed interaction regions.
+enum { SHELTER_1F_VEHICULAR_AIRLOCK_ROOM_COMMAND_RESPONSE = 3 };
+
+/// Three door warps and four CAP/room-command regions, ending at the LAST flag.
+///
+/// Warp parameters encode destination area and departure/arrival slots. CAP
+/// regions send room command 3 except the direct CAP command 1 region.
+/// Room setup binds, links and enables these mutable triggers until teardown.
+static WorldCollisionTrigger _gShelter1fVehicularAirlockActionTriggers[7] = {
+    { NULL, NULL, NULL, { -4800, -48, 2080, 0 }, { { -576, 0, -416, 0 }, { 576, 0, -416, 0 }, { -576, 0, 416, 0 }, { 576, 0, 416, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 709, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_1F_AIRLOCK, (SHELTER_1F_VEHICULAR_AIRLOCK_WARP_AIRLOCK << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -8864, -48, -2112, 0 }, { { -800, 0, -416, 0 }, { 800, 0, -416, 0 }, { -800, 0, 416, 0 }, { 800, 0, 416, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 900, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_1F_GUARDROOM, (SHELTER_1F_VEHICULAR_AIRLOCK_WARP_GUARDROOM << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x2820, -48, 16, 0 }, { { 416, 0, -2512, 0 }, { 416, 0, 2512, 0 }, { -416, 0, -2512, 0 }, { -416, 0, 2512, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 2534, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_1F_BULWARK, (SHELTER_1F_VEHICULAR_AIRLOCK_WARP_BULWARK << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -9072, -64, 704, 0 }, { { -1520, 0, -928, 0 }, { 1520, 0, 96, 0 }, { -1520, 0, -96, 0 }, { 1520, 0, 928, 0 } }, { 0, 4116, 0, 0 }, { 1380, 0, -3857, 0 }, 1778, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_VEHICULAR_AIRLOCK_ROOM_COMMAND_RESPONSE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7168, -64, 1736, 0 }, { { -416, 0, -936, 0 }, { 416, 0, -648, 0 }, { -416, 0, 792, 0 }, { 416, 0, 792, 0 } }, { 0, 4100, 0, 0 }, { 4052, 0, 601, 0 }, 1024, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_VEHICULAR_AIRLOCK_ROOM_COMMAND_RESPONSE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -1920, -64, 0, 0 }, { { 416, 0, -2512, 0 }, { 416, 0, 2512, 0 }, { -416, 0, -2512, 0 }, { -416, 0, 2512, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 2534, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7312, -64, 1072, 0 }, { { -880, 0, -1080, 0 }, { 880, 0, -696, 0 }, { -880, 0, 840, 0 }, { 880, 0, 936, 0 } }, { 0, 4097, 0, 0 }, { 3166, 0, -2599, 0 }, 1390, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { -7312, -64, 1072, 0 }, { { -880, 0, -1080, 0 }, { 880, 0, -696, 0 }, { -880, 0, 840, 0 }, { 880, 0, 936, 0 } }, { 0, 4097, 0, 0 }, { 3166, 0, -2599, 0 }, 1390, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_1F_VEHICULAR_AIRLOCK_ROOM_COMMAND_RESPONSE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_1f_vehicular_airlock_801829C0[4] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_1f_vehicular_airlock_801829C0) - 1 },
+/// View-count header and minimum ambient RGB levels for logical views 1..3.
+///
+/// RGB and stored luma use 16 units per 8-bit colour level; queries read RGB only.
+static WorldCoordRoomAmbientEntry _gShelter1fVehicularAirlockViewAmbientLights[4] = {
+    { .viewCount = ARRAY_SIZE(_gShelter1fVehicularAirlockViewAmbientLights) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 700, 700, 700, 700 } },
     { .color = { 700, 700, 700, 700 } },
 };
 
-AreaResource D_shelter_1f_vehicular_airlock_801829E0[3] = {
+/// Default placement variant's Pawn/Rook GOLEM file selections and task recipes.
+///
+/// Placement keys 20 and 57 use descriptor 0 in their actor tables. The final
+/// AREA_PLACEMENT_END record terminates the loader's scan. Actor task tables
+/// remain borrowed from their loaded overlays.
+static AreaResource _gShelter1fVehicularAirlockActorResources[3] = {
     { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
     { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -277,7 +333,7 @@ AreaResource D_shelter_1f_vehicular_airlock_801829E0[3] = {
 
 AreaVariant D_shelter_1f_vehicular_airlock_80182A04[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AED0, D_shelter_1f_vehicular_airlock_801829E0 },
+    { D_map_neo_ark_8017AED0, _gShelter1fVehicularAirlockActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -290,36 +346,52 @@ AreaVariant D_shelter_1f_vehicular_airlock_80182A04[12] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_shelter_1f_vehicular_airlock_80182A64 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Surface-1 walking, running and scripted-jump cue bases in the loaded type-1 bank.
+///
+/// Cue 1 uses the next entry; companion playback adds 100 to the base.
+static WorldCollisionFootstepSounds _gShelter1fVehicularAirlockSurface1FootstepSounds = {
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_vehicular_airlock_80182A70[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, impact-enabled surface with pushback and no footsteps (classes 0, 2..7).
+static WorldCollisionSurfaceProperties _gShelter1fVehicularAirlockSilentSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_vehicular_airlock_80182A78[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_vehicular_airlock_80182A64 },
+/// Blocking, impact-enabled floor surface with pushback and class-1 footstep cues.
+static WorldCollisionSurfaceProperties _gShelter1fVehicularAirlockSurface1 = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gShelter1fVehicularAirlockSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_1f_vehicular_airlock_80182A80[8] = {
-    D_shelter_1f_vehicular_airlock_80182A70,
-    D_shelter_1f_vehicular_airlock_80182A78,
-    D_shelter_1f_vehicular_airlock_80182A70,
-    D_shelter_1f_vehicular_airlock_80182A70,
-    D_shelter_1f_vehicular_airlock_80182A70,
-    D_shelter_1f_vehicular_airlock_80182A70,
-    D_shelter_1f_vehicular_airlock_80182A70,
-    D_shelter_1f_vehicular_airlock_80182A70,
+WorldCollisionSurfaceProperties* gShelter1fVehicularAirlockSurfaceProperties[8] = {
+    &_gShelter1fVehicularAirlockSilentSurface,
+    &_gShelter1fVehicularAirlockSurface1,
+    &_gShelter1fVehicularAirlockSilentSurface,
+    &_gShelter1fVehicularAirlockSilentSurface,
+    &_gShelter1fVehicularAirlockSilentSurface,
+    &_gShelter1fVehicularAirlockSilentSurface,
+    &_gShelter1fVehicularAirlockSilentSurface,
+    &_gShelter1fVehicularAirlockSilentSurface,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-s8 D_shelter_1f_vehicular_airlock_80182AB0 = 0;
+/// Whether the latest departure-event gate call spawned its staged task (0 no, 1 yes).
+///
+/// Every gate call clears it, including queries; this byte does not track task lifetime.
+static s8 _gShelter1fVehicularAirlockEventStarted = 0;
 
 /// Three bytes stored after the flag; nothing references them.
 u8 D_shelter_1f_vehicular_airlock_80182AB1 = 2;
@@ -367,7 +439,7 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(const RoomEventMsg* m
            ROOM_EVENT_DEPARTURE_DIRECT  = 1,
            ROOM_EVENT_DEPARTURE_HANDLED = 2 };
 
-    D_shelter_1f_vehicular_airlock_80182AB0 = false;
+    _gShelter1fVehicularAirlockEventStarted = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *message;
@@ -375,8 +447,8 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(const RoomEventMsg* m
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_1f_vehicular_airlock_80182028, 0, 0, 0);
-            D_shelter_1f_vehicular_airlock_80182AB0 = true;
+            taskSpawnFromTable(&_gShelter1fVehicularAirlockStagedEventTaskDesc, 0, 0, 0);
+            _gShelter1fVehicularAirlockEventStarted = true;
         }
         return ROOM_EVENT_DEPARTURE_HANDLED;
     }
@@ -481,7 +553,7 @@ static s32 _shelter1fVehicularAirlockIgnoreDirectionAction(Task* receiver, s32 m
 /// message table must remain loaded while it receives messages.
 static void _shelter1fVehicularAirlockInitializeRoom(Task* task)
 {
-    task->msgTable = D_shelter_1f_vehicular_airlock_80182034;
+    task->msgTable = _gShelter1fVehicularAirlockRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }
@@ -491,9 +563,10 @@ static void _shelter1fVehicularAirlockIdleMessageTask(Task* unusedTask)
 {
 }
 
-/// The message task's three state handlers: publishing the room's message
-/// table, idling and `taskKill`.
-static const TaskFuncTable3 D_shelter_1f_vehicular_airlock_8017D5D8 = {
+/// Room-task handlers for states 0 initialize, 1 idle and 2 release.
+///
+/// Dispatch copies this three-entry record before indexing; no bounds check is made.
+static const TaskFuncTable3 _gShelter1fVehicularAirlockRoomStateHandlers = {
     { _shelter1fVehicularAirlockInitializeRoom, _shelter1fVehicularAirlockIdleMessageTask, taskKill },
 };
 
@@ -501,7 +574,7 @@ void shelter1fVehicularAirlockRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_1f_vehicular_airlock_8017D5D8;
+    stateHandlers = _gShelter1fVehicularAirlockRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -529,7 +602,7 @@ void shelter1fVehicularAirlockDrawLightsTask(Task* task)
     view = viewGetMappedIndex();
     switch (view) {
         case 2: {
-            const SVECTOR* lightPoints = D_shelter_1f_vehicular_airlock_8018206C;
+            const SVECTOR* lightPoints = &_gShelter1fVehicularAirlockLightPoints[2];
 
             _glowDrawAngledCapsule(&lightPoints[0], 0x200, GLOW_HALF_TURN, LIGHT_COLOR_AMBER);
             _glowDrawAngledCapsule(&lightPoints[2], 0x200, GLOW_HALF_TURN, LIGHT_COLOR_AMBER);
@@ -539,7 +612,7 @@ void shelter1fVehicularAirlockDrawLightsTask(Task* task)
             break;
         }
         case 3: {
-            const SVECTOR* lightPoints = D_shelter_1f_vehicular_airlock_8018205C;
+            const SVECTOR* lightPoints = _gShelter1fVehicularAirlockLightPoints;
 
             _glowDrawAngledCapsule(&lightPoints[0], 0x200, GLOW_HALF_TURN, LIGHT_COLOR_AMBER);
             _glowDrawAngledCapsule(&lightPoints[2], 0x200, GLOW_HALF_TURN, LIGHT_COLOR_AMBER);

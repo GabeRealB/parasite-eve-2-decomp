@@ -15,14 +15,14 @@ gShelter1fParkingGarageSurfaceProperties = 0x80181954; // absolute:True owner=sh
 shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask = 0x8017D5E4; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 shelter1fVehicularAirlockRoomTask = 0x8017DA48; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 gShelter1fVehicularAirlockModel03A58 = 0x80182004; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
-D_shelter_1f_vehicular_airlock_801820FC = 0x801820FC; // absolute:True owner=shelter_1f_vehicular_airlock
-D_shelter_1f_vehicular_airlock_8018210C = 0x8018210C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
-D_shelter_1f_vehicular_airlock_80182114 = 0x80182114; // absolute:True owner=shelter_1f_vehicular_airlock
-D_shelter_1f_vehicular_airlock_80182118 = 0x80182118; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
-D_shelter_1f_vehicular_airlock_8018211C = 0x8018211C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
-D_shelter_1f_vehicular_airlock_8018245C = 0x8018245C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
-D_shelter_1f_vehicular_airlock_801824F8 = 0x801824F8; // absolute:True owner=shelter_1f_vehicular_airlock
-D_shelter_1f_vehicular_airlock_80182A80 = 0x80182A80; // absolute:True owner=shelter_1f_vehicular_airlock
+gShelter1fVehicularAirlockCollisionResources = 0x801820FC; // absolute:True owner=shelter_1f_vehicular_airlock
+gShelter1fVehicularAirlockRoomLighting = 0x8018210C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
+gShelter1fVehicularAirlockViewMaps = 0x80182114; // absolute:True owner=shelter_1f_vehicular_airlock
+gShelter1fVehicularAirlockViewCounts = 0x80182118; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
+gShelter1fVehicularAirlockWarpEntries = 0x8018211C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
+gShelter1fVehicularAirlockViewCameras = 0x8018245C; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
+gShelter1fVehicularAirlockSpriteViews = 0x801824F8; // absolute:True owner=shelter_1f_vehicular_airlock
+gShelter1fVehicularAirlockSurfaceProperties = 0x80182A80; // absolute:True owner=shelter_1f_vehicular_airlock
 shelter1fBulwarkRoomTask = 0x8017DC20; // type:func absolute:True owner=shelter_1f_bulwark shared=rooms
 gShelter1fBulwarkCollisionResources = 0x801803B0; // absolute:True owner=shelter_1f_bulwark
 gShelter1fBulwarkRoomLighting = 0x801803C0; // absolute:True owner=shelter_1f_bulwark
@@ -147,7 +147,7 @@ gNeoArkPowerPlant2ViewMaps = 0x801806A8; // absolute:True owner=neo_ark_power_pl
 D_neo_ark_power_plant_2_801806AC = 0x801806AC; // absolute:True owner=neo_ark_power_plant_2 shared=rooms
 D_neo_ark_power_plant_2_801806B0 = 0x801806B0; // absolute:True owner=neo_ark_power_plant_2
 D_neo_ark_power_plant_2_80180DE8 = 0x80180DE8; // absolute:True owner=neo_ark_power_plant_2
-D_neo_ark_power_plant_2_8018205C = 0x8018205C; // absolute:True owner=neo_ark_power_plant_2 shared=rooms
+D_neo_ark_power_plant_2_8018205C = 0x8018205C; // absolute:True owner=neo_ark_power_plant_2
 gNeoArkPowerPlant2SurfaceProperties = 0x80182F50; // absolute:True owner=neo_ark_power_plant_2
 neoArkPowerPlant1RoomTask = 0x8017D9C0; // type:func absolute:True owner=neo_ark_power_plant_1
 D_neo_ark_power_plant_1_8017F1C8 = 0x8017F1C8; // absolute:True owner=neo_ark_power_plant_1
