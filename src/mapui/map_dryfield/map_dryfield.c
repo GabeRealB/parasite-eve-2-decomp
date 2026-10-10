@@ -618,7 +618,7 @@ static ViewCount* D_map_dryfield_8017A990[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_underpass_8017EBD4,
+    gDryfieldUnderpassRoomViewCounts,
 };
 
 ViewCountTable D_map_dryfield_8017AA28 = { D_map_dryfield_8017A990 };
@@ -704,7 +704,7 @@ static ViewCamera* D_map_dryfield_8017AAC8[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_underpass_8017F4A8,
+    gDryfieldUnderpassViewCameras,
 };
 
 ViewCameraTable D_map_dryfield_8017AB60 = { D_map_dryfield_8017AAC8 };
@@ -798,7 +798,7 @@ static SpriteView* _gMapDryfieldAreaSpriteViews[38] = {
     NULL,
     NULL,
     NULL,
-    D_dryfield_underpass_80180250,
+    gDryfieldUnderpassSpriteViews,
 };
 
 SpriteAreaTable gMapDryfieldSpriteAreaTable = { _gMapDryfieldAreaSpriteViews };

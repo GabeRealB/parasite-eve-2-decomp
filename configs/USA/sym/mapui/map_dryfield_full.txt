@@ -56,7 +56,7 @@ gDryfieldNightWarehouseRoomViewCounts = 0x8017E93C; // absolute:True owner=dryfi
 D_dryfield_night_warehouse_8017E944 = 0x8017E944; // absolute:True owner=dryfield_night_warehouse
 gDryfieldNightWarehouseViewCameras = 0x8017EF2C; // absolute:True owner=dryfield_night_warehouse
 gDryfieldNightWarehouseSpriteViews = 0x8017F46C; // absolute:True owner=dryfield_night_warehouse
-gDryfieldNightWarehouseSurfacePropertiesByClass = 0x8017FC24; // absolute:True owner=dryfield_night_warehouse shared=rooms
+gDryfieldNightWarehouseSurfacePropertiesByClass = 0x8017FC24; // absolute:True owner=dryfield_night_warehouse
 dryfieldNightR08RoomTask = 0x8017D6C0; // type:func absolute:True owner=dryfield_night_r08
 gDryfieldNightR08RoomLighting = 0x8018067C; // absolute:True owner=dryfield_night_r08 shared=rooms
 gDryfieldNightR08RoomCollisionResources = 0x80180684; // absolute:True owner=dryfield_night_r08

@@ -214,7 +214,7 @@ gDryfieldDrivewayRoomLighting = 0x8017E7B4; // absolute:True owner=dryfield_driv
 D_dryfield_driveway_8017E7C4 = 0x8017E7C4; // absolute:True owner=dryfield_driveway
 D_dryfield_driveway_8017E7C8 = 0x8017E7C8; // absolute:True owner=dryfield_driveway
 gDryfieldDrivewayViewCameras = 0x8017EE2C; // absolute:True owner=dryfield_driveway
-gDryfieldDrivewaySpriteViews = 0x8017FC44; // absolute:True owner=dryfield_driveway shared=rooms
+gDryfieldDrivewaySpriteViews = 0x8017FC44; // absolute:True owner=dryfield_driveway
 gDryfieldDrivewaySurfacePropertiesByClass = 0x80180660; // absolute:True owner=dryfield_driveway shared=rooms
 dryfieldJunkYardWireRopeTask = 0x8017D5F4; // type:func absolute:True owner=dryfield_junk_yard
 dryfieldJunkYardRoomTask = 0x8017DCB4; // type:func absolute:True owner=dryfield_junk_yard
@@ -294,11 +294,11 @@ gDryfieldCellarSurfacePropertiesByClass = 0x80180B40; // absolute:True owner=dry
 dryfieldUnderpassRoomTask = 0x8017DAC8; // type:func absolute:True owner=dryfield_underpass shared=rooms
 D_dryfield_underpass_8017EB20 = 0x8017EB20; // absolute:True owner=dryfield_underpass
 gDryfieldUnderpassRoomViewMaps = 0x8017EBBC; // absolute:True owner=dryfield_underpass
-D_dryfield_underpass_8017EBD4 = 0x8017EBD4; // absolute:True owner=dryfield_underpass
+gDryfieldUnderpassRoomViewCounts = 0x8017EBD4; // absolute:True owner=dryfield_underpass
 gDryfieldUnderpassRoomLighting = 0x8017EBE0; // absolute:True owner=dryfield_underpass
 D_dryfield_underpass_8017EC10 = 0x8017EC10; // absolute:True owner=dryfield_underpass
-D_dryfield_underpass_8017F4A8 = 0x8017F4A8; // absolute:True owner=dryfield_underpass shared=rooms
-D_dryfield_underpass_80180250 = 0x80180250; // absolute:True owner=dryfield_underpass
+gDryfieldUnderpassViewCameras = 0x8017F4A8; // absolute:True owner=dryfield_underpass shared=rooms
+gDryfieldUnderpassSpriteViews = 0x80180250; // absolute:True owner=dryfield_underpass
 gDryfieldUnderpassSurfacePropertiesByClass = 0x80181164; // absolute:True owner=dryfield_underpass
 gMappicS200MotelRoom6Shape = 0x8012EFA0; // absolute:True owner=mappic_s2_00 shared=mappic
 gMappicS200MotelBalconyShape = 0x8012F0B8; // absolute:True owner=mappic_s2_00 shared=mappic

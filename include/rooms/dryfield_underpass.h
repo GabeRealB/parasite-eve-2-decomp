@@ -17,6 +17,9 @@ enum {
     DRYFIELD_UNDERPASS_SURFACE_CLASS_COUNT = 8,
 };
 
+/// Number of camera/image/sprite resource slots selected by the room view maps.
+enum { DRYFIELD_UNDERPASS_MAPPED_VIEW_COUNT = 26 };
+
 extern AreaVariant D_dryfield_underpass_8017F868[13];
 
 // dryfield_underpass
@@ -31,7 +34,14 @@ extern WorldCollisionRoomResources D_dryfield_underpass_8017EB20[];
 /// remain valid only while the underpass overlay is loaded.
 extern u8* gDryfieldUnderpassRoomViewMaps[DRYFIELD_UNDERPASS_ROOM_COUNT];
 
-extern ViewCount D_dryfield_underpass_8017EBD4[];
+/// Logical-view search counts for rooms 1..6, indexed by room minus one.
+///
+/// Room 1 searches 26 identity-map entries; rooms 2..6 search eleven entries
+/// and exclude their maps' retained final zero. These signed-halfword counts
+/// measure logical views, independently of mapped resource indices and map
+/// capacities. The count array has no terminator and is borrowed only while
+/// the underpass overlay is loaded.
+extern ViewCount gDryfieldUnderpassRoomViewCounts[DRYFIELD_UNDERPASS_ROOM_COUNT];
 
 /// Light collections for underpass rooms 1..6, indexed by room minus one.
 ///
@@ -43,9 +53,23 @@ extern WorldCoordRoomLighting gDryfieldUnderpassRoomLighting[DRYFIELD_UNDERPASS_
 
 extern DirectionWarpEntry D_dryfield_underpass_8017EC10[];
 
-extern ViewCamera D_dryfield_underpass_8017F4A8[];
+/// Cameras for mapped underpass resource views 1..26, indexed by view minus one.
+///
+/// All six rooms select from this array through their logical-view maps.
+/// Rotation uses `ONE` for unit scale, translation is the negated camera
+/// origin in world units, and projection distances are pixels. There is no
+/// terminator; queued camera application requires the overlay to stay loaded.
+extern ViewCamera gDryfieldUnderpassViewCameras[DRYFIELD_UNDERPASS_MAPPED_VIEW_COUNT];
 
-extern SpriteView D_dryfield_underpass_80180250[];
+/// Sprite resources for mapped underpass views 1..26, indexed by view minus one.
+///
+/// Views 3, 4, 5, 9, 13, 14, 15 and 19 select textured source rectangles;
+/// the other views retain an empty batch-list address in `sources.empty`.
+/// Every list's first zero count keeps decoded-image background strips, and
+/// `SPRITE_BATCH_END` ends each list. All draw-area pointers are NULL.
+/// This array and its mutable source/range lists are borrowed while the
+/// underpass overlay is loaded; none of their pointers may survive unloading.
+extern SpriteView gDryfieldUnderpassSpriteViews[DRYFIELD_UNDERPASS_MAPPED_VIEW_COUNT];
 
 /// Underpass collision and footstep properties indexed by surface class 0..7.
 ///
