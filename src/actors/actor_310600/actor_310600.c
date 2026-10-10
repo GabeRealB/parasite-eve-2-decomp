@@ -605,7 +605,7 @@ static void _actor310600UpdateBody(Task* task)
                                     TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gActor310600StrangerShotCommand, 0);
                                 } else {
                                     TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gActor310600StrangerFollowupCommand, 0);
-                                    taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, ACTOR_310600_ROOM_FOLLOWUP_TASK, 0, NULL);
+                                    taskSpawnFromTable(gAcropolisCafeteriaSceneTasks, ACTOR_310600_ROOM_FOLLOWUP_TASK, 0, NULL);
                                 }
                                 break;
                             case ACTOR_310600_RELOAD_CLIP:

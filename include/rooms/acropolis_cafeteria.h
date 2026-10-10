@@ -12,7 +12,12 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern TaskDesc D_acropolis_cafeteria_80182AD8[4];
+/// Spawn recipes for the cafeteria's battle, follow-up scene and Stranger settling.
+///
+/// Slots 0..2 create bodyless controllers at priority 32; slot 3 is TASK_DESC_END.
+/// Rupert's shooting cue uses slot 2 to settle the Stranger after recoil.
+/// Keep the cafeteria overlay loaded while these recipes or their tasks are used.
+extern TaskDesc gAcropolisCafeteriaSceneTasks[4];
 
 extern TmdSource gAcropolisCafeteriaModel077D8;
 

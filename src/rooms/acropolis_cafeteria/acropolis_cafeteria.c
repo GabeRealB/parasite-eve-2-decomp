@@ -60,23 +60,18 @@
 #define ROOM_VISUAL_EFFECTS_SHARED_TRAIL_ENDPOINT_OFFSETS
 #include "../../shared/room_visual_effects.h"
 
-extern AnimationSet* D_acropolis_cafeteria_80182C60[4];
-
-extern AnimationSet* D_acropolis_cafeteria_80182C40[1];
-
 extern void func_807245E4(void*);
 extern void func_80724608(void*, s32, s32, void*);
 
 extern TaskMessageEntry D_acropolis_cafeteria_80182AA8[];
 
-extern ActorTransform D_acropolis_cafeteria_80182DDC;
-extern EvsCommand     D_acropolis_cafeteria_80182E74[];
-extern EvsCommand     D_acropolis_cafeteria_801831BC[];
-extern EvsCommand     D_acropolis_cafeteria_8018330C[];
-extern EvsCommand     D_acropolis_cafeteria_801834D4[];
-extern EvsCommand     D_acropolis_cafeteria_8018363C[];
-extern EvsCommand     D_acropolis_cafeteria_80183DBC[];
-extern EvsCommand     D_acropolis_cafeteria_80183F3C[];
+extern EvsCommand D_acropolis_cafeteria_80182E74[];
+extern EvsCommand D_acropolis_cafeteria_801831BC[];
+extern EvsCommand D_acropolis_cafeteria_8018330C[];
+extern EvsCommand D_acropolis_cafeteria_801834D4[];
+extern EvsCommand D_acropolis_cafeteria_8018363C[];
+extern EvsCommand D_acropolis_cafeteria_80183DBC[];
+extern EvsCommand D_acropolis_cafeteria_80183F3C[];
 
 static void       _acropolisCafeteriaTickPlayerDebug(Task* task);
 static void       _acropolisCafeteriaInitRoom(Task* task);
@@ -152,6 +147,19 @@ static void         _acropolisCafeteriaCancelPeEffects(void);
 static void         _acropolisCafeteriaCopyPostBattleVram(void);
 static void         _acropolisCafeteriaPreparePostBattleScene(void);
 
+enum {
+    ACROPOLIS_CAFETERIA_SCENE_TASK_PRIORITY           = 32,
+    ACROPOLIS_CAFETERIA_POST_BATTLE_PLAYER_CLIP       = 8,
+    ACROPOLIS_CAFETERIA_POST_BATTLE_PLAYER_INTRO_CLIP = 9,
+    ACROPOLIS_CAFETERIA_OPENING_WOMAN_CLIP            = 1,
+    ACROPOLIS_CAFETERIA_OPENING_PLAYER_CLIP           = ANIMATION_BANK_BASE_SET_COUNT,
+    ACROPOLIS_CAFETERIA_FOLLOW_UP_PLAYER_CLIP_47      = ANIMATION_BANK_BASE_SET_COUNT,
+    ACROPOLIS_CAFETERIA_FOLLOW_UP_PLAYER_CLIP_48      = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    ACROPOLIS_CAFETERIA_FOLLOW_UP_PLAYER_CLIP_49      = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    ACROPOLIS_CAFETERIA_FOLLOW_UP_PLAYER_CLIP_50      = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    ACROPOLIS_CAFETERIA_POST_BATTLE_STRANGER_COMMAND  = 2,
+};
+
 TaskMessageEntry D_acropolis_cafeteria_80182AA8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisCafeteriaResolveRoomTransition },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisCafeteriaHandleActionMessage },
@@ -161,12 +169,17 @@ TaskMessageEntry D_acropolis_cafeteria_80182AA8[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_acropolis_cafeteria_80182AD8[4] = {
-    { { { TASK_BODY_NONE, 32 } }, _acropolisCafeteriaBattleSceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _acropolisCafeteriaFollowUpSceneTask, { .value = 0 } },
-
-    { { { TASK_BODY_NONE, 32 } }, _acropolisCafeteriaSettleStrangerTask, { .value = 0 } },
-    { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
+TaskDesc gAcropolisCafeteriaSceneTasks[4] = {
+    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_CAFETERIA_SCENE_TASK_PRIORITY } },
+      .callback = _acropolisCafeteriaBattleSceneTask,
+      .data     = { .value = 0 } },
+    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_CAFETERIA_SCENE_TASK_PRIORITY } },
+      .callback = _acropolisCafeteriaFollowUpSceneTask,
+      .data     = { .value = 0 } },
+    { .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = ACROPOLIS_CAFETERIA_SCENE_TASK_PRIORITY } },
+      .callback = _acropolisCafeteriaSettleStrangerTask,
+      .data     = { .value = 0 } },
+    { .header = { .fields = { .flags = TASK_DESC_END, .priority = 0 } }, .callback = NULL, .data = { .model = NULL } },
 };
 
 /// Player clip-1 request shared by the cafeteria event scenes.
@@ -184,62 +197,214 @@ static AnimationPlayRequest _gAcropolisCafeteriaPlayerAnimation1 = {
 
 AnimationPlayRequest D_acropolis_cafeteria_80182B1C = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_acropolis_cafeteria_80182B30 = { { .index = 1 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 8 at the end of the post-battle scene, including its skip path.
+///
+/// The interpreter resolves the weapon bank in a request copy. Dispatch resets
+/// playback without blending and requests world collision disablement.
+static AnimationPlayRequest _gAcropolisCafeteriaPlayerPostBattleAnimation8 = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_CAFETERIA_POST_BATTLE_PLAYER_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_cafeteria_80182B44 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Player clip 9 at the start of the post-battle scene.
+///
+/// The interpreter resolves the weapon bank in a request copy. Dispatch resets
+/// playback without blending and requests world collision disablement.
+static AnimationPlayRequest _gAcropolisCafeteriaPlayerPostBattleAnimation9 = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_CAFETERIA_POST_BATTLE_PLAYER_INTRO_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_cafeteria_80182B58 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the cafeteria woman's clip 1 during the opening scene.
+///
+/// Placement 1 in the opening layout reads only animationId and reseeds its
+/// driven tracks synchronously; the other request fields are ignored.
+static AnimationPlayRequest _gAcropolisCafeteriaOpeningWomanAnimation1 = {
+    .source               = { .index = 0 },
+    .animationId          = ACROPOLIS_CAFETERIA_OPENING_WOMAN_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_acropolis_cafeteria_80182B6C = { { 0, 128, 0, 0 }, { 0, 0, 0, 0 } };
+/// Player placement used with the opening scene's extended animation.
+///
+/// XYZ uses integer root-parent units; Euler angles use 4096 units per turn.
+/// The complete transform is borrowed through synchronous dispatch.
+static ActorTransform _gAcropolisCafeteriaPlayerOpeningScenePlacement = { .pos = { 0, 128, 0, 0 }, .rot = { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182B84 = { { -3759, -300, 18, 0 }, { 0, 2048, 0, 0 } };
+/// Player placement restored by both exits from the opening scene.
+///
+/// XYZ uses room game units; yaw is a half turn. The player consumes the complete
+/// transform synchronously from this overlay-owned record.
+static ActorTransform _gAcropolisCafeteriaPlayerOpeningResumePlacement = { .pos = { -3759, -300, 18, 0 }, .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182B9C = { { -3748, -300, -885, 0 }, { 0, 2048, 0, 0 } };
+/// Player placement at the beginning of the accepted follow-up scene.
+///
+/// XYZ uses room game units; yaw is a half turn. Borrowed synchronously before
+/// the first follow-up animation; the overlay owns the record.
+static ActorTransform _gAcropolisCafeteriaPlayerFollowUpStartPlacement = { .pos = { -3748, -300, -885, 0 }, .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182BB4 = { { -3689, -300, -2934, 0 }, { 0, 2048, 0, 0 } };
+/// Player placement before Rupert is shown in the follow-up scene.
+///
+/// XYZ uses room game units; yaw is a half turn. The player copies the complete
+/// transform during synchronous dispatch; no pointer is retained.
+static ActorTransform _gAcropolisCafeteriaPlayerBeforeRupertArrivalPlacement = { .pos = { -3689, -300, -2934, 0 }, .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182BCC = { { -3892, -300, -1836, 0 }, { 0, 1800, 0, 0 } };
+/// Player placement as the battle introduction hands control to combat.
+///
+/// XYZ uses room game units; yaw uses 4096 units per turn. The complete transform
+/// is borrowed through synchronous dispatch while the overlay is loaded.
+static ActorTransform _gAcropolisCafeteriaPlayerBattleStartPlacement = { .pos = { -3892, -300, -1836, 0 }, .rot = { 0, 1800, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182BE4 = { { -3000, -300, 1000, 0 }, { 0, 2048, 0, 0 } };
+/// Player placement before the scripted walk in the follow-up scene.
+///
+/// XYZ uses room game units; yaw is a half turn. The player consumes the complete
+/// transform during synchronous dispatch.
+static ActorTransform _gAcropolisCafeteriaPlayerFollowUpWalkStartPlacement = { .pos = { -3000, -300, 1000, 0 }, .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182BFC = { { -3000, -300, -600, 0 }, { 0, 2304, 0, 0 } };
+/// Player walk destination and subsequent facing target in the follow-up scene.
+///
+/// The move message copies XYZ in room game units; the later turn copies only
+/// yaw, in 4096 units per turn. Neither retains this overlay-owned pointer.
+static ActorTransform _gAcropolisCafeteriaPlayerFollowUpWalkTarget = { .pos = { -3000, -300, -600, 0 }, .rot = { 0, 2304, 0, 0 } };
 
 ActorTransform D_acropolis_cafeteria_80182C14 = { { -2800, -300, -892, 0 }, { 0, 2048, 0, 0 } };
 
 AnimationPlayRequest D_acropolis_cafeteria_80182C2C = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationSet* D_acropolis_cafeteria_80182C40[1] = {
+/// One borrowed player clip installed at bank slot 47 for the opening scene.
+///
+/// The copy spans exactly this pointer array. The woman's animation overlay
+/// must remain loaded while the player's bank or playback retains its clip.
+static AnimationSet* _gAcropolisCafeteriaOpeningPlayerAnimationSets[1] = {
     &gActor202900Animation06098,
 };
 
-AnimationBankCopyRequest D_acropolis_cafeteria_80182C44 = { { .sets = D_acropolis_cafeteria_80182C40 }, ARRAY_SIZE(D_acropolis_cafeteria_80182C40) };
+/// Installs the opening scene's one borrowed clip in the equipped player bank.
+///
+/// Copies one 32-bit pointer to slot 47 synchronously without starting playback.
+/// The request and source table live with this overlay; clip data stays borrowed.
+static AnimationBankCopyRequest _gAcropolisCafeteriaOpeningPlayerBankCopy = {
+    .source    = { .sets = _gAcropolisCafeteriaOpeningPlayerAnimationSets },
+    .wordCount = ARRAY_SIZE(_gAcropolisCafeteriaOpeningPlayerAnimationSets),
+};
 
-AnimationPlayRequest D_acropolis_cafeteria_80182C4C = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays the opening scene's installed player clip at bank slot 47.
+///
+/// Requires the opening bank copy and loaded woman clip data. The interpreter
+/// resolves the weapon bank in a copy; playback resets without blending and
+/// requests world collision disablement.
+static AnimationPlayRequest _gAcropolisCafeteriaPlayerOpeningAnimation47 = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_CAFETERIA_OPENING_PLAYER_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationSet* D_acropolis_cafeteria_80182C60[4] = {
+/// Four borrowed player clips installed at bank slots 47..50 for the follow-up.
+///
+/// Slots borrow Rupert's clip, a room clip and two Grinning Stranger clips in
+/// that order. The copy spans exactly four pointers; all three overlays must
+/// remain loaded while the bank or playback retains the corresponding clips.
+static AnimationSet* _gAcropolisCafeteriaFollowUpPlayerAnimationSets[4] = {
     &gActor310600Animation04ADC,
     &_gAcropolisCafeteriaAnimation07704,
     &gActor210600Animation07EF4,
     &gActor210600Animation0A050,
 };
 
-AnimationBankCopyRequest D_acropolis_cafeteria_80182C70 = { { .sets = D_acropolis_cafeteria_80182C60 }, ARRAY_SIZE(D_acropolis_cafeteria_80182C60) };
+/// Installs the follow-up scene's four borrowed clips in the equipped player bank.
+///
+/// Copies four 32-bit pointers to slots 47..50 synchronously without starting
+/// playback. The source table lives with this overlay; clip data stays borrowed.
+static AnimationBankCopyRequest _gAcropolisCafeteriaFollowUpPlayerBankCopy = {
+    .source    = { .sets = _gAcropolisCafeteriaFollowUpPlayerAnimationSets },
+    .wordCount = ARRAY_SIZE(_gAcropolisCafeteriaFollowUpPlayerAnimationSets),
+};
 
-AnimationPlayRequest D_acropolis_cafeteria_80182C78 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays the follow-up's Rupert-supplied player clip at bank slot 47.
+///
+/// Requires the follow-up bank copy and loaded Rupert clip. The interpreter
+/// resolves the weapon bank in a copy; playback resets without blending and
+/// requests world collision disablement.
+static AnimationPlayRequest _gAcropolisCafeteriaPlayerFollowUpAnimation47 = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_CAFETERIA_FOLLOW_UP_PLAYER_CLIP_47,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_cafeteria_80182C8C = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays the follow-up's room-supplied player clip at bank slot 48.
+///
+/// Requires the follow-up bank copy and loaded cafeteria clip. The interpreter
+/// resolves the weapon bank in a copy; playback resets without blending and
+/// requests world collision disablement.
+static AnimationPlayRequest _gAcropolisCafeteriaPlayerFollowUpAnimation48 = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_CAFETERIA_FOLLOW_UP_PLAYER_CLIP_48,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_cafeteria_80182CA0 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays the follow-up's first Grinning Stranger-supplied player clip at slot 49.
+///
+/// Requires the follow-up bank copy and loaded Grinning Stranger clip data.
+/// The interpreter resolves the weapon bank in a copy; playback resets without
+/// blending and requests world collision disablement.
+static AnimationPlayRequest _gAcropolisCafeteriaPlayerFollowUpAnimation49 = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_CAFETERIA_FOLLOW_UP_PLAYER_CLIP_49,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_cafeteria_80182CB4 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays the follow-up's second Grinning Stranger-supplied player clip at slot 50.
+///
+/// Requires the follow-up bank copy and loaded Grinning Stranger clip data.
+/// The interpreter resolves the weapon bank in a copy; playback resets without
+/// blending and requests world collision disablement.
+static AnimationPlayRequest _gAcropolisCafeteriaPlayerFollowUpAnimation50 = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_CAFETERIA_FOLLOW_UP_PLAYER_CLIP_50,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_acropolis_cafeteria_80182CC8 = { { -3106, -300, -2056, 0 }, { 0, 0, 0, 0 } };
+/// Stranger placement at the beginning of the battle introduction.
+///
+/// XYZ uses room game units; Euler angles use 4096 units per turn. The actor
+/// consumes the complete transform during synchronous placement dispatch.
+static ActorTransform _gAcropolisCafeteriaStrangerBattleIntroPlacement = { .pos = { -3106, -300, -2056, 0 }, .rot = { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182CE0 = { { -3860, -299, -1365, 0 }, { 0, 0, 0, 0 } };
+/// Stranger placement shared by the post-battle scene and its skip path.
+///
+/// XYZ uses room game units; Euler angles use 4096 units per turn. The actor
+/// borrows the complete transform only through synchronous dispatch.
+static ActorTransform _gAcropolisCafeteriaStrangerPostBattlePlacement = { .pos = { -3860, -299, -1365, 0 }, .rot = { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182CF8 = { { -3890, -299, -1555, 0 }, { 0, 0, 0, 0 } };
+/// Stranger placement at the start of the accepted follow-up scene.
+///
+/// XYZ uses room game units; Euler angles use 4096 units per turn. The actor
+/// consumes the complete transform synchronously from this overlay-owned record.
+static ActorTransform _gAcropolisCafeteriaStrangerFollowUpStartPlacement = { .pos = { -3890, -299, -1555, 0 }, .rot = { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182D10 = { { -3490, -299, -4500, 0 }, { 0, 0, 0, 0 } };
+/// Stranger placement paired with player clip 48 in the follow-up scene.
+///
+/// XYZ uses room game units; Euler angles use 4096 units per turn. The actor
+/// consumes the complete transform during synchronous placement dispatch.
+static ActorTransform _gAcropolisCafeteriaStrangerFollowUpAnimation48Placement = { .pos = { -3490, -299, -4500, 0 }, .rot = { 0, 0, 0, 0 } };
 
 /// Stranger placement shared by the recoil scene and its settling controller.
 ///
@@ -247,13 +412,29 @@ ActorTransform D_acropolis_cafeteria_80182D10 = { { -3490, -299, -4500, 0 }, { 0
 /// Borrowed synchronously by placement messages while the overlay is loaded.
 static ActorTransform _gAcropolisCafeteriaStrangerRecoilPlacement = { { -3860, -299, -1253, 0 }, { 0, 200, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182D40 = { { -3290, -299, -3500, 0 }, { 0, 0, 0, 0 } };
+/// Stranger placement before its scripted slot-0 clip in the follow-up scene.
+///
+/// XYZ uses room game units; Euler angles use 4096 units per turn. The actor
+/// borrows the complete transform only through synchronous dispatch.
+static ActorTransform _gAcropolisCafeteriaStrangerFollowUpSlot0Placement = { .pos = { -3290, -299, -3500, 0 }, .rot = { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182D58 = { { -3650, -299, -961, 0 }, { 0, 200, 0, 0 } };
+/// Stranger placement before the follow-up scene's death-burn command.
+///
+/// XYZ uses room game units; yaw uses 4096 units per turn. The actor consumes
+/// the transform synchronously; the following command selects its state.
+static ActorTransform _gAcropolisCafeteriaStrangerFollowUpBurnPlacement = { .pos = { -3650, -299, -961, 0 }, .rot = { 0, 200, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182D70 = { { -3026, -300, -4126, 0 }, { 0, -200, 0, 0 } };
+/// Stranger placement as the battle introduction hands control to combat.
+///
+/// XYZ uses room game units; yaw uses 4096 units per turn. Borrowed through
+/// synchronous dispatch before the script releases player control.
+static ActorTransform _gAcropolisCafeteriaStrangerBattleStartPlacement = { .pos = { -3026, -300, -4126, 0 }, .rot = { 0, -200, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182D88 = { { -470, -1400, 701, 0 }, { 0, -800, 0, 0 } };
+/// Grinning Stranger placement shared by its follow-up appearance scripts.
+///
+/// Targets placement 1 in the battle layout. XYZ uses room game units; yaw
+/// uses 4096 units per turn. The actor consumes the transform synchronously.
+static ActorTransform _gAcropolisCafeteriaGrinningStrangerScenePlacement = { .pos = { -470, -1400, 701, 0 }, .rot = { 0, -800, 0, 0 } };
 
 ActorCommand D_acropolis_cafeteria_80182DA0 = { { .loc = { 1, 4 } }, 0 };
 
@@ -263,7 +444,14 @@ ActorCommand D_acropolis_cafeteria_80182DA0 = { { .loc = { 1, 4 } }, 0 };
 /// rewind. The context is Acropolis/cafeteria and dispatch borrows the four bytes.
 static ActorCommand _gAcropolisCafeteriaStrangerStartCommand = { { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA } }, ACROPOLIS_CAFETERIA_STRANGER_COMMAND_START };
 
-ActorCommand D_acropolis_cafeteria_80182DA8 = { { .loc = { 1, 4 } }, 2 };
+/// Selects the combat Stranger's scripted slot-1 clip in the post-battle scene.
+///
+/// Command 2 binds the clip in the Acropolis/cafeteria namespace and resets
+/// scripted state entry. The actor borrows all four bytes through dispatch.
+static ActorCommand _gAcropolisCafeteriaStrangerPostBattleSlot1Command = {
+    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA } },
+    .command = ACROPOLIS_CAFETERIA_POST_BATTLE_STRANGER_COMMAND,
+};
 
 ActorCommand D_acropolis_cafeteria_80182DAC = { { .loc = { 1, 4 } }, 3 };
 
@@ -286,7 +474,12 @@ ActorCommand D_acropolis_cafeteria_80182DC0 = { { .loc = { 1, 4 } }, 9 };
 
 ActorTransform D_acropolis_cafeteria_80182DC4 = { { -3403, -250, 800, 0 }, { 0, 2048, 0, 0 } };
 
-ActorTransform D_acropolis_cafeteria_80182DDC = { { -3850, -299, -900, 0 }, { 0, 2048, 0, 0 } };
+/// Rupert's conversation placement, also used to position the scripted player.
+///
+/// Room initialization and the follow-up scene place Rupert here; the player
+/// shares it for clip 49. XYZ uses room game units and yaw is a half turn.
+/// Both receivers consume the complete transform during synchronous dispatch.
+static ActorTransform _gAcropolisCafeteriaRupertConversationPlacement = { .pos = { -3850, -299, -900, 0 }, .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
 ActorTransform D_acropolis_cafeteria_80182DF4 = { { -4400, -299, -1400, 0 }, { 0, 2048, 0, 0 } };
 
@@ -307,17 +500,17 @@ GameActorMoveAnim D_acropolis_cafeteria_80182E6C = { 19, 1 };
 EvsCommand D_acropolis_cafeteria_80182E74[35] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisCafeteriaCancelPeEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_cafeteria_80182C44 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisCafeteriaOpeningPlayerBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_FADE_VOLUME, { .value = 76 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_cafeteria_80182B58 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisCafeteriaOpeningWomanAnimation1 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182C4C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisCafeteriaPlayerOpeningAnimation47 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182B6C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaPlayerOpeningScenePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisCafeteriaSetPlayerSurface }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 69 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -338,7 +531,7 @@ EvsCommand D_acropolis_cafeteria_80182E74[35] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182B84 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaPlayerOpeningResumePlacement } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -353,7 +546,7 @@ EvsCommand D_acropolis_cafeteria_801831BC[14] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182B84 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaPlayerOpeningResumePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -361,14 +554,14 @@ EvsCommand D_acropolis_cafeteria_801831BC[14] = {
 
 EvsCommand D_acropolis_cafeteria_8018330C[19] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisCafeteriaPreparePostBattleScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B44 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisCafeteriaPlayerPostBattleAnimation9 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisCafeteriaCopyPostBattleVram }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182CE0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DA8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaStrangerPostBattlePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerPostBattleSlot1Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5104000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -377,7 +570,7 @@ EvsCommand D_acropolis_cafeteria_8018330C[19] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 320 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B30 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisCafeteriaPlayerPostBattleAnimation8 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -388,14 +581,14 @@ EvsCommand D_acropolis_cafeteria_801834D4[15] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerRecoilCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisCafeteriaCopyPostBattleVram }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182CE0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaStrangerPostBattlePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B30 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisCafeteriaPlayerPostBattleAnimation8 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -407,10 +600,10 @@ EvsCommand D_acropolis_cafeteria_8018363C[80] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182CF8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_cafeteria_80182C70 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182B9C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182C78 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaStrangerFollowUpStartPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisCafeteriaFollowUpPlayerBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaPlayerFollowUpStartPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisCafeteriaPlayerFollowUpAnimation47 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DC0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -419,8 +612,8 @@ EvsCommand D_acropolis_cafeteria_8018363C[80] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerRecoilCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182BB4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D40 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaPlayerBeforeRupertArrivalPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaStrangerFollowUpSlot0Placement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DB4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
@@ -431,45 +624,45 @@ EvsCommand D_acropolis_cafeteria_8018363C[80] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D10 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaStrangerFollowUpAnimation48Placement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DAC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182C8C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisCafeteriaPlayerFollowUpAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &_gAcropolisCafeteriaStrangerRecoilPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182DDC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaRupertConversationPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DC0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_cafeteria_80182E0C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182BE4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaPlayerFollowUpWalkStartPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 76 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 33 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1010 }, { .message = { .pointer = &D_acropolis_cafeteria_80182BFC } }, { .message = { .pointer = &D_acropolis_cafeteria_80182E6C } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .transform = &_gAcropolisCafeteriaPlayerFollowUpWalkTarget } }, { .message = { .pointer = &D_acropolis_cafeteria_80182E6C } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 57 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_acropolis_cafeteria_80182BFC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, { .message = { .transform = &_gAcropolisCafeteriaPlayerFollowUpWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D58 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaStrangerFollowUpBurnPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DBC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182DDC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaRupertConversationPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_cafeteria_80182E34 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182DDC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182CA0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaRupertConversationPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisCafeteriaPlayerFollowUpAnimation49 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 686 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D88 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaGrinningStrangerScenePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerStartCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182DF4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_cafeteria_80182E48 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182DF4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182CB4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisCafeteriaPlayerFollowUpAnimation50 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 252 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -508,7 +701,7 @@ EvsCommand D_acropolis_cafeteria_80183F3C[19] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gAcropolisCafeteriaPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182CC8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaStrangerBattleIntroPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerStartCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -517,8 +710,8 @@ EvsCommand D_acropolis_cafeteria_80183F3C[19] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182BCC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D70 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaPlayerBattleStartPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaStrangerBattleStartPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -528,7 +721,7 @@ EvsCommand D_acropolis_cafeteria_80183F3C[19] = {
 
 EvsCommand D_acropolis_cafeteria_80184104[4] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182D88 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisCafeteriaGrinningStrangerScenePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisCafeteriaStrangerStartCommand } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -993,18 +1186,36 @@ static WorldCollisionOccluder _gAcropolisCafeteriaSightOccluders[2] = {
     { NULL, NULL, { -352, -1456, -3920, 0 }, { { 0, 2208, -2400, 0 }, { 0, 2208, 2400, 0 }, { 0, -2208, -2400, 0 }, { 0, -2208, 2400, 0 } }, { -4099, 0, 0, 0 }, 3258, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_acropolis_cafeteria_80189D0C[4] = {
-    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor110600TaskDesc },
-    { 29, 29, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202900WomanTaskDescriptors },
-    { 102, 106, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor310600RupertBroderickTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+enum {
+    ACROPOLIS_CAFETERIA_RESOURCE_STRANGER      = 10,
+    ACROPOLIS_CAFETERIA_RESOURCE_WOMAN         = 29,
+    ACROPOLIS_CAFETERIA_RESOURCE_SCRIPTED_FORM = 19,
+    ACROPOLIS_CAFETERIA_RESOURCE_RUPERT        = 102,
 };
 
-AreaResource D_acropolis_cafeteria_80189D3C[4] = {
-    { 10, 106, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor110600TaskDesc },
-    { 19, 106, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor210600GrinningStrangerTaskDesc },
-    { 102, 106, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor310600RupertBroderickTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Actor resources for variant 1's Stranger, cafeteria woman and Rupert placements.
+///
+/// Entry IDs 10, 29 and 102 select task recipe zero and base files 110600, 202900
+/// and 310600 respectively. The fourth record is AREA_PLACEMENT_END. The loader
+/// and spawner borrow this overlay-owned table and the loaded actor recipes.
+static AreaResource _gAcropolisCafeteriaOpeningSceneResources[4] = {
+    { .entryId = ACROPOLIS_CAFETERIA_RESOURCE_STRANGER, .fileNumber = 106, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor110600TaskDesc },
+    { .entryId = ACROPOLIS_CAFETERIA_RESOURCE_WOMAN, .fileNumber = 29, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor202900WomanTaskDescriptors },
+    { .entryId = ACROPOLIS_CAFETERIA_RESOURCE_RUPERT, .fileNumber = 106, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor310600RupertBroderickTasks },
+    { .entryId = AREA_PLACEMENT_END, .fileNumber = 0, .fileGroupIndex = 0, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = NULL },
+};
+
+/// Actor resources for variant 2's combat and follow-up scene placements.
+///
+/// Entry IDs 10, 19 and 102 select task recipe zero and base files 110600,
+/// 210600 and 310600. Placement 1 replaces the opening woman with the Grinning
+/// Stranger. The fourth record is AREA_PLACEMENT_END; tables and recipes stay
+/// borrowed while their room and actor overlays are loaded.
+static AreaResource _gAcropolisCafeteriaBattleSceneResources[4] = {
+    { .entryId = ACROPOLIS_CAFETERIA_RESOURCE_STRANGER, .fileNumber = 106, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor110600TaskDesc },
+    { .entryId = ACROPOLIS_CAFETERIA_RESOURCE_SCRIPTED_FORM, .fileNumber = 106, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = &gActor210600GrinningStrangerTaskDesc },
+    { .entryId = ACROPOLIS_CAFETERIA_RESOURCE_RUPERT, .fileNumber = 106, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = gActor310600RupertBroderickTasks },
+    { .entryId = AREA_PLACEMENT_END, .fileNumber = 0, .fileGroupIndex = 0, .taskIndex = 0, .unknown_6 = { 0, 0 }, .taskTable = NULL },
 };
 
 /// Actor resource list for variant 3's single Odd Stranger placement.
@@ -1045,8 +1256,8 @@ static AreaResource _gAcropolisCafeteriaRookGolemResources[2] = {
 
 AreaVariant D_acropolis_cafeteria_80189DCC[11] = {
     { NULL, NULL },
-    { D_map_akropolis_8017AE9C, D_acropolis_cafeteria_80189D0C },
-    { D_map_akropolis_8017AEDC, D_acropolis_cafeteria_80189D3C },
+    { D_map_akropolis_8017AE9C, _gAcropolisCafeteriaOpeningSceneResources },
+    { D_map_akropolis_8017AEDC, _gAcropolisCafeteriaBattleSceneResources },
     { D_map_akropolis_8017AF1C, _gAcropolisCafeteriaSingleOddStrangerResources },
     { D_map_akropolis_8017AF3C, _gAcropolisCafeteriaPairOddStrangerResources },
     { D_map_akropolis_8017AF6C, _gAcropolisCafeteriaBoneSucklerResources },
@@ -1635,7 +1846,7 @@ static s32 _acropolisCafeteriaHandleActionMessage(Task* unusedTask, s32 messageI
 
     if (actionRequest->actionId == ACROPOLIS_CAFETERIA_ACTION_FOLLOW_UP) {
         if (_gAcropolisCafeteriaSceneProgress >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE || gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
-            taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, ACROPOLIS_CAFETERIA_TASK_FOLLOW_UP, 0, 0);
+            taskSpawnFromTable(gAcropolisCafeteriaSceneTasks, ACROPOLIS_CAFETERIA_TASK_FOLLOW_UP, 0, 0);
             return 0;
         }
     }
@@ -1644,7 +1855,7 @@ static s32 _acropolisCafeteriaHandleActionMessage(Task* unusedTask, s32 messageI
     } else if (actionRequest->actionId == ACROPOLIS_CAFETERIA_ACTION_START_BATTLE) {
         if (_gAcropolisCafeteriaSceneProgress == ACROPOLIS_CAFETERIA_SCENE_NOT_STARTED && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_CAFETERIA_PROGRESS_BEFORE_SCENE) {
             _gAcropolisCafeteriaSceneProgress = ACROPOLIS_CAFETERIA_SCENE_ACTIVE;
-            taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, ACROPOLIS_CAFETERIA_TASK_BATTLE, 0, 0);
+            taskSpawnFromTable(gAcropolisCafeteriaSceneTasks, ACROPOLIS_CAFETERIA_TASK_BATTLE, 0, 0);
         }
     }
     return 0;
@@ -1755,7 +1966,7 @@ static void _acropolisCafeteriaInitRoom(Task* task)
         sceneSetPlacedActorDrawMode(ACROPOLIS_CAFETERIA_PLACED_RUPERT, ACROPOLIS_CAFETERIA_DRAW_SHOW);
         disabledTrigger         = &_gAcropolisCafeteriaRoom1ActionTriggers[ACROPOLIS_CAFETERIA_CAP_20_TRIGGER_INDEX];
         disabledTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_RUPERT), ACTOR_MESSAGE_PLACE, &D_acropolis_cafeteria_80182DDC, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_RUPERT), ACTOR_MESSAGE_PLACE, &_gAcropolisCafeteriaRupertConversationPlacement, 0);
     }
     task->state = task->state + 1;
 }
