@@ -13,8 +13,12 @@
 
 extern AreaVariant D_dryfield_motel_balcony_80186220[13];
 
-// dryfield_motel_balcony
-extern WorldCollisionRoomResources D_dryfield_motel_balcony_801822D0[];
+/// Collision resources for room 1 of the daytime motel balcony.
+///
+/// The Dryfield map borrows this one-room array at area 29. Its grid, eight
+/// view boundaries, four warp triggers and two sight occluders remain mutable
+/// and loaded until collision setup retires their runtime links.
+extern WorldCollisionRoomResources gDryfieldMotelBalconyRoomCollisionResources[1];
 
 /// Logical-view map directory for the balcony's single room.
 ///
@@ -22,7 +26,11 @@ extern WorldCollisionRoomResources D_dryfield_motel_balcony_801822D0[];
 /// same one-based camera/image/sprite indices. The room overlay owns this directory.
 extern u8* gDryfieldMotelBalconyViewMaps[1];
 
-extern ViewCount D_dryfield_motel_balcony_801822E4[];
+/// Logical-view reverse-search count for the balcony's single room: 22 entries.
+///
+/// Indexed by room minus one. The identity map makes these logical views the
+/// same 1-based indices as the 22 camera records; there is no terminator.
+extern ViewCount gDryfieldMotelBalconyRoomViewCounts[1];
 
 /// Lighting descriptor for the balcony's single room.
 ///
@@ -30,9 +38,22 @@ extern ViewCount D_dryfield_motel_balcony_801822E4[];
 /// logical views. All room-owned pointers must remain live while lighting is queried.
 extern WorldCoordRoomLighting gDryfieldMotelBalconyRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_motel_balcony_801822F0[];
+/// Four balcony arrival/departure endpoints, selected by 1-based warp ID.
+///
+/// Slots 1..4 connect to the parking lot, room 5, room 6 and loft respectively.
+/// Player and companion share each endpoint's placement in game units and yaw
+/// in 4096 units per turn; initial views are 2, 6, 5 and 4. Later door arrivals
+/// set their map-marker nibbles; initial session setup suppresses that update.
+/// The Dryfield map borrows this loaded room array without a terminator;
+/// warp lookup copies each complete record.
+extern DirectionWarpEntry gDryfieldMotelBalconyWarpEntries[4];
 
-extern ViewCamera D_dryfield_motel_balcony_80182B80[];
+/// Camera records for mapped balcony views 1..22, indexed by view minus one.
+///
+/// Rotation coefficients use 4096 for unity; translations are negated world
+/// origins in game units and perspective distances are pixels. The Dryfield
+/// map borrows this room-owned array while the balcony overlay is loaded.
+extern ViewCamera gDryfieldMotelBalconyViewCameras[22];
 
 /// Sprite descriptors for balcony mapped views 1..22.
 ///
@@ -40,7 +61,13 @@ extern ViewCamera D_dryfield_motel_balcony_80182B80[];
 /// batch lists and these descriptors for the lifetime of the loaded overlay.
 extern SpriteView gDryfieldMotelBalconySpriteViews[22];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_motel_balcony_80186704[];
+/// Collision and footstep properties indexed by balcony surface class 0..7.
+///
+/// Classes 0 and 4..7 share the default blocking record; class 1 permits probes
+/// and ignores weapon impacts, while classes 2 and 3 select distinct footstep
+/// requests. Every class applies pushback. The Dryfield map borrows the table
+/// and its room-owned records only while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldMotelBalconySurfaceClasses[8];
 
 /// Runs this room's charging pink flash, peak screen tint and fading star.
 ///

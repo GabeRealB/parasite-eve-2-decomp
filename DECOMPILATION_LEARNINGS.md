@@ -48482,22 +48482,24 @@ defined, and an `INCLUDE_RODATA` asm block where it appears, so a table that
 is *last* in the unit's `.rodata` goes at the end of the file:
 
 ```c
-extern const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC;
+static const TaskFuncTable3 _gDryfieldMotelBalconyRoomTaskStates;
 
 void dryfieldMotelBalconyRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_dryfield_motel_balcony_8017D5DC;
+    handlers = _gDryfieldMotelBalconyRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 
 /* ... rest of the unit ... */
 
-const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
-    _dryfieldMotelBalconyInitRoomTask,
-    _dryfieldMotelBalconyIdleState,
-    taskKill,
+static const TaskFuncTable3 _gDryfieldMotelBalconyRoomTaskStates = {
+    .funcs = {
+        _dryfieldMotelBalconyInitRoomTask,
+        _dryfieldMotelBalconyIdleState,
+        taskKill,
+    },
 };
 ```
 

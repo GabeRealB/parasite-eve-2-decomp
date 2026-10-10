@@ -72,9 +72,6 @@ extern RoomEventActiveBytes gRoomEventActive;
 /// Descriptor of the event task the gate spawns.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// The room's message table.
-extern TaskMessageEntry D_dryfield_motel_balcony_8018227C[];
-
 /// Per-tint channel shifts for the halo task, indexed by the tint the spawn
 /// argument selects.
 
@@ -88,14 +85,12 @@ extern RoomEventReq gRoomEventReq;
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
 
-extern WorldCollisionGrid         D_dryfield_motel_balcony_80182B5C[1];
-extern WorldCollisionOccluder     D_dryfield_motel_balcony_80186130[2];
-extern WorldCollisionTrigger      D_dryfield_motel_balcony_80185DA0[8];
-extern WorldCollisionTrigger      D_dryfield_motel_balcony_80186000[4];
+static WorldCollisionGrid         _gDryfieldMotelBalconyCollisionGrid;
+static WorldCollisionOccluder     _gDryfieldMotelBalconySightOccluders[2];
+static WorldCollisionTrigger      _gDryfieldMotelBalconyViewBoundaries[8];
+static WorldCollisionTrigger      _gDryfieldMotelBalconyWarpTriggers[4];
 static WorldCoordRoomAmbientEntry _gDryfieldMotelBalconyViewAmbientLevels[23];
 static WorldCoordRoomLights       _gDryfieldMotelBalconyRoomLights[1];
-
-extern AreaResource D_dryfield_motel_balcony_801861A8[1];
 
 enum { DRYFIELD_MOTEL_BALCONY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -105,7 +100,12 @@ static s32 _dryfieldMotelBalconyRoomActionMsg(Task* task, s32 messageId, s32 fir
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_motel_balcony_8018227C[6] = {
+/// Five room-message handlers followed by the unsupported-message terminator.
+///
+/// Resolves departures and door events, returns zero for key-item/command/action
+/// messages, and handles CAP sound cues. The room task borrows the callbacks
+/// through teardown; payload types follow each handler's synchronous message ABI.
+static TaskMessageEntry _gDryfieldMotelBalconyRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantMotelBalconyDoorsMsg },
     { DRYFIELD_MOTEL_BALCONY_MESSAGE_USE_KEY_ITEM, _dryfieldMotelBalconyUseKeyItemMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelBalconyRoomActionMsg },
@@ -130,55 +130,104 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_dryfield_motel_balcony_801822D0[1] = {
-    { D_dryfield_motel_balcony_80182B5C, D_dryfield_motel_balcony_80185DA0, D_dryfield_motel_balcony_80186000, D_dryfield_motel_balcony_80186130 },
+WorldCollisionRoomResources gDryfieldMotelBalconyRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldMotelBalconyCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldMotelBalconyViewBoundaries,
+        .actionTriggers       = _gDryfieldMotelBalconyWarpTriggers,
+        .occluders            = _gDryfieldMotelBalconySightOccluders,
+    },
 };
 
 u8* gDryfieldMotelBalconyViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_motel_balcony_801822E4[1] = { 22 };
+ViewCount gDryfieldMotelBalconyRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldMotelBalconyViewCameras) };
 
 WorldCoordRoomLighting gDryfieldMotelBalconyRoomLighting[1] = {
     { _gDryfieldMotelBalconyRoomLights, _gDryfieldMotelBalconyViewAmbientLevels },
 };
 
-DirectionWarpEntry D_dryfield_motel_balcony_801822F0[4] = {
-    { { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, 0x521D0006, 0x521D0005, 0x521D0009, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -6572, -3200, -2869 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6572, -3200, -2869 }, { 0, 0, 0, 0 }, 0x521D0002, 0x521D0001, 0x521D0009, 6, DIRECTION_WARP_FLAG_NONE, 464 },
-    { { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, 0x521D0002, 0x521D0001, 0x521D0009, 5, DIRECTION_WARP_FLAG_NONE, 465 },
-    { { { .word = 2048 }, -1990, -3200, 0x29A8 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1990, -3200, 0x29A8 }, { 0, 0, 0, 0 }, 0x521D0002, 0x521D0001, 0x521D0009, 4, DIRECTION_WARP_FLAG_NONE, 466 },
+/// One-based endpoint IDs also packed into the warp triggers' departure nibble.
+enum {
+    DRYFIELD_MOTEL_BALCONY_WARP_PARKING_LOT = 1,
+    DRYFIELD_MOTEL_BALCONY_WARP_ROOM_5      = 2,
+    DRYFIELD_MOTEL_BALCONY_WARP_ROOM_6      = 3,
+    DRYFIELD_MOTEL_BALCONY_WARP_LOFT        = 4,
 };
 
-static SVECTOR _gDryfieldMotelBalconyCollision0559CNormals[7] = {
+/// Arrival marker nibbles for the three doors, independent of their unlock flags.
+enum {
+    DRYFIELD_MOTEL_BALCONY_ROOM_5_MAP_FLAG = 464,
+    DRYFIELD_MOTEL_BALCONY_ROOM_6_MAP_FLAG = 465,
+    DRYFIELD_MOTEL_BALCONY_LOFT_MAP_FLAG   = 466,
+};
+
+/// Balcony-bank sound requests stored in the endpoint records.
+enum {
+    DRYFIELD_MOTEL_BALCONY_ARRIVE_FROM_PARKING_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_BALCONY, 6),
+    DRYFIELD_MOTEL_BALCONY_DEPART_TO_PARKING_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_BALCONY, 5),
+    DRYFIELD_MOTEL_BALCONY_ARRIVE_FROM_DOOR_SOUND    = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_BALCONY, 2),
+    DRYFIELD_MOTEL_BALCONY_BLOCKED_WARP_SOUND        = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_BALCONY, 9),
+};
+
+DirectionWarpEntry gDryfieldMotelBalconyWarpEntries[4] = {
+    { { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, { { .word = 0 }, -0x315E, -3198, 1396 }, { 0, 0, 0, 0 }, DRYFIELD_MOTEL_BALCONY_ARRIVE_FROM_PARKING_SOUND, DRYFIELD_MOTEL_BALCONY_DEPART_TO_PARKING_SOUND, DRYFIELD_MOTEL_BALCONY_BLOCKED_WARP_SOUND, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 1024 }, -6572, -3200, -2869 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6572, -3200, -2869 }, { 0, 0, 0, 0 }, DRYFIELD_MOTEL_BALCONY_ARRIVE_FROM_DOOR_SOUND, SOUND_MOTEL_BALCONY_DOOR_OPEN, DRYFIELD_MOTEL_BALCONY_BLOCKED_WARP_SOUND, 6, DIRECTION_WARP_FLAG_NONE, DRYFIELD_MOTEL_BALCONY_ROOM_5_MAP_FLAG },
+    { { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -6669, -3200, 4477 }, { 0, 0, 0, 0 }, DRYFIELD_MOTEL_BALCONY_ARRIVE_FROM_DOOR_SOUND, SOUND_MOTEL_BALCONY_DOOR_OPEN, DRYFIELD_MOTEL_BALCONY_BLOCKED_WARP_SOUND, 5, DIRECTION_WARP_FLAG_NONE, DRYFIELD_MOTEL_BALCONY_ROOM_6_MAP_FLAG },
+    { { { .word = 2048 }, -1990, -3200, 0x29A8 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1990, -3200, 0x29A8 }, { 0, 0, 0, 0 }, DRYFIELD_MOTEL_BALCONY_ARRIVE_FROM_DOOR_SOUND, SOUND_MOTEL_BALCONY_DOOR_OPEN, DRYFIELD_MOTEL_BALCONY_BLOCKED_WARP_SOUND, 4, DIRECTION_WARP_FLAG_NONE, DRYFIELD_MOTEL_BALCONY_LOFT_MAP_FLAG },
+};
+
+/// Seven room-space collision normals, with 4096 for unit length.
+static SVECTOR _gDryfieldMotelBalconyCollisionGridNormals[7] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_normals.inc"
 };
 
-static SVECTOR _gDryfieldMotelBalconyCollision0559CVerts[69] = {
+/// Sixty-nine room-space mesh vertices in signed game-coordinate units.
+static SVECTOR _gDryfieldMotelBalconyCollisionGridVerts[69] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldMotelBalconyCollision0559CFaces[32] = {
+/// Thirty-two indexed collision faces, carrying room-local surface classes 0..4.
+static WorldCollisionGridFace _gDryfieldMotelBalconyCollisionGridFaces[32] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_faces.inc"
 };
 
-static s16 _gDryfieldMotelBalconyCollision0559CCells[342] = {
+/// Packed signed face-index lists for the 64 grid cells, each terminated by -1.
+static s16 _gDryfieldMotelBalconyCollisionGridCells[342] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldMotelBalconyCollision0559CCells[i])
-static s16* _gDryfieldMotelBalconyCollision0559CTable[64] = {
+// Generated table offsets count s16 elements in the cell-list pool.
+#define GRID_CELL(i) (&_gDryfieldMotelBalconyCollisionGridCells[i])
+/// X-major pointers into the cell-list pool for the mesh's 8 by 8 cells.
+static s16* _gDryfieldMotelBalconyCollisionGridTable[64] = {
 #include "assets/dryfield_motel_balcony_collision_0559C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_motel_balcony_80182B5C[1] = {
-    { NULL, _gDryfieldMotelBalconyCollision0559CNormals, _gDryfieldMotelBalconyCollision0559CVerts, _gDryfieldMotelBalconyCollision0559CFaces, _gDryfieldMotelBalconyCollision0559CTable, 0x32BE, 0x341C, 8, 8, 4000, 32 },
+/// The balcony's collision mesh and its 8 by 8 XZ cell index.
+///
+/// Cells are 4000 game units wide, with origin (-12990, -13340) on XZ.
+/// Room setup binds the writable descriptor to the current view coordinate;
+/// the mesh pools and cell lists remain borrowed while this room is loaded.
+static WorldCollisionGrid _gDryfieldMotelBalconyCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldMotelBalconyCollisionGridNormals,
+    .vertices    = _gDryfieldMotelBalconyCollisionGridVerts,
+    .faces       = _gDryfieldMotelBalconyCollisionGridFaces,
+    .cellFaceIds = _gDryfieldMotelBalconyCollisionGridTable,
+    .xBias       = 0x32BE,
+    .zBias       = 0x341C,
+    .cellCountX  = 8,
+    .cellCountZ  = 8,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldMotelBalconyCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_motel_balcony_80182B80[22] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 4112, 0x88B8, -2748 } }, 380 },
+ViewCamera gDryfieldMotelBalconyViewCameras[22] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 4112, 0x88B8, -2748 } }, 380 },
     { { { { -559, 0, -4057 }, { -963, 3978, 132 }, { 3941, 972, -543 } }, { 0x4437, 4754, -1733 } }, 230 },
     { { { { 1192, 0, 3918 }, { 526, 4058, -160 }, { -3883, 550, 1181 } }, { 3977, 4660, -1257 } }, 230 },
     { { { { 3968, 0, -1013 }, { -310, 3898, -1217 }, { 964, 1256, 3777 } }, { 5913, 5512, -3603 } }, 230 },
@@ -1159,64 +1208,106 @@ SpriteView gDryfieldMotelBalconySpriteViews[22] = {
     { { .empty = _gDryfieldMotelBalconyView22Batches }, _gDryfieldMotelBalconyView22Batches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_motel_balcony_80185DA0[8] = {
-    { NULL, NULL, NULL, { -6032, -4416, 320, 0 }, { { -1360, 3008, 0, 0 }, { 1360, 3008, 0, 0 }, { -1360, -3008, 0, 0 }, { 1360, -3008, 0, 0 } }, { 0, 0, 4100, 0 }, { 0, 0, 4096, 0 }, 3298, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6176, -3968, 480, 0 }, { { 1360, 2272, 0, 0 }, { -1360, 2272, 0, 0 }, { 1360, -2272, 0, 0 }, { -1360, -2272, 0, 0 } }, { 0, 0, -4110, 0 }, { 0, 0, 4096, 0 }, 2635, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -7168, -4000, 1952, 0 }, { { 66, 2304, 1358, 0 }, { -67, 2304, -1359, 0 }, { 66, -2304, 1358, 0 }, { -67, -2304, -1359, 0 } }, { 4102, 0, -202, 0 }, { 0, 0, 4096, 0 }, 2672, 0, 5, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -7073, -4096, 1855, 0 }, { { -66, 2528, -1358, 0 }, { 67, 2528, 1359, 0 }, { -66, -2528, -1358, 0 }, { 67, -2528, 1359, 0 } }, { -4091, 0, 200, 0 }, { 0, 0, 4096, 0 }, 2862, 0, 3, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6181, -4400, 6107, 0 }, { { -1319, 2576, 330, 0 }, { 1320, 2576, -329, 0 }, { -1319, -2576, 330, 0 }, { 1320, -2576, -329, 0 } }, { 992, 0, 3980, 0 }, { 0, 0, 4096, 0 }, 2907, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6176, -4656, 6238, 0 }, { { 1316, 2704, -332, 0 }, { -1323, 2704, 327, 0 }, { 1316, -2704, -332, 0 }, { -1323, -2704, 327, 0 } }, { -996, 0, -3982, 0 }, { 0, 0, 4096, 0 }, 3018, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -0x2EB7, -4032, 2043, 0 }, { { 1, 2480, 1361, 0 }, { 0, 2480, -1361, 0 }, { 1, -2480, 1361, 0 }, { 0, -2480, -1361, 0 } }, { 4103, 0, -3, 0 }, { 0, 0, 4096, 0 }, 2827, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -0x2E15, -3936, 2013, 0 }, { { 0, 2480, -1361, 0 }, { 1, 2480, 1361, 0 }, { 0, -2480, -1361, 0 }, { 1, -2480, 1361, 0 } }, { -4106, 0, 1, 0 }, { 0, 0, 4096, 0 }, 2827, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Eight directed camera boundaries joining views 5/6, 5/3, 4/5 and 3/2.
+///
+/// Each pair supplies both directions. Origins and relative corners use room
+/// game units; normals use 4096 per unit. Room setup binds and links the mutable
+/// array through its LAST record, and collision scans latch view-change hits.
+static WorldCollisionTrigger _gDryfieldMotelBalconyViewBoundaries[8] = {
+    { NULL, NULL, NULL, { -6032, -4416, 320, 0 }, { { -1360, 3008, 0, 0 }, { 1360, 3008, 0, 0 }, { -1360, -3008, 0, 0 }, { 1360, -3008, 0, 0 } }, { 0, 0, 4100, 0 }, { 0, 0, ONE, 0 }, 3298, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6176, -3968, 480, 0 }, { { 1360, 2272, 0, 0 }, { -1360, 2272, 0, 0 }, { 1360, -2272, 0, 0 }, { -1360, -2272, 0, 0 } }, { 0, 0, -4110, 0 }, { 0, 0, ONE, 0 }, 2635, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -7168, -4000, 1952, 0 }, { { 66, 2304, 1358, 0 }, { -67, 2304, -1359, 0 }, { 66, -2304, 1358, 0 }, { -67, -2304, -1359, 0 } }, { 4102, 0, -202, 0 }, { 0, 0, ONE, 0 }, 2672, 0, 5, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -7073, -4096, 1855, 0 }, { { -66, 2528, -1358, 0 }, { 67, 2528, 1359, 0 }, { -66, -2528, -1358, 0 }, { 67, -2528, 1359, 0 } }, { -4091, 0, 200, 0 }, { 0, 0, ONE, 0 }, 2862, 0, 3, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6181, -4400, 6107, 0 }, { { -1319, 2576, 330, 0 }, { 1320, 2576, -329, 0 }, { -1319, -2576, 330, 0 }, { 1320, -2576, -329, 0 } }, { 992, 0, 3980, 0 }, { 0, 0, ONE, 0 }, 2907, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6176, -4656, 6238, 0 }, { { 1316, 2704, -332, 0 }, { -1323, 2704, 327, 0 }, { 1316, -2704, -332, 0 }, { -1323, -2704, 327, 0 } }, { -996, 0, -3982, 0 }, { 0, 0, ONE, 0 }, 3018, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -0x2EB7, -4032, 2043, 0 }, { { 1, 2480, 1361, 0 }, { 0, 2480, -1361, 0 }, { 1, -2480, 1361, 0 }, { 0, -2480, -1361, 0 } }, { 4103, 0, -3, 0 }, { 0, 0, ONE, 0 }, 2827, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -0x2E15, -3936, 2013, 0 }, { { 0, 2480, -1361, 0 }, { 1, 2480, 1361, 0 }, { 0, -2480, -1361, 0 }, { 1, -2480, 1361, 0 } }, { -4106, 0, 1, 0 }, { 0, 0, ONE, 0 }, 2827, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_motel_balcony_80186000[4] = {
-    { NULL, NULL, NULL, { -0x3100, -3264, 1248, 0 }, { { -608, 0, -224, 0 }, { 608, 0, -224, 0 }, { -608, 0, 224, 0 }, { 608, 0, 224, 0 } }, { 0, 4098, 0, 0 }, { 401, 0, 4076, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6816, -3264, -2816, 0 }, { { 224, 0, -608, 0 }, { 224, 0, 608, 0 }, { -224, 0, -608, 0 }, { -224, 0, 608, 0 } }, { 0, 4098, 0, 0 }, { 4076, 0, -401, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_WARP, 28, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6752, -3280, 4416, 0 }, { { 224, 0, -608, 0 }, { 224, 0, 608, 0 }, { -224, 0, -608, 0 }, { -224, 0, 608, 0 } }, { 0, 4098, 0, 0 }, { 4076, 0, -401, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_WARP, 30, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1984, -3248, 0x2970, 0 }, { { 928, 0, 368, 0 }, { -928, 0, 368, 0 }, { 928, 0, -368, 0 }, { -928, 0, -368, 0 } }, { 0, 4101, 0, 0 }, { -51, 0, -4096, 0 }, 997, WORLD_COLLISION_TRIGGER_ACTION_WARP, 31, 65, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Facing-gated departure quads for the parking lot, room 5, room 6 and loft.
+///
+/// parameter1 packs the 1-based balcony departure slot above the destination's
+/// arrival slot: parking uses arrival 5, the doors arrival 1. Room setup binds
+/// and links all four mutable records, including the final LAST element.
+static WorldCollisionTrigger _gDryfieldMotelBalconyWarpTriggers[4] = {
+    { NULL, NULL, NULL, { -0x3100, -3264, 1248, 0 }, { { -608, 0, -224, 0 }, { 608, 0, -224, 0 }, { -608, 0, 224, 0 }, { 608, 0, 224, 0 } }, { 0, 4098, 0, 0 }, { 401, 0, 4076, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_PARKING_LOT, (DRYFIELD_MOTEL_BALCONY_WARP_PARKING_LOT << 4) | 5, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6816, -3264, -2816, 0 }, { { 224, 0, -608, 0 }, { 224, 0, 608, 0 }, { -224, 0, -608, 0 }, { -224, 0, 608, 0 } }, { 0, 4098, 0, 0 }, { 4076, 0, -401, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_ROOM_5, (DRYFIELD_MOTEL_BALCONY_WARP_ROOM_5 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6752, -3280, 4416, 0 }, { { 224, 0, -608, 0 }, { 224, 0, 608, 0 }, { -224, 0, -608, 0 }, { -224, 0, 608, 0 } }, { 0, 4098, 0, 0 }, { 4076, 0, -401, 0 }, 646, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_ROOM_6, (DRYFIELD_MOTEL_BALCONY_WARP_ROOM_6 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1984, -3248, 0x2970, 0 }, { { 928, 0, 368, 0 }, { -928, 0, 368, 0 }, { 928, 0, -368, 0 }, { -928, 0, -368, 0 } }, { 0, 4101, 0, 0 }, { -51, 0, -ONE, 0 }, 997, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_LOFT, (DRYFIELD_MOTEL_BALCONY_WARP_LOFT << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_motel_balcony_80186130[2] = {
+/// Two room-space quads blocking enemy line-of-sight queries across the balcony.
+///
+/// Room setup links and enables both mutable records; LAST marks the second.
+/// Origins, corner offsets and radii use game units, normals 4096 per unit.
+/// The stored low flag bit has no established role and remains unchanged.
+static WorldCollisionOccluder _gDryfieldMotelBalconySightOccluders[2] = {
     { NULL, NULL, { -0x2840, -4064, 7440, 0 }, { { -3104, -2624, 4336, 0 }, { 3104, -2624, -4336, 0 }, { -3104, 2624, 4336, 0 }, { 3104, 2624, -4336, 0 } }, { -3332, 0, -2385, 0 }, 5926, 1, 0 },
     { NULL, NULL, { -0x2B61, -4016, -2561, 0 }, { { 4011, -2640, 3514, 0 }, { -4010, -2640, -3513, 0 }, { 4011, 2640, 3514, 0 }, { -4010, 2640, -3513, 0 } }, { -2701, 0, 3082, 0 }, 5948, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_dryfield_motel_balcony_801861A8[1] = {
+/// Empty resource list for the default balcony placement variant 1.
+static AreaResource _gDryfieldMotelBalconyVariant1Resources[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_motel_balcony_801861B4[2] = {
-    { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
+/// Resource keys matched by the map overlay's placement lists for this balcony.
+enum {
+    DRYFIELD_MOTEL_BALCONY_RESOURCE_ODD_STRANGER  = 18,
+    DRYFIELD_MOTEL_BALCONY_RESOURCE_SCORPION      = 25,
+    DRYFIELD_MOTEL_BALCONY_RESOURCE_BRAIN_STINGER = 3,
+    DRYFIELD_MOTEL_BALCONY_RESOURCE_PAWN_GOLEM    = 56,
+    DRYFIELD_MOTEL_BALCONY_RESOURCE_ROOK_GOLEM    = 57,
+};
+
+/// Variant 2's Odd Stranger file and task recipe, followed by the list terminator.
+///
+/// Entry 18 loads global file 401800 and supplies task index 0 for the three
+/// matching placements. Loading and spawning borrow the list and loaded actor.
+static AreaResource _gDryfieldMotelBalconyVariant2Resources[2] = {
+    { DRYFIELD_MOTEL_BALCONY_RESOURCE_ODD_STRANGER, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_motel_balcony_801861CC[2] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+/// Variant 3's Scorpion file and task recipe, followed by the list terminator.
+///
+/// Entry 25 loads global file 102500 and selects task index 0 for the six
+/// matching placements. Loading and spawning borrow the list and loaded actor.
+static AreaResource _gDryfieldMotelBalconyVariant3Resources[2] = {
+    { DRYFIELD_MOTEL_BALCONY_RESOURCE_SCORPION, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_motel_balcony_801861E4[2] = {
-    { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
+/// Variant 7's Brain Stinger file and task recipe, followed by the list terminator.
+///
+/// Entry 3 loads global file 100300 and selects task index 0 for the two
+/// matching placements. Loading and spawning borrow the list and loaded actor.
+static AreaResource _gDryfieldMotelBalconyVariant7Resources[2] = {
+    { DRYFIELD_MOTEL_BALCONY_RESOURCE_BRAIN_STINGER, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_motel_balcony_801861FC[3] = {
-    { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105600PawnGolemTasks },
-    { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
+/// Variant 8's Pawn/Rook GOLEM file and task recipes, then the list terminator.
+///
+/// Keys 56 and 57 load global files 105600 and 205700 and select each package's
+/// task index 0. The two placements supply their own texture relocations;
+/// loading and spawning borrow this list and the loaded actor descriptors.
+static AreaResource _gDryfieldMotelBalconyVariant8Resources[3] = {
+    { DRYFIELD_MOTEL_BALCONY_RESOURCE_PAWN_GOLEM, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105600PawnGolemTasks },
+    { DRYFIELD_MOTEL_BALCONY_RESOURCE_ROOK_GOLEM, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_dryfield_motel_balcony_80186220[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017BA34, D_dryfield_motel_balcony_801861A8 },
-    { D_map_dryfield_8017BA44, D_dryfield_motel_balcony_801861B4 },
-    { D_map_dryfield_8017BA84, D_dryfield_motel_balcony_801861CC },
+    { D_map_dryfield_8017BA34, _gDryfieldMotelBalconyVariant1Resources },
+    { D_map_dryfield_8017BA44, _gDryfieldMotelBalconyVariant2Resources },
+    { D_map_dryfield_8017BA84, _gDryfieldMotelBalconyVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017BAF4, D_dryfield_motel_balcony_801861E4 },
-    { D_map_dryfield_8017BB24, D_dryfield_motel_balcony_801861FC },
+    { D_map_dryfield_8017BAF4, _gDryfieldMotelBalconyVariant7Resources },
+    { D_map_dryfield_8017BB24, _gDryfieldMotelBalconyVariant8Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1274,50 +1365,109 @@ static WorldCoordRoomAmbientEntry _gDryfieldMotelBalconyViewAmbientLevels[23] = 
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_motel_balcony_801866B8 = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Cue-2 script entry numbers in the currently loaded type-1 footstep bank.
+enum {
+    DRYFIELD_MOTEL_BALCONY_DEFAULT_WALK_ENTRY = 0x49,
+    DRYFIELD_MOTEL_BALCONY_DEFAULT_RUN_ENTRY  = 0x4B,
+    DRYFIELD_MOTEL_BALCONY_CLASS_2_WALK_ENTRY = 0x2D,
+    DRYFIELD_MOTEL_BALCONY_CLASS_2_RUN_ENTRY  = 0x2F,
+    DRYFIELD_MOTEL_BALCONY_CLASS_3_WALK_ENTRY = 0x51,
+    DRYFIELD_MOTEL_BALCONY_CLASS_3_RUN_ENTRY  = 0x53,
+    DRYFIELD_MOTEL_BALCONY_CLASS_3_JUMP_ENTRY = 0x55,
 };
 
-WorldCollisionFootstepSounds D_dryfield_motel_balcony_801866C4 = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Footstep requests shared by surface classes 0, 1 and 4..7.
+///
+/// Walk and scripted jump share a base. Cue 1 adds one; companion steps add
+/// 100. The surface records borrow this read-only table while the room is loaded.
+/// The balcony bank has no entries at either base or its cue-1 partner, so
+/// these requests produce no sound; retain the stored requests.
+/// Keep the original data-section placement despite the read-only declaration.
+static const WorldCollisionFootstepSounds _gDryfieldMotelBalconyDefaultFootstepSounds SECTION(".data") = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_BALCONY_DEFAULT_WALK_ENTRY,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_BALCONY_DEFAULT_RUN_ENTRY,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_BALCONY_DEFAULT_WALK_ENTRY,
 };
 
-WorldCollisionFootstepSounds D_dryfield_motel_balcony_801866D0 = {
-    0x10000051,
-    0x10000053,
-    0x10000055,
+/// Class 2's footstep requests, with the walk base also used for scripted jumps.
+///
+/// Cue 1 adds one; companion steps add 100. The room's surface record borrows
+/// this read-only table. Data-section placement preserves the loaded asset layout.
+static const WorldCollisionFootstepSounds _gDryfieldMotelBalconyClass2FootstepSounds SECTION(".data") = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_BALCONY_CLASS_2_WALK_ENTRY,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_BALCONY_CLASS_2_RUN_ENTRY,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_BALCONY_CLASS_2_WALK_ENTRY,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_motel_balcony_801866DC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_balcony_801866B8 },
+/// Class 3's distinct walk, run and scripted-jump footstep requests.
+///
+/// Cue 1 adds one; companion steps add 100. The room's surface record borrows
+/// this read-only table. The balcony bank has no script for the retained jump
+/// base or its cue-1 partner. Data-section placement preserves the asset layout.
+static const WorldCollisionFootstepSounds _gDryfieldMotelBalconyClass3FootstepSounds SECTION(".data") = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_BALCONY_CLASS_3_WALK_ENTRY,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_BALCONY_CLASS_3_RUN_ENTRY,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_MOTEL_BALCONY_CLASS_3_JUMP_ENTRY,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_motel_balcony_801866E4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_balcony_801866B8 },
+/// Blocking, impact-enabled surface shared by classes 0 and 4..7.
+static WorldCollisionSurfaceProperties _gDryfieldMotelBalconyDefaultSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldMotelBalconyDefaultFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_motel_balcony_801866EC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_balcony_801866C4 },
+/// Class 1's probe-pass surface, with no weapon impacts but ordinary pushback.
+static WorldCollisionSurfaceProperties _gDryfieldMotelBalconyProbePassSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldMotelBalconyDefaultFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_motel_balcony_801866F4[2] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_balcony_801866D0 },
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_motel_balcony_801866B8 },
+/// Class 2's blocking, impact-enabled surface and its distinct footstep requests.
+static WorldCollisionSurfaceProperties _gDryfieldMotelBalconyClass2Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldMotelBalconyClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_motel_balcony_80186704[8] = {
-    D_dryfield_motel_balcony_801866DC,
-    D_dryfield_motel_balcony_801866E4,
-    D_dryfield_motel_balcony_801866EC,
-    D_dryfield_motel_balcony_801866F4,
-    D_dryfield_motel_balcony_801866DC,
-    D_dryfield_motel_balcony_801866DC,
-    D_dryfield_motel_balcony_801866DC,
-    D_dryfield_motel_balcony_801866DC,
+/// Class 3's blocking surface at entry zero and an unreferenced second record.
+///
+/// The class directory selects only entry zero. Entry one's default-footstep
+/// record is retained in place; its role and relationship to entry zero are
+/// unproven. Neither record is a surface-class-indexed array or a terminator.
+static WorldCollisionSurfaceProperties _gDryfieldMotelBalconyClass3Surfaces[2] = {
+    {
+        .field_0             = 0,
+        .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+        .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+        .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+        .footstepSounds      = &_gDryfieldMotelBalconyClass3FootstepSounds,
+    },
+    {
+        .field_0             = 0,
+        .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+        .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+        .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+        .footstepSounds      = &_gDryfieldMotelBalconyDefaultFootstepSounds,
+    },
+};
+
+WorldCollisionSurfaceProperties* gDryfieldMotelBalconySurfaceClasses[8] = {
+    &_gDryfieldMotelBalconyDefaultSurface,
+    &_gDryfieldMotelBalconyProbePassSurface,
+    &_gDryfieldMotelBalconyClass2Surface,
+    &_gDryfieldMotelBalconyClass3Surfaces[0],
+    &_gDryfieldMotelBalconyDefaultSurface,
+    &_gDryfieldMotelBalconyDefaultSurface,
+    &_gDryfieldMotelBalconyDefaultSurface,
+    &_gDryfieldMotelBalconyDefaultSurface,
 };
 
 RoomEventMsg gRoomEventMsg = { 0 };
@@ -1364,7 +1514,7 @@ static s32 _dryfieldMotelBalconyRoomActionMsg(Task* task, s32 messageId, s32 fir
 /// loaded while the registered receiver can be messaged.
 static void _dryfieldMotelBalconyInitRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_motel_balcony_8018227C;
+    task->msgTable = _gDryfieldMotelBalconyRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -1374,18 +1524,23 @@ static void _dryfieldMotelBalconyIdleState(Task* task)
 {
 }
 
-/// The room task's three states: setup, idle and exit.
-static const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
-    _dryfieldMotelBalconyInitRoomTask,
-    _dryfieldMotelBalconyIdleState,
-    taskKill,
+/// Room lifecycle callbacks at state 0 (register messages), 1 (idle) and 2 (kill).
+///
+/// Dispatch copies all three function pointers by value before indexing state;
+/// the state must be in 0..2 and this room's callbacks must remain loaded.
+static const TaskFuncTable3 _gDryfieldMotelBalconyRoomTaskStates = {
+    .funcs = {
+        _dryfieldMotelBalconyInitRoomTask,
+        _dryfieldMotelBalconyIdleState,
+        taskKill,
+    },
 };
 
 void dryfieldMotelBalconyRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_dryfield_motel_balcony_8017D5DC;
+    handlers = _gDryfieldMotelBalconyRoomTaskStates;
     handlers.funcs[task->state](task);
 }
 
