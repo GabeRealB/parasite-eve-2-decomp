@@ -4,14 +4,14 @@
 // packages, and marker models in the map pictures. Each lives in a package
 // loaded at a slot of its own, so each is absolute.
 shelter1fParkingGarageRoomTask = 0x8017DF14; // type:func absolute:True owner=shelter_1f_parking_garage shared=rooms
-D_shelter_1f_parking_garage_80180C64 = 0x80180C64; // absolute:True owner=shelter_1f_parking_garage shared=rooms
-D_shelter_1f_parking_garage_80180C74 = 0x80180C74; // absolute:True owner=shelter_1f_parking_garage
-D_shelter_1f_parking_garage_80180C7C = 0x80180C7C; // absolute:True owner=shelter_1f_parking_garage
-D_shelter_1f_parking_garage_80180C80 = 0x80180C80; // absolute:True owner=shelter_1f_parking_garage
-D_shelter_1f_parking_garage_80180C84 = 0x80180C84; // absolute:True owner=shelter_1f_parking_garage
-D_shelter_1f_parking_garage_8018100C = 0x8018100C; // absolute:True owner=shelter_1f_parking_garage
-D_shelter_1f_parking_garage_80181430 = 0x80181430; // absolute:True owner=shelter_1f_parking_garage
-D_shelter_1f_parking_garage_80181954 = 0x80181954; // absolute:True owner=shelter_1f_parking_garage shared=rooms
+gShelter1fParkingGarageCollisionRooms = 0x80180C64; // absolute:True owner=shelter_1f_parking_garage shared=rooms
+gShelter1fParkingGarageRoomLighting = 0x80180C74; // absolute:True owner=shelter_1f_parking_garage
+gShelter1fParkingGarageViewMaps = 0x80180C7C; // absolute:True owner=shelter_1f_parking_garage
+gShelter1fParkingGarageViewCounts = 0x80180C80; // absolute:True owner=shelter_1f_parking_garage
+gShelter1fParkingGarageWarps = 0x80180C84; // absolute:True owner=shelter_1f_parking_garage
+gShelter1fParkingGarageViewCameras = 0x8018100C; // absolute:True owner=shelter_1f_parking_garage
+gShelter1fParkingGarageSpriteViews = 0x80181430; // absolute:True owner=shelter_1f_parking_garage
+gShelter1fParkingGarageSurfaceProperties = 0x80181954; // absolute:True owner=shelter_1f_parking_garage shared=rooms
 shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask = 0x8017D5E4; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 shelter1fVehicularAirlockRoomTask = 0x8017DA48; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 gShelter1fVehicularAirlockModel03A58 = 0x80182004; // absolute:True owner=shelter_1f_vehicular_airlock shared=rooms

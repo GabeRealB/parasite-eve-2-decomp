@@ -63,11 +63,8 @@ static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply
 extern u8 D_shelter_1f_parking_garage_80181984;
 
 extern TaskDesc         D_shelter_1f_parking_garage_80180BA0;
-extern TaskDesc         D_shelter_1f_parking_garage_80180BAC;
 extern TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[];
 extern TaskDesc         D_shelter_1f_parking_garage_80180BE0;
-extern SVECTOR          D_shelter_1f_parking_garage_80180BFC[];
-extern SVECTOR          D_shelter_1f_parking_garage_80180C4C[];
 
 extern ScreenFade       gRoomEventFade;
 extern ScreenFade       D_shelter_1f_parking_garage_80181978;
@@ -78,11 +75,11 @@ extern RoomLatchedEvent gRoomEventLatched;
 static void _shelter1fParkingGarageInitializeRoom(Task* task);
 static void _shelter1fParkingGarageIdle(Task* task);
 
-extern WorldCollisionGrid         D_shelter_1f_parking_garage_80180FE8[1];
-extern WorldCollisionTrigger      D_shelter_1f_parking_garage_801815F8[4];
-extern WorldCollisionTrigger      D_shelter_1f_parking_garage_80181728[5];
-extern WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5];
-extern WorldCoordRoomLights       D_shelter_1f_parking_garage_801815E0[1];
+static WorldCollisionGrid         _gShelter1fParkingGarageCollisionGrid;
+static WorldCollisionTrigger      _gShelter1fParkingGarageViewBoundaryTriggers[4];
+static WorldCollisionTrigger      _gShelter1fParkingGarageActionTriggers[5];
+static WorldCoordRoomAmbientEntry _gShelter1fParkingGarageViewAmbientMinima[SHELTER_1F_PARKING_GARAGE_VIEW_COUNT + 1];
+static WorldCoordRoomLights       _gShelter1fParkingGarageLights;
 
 static s32  _shelter1fParkingGarageRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 static s32  _shelter1fParkingGarageResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
@@ -98,7 +95,11 @@ enum {
 
 TaskDesc D_shelter_1f_parking_garage_80180BA0 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
 
-TaskDesc D_shelter_1f_parking_garage_80180BAC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Bodyless priority-32 recipe for the latched garage-to-airlock scene.
+///
+/// Spawn payloads are unused. Keep the latched destination/event records and
+/// callback code loaded and stable through the staged departure.
+static TaskDesc _gShelter1fParkingGarageStagedEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fParkingGarageResolveRoomEvent },
@@ -110,201 +111,271 @@ TaskMessageEntry D_shelter_1f_parking_garage_80180BB8[5] = {
 
 TaskDesc D_shelter_1f_parking_garage_80180BE0 = { { { TASK_BODY_NONE, 32 } }, _shelter1fParkingGarageUndergroundDepartureTask, { .value = 0 } };
 
-SVECTOR D_shelter_1f_parking_garage_80180BEC[2] = {
-    { 400, -3090, 1790, 0 },
-    { 1600, -3090, 1790, 0 },
-};
+/// Six ceiling capsule pairs and a red disc centre, in room-world game units.
+typedef struct {
+    SVECTOR capsuleEndpoints[12]; // Six consecutive pairs along the two ceiling rows
+    SVECTOR discCenter;           // Red disc centre, visible in mapped view 4
+} _Shelter1fParkingGarageGlowPoints;
+STATIC_ASSERT_SIZEOF(_Shelter1fParkingGarageGlowPoints, 0x68);
 
-SVECTOR D_shelter_1f_parking_garage_80180BFC[10] = {
-    { 4400, -3090, 1790, 0 },
-    { 5600, -3090, 1790, 0 },
-    { 8400, -3090, 1790, 0 },
-    { 9600, -3090, 1790, 0 },
-    { 400, -3090, -1790, 0 },
-    { 1600, -3090, -1790, 0 },
-    { 4400, -3090, -1790, 0 },
-    { 5600, -3090, -1790, 0 },
-    { 8400, -3090, -1790, 0 },
-    { 9600, -3090, -1790, 0 },
-};
-
-SVECTOR D_shelter_1f_parking_garage_80180C4C[1] = {
+/// Fixed garage glow geometry; view 2 draws pairs 1/2/4/5, view 4 draws 0/3 and the disc.
+static _Shelter1fParkingGarageGlowPoints _gShelter1fParkingGarageGlowPoints = {
+    {
+        { 400, -3090, 1790, 0 },
+        { 1600, -3090, 1790, 0 },
+        { 4400, -3090, 1790, 0 },
+        { 5600, -3090, 1790, 0 },
+        { 8400, -3090, 1790, 0 },
+        { 9600, -3090, 1790, 0 },
+        { 400, -3090, -1790, 0 },
+        { 1600, -3090, -1790, 0 },
+        { 4400, -3090, -1790, 0 },
+        { 5600, -3090, -1790, 0 },
+        { 8400, -3090, -1790, 0 },
+        { 9600, -3090, -1790, 0 },
+    },
     { 2000, -2130, 2230, 0 },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_shelter_1f_parking_garage_80180C64[1] = {
-    { D_shelter_1f_parking_garage_80180FE8, D_shelter_1f_parking_garage_801815F8, D_shelter_1f_parking_garage_80181728, NULL },
+WorldCollisionRoomResources gShelter1fParkingGarageCollisionRooms[1] = {
+    { &_gShelter1fParkingGarageCollisionGrid, _gShelter1fParkingGarageViewBoundaryTriggers, _gShelter1fParkingGarageActionTriggers, NULL },
 };
 
-WorldCoordRoomLighting D_shelter_1f_parking_garage_80180C74[1] = {
-    { D_shelter_1f_parking_garage_801815E0, D_shelter_1f_parking_garage_801818A4 },
+WorldCoordRoomLighting gShelter1fParkingGarageRoomLighting[1] = {
+    { &_gShelter1fParkingGarageLights, _gShelter1fParkingGarageViewAmbientMinima },
 };
 
-u8* D_shelter_1f_parking_garage_80180C7C[1] = {
+u8* gShelter1fParkingGarageViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_1f_parking_garage_80180C80[1] = { 4 };
+ViewCount gShelter1fParkingGarageViewCounts[1] = { SHELTER_1F_PARKING_GARAGE_VIEW_COUNT };
 
-DirectionWarpEntry D_shelter_1f_parking_garage_80180C84[2] = {
-    { { { .word = 3072 }, 8564, 0, -1341 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9100, 0, -1560 }, { 0, 0, 0, 0 }, 0x55010003, 0x55010004, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING },
-    { { { .word = 2048 }, 2000, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2000, 0, 1700 }, { 0, 0, 0, 0 }, 0x55010002, 0x55010001, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelter1fParkingGarageWarps[2] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 8564, 0, -1341 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 9100, 0, -1560 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_PARKING_GARAGE, 3), SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_PARKING_GARAGE, 4), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 2000, 0, 1700 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 2000, 0, 1700 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_PARKING_GARAGE, 2), SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_PARKING_GARAGE, 1), DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelter1fParkingGarageCollision03A28Normals[11] = {
+/// Q12 face normals of the garage collision mesh.
+static SVECTOR _gShelter1fParkingGarageCollisionGridNormals[11] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_normals.inc"
 };
 
-static SVECTOR _gShelter1fParkingGarageCollision03A28Verts[34] = {
+/// Signed room-local game-coordinate vertices of the garage collision mesh.
+static SVECTOR _gShelter1fParkingGarageCollisionGridVerts[34] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelter1fParkingGarageCollision03A28Faces[13] = {
+/// Thirteen indexed garage collision faces; the floor uses surface class 1.
+static WorldCollisionGridFace _gShelter1fParkingGarageCollisionGridFaces[13] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_faces.inc"
 };
 
-static s16 _gShelter1fParkingGarageCollision03A28Cells[88] = {
+/// Signed face-index lists for collision cells, ending at WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelter1fParkingGarageCollisionGridCells[88] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fParkingGarageCollision03A28Cells[i])
-static s16* _gShelter1fParkingGarageCollision03A28Table[16] = {
+#define GRID_CELL(i) (&_gShelter1fParkingGarageCollisionGridCells[i])
+/// X-major 4-by-4 cell directory; NULL entries have no collision faces.
+static s16* _gShelter1fParkingGarageCollisionGridTable[16] = {
 #include "assets/shelter_1f_parking_garage_collision_03A28_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_1f_parking_garage_80180FE8[1] = {
-    { NULL, _gShelter1fParkingGarageCollision03A28Normals, _gShelter1fParkingGarageCollision03A28Verts, _gShelter1fParkingGarageCollision03A28Faces, _gShelter1fParkingGarageCollision03A28Table, 500, 6250, 4, 4, 4000, 13 },
+/// Garage floor/wall mesh indexed by a 4-by-4 XZ grid of 4000-game-unit cells.
+///
+/// The grid origin is (-500, -6250). Gameplay binds the mutable view coordinate;
+/// all mesh pools and cell face lists live in this room overlay.
+static WorldCollisionGrid _gShelter1fParkingGarageCollisionGrid = {
+    NULL,
+    _gShelter1fParkingGarageCollisionGridNormals,
+    _gShelter1fParkingGarageCollisionGridVerts,
+    _gShelter1fParkingGarageCollisionGridFaces,
+    _gShelter1fParkingGarageCollisionGridTable,
+    500,
+    6250,
+    4,
+    4,
+    4000,
+    ARRAY_SIZE(_gShelter1fParkingGarageCollisionGridFaces),
 };
 
-ViewCamera D_shelter_1f_parking_garage_8018100C[4] = {
+ViewCamera gShelter1fParkingGarageViewCameras[SHELTER_1F_PARKING_GARAGE_VIEW_COUNT] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5334, 0 } }, 207 },
     { { { { 1016, 0, -3967 }, { 94, 4094, 24 }, { 3966, -97, 1016 } }, { -140, 1010, 1370 } }, 257 },
     { { { { 270, 0, -4087 }, { -2037, 3551, -134 }, { 3543, 2041, 234 } }, { -4450, 3000, -1030 } }, 257 },
     { { { { 829, 0, 4011 }, { 1836, 3641, -379 }, { -3565, 1875, 737 } }, { -6440, 3350, 790 } }, 257 },
 };
 
-SpriteBatch D_shelter_1f_parking_garage_8018109C[2] = {
+/// Opaque/transparent split indices in the two populated sprite views.
+enum {
+    SHELTER_1F_PARKING_GARAGE_VIEW2_OPAQUE_SPRITES = 10,
+    SHELTER_1F_PARKING_GARAGE_VIEW3_OPAQUE_SPRITES = 21,
+};
+
+/// Empty mapped-view-1 sprite list; the zero first count enables background strips.
+static SpriteBatch _gShelter1fParkingGarageView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_parking_garage_801810AC[13] = {
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, 8, 2250, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, -16, 2125, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, 16, 2125, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -8, -16, 1975, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, 0, 1975, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 0, 8, 1875, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, 8, 1875, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -24, 8, 1875, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 32, 8, 1875, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, -16, 2000, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -8, -16, 1937, { .fields = { 104, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 32, 16 } }, 8, -16, 1925, { .fields = { 88, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 24 } }, 40, -16, 1950, { .fields = { 120, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// Mapped-view-2 foreground rectangles: ten opaque and three semitransparent sprites.
+///
+/// Positions and dimensions are pixels relative to the view centre; depths
+/// are OT sorting values. Batch ranges select elements with no source sentinel.
+static SpriteSource _gShelter1fParkingGarageView2SpriteSources[13] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 48, 8, 2250, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 40, -16, 2125, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 40, 16, 2125, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -8, -16, 1975, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -8, 0, 1975, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 0, 8, 1875, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 16, 8, 1875, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -24, 8, 1875, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 32, 8, 1875, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 32, -16, 2000, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -8, -16, 1937, { .fields = { 104, 40 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 32, 16 } }, 8, -16, 1925, { .fields = { 88, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 24 } }, 40, -16, 1950, { .fields = { 120, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_1f_parking_garage_801811B0[4] = {
+/// Background-strip selector, opaque range, transparent range and end for view 2.
+static SpriteBatch _gShelter1fParkingGarageView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 1, 0 } },
-    { 10, 3, 0, 0, { 0, 0 } },
+    { 0, SHELTER_1F_PARKING_GARAGE_VIEW2_OPAQUE_SPRITES, 0, 0, { 1, 0 } },
+    { SHELTER_1F_PARKING_GARAGE_VIEW2_OPAQUE_SPRITES, ARRAY_SIZE(_gShelter1fParkingGarageView2SpriteSources) - SHELTER_1F_PARKING_GARAGE_VIEW2_OPAQUE_SPRITES, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_parking_garage_801811D0[28] = {
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, 40, -64, 1125, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 32, -56, 1375, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, -56, 1125, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 24, -48, 1500, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 32, -48, 1375, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 40, -48, 950, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 72, -48, 950, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 104, -48, 950, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 112, -48, 950, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 120, -48, 950, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 128, -40, 950, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 64, 0, 875, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, 64, 56, 875, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 104, 56, 875, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 152, 40, 750, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 144, 32, 750, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 136, 16, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 128, 0, 875, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 120, 0, 875, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 0, 875, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, 0, 875, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 128, -40, 950, { .fields = { 64, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 120, -40, 950, { .fields = { 64, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 112, -40, 966, { .fields = { 64, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 104, -40, 870, { .fields = { 56, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 96, -40, 900, { .fields = { 56, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 32 } }, 88, -40, 900, { .fields = { 56, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 56, 32 } }, 32, -40, 900, { .fields = { 8, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// Mapped-view-3 foreground rectangles: 21 opaque and seven semitransparent sprites.
+///
+/// Positions and dimensions are pixels relative to the view centre; depths
+/// are OT sorting values. Batch ranges select elements with no source sentinel.
+static SpriteSource _gShelter1fParkingGarageView3SpriteSources[28] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 72, 8 } }, 40, -64, 1125, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, 32, -56, 1375, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 104, -56, 1125, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 24, -48, 1500, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 32, -48, 1375, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, 40, -48, 950, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, 72, -48, 950, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 104, -48, 950, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 112, -48, 950, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 120, -48, 950, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 128, -40, 950, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 56 } }, 64, 0, 875, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 64 } }, 64, 56, 875, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, 104, 56, 875, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 152, 40, 750, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 144, 32, 750, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 96 } }, 136, 16, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 128, 0, 875, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 120, 0, 875, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 112, 0, 875, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 104, 0, 875, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 128, -40, 950, { .fields = { 64, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 120, -40, 950, { .fields = { 64, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 112, -40, 966, { .fields = { 64, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 104, -40, 870, { .fields = { 56, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 96, -40, 900, { .fields = { 56, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 8, 32 } }, 88, -40, 900, { .fields = { 56, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, 0, 960, 0), getClut(0, 256), { .fields = { 56, 32 } }, 32, -40, 900, { .fields = { 8, 80 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_1f_parking_garage_80181400[4] = {
+/// Background-strip selector, opaque range, transparent range and end for view 3.
+static SpriteBatch _gShelter1fParkingGarageView3SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 1, 0 } },
-    { 21, 7, 0, 0, { 0, 0 } },
+    { 0, SHELTER_1F_PARKING_GARAGE_VIEW3_OPAQUE_SPRITES, 0, 0, { 1, 0 } },
+    { SHELTER_1F_PARKING_GARAGE_VIEW3_OPAQUE_SPRITES, ARRAY_SIZE(_gShelter1fParkingGarageView3SpriteSources) - SHELTER_1F_PARKING_GARAGE_VIEW3_OPAQUE_SPRITES, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_parking_garage_80181420[2] = {
+/// Empty mapped-view-4 sprite list; the zero first count enables background strips.
+static SpriteBatch _gShelter1fParkingGarageView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_1f_parking_garage_80181430[4] = {
-    { { .empty = D_shelter_1f_parking_garage_8018109C }, D_shelter_1f_parking_garage_8018109C, NULL },
-    { { .elements = D_shelter_1f_parking_garage_801810AC }, D_shelter_1f_parking_garage_801811B0, NULL },
-    { { .elements = D_shelter_1f_parking_garage_801811D0 }, D_shelter_1f_parking_garage_80181400, NULL },
-    { { .empty = D_shelter_1f_parking_garage_80181420 }, D_shelter_1f_parking_garage_80181420, NULL },
+SpriteView gShelter1fParkingGarageSpriteViews[SHELTER_1F_PARKING_GARAGE_VIEW_COUNT] = {
+    { { .empty = _gShelter1fParkingGarageView1SpriteBatches }, _gShelter1fParkingGarageView1SpriteBatches, NULL },
+    { { .elements = _gShelter1fParkingGarageView2SpriteSources }, _gShelter1fParkingGarageView2SpriteBatches, NULL },
+    { { .elements = _gShelter1fParkingGarageView3SpriteSources }, _gShelter1fParkingGarageView3SpriteBatches, NULL },
+    { { .empty = _gShelter1fParkingGarageView4SpriteBatches }, _gShelter1fParkingGarageView4SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_1f_parking_garage_80181460[4] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2500, 4096 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2130, 1990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 1638, 1638 }, { 0, 0 } }, 1000, 2001 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9000, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2500, 4096 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2000, 4096 },
+/// Four all-view point lights: three amber ceiling lights and one red light.
+///
+/// Positions and falloff distances use world game units; RGB intensities use
+/// Q12. Gameplay reparents/composes coordinates and overwrites attenuation.
+static WorldCoordPointLight _gShelter1fParkingGaragePointLights[4] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2500, 4096 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2130, 1990 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 1638, 1638 }, { 0, 0 } }, 1000, 2001 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9000, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2500, 4096 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 1638, 1064 }, { 0, 0 } }, 2000, 4096 },
 };
 
-WorldCoordRoomLights D_shelter_1f_parking_garage_801815E0[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_1f_parking_garage_80181460), D_shelter_1f_parking_garage_80181460, 0, NULL },
+/// The garage's counted point-light collection, with no directional or cone lights.
+static WorldCoordRoomLights _gShelter1fParkingGarageLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gShelter1fParkingGaragePointLights),
+    _gShelter1fParkingGaragePointLights,
+    0,
+    NULL,
 };
 
-WorldCollisionTrigger D_shelter_1f_parking_garage_801815F8[4] = {
+/// Directed boundaries linking views 2/4 and 2/3; the final quad carries LAST.
+///
+/// Gameplay borrows mutable nodes, parents them to the view and links/enables
+/// every entry. Quad geometry uses room game units and Q12 normals.
+static WorldCollisionTrigger _gShelter1fParkingGarageViewBoundaryTriggers[4] = {
     { NULL, NULL, NULL, { 3453, -3344, 314, 0 }, { { -503, -3680, -4249, 0 }, { 498, -3680, 4245, 0 }, { -503, 3680, -4249, 0 }, { 498, 3680, 4245, 0 } }, { 4068, 0, -480, 0 }, { 0, 0, 4096, 0 }, 5632, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3640, -3392, 347, 0 }, { { 479, -3696, 4156, 0 }, { -488, -3696, -4164, 0 }, { 479, 3696, 4156, 0 }, { -488, 3696, -4164, 0 } }, { -4077, 0, 473, 0 }, { 0, 0, 4096, 0 }, 5585, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 7056, -3297, 2400, 0 }, { { 432, -3760, 1920, 0 }, { -432, -3760, -1920, 0 }, { 432, 3760, 1920, 0 }, { -432, 3760, -1920, 0 } }, { -3997, 0, 899, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 6943, -3394, 2560, 0 }, { { -448, -3696, -2000, 0 }, { 448, -3696, 2000, 0 }, { -448, 3697, -2000, 0 }, { 448, 3697, 2000, 0 } }, { 4004, 0, -898, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_1f_parking_garage_80181728[5] = {
-    { NULL, NULL, NULL, { 8560, -64, -928, 0 }, { { -1680, 0, -480, 0 }, { 1680, 0, -480, 0 }, { -1680, 0, 480, 0 }, { 1680, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1745, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2016, -48, 1568, 0 }, { { -496, 0, -256, 0 }, { 496, 0, -256, 0 }, { -496, 0, 256, 0 }, { 496, 0, 256, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 557, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Underground travel action selected by both quads beside its departure point.
+enum { SHELTER_1F_PARKING_GARAGE_ACTION_UNDERGROUND_TRAVEL = 10 };
+
+/// Five facing-gated quads for underground travel, the airlock warp and CAP scenes.
+///
+/// Two quads send room action 10 with argument 20; the others select airlock
+/// area 5 (departure slot 2, arrival slot 1) and CAP commands 1/4. Mutable
+/// list nodes remain room-owned until unlinked; the final entry carries LAST.
+static WorldCollisionTrigger _gShelter1fParkingGarageActionTriggers[5] = {
+    { NULL, NULL, NULL, { 8560, -64, -928, 0 }, { { -1680, 0, -480, 0 }, { 1680, 0, -480, 0 }, { -1680, 0, 480, 0 }, { 1680, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1745, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_PARKING_GARAGE_ACTION_UNDERGROUND_TRAVEL, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2016, -48, 1568, 0 }, { { -496, 0, -256, 0 }, { 496, 0, -256, 0 }, { -496, 0, 256, 0 }, { 496, 0, 256, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 557, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_1F_AIRLOCK, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -96, -64, -80, 0 }, { { -496, 0, -1904, 0 }, { 496, 0, -1904, 0 }, { -496, 0, 1904, 0 }, { 496, 0, 1904, 0 } }, { 0, 4100, 0, 0 }, { 4090, 0, 200, 0 }, 1966, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8544, 0, 1024, 0 }, { { -1680, 0, -480, 0 }, { 1680, 0, -480, 0 }, { -1680, 0, 480, 0 }, { 1680, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1745, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8544, 0, 1024, 0 }, { { -1680, 0, -480, 0 }, { 1680, 0, -480, 0 }, { -1680, 0, 480, 0 }, { 1680, 0, 480, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1745, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_1F_PARKING_GARAGE_ACTION_UNDERGROUND_TRAVEL, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 0x2870, -64, 0, 0 }, { { -576, 0, -2656, 0 }, { 576, 0, -2656, 0 }, { -576, 0, 2656, 0 }, { 576, 0, 2656, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 2709, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_1f_parking_garage_801818A4[5] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_1f_parking_garage_801818A4) - 1 },
+/// View-count header followed by four ambient RGB/luma minima, at 16 units per level.
+///
+/// View 1 uses (16,16,16); views 2..4 use (250,250,250). Lighting only reads
+/// this room-owned table; the fourth halfword retains the weighted luma.
+static WorldCoordRoomAmbientEntry _gShelter1fParkingGarageViewAmbientMinima[SHELTER_1F_PARKING_GARAGE_VIEW_COUNT + 1] = {
+    { .viewCount = ARRAY_SIZE(_gShelter1fParkingGarageViewAmbientMinima) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 250, 250, 250, 250 } },
     { .color = { 250, 250, 250, 250 } },
     { .color = { 250, 250, 250, 250 } },
 };
 
-AreaResource D_shelter_1f_parking_garage_801818CC[1] = {
+/// Terminator-only actor-resource list for the default placement variant.
+///
+/// The variant supplies no spawnable or loading-only actor resources.
+static AreaResource _gShelter1fParkingGarageEmptyAreaResources[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_shelter_1f_parking_garage_801818D8[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017AEC0, D_shelter_1f_parking_garage_801818CC },
+    { D_map_neo_ark_8017AEC0, _gShelter1fParkingGarageEmptyAreaResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -317,29 +388,49 @@ AreaVariant D_shelter_1f_parking_garage_801818D8[12] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_shelter_1f_parking_garage_80181938 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Paired-cue bases in the currently loaded type-1 sound bank.
+enum {
+    SHELTER_1F_PARKING_GARAGE_WALK_FOOTSTEP_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 65,
+    SHELTER_1F_PARKING_GARAGE_RUN_FOOTSTEP_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 67,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_parking_garage_80181944[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class-1 footstep cue bases in the currently loaded type-1 sound bank.
+///
+/// Walking and scripted jumps use entry 65; running uses entry 67. Cue 1 adds
+/// one to the base and companions add 100; surface records borrow this table.
+static WorldCollisionFootstepSounds _gShelter1fParkingGarageFloorFootstepSounds = {
+    SHELTER_1F_PARKING_GARAGE_WALK_FOOTSTEP_BASE,
+    SHELTER_1F_PARKING_GARAGE_RUN_FOOTSTEP_BASE,
+    SHELTER_1F_PARKING_GARAGE_WALK_FOOTSTEP_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_parking_garage_8018194C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_parking_garage_80181938 },
+/// Blocking, impact-enabled surface with pushback and no footsteps (classes 0/2..7).
+static WorldCollisionSurfaceProperties _gShelter1fParkingGarageBlockingSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_1f_parking_garage_80181954[8] = {
-    D_shelter_1f_parking_garage_80181944,
-    D_shelter_1f_parking_garage_8018194C,
-    D_shelter_1f_parking_garage_80181944,
-    D_shelter_1f_parking_garage_80181944,
-    D_shelter_1f_parking_garage_80181944,
-    D_shelter_1f_parking_garage_80181944,
-    D_shelter_1f_parking_garage_80181944,
-    D_shelter_1f_parking_garage_80181944,
+/// Class-1 floor policy: blocks probes, enables impacts/pushback and supplies footsteps.
+static WorldCollisionSurfaceProperties _gShelter1fParkingGarageFloorSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gShelter1fParkingGarageFloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelter1fParkingGarageSurfaceProperties[8] = {
+    &_gShelter1fParkingGarageBlockingSurface,
+    &_gShelter1fParkingGarageFloorSurface,
+    &_gShelter1fParkingGarageBlockingSurface,
+    &_gShelter1fParkingGarageBlockingSurface,
+    &_gShelter1fParkingGarageBlockingSurface,
+    &_gShelter1fParkingGarageBlockingSurface,
+    &_gShelter1fParkingGarageBlockingSurface,
+    &_gShelter1fParkingGarageBlockingSurface,
 };
 
 ScreenFade gRoomEventFade = { 0 };
@@ -388,7 +479,7 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(const RoomEventMsg* mess
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BAC, 0, 0, 0);
+            taskSpawnFromTable(&_gShelter1fParkingGarageStagedEventTaskDesc, 0, 0, 0);
             D_shelter_1f_parking_garage_80181984 = true;
         }
         return ROOM_EVENT_DEPARTURE_HANDLED;
@@ -631,7 +722,7 @@ void shelter1fParkingGarageDrawViewGlowsTask(Task* task)
     mappedView = viewGetMappedIndex();
     switch (mappedView) {
         case 2: {
-            const SVECTOR* capsulePoints = D_shelter_1f_parking_garage_80180BFC;
+            const SVECTOR* capsulePoints = &_gShelter1fParkingGarageGlowPoints.capsuleEndpoints[2];
             _glowDrawAngledCapsule(&capsulePoints[0], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
             _glowDrawAngledCapsule(&capsulePoints[2], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
             _glowDrawAngledCapsule(&capsulePoints[6], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
@@ -639,11 +730,11 @@ void shelter1fParkingGarageDrawViewGlowsTask(Task* task)
             break;
         }
         case 4: {
-            const SVECTOR* discPoint = D_shelter_1f_parking_garage_80180C4C;
+            const SVECTOR* discPoint = &_gShelter1fParkingGarageGlowPoints.discCenter;
             _glowDrawFactorDisc(discPoint, GLOWS_DISC_RADIUS_SCALE, GLOWS_DISC_COLOR_FACTORS);
-            // The image addresses both preceding capsule pairs from this shared disc base.
-            _glowDrawAngledCapsule(&discPoint[-12], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
-            _glowDrawAngledCapsule(&discPoint[-6], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
+            // Recover the complete glow geometry from its disc centre.
+            _glowDrawAngledCapsule(&PARENT_OF(discPoint, _Shelter1fParkingGarageGlowPoints, discCenter)->capsuleEndpoints[0], GLOWS_CAPSULE_RADIUS_SCALE, GLOW_HALF_TURN, GLOWS_CAPSULE_COLOR_FACTORS);
+            _glowDrawAngledCapsule(&PARENT_OF(discPoint, _Shelter1fParkingGarageGlowPoints, discCenter)->capsuleEndpoints[6], GLOWS_CAPSULE_RADIUS_SCALE, 0, GLOWS_CAPSULE_COLOR_FACTORS);
             break;
         }
     }

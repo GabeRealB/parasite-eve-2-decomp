@@ -13,22 +13,51 @@
 
 extern AreaVariant D_shelter_1f_parking_garage_801818D8[12];
 
-// shelter_1f_parking_garage
-extern WorldCollisionRoomResources D_shelter_1f_parking_garage_80180C64[];
+/// Logical views and identity-mapped camera/image/sprite slots in the garage.
+enum { SHELTER_1F_PARKING_GARAGE_VIEW_COUNT = 4 };
 
-extern WorldCoordRoomLighting D_shelter_1f_parking_garage_80180C74[];
+/// Room-1 collision mesh, view boundaries and interactions, with no sight occluders.
+///
+/// Gameplay borrows and mutates the grid and trigger lists while this overlay
+/// is loaded; unlink the lists before unloading the room.
+extern WorldCollisionRoomResources gShelter1fParkingGarageCollisionRooms[1];
 
-extern u8* D_shelter_1f_parking_garage_80180C7C[];
+/// Room-1 lighting: four point lights and minimum ambient colours for four views.
+///
+/// Light coordinates and attenuation remain writable while the room is loaded.
+extern WorldCoordRoomLighting gShelter1fParkingGarageRoomLighting[1];
 
-extern ViewCount D_shelter_1f_parking_garage_80180C80[];
+/// Room-1 logical views 1..4 mapped to identical camera, image and sprite slots.
+///
+/// The room-owned directory borrows gameplay's `gViewIdentityMap`.
+extern u8* gShelter1fParkingGarageViewMaps[1];
 
-extern DirectionWarpEntry D_shelter_1f_parking_garage_80180C84[];
+/// Room-1 logical-view count, limiting reverse searches through its view map.
+extern ViewCount gShelter1fParkingGarageViewCounts[1];
 
-extern ViewCamera D_shelter_1f_parking_garage_8018100C[];
+/// Two 1-based arrival/departure endpoints: underground parking and the airlock.
+///
+/// Supplies player/companion placements, initial views 2 and 4, sound requests
+/// and the underground-parking map marker. Borrowed while this room is loaded.
+extern DirectionWarpEntry gShelter1fParkingGarageWarps[2];
 
-extern SpriteView D_shelter_1f_parking_garage_80181430[];
+/// Four mapped cameras with Q12 world rotations, world origins and pixel perspective.
+///
+/// Indexed by mapped view minus one; queued application requires the overlay
+/// to remain loaded until the camera is copied.
+extern ViewCamera gShelter1fParkingGarageViewCameras[SHELTER_1F_PARKING_GARAGE_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_shelter_1f_parking_garage_80181954[];
+/// Four mapped sprite views: empty views 1/4 and foreground sprites in views 2/3.
+///
+/// Indexed by mapped view minus one. All select decoded background strips;
+/// packet sources and batch lists are borrowed until drawing is finished.
+extern SpriteView gShelter1fParkingGarageSpriteViews[SHELTER_1F_PARKING_GARAGE_VIEW_COUNT];
+
+/// Eight surface-class slots: class 1 has footsteps; all block probes and allow impacts.
+///
+/// Every class permits collision pushback. The records and sound requests are
+/// borrowed from this overlay and remain valid only while it is loaded.
+extern WorldCollisionSurfaceProperties* gShelter1fParkingGarageSurfaceProperties[8];
 
 /// Runs the parking garage's room controller for one tick.
 ///
