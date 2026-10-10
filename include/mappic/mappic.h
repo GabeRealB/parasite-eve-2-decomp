@@ -156,7 +156,13 @@ extern TmdSource gMappicS202WarehouseShape;
 
 extern TmdSource D_mappic_s2_02_8012F354;
 
-extern TmdSource D_mappic_s2_02_8012F3E4;
+/// Motel room 1's area-fill quad on page 2 of the daytime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// mappic_s2_02 package loaded while these are used.
+extern TmdSource gMappicS202MotelRoom1Shape;
 
 extern TmdSource D_mappic_s2_02_8012F474;
 
@@ -351,7 +357,13 @@ extern TmdSource gMappicS302WarehouseShape;
 
 extern TmdSource D_mappic_s3_02_8012F36C;
 
-extern TmdSource D_mappic_s3_02_8012F3FC;
+/// Motel room 1's area-fill quad on page 2 of the nighttime Dryfield map.
+///
+/// Four vertices lie in the model X/Z plane; the map applies its 1495/4096
+/// page scale and maps Z to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep the
+/// mappic_s3_02 package loaded while these are used.
+extern TmdSource gMappicS302MotelRoom1Shape;
 
 extern TmdSource D_mappic_s3_02_8012F48C;
 
