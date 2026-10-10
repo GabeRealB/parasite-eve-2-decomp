@@ -18,7 +18,12 @@ extern TmdSource gKyle800101KyleMadiganHandRight;
 
 extern TmdSource D_kyle_800101_8016CED8;
 
-extern TmdSource D_kyle_800101_8016D32C;
+/// Kyle Madigan's one-part left hand in attachment pair 0 for resource variant 1.
+///
+/// Parent its root to the companion body's left-hand joint (part 8).
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800101KyleMadiganHandLeftFirstPair;
 
 extern TmdSource D_kyle_800101_8016D81C;
 
@@ -37,7 +42,12 @@ extern TmdSource gKyle800103KyleMadiganHandRight;
 
 extern TmdSource D_kyle_800103_8016CED8;
 
-extern TmdSource D_kyle_800103_8016D32C;
+/// Kyle Madigan's one-part left hand in attachment pair 0 for resource variant 3.
+///
+/// Parent its root to the companion body's left-hand joint (part 8).
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800103KyleMadiganHandLeftFirstPair;
 
 extern TmdSource D_kyle_800103_8016D81C;
 
@@ -56,7 +66,12 @@ extern TmdSource gKyle800104KyleMadiganHandRight;
 
 extern TmdSource D_kyle_800104_8016CED8;
 
-extern TmdSource D_kyle_800104_8016D32C;
+/// Kyle Madigan's one-part left hand in attachment pair 0 for resource variant 4.
+///
+/// Parent its root to the companion body's left-hand joint (part 8).
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800104KyleMadiganHandLeftFirstPair;
 
 extern TmdSource D_kyle_800104_8016D81C;
 
@@ -75,7 +90,12 @@ extern TmdSource gKyle800102KyleMadiganHandRight;
 
 extern TmdSource D_kyle_800102_8016D77C;
 
-extern TmdSource D_kyle_800102_8016DBD0;
+/// Kyle Madigan's one-part left hand in attachment pair 0 for resource variant 2.
+///
+/// Parent its root to the companion body's left-hand joint (part 8).
+/// Borrows this package's geometry and writable command stream; keep the
+/// package loaded until every model using this source has been released.
+extern TmdSource gKyle800102KyleMadiganHandLeftFirstPair;
 
 /// Kyle Madigan's one-part gun model for companion resource variant 1.
 ///

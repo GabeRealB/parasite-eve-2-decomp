@@ -121,36 +121,45 @@ TmdSource D_kyle_800103_8016CED8 = {
     _gKyle800103Kyle800101Model05174Stream,
 };
 
-static TmdBone _gKyle800103KyleMadiganLeftSkeleton[1] = {
+/// Identity rest transform for the left hand's single root, copied into each model.
+static TmdBone _gKyle800103KyleMadiganHandLeftFirstPairSkeleton[] = {
 #include "assets/kyle_madigan_left_skeleton.inc"
 };
 
-static u32 _gKyle800103KyleMadiganLeftPartVerts[1] = {
+/// Vertex count for the left hand's single part (23 vertices).
+static u32 _gKyle800103KyleMadiganHandLeftFirstPairPartVerts[] = {
 #include "assets/kyle_madigan_left_partVerts.inc"
 };
 
-static SVECTOR _gKyle800103KyleMadiganLeftVerts[23] = {
+/// Left-hand vertices in integer coordinates local to the hand root.
+static SVECTOR _gKyle800103KyleMadiganHandLeftFirstPairVerts[] = {
 #include "assets/kyle_madigan_left_verts.inc"
 };
 
-static SVECTOR _gKyle800103KyleMadiganLeftNormals[23] = {
+/// Hand lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gKyle800103KyleMadiganHandLeftFirstPairNormals[] = {
 #include "assets/kyle_madigan_left_normals.inc"
 };
 
-static u32 _gKyle800103KyleMadiganLeftStream[166] = {
+/// Writable draw commands for four textured Gouraud triangles and nineteen quads.
+///
+/// One skeletal group and an empty final group end in `TMD_STREAM_END`.
+/// First model creation resolves the command handler slots in place.
+static u32 _gKyle800103KyleMadiganHandLeftFirstPairStream[] = {
 #include "assets/kyle_madigan_left_stream.inc"
 };
 
-TmdSource D_kyle_800103_8016D32C = {
-    0,
-    1148,
-    0,
-    1,
-    _gKyle800103KyleMadiganLeftPartVerts,
-    _gKyle800103KyleMadiganLeftVerts,
-    _gKyle800103KyleMadiganLeftNormals,
-    _gKyle800103KyleMadiganLeftSkeleton,
-    _gKyle800103KyleMadiganLeftStream,
+TmdSource gKyle800103KyleMadiganHandLeftFirstPair = {
+    .handlersResolved = false,
+    .bufferHalfBytes  = (4 * sizeof(POLY_GT3)) + (19 * sizeof(POLY_GT4)),
+    // All faces transform directly from the single hand part.
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gKyle800103KyleMadiganHandLeftFirstPairSkeleton),
+    .partVertexCounts    = _gKyle800103KyleMadiganHandLeftFirstPairPartVerts,
+    .verts               = _gKyle800103KyleMadiganHandLeftFirstPairVerts,
+    .normals             = _gKyle800103KyleMadiganHandLeftFirstPairNormals,
+    .skeleton            = _gKyle800103KyleMadiganHandLeftFirstPairSkeleton,
+    .stream              = _gKyle800103KyleMadiganHandLeftFirstPairStream,
 };
 
 static TmdBone _gKyle800103KyleMadiganHandLeftSkeleton[1] = {
