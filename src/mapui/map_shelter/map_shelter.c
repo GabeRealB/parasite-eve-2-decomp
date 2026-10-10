@@ -632,7 +632,7 @@ static WorldCoordRoomLighting D_map_shelter_8017ADDC[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017ADE4[1] = {
-    { &D_shelter_b1_pod_access_tunnel_80184734, NULL },
+    { &gShelterB1PodAccessTunnelRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017ADEC[1] = {
@@ -916,7 +916,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B144[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B154[1] = {
-    { &D_shelter_b1_pod_access_tunnel_80183C24, D_shelter_b1_pod_access_tunnel_8018474C, D_shelter_b1_pod_access_tunnel_801848B8, D_shelter_b1_pod_access_tunnel_8018487C },
+    { &gShelterB1PodAccessTunnelCollisionGrid, D_shelter_b1_pod_access_tunnel_8018474C, D_shelter_b1_pod_access_tunnel_801848B8, D_shelter_b1_pod_access_tunnel_8018487C },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B164[1] = {
@@ -1145,7 +1145,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     D_shelter_b1_sleeping_quarters_80180658,
     gShelterB1MainCorridorRoomViewMaps,
     gShelterB1SterilizationRoomViewMaps,
-    D_shelter_b1_pod_access_tunnel_80183A14,
+    gShelterB1PodAccessTunnelRoomViewMaps,
     gShelterB1ControlRoomRoomViewMaps,
     gShelterB1AccessTunnelRoomViewMaps,
     D_shelter_b1_underground_parking_8018791C,
@@ -1203,7 +1203,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     D_shelter_b1_sleeping_quarters_80182E70,
     D_shelter_b1_main_corridor_80185128,
     gShelterB1SterilizationRoomSpriteViews,
-    D_shelter_b1_pod_access_tunnel_8018462C,
+    gShelterB1PodAccessTunnelSpriteViews,
     gShelterB1ControlRoomSpriteViews,
     gShelterB1AccessTunnelSpriteViews,
     D_shelter_b1_underground_parking_8018AB9C,
@@ -1257,7 +1257,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_shelter_b1_sleeping_quarters_801840B0,
     gShelterB1MainCorridorSurfacePropertiesByClass,
     gShelterB1SterilizationRoomSurfacePropertiesByClass,
-    D_shelter_b1_pod_access_tunnel_80184CDC,
+    gShelterB1PodAccessTunnelSurfacePropertiesByClass,
     gShelterB1ControlRoomSurfacePropertiesByClass,
     gShelterB1AccessTunnelSurfacePropertiesByClass,
     D_shelter_b1_underground_parking_8018D724,

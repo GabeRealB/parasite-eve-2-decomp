@@ -14,20 +14,42 @@
 
 extern AreaVariant D_shelter_b1_pod_access_tunnel_80184C00[23];
 
-// shelter_b1_pod_access_tunnel
-extern u8* D_shelter_b1_pod_access_tunnel_80183A14[];
+/// Number of mapped camera/image/sprite views in the pod access tunnel.
+enum { SHELTER_B1_POD_ACCESS_TUNNEL_VIEW_COUNT = 14 };
+
+/// The single room's logical-view map directory, borrowing `gViewIdentityMap`.
+///
+/// Room 1 maps logical views 1..14 to the same 1-based camera/image/sprite
+/// indices. No terminator; the directory requires this room overlay to stay loaded.
+extern u8* gShelterB1PodAccessTunnelRoomViewMaps[1];
 
 extern ViewCount D_shelter_b1_pod_access_tunnel_80183A18[];
 
 extern DirectionWarpEntry D_shelter_b1_pod_access_tunnel_80183A1C[];
 
-extern WorldCollisionGrid D_shelter_b1_pod_access_tunnel_80183C24;
+/// Walls, floor and ceiling of the L-shaped tunnel, indexed by a 2x2 XZ grid.
+///
+/// Ten quads borrow six Q12 normals and twelve vertices in game units. The
+/// grid starts at X=750, Z=-6500 with 4000-unit cells; class 2 is the floor,
+/// class 0 the walls and ceiling. Activation binds the view coordinate.
+/// The descriptor and its writable pools require this room overlay to stay loaded.
+extern WorldCollisionGrid gShelterB1PodAccessTunnelCollisionGrid;
 
 extern ViewCamera D_shelter_b1_pod_access_tunnel_80183C48[];
 
-extern SpriteView D_shelter_b1_pod_access_tunnel_8018462C[];
+/// Sprite sources and batches for mapped views 1..14, with no clipping areas.
+///
+/// Indexed by mapped view minus one; only views 3 and 4 have source sprites.
+/// Each batch list retains image strips through its zero-count first record
+/// and ends at SPRITE_BATCH_END. Descriptors and their mutable arrays borrow
+/// this room overlay's lifetime.
+extern SpriteView gShelterB1PodAccessTunnelSpriteViews[SHELTER_B1_POD_ACCESS_TUNNEL_VIEW_COUNT];
 
-extern WorldCoordRoomLights D_shelter_b1_pod_access_tunnel_80184734;
+/// The tunnel's model-shading lights: one white point light in every view.
+///
+/// No directional or cone lights. The point array stays writable for transform
+/// composition and attenuation queries and requires this room overlay to stay loaded.
+extern WorldCoordRoomLights gShelterB1PodAccessTunnelRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_8018474C[];
 
@@ -35,7 +57,13 @@ extern WorldCollisionOccluder D_shelter_b1_pod_access_tunnel_8018487C[];
 
 extern WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_801848B8[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_pod_access_tunnel_80184CDC[];
+/// Collision and footstep policies indexed by room-local surface class 0..7.
+///
+/// Class 1 passes probes and suppresses weapon impacts; class 2 is the floor
+/// with walk/run/jump cues. Other classes block probes, allow weapon impacts
+/// and have no footstep cues. All classes apply pushback. No terminator;
+/// records and sounds require this room overlay to stay loaded.
+extern WorldCollisionSurfaceProperties* gShelterB1PodAccessTunnelSurfacePropertiesByClass[8];
 
 /// Initializes the pod access tunnel's room controller and keeps it available for messages.
 ///

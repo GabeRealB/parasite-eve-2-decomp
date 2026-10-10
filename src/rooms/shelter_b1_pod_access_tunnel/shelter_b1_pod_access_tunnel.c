@@ -131,8 +131,6 @@ extern TaskDesc   D_shelter_b1_pod_access_tunnel_80182D2C[];
 extern EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[];
 extern EvsCommand D_shelter_b1_pod_access_tunnel_8018380C[];
 
-/// Points the room task draws its bands between, depending on the view.
-extern SVECTOR D_shelter_b1_pod_access_tunnel_801839A4[];
 extern SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[];
 
 extern RoomFadeStorage  gRoomEventFade;
@@ -557,15 +555,15 @@ EvsCommand D_shelter_b1_pod_access_tunnel_8018380C[17] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_shelter_b1_pod_access_tunnel_801839A4[8] = {
-    { 6073, -2726, -1860, 0 },
-    { 5073, -2726, -1860, 0 },
-    { 6073, -2726, -1628, 0 },
-    { 5073, -2726, -1628, 0 },
-    { 3262, -2726, -1860, 0 },
-    { 2262, -2726, -1860, 0 },
-    { 3262, -2726, -1628, 0 },
-    { 2262, -2726, -1628, 0 },
+/// Four transverse glow segments, each an ordered pair of world-space endpoints.
+///
+/// Every segment is 1000 game units along X at Y=-2726. Views 3 and 7 draw
+/// all four; view 4 draws the first two. The capsule drawer borrows one pair.
+static SVECTOR _gShelterB1PodAccessTunnelTransverseLightSegments[4][2] = {
+    { { 6073, -2726, -1860, 0 }, { 5073, -2726, -1860, 0 } },
+    { { 6073, -2726, -1628, 0 }, { 5073, -2726, -1628, 0 } },
+    { { 3262, -2726, -1860, 0 }, { 2262, -2726, -1860, 0 } },
+    { { 3262, -2726, -1628, 0 }, { 2262, -2726, -1628, 0 } },
 };
 
 SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[4] = {
@@ -577,7 +575,7 @@ SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[4] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-u8* D_shelter_b1_pod_access_tunnel_80183A14[1] = {
+u8* gShelterB1PodAccessTunnelRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -589,29 +587,51 @@ DirectionWarpEntry D_shelter_b1_pod_access_tunnel_80183A1C[3] = {
     { { { .word = 2048 }, 4530, 0, -1050 }, { 0, 0, 0, 0 }, { { .word = 3328 }, 5350, 0, -1750 }, { 0, 0, 0, 0 }, 0x54110007, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD },
 };
 
-static SVECTOR _gShelterB1PodAccessTunnelCollision06664Normals[6] = {
+/// Axis-aligned collision normals in Q12 (ONE is unit length).
+static SVECTOR _gShelterB1PodAccessTunnelCollisionGridNormals[6] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_normals.inc"
 };
 
-static SVECTOR _gShelterB1PodAccessTunnelCollision06664Verts[12] = {
+/// Tunnel boundary vertices at Y=0 and Y=-3200, in game-coordinate units.
+static SVECTOR _gShelterB1PodAccessTunnelCollisionGridVerts[12] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1PodAccessTunnelCollision06664Faces[10] = {
+/// Ten tunnel quads: class-2 floor faces and class-0 walls and ceiling.
+static WorldCollisionGridFace _gShelterB1PodAccessTunnelCollisionGridFaces[10] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_faces.inc"
 };
 
-static s16 _gShelterB1PodAccessTunnelCollision06664Cells[36] = {
+/// Signed face-index pool for four lists ending at WORLD_COLLISION_GRID_CELL_END.
+///
+/// Lists at offsets 0, 10, 20 and 30 contain 10, 9, 9 and 6 halfwords including
+/// their end markers. The stored face-zero entries at offsets 19 and 29 have
+/// no cell pointer; retain them as authored data.
+static s16 _gShelterB1PodAccessTunnelCollisionGridCells[36] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1PodAccessTunnelCollision06664Cells[i])
-static s16* _gShelterB1PodAccessTunnelCollision06664Table[4] = {
+// The generated table supplies halfword offsets into the contiguous face-index lists.
+#define GRID_CELL(i) (&_gShelterB1PodAccessTunnelCollisionGridCells[i])
+/// X-major directory for two X cells by two Z cells; all four cells are populated.
+static s16* _gShelterB1PodAccessTunnelCollisionGridTable[4] = {
 #include "assets/shelter_b1_pod_access_tunnel_collision_06664_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_pod_access_tunnel_80183C24 = { NULL, _gShelterB1PodAccessTunnelCollision06664Normals, _gShelterB1PodAccessTunnelCollision06664Verts, _gShelterB1PodAccessTunnelCollision06664Faces, _gShelterB1PodAccessTunnelCollision06664Table, -750, 6500, 2, 2, 4000, 10 };
+WorldCollisionGrid gShelterB1PodAccessTunnelCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1PodAccessTunnelCollisionGridNormals,
+    .vertices    = _gShelterB1PodAccessTunnelCollisionGridVerts,
+    .faces       = _gShelterB1PodAccessTunnelCollisionGridFaces,
+    .cellFaceIds = _gShelterB1PodAccessTunnelCollisionGridTable,
+    .xBias       = -750,
+    .zBias       = 6500,
+    .cellCountX  = 2,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1PodAccessTunnelCollisionGridFaces),
+};
 
 ViewCamera D_shelter_b1_pod_access_tunnel_80183C48[14] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4000, 0x37D3, 2550 } }, 296 },
@@ -630,17 +650,23 @@ ViewCamera D_shelter_b1_pod_access_tunnel_80183C48[14] = {
     { { { { 3985, 0, -946 }, { -429, 3649, -1809 }, { 843, 1859, 3550 } }, { -4527, 1724, 1418 } }, 251 },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_80183E40[2] = {
+/// View 1's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_80183E50[2] = {
+/// View 2's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_pod_access_tunnel_80183E60[68] = {
+/// View 3's 68 textured rectangles in view-centred pixels and authored sorting depths.
+///
+/// Batches address these elements without a source-array sentinel. RGB 128
+/// is neutral modulation; packet caching snapshots geometry and texture state.
+static SpriteSource _gShelterB1PodAccessTunnelView3SpriteSources[68] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, -16, 1004, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 32, -48, 991, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 32 } }, 32, -80, 980, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
@@ -711,18 +737,26 @@ SpriteSource D_shelter_b1_pod_access_tunnel_80183E60[68] = {
     { 143, 0x4040, { .fields = { 16, 16 } }, 32, 56, 992, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_801843B0[8] = {
+/// View 3's image-strip header, six source ranges covering all 68 sprites, and terminator.
+///
+/// Ranges start at 0, 3, 15, 19, 33 and 62; all are visible and included in
+/// cached packets. The two serialized tail bytes retain their unproven roles.
+static SpriteBatch _gShelterB1PodAccessTunnelView3SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 12, 0, 0, { 4, 0 } },
     { 15, 4, 0, 0, { 3, 0 } },
     { 19, 14, 0, 0, { 5, 0 } },
     { 33, 29, 0, 0, { 2, 0 } },
-    { 62, 6, 0, 0, { 0, 0 } },
+    { 62, ARRAY_SIZE(_gShelterB1PodAccessTunnelView3SpriteSources) - 62, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b1_pod_access_tunnel_801843F0[19] = {
+/// View 4's 19 textured rectangles in view-centred pixels and authored sorting depths.
+///
+/// Batches address these elements without a source-array sentinel. RGB 128
+/// is neutral modulation; packet caching snapshots geometry and texture state.
+static SpriteSource _gShelterB1PodAccessTunnelView4SpriteSources[19] = {
     { 143, 0x3FC0, { .fields = { 32, 24 } }, -8, -32, 1629, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -80, 24, 0, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 8, 0, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
@@ -744,85 +778,111 @@ SpriteSource D_shelter_b1_pod_access_tunnel_801843F0[19] = {
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, 72, 661, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_8018456C[4] = {
+/// View 4's image-strip header, two source ranges covering all 19 sprites, and terminator.
+///
+/// Source 0 forms the first range; sources 1..18 form the second. Both are
+/// visible and included in cached packets; serialized tail-byte roles are unproven.
+static SpriteBatch _gShelterB1PodAccessTunnelView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 1, 0 } },
-    { 1, 18, 0, 0, { 0, 0 } },
+    { 1, ARRAY_SIZE(_gShelterB1PodAccessTunnelView4SpriteSources) - 1, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_8018458C[2] = {
+/// View 5's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_8018459C[2] = {
+/// View 6's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_801845AC[2] = {
+/// View 7's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_801845BC[2] = {
+/// View 8's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_801845CC[2] = {
+/// View 9's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_801845DC[2] = {
+/// View 10's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_801845EC[2] = {
+/// View 11's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView11SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_801845FC[2] = {
+/// View 12's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_8018460C[2] = {
+/// View 13's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView13SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b1_pod_access_tunnel_8018461C[2] = {
+/// View 14's empty sprite list: image-strip header followed by SPRITE_BATCH_END.
+static SpriteBatch _gShelterB1PodAccessTunnelView14SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_pod_access_tunnel_8018462C[14] = {
-    { { .empty = D_shelter_b1_pod_access_tunnel_80183E40 }, D_shelter_b1_pod_access_tunnel_80183E40, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_80183E50 }, D_shelter_b1_pod_access_tunnel_80183E50, NULL },
-    { { .elements = D_shelter_b1_pod_access_tunnel_80183E60 }, D_shelter_b1_pod_access_tunnel_801843B0, NULL },
-    { { .elements = D_shelter_b1_pod_access_tunnel_801843F0 }, D_shelter_b1_pod_access_tunnel_8018456C, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_8018458C }, D_shelter_b1_pod_access_tunnel_8018458C, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_8018459C }, D_shelter_b1_pod_access_tunnel_8018459C, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_801845AC }, D_shelter_b1_pod_access_tunnel_801845AC, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_801845BC }, D_shelter_b1_pod_access_tunnel_801845BC, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_801845CC }, D_shelter_b1_pod_access_tunnel_801845CC, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_801845DC }, D_shelter_b1_pod_access_tunnel_801845DC, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_801845EC }, D_shelter_b1_pod_access_tunnel_801845EC, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_801845FC }, D_shelter_b1_pod_access_tunnel_801845FC, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_8018460C }, D_shelter_b1_pod_access_tunnel_8018460C, NULL },
-    { { .empty = D_shelter_b1_pod_access_tunnel_8018461C }, D_shelter_b1_pod_access_tunnel_8018461C, NULL },
+SpriteView gShelterB1PodAccessTunnelSpriteViews[SHELTER_B1_POD_ACCESS_TUNNEL_VIEW_COUNT] = {
+    { { .empty = _gShelterB1PodAccessTunnelView1SpriteBatches }, _gShelterB1PodAccessTunnelView1SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView2SpriteBatches }, _gShelterB1PodAccessTunnelView2SpriteBatches, NULL },
+    { { .elements = _gShelterB1PodAccessTunnelView3SpriteSources }, _gShelterB1PodAccessTunnelView3SpriteBatches, NULL },
+    { { .elements = _gShelterB1PodAccessTunnelView4SpriteSources }, _gShelterB1PodAccessTunnelView4SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView5SpriteBatches }, _gShelterB1PodAccessTunnelView5SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView6SpriteBatches }, _gShelterB1PodAccessTunnelView6SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView7SpriteBatches }, _gShelterB1PodAccessTunnelView7SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView8SpriteBatches }, _gShelterB1PodAccessTunnelView8SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView9SpriteBatches }, _gShelterB1PodAccessTunnelView9SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView10SpriteBatches }, _gShelterB1PodAccessTunnelView10SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView11SpriteBatches }, _gShelterB1PodAccessTunnelView11SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView12SpriteBatches }, _gShelterB1PodAccessTunnelView12SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView13SpriteBatches }, _gShelterB1PodAccessTunnelView13SpriteBatches, NULL },
+    { { .empty = _gShelterB1PodAccessTunnelView14SpriteBatches }, _gShelterB1PodAccessTunnelView14SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b1_pod_access_tunnel_801846D4[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1299, -2529, -3253 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 9581, 0x3D41 },
+/// White point light at world (1299, -2529, -3253), contributing in every view.
+///
+/// Full intensity uses ONE per RGB channel; falloff spans radii 9581..15681
+/// game units. Room setup binds the parent and refreshes the composition cache;
+/// queries overwrite attenuation, so the single-element array remains writable.
+static WorldCoordPointLight _gShelterB1PodAccessTunnelPointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1299, -2529, -3253 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 9581, 15681 },
 };
 
-WorldCoordRoomLights D_shelter_b1_pod_access_tunnel_80184734 = { 0, NULL, ARRAY_SIZE(D_shelter_b1_pod_access_tunnel_801846D4), D_shelter_b1_pod_access_tunnel_801846D4, 0, NULL };
+WorldCoordRoomLights gShelterB1PodAccessTunnelRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB1PodAccessTunnelPointLights),
+    .pointLights           = _gShelterB1PodAccessTunnelPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_8018474C[4] = {
     { NULL, NULL, NULL, { 1296, -1536, -3328, 0 }, { { -1936, -2016, 672, 0 }, { 1936, -2016, -672, 0 }, { -1936, 2016, 672, 0 }, { 1936, 2016, -672, 0 } }, { -1344, 0, -3872, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -951,33 +1011,39 @@ AreaVariant D_shelter_b1_pod_access_tunnel_80184C00[23] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_pod_access_tunnel_80184CB8 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+enum {
+    SHELTER_B1_POD_ACCESS_TUNNEL_FOOTSTEP_WALK_SCRIPT = 0x59,
+    SHELTER_B1_POD_ACCESS_TUNNEL_FOOTSTEP_RUN_SCRIPT  = 0x5B,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_pod_access_tunnel_80184CC4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Floor cue bases for walking, running and scripted jumps in the loaded type-1 bank.
+///
+/// Cue 2 selects scripts 89/91/89; cue 1 adds one and companion cues add 100.
+/// The floor policy borrows this record while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gShelterB1PodAccessTunnelFloorFootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B1_POD_ACCESS_TUNNEL_FOOTSTEP_WALK_SCRIPT,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B1_POD_ACCESS_TUNNEL_FOOTSTEP_RUN_SCRIPT,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B1_POD_ACCESS_TUNNEL_FOOTSTEP_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_pod_access_tunnel_80184CCC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
-};
+/// Classes 0 and 3..7: block probes, allow weapon impacts and pushback, with no footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB1PodAccessTunnelDefaultSurface = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL };
 
-WorldCollisionSurfaceProperties D_shelter_b1_pod_access_tunnel_80184CD4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_pod_access_tunnel_80184CB8 },
-};
+/// Class 1: pass probes and suppress weapon impacts, retaining pushback and no footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB1PodAccessTunnelProbePassThroughSurface = { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_pod_access_tunnel_80184CDC[8] = {
-    D_shelter_b1_pod_access_tunnel_80184CC4,
-    D_shelter_b1_pod_access_tunnel_80184CCC,
-    D_shelter_b1_pod_access_tunnel_80184CD4,
-    D_shelter_b1_pod_access_tunnel_80184CC4,
-    D_shelter_b1_pod_access_tunnel_80184CC4,
-    D_shelter_b1_pod_access_tunnel_80184CC4,
-    D_shelter_b1_pod_access_tunnel_80184CC4,
-    D_shelter_b1_pod_access_tunnel_80184CC4,
+/// Class 2: the Y=0 floor, blocking probes with weapon impacts, pushback and footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB1PodAccessTunnelFloorSurface = { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gShelterB1PodAccessTunnelFloorFootstepSounds };
+
+WorldCollisionSurfaceProperties* gShelterB1PodAccessTunnelSurfacePropertiesByClass[8] = {
+    &_gShelterB1PodAccessTunnelDefaultSurface,
+    &_gShelterB1PodAccessTunnelProbePassThroughSurface,
+    &_gShelterB1PodAccessTunnelFloorSurface,
+    &_gShelterB1PodAccessTunnelDefaultSurface,
+    &_gShelterB1PodAccessTunnelDefaultSurface,
+    &_gShelterB1PodAccessTunnelDefaultSurface,
+    &_gShelterB1PodAccessTunnelDefaultSurface,
+    &_gShelterB1PodAccessTunnelDefaultSurface,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
@@ -1779,16 +1845,16 @@ void shelterB1PodAccessTunnelDrawGlowsTask(Task* task)
         } break;
         case 3:
         case 7: {
-            const SVECTOR* lightEndpoints = D_shelter_b1_pod_access_tunnel_801839A4;
-            _glowDrawCapsule(&lightEndpoints[0], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
-            _glowDrawCapsule(&lightEndpoints[2], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
-            _glowDrawCapsule(&lightEndpoints[4], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
-            _glowDrawCapsule(&lightEndpoints[6], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            const SVECTOR(*lightSegments)[2] = _gShelterB1PodAccessTunnelTransverseLightSegments;
+            _glowDrawCapsule(lightSegments[0], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(lightSegments[1], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(lightSegments[2], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(lightSegments[3], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
         } break;
         case 4: {
-            const SVECTOR* lightEndpoints = D_shelter_b1_pod_access_tunnel_801839A4;
-            _glowDrawCapsule(&lightEndpoints[0], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
-            _glowDrawCapsule(&lightEndpoints[2], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            const SVECTOR(*lightSegments)[2] = _gShelterB1PodAccessTunnelTransverseLightSegments;
+            _glowDrawCapsule(lightSegments[0], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(lightSegments[1], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
         } break;
     }
 }
