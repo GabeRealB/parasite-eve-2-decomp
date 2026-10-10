@@ -97,13 +97,19 @@ enum {
     SHELTER_B1_STERILIZATION_ROOM_CAP_SCENE   = 1,
 };
 
-extern WorldCollisionOccluder D_shelter_b1_sterilization_room_8018C1A4[2];
-extern WorldCollisionTrigger  D_shelter_b1_sterilization_room_8018B648[8];
+static WorldCollisionOccluder _gShelterB1SterilizationRoomSightOccluders[2];
+static WorldCollisionTrigger  _gShelterB1SterilizationRoomViewBoundaryTriggers[8];
 
 static void _shelterB1SterilizationRoomSpawnTrapDamageOnce(void);
 static void _shelterB1SterilizationRoomAttenuateTrapSounds(void);
 
-DamageAttack D_shelter_b1_sterilization_room_80188738 = { 25, 0 };
+/// Category-4 reaction zero applies the ordinary hit without a status effect.
+enum { SHELTER_B1_STERILIZATION_ROOM_TRAP_REACTION_NORMAL = 0 };
+
+DamageAttack gShelterB1SterilizationRoomTrapAttack = {
+    .power    = 25,
+    .reaction = SHELTER_B1_STERILIZATION_ROOM_TRAP_REACTION_NORMAL,
+};
 
 EvsCommand D_shelter_b1_sterilization_room_8018873C[37] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -198,17 +204,25 @@ EvsCommand D_shelter_b1_sterilization_room_80188E14[8] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b1_sterilization_room_80188ED4[11] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1SterilizationRoomResetCapResource }, { .value = SHELTER_B1_STERILIZATION_ROOM_CAP_SCENE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100014 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100015 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1SterilizationRoomResetCapResource }, { .value = SHELTER_B1_STERILIZATION_ROOM_CAP_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Command, skip policy and area-bank cues of the first trap exchange.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_EXCHANGE_CAP_COMMAND        = 10,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_EXCHANGE_KEEP_SOUND_ON_SKIP = 1,
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_EXCHANGE_FIRST_SOUND        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x14),
+    SHELTER_B1_STERILIZATION_ROOM_TRAP_EXCHANGE_SECOND_SOUND       = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x15),
+};
+
+EvsCommand gShelterB1SterilizationRoomTrapExchangeScript[11] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = _shelterB1SterilizationRoomResetCapResource }, .operand1 = { .value = SHELTER_B1_STERILIZATION_ROOM_CAP_SCENE } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_EXCHANGE_KEEP_SOUND_ON_SKIP } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_CAP_CONTROL }, .operand2 = { .value = CAP_CONTROL_MESSAGE_START }, .operand3 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_EXCHANGE_CAP_COMMAND } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_EXCHANGE_FIRST_SOUND } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SHELTER_B1_STERILIZATION_ROOM_TRAP_EXCHANGE_SECOND_SOUND } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = _shelterB1SterilizationRoomResetCapResource }, .operand1 = { .value = SHELTER_B1_STERILIZATION_ROOM_CAP_DEFAULT } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -340,10 +354,10 @@ WorldCoordRoomLighting gShelterB1SterilizationRoomLighting[3] = {
     { &_gShelterB1SterilizationRoomLights, _gShelterB1SterilizationRoomAmbientByView },
 };
 
-WorldCollisionRoomResources D_shelter_b1_sterilization_room_8018936C[3] = {
-    { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },
-    { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },
-    { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },
+WorldCollisionRoomResources gShelterB1SterilizationRoomCollisionResources[3] = {
+    { .grid = &gShelterB1SterilizationRoomCollisionGrid, .viewBoundaryTriggers = _gShelterB1SterilizationRoomViewBoundaryTriggers, .actionTriggers = gShelterB1SterilizationRoomActionTriggers, .occluders = _gShelterB1SterilizationRoomSightOccluders },
+    { .grid = &gShelterB1SterilizationRoomCollisionGrid, .viewBoundaryTriggers = _gShelterB1SterilizationRoomViewBoundaryTriggers, .actionTriggers = gShelterB1SterilizationRoomActionTriggers, .occluders = _gShelterB1SterilizationRoomSightOccluders },
+    { .grid = &gShelterB1SterilizationRoomCollisionGrid, .viewBoundaryTriggers = _gShelterB1SterilizationRoomViewBoundaryTriggers, .actionTriggers = gShelterB1SterilizationRoomActionTriggers, .occluders = _gShelterB1SterilizationRoomSightOccluders },
 };
 
 /// Room-2 map from 24 logical views to 1-based camera/image/sprite indices.
@@ -414,39 +428,98 @@ u8* gShelterB1SterilizationRoomViewMaps[3] = {
     _gShelterB1SterilizationRoomViewMap3,
 };
 
-ViewCount D_shelter_b1_sterilization_room_801893D8[3] = { 24, 24, 24 };
+ViewCount gShelterB1SterilizationRoomViewCounts[3] = { 24, 24, 24 };
 
-DirectionWarpEntry D_shelter_b1_sterilization_room_801893E0[3] = {
-    { { { .word = 0 }, 3456, 0, 960 }, { 0, 0, 0, 0 }, { { .word = 0 }, 3456, 0, 960 }, { 0, 0, 0, 0 }, 0x54100002, 0x54100001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 3614, 0, 0x32C8 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 3614, 0, 0x32C8 }, { 0, 0, 0, 0 }, 0x54100004, 0x54100003, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 6184, 0, 0x27FB }, { 0, 0, 0, 0 }, { { .word = 2048 }, 6184, 0, 0x27FB }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// One-based local endpoint IDs used in the outgoing action triggers.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_CORRIDOR_WARP_ID   = 1,
+    SHELTER_B1_STERILIZATION_ROOM_POD_TUNNEL_WARP_ID = 2,
 };
 
-static SVECTOR _gShelterB1SterilizationRoomCollision0C884Normals[14] = {
+/// Paired room-bank sounds of the Main Corridor and Pod Access Tunnel endpoints.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_CORRIDOR_ARRIVAL_SOUND     = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 2),
+    SHELTER_B1_STERILIZATION_ROOM_CORRIDOR_DEPARTURE_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 1),
+    SHELTER_B1_STERILIZATION_ROOM_POD_TUNNEL_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 4),
+    SHELTER_B1_STERILIZATION_ROOM_POD_TUNNEL_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 3),
+};
+
+DirectionWarpEntry gShelterB1SterilizationRoomWarpEntries[3] = {
+    {
+        .player         = { .yaw = { .word = 0 }, .x = 3456, .y = 0, .z = 960 },
+        .companion      = { .yaw = { .word = 0 }, .x = 3456, .y = 0, .z = 960 },
+        .arrivalSound   = SHELTER_B1_STERILIZATION_ROOM_CORRIDOR_ARRIVAL_SOUND,
+        .departureSound = SHELTER_B1_STERILIZATION_ROOM_CORRIDOR_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 3614, .y = 0, .z = 13000 },
+        .companion      = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 3614, .y = 0, .z = 13000 },
+        .arrivalSound   = SHELTER_B1_STERILIZATION_ROOM_POD_TUNNEL_ARRIVAL_SOUND,
+        .departureSound = SHELTER_B1_STERILIZATION_ROOM_POD_TUNNEL_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 8,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    {
+        .player         = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 6184, .y = 0, .z = 10235 },
+        .companion      = { .yaw = { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, .x = 6184, .y = 0, .z = 10235 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+};
+
+/// Q12 mesh normals, including four writable slots reserved for the actor obstacle.
+static SVECTOR _gShelterB1SterilizationRoomCollisionGridNormals[14] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_normals.inc"
 };
 
-static SVECTOR _gShelterB1SterilizationRoomCollision0C884Verts[124] = {
+/// Mesh vertices in room game units, including eight writable actor-obstacle slots.
+static SVECTOR _gShelterB1SterilizationRoomCollisionGridVerts[124] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1SterilizationRoomCollision0C884Faces[68] = {
+/// Mesh faces; the leading four are disabled until the actor obstacle is rebuilt.
+static WorldCollisionGridFace _gShelterB1SterilizationRoomCollisionGridFaces[68] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_faces.inc"
 };
 
-static s16 _gShelterB1SterilizationRoomCollision0C884Cells[270] = {
+/// Eight signed face-index lists, each terminated by WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB1SterilizationRoomCollisionGridCells[270] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1SterilizationRoomCollision0C884Cells[i])
-static s16* _gShelterB1SterilizationRoomCollision0C884Table[8] = {
+// The generated table supplies constant element offsets within this cell-list pool.
+#define GRID_CELL(i) (&_gShelterB1SterilizationRoomCollisionGridCells[i])
+/// X-major 2-by-4 cell directory borrowing the embedded face-index lists.
+static s16* _gShelterB1SterilizationRoomCollisionGridTable[8] = {
 #include "assets/shelter_b1_sterilization_room_collision_0C884_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_sterilization_room_80189E44 = { NULL, _gShelterB1SterilizationRoomCollision0C884Normals, _gShelterB1SterilizationRoomCollision0C884Verts, _gShelterB1SterilizationRoomCollision0C884Faces, _gShelterB1SterilizationRoomCollision0C884Table, 0, -500, 2, 4, 4000, 68 };
+WorldCollisionGrid gShelterB1SterilizationRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1SterilizationRoomCollisionGridNormals,
+    .vertices    = _gShelterB1SterilizationRoomCollisionGridVerts,
+    .faces       = _gShelterB1SterilizationRoomCollisionGridFaces,
+    .cellFaceIds = _gShelterB1SterilizationRoomCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = -500,
+    .cellCountX  = 2,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1SterilizationRoomCollisionGridFaces),
+};
 
-ViewCamera D_shelter_b1_sterilization_room_80189E68[24] = {
+ViewCamera gShelterB1SterilizationRoomViewCameras[24] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3500, 0x61A8, -7000 } }, 329 },
     { { { { -4014, 0, 815 }, { 651, 2458, 3210 }, { -489, 3276, -2409 } }, { -4078, 4407, -4494 } }, 230 },
     { { { { 4009, 0, 835 }, { 674, 2419, -3235 }, { -493, 3305, 2368 } }, { -4078, 4407, -1394 } }, 230 },
@@ -729,128 +802,180 @@ static SpriteBatch _gShelterB1SterilizationRoomView16SpriteBatches[2] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A9D4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 17's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView17SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b1_sterilization_room_8018A9E4[42] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -32, 687, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -16, 875, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -56, 691, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -40, 696, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -56, 690, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -40, 695, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -56, 675, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -32, 681, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -8, 688, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 16, 695, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 40, 702, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 64, 712, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 88, 732, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -24, 700, { .fields = { 80, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -24, 703, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, -24, 669, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, -8, 706, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 16, 713, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 40, 720, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 64, 728, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, 88, 734, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -8, 712, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 8, 721, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 24, 729, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 40, 734, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 56, 739, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, 72, 746, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, -8, 677, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 8, 685, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 24, 694, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 40, 750, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 56, 755, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 72, 756, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 72, 771, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 56, 767, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 40, 766, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 24, 675, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 8, 675, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 32, 675, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 48, 780, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 64, 781, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, -8, 675, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+/// Encoded texture location and neutral RGB modulation of views 18/20's sprites.
+///
+/// Texture page 143 selects 8-bit texels at VRAM (960,0), CLUT 0x3FC0 selects
+/// (0,255), and 128 is neutral modulation. Source coordinates remain texels.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE       = 143,
+    SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT               = 0x3FC0,
+    SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION = 128,
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018AD2C[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 42, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 18's 42 writable sprite rectangles and unscaled sorting depths.
+///
+/// Screen positions are pixels relative to the view centre. Batch ranges index
+/// these elements without a source sentinel; all use opaque, neutral RGB.
+static SpriteSource _gShelterB1SterilizationRoomView18SpriteSources[42] = {
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, 96, -32, 687, { .fields = { 104, 248 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, 80, -16, 875, { .fields = { 104, 184 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, -56, 691, { .fields = { 80, 216 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, -40, 696, { .fields = { 80, 232 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 120, -56, 690, { .fields = { 72, 0 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 120, -40, 695, { .fields = { 80, 168 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, -56, 675, { .fields = { 104, 192 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, -32, 681, { .fields = { 88, 144 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, -8, 688, { .fields = { 88, 120 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, 16, 695, { .fields = { 88, 96 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, 40, 702, { .fields = { 104, 48 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, 64, 712, { .fields = { 104, 72 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, 136, 88, 732, { .fields = { 104, 0 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 120, -24, 700, { .fields = { 80, 16 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, -24, 703, { .fields = { 80, 32 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, -24, 669, { .fields = { 80, 48 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 120, -8, 706, { .fields = { 112, 144 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 120, 16, 713, { .fields = { 112, 168 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 120, 40, 720, { .fields = { 112, 96 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 120, 64, 728, { .fields = { 112, 120 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 120, 88, 734, { .fields = { 72, 128 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, -8, 712, { .fields = { 72, 144 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, 8, 721, { .fields = { 72, 184 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, 24, 729, { .fields = { 72, 112 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, 40, 734, { .fields = { 72, 64 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, 56, 739, { .fields = { 72, 80 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 104, 72, 746, { .fields = { 112, 216 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, -8, 677, { .fields = { 72, 96 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, 8, 685, { .fields = { 96, 168 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, 24, 694, { .fields = { 88, 0 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, 40, 750, { .fields = { 96, 216 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, 56, 755, { .fields = { 96, 232 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, 88, 72, 756, { .fields = { 112, 24 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 72, 771, { .fields = { 112, 240 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 56, 767, { .fields = { 88, 80 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 40, 766, { .fields = { 88, 184 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 24, 675, { .fields = { 88, 200 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 8, 675, { .fields = { 88, 64 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, 64, 32, 675, { .fields = { 96, 16 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, 64, 48, 780, { .fields = { 96, 32 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, 64, 64, 781, { .fields = { 104, 24 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, 80, -8, 675, { .fields = { 96, 48 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018AD44[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 18's image selector followed by its complete 42-sprite range.
+///
+/// Keeps decoded image strips; all source elements participate in cached drawing.
+static SpriteBatch _gShelterB1SterilizationRoomView18SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB1SterilizationRoomView18SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b1_sterilization_room_8018AD54[30] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 32, 645, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -136, 40, 658, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 96, 481, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -136, 96, 482, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 72, 551, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -160, 48, 603, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 40, 622, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, 80, 621, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -136, 64, 625, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 48, 630, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 104, 475, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 104, 475, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 104, 477, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 88, 652, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 72, 655, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 64, 676, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 80, 669, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -120, 431, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, -120, 378, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, -96, 416, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, -96, 418, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -72, 433, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, -72, 436, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, -48, 433, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, -48, 452, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -24, 427, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, -16, 428, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 0, 426, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 16, 424, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 32, 424, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
+/// Mapped view 19's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView19SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018AFAC[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 17, 0, 0, { 1, 0 } },
-    { 17, 13, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 20's 30 writable sprite rectangles and unscaled sorting depths.
+///
+/// Screen positions are pixels relative to the view centre. Batch ranges index
+/// these elements without a source sentinel; all use opaque, neutral RGB.
+static SpriteSource _gShelterB1SterilizationRoomView20SpriteSources[30] = {
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, -160, 32, 645, { .fields = { 104, 136 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 8 } }, -136, 40, 658, { .fields = { 96, 208 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, -160, 96, 481, { .fields = { 104, 168 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, -136, 96, 482, { .fields = { 104, 144 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, -160, 72, 551, { .fields = { 104, 192 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 24 } }, -160, 48, 603, { .fields = { 88, 0 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 8 } }, -160, 40, 622, { .fields = { 80, 200 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 16 } }, -136, 80, 621, { .fields = { 88, 120 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 16 } }, -136, 64, 625, { .fields = { 88, 88 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -136, 48, 630, { .fields = { 96, 56 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 16 } }, -112, 104, 475, { .fields = { 88, 72 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, 104, 475, { .fields = { 96, 216 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -72, 104, 477, { .fields = { 88, 168 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 16 } }, -112, 88, 652, { .fields = { 80, 184 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 16 } }, -112, 72, 655, { .fields = { 80, 152 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 24, 8 } }, -112, 64, 676, { .fields = { 88, 248 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 80, 669, { .fields = { 96, 136 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, -40, -120, 431, { .fields = { 112, 72 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, -24, -120, 378, { .fields = { 112, 96 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -40, -96, 416, { .fields = { 96, 24 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, -24, -96, 418, { .fields = { 112, 48 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, -40, -72, 433, { .fields = { 112, 0 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, -24, -72, 436, { .fields = { 112, 24 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, -40, -48, 433, { .fields = { 112, 120 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 24 } }, -24, -48, 452, { .fields = { 112, 216 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -24, -24, 427, { .fields = { 96, 40 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, -16, 428, { .fields = { 120, 240 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, 0, 426, { .fields = { 112, 240 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, 16, 424, { .fields = { 96, 232 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, 32, 424, { .fields = { 96, 104 } }, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, SHELTER_B1_STERILIZATION_ROOM_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018AFCC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source-element boundary between mapped view 20's two live sprite ranges.
+enum { SHELTER_B1_STERILIZATION_ROOM_VIEW20_FIRST_BATCH_COUNT = 17 };
+
+/// Mapped view 20's image selector and two ranges partitioning its 30 sources.
+///
+/// Both ranges are visible and processed by cached drawing. The first range
+/// retains serialized byte field_6[0] = 1, whose meaning is unproven.
+static SpriteBatch _gShelterB1SterilizationRoomView20SpriteBatches[4] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = SHELTER_B1_STERILIZATION_ROOM_VIEW20_FIRST_BATCH_COUNT, .field_6 = { 1, 0 } },
+    { .firstSprite = SHELTER_B1_STERILIZATION_ROOM_VIEW20_FIRST_BATCH_COUNT, .spriteCount = ARRAY_SIZE(_gShelterB1SterilizationRoomView20SpriteSources) - SHELTER_B1_STERILIZATION_ROOM_VIEW20_FIRST_BATCH_COUNT },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018AFDC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 21's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView21SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018AFEC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 22's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView22SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018AFFC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 23's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView23SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_shelter_b1_sterilization_room_8018B00C[24] = {
+/// Mapped view 24's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView24SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
+};
+
+SpriteView gShelterB1SterilizationRoomSpriteViews[24] = {
     { { .empty = _gShelterB1SterilizationRoomView1SpriteBatches }, _gShelterB1SterilizationRoomView1SpriteBatches, NULL },
     { { .empty = _gShelterB1SterilizationRoomView2SpriteBatches }, _gShelterB1SterilizationRoomView2SpriteBatches, NULL },
     { { .empty = _gShelterB1SterilizationRoomView3SpriteBatches }, _gShelterB1SterilizationRoomView3SpriteBatches, NULL },
@@ -867,14 +992,14 @@ SpriteView D_shelter_b1_sterilization_room_8018B00C[24] = {
     { { .empty = _gShelterB1SterilizationRoomView14SpriteBatches }, _gShelterB1SterilizationRoomView14SpriteBatches, NULL },
     { { .empty = _gShelterB1SterilizationRoomView15SpriteBatches }, _gShelterB1SterilizationRoomView15SpriteBatches, NULL },
     { { .empty = _gShelterB1SterilizationRoomView16SpriteBatches }, _gShelterB1SterilizationRoomView16SpriteBatches, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A9D4 }, D_shelter_b1_sterilization_room_8018A9D4, NULL },
-    { { .elements = D_shelter_b1_sterilization_room_8018A9E4 }, D_shelter_b1_sterilization_room_8018AD2C, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018AD44 }, D_shelter_b1_sterilization_room_8018AD44, NULL },
-    { { .elements = D_shelter_b1_sterilization_room_8018AD54 }, D_shelter_b1_sterilization_room_8018AFAC, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018AFCC }, D_shelter_b1_sterilization_room_8018AFCC, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018AFDC }, D_shelter_b1_sterilization_room_8018AFDC, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018AFEC }, D_shelter_b1_sterilization_room_8018AFEC, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018AFFC }, D_shelter_b1_sterilization_room_8018AFFC, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView17SpriteBatches }, _gShelterB1SterilizationRoomView17SpriteBatches, NULL },
+    { { .elements = _gShelterB1SterilizationRoomView18SpriteSources }, _gShelterB1SterilizationRoomView18SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView19SpriteBatches }, _gShelterB1SterilizationRoomView19SpriteBatches, NULL },
+    { { .elements = _gShelterB1SterilizationRoomView20SpriteSources }, _gShelterB1SterilizationRoomView20SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView21SpriteBatches }, _gShelterB1SterilizationRoomView21SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView22SpriteBatches }, _gShelterB1SterilizationRoomView22SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView23SpriteBatches }, _gShelterB1SterilizationRoomView23SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView24SpriteBatches }, _gShelterB1SterilizationRoomView24SpriteBatches, NULL },
 };
 
 /// One room-owned point light with mutable transform and attenuation caches.
@@ -914,7 +1039,12 @@ static WorldCoordRoomLights _gShelterB1SterilizationRoomLights = {
     .coneLights            = _gShelterB1SterilizationRoomConeLights,
 };
 
-WorldCollisionTrigger D_shelter_b1_sterilization_room_8018B648[8] = {
+/// Eight directed quads joining logical view pairs 2/3, 4/5, 6/7 and 8/9.
+///
+/// The final included quad has LAST set. Setup binds/enables all eight records,
+/// whose linked-list state and hit latches remain writable until teardown.
+/// Origins, corner offsets and radii use room game units; normals use Q12.
+static WorldCollisionTrigger _gShelterB1SterilizationRoomViewBoundaryTriggers[8] = {
     { NULL, NULL, NULL, { 3633, -1968, 2960, 0 }, { { -3680, -2736, 32, 0 }, { 3680, -2736, -32, 0 }, { -3680, 2736, 32, 0 }, { 3680, 2736, -32, 0 } }, { -36, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3505, -1984, 2752, 0 }, { { 3088, -2736, -32, 0 }, { -3088, -2736, 32, 0 }, { 3088, 2736, -32, 0 }, { -3088, 2736, 32, 0 } }, { 42, 0, 4125, 0 }, { 0, 0, 4096, 0 }, 4096, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 5456, -1856, 8240, 0 }, { { 1904, -2736, -16, 0 }, { -1904, -2736, 16, 0 }, { 1904, 2736, -16, 0 }, { -1904, 2736, 16, 0 } }, { 33, 0, 4110, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -925,70 +1055,110 @@ WorldCollisionTrigger D_shelter_b1_sterilization_room_8018B648[8] = {
     { NULL, NULL, NULL, { 4591, -1472, 0x30D0, 0 }, { { 416, -2736, 1488, 0 }, { -416, -2736, -1488, 0 }, { 416, 2736, 1488, 0 }, { -416, 2736, -1488, 0 } }, { -3945, 0, 1102, 0 }, { 0, 0, 4096, 0 }, 3135, 0, 8, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_sterilization_room_8018B8A8[28] = {
-    { NULL, NULL, NULL, { 5536, -64, 9200, 0 }, { { -1792, 0, -496, 0 }, { 1792, 0, -496, 0 }, { -1792, 0, 496, 0 }, { 1792, 0, 496, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 1859, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 6256, -64, 0x2840, 0 }, { { -592, 0, -544, 0 }, { 592, 0, -544, 0 }, { -592, 0, 544, 0 }, { 592, 0, 544, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4992, -64, 0x2980, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4992, -64, 0x2D60, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2016, -64, 0x2900, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1984, -64, 0x2D00, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5056, -64, 5536, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5024, -64, 6432, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1984, -64, 5472, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, -4096, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1920, -64, 6336, 0 }, { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3440, -80, 976, 0 }, { { -912, 0, -464, 0 }, { 912, 0, -464, 0 }, { -912, 0, 464, 0 }, { 912, 0, 464, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 1021, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 22, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3344, -80, 0x3380, 0 }, { { -912, 0, -320, 0 }, { 912, 0, -320, 0 }, { -912, 0, 320, 0 }, { 912, 0, 320, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 966, WORLD_COLLISION_TRIGGER_ACTION_WARP, 17, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1088, -64, 3120, 0 }, { { -512, 0, -2624, 0 }, { 512, 0, -2624, 0 }, { -512, 0, 2624, 0 }, { 512, 0, 2624, 0 } }, { 0, 4096, 0, 0 }, { 4076, 0, -401, 0 }, 2672, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 800, -64, 6624, 0 }, { { -512, 0, -288, 0 }, { 512, 0, -288, 0 }, { -512, 0, 288, 0 }, { 512, 0, 288, 0 } }, { 0, 4095, 0, 0 }, { -202, 0, 4090, 0 }, 586, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 736, -64, 0x2900, 0 }, { { -512, 0, -288, 0 }, { 512, 0, -288, 0 }, { -512, 0, 288, 0 }, { 512, 0, 288, 0 } }, { 0, 4095, 0, 0 }, { -201, 0, -4093, 0 }, 586, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6336, -64, 6560, 0 }, { { -512, 0, -288, 0 }, { 512, 0, -288, 0 }, { -512, 0, 288, 0 }, { 512, 0, 288, 0 } }, { 0, 4095, 0, 0 }, { -402, 0, 4078, 0 }, 586, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3472, -64, 0x2D20, 0 }, { { -688, 0, -288, 0 }, { 688, 0, -288, 0 }, { -688, 0, 288, 0 }, { 688, 0, 288, 0 } }, { 0, 4102, 0, 0 }, { -1, 0, 4096, 0 }, 743, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1280, -64, 0x3100, 0 }, { { -368, 0, -640, 0 }, { 368, 0, -640, 0 }, { -368, 0, 640, 0 }, { 368, 0, 640, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, -201, 0 }, 738, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5712, -64, 0x30E0, 0 }, { { -1248, 0, -448, 0 }, { 1248, 0, -448, 0 }, { -1248, 0, 448, 0 }, { 1248, 0, 448, 0 } }, { 0, 4117, 0, 0 }, { 0, 0, -4096, 0 }, 1324, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3536, -64, 5424, 0 }, { { -688, 0, -368, 0 }, { 688, 0, -368, 0 }, { -688, 0, 368, 0 }, { 688, 0, 368, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4098, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_CAP, 19, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1728, -64, 0x3380, 0 }, { { -688, 0, -368, 0 }, { 688, 0, -368, 0 }, { -688, 0, 368, 0 }, { 688, 0, 368, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4098, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5184, -64, 832, 0 }, { { -688, 0, -368, 0 }, { 688, 0, -368, 0 }, { -688, 0, 368, 0 }, { 688, 0, 368, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4098, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6208, -64, 3936, 0 }, { { -1472, 0, -864, 0 }, { 352, 0, -864, 0 }, { -1472, 0, 864, 0 }, { 352, 0, 864, 0 } }, { 0, 4100, 0, 0 }, { -4052, 0, 600, 0 }, 1702, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 21, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5984, -64, 3200, 0 }, { { -512, 0, -2624, 0 }, { 512, 0, -2624, 0 }, { -512, 0, 2624, 0 }, { 512, 0, 2624, 0 } }, { 0, 4096, 0, 0 }, { -4091, 0, -202, 0 }, 2672, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4576, -64, 0x3300, 0 }, { { -352, 0, -448, 0 }, { 352, 0, -448, 0 }, { -352, 0, 448, 0 }, { 352, 0, 448, 0 } }, { 0, 4109, 0, 0 }, { -4096, 0, 0, 0 }, 568, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5248, -64, 1632, 0 }, { { -896, 0, -1072, 0 }, { 896, 0, -1072, 0 }, { -896, 0, 1072, 0 }, { 896, 0, 1072, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, 4096, 0 }, 1396, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 1952, -64, 2992, 0 }, { { -896, 0, -1408, 0 }, { 896, 0, -1408, 0 }, { -896, 0, 1408, 0 }, { 896, 0, 1408, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1668, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 6304, -64, 0x2840, 0 }, { { -592, 0, -544, 0 }, { 592, 0, -544, 0 }, { -592, 0, 544, 0 }, { 592, 0, 544, 0 } }, { 0, 4101, 0, 0 }, { -2276, 0, -3406, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Room-action and room-command IDs carried by the interaction table.
+///
+/// Actions dispatch through DIRECTION_MESSAGE_ROOM_ACTION; command IDs dispatch
+/// through ROOM_MESSAGE_COMMAND when the CAP-room-message sentinel is selected.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_START_TRAP               = 1,
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_ESCAPE_PROMPT            = 2,
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTICE_DOOR_3            = 3,
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_SCENE_DOOR_4             = 4,
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTE_DOOR_5              = 5,
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTICE_DOOR_6            = 6,
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTICE_DOOR_7            = 7,
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTE_DOOR_8              = 8,
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_SCENE_DOOR_9             = 9,
+    SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTICE_DOOR_10           = 10,
+    SHELTER_B1_STERILIZATION_ROOM_COMMAND_TRAP_DIALOGUE           = 4,
+    SHELTER_B1_STERILIZATION_ROOM_COMMAND_TRAP_EXCHANGE           = 14,
+    SHELTER_B1_STERILIZATION_ROOM_COMMAND_CUTSCENE                = 17,
+    SHELTER_B1_STERILIZATION_ROOM_COMMAND_ALTERNATE_TRAP_DIALOGUE = 19,
+    SHELTER_B1_STERILIZATION_ROOM_COMMAND_PRESENTATION_12         = 12,
+    SHELTER_B1_STERILIZATION_ROOM_COMMAND_PRESENTATION_13         = 13,
+    SHELTER_B1_STERILIZATION_ROOM_COMMAND_CAP_21                  = 21,
+    // Packed transition keys: current endpoint in the high nibble, arrival in the low.
+    SHELTER_B1_STERILIZATION_ROOM_CORRIDOR_ARRIVAL_WARP_ID   = 6,
+    SHELTER_B1_STERILIZATION_ROOM_POD_TUNNEL_ARRIVAL_WARP_ID = 1,
 };
 
-AreaResource D_shelter_b1_sterilization_room_8018C0F8[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+WorldCollisionTrigger gShelterB1SterilizationRoomActionTriggers[28] = {
+    { .origin = { 5536, -64, 9200, 0 }, .vertices = { { -1792, 0, -496, 0 }, { 1792, 0, -496, 0 }, { -1792, 0, 496, 0 }, { 1792, 0, 496, 0 } }, .normal = { 0, 4106, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 1859, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_START_TRAP, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_QUAD },
+    { .origin = { 6256, -64, 0x2840, 0 }, .vertices = { { -592, 0, -544, 0 }, { 592, 0, -544, 0 }, { -592, 0, 544, 0 }, { 592, 0, 544, 0 } }, .normal = { 0, 4101, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 801, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_ESCAPE_PROMPT, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 4992, -64, 0x2980, 0 }, .vertices = { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 879, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTICE_DOOR_3, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 4992, -64, 0x2D60, 0 }, .vertices = { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 879, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_SCENE_DOOR_4, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 2016, -64, 0x2900, 0 }, .vertices = { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 879, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTE_DOOR_5, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 1984, -64, 0x2D00, 0 }, .vertices = { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 879, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTICE_DOOR_6, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 5056, -64, 5536, 0 }, .vertices = { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 879, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTICE_DOOR_7, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 5024, -64, 6432, 0 }, .vertices = { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 879, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTE_DOOR_8, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 1984, -64, 5472, 0 }, .vertices = { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 879, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_SCENE_DOOR_9, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 1920, -64, 6336, 0 }, .vertices = { { -768, 0, -432, 0 }, { 768, 0, -432, 0 }, { -768, 0, 432, 0 }, { 768, 0, 432, 0 } }, .normal = { 0, 4105, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 879, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_NOTICE_DOOR_10, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 3440, -80, 976, 0 }, .vertices = { { -912, 0, -464, 0 }, { 912, 0, -464, 0 }, { -912, 0, 464, 0 }, { 912, 0, 464, 0 } }, .normal = { 0, 4102, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 1021, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, .parameter1 = (SHELTER_B1_STERILIZATION_ROOM_CORRIDOR_WARP_ID << 4) | SHELTER_B1_STERILIZATION_ROOM_CORRIDOR_ARRIVAL_WARP_ID, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 3344, -80, 0x3380, 0 }, .vertices = { { -912, 0, -320, 0 }, { 912, 0, -320, 0 }, { -912, 0, 320, 0 }, { 912, 0, 320, 0 } }, .normal = { 0, 4103, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 966, .control = WORLD_COLLISION_TRIGGER_ACTION_WARP, .parameter0 = GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, .parameter1 = (SHELTER_B1_STERILIZATION_ROOM_POD_TUNNEL_WARP_ID << 4) | SHELTER_B1_STERILIZATION_ROOM_POD_TUNNEL_ARRIVAL_WARP_ID, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 1088, -64, 3120, 0 }, .vertices = { { -512, 0, -2624, 0 }, { 512, 0, -2624, 0 }, { -512, 0, 2624, 0 }, { 512, 0, 2624, 0 } }, .normal = { 0, 4096, 0, 0 }, .facingNormal = { 4076, 0, -401, 0 }, .radius = 2672, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 15, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 800, -64, 6624, 0 }, .vertices = { { -512, 0, -288, 0 }, { 512, 0, -288, 0 }, { -512, 0, 288, 0 }, { 512, 0, 288, 0 } }, .normal = { 0, 4095, 0, 0 }, .facingNormal = { -202, 0, 4090, 0 }, .radius = 586, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 14, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 736, -64, 0x2900, 0 }, .vertices = { { -512, 0, -288, 0 }, { 512, 0, -288, 0 }, { -512, 0, 288, 0 }, { 512, 0, 288, 0 } }, .normal = { 0, 4095, 0, 0 }, .facingNormal = { -201, 0, -4093, 0 }, .radius = 586, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 6, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 6336, -64, 6560, 0 }, .vertices = { { -512, 0, -288, 0 }, { 512, 0, -288, 0 }, { -512, 0, 288, 0 }, { 512, 0, 288, 0 } }, .normal = { 0, 4095, 0, 0 }, .facingNormal = { -402, 0, 4078, 0 }, .radius = 586, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_COMMAND_TRAP_EXCHANGE, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 3472, -64, 0x2D20, 0 }, .vertices = { { -688, 0, -288, 0 }, { 688, 0, -288, 0 }, { -688, 0, 288, 0 }, { 688, 0, 288, 0 } }, .normal = { 0, 4102, 0, 0 }, .facingNormal = { -1, 0, 4096, 0 }, .radius = 743, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_COMMAND_TRAP_DIALOGUE, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 1280, -64, 0x3100, 0 }, .vertices = { { -368, 0, -640, 0 }, { 368, 0, -640, 0 }, { -368, 0, 640, 0 }, { 368, 0, 640, 0 } }, .normal = { 0, 4102, 0, 0 }, .facingNormal = { 4091, 0, -201, 0 }, .radius = 738, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_COMMAND_CUTSCENE, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 5712, -64, 0x30E0, 0 }, .vertices = { { -1248, 0, -448, 0 }, { 1248, 0, -448, 0 }, { -1248, 0, 448, 0 }, { 1248, 0, 448, 0 } }, .normal = { 0, 4117, 0, 0 }, .facingNormal = { 0, 0, -4096, 0 }, .radius = 1324, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 16, .parameter1 = CAP_EVENT_PAUSE_ACTORS, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 3536, -64, 5424, 0 }, .vertices = { { -688, 0, -368, 0 }, { 688, 0, -368, 0 }, { -688, 0, 368, 0 }, { 688, 0, 368, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 0, 0, -4098, 0 }, .radius = 778, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_COMMAND_ALTERNATE_TRAP_DIALOGUE, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 1728, -64, 0x3380, 0 }, .vertices = { { -688, 0, -368, 0 }, { 688, 0, -368, 0 }, { -688, 0, 368, 0 }, { 688, 0, 368, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 0, 0, -4098, 0 }, .radius = 778, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 18, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 5184, -64, 832, 0 }, .vertices = { { -688, 0, -368, 0 }, { 688, 0, -368, 0 }, { -688, 0, 368, 0 }, { 688, 0, 368, 0 } }, .normal = { 0, 4098, 0, 0 }, .facingNormal = { 0, 0, 4098, 0 }, .radius = 778, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 18, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 6208, -64, 3936, 0 }, .vertices = { { -1472, 0, -864, 0 }, { 352, 0, -864, 0 }, { -1472, 0, 864, 0 }, { 352, 0, 864, 0 } }, .normal = { 0, 4100, 0, 0 }, .facingNormal = { -4052, 0, 600, 0 }, .radius = 1702, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_COMMAND_CAP_21, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD },
+    { .origin = { 5984, -64, 3200, 0 }, .vertices = { { -512, 0, -2624, 0 }, { 512, 0, -2624, 0 }, { -512, 0, 2624, 0 }, { 512, 0, 2624, 0 } }, .normal = { 0, 4096, 0, 0 }, .facingNormal = { -4091, 0, -202, 0 }, .radius = 2672, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 15, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 4576, -64, 0x3300, 0 }, .vertices = { { -352, 0, -448, 0 }, { 352, 0, -448, 0 }, { -352, 0, 448, 0 }, { 352, 0, 448, 0 } }, .normal = { 0, 4109, 0, 0 }, .facingNormal = { -4096, 0, 0, 0 }, .radius = 568, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = 16, .parameter1 = CAP_EVENT_PAUSE_ACTORS, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD },
+    { .origin = { 5248, -64, 1632, 0 }, .vertices = { { -896, 0, -1072, 0 }, { 896, 0, -1072, 0 }, { -896, 0, 1072, 0 }, { 896, 0, 1072, 0 } }, .normal = { 0, 4101, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 1396, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_COMMAND_PRESENTATION_12, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_QUAD },
+    { .origin = { 1952, -64, 2992, 0 }, .vertices = { { -896, 0, -1408, 0 }, { 896, 0, -1408, 0 }, { -896, 0, 1408, 0 }, { 896, 0, 1408, 0 } }, .normal = { 0, 4109, 0, 0 }, .facingNormal = { 0, 0, 4096, 0 }, .radius = 1668, .control = WORLD_COLLISION_TRIGGER_ACTION_CAP, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_COMMAND_PRESENTATION_13, .parameter1 = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, .flags = WORLD_COLLISION_TRIGGER_QUAD },
+    { .origin = { 6304, -64, 0x2840, 0 }, .vertices = { { -592, 0, -544, 0 }, { 592, 0, -544, 0 }, { -592, 0, 544, 0 }, { 592, 0, 544, 0 } }, .normal = { 0, 4101, 0, 0 }, .facingNormal = { -2276, 0, -3406, 0 }, .radius = 801, .control = WORLD_COLLISION_TRIGGER_ACTION_ROOM, .parameter0 = SHELTER_B1_STERILIZATION_ROOM_ACTION_ESCAPE_PROMPT, .parameter1 = 0, .flags = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST },
 };
 
-AreaResource D_shelter_b1_sterilization_room_8018C104[2] = {
-    { 117, 606, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor160600PlacedActorTask },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's empty resource list, consisting only of its terminator.
+static AreaResource _gShelterB1SterilizationRoomVariant1Resources[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_sterilization_room_8018C11C[1] = {
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Resource key and base-file number shared by the variant-5 scene actor's tables.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_SCENE_ACTOR_RESOURCE_ID = 117,
+    SHELTER_B1_STERILIZATION_ROOM_SCENE_ACTOR_FILE_NUMBER = 606,
 };
 
-AreaPlacement D_shelter_b1_sterilization_room_8018C12C[2] = {
-    { 117, 0, 0, 6080, 0, 4000, -967, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 5's scene-actor resource and terminating record.
+///
+/// Entry 117 loads global file 160600 and spawns its single placed-actor task.
+/// The placement supplies zero spawn mode/variant and a two-row CLUT offset.
+static AreaResource _gShelterB1SterilizationRoomVariant5Resources[2] = {
+    { .entryId = SHELTER_B1_STERILIZATION_ROOM_SCENE_ACTOR_RESOURCE_ID, .fileNumber = SHELTER_B1_STERILIZATION_ROOM_SCENE_ACTOR_FILE_NUMBER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor160600PlacedActorTask },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_shelter_b1_sterilization_room_8018C14C[11] = {
-    { NULL, NULL },
-    { D_shelter_b1_sterilization_room_8018C11C, D_shelter_b1_sterilization_room_8018C0F8 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_sterilization_room_8018C12C, D_shelter_b1_sterilization_room_8018C104 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+/// Variant 1's empty placement list, consisting only of its terminator.
+static AreaPlacement _gShelterB1SterilizationRoomVariant1Placements[1] = {
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-WorldCollisionOccluder D_shelter_b1_sterilization_room_8018C1A4[2] = {
+/// Variant 5's scene actor at world (6080,0,4000), followed by the terminator.
+///
+/// Yaw -967 uses 4096 units per turn. Zero fileIdLow selects the base resource;
+/// texture-page relocation is zero and CLUT relocation is two rows. Actor mode,
+/// variant and parameter row are zero. The live actor borrows this placement.
+static AreaPlacement _gShelterB1SterilizationRoomVariant5Placements[2] = {
+    { .entryId = SHELTER_B1_STERILIZATION_ROOM_SCENE_ACTOR_RESOURCE_ID, .variant = 0, .mode = 0, .x = 6080, .y = 0, .z = 4000, .yaw = -967, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+AreaVariant gShelterB1SterilizationRoomAreaVariants[11] = {
+    [1] = { .placements = _gShelterB1SterilizationRoomVariant1Placements, .resources = _gShelterB1SterilizationRoomVariant1Resources },
+    [5] = { .placements = _gShelterB1SterilizationRoomVariant5Placements, .resources = _gShelterB1SterilizationRoomVariant5Resources },
+};
+
+/// Two room-local wall quads blocking sight, including the LAST-marked second quad.
+///
+/// Setup links/enables both. Positions use game units and normals Q12; runtime
+/// links and flags remain writable until teardown. Low flag bit 0 is retained
+/// with no established meaning; these are separate from the collision mesh.
+static WorldCollisionOccluder _gShelterB1SterilizationRoomSightOccluders[2] = {
     { NULL, NULL, { 3536, -1424, 6048, 0 }, { { -3888, 2448, 0, 0 }, { 3888, 2448, 0, 0 }, { -3888, -2448, 0, 0 }, { 3888, -2448, 0, 0 } }, { 0, 0, 4104, 0 }, 4579, 1, 0 },
     { NULL, NULL, { 3488, -1360, 0x2B00, 0 }, { { -3888, 2384, 0, 0 }, { 3888, 2384, 0, 0 }, { -3888, -2384, 0, 0 }, { 3888, -2384, 0, 0 } }, { 0, 0, 4099, 0 }, 4550, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -1098,7 +1268,7 @@ AreaApplyRec D_shelter_b1_sterilization_room_8018C334[2] = {
 
 Task* gRoomCutsceneSoundTask = NULL;
 
-s32 D_shelter_b1_sterilization_room_8018C340 = 0;
+s32 gShelterB1SterilizationRoomOnceSpawnMask = 0;
 
 RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344 = { 0 };
 
@@ -1218,15 +1388,15 @@ static void _shelterB1SterilizationRoomSpawnTrapDamageOnce(void)
     enum {
         TRAP_DAMAGE_SPAWN_BIT = 1 << SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DAMAGE,
     };
-    if (!(D_shelter_b1_sterilization_room_8018C340 & TRAP_DAMAGE_SPAWN_BIT)) {
-        D_shelter_b1_sterilization_room_8018C340 |= TRAP_DAMAGE_SPAWN_BIT;
+    if (!(gShelterB1SterilizationRoomOnceSpawnMask & TRAP_DAMAGE_SPAWN_BIT)) {
+        gShelterB1SterilizationRoomOnceSpawnMask |= TRAP_DAMAGE_SPAWN_BIT;
         taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DAMAGE, 0, 0);
     }
 }
 
 void shelterB1SterilizationRoomResetSpawnMaskTask(Task* task)
 {
-    D_shelter_b1_sterilization_room_8018C340 = 0;
+    gShelterB1SterilizationRoomOnceSpawnMask = 0;
     taskKill(task);
 }
 

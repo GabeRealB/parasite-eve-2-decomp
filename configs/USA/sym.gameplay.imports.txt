@@ -1625,7 +1625,7 @@ D_shelter_b1_sleeping_quarters_80183FDC = 0x80183FDC; // absolute:True owner=she
 
 D_shelter_b1_south_maintenance_walkway_80183598 = 0x80183598; // absolute:True owner=shelter_b1_south_maintenance_walkway
 
-D_shelter_b1_sterilization_room_8018C14C = 0x8018C14C; // absolute:True owner=shelter_b1_sterilization_room
+gShelterB1SterilizationRoomAreaVariants = 0x8018C14C; // absolute:True owner=shelter_b1_sterilization_room
 
 D_shelter_b1_storeroom_80186C9C = 0x80186C9C; // absolute:True owner=shelter_b1_storeroom
 

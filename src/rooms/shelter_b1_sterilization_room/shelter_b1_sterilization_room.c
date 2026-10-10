@@ -519,7 +519,7 @@ static void _shelterB1SterilizationRoomInitializeState(Task* task)
     if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != ENTRY_EVENT_WITHOUT_COMPANION) {
         WorldCollisionTrigger* eventTrigger;
 
-        eventTrigger         = &D_shelter_b1_sterilization_room_8018B8A8[EVENT_TRIGGER_INDEX];
+        eventTrigger         = &gShelterB1SterilizationRoomActionTriggers[EVENT_TRIGGER_INDEX];
         eventTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
     if (gGameSession->location.loc.variant == FIRST_ENTRY_VARIANT) {
@@ -744,7 +744,7 @@ static s32 _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messa
         if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_TRIGGERED && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_RUNNING) {
             if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F) == SCENE_NOT_STARTED) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                evsStartScriptWithSkip(D_shelter_b1_sterilization_room_80188ED4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_sterilization_room_80188FDC);
+                evsStartScriptWithSkip(gShelterB1SterilizationRoomTrapExchangeScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_sterilization_room_80188FDC);
                 gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, SCENE_FIRST_STARTED);
             } else {
                 taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_REPEAT_TRAP_EXCHANGE, 0);
@@ -967,7 +967,7 @@ static void _shelterB1SterilizationRoomRebuildActorObstacle(const GfxCoord* mode
     s32                       elementIndex;
     SVECTOR*                  destinationVector;
     SVECTOR*                  sourceVector;
-    WorldCollisionGrid*       roomGrid       = &D_shelter_b1_sterilization_room_80189E44;
+    WorldCollisionGrid*       roomGrid       = &gShelterB1SterilizationRoomCollisionGrid;
     const WorldCollisionGrid* obstacleSource = &D_shelter_b1_sterilization_room_80184F28;
 
     /// Restores the reserved obstacle's XYZ vectors and complete faces.
@@ -1246,7 +1246,7 @@ static void _shelterB1SterilizationRoomTrapDamageTask(Task* task)
                     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     task->killCountdown++;
                     if (task->killCountdown == SHELTER_B1_STERILIZATION_ROOM_TRAP_DAMAGE_TICK) {
-                        taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_shelter_b1_sterilization_room_80188738, 0), 0);
+                        taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&gShelterB1SterilizationRoomTrapAttack, 0), 0);
                     } else if (task->killCountdown >= SHELTER_B1_STERILIZATION_ROOM_TRAP_REACTION_TICK) {
                         // Delay the reaction until the tick after damage; a fatal hit skips it.
                         if (gPlayerStatus.hp > 0) {
@@ -1280,8 +1280,8 @@ static void _shelterB1SterilizationRoomTrapDamageTask(Task* task)
 
 void shelterB1SterilizationRoomSpawnTaskOnce(s32 descriptorIndex)
 {
-    if (!((D_shelter_b1_sterilization_room_8018C340 >> descriptorIndex) & 1)) {
-        D_shelter_b1_sterilization_room_8018C340 |= 1 << descriptorIndex;
+    if (!((gShelterB1SterilizationRoomOnceSpawnMask >> descriptorIndex) & 1)) {
+        gShelterB1SterilizationRoomOnceSpawnMask |= 1 << descriptorIndex;
         taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, descriptorIndex, 0, 0);
     }
 }

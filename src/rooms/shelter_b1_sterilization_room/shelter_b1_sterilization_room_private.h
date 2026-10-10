@@ -15,9 +15,13 @@
 /// The room's task descriptor table; its spawners pick an entry by index.
 extern TaskDesc D_shelter_b1_sterilization_room_80188504[];
 
-/// One bit per entry of `D_shelter_b1_sterilization_room_80188504` already
-/// spawned, so each is spawned only once until the mask is cleared.
-extern s32 D_shelter_b1_sterilization_room_8018C340;
+/// Latches requests made through the room's two once-spawn helpers.
+///
+/// Descriptor indices select bits; scripts use 0/3 and the trap-damage helper
+/// uses 5. Each helper sets its bit before requesting allocation, even if that
+/// fails. Direct task spawns do not consult the mask. Variant-1 entry clears it
+/// without stopping live tasks. The signed 32-bit shifts are retained.
+extern s32 gShelterB1SterilizationRoomOnceSpawnMask;
 
 extern AnimationBankCopyRequest D_shelter_b1_sterilization_room_80188590;
 
@@ -37,19 +41,44 @@ extern ActorTransform D_shelter_b1_sterilization_room_80188638;
 
 extern ActorTransform D_shelter_b1_sterilization_room_80188650;
 
-extern DamageAttack D_shelter_b1_sterilization_room_80188738;
+/// The repeating trap's category-4 attack: base power 25, ordinary hit reaction.
+///
+/// Power is scaled by the player's HP band when damage is resolved; it is not
+/// a fixed 25-HP loss. Reaction zero adds no status. The damage task packs this
+/// single record at index zero; it remains borrowed from the room overlay.
+extern DamageAttack gShelterB1SterilizationRoomTrapAttack;
 
 extern EvsCommand D_shelter_b1_sterilization_room_8018873C[37];
 
 extern EvsCommand D_shelter_b1_sterilization_room_80188AB4[20];
 
-extern EvsCommand D_shelter_b1_sterilization_room_80188ED4[11];
+/// First trap exchange, synchronized to scene CAP command 10 and two sound cues.
+///
+/// Eleven commands include END. Selects the scene CAP resource, preserves sounds
+/// on skip, then ends player scripting and restores the default CAP resource.
+/// The room starts it with player control held, HUD hide/restore and a separate
+/// skip script. Requires live player, CAP, sound and room resources through exit.
+extern EvsCommand gShelterB1SterilizationRoomTrapExchangeScript[11];
 
 extern EvsCommand D_shelter_b1_sterilization_room_80188FDC[8];
 
-extern WorldCollisionGrid D_shelter_b1_sterilization_room_80189E44;
+/// Writable room collision mesh shared by all three room resource descriptors.
+///
+/// The 2-by-4 XZ index uses 4000-unit cells and origins X=0, Z=500. It contains
+/// 68 faces, 14 Q12 normals and 124 game-unit vertices. The event actor rebuilds
+/// the leading four faces/normals and eight vertices without changing cell lists.
+/// Activation binds the view coordinate; all mesh storage lives with the overlay.
+extern WorldCollisionGrid gShelterB1SterilizationRoomCollisionGrid;
 
-extern WorldCollisionTrigger D_shelter_b1_sterilization_room_8018B8A8[28];
+/// Mutable room interactions and area-transition quads, including the LAST record.
+///
+/// Entries 0..9 dispatch room actions 1..10; entries 10/11 request the Main
+/// Corridor and Pod Access Tunnel. The remaining entries select CAP or room
+/// commands, with the final entry repeating action 2 at another facing. Entry
+/// 22 is the event actor's weapon-assisted command 21, disabled on entry unless
+/// the event progress is 1. Setup binds/enables the records; keep them loaded
+/// and writable until unlinked. Positions/radii use game units, normals Q12.
+extern WorldCollisionTrigger gShelterB1SterilizationRoomActionTriggers[28];
 
 extern AreaApplyRec D_shelter_b1_sterilization_room_8018C334[2];
 

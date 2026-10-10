@@ -14,7 +14,12 @@
 
 extern TmdSource gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0;
 
-extern AreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
+/// Placement layouts indexed by this area's saved variant (0..10).
+///
+/// Variant 1 has empty, terminated placement and resource lists; variant 5
+/// places the scene actor. Other slots contain two NULL pointers. Gameplay
+/// borrows this directory and its mutable tables while the room is loaded.
+extern AreaVariant gShelterB1SterilizationRoomAreaVariants[11];
 
 /// Lighting descriptors for this area's three 1-based room IDs.
 ///
@@ -24,7 +29,13 @@ extern AreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
 /// to remain loaded while lighting is queried or updated.
 extern WorldCoordRoomLighting gShelterB1SterilizationRoomLighting[3];
 
-extern WorldCollisionRoomResources D_shelter_b1_sterilization_room_8018936C[];
+/// Collision resources for this area's three 1-based room IDs.
+///
+/// All three borrow the same writable mesh, eight view boundaries, 28 action
+/// triggers and two sight occluders. Trigger and occluder lists include their
+/// LAST-marked final records. Keep this overlay loaded while the mesh is active
+/// or its records are linked; room entry binds them to the current view.
+extern WorldCollisionRoomResources gShelterB1SterilizationRoomCollisionResources[3];
 
 /// Logical-to-mapped view maps for this area's three 1-based room IDs.
 ///
@@ -34,13 +45,35 @@ extern WorldCollisionRoomResources D_shelter_b1_sterilization_room_8018936C[];
 /// is stored. The directory and room-owned maps live with this overlay.
 extern u8* gShelterB1SterilizationRoomViewMaps[3];
 
-extern ViewCount D_shelter_b1_sterilization_room_801893D8[];
+/// Logical-view counts for the three 1-based room IDs, each with 24 views.
+///
+/// Indexed by room - 1 without a terminator. These signed-halfword counts
+/// bound reverse searches of the room's logical-to-mapped view table.
+extern ViewCount gShelterB1SterilizationRoomViewCounts[3];
 
-extern DirectionWarpEntry D_shelter_b1_sterilization_room_801893E0[];
+/// Three warp endpoints, indexed by 1-based warp ID minus one.
+///
+/// Entries 1/2 connect to the Main Corridor and Pod Access Tunnel, with initial
+/// logical views 2/8 and paired arrival/departure sounds. Entry 3 supplies a
+/// silent placement in view 5. Player and companion share each entry's world
+/// position and yaw (4096 units per turn). There is no terminator; the map
+/// directory borrows the array while this overlay is loaded.
+extern DirectionWarpEntry gShelterB1SterilizationRoomWarpEntries[3];
 
-extern ViewCamera D_shelter_b1_sterilization_room_80189E68[];
+/// Camera transforms and pixel projection distances for mapped views 1..24.
+///
+/// Indexed by mapped view - 1, shared by all three room view maps, without a
+/// terminator. Rotation is Q12 and translation is the negated world origin.
+/// Queued camera requests borrow an entry until application, so keep it loaded.
+extern ViewCamera gShelterB1SterilizationRoomViewCameras[24];
 
-extern SpriteView D_shelter_b1_sterilization_room_8018B00C[];
+/// Sprite and image-background descriptors for mapped views 1..24.
+///
+/// Indexed by mapped view - 1 without a terminator. Views 8/18/20 select source
+/// sprites; every view keeps decoded image strips and has no clipping list.
+/// Batch lists end at SPRITE_BATCH_END. Descriptors and writable sources/lists
+/// are borrowed from this overlay through packet allocation and drawing.
+extern SpriteView gShelterB1SterilizationRoomSpriteViews[24];
 
 /// Collision policies and footstep cues indexed by surface class 0..7.
 ///
