@@ -2154,7 +2154,7 @@ void actor215100CheckGalleryExitInput(void)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     player     = playerTask->work;
     rootCoord  = playerTask->extra.tmd->coords;
-    if (D_actor_215100_8014D038 != 0) {
+    if (gActor215100GalleryTrainingActive != 0) {
         if (gActor215100GallerySelectedCourseLevel >= ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
             if (gGameSession->location.loc.view == ACTOR_215100_GALLERY_EXIT_INPUT_VIEW) {
                 mistShootingGallerySetTrainingBarrierLowered(0);
@@ -2226,7 +2226,7 @@ void actor215100GalleryExitDecisionTask(Task* task)
             if (gActor215100GallerySelectedCourseLevel == ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
                 gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             }
-            D_actor_215100_8014D038 = 0;
+            gActor215100GalleryTrainingActive = 0;
             mistShootingGallerySetTrainingBarrierLowered(1);
             D_actor_215100_8014D03C = 1;
             taskCallExit(D_mist_shooting_gallery_8018E0C4);
@@ -2290,8 +2290,8 @@ void actor215100GalleryAbortDecisionTask(Task* task)
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
-            player->movementInputDisabled = 0;
-            D_actor_215100_8014D038       = 0;
+            player->movementInputDisabled     = 0;
+            gActor215100GalleryTrainingActive = 0;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             if (gDisplayState.holdCount != 0) {
@@ -2304,7 +2304,7 @@ void actor215100GalleryAbortDecisionTask(Task* task)
 
 void actor215100FinishGalleryCourse(void)
 {
-    D_actor_215100_8014D038 = 0;
+    gActor215100GalleryTrainingActive = 0;
     if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_215100_GALLERY_RETURN_VIEW;
         mistShootingGallerySelectRoomLights(0);
@@ -2321,7 +2321,7 @@ void actor215100FinishGalleryCourse(void)
 void actor215100RequestGalleryAbort(void)
 {
     if (gActor215100GallerySelectedCourseLevel == ACTOR_215100_GALLERY_BONUS_COURSE) {
-        D_actor_215100_8014D038 = 0;
+        gActor215100GalleryTrainingActive = 0;
         mistShootingGallerySetTrainingBarrierLowered(1);
         D_actor_215100_8014D03C          = 1;
         gGameSession->battleResetPending = 1;
@@ -2336,7 +2336,7 @@ void actor215100RequestGalleryAbort(void)
 
 s32 actor215100ResolveGalleryExit(const RoomEventMsg* request)
 {
-    if (D_actor_215100_8014D038 != 0) {
+    if (gActor215100GalleryTrainingActive != 0) {
         if (request->queryOnly != ROOM_EVENT_EXECUTE) {
             return ACTOR_215100_GALLERY_EXIT_DEFER;
         }
@@ -2369,7 +2369,7 @@ void actor215100HandleGalleryAction(void)
 {
     enum { ACTOR_215100_GALLERY_ACTION_COMMAND = 0x11 };
 
-    if (D_actor_215100_8014D038 != 0) {
+    if (gActor215100GalleryTrainingActive != 0) {
         mistShootingGallerySignalAction();
         return;
     }

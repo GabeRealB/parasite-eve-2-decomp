@@ -262,7 +262,7 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 
 extern Task* Actor04000_D0C710[2];
 
-extern Task* Actor04000_D0C718[8];
+static Task* _gActor04000HangingTasksByPlacement[8];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
@@ -1229,7 +1229,14 @@ SVECTOR ActorContact_ScratchPosition;
 
 Task* Actor04000_D0C710[2];
 
-Task* Actor04000_D0C718[8];
+/// Borrowed hanging-enemy tasks indexed by the placement's high-nibble index.
+///
+/// Eight handles are stored; the controller clears and selects only entries
+/// 0..5. A hang command publishes the task, a drop transfers it to an active
+/// slot and clears this entry, and either burst state clears it before death.
+/// NULL means no candidate. Handles and their Enemy/work/model must remain
+/// live until removed; this table does not own or destroy any task.
+static Task* _gActor04000HangingTasksByPlacement[8];
 
 extern EnemyParams Actor04000_D07084;
 
@@ -1305,9 +1312,9 @@ static s32 _actor04000ApplyCommand(Task* task, s32 messageId, const ActorCommand
     work  = task->work;
     enemy = task->spawnArg2.pointer;
     if (command->context.key == ACTOR_04000_COMMAND_CONTEXT_HANGING_POOL && command->command == ACTOR_04000_POOL_COMMAND_HANG) {
-        work->state                                                   = ACTOR_04000_STATE_HANG;
-        Actor04000_D0C718[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = task;
-        enemy->node.state.parts.flags                                 = WORLD_TARGET_NOT_LOCKABLE;
+        work->state                                                                     = ACTOR_04000_STATE_HANG;
+        _gActor04000HangingTasksByPlacement[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = task;
+        enemy->node.state.parts.flags                                                   = WORLD_TARGET_NOT_LOCKABLE;
         switch (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
             case 0:
                 task->extra.tmd->coords->coord.t[0]   = 0x116;
@@ -2122,7 +2129,7 @@ static void _actor04000StateSelfBurst(Enemy* enemy, Task* task)
         work->burstAttackBody.pos.vy = task->extra.tmd->coords->coord.t[1];
         work->burstAttackBody.pos.vz = task->extra.tmd->coords->coord.t[2];
         if (work->lastCommandContext == ACTOR_04000_COMMAND_CONTEXT_HANGING_POOL) {
-            Actor04000_D0C718[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
+            _gActor04000HangingTasksByPlacement[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
         }
         return;
     }
@@ -2276,7 +2283,7 @@ static void _actor04000StateDeathBurst(Enemy* enemy, Task* task)
         work->burstAttackBody.pos.vz = task->extra.tmd->coords->coord.t[2];
         sceneEngageBattle(1);
         if (work->lastCommandContext == ACTOR_04000_COMMAND_CONTEXT_HANGING_POOL) {
-            Actor04000_D0C718[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
+            _gActor04000HangingTasksByPlacement[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
         }
     }
     _animDriverTick(task);
@@ -3178,8 +3185,8 @@ static void _actor04000RefillDropSlots(Task* task)
         poolIndex    = 0;
         playerStatus = &gPlayerStatus;
         for (; poolIndex < ACTOR_04000_HANGING_POOL_COUNT; poolIndex++) {
-            if (Actor04000_D0C718[poolIndex] != NULL && ((_Actor04000Work*)Actor04000_D0C718[poolIndex]->work)->state == ACTOR_04000_STATE_HANG) {
-                candidateCoord               = Actor04000_D0C718[poolIndex]->extra.tmd->coords;
+            if (_gActor04000HangingTasksByPlacement[poolIndex] != NULL && ((_Actor04000Work*)_gActor04000HangingTasksByPlacement[poolIndex]->work)->state == ACTOR_04000_STATE_HANG) {
+                candidateCoord               = _gActor04000HangingTasksByPlacement[poolIndex]->extra.tmd->coords;
                 playerMatrix                 = playerStatus->coordMtx;
                 playerOffset.vx              = playerMatrix->t[0] - candidateCoord->coord.t[0];
                 playerOffset.vy              = playerMatrix->t[1] - candidateCoord->coord.t[1];
@@ -3201,9 +3208,9 @@ static void _actor04000RefillDropSlots(Task* task)
             task->state++;
             return;
         }
-        ((_Actor04000Work*)Actor04000_D0C718[selectedPoolIndex]->work)->state = ACTOR_04000_STATE_DROP;
-        Actor04000_D0C710[dropSlot]                                           = Actor04000_D0C718[selectedPoolIndex];
-        Actor04000_D0C718[selectedPoolIndex]                                  = NULL;
+        ((_Actor04000Work*)_gActor04000HangingTasksByPlacement[selectedPoolIndex]->work)->state = ACTOR_04000_STATE_DROP;
+        Actor04000_D0C710[dropSlot]                                                             = _gActor04000HangingTasksByPlacement[selectedPoolIndex];
+        _gActor04000HangingTasksByPlacement[selectedPoolIndex]                                  = NULL;
     }
 }
 
@@ -3557,7 +3564,7 @@ static void _actor04000InitHangingPool(Task* task)
     s16          poolIndex;
 
     for (poolIndex = 0; poolIndex < ACTOR_04000_HANGING_POOL_COUNT; poolIndex++) {
-        Actor04000_D0C718[poolIndex] = NULL;
+        _gActor04000HangingTasksByPlacement[poolIndex] = NULL;
     }
     Actor04000_D0C710[1]      = NULL;
     command.context.loc.stage = GAME_STAGE_DRYFIELD_NIGHT;
@@ -3580,15 +3587,15 @@ static void _actor04000AwaitPoolBattle(Task* task)
 
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
         for (poolIndex = 0; poolIndex < ACTOR_04000_HANGING_POOL_COUNT; poolIndex++) {
-            if (Actor04000_D0C718[poolIndex] != NULL) {
-                ((Enemy*)Actor04000_D0C718[poolIndex]->spawnArg2.pointer)->node.state.parts.flags = 0;
+            if (_gActor04000HangingTasksByPlacement[poolIndex] != NULL) {
+                ((Enemy*)_gActor04000HangingTasksByPlacement[poolIndex]->spawnArg2.pointer)->node.state.parts.flags = 0;
             }
         }
         task->state++;
     }
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == ACTOR_04000_POOL_BATTLE_VIEW) {
         for (poolIndex = 0; poolIndex < ACTOR_04000_HANGING_POOL_COUNT; poolIndex++) {
-            if (Actor04000_D0C718[poolIndex] != NULL) {
+            if (_gActor04000HangingTasksByPlacement[poolIndex] != NULL) {
                 sceneEngageBattle(1);
                 return;
             }

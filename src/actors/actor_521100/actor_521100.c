@@ -11,6 +11,7 @@
 #include "actor_521100_private.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/actor_render.h"
@@ -196,7 +197,7 @@ extern u16 D_actor_521100_8015F5D4[];
 /// The 4-byte pair `_actor521100StanceAttack` packs a type-2 record into and
 /// copies onto both `weaponAttack` / `forearmAttack` as their `key`, where the
 /// sibling overlays' attack bodies put the same pair. Same shape as
-/// `D_actor_510900_80167968` and `D_actor_400100_*`.
+/// the rows of `gActor510900Attacks` and `D_actor_400100_*`.
 extern DamageAttack D_actor_521100_8015F550[4];
 
 extern s16 D_actor_521100_8015F57C[16];
@@ -223,7 +224,6 @@ extern u16 D_actor_521100_8015F614[];
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
 extern EnemyParams D_actor_521100_8015F560;
-extern TaskDesc    D_actor_521100_8015F6E4[];
 
 static void _actor521100ResolveContacts(Task* task);
 static void _actor521100ApproachState(Task* task);
@@ -1676,7 +1676,7 @@ s16 D_actor_521100_8015F684[48] = {
     0,
 };
 
-TaskDesc D_actor_521100_8015F6E4[2] = {
+TaskDesc gActor521100No9GolemTaskDescs[2] = {
     { { { TASK_BODY_TMD, 96 } }, _actor521100BodyTask, { .model = &_gActor521100No9GolemDryfieldBody } },
     { { { TASK_BODY_TMD, 96 } }, _actor521100GunbladeTask, { .model = &_gActor521100No9GolemDryfieldGunblade } },
 };
@@ -1777,7 +1777,7 @@ static void _actor521100SpawnBody(Enemy* enemy, Task* task)
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
 
-    weaponEnemy     = enemySpawnFromTable(D_actor_521100_8015F6E4, 1, 0, enemy);
+    weaponEnemy     = enemySpawnFromTable(gActor521100No9GolemTaskDescs, 1, 0, enemy);
     weaponModel     = weaponEnemy->task->extra.tmd;
     placementKey    = enemy->placeKey;
     sessionLocation = &gGameSession->location.loc;

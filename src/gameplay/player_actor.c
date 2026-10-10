@@ -45,6 +45,7 @@
 #include "gameplay/world_targets.h"
 
 #include "actors/companion.h"
+#include "actors/actor_800300.h"
 
 #include "aya/aya.h"
 
@@ -678,8 +679,6 @@ extern AnimationBank D_kyle_800104_80176C1C;
 
 extern AnimationBank D_actor_800200_8016F208;
 
-extern AnimationBank D_actor_800300_8016CB98;
-
 /// Weapon overlay entry points, at fixed addresses.
 
 void func_p08_snail_8011D1D8(Task* arg0);
@@ -1277,7 +1276,7 @@ u16            Gp_AllyIdBase[4] = {
     7,
     0,
 };
-AnimationBank* Gp_AnimBlkTbl[8] = { NULL, &D_kyle_800101_801756D0, &D_kyle_800101_801756D0, &D_kyle_800102_801772E8, &D_kyle_800103_8017567C, &D_kyle_800104_80176C1C, &D_actor_800200_8016F208, &D_actor_800300_8016CB98 };
+AnimationBank* Gp_AnimBlkTbl[8] = { NULL, &D_kyle_800101_801756D0, &D_kyle_800101_801756D0, &D_kyle_800102_801772E8, &D_kyle_800103_8017567C, &D_kyle_800104_80176C1C, &D_actor_800200_8016F208, &gActor800300CompanionAnimationBank };
 /// Five observed flag entries; the final F0 EE EF bytes have no known reader.
 /// Their meaning and relationship to the flag array are unconfirmed.
 u8 D_80113388[8] = {

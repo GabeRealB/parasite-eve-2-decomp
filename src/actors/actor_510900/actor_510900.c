@@ -1154,7 +1154,14 @@ AnimationSet gActor510900Animation35B20 = {
     { NULL, _gActor510900Animation35B20Bank1, NULL, NULL, _gActor510900Animation35B20Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack D_actor_510900_80167968 = { 14, 7 };
+DamageAttack gActor510900Attacks[6] = {
+    { 14, 7 },
+    { 24, 6 },
+    { 20, 7 },
+    { 999, 6 },
+    { 0, GAME_ACTOR_REACTION_PARALYSIS },
+    { 1, 6 },
+};
 
 /// Chooses a flame-particle velocity and advances the draw used for its size.
 ///

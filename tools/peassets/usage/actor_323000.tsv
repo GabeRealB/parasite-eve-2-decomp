@@ -15,7 +15,7 @@ pe2clut_307	row 0 (y=265), 16-colour palette 19 (x=304)	actor_323000:_actor32300
 # Sibling check: the unit pairs actor_123000 with actor_323000, but they are not one source built twice. actor_123000 is an 'empty actor slot' in configs/USA/overlays.toml (packageId only, no src beyond packageid.c); it is swept on its own in actor_123000.tsv.
 # File 323000 has no sound bank; the one sound the scene plays depends on spk_129 from file 400100 (same room variants). The checklist cannot show that dependency.
 # No ground shadow: this build never calls effectDrawGroundShadow. No hit effects: gRigEffectRec is filled at spawn (desert_chaser_spawn.inc.c:74-76) and never passed on.
-# Literal data in C that is an asset-like track: none. gDesertChaserClipStartFrames (45x45 blend lengths, actor_323000.c:619-665) is a tuning table; only the blend request path reads it, which this build never takes (all requests are RESET).
+# Literal data in C that is an asset-like track: none. _gDesertChaserClipBlendFrames (45x45 blend lengths, actor_323000.c:619-665) is a tuning table; only the blend request path reads it, which this build never takes (all requests are RESET).
 # D_actor_323000_80164D40 / gRigParams / D_actor_323000_80164D64 are the regular build's damage and tuning tables; gRigParams is stored in Enemy::param, the other two have no reader in this package.
 # Mechanical data: gRigAnimSource (actor_323000.c:667) is a u8[340] holding the AnimationSet* table plus the two unused pointer groups and trailing tuning words, so nothing links its entries to the set symbols by name; the mapping above is from the pointer values.
 # Mechanical data: `asset_residency.py show actor_323000` prints only the carrier line; variants and offsets come from `show dryfield_main_street`.

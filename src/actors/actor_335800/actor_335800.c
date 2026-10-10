@@ -147,8 +147,6 @@ STATIC_ASSERT_SIZEOF(_Actor335800GaryDouglasWork, 0x50C);
 extern EvsCommand D_actor_335800_80165FC0[];
 extern EvsCommand D_actor_335800_80166098[];
 
-extern AnimationSet** gActorMotionAnimBanks[1];
-
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
 
@@ -1028,7 +1026,7 @@ static AnimationSet _gActor335800Animation0CC7C = {
 /// Gary Douglas's bank-0 clip table for his twenty-part rig.
 ///
 /// Clip IDs 1..4 borrow the four loaded animation sets; entry 0 is NULL and
-/// cannot be played. `gActorMotionAnimBanks[0]` supplies this table to the rig.
+/// cannot be played. `_gActorMotionAnimBanks[0]` supplies this table to the rig.
 /// The table and all referenced data must stay loaded while playback uses them.
 static AnimationSet* _gActor335800GaryDouglasAnimationBank[] = {
     NULL,
@@ -1038,7 +1036,11 @@ static AnimationSet* _gActor335800GaryDouglasAnimationBank[] = {
     &_gActor335800Animation0CC7C,
 };
 
-AnimationSet** gActorMotionAnimBanks[1] = {
+/// Actor-motion bank selection for Douglas's twenty-part body (only source.index 0).
+///
+/// Requests select loaded clips 1..4. This table and its borrowed sets must
+/// remain loaded for playback; Flint's nineteen-part rig has a separate bank.
+static AnimationSet** _gActorMotionAnimBanks[1] = {
     _gActor335800GaryDouglasAnimationBank,
 };
 

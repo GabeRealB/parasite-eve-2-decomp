@@ -160,7 +160,11 @@ extern AnimationSet gActor510900Animation35474;
 
 extern AnimationSet gActor510900Animation35B20;
 
-extern DamageAttack D_actor_510900_80167968;
+/// No. 9's six collision attacks, borrowed by its enemy parameters and attack bodies.
+///
+/// Indices 0..5 are dash, flame lunge, slash, lethal strike, held grenade and
+/// ignition. Each row's power and player reaction are copied into a contact key.
+extern DamageAttack gActor510900Attacks[6];
 
 extern TaskMessageEntry D_actor_510900_80167A6C[7];
 

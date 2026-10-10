@@ -34,8 +34,6 @@
 #include "../../shared/reversing_walker.h"
 
 extern AnimationSet** gActorMotionAnimBanks19[1];
-extern AnimationSet*  D_actor_350700_801708C0[6];
-extern AnimationSet** gActorMotionAnimBanks[1];
 
 /// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `_reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
@@ -266,7 +264,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     _gActor350700BodyAnimSets,
 };
 
-TaskDesc D_actor_350700_80169D10 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350700ReverseWalkTask, { .model = &_gActor350700EveBreaMaskedBody } };
+TaskDesc gActor350700MaskedEveReverseWalkTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350700ReverseWalkTask, { .model = &_gActor350700EveBreaMaskedBody } };
 
 /// Terminated message table of this carrier's nineteen-part reversing walker.
 ///
@@ -520,7 +518,11 @@ static AnimationSet _gActor350700Animation0EA78 = {
     { NULL, _gActor350700Animation0EA78Bank1, NULL, NULL, _gActor350700Animation0EA78Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_350700_801708C0[6] = {
+/// Kyle Madigan's bank-0 clip table for his twenty-part body rig.
+///
+/// Clip IDs 1..5 borrow loaded sets; entry 0 is NULL and cannot be played.
+/// The table and animation resources must remain loaded while the rig uses them.
+static AnimationSet* _gActor350700KyleMadiganAnimationBank[6] = {
     NULL,
     &_gActor350700Animation0DA4C,
     &_gActor350700Animation0DD04,
@@ -529,8 +531,12 @@ AnimationSet* D_actor_350700_801708C0[6] = {
     &_gActor350700Animation0EA78,
 };
 
-AnimationSet** gActorMotionAnimBanks[1] = {
-    D_actor_350700_801708C0,
+/// Actor-motion bank selection for Kyle's twenty-part body (only source.index 0).
+///
+/// Requests select loaded clips 1..5. This table and its borrowed sets must
+/// remain loaded for playback; masked Eve's nineteen-part rig uses another bank.
+static AnimationSet** _gActorMotionAnimBanks[1] = {
+    _gActor350700KyleMadiganAnimationBank,
 };
 
 TaskDesc D_actor_350700_801708DC[4] = {

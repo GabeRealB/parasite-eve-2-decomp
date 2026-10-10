@@ -1432,7 +1432,7 @@ TaskDesc D_actor_405800_801514B4[2] = {
     { { { TASK_BODY_TMD, 96 } }, _actor405800RightArmTask, { .model = &_gActor405800IvoryStalkerBurstArmRight } },
 };
 
-TaskDesc D_actor_405800_801514CC = { { { TASK_BODY_TMD, 96 } }, _actor405800Task, { .model = &_gActor405800IvoryStalkerBody } };
+TaskDesc gActor405800IvoryStalkerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor405800Task, { .model = &_gActor405800IvoryStalkerBody } };
 
 /// Grounded-death clip selected from the requested body pose, indexed 0..34.
 ///

@@ -536,7 +536,7 @@ WorldCollisionOccluder D_mine_secret_passage_801831A8[2] = {
 };
 
 AreaResource D_mine_secret_passage_80183220[2] = {
-    { 58, 58, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &D_actor_405800_801514CC },
+    { 58, 58, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor405800IvoryStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

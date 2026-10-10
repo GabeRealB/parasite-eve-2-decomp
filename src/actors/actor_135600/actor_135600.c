@@ -35,11 +35,6 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 
-/// Animation bank table the 0x7D3 handler seeds the slot array from, indexed
-/// by the preset's bank index.
-extern AnimationSet*  D_actor_135600_8013B080[16];
-extern AnimationSet** gActorMotionAnimBanks[1];
-
 /// Child task table the setup handler spawns from: entry 0 is the actor
 /// itself, entries 1 and 2 the two part models and entry 3 the marker task.
 extern TaskDesc D_actor_135600_8013B0C4[];
@@ -604,7 +599,11 @@ static SVECTOR _gActor135600HeldItemQuadCorners[4] = {
     { 3, 0, 0, 0 },
 };
 
-AnimationSet* D_actor_135600_8013B080[16] = {
+/// Kyle Madigan's bank-0 clip table for his twenty-part body rig.
+///
+/// Clip IDs 1..15 borrow loaded sets; entry 0 is NULL and cannot be played.
+/// The table and animation resources must remain loaded while the rig uses them.
+static AnimationSet* _gActor135600KyleMadiganAnimationBank[16] = {
     NULL,
     &_gActor135600Animation06F40,
     &_gActor135600Animation071F4,
@@ -623,8 +622,12 @@ AnimationSet* D_actor_135600_8013B080[16] = {
     &_gActor135600Animation09218,
 };
 
-AnimationSet** gActorMotionAnimBanks[1] = {
-    D_actor_135600_8013B080,
+/// Actor-motion bank selection for Kyle's twenty-part body (only source.index 0).
+///
+/// Requests select loaded clips 1..15. This table and its borrowed sets must
+/// remain loaded for playback; attached models use the body's placed coordinates.
+static AnimationSet** _gActorMotionAnimBanks[1] = {
+    _gActor135600KyleMadiganAnimationBank,
 };
 
 TaskDesc D_actor_135600_8013B0C4[4] = {

@@ -453,9 +453,17 @@ extern TaskDesc gActor200700RatTaskDesc;
 /// slot's callback and borrowed model geometry loaded while its tasks run.
 extern TaskDesc gActor201200BoneSucklerTaskDesc;
 
-extern TaskDesc D_actor_421600_80151254;
+/// Water Tower Desert Chaser spawn recipe; priority 96, automatic model buffers disabled.
+///
+/// Spawn at index 0 with the owning Enemy in spawnArg2. The TMD body, animation
+/// resources and actor_421600 callbacks must remain loaded through enemy teardown.
+extern TaskDesc gActor421600DesertChaserTaskDesc;
 
-extern TaskDesc D_actor_405800_801514CC;
+/// Ivory Stalker body spawn recipe; priority 96 with automatic model buffers.
+///
+/// Spawn at index 0 with the owning Enemy in spawnArg2. The body initializes
+/// its attached arms; keep actor_405800 callbacks and borrowed geometry loaded.
+extern TaskDesc gActor405800IvoryStalkerTaskDesc;
 
 /// Spawn recipe for the Zebra Stalker body task, running at priority 96.
 ///
@@ -570,7 +578,13 @@ extern TaskDesc gActor01600ScavengerTaskDesc;
 /// Slot export of `gActor01100Tasks` from actor_201100, with the same descriptor contract.
 extern TaskDesc gActor201100Tasks[3];
 
-extern TaskDesc D_actor_521100_8015F6E4[];
+/// Dryfield No. 9 GOLEM spawn recipes (0 body, 1 attached gunblade).
+///
+/// Both are TMD bodies at priority 96 with automatic model buffers; no terminator.
+/// Area placement selects the body; its initializer spawns the gunblade with the
+/// parent Enemy in spawnArg2. The child borrows the body's work and lighting.
+/// Keep actor_521100 and its model/animation resources loaded until both are gone.
+extern TaskDesc gActor521100No9GolemTaskDescs[2];
 
 /// Slot export of `gActor02300RookGolemTasks` from actor_202300, with the same descriptor contract.
 extern TaskDesc gActor202300RookGolemTasks[3];
@@ -606,7 +620,12 @@ extern TaskDesc D_actor_510900_80167A18[];
 /// slot's callback and borrowed model geometry loaded while its tasks run.
 extern TaskDesc gActor301200BoneSucklerTaskDesc;
 
-extern TaskDesc D_actor_350500_80168EA4;
+/// Masked Eve Brea reversing-walker spawn recipe for the B6 corridor.
+///
+/// Nineteen-part TMD body at priority 192, with automatic model buffers disabled.
+/// Spawn at index 0 with the owning Enemy in spawnArg2. Keep actor_350500 and
+/// its borrowed model/animation resources loaded until the task is destroyed.
+extern TaskDesc gActor350500MaskedEveReverseWalkTaskDesc;
 
 extern TaskDesc D_actor_311500_80169338;
 
@@ -618,13 +637,28 @@ extern TaskDesc D_actor_311500_80169338;
 /// borrowed geometry loaded until enemy teardown.
 extern TaskDesc gActor300700RatTaskDesc;
 
-extern TaskDesc D_actor_350700_80169D10;
+/// Masked Eve Brea reversing-walker spawn recipe for the B6 training room.
+///
+/// Nineteen-part TMD body at priority 192, with automatic model buffers disabled.
+/// Spawn at index 0 with the owning Enemy in spawnArg2. Keep actor_350700 and
+/// its borrowed model/animation resources loaded until the task is destroyed.
+extern TaskDesc gActor350700MaskedEveReverseWalkTaskDesc;
 
-extern TaskDesc D_actor_312200_80169F7C;
+/// Scripted SWAT member 1 spawn recipe for the Akropolis patio.
+///
+/// TMD body at priority 96 with automatic model buffers disabled. Spawn at index
+/// 0 with the owning Enemy in spawnArg2. Keep actor_312200 callbacks and borrowed
+/// model/animation resources loaded through teardown.
+extern TaskDesc gActor312200SwatMember1TaskDesc;
 
 extern TaskDesc D_actor_521100_8016A388[];
 
-extern TaskDesc D_actor_317000_8016CF44;
+/// Scripted Grinning Stranger spawn recipe for the Akropolis patio.
+///
+/// TMD body at priority 192 with automatic model buffers disabled. Spawn at index
+/// 0 with the owning Enemy in spawnArg2. Keep actor_317000 callbacks and borrowed
+/// model/animation resources loaded through the scripted leap and teardown.
+extern TaskDesc gActor317000GrinningStrangerTaskDesc;
 
 /// Slot export of `gActor04000BloodSucklerTaskDesc` from actor_304000, with the same descriptor contract.
 extern TaskDesc gActor304000BloodSucklerTaskDesc;
@@ -654,7 +688,12 @@ extern TaskDesc D_actor_323300_8017255C[];
 /// code and geometry must stay loaded until Flint's task is released.
 extern TaskDesc gActor335800FlintTaskDesc;
 
-extern TaskDesc D_actor_356100_80173294;
+/// Horned Stranger spawn recipe for Neo Ark's forest zone.
+///
+/// TMD body at priority 96 with automatic model buffers. Spawn at index 0 with
+/// the owning Enemy in spawnArg2. Keep actor_356100 callbacks and borrowed
+/// model/animation resources loaded through enemy teardown.
+extern TaskDesc gActor356100HornedStrangerTaskDesc;
 
 extern TaskDesc D_actor_323000_80173A08;
 

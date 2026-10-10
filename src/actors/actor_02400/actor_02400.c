@@ -236,14 +236,13 @@ STATIC_ASSERT_SIZEOF(_Actor02400ScaleScratch, 0x40);
         (bodyWork)->scale.vz = (s16)((bodyWork)->counter + (bias)) + (bodyWork)->scale.vz; \
     }
 
-extern DamageAttack Actor02400_BodyPairs[4];
-extern EnemyParams  Actor02400_Params0;
-extern EnemyParams  Actor02400_Params1;
-/// Frames the grown body waits before it spawns, indexed by `variant`.
-extern s16 Actor02400_D045D4[];
-extern s16 Actor02400_D045D8[];
-extern s16 Actor02400_D045DC[];
-extern s16 Actor02400_D0463C[];
+/// Responses selected by a weapon attack row before its reaction overrides them.
+enum {
+    ACTOR_02400_HIT_STAGGER   = 0,
+    ACTOR_02400_HIT_NORMAL    = 1,
+    ACTOR_02400_HIT_AMPLIFIED = 2,
+    ACTOR_02400_HIT_FATAL     = 3,
+};
 
 static void _actor02400InitBody(Enemy* enemy, Task* task);
 static void _actor02400TeardownBody(Enemy* enemy, Task* task);
@@ -295,79 +294,100 @@ static TmdSource _gActor02400AmoebaBody = {
     _gActor02400AmoebaBodyStream,
 };
 
-DamageAttack Actor02400_BodyPairs[4] = {
-    { 0, 8 },
+/// Arm-touch and fireball attacks, with two consecutive rows per placement variant.
+///
+/// Rows 0/2 are zero-power touches with silence/berserker reactions; contact
+/// handling separately drains MP. Rows 1/3 are the variants' fireball attacks.
+/// Collision keys copy these rows; both parameter sets borrow the same table.
+static DamageAttack _gActor02400VariantAttacks[4] = {
+    { 0, GAME_ACTOR_REACTION_SILENCE },
     { 28, 6 },
-    { 0, 11 },
+    { 0, GAME_ACTOR_REACTION_BERSERKER },
     { 38, 6 },
 };
 
-EnemyParams Actor02400_Params0 = { Actor02400_BodyPairs, 80, 12, 86, 8, 0, 0, 100, 99 };
+/// Enemy tuning for placement variant 0: 80 starting HP and its release rewards.
+static EnemyParams _gActor02400Variant0Params = { _gActor02400VariantAttacks, 80, 12, 86, 8, 0, 0, 100, 99 };
 
-EnemyParams Actor02400_Params1 = { Actor02400_BodyPairs, 280, 16, 420, 30, 0, 0, 100, 99 };
+/// Enemy tuning for placement variant 1: 280 starting HP and its release rewards.
+static EnemyParams _gActor02400Variant1Params = { _gActor02400VariantAttacks, 280, 16, 420, 30, 0, 0, 100, 99 };
 
-s16 Actor02400_D045D4[2] = {
+/// Elapsed aiming-frame limits for variants 0/1 before releasing a fireball.
+///
+/// The counter starts at zero and advances before a strict greater-than test,
+/// so limits 90/30 hold the aiming phase for 91/31 running ticks.
+static s16 _gActor02400CastAimFrames[2] = {
     90,
     30,
 };
 
-s16 Actor02400_D045D8[2] = {
+/// MP removed by an arm touch for placement variants 0/1, respectively.
+static s16 _gActor02400TouchMpDrain[2] = {
     2,
     5,
 };
 
-s16 Actor02400_D045DC[48] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    3,
-    0,
-    3,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    2,
-    0,
-    2,
-    1,
-    1,
-    1,
-    1,
-    0,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    1,
-    0,
-    1,
-    1,
-    1,
-    1,
-    0,
-    1,
-    1,
-    0,
-    0,
-    0,
+/// Base hit response by weapon attack row, before the attack's reaction overrides it.
+///
+/// Entries are `ACTOR_02400_HIT_*`: stagger without HP loss, ordinary damage,
+/// fivefold damage or fatal damage. Weapon keys select rows 0..46; the final
+/// stored row is not selected by that domain. Attachment keys bypass this table.
+static s16 _gActor02400WeaponHitResponses[48] = {
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_FATAL,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_FATAL,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_AMPLIFIED,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_AMPLIFIED,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_AMPLIFIED,
+    ACTOR_02400_HIT_AMPLIFIED,
+    ACTOR_02400_HIT_AMPLIFIED,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_NORMAL,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
+    ACTOR_02400_HIT_STAGGER,
 };
 
-s16 Actor02400_D0463C[16] = {
+/// Suppression flags for ordinary-hit effect kinds 0..15 (0 spawn, 1 suppress).
+///
+/// The contact handler indexes the returned effect kind without a bounds check.
+/// Only these sixteen halfwords are established as this table's storage.
+static s16 _gActor02400HitEffectSuppressed[16] = {
     0,
     1,
     0,
@@ -399,9 +419,11 @@ static void _actor02400UpdateCast(Task* task);
 
 #include "../../shared/fireball_ground_glow.inc.c"
 
-/// The main body's state handlers, run by `_actor02400BodyTask` for the task's
-/// state: spawn, per-frame tick and death.
-static const EnemyTaskFuncTable3 Actor02400_D00004 = {
+/// Amoeba body task callbacks, indexed by task state (0 spawn, 1 active, 2 death).
+///
+/// Each receives the live Enemy from spawnArg2 and its Task. The dispatcher
+/// copies all three pointers before an unchecked state lookup; no terminator.
+static const EnemyTaskFuncTable3 _gActor02400BodyTaskStates = {
     { _actor02400InitBody, _actor02400UpdateBody, _actor02400TeardownBody },
 };
 
@@ -481,11 +503,11 @@ static void _actor02400InitBody(Enemy* enemy, Task* task)
     enemy->bodyPos.vz             = 0;
     enemy->recs                   = work->bodyContacts;
     if (work->variant == 0) {
-        enemy->param = &Actor02400_Params0;
-        enemy->hp    = Actor02400_Params0.hpMax;
+        enemy->param = &_gActor02400Variant0Params;
+        enemy->hp    = _gActor02400Variant0Params.hpMax;
     } else {
-        enemy->param = &Actor02400_Params1;
-        enemy->hp    = Actor02400_Params1.hpMax;
+        enemy->param = &_gActor02400Variant1Params;
+        enemy->hp    = _gActor02400Variant1Params.hpMax;
     }
     work->effectArg.coord      = &task->extra.tmd->coords[1];
     work->effectArg.spawnArgLo = 0x200;
@@ -503,7 +525,7 @@ static void _actor02400InitBody(Enemy* enemy, Task* task)
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = ACTOR_02400_ARM_INITIAL_REACH;
-    work->attackBody.key              = damagePackAttackKey(Actor02400_BodyPairs, work->variant * 2);
+    work->attackBody.key              = damagePackAttackKey(_gActor02400VariantAttacks, work->variant * 2);
     work->attackBody.radius           = ACTOR_02400_ARM_STRIKE_RADIUS;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -538,10 +560,6 @@ static void _actor02400ResolveBodyContacts(Task* task)
     }
 
     enum {
-        ACTOR_02400_HIT_STAGGER           = 0,
-        ACTOR_02400_HIT_NORMAL            = 1,
-        ACTOR_02400_HIT_AMPLIFIED         = 2,
-        ACTOR_02400_HIT_FATAL             = 3,
         ACTOR_02400_STAGGER_LIMIT         = 20,
         ACTOR_02400_STAGGER_WINDOW_FRAMES = 60,
         ACTOR_02400_BODY_TASK_DEATH       = 2,
@@ -610,7 +628,7 @@ static void _actor02400ResolveBodyContacts(Task* task)
                 hitResponse = ACTOR_02400_HIT_STAGGER;
                 damage      = 0;
                 if (!(work->bodyContacts[contactIndex].key.value & ACTOR_02400_ATTACK_ATTACHMENT_BIT)) {
-                    hitResponse = Actor02400_D045DC[work->bodyContacts[contactIndex].key.value & ACTOR_02400_ATTACK_ROW_MASK];
+                    hitResponse = _gActor02400WeaponHitResponses[work->bodyContacts[contactIndex].key.value & ACTOR_02400_ATTACK_ROW_MASK];
                 }
                 switch (damageGetPlayerAttackReaction(work->bodyContacts[contactIndex].key.value) & 0xFFFF) {
                     case DAMAGE_PLAYER_REACTION_POISON:
@@ -659,7 +677,7 @@ static void _actor02400ResolveBodyContacts(Task* task)
                         work->turnRate = 0;
                         work->armOut   = 0;
                         hitEffectId    = damageGetPlayerAttackEffectId(work->bodyContacts[contactIndex].key.value);
-                        if (Actor02400_D0463C[hitEffectId] == 0 && lastEffectAttackKey != work->bodyContacts[contactIndex].key.value) {
+                        if (_gActor02400HitEffectSuppressed[hitEffectId] == 0 && lastEffectAttackKey != work->bodyContacts[contactIndex].key.value) {
                             lastEffectAttackKey = work->bodyContacts[contactIndex].key.value;
                             effectSpawnHit(hitEffectId, rootCoord, NULL, &work->effectArg);
                         }
@@ -680,9 +698,9 @@ static void _actor02400ResolveBodyContacts(Task* task)
                         work->phase             = 0;
                         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         if (work->variant == 0) {
-                            damage = Actor02400_Params0.hpMax;
+                            damage = _gActor02400Variant0Params.hpMax;
                         } else {
-                            damage = Actor02400_Params1.hpMax;
+                            damage = _gActor02400Variant1Params.hpMax;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         damage         += (s16)(((gRandomLcgState >> 16) & ACTOR_02400_ATTACK_ROW_MASK) + 200);
@@ -732,7 +750,7 @@ static void _actor02400ResolveBodyContacts(Task* task)
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         worldCollisionClearContacts(work->attackContacts);
         work->attackLanded = 1;
-        playerStateSpendMp(Actor02400_D045D8[work->variant]);
+        playerStateSpendMp(_gActor02400TouchMpDrain[work->variant]);
     }
     if (work->staggerWindow != 0) {
         work->staggerWindow--;
@@ -744,9 +762,11 @@ static void _actor02400ResolveBodyContacts(Task* task)
 #undef ACTOR_02400_GET_ATTACK_DELTA
 }
 
-/// The projectile's state handlers, run by `_actor02400FireballTask` for the task's
-/// state: spawn, flight and teardown.
-static const EnemyTaskFuncTable3 Actor02400_D0003C = {
+/// Fireball task callbacks, indexed by task state (0 spawn, 1 flight, 2 teardown).
+///
+/// Each receives the live Enemy from spawnArg2 and its coordinate-body Task.
+/// The dispatcher copies all three pointers before lookup; no terminator.
+static const EnemyTaskFuncTable3 _gActor02400FireballTaskStates = {
     { _actor02400InitFireball, _actor02400FlyFireball, _actor02400TeardownFireball },
 };
 
@@ -1069,7 +1089,7 @@ static void _actor02400UpdateCast(Task* task)
                 }
             }
             work->counter++;
-            if (work->counter > Actor02400_D045D4[work->variant]) {
+            if (work->counter > _gActor02400CastAimFrames[work->variant]) {
                 work->phase    = ACTOR_02400_CAST_PHASE_RELEASE;
                 work->counter  = 0;
                 work->turnRate = 0;
@@ -1440,7 +1460,7 @@ static __inline__ void _actor02400InitFireballCollision(Task* task, _Actor02400F
     work->playerStrikeBody.pos.vy           = 0;
     work->playerStrikeBody.pos.vz           = 0;
     work->playerStrikeBody.coord            = strikeCoord;
-    work->playerStrikeBody.key              = damagePackAttackKey(Actor02400_BodyPairs, (parentWork->variant * 2) | 1);
+    work->playerStrikeBody.key              = damagePackAttackKey(_gActor02400VariantAttacks, (parentWork->variant * 2) | 1);
     work->playerStrikeBody.radius           = ACTOR_02400_FIREBALL_RADIUS;
     work->playerStrikeBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->playerStrikeBody);
@@ -1605,7 +1625,7 @@ static void _actor02400BodyTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor02400_D00004;
+    handlers = _gActor02400BodyTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -1887,7 +1907,7 @@ static void _actor02400FireballTask(Task* task)
 {
     EnemyTaskFuncTable3 handlers;
 
-    handlers = Actor02400_D0003C;
+    handlers = _gActor02400FireballTaskStates;
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

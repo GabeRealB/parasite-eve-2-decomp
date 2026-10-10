@@ -17,7 +17,7 @@
  *
  * Include this header in the prologue and each fragment at its function's
  * position. The package defines the animation bank tables the handlers index:
- * gActorMotionAnimBanks for the twenty-part handlers, gActorMotionAnimBanks19
+ * _gActorMotionAnimBanks for the twenty-part handlers, gActorMotionAnimBanks19
  * for the nineteen-part ones. _actorMotionArrive19 plays its next clip through
  * the nineteen-part play handler. A package with different restart semantics
  * binds ACTOR_MOTION_PLAY19_HANDLER to its own handler before including this

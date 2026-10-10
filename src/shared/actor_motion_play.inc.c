@@ -7,7 +7,7 @@
 /// Handles `ACTOR_MESSAGE_PLAY_ANIMATION` on a live TMD task whose work opens
 /// as `ActorMotionPlayWork` does. Initialize `model.bank` to
 /// `ACTOR_MODEL_STATE_NONE` before the first request so the rig is bound.
-/// Bank and clip must index loaded entries of `gActorMotionAnimBanks` and fit
+/// Bank and clip must index loaded entries of `_gActorMotionAnimBanks` and fit
 /// nonnegative signed bytes. The request is borrowed through dispatch and must
 /// not overlap playback storage; model coordinates, work-owned slots/poses and
 /// clip tables remain borrowed while playback uses them. Slots 1..19 blend for

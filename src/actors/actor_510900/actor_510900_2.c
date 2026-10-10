@@ -540,15 +540,7 @@ static void _actor510900GrenadeTask(Task* task);
 static void _actor510900HelipadLightTask(Task* task);
 static void _actor510900BlastSourceTask(Task* task);
 
-DamageAttack D_actor_510900_8016796C[5] = {
-    { 24, 6 },
-    { 20, 7 },
-    { 999, 6 },
-    { 0, 2 },
-    { 1, 6 },
-};
-
-EnemyParams D_actor_510900_80167980 = { &D_actor_510900_80167968, 1600, 500, 800, 30, 50, 3, 0, 0 };
+EnemyParams D_actor_510900_80167980 = { gActor510900Attacks, 1600, 500, 800, 30, 50, 3, 0, 0 };
 
 s16 D_actor_510900_80167990[16] = {
     2000,
@@ -1007,7 +999,7 @@ static __inline__ void _actor510900ArmAttack(Actor510900Work* work, s32 attackIn
 
     work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    attackKey                  = damagePackAttackKey(&D_actor_510900_80167968, attackIndex);
+    attackKey                  = damagePackAttackKey(gActor510900Attacks, attackIndex);
     work->weaponAttack.key     = attackKey;
     work->forearmAttack.key    = attackKey;
 }
@@ -3377,7 +3369,7 @@ static void _actor510900TickGrenadeHold(Task* task)
                     work->phase = ACTOR_510900_GRENADE_BURST_ENDING;
                     break;
                 }
-                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_510900_80167968, ACTOR_510900_ATTACK_GRENADE), 0);
+                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gActor510900Attacks, ACTOR_510900_ATTACK_GRENADE), 0);
                 scratch->playerAnim.source.sets          = D_actor_510900_80167B2C;
                 scratch->playerAnim.animationId          = ACTOR_510900_PLAYER_ANIM_GRENADE_STUN;
                 scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;

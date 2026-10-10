@@ -31,6 +31,9 @@
 #include "main/tmd_types.h"
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_motion.h"
+
+static AnimationSet** _gActorMotionAnimBanks[1];
+
 #include "../../shared/actor_motion_play_helpers.h"
 #include "../../shared/actor_messages.h"
 
@@ -53,12 +56,6 @@ typedef struct {
     s16             freeCountdown;  // Ticks left before the model's buffers are freed, which the tick finding 0 does (-1 no free pending)
 } _Actor120400KyleMadiganWork;
 STATIC_ASSERT_SIZEOF(_Actor120400KyleMadiganWork, 0x504);
-
-/// Animation source indexed by the bank id the presets latch:
-/// `gActorMotionAnimBanks[work->model.bank]` is the bank handed to
-/// `animationInitContext`.
-extern AnimationSet*  D_actor_120400_8013E6D0[29];
-extern AnimationSet** gActorMotionAnimBanks[1];
 
 /// The task table the parent is spawned from and its two children are spawned
 /// from (entries 1 and 2), and the message table the parent points its
@@ -832,7 +829,11 @@ static AnimationSet _gActor120400Animation0C888 = {
     { NULL, _gActor120400Animation0C888Bank1, NULL, NULL, _gActor120400Animation0C888Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_120400_8013E6D0[29] = {
+/// Kyle Madigan's bank-0 clip table for his twenty-part body rig.
+///
+/// Clip IDs 1..28 borrow loaded sets; entry 0 is NULL and cannot be played.
+/// The table and animation resources must remain loaded while the rig uses them.
+static AnimationSet* _gActor120400KyleMadiganAnimationBank[29] = {
     NULL,
     &_gActor120400Animation0653C,
     &_gActor120400Animation08904,
@@ -864,8 +865,12 @@ AnimationSet* D_actor_120400_8013E6D0[29] = {
     &_gActor120400Animation0C888,
 };
 
-AnimationSet** gActorMotionAnimBanks[1] = {
-    D_actor_120400_8013E6D0,
+/// Actor-motion bank selection for Kyle's twenty-part body (only source.index 0).
+///
+/// Requests select loaded clips 1..28. This table and its borrowed sets must
+/// remain loaded for playback; child hand models do not use this binding.
+static AnimationSet** _gActorMotionAnimBanks[1] = {
+    _gActor120400KyleMadiganAnimationBank,
 };
 
 TaskDesc D_actor_120400_8013E748[3] = {

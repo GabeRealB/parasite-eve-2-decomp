@@ -441,7 +441,7 @@ WorldCollisionTrigger D_shelter_b6_corridor_80180100[6] = {
 };
 
 AreaResource D_shelter_b6_corridor_801802C8[5] = {
-    { 131, 505, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_350500_80168EA4 },
+    { 131, 505, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor350500MaskedEveReverseWalkTaskDesc },
     { 49, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
     { 52, 52, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205200ControllerPartTasks },
     { 60, 60, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor205200BodyTaskDesc },

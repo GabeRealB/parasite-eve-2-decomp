@@ -150,7 +150,6 @@ static const char D_mist_shooting_gallery_8017D838[];
 static const char D_mist_shooting_gallery_8017D844[];
 static const char D_mist_shooting_gallery_8017D850[];
 
-extern s32        D_actor_215100_8014D038;
 extern EvsCommand D_actor_215100_80153274[];
 extern EvsCommand D_actor_215100_80153D6C[];
 
@@ -2069,7 +2068,7 @@ static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId,
         MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS      = 10,
         MIST_SHOOTING_GALLERY_STORY_OBJECTIVE         = 59,
     };
-    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (D_actor_215100_8014D038 == 0)) {
+    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (gActor215100GalleryTrainingActive == 0)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_MENU_TASK, 1, 0);
         D_80114D08 = MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS;

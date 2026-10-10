@@ -125,9 +125,6 @@ STATIC_ASSERT_SIZEOF(_Actor135400GaryDouglasPlaces, 0x30);
 
 extern TaskMessageEntry D_actor_135400_8013A4D0[5];
 
-extern AnimationSet*  D_actor_135400_8013A494[5];
-extern AnimationSet** gActorMotionAnimBanks[1];
-
 /// Psy-Q `RotMatrixY`: the angle is a `long`, so a negated angle is passed
 /// without re-truncation to 16 bits.
 
@@ -372,7 +369,11 @@ static AnimationSet _gActor135400Animation0864C = {
     { NULL, _gActor135400Animation0864CBank1, NULL, NULL, _gActor135400Animation0864CBank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_135400_8013A494[5] = {
+/// Gary Douglas's bank-0 clip table for his twenty-part body rig.
+///
+/// Clip IDs 1..4 borrow loaded sets; entry 0 is NULL and cannot be played.
+/// The table and animation resources must remain loaded while the rig uses them.
+static AnimationSet* _gActor135400GaryDouglasAnimationBank[5] = {
     NULL,
     &_gActor135400Animation07568,
     &_gActor135400Animation077B8,
@@ -380,8 +381,12 @@ AnimationSet* D_actor_135400_8013A494[5] = {
     &_gActor135400Animation0864C,
 };
 
-AnimationSet** gActorMotionAnimBanks[1] = {
-    D_actor_135400_8013A494,
+/// Actor-motion bank selection for Douglas's twenty-part body (only source.index 0).
+///
+/// Requests select loaded clips 1..4. This table and its borrowed sets must
+/// remain loaded for playback; Flint's nineteen-part rig has a separate bank.
+static AnimationSet** _gActorMotionAnimBanks[1] = {
+    _gActor135400GaryDouglasAnimationBank,
 };
 
 TaskDesc gActor135400GaryDouglasTasks[3] = {

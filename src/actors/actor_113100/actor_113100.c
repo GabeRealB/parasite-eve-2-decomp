@@ -106,10 +106,6 @@ extern TaskDesc D_actor_113100_80144308[];
 
 extern TaskMessageEntry D_actor_113100_80144338[];
 
-/// Animation bank table the 0x7D3 handler `_actor113100PlayAnimation` indexes
-/// by the animation id it has latched into `_Actor113100PierceCarradineWork::model.bank`; the
-/// entry is the `AnimationSet**` passed to `animationInitContext`.
-extern AnimationSet*  D_actor_113100_80144250[36];
 extern AnimationSet** D_actor_113100_801442E0[1];
 
 /// Per-animation byte the same handler copies into
@@ -1070,7 +1066,12 @@ static AnimationSet _gActor113100Animation12408 = {
     { NULL, _gActor113100Animation12408Bank1, NULL, NULL, _gActor113100Animation12408Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_113100_80144250[36] = {
+/// Pierce Carradine's bank-0 clip table for his twenty-part body rig.
+///
+/// Clip IDs 1..35 borrow loaded sets; entry 0 is NULL and cannot be played.
+/// The outer bank selector supplies this table to the rig. The table and
+/// referenced animation resources must stay loaded throughout playback.
+static AnimationSet* _gActor113100PierceAnimationBank[36] = {
     NULL,
     &_gActor113100Animation07FF0,
     &_gActor113100Animation08784,
@@ -1110,7 +1111,7 @@ AnimationSet* D_actor_113100_80144250[36] = {
 };
 
 AnimationSet** D_actor_113100_801442E0[1] = {
-    D_actor_113100_80144250,
+    _gActor113100PierceAnimationBank,
 };
 
 u8 D_actor_113100_801442E4[36] = {

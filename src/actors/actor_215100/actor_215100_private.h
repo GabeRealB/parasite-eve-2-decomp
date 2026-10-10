@@ -10,8 +10,6 @@
 
 extern TaskDesc D_actor_215100_8014CF6C[2];
 
-extern s32 D_actor_215100_8014D038;
-
 extern s32 D_actor_215100_8014D03C;
 
 extern s32 D_actor_215100_8014D044;

@@ -7,6 +7,13 @@
 
 #include "main/task_types.h"
 
+/// Live gallery training-session latch (0 inactive, 1 active).
+///
+/// Set when the menu stages a selected course; cleared on completion or a
+/// committed exit/abort. Room actions and exit gates read it while both the
+/// actor and shooting-gallery overlays remain loaded.
+extern s32 gActor215100GalleryTrainingActive;
+
 /// Descriptor slots for the gallery's introduction, training menu and red-flash loop.
 enum {
     ACTOR_215100_GALLERY_INTRO_TASK          = 0,

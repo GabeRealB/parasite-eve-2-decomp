@@ -249,8 +249,6 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
 
 static s32 _actor00100IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unusedExtra);
 
-extern s8 gDesertChaserClipStartFrames[25][25];
-
 static const DesertChaserTaskStates gDesertChaserTaskStates;
 
 static void _actor00100HideState(Task* task);
@@ -1147,8 +1145,12 @@ static AnimationSet _gActor00100Actor400100Animation1B6A8 = {
     { NULL, _gActor00100Actor400100Animation1B6A8Bank1, NULL, NULL, _gActor00100Actor400100Animation1B6A8Bank4, NULL, NULL, NULL },
 };
 
-/// Blend duration in frames, indexed by [previous animation][next animation].
-s8 gDesertChaserClipStartFrames[25][25] = {
+/// Whole normal-rate blend frames indexed by previous and requested clip IDs.
+///
+/// Both IDs must be in 0..24 and select loaded tracks. Signed bytes promote
+/// to the blend duration; zero switches without a timed blend. This carrier
+/// supplies its own table to the included Desert Chaser animation driver.
+static s8 _gDesertChaserClipBlendFrames[25][25] = {
     /*  0 */ { 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 0, 0, 0, 0, 0, 0 },
     /*  1 */ { 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     /*  2 */ { 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },

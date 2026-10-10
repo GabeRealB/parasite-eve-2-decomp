@@ -200,7 +200,7 @@ _gActor113100Animation12408Bank4 = 0x80143C84; // size:0x210 defined:True
 _gActor113100Animation12408Records = 0x80143E94; // size:0x36C defined:True
 _gActor113100Animation12408Indices = 0x80144200; // size:0x28 defined:True
 _gActor113100Animation12408 = 0x80144228; // size:0x28 defined:True
-D_actor_113100_80144250 = 0x80144250; // size:0x90 defined:True
+_gActor113100PierceAnimationBank = 0x80144250; // size:0x90 defined:True
 D_actor_113100_801442E0 = 0x801442E0; // size:0x4 defined:True
 
 mistParkingSetPierceCollisionPatchLowered = 0x80183BAC; // type:func absolute:True owner=mist_parking

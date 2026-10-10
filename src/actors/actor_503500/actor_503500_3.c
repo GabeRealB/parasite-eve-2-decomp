@@ -255,7 +255,7 @@ STATIC_ASSERT_SIZEOF(_Actor503500LargeChainWork, 0x2EC);
 /// `work` is the package's one `Actor503500Work`: the boss task's set-up
 /// state clears exactly that member and parks it at `Task::work`, and the
 /// accessors the slot enemies call address it directly. The eight bytes after
-/// it lie between the work block and the table of slot counters. They are zero
+/// it lie between the work block and the effect-budget cost table. They are zero
 /// in the image, neither neighbour's clear covers them and nothing in the
 /// package addresses them, so they are not established as part of either
 /// object; whether they are separate unreferenced variables is unproven. They
@@ -266,10 +266,6 @@ typedef struct {
 } _Actor503500WorkStorage;
 STATIC_ASSERT_SIZEOF(_Actor503500WorkStorage, 0x7F0);
 
-extern _Actor503500WorkStorage D_actor_503500_80176574;
-/// 18-entry table of per-slot u16 counters, indexed by slot in
-/// `_actor503500SetSlotEffectReservation` / `actor503500TryReserveSlotEffects` / `actor503500ReleaseSlotEffects`.
-extern u16 D_actor_503500_80176D64[];
 /// Main-executable globals with no module header yet: `gDisplayState.pendingMode` gates the
 /// "everything is dead" message, `gPlayerStatus.hp` is the player's current HP and
 /// `gAttachmentState.mode` is 1 while the attachment wheel is open.
@@ -363,9 +359,21 @@ Task* D_actor_503500_80176558 = NULL;
 
 ActorTransform D_actor_503500_8017655C = { 0 };
 
-_Actor503500WorkStorage D_actor_503500_80176574 = { 0 };
+/// Persistent singleton storage borrowed by the live boss task and slot accessors.
+///
+/// Initialization clears only `work` and installs its address at Task::work.
+/// Its rig, lighting, enemy handles and state remain live through boss teardown;
+/// accessors require that initialization. The trailing eight bytes have no
+/// established accesses and retain their unproven allocation membership.
+static _Actor503500WorkStorage _gActor503500BossWorkStorage = { 0 };
 
-u16 D_actor_503500_80176D64[18] = { 0 };
+/// Effect-budget costs: enemy reservations in entries 0..16, projectile total at 17.
+///
+/// Boss initialization clears all entries. Enemy reservations replace a slot's
+/// cost and are accepted only when the signed-halfword sum would remain below 9.
+/// Projectile costs are added/released for their lifetimes without a budget
+/// check. Storage is unsigned halfwords, retaining narrowing and wraparound.
+static u16 _gActor503500EffectBudgetCosts[ACTOR_503500_SLOT_COUNT + 1] = { 0 };
 
 _Actor503500PinkFlashEmitterWork D_actor_503500_80176D88;
 
@@ -442,7 +450,7 @@ static void _actor503500InitBoss(Task* task)
     GfxCoord*              targetCoord;
     WorldCollisionContact* contacts;
     // The boss owns this singleton work for the lifetime of its task.
-    Actor503500Work* work = &D_actor_503500_80176574.work;
+    Actor503500Work* work = &_gActor503500BossWorkStorage.work;
 
     bossModel = task->extra.tmd;
     enemy     = task->spawnArg2.pointer;
@@ -502,8 +510,8 @@ static void _actor503500InitBoss(Task* task)
     work->enemies[ACTOR_503500_SLOT_BODY] = enemy;
     (sceneAcquireBattleRef)(0x23);
     _actor503500UpdateBodyCollisionGrid(task, 1, 0);
-    for (slotIndex = ARRAY_SIZE(D_actor_503500_80176D64) - 1; slotIndex >= 0; slotIndex--) {
-        D_actor_503500_80176D64[slotIndex] = 0;
+    for (slotIndex = ARRAY_SIZE(_gActor503500EffectBudgetCosts) - 1; slotIndex >= 0; slotIndex--) {
+        _gActor503500EffectBudgetCosts[slotIndex] = 0;
     }
     actor503500HandlePlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, gActor503500BossAnimationPresets, 0);
     task->exitCallback = _actor503500ExitBoss;
@@ -2083,7 +2091,7 @@ s32 actor503500HandleBossCommand(Task* task, s32 messageId, const ActorCommand* 
 
 void actor503500ClearSlotEnemy(Task* unusedTask, s32 slot)
 {
-    D_actor_503500_80176574.work.enemies[slot] = NULL;
+    _gActor503500BossWorkStorage.work.enemies[slot] = NULL;
 }
 
 Enemy* actor503500SpawnSlotEnemy(Task* task, s32 slot)
@@ -2099,7 +2107,7 @@ Enemy* actor503500SpawnSlotEnemy(Task* task, s32 slot)
     u32                    placementKey;
     const Enemy*           parentEnemy;
     // Keep the boss slot storage live across spawning and placement lookup.
-    Actor503500Work* bossWork = &D_actor_503500_80176574.work;
+    Actor503500Work* bossWork = &_gActor503500BossWorkStorage.work;
 
     slotEnemy = enemySpawnFromTable(gActor503500EnemyTaskDescs, slot, slot, task->spawnArg2.pointer);
     if (slotEnemy != NULL) {
@@ -2130,12 +2138,12 @@ Enemy* actor503500SpawnSlotEnemy(Task* task, s32 slot)
 
 s32 actor503500IsSlotEmpty(Task* unusedTask, s32 slot)
 {
-    return D_actor_503500_80176574.work.enemies[slot] == NULL;
+    return _gActor503500BossWorkStorage.work.enemies[slot] == NULL;
 }
 
 void actor503500SetBossPartScale(Task* task, s32 partIndex, const SVECTOR* scale)
 {
-    Actor503500Work* work = &D_actor_503500_80176574.work;
+    Actor503500Work* work = &_gActor503500BossWorkStorage.work;
 
     // Insert a scaled parent for the arms; the rear part uses its animated pose.
     switch (partIndex) {
@@ -2164,7 +2172,7 @@ void actor503500SetBossPartScale(Task* task, s32 partIndex, const SVECTOR* scale
 
 void actor503500SetSlotBusy(Task* unusedTask, s32 slot, s16 busy)
 {
-    D_actor_503500_80176574.work.slotBusy[slot] = busy;
+    _gActor503500BossWorkStorage.work.slotBusy[slot] = busy;
 }
 
 void actor503500PlayAnimationPreset(Task* task, s32 presetIndex, s32 rate)
@@ -2190,10 +2198,10 @@ s32 actor503500HasAnimationFinished(Task* unusedTask, s32 animationId)
 {
     enum { ACTOR_503500_ANIMATION_NOT_CURRENT = -1 };
 
-    if (animationId != D_actor_503500_80176574.work.animationId) {
+    if (animationId != _gActor503500BossWorkStorage.work.animationId) {
         return ACTOR_503500_ANIMATION_NOT_CURRENT;
     }
-    return (D_actor_503500_80176574.work.rig.slots[1].status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) != 0;
+    return (_gActor503500BossWorkStorage.work.rig.slots[1].status.fields.flags & (ANIMATION_SLOT_SETTLED | ANIMATION_SLOT_FOLLOWED_JUMP)) != 0;
 }
 
 void actor503500EnterPartLostState(Task* task)
@@ -2203,7 +2211,7 @@ void actor503500EnterPartLostState(Task* task)
 
 s32 actor503500ShouldInterruptAttack(Task* unusedTask)
 {
-    return (u32)((u16)D_actor_503500_80176574.work.state - ACTOR_503500_STATE_PART_LOST) < (ACTOR_503500_STATE_DEFEATED - ACTOR_503500_STATE_PART_LOST + 1U);
+    return (u32)((u16)_gActor503500BossWorkStorage.work.state - ACTOR_503500_STATE_PART_LOST) < (ACTOR_503500_STATE_DEFEATED - ACTOR_503500_STATE_PART_LOST + 1U);
 }
 
 /// Replaces a boss slot's effect-cost reservation without checking the budget.
@@ -2214,7 +2222,7 @@ s32 actor503500ShouldInterruptAttack(Task* unusedTask)
 /// The projectile aggregate at entry 17 has separate lifetime add/subtract APIs.
 static void _actor503500SetSlotEffectReservation(s32 slot, s16 effectCost)
 {
-    D_actor_503500_80176D64[slot] = effectCost;
+    _gActor503500EffectBudgetCosts[slot] = effectCost;
 }
 
 s32 actor503500TryReserveSlotEffects(s32 slot, s32 effectCost)
@@ -2228,7 +2236,7 @@ s32 actor503500TryReserveSlotEffects(s32 slot, s32 effectCost)
     accepted    = 0;
     totalCost   = effectCost;
     budgetIndex = 0;
-    slotCost    = D_actor_503500_80176D64;
+    slotCost    = _gActor503500EffectBudgetCosts;
     // Replace this slot's reservation rather than adding to it.
     do {
         if (budgetIndex != slot) {
@@ -2236,18 +2244,18 @@ s32 actor503500TryReserveSlotEffects(s32 slot, s32 effectCost)
         }
         budgetIndex++;
         slotCost++;
-    } while (budgetIndex < (s32)ARRAY_SIZE(D_actor_503500_80176D64));
+    } while (budgetIndex < (s32)ARRAY_SIZE(_gActor503500EffectBudgetCosts));
 
     if (totalCost < ACTOR_503500_EFFECT_BUDGET_LIMIT) {
-        D_actor_503500_80176D64[slot] = (u16)effectCost;
-        accepted                      = 1;
+        _gActor503500EffectBudgetCosts[slot] = (u16)effectCost;
+        accepted                             = 1;
     }
     return accepted;
 }
 
 void actor503500ReleaseSlotEffects(s32 slot)
 {
-    D_actor_503500_80176D64[slot] = 0;
+    _gActor503500EffectBudgetCosts[slot] = 0;
 }
 
 s16 actor503500MeasurePlayerBearing(Task* task)
@@ -2272,12 +2280,12 @@ s16 actor503500MeasurePlayerBearing(Task* task)
 
 s32 actor503500IsDefeated(void)
 {
-    return D_actor_503500_80176574.work.defeated;
+    return _gActor503500BossWorkStorage.work.defeated;
 }
 
 s16 actor503500GetPlayerBearing(void)
 {
-    return D_actor_503500_80176574.work.playerBearing;
+    return _gActor503500BossWorkStorage.work.playerBearing;
 }
 
 /// Removes the boss's live collision geometry and target before destroying its task.
@@ -2974,13 +2982,13 @@ void actor503500BossTask(Task* task)
 void actor503500AcquireProjectileEffectCost(s32 effectCost)
 {
     enum { ACTOR_503500_PROJECTILE_EFFECT_COST_INDEX = ACTOR_503500_SLOT_COUNT };
-    D_actor_503500_80176D64[ACTOR_503500_PROJECTILE_EFFECT_COST_INDEX] += effectCost;
+    _gActor503500EffectBudgetCosts[ACTOR_503500_PROJECTILE_EFFECT_COST_INDEX] += effectCost;
 }
 
 void actor503500ReleaseProjectileEffectCost(s32 effectCost)
 {
     enum { ACTOR_503500_PROJECTILE_EFFECT_COST_INDEX = ACTOR_503500_SLOT_COUNT };
-    D_actor_503500_80176D64[ACTOR_503500_PROJECTILE_EFFECT_COST_INDEX] -= effectCost;
+    _gActor503500EffectBudgetCosts[ACTOR_503500_PROJECTILE_EFFECT_COST_INDEX] -= effectCost;
 }
 
 /// `Task::state` handlers `actor503500PinkFlashEmitterTask` dispatches through.

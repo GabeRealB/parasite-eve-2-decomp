@@ -5,7 +5,10 @@
 
 #include "gameplay/animation.h"
 
-extern AnimationSet** gActorMotionAnimBanks[];
+// The carrier declares its static `_gActorMotionAnimBanks` before this header:
+// AnimationSet** entries indexed by AnimationPlayRequest.source.index.
+// All current carriers bind bank 0; their clip domains differ. Keep the table
+// and referenced sets loaded while any context uses them.
 
 /// Restarts an actor's requested clip on slots 1..19 and enables frame ticking.
 ///
@@ -13,7 +16,7 @@ extern AnimationSet** gActorMotionAnimBanks[];
 /// set `work->model.bank` to `ACTOR_MODEL_STATE_NONE` and clear
 /// `work->model.ticking`; later calls must use the same model and storage.
 /// `source.index` and `animationId` must select loaded, non-NULL entries in
-/// `gActorMotionAnimBanks` and fit 0..127: both narrow to signed bytes before
+/// `_gActorMotionAnimBanks` and fit 0..127: both narrow to signed bytes before
 /// indexing. Clip zero is used unchanged. The request is read only through
 /// this call and must not overlap playback storage; its collision choice is
 /// ignored. Keep the work, model, bank tables and clip data live during playback.
@@ -38,7 +41,7 @@ static inline void _actorMotionApplyAnimationRequest(ActorMotionPlayWork* work, 
 
     if (request->source.index != work->model.bank) {
         work->model.bank = request->source.index;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks[work->model.bank], model, work->rig.poses, work->rig.slots);
+        animationInitContext(&work->rig.anim, _gActorMotionAnimBanks[work->model.bank], model, work->rig.poses, work->rig.slots);
     }
     work->model.animId = request->animationId;
     if (request->blend != ANIMATION_BLEND_RESET && work->model.ticking != 0) {

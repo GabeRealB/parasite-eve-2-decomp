@@ -199,9 +199,6 @@ extern s8 D_actor_421600_801511C0[16];
 /// `_actor421600Spawn` at spawn.
 extern s16 D_actor_421600_80151268;
 
-/// Signed transition durations, indexed by old animation * 25 + new animation.
-extern s8 gDesertChaserClipStartFrames[25][25];
-
 /// The Water Tower chaser's two catch tables and its hit offsets, three
 /// objects stored one after another.
 ///
@@ -1078,7 +1075,12 @@ static AnimationSet _gActor421600Animation1EF6C = {
     { NULL, _gActor421600Animation1EF6CBank1, NULL, NULL, _gActor421600Animation1EF6CBank4, NULL, NULL, NULL },
 };
 
-s8 gDesertChaserClipStartFrames[25][25] = {
+/// Whole normal-rate blend frames indexed by previous and requested clip IDs.
+///
+/// Both IDs must be in 0..24 and select loaded tracks. Signed bytes promote
+/// to the blend duration; zero switches without a timed blend. This carrier
+/// supplies its own table to the included Desert Chaser animation driver.
+static s8 _gDesertChaserClipBlendFrames[25][25] = {
     /*  0 */ { 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     /*  1 */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     /*  2 */ { 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -1279,7 +1281,7 @@ s32 D_actor_421600_801511D4[4][8] = {
     { 0x1F7BC, 1553, 0x1FBDC, 1606, 0x10459, 0xF66F, 0x106C9, 0xFB85 },
 };
 
-TaskDesc D_actor_421600_80151254 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _desertChaserTask, { .model = &_gActor421600DesertChaserBody } };
+TaskDesc gActor421600DesertChaserTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _desertChaserTask, { .model = &_gActor421600DesertChaserBody } };
 
 SVECTOR ActorContact_ScratchPosition;
 

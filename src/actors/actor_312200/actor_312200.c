@@ -297,7 +297,7 @@ static const TaskMessageEntry _gActor312200Messages[4] __attribute__((section(".
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_312200_80169F7C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor312200Task, { .model = &_gActor312200SwatMember1Body } };
+TaskDesc gActor312200SwatMember1TaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor312200Task, { .model = &_gActor312200SwatMember1Body } };
 
 SVECTOR ActorContact_ScratchPosition;
 

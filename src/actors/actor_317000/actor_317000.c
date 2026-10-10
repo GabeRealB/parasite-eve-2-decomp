@@ -346,7 +346,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     _gActor317000BodyAnimSets,
 };
 
-TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor317000Task, { .model = &_gActor317000GrinningStrangerBody } };
+TaskDesc gActor317000GrinningStrangerTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor317000Task, { .model = &_gActor317000GrinningStrangerBody } };
 
 /// Message map for the script-controlled Grinning Stranger and its leap sequence.
 ///

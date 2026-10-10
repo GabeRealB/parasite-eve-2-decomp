@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include "actors/actor_215100.h"
+
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
@@ -47,7 +49,7 @@ AnimationPlayRequest D_actor_215100_8014D010 = { { .index = 1 }, 23, ANIMATION_B
 
 AnimationPlayRequest D_actor_215100_8014D024 = { { .index = 1 }, 24, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-s32 D_actor_215100_8014D038 = 0;
+s32 gActor215100GalleryTrainingActive = 0;
 
 s32 D_actor_215100_8014D03C = 0;
 
@@ -270,7 +272,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
 
     switch (task->state) {
         case ACTOR_215100_MENU_START:
-            if (D_actor_215100_8014D038 != 0) {
+            if (gActor215100GalleryTrainingActive != 0) {
                 taskKill(task);
                 return;
             }
@@ -382,7 +384,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             } else {
                 evsStartScript(D_actor_215100_8014F060, EVENT_SCRIPT_HUD_KEEP);
             }
-            D_actor_215100_8014D038 = 1;
+            gActor215100GalleryTrainingActive = 1;
             task->state++;
             break;
         case ACTOR_215100_MENU_WAIT_INTRO:

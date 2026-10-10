@@ -200,7 +200,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     _gActor350500BodyAnimSets,
 };
 
-TaskDesc D_actor_350500_80168EA4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350500ReverseWalkTask, { .model = &_gActor350500EveBreaMaskedBody } };
+TaskDesc gActor350500MaskedEveReverseWalkTaskDesc = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor350500ReverseWalkTask, { .model = &_gActor350500EveBreaMaskedBody } };
 
 /// Terminated message table of this carrier's nineteen-part reversing walker.
 ///

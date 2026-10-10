@@ -290,7 +290,7 @@ WorldCollisionTrigger D_shelter_b6_training_room_80185780[7] = {
 };
 
 AreaResource D_shelter_b6_training_room_80185994[6] = {
-    { 131, 507, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_350700_80169D10 },
+    { 131, 507, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &gActor350700MaskedEveReverseWalkTaskDesc },
     { 140, 507, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, D_actor_350700_801708DC },
     { 51, 51, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105100TaskDescriptors },
     { 52, 52, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205200ControllerPartTasks },

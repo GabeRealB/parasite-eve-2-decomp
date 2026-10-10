@@ -358,7 +358,7 @@ WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6] = {
 
 AreaResource D_neo_ark_forest_zone_8018287C[3] = {
     { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
-    { 10, 561, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &D_actor_356100_80173294 },
+    { 10, 561, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor356100HornedStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

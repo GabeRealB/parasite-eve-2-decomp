@@ -2374,7 +2374,7 @@ WorldCoordRoomLights D_dryfield_dilapidated_house_801898FC[1] = {
 };
 
 AreaResource D_dryfield_dilapidated_house_80189914[3] = {
-    { 34, 211, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_521100_8015F6E4 },
+    { 34, 211, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor521100No9GolemTaskDescs },
     { 29, 212, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_521100_8016A388 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

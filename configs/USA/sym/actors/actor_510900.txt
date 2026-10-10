@@ -253,8 +253,7 @@ _gActor510900Animation35B20Bank4 = 0x801673AC; // size:0x23C defined:True
 _gActor510900Animation35B20Records = 0x801675E8; // size:0x340 defined:True
 _gActor510900Animation35B20Indices = 0x80167928; // size:0x18 defined:True
 gActor510900Animation35B20 = 0x80167940; // size:0x28 defined:True
-D_actor_510900_80167968 = 0x80167968; // size:0x4 defined:True
-D_actor_510900_8016796C = 0x8016796C; // size:0x14 defined:True
+gActor510900Attacks = 0x80167968; // size:0x18 defined:True
 D_actor_510900_80167CE4 = 0x80167CE4; // size:0x8 defined:True
 D_actor_510900_80167CEC = 0x80167CEC; // size:0x38 defined:True
 

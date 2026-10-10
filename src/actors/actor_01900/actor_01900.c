@@ -644,7 +644,11 @@ static AnimationSet _gActor01900Actor101900Animation16960 = {
     { NULL, _gActor01900Actor101900Animation16960Bank1, NULL, NULL, _gActor01900Actor101900Animation16960Bank4, NULL, NULL, NULL },
 };
 
-s8 Actor01900_D16988[45][45] = {
+/// Whole normal-rate blend frames indexed by previous and requested clip IDs.
+///
+/// Both IDs must be in 0..44 and select loaded tracks. Zero switches without
+/// a timed blend. Signed bytes promote to the playback API's frame count.
+static s8 _gActor01900AnimationBlendFrames[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 4, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 3, 3, 0, 0, 0, 0, 15, 5, 0, 0, 8, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -792,10 +796,6 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 {
     return &ActorContact_ScratchPosition;
 }
-
-/// Cross-fade lengths in frames, indexed by the clip being left and the clip
-/// being entered. `_actor01900UpdateAnimation` reads one entry per animation change.
-extern s8 Actor01900_D16988[][0x2D];
 
 static SVECTOR ActorContact_ScratchPosition;
 
@@ -1070,7 +1070,7 @@ static inline void _actor01900BlendToRequestedAnim(Task* task)
         for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
             work->rig.slots[slotIndex].rate = work->animRate;
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animId, 0,
-                                       (s32)Actor01900_D16988[work->appliedAnim][work->animId]);
+                                       _gActor01900AnimationBlendFrames[work->appliedAnim][work->animId]);
         }
         work->appliedAnim = work->animId;
     }

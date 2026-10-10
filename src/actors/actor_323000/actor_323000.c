@@ -61,10 +61,6 @@ extern EnemyParams gRigParams;
 /// Whole-unit step `_actorContactApplyGridPushback` last applied to its coordinate.
 static DesertChaserContactPushStepStorage ActorContact_ScratchPosition;
 
-/// Per-state animation table `_desertChaserAnimTick` reads when it
-/// re-seeds the slots: 0x2D bytes per `appliedAnim`, indexed by `animId`.
-extern s8 gDesertChaserClipStartFrames[45][45];
-
 /// Psy-Q `RotMatrixY`.
 
 static void _actor323000PlaySceneAnimation(Enemy* enemy, Task* task);
@@ -616,7 +612,12 @@ static AnimationSet _gActor323000Animation11248 = {
     { NULL, _gActor323000Animation11248Bank1, NULL, NULL, _gActor323000Animation11248Bank4, NULL, NULL, NULL },
 };
 
-s8 gDesertChaserClipStartFrames[45][45] = {
+/// Whole normal-rate blend frames indexed by previous and requested clip IDs.
+///
+/// Both IDs must be in 0..44 and select loaded tracks. Signed bytes promote
+/// to the blend duration; zero switches without a timed blend. This carrier
+/// supplies its own table to the included Desert Chaser animation driver.
+static s8 _gDesertChaserClipBlendFrames[45][45] = {
     /*  0 */ { 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     /*  1 */ { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     /*  2 */ { 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },

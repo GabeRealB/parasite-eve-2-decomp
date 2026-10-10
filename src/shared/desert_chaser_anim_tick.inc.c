@@ -112,7 +112,7 @@ static void _desertChaserAnimTick(Task* task)
                 seekSlotIndex                   = seekIndex;
                 work->rig.slots[seekIndex].rate = seekWork->animRate;
                 animation                       = seekWork->animId;
-                animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0, gDesertChaserClipStartFrames[seekWork->appliedAnim][animation]);
+                animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlotIndex, (s16)(animation), 0, _gDesertChaserClipBlendFrames[seekWork->appliedAnim][animation]);
                 seekIndex += 1;
             } while (seekIndex < (s32)ARRAY_SIZE(work->rig.slots));
             seekWork->appliedAnim = seekWork->animId;

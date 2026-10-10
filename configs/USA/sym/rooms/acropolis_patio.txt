@@ -49,8 +49,8 @@ gActor00700MothTaskDesc = 0x801393C8; // absolute:True owner=actor_100700
 gActor101900GrinningStrangerTaskDesc = 0x80149120; // absolute:True owner=actor_101900
 gActor401000StrangerTaskDesc = 0x80155004; // absolute:True owner=actor_401000
 gActor300700MothTaskDesc = 0x80165B88; // absolute:True owner=actor_300700
-D_actor_312200_80169F7C = 0x80169F7C; // absolute:True owner=actor_312200
-D_actor_317000_8016CF44 = 0x8016CF44; // absolute:True owner=actor_317000
+gActor312200SwatMember1TaskDesc = 0x80169F7C; // absolute:True owner=actor_312200
+gActor317000GrinningStrangerTaskDesc = 0x8016CF44; // absolute:True owner=actor_317000
 D_map_akropolis_8017ACFC = 0x8017ACFC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017AD2C = 0x8017AD2C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017AD7C = 0x8017AD7C; // absolute:True owner=map_akropolis

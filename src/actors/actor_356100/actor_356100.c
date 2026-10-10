@@ -345,7 +345,11 @@ static AnimationSet _gActor356100Animation10A84 = {
     { NULL, _gActor356100Animation10A84Bank1, NULL, NULL, _gActor356100Animation10A84Bank4, NULL, NULL, NULL },
 };
 
-s8 D_actor_356100_801728CC[45][45] = {
+/// Whole normal-rate blend frames indexed by previous and requested clip IDs.
+///
+/// Both IDs must be in 0..44 and select loaded tracks. Zero switches without
+/// a timed blend. Signed bytes promote to the playback API's frame count.
+static s8 _gActor356100AnimationBlendFrames[45][45] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 4, 4, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 3, 8, 0, 0, 0, 0, 15, 5, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -617,7 +621,7 @@ TaskMessageEntry D_actor_356100_80173258[7] = {
 
 u16 D_actor_356100_80173290 = 0;
 
-TaskDesc D_actor_356100_80173294 = { { { TASK_BODY_TMD, 96 } }, _actor356100Task, { .model = &_gActor356100HornedStrangerBody } };
+TaskDesc gActor356100HornedStrangerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor356100Task, { .model = &_gActor356100HornedStrangerBody } };
 
 static SVECTOR ActorContact_ScratchPosition = { 0 };
 
@@ -642,9 +646,6 @@ GameActorButtonPressHold D_actor_356100_801732D0;
 static void _actor356100TickBlendedAnimation(Task* actor);
 
 static void _actor356100UpdateAnimation(Task* actor);
-
-/// Per-clip transition values indexed by the current and requested clip.
-extern s8 D_actor_356100_801728CC[][45];
 
 /// Scratch-stack block of the per-frame tick.
 ///
@@ -1048,7 +1049,7 @@ static __inline__ void _actor356100SeekRequestedAnimation(Task* actor)
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(animationWork->rig.slots); slotIndex++) {
             animationWork->rig.slots[slotIndex].rate = animationWork->animRate;
             animationSeekSlotWithBlend(&animationWork->rig.anim, slotIndex, animationWork->animId, 0,
-                                       D_actor_356100_801728CC[animationWork->appliedAnim][animationWork->animId]);
+                                       _gActor356100AnimationBlendFrames[animationWork->appliedAnim][animationWork->animId]);
         }
         animationWork->appliedAnim = animationWork->animId;
     }
