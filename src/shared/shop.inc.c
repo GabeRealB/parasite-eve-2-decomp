@@ -244,35 +244,35 @@ static const u16* _shopSelectStockList(s32 stockSelector)
             case SHOP_STOCK_SHELTER_ALTERNATE:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_801818D0;
+                        return _gShopRestrictedShelterAlternateWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_801818DC;
+                        return _gShopRestrictedShelterAlternateAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_801818E0;
+                        return _gShopRestrictedShelterAlternateArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_801818EC;
+                        return _gShopRestrictedShelterAlternateItemsStock;
                 }
             case SHOP_STOCK_SHELTER_EVENT:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_801818F8;
+                        return _gShopRestrictedShelterEventWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_80181904;
+                        return _gShopRestrictedShelterEventAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_8018190C;
+                        return _gShopRestrictedShelterEventArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181918;
+                        return _gShopRestrictedShelterEventItemsStock;
                 }
             case SHOP_STOCK_SHELTER_ALTERNATE_EVENT:
                 switch ((u32)stockSelector >> 16) {
                     case SHOP_CATEGORY_WEAPONS:
-                        return Shop_Data_80181924;
+                        return _gShopRestrictedShelterAlternateEventWeaponsStock;
                     case SHOP_CATEGORY_AMMUNITION:
-                        return Shop_Data_80181930;
+                        return _gShopRestrictedShelterAlternateEventAmmunitionStock;
                     case SHOP_CATEGORY_ARMOR:
-                        return Shop_Data_80181938;
+                        return _gShopRestrictedShelterAlternateEventArmorStock;
                     case SHOP_CATEGORY_ITEMS:
-                        return Shop_Data_80181944;
+                        return _gShopRestrictedShelterAlternateEventItemsStock;
                 }
             case SHOP_STOCK_DRYFIELD:
                 switch ((u32)stockSelector >> 16) {
@@ -324,7 +324,7 @@ static const u16* _shopSelectStockList(s32 stockSelector)
                 break;
         }
     }
-    return Shop_Data_80181AD4;
+    return _gShopEmptyStock;
 }
 
 /// Draws an offered item or recharge-service row and opens its purchase/detail panel.

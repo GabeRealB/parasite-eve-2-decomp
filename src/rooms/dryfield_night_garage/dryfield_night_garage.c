@@ -61,19 +61,6 @@ static const u16 _gShopStandardDefaultWeaponsStock[];
 static const u16 _gShopStandardDefaultAmmunitionStock[];
 static const u16 _gShopStandardDefaultArmorStock[];
 static const u16 _gShopStandardDefaultItemsStock[];
-static u16       Shop_Data_801818D0[];
-static u16       Shop_Data_801818DC[];
-static u16       Shop_Data_801818E0[];
-static u16       Shop_Data_801818EC[];
-static u16       Shop_Data_801818F8[];
-static u16       Shop_Data_80181904[];
-static u16       Shop_Data_8018190C[];
-static u16       Shop_Data_80181918[];
-static u16       Shop_Data_80181924[];
-static u16       Shop_Data_80181930[];
-static u16       Shop_Data_80181938[];
-static u16       Shop_Data_80181944[];
-static u16       Shop_Data_80181AD4[];
 
 /// The shop's tier ladder.
 static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT];

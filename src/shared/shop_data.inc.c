@@ -842,104 +842,157 @@ static const u16 _gShopRestrictedShelterItemsStock[6] SECTION(".data") = {
     SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801818D0[6] = {
-    140,
-    138,
-    143,
-    70,
-    0xFFFF,
+/// Weapons stock for the alternate Shelter profile in restricted modes (save modes 2 and above).
+///
+/// 4 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopRestrictedShelterAlternateWeaponsStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_M9,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_801818DC[2] = {
-    171,
-    0xFFFF,
+/// Ammunition stock for the alternate Shelter profile in restricted modes (save modes 2 and above).
+///
+/// 1 offered row ID, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedShelterAlternateAmmunitionStock[2] SECTION(".data") = {
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801818E0[6] = {
-    108,
-    100,
-    98,
-    103,
-    13,
-    0xFFFF,
+/// Armor stock for the alternate Shelter profile in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedShelterAlternateArmorStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER,
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_STOCK_ITEM_TURTLE_VEST,
+    SHOP_ITEM_BELT_POUCH,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801818EC[6] = {
-    65,
-    59,
-    58,
-    60,
-    11,
-    0xFFFF,
+/// Items stock for the alternate Shelter profile in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedShelterAlternateItemsStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE,
+    SHOP_STOCK_ITEM_LIPSTICK,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_801818F8[6] = {
-    140,
-    138,
-    143,
-    70,
-    157,
-    0xFFFF,
+/// Weapons stock for the Shelter event profile in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedShelterEventWeaponsStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_M9,
+    SHOP_ITEM_MP5A5_FIRST,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181904[4] = {
-    171,
-    175,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for the Shelter event profile in restricted modes (save modes 2 and above).
+///
+/// 3 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// Includes the Batteries/Fuel recharge service.
+static const u16 _gShopRestrictedShelterEventAmmunitionStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_STOCK_ITEM_556_RIFLE,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_8018190C[6] = {
-    108,
-    100,
-    98,
-    13,
-    0xFFFF,
+/// Armor stock for the Shelter event profile in restricted modes (save modes 2 and above).
+///
+/// 4 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopRestrictedShelterEventArmorStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER,
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_ITEM_BELT_POUCH,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181918[6] = {
-    65,
-    59,
-    58,
-    60,
-    11,
-    0xFFFF,
+/// Items stock for the Shelter event profile in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedShelterEventItemsStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE,
+    SHOP_STOCK_ITEM_LIPSTICK,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181924[6] = {
-    140,
-    138,
-    143,
-    70,
-    157,
-    0xFFFF,
+/// Weapons stock for the alternate Shelter event profile in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedShelterAlternateEventWeaponsStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_PA3,
+    SHOP_ITEM_GRENADE_PISTOL,
+    SHOP_STOCK_ITEM_M4A1_RIFLE,
+    SHOP_ITEM_M9,
+    SHOP_ITEM_MP5A5_FIRST,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181930[4] = {
-    171,
-    0xFFFE,
-    0xFFFF,
+/// Ammunition stock for the alternate Shelter event profile in restricted modes (save modes 2 and above).
+///
+/// 2 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+/// Includes the Batteries/Fuel recharge service.
+/// The stored zero after the terminator is outside the offered list.
+static const u16 _gShopRestrictedShelterAlternateEventAmmunitionStock[4] SECTION(".data") = {
+    SHOP_STOCK_ITEM_RIOT,
+    SHOP_ROW_RECHARGE_SERVICE,
+    SHOP_ROW_END,
     0,
 };
 
-static u16 Shop_Data_80181938[6] = {
-    108,
-    100,
-    98,
-    103,
-    13,
-    0xFFFF,
+/// Armor stock for the alternate Shelter event profile in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedShelterAlternateEventArmorStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_SHOULDER_HOLSTER,
+    SHOP_STOCK_ITEM_PASGT_VEST,
+    SHOP_STOCK_ITEM_COMBAT_ARMOR,
+    SHOP_STOCK_ITEM_TURTLE_VEST,
+    SHOP_ITEM_BELT_POUCH,
+    SHOP_ROW_END,
 };
 
-static u16 Shop_Data_80181944[6] = {
-    65,
-    59,
-    58,
-    60,
-    11,
-    0xFFFF,
+/// Items stock for the alternate Shelter event profile in restricted modes (save modes 2 and above).
+///
+/// 5 offered row IDs, followed by `SHOP_ROW_END`; borrowed read-only
+/// while the room image remains loaded.
+static const u16 _gShopRestrictedShelterAlternateEventItemsStock[6] SECTION(".data") = {
+    SHOP_STOCK_ITEM_COMBAT_LIGHT,
+    SHOP_STOCK_ITEM_PEPPER_SPRAY,
+    SHOP_STOCK_ITEM_FLARE,
+    SHOP_STOCK_ITEM_PROTEIN_CAPSULE,
+    SHOP_STOCK_ITEM_LIPSTICK,
+    SHOP_ROW_END,
 };
 
 static ShopTier Shop_Data_80181950[SHOP_TIER_COUNT] = {
@@ -1118,8 +1171,12 @@ static const u8 _gShopCarriedAmountLabel[12] SECTION(".data") = "Amount";
 /// NUL-terminated multiplication marker beside the number of packs to purchase.
 static const u8 _gShopPackMultiplierText[4] SECTION(".data") = "x";
 
-static u16 Shop_Data_80181AD4[2] = {
-    0xFFFF,
+/// Empty stock returned when the packed selector has no valid category.
+///
+/// `SHOP_ROW_END` is the first halfword, so no rows are offered. The stored zero
+/// after it is outside the list. Storage is borrowed read-only while the room is loaded.
+static const u16 _gShopEmptyStock[2] SECTION(".data") = {
+    SHOP_ROW_END,
     0,
 };
 
