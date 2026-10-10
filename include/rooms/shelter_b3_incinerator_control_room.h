@@ -14,20 +14,52 @@
 
 extern AreaVariant D_shelter_b3_incinerator_control_room_80182610[11];
 
-// shelter_b3_incinerator_control_room
-extern u8* D_shelter_b3_incinerator_control_room_80181920[];
+/// Extents of the control room's logical-room, mapped-view and surface directories.
+enum {
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_COUNT          = 2,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT          = 8,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_SURFACE_CLASS_COUNT = 8,
+};
 
-extern ViewCount D_shelter_b3_incinerator_control_room_80181928[];
+/// Logical-view maps for the control room's two logical rooms.
+///
+/// Indexed by room - 1; both entries borrow `gViewIdentityMap` from gameplay.
+/// Logical views 1..8 select the same 1-based camera/image/sprite indices.
+/// The directory requires the control-room overlay to remain loaded.
+extern u8* gShelterB3IncineratorControlRoomViewMaps[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_COUNT];
+
+/// Reverse-lookup limits for logical views in the two control-room logical rooms.
+///
+/// Indexed by room - 1; each signed halfword counts eight logical map entries.
+/// These limits require live room-overlay storage and do not size the shared map.
+extern ViewCount gShelterB3IncineratorControlRoomViewCounts[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_COUNT];
 
 extern DirectionWarpEntry D_shelter_b3_incinerator_control_room_8018192C[];
 
 extern WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0;
 
-extern ViewCamera D_shelter_b3_incinerator_control_room_80181CE4[];
+/// World-to-camera transforms and pixel projection distances for mapped views 1..8.
+///
+/// Indexed by mapped view - 1 for either logical room. Rotations use ONE (4096)
+/// for 1.0; translations are negated world-coordinate camera origins. A queued
+/// camera application borrows the record until it runs, so keep the overlay loaded.
+extern ViewCamera gShelterB3IncineratorControlRoomViewCameras[SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT];
 
-extern SpriteView D_shelter_b3_incinerator_control_room_80182140[];
+/// Sprite sources and batch lists for mapped control-room views 1..8.
+///
+/// Indexed by mapped view - 1 for either logical room. Views 3, 4 and 5 contain
+/// source sprites; the other views retain empty batch-list addresses. Every view
+/// selects decoded-image background strips and has no draw-area clipping list.
+/// Descriptors and mutable backing arrays live in the loaded room overlay.
+extern SpriteView gShelterB3IncineratorControlRoomSpriteViews[SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT];
 
-extern WorldCoordRoomLights D_shelter_b3_incinerator_control_room_801824A0;
+/// Eight point lights shared by both control-room logical rooms in every view.
+///
+/// No directional or cone lights are present. The loaded room owns the mutable
+/// transforms and attenuation state; positions and falloff radii use world units,
+/// and RGB intensities use 12 fractional bits. Room lighting uses default ambient
+/// minima because the map supplies no ambient table.
+extern WorldCoordRoomLights gShelterB3IncineratorControlRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801824B8[];
 
@@ -37,7 +69,12 @@ extern WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801827E4[];
 
 extern WorldCollisionOccluder D_shelter_b3_incinerator_control_room_801829AC[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b3_incinerator_control_room_80182A20[];
+/// Collision policies and footstep cues indexed by surface class 0..7.
+///
+/// Every class blocks probes and applies pushback; class 3 suppresses weapon
+/// impacts. Classes 1 and 3 share footstep cues, class 2 uses its own cues, and
+/// classes 0 and 4..7 have none. All records require the room overlay to stay loaded.
+extern WorldCollisionSurfaceProperties* gShelterB3IncineratorControlRoomSurfacePropertiesByClass[SHELTER_B3_INCINERATOR_CONTROL_ROOM_SURFACE_CLASS_COUNT];
 
 /// Runs control-room entry setup, message-service idle and teardown.
 ///

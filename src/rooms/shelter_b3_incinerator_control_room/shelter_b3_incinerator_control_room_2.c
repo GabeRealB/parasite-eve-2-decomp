@@ -30,6 +30,7 @@
 #include "main/gameflag_ids.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "overlay.h"
@@ -40,46 +41,56 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 
-/// Glow positions `shelterB3IncineratorControlRoomDrawViewGlowsTask` draws
-/// per view.
-extern SVECTOR D_shelter_b3_incinerator_control_room_80181868[];
-
-SVECTOR D_shelter_b3_incinerator_control_room_80181868[4] = {
-    { -1543, -2132, -2753, 0 },
-    { -365, -2132, -2753, 0 },
-    { -1543, -2042, -2677, 0 },
-    { -365, -2042, -2677, 0 },
+/// Two capsule endpoint pairs visible in mapped views 2 and 3.
+///
+/// Each row supplies two signed world-coordinate points, borrowed during drawing
+/// from the loaded room overlay. Both views draw the rows in this order.
+static SVECTOR _gShelterB3IncineratorControlRoomViews2And3GlowCapsules[2][2] = {
+    { { -1543, -2132, -2753, 0 }, { -365, -2132, -2753, 0 } },
+    { { -1543, -2042, -2677, 0 }, { -365, -2042, -2677, 0 } },
 };
 
-// Indexed views below share one contiguous table.
-SVECTOR D_shelter_b3_incinerator_control_room_80181888[19] = {
-    { -3967, -562, -778, 0 },
-    { -3967, -562, -70, 0 },
-    { -3967, -562, 1570, 0 },
-    { -3967, -562, 2278, 0 },
-    { -3967, -680, -778, 0 },
-    { -3967, -680, -70, 0 },
-    { -3967, -680, 1570, 0 },
-    { -3967, -680, 2278, 0 },
-    { -7049, -562, 1570, 0 },
-    { -7049, -562, 2278, 0 },
-    { -7049, -680, 1570, 0 },
-    { -7049, -680, 2278, 0 },
-    { -7049, -562, -778, 0 },
-    { -7049, -562, -70, 0 },
-    { -7049, -680, -778, 0 },
-    { -7049, -680, -70, 0 },
-    { -5786, -2150, 3559, 0 },
-    { -5228, -2150, 3559, 0 },
+/// Fixed capsule endpoints and a cyan glow centre for mapped views 4, 5, 6 and 8.
+///
+/// Positions are signed world-coordinate units in room-overlay storage.
+/// Capsule reads start at even endpoint indices 0 through 16 and consume two
+/// points. The cyan centre supplies the view-4 diamond and view-8 disc.
+static struct {
+    SVECTOR capsuleEndpoints[18]; // Nine consecutive two-point capsule spans
+    SVECTOR cyanCenter;           // Centre of the pulsing cyan diamond/disc
+} _gShelterB3IncineratorControlRoomGlowPoints = {
+    {
+        { -3967, -562, -778, 0 },
+        { -3967, -562, -70, 0 },
+        { -3967, -562, 1570, 0 },
+        { -3967, -562, 2278, 0 },
+        { -3967, -680, -778, 0 },
+        { -3967, -680, -70, 0 },
+        { -3967, -680, 1570, 0 },
+        { -3967, -680, 2278, 0 },
+        { -7049, -562, 1570, 0 },
+        { -7049, -562, 2278, 0 },
+        { -7049, -680, 1570, 0 },
+        { -7049, -680, 2278, 0 },
+        { -7049, -562, -778, 0 },
+        { -7049, -562, -70, 0 },
+        { -7049, -680, -778, 0 },
+        { -7049, -680, -70, 0 },
+        { -5786, -2150, 3559, 0 },
+        { -5228, -2150, 3559, 0 },
+    },
     { -4439, -1161, -1751, 0 },
 };
 
-u8* D_shelter_b3_incinerator_control_room_80181920[2] = {
+u8* gShelterB3IncineratorControlRoomViewMaps[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_COUNT] = {
     gViewIdentityMap,
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b3_incinerator_control_room_80181928[2] = { 8, 8 };
+ViewCount gShelterB3IncineratorControlRoomViewCounts[SHELTER_B3_INCINERATOR_CONTROL_ROOM_ROOM_COUNT] = {
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT,
+};
 
 DirectionWarpEntry D_shelter_b3_incinerator_control_room_8018192C[4] = {
     { { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -5333, 0, 2984 }, { 0, 0, 0, 0 }, 0x54290008, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
@@ -112,8 +123,8 @@ static s16* _gShelterB3IncineratorControlRoomCollision04700Table[8] = {
 
 WorldCollisionGrid D_shelter_b3_incinerator_control_room_80181CC0 = { NULL, _gShelterB3IncineratorControlRoomCollision04700Normals, _gShelterB3IncineratorControlRoomCollision04700Verts, _gShelterB3IncineratorControlRoomCollision04700Faces, _gShelterB3IncineratorControlRoomCollision04700Table, 6742, 3500, 4, 2, 4000, 19 };
 
-ViewCamera D_shelter_b3_incinerator_control_room_80181CE4[8] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1000, 0x7530, 0 } }, 541 },
+ViewCamera gShelterB3IncineratorControlRoomViewCameras[SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 1000, 0x7530, 0 } }, 541 },
     { { { { 607, 0, 4050 }, { 1065, 3951, -159 }, { -3907, 1077, 586 } }, { -3319, 1397, 3178 } }, 212 },
     { { { { 607, 0, 4050 }, { 1065, 3951, -159 }, { -3907, 1077, 586 } }, { -3319, 1397, 3178 } }, 212 },
     { { { { -3911, 0, -1216 }, { -52, 4092, 170 }, { 1214, 178, -3907 } }, { 6542, 1367, -3406 } }, 230 },
@@ -123,116 +134,185 @@ ViewCamera D_shelter_b3_incinerator_control_room_80181CE4[8] = {
     { { { { -1234, 0, -3905 }, { -938, 3975, 296 }, { 3791, 984, -1198 } }, { 5487, 1464, 1249 } }, 230 },
 };
 
-SpriteBatch D_shelter_b3_incinerator_control_room_80181E04[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty mapped-view-1 batch list selecting decoded-image background strips.
+///
+/// The zero-count first record selects the background; the second ends the list.
+/// The source slot retains this address without reading it as sprite elements.
+static SpriteBatch _gShelterB3IncineratorControlRoomView1SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0 },
 };
 
-SpriteBatch D_shelter_b3_incinerator_control_room_80181E14[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty mapped-view-2 batch list selecting decoded-image background strips.
+///
+/// The zero-count first record selects the background; the second ends the list.
+/// The source slot retains this address without reading it as sprite elements.
+static SpriteBatch _gShelterB3IncineratorControlRoomView2SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0 },
 };
 
-SpriteSource D_shelter_b3_incinerator_control_room_80181E24[13] = {
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 8, -80, 1558, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 0, -40, 1788, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, -40, 1863, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -16, -40, 1707, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -16, -64, 1794, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, -64, 1783, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, -64, 1517, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, -80, 1828, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -8, -80, 1703, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, -80, 1729, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 72 } }, 16, -80, 1725, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, 64, -80, 1725, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 72 } }, 104, -80, 1725, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+/// GPU texture addresses and neutral RGB modulation for the room's view sprites.
+///
+/// The eight-bit texture page starts at VRAM word X 960, Y 0, with blend mode 0.
+/// Its 256-colour CLUT starts at word X 0, Y 255; RGB 128 leaves colours unchanged.
+enum {
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE = getTPage(1, 0, 960, 0),
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT         = getClut(0, 255),
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB  = 128,
 };
 
-SpriteBatch D_shelter_b3_incinerator_control_room_80181F28[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 13, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Thirteen depth-sorted texture rectangles drawn over mapped view 3's background.
+///
+/// XY and dimensions are pixels relative to the view centre; UV is in texels.
+/// Depth is an unscaled OT sorting value. The room owns this writable array;
+/// its batch list selects the full extent without a source sentinel.
+static SpriteSource _gShelterB3IncineratorControlRoomView3SpriteSources[13] = {
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 72 } }, 8, -80, 1558, { .fields = { 120, 144 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 32 } }, 0, -40, 1788, { .fields = { 120, 216 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 32 } }, -8, -40, 1863, { .fields = { 112, 216 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 32 } }, -16, -40, 1707, { .fields = { 104, 216 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -16, -64, 1794, { .fields = { 80, 0 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -8, -64, 1783, { .fields = { 88, 216 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, 0, -64, 1517, { .fields = { 96, 216 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, 0, -80, 1828, { .fields = { 96, 240 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -8, -80, 1703, { .fields = { 88, 240 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -16, -80, 1729, { .fields = { 80, 24 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 48, 72 } }, 16, -80, 1725, { .fields = { 72, 144 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 40, 72 } }, 64, -80, 1725, { .fields = { 88, 0 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 56, 72 } }, 104, -80, 1725, { .fields = { 72, 72 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteSource D_shelter_b3_incinerator_control_room_80181F40[18] = {
-    { 143, 0x3FC0, { .fields = { 64, 72 } }, -160, -32, 1586, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -32, -32, 1586, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 24, 1586, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, -32, 1586, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -40, -16, 1339, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 8, 1344, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, -96, -32, 1586, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, -32, 1258, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, -16, 1333, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, -16, 1249, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 8, 1339, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 8, 1254, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 24, 1310, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 24, 1256, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, -24, 1399, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -40, -24, 1339, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, 88, -64, 706, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, 88, 16, 713, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+/// Background selector, full sprite range and terminator for mapped view 3.
+///
+/// The zero-count first record requests image strips. The next record draws all
+/// thirteen source elements. The list remains mutable in room-overlay storage.
+static SpriteBatch _gShelterB3IncineratorControlRoomView3SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3IncineratorControlRoomView3SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0 },
 };
 
-SpriteBatch D_shelter_b3_incinerator_control_room_801820A8[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 14, 0, 0, { 1, 0 } },
-    { 14, 2, 0, 0, { 2, 0 } },
-    { 16, 2, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Eighteen depth-sorted texture rectangles drawn over mapped view 4's background.
+///
+/// XY and dimensions are pixels relative to the view centre; UV is in texels.
+/// The three nonempty batches select ranges [0,14), [14,16) and [16,18).
+/// Depth is an unscaled OT sorting value; the room owns this writable array.
+static SpriteSource _gShelterB3IncineratorControlRoomView4SpriteSources[18] = {
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 64, 72 } }, -160, -32, 1586, { .fields = { 48, 160 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 16, 72 } }, -32, -32, 1586, { .fields = { 112, 160 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 24, 1586, { .fields = { 64, 120 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, -32, 1586, { .fields = { 72, 120 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -40, -16, 1339, { .fields = { 120, 232 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 8, 1344, { .fields = { 72, 136 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 40, 72 } }, -96, -32, 1586, { .fields = { 48, 0 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 16, 16 } }, -56, -32, 1258, { .fields = { 88, 232 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -48, -16, 1333, { .fields = { 112, 232 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 24 } }, -56, -16, 1249, { .fields = { 104, 232 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -48, 8, 1339, { .fields = { 80, 120 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, 8, 1254, { .fields = { 80, 232 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -48, 24, 1310, { .fields = { 80, 136 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, 24, 1256, { .fields = { 72, 232 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 16, 48 } }, -32, -24, 1399, { .fields = { 64, 72 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 8, 48 } }, -40, -24, 1339, { .fields = { 80, 72 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 40, 80 } }, 88, -64, 706, { .fields = { 88, 0 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 40, 80 } }, 88, 16, 713, { .fields = { 88, 80 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteSource D_shelter_b3_incinerator_control_room_801820D0[2] = {
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -120, 16, 753, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -120, -56, 753, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// Background selector, three sprite ranges and terminator for mapped view 4.
+///
+/// Ranges cover fourteen, two and two source elements after a zero-count record
+/// selecting image strips. Serialized trailing bytes 1 and 2 have no established
+/// reader and remain uninterpreted. The room owns this writable list.
+static SpriteBatch _gShelterB3IncineratorControlRoomView4SpriteBatches[5] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 14, .field_6 = { 1, 0 } },
+    { .firstSprite = 14, .spriteCount = 2, .field_6 = { 2, 0 } },
+    { .firstSprite = 16, .spriteCount = ARRAY_SIZE(_gShelterB3IncineratorControlRoomView4SpriteSources) - 16 },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0 },
 };
 
-SpriteBatch D_shelter_b3_incinerator_control_room_801820F8[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 2, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Two vertically adjoining texture rectangles drawn over mapped view 5's background.
+///
+/// Each is 32 by 72 pixels, at X -120 and Y 16 or -56 relative to the view centre.
+/// Both use unscaled OT depth 753. The room owns this writable source array.
+static SpriteSource _gShelterB3IncineratorControlRoomView5SpriteSources[2] = {
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 32, 72 } }, -120, 16, 753, { .fields = { 96, 72 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
+    { SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_TEXTURE_PAGE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_CLUT, { .fields = { 32, 72 } }, -120, -56, 753, { .fields = { 96, 0 } }, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, SHELTER_B3_INCINERATOR_CONTROL_ROOM_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_shelter_b3_incinerator_control_room_80182110[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background selector, full sprite range and terminator for mapped view 5.
+///
+/// The zero-count first record requests image strips; the next selects both
+/// source elements. The list remains mutable in room-overlay storage.
+static SpriteBatch _gShelterB3IncineratorControlRoomView5SpriteBatches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB3IncineratorControlRoomView5SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0 },
 };
 
-SpriteBatch D_shelter_b3_incinerator_control_room_80182120[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty mapped-view-6 batch list selecting decoded-image background strips.
+///
+/// The zero-count first record selects the background; the second ends the list.
+/// The source slot retains this address without reading it as sprite elements.
+static SpriteBatch _gShelterB3IncineratorControlRoomView6SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0 },
 };
 
-SpriteBatch D_shelter_b3_incinerator_control_room_80182130[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty mapped-view-7 batch list selecting decoded-image background strips.
+///
+/// The zero-count first record selects the background; the second ends the list.
+/// The source slot retains this address without reading it as sprite elements.
+static SpriteBatch _gShelterB3IncineratorControlRoomView7SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0 },
 };
 
-SpriteView D_shelter_b3_incinerator_control_room_80182140[8] = {
-    { { .empty = D_shelter_b3_incinerator_control_room_80181E04 }, D_shelter_b3_incinerator_control_room_80181E04, NULL },
-    { { .empty = D_shelter_b3_incinerator_control_room_80181E14 }, D_shelter_b3_incinerator_control_room_80181E14, NULL },
-    { { .elements = D_shelter_b3_incinerator_control_room_80181E24 }, D_shelter_b3_incinerator_control_room_80181F28, NULL },
-    { { .elements = D_shelter_b3_incinerator_control_room_80181F40 }, D_shelter_b3_incinerator_control_room_801820A8, NULL },
-    { { .elements = D_shelter_b3_incinerator_control_room_801820D0 }, D_shelter_b3_incinerator_control_room_801820F8, NULL },
-    { { .empty = D_shelter_b3_incinerator_control_room_80182110 }, D_shelter_b3_incinerator_control_room_80182110, NULL },
-    { { .empty = D_shelter_b3_incinerator_control_room_80182120 }, D_shelter_b3_incinerator_control_room_80182120, NULL },
-    { { .empty = D_shelter_b3_incinerator_control_room_80182130 }, D_shelter_b3_incinerator_control_room_80182130, NULL },
+/// Empty mapped-view-8 batch list selecting decoded-image background strips.
+///
+/// The zero-count first record selects the background; the second ends the list.
+/// The source slot retains this address without reading it as sprite elements.
+static SpriteBatch _gShelterB3IncineratorControlRoomView8SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END, .spriteCount = 0 },
 };
 
-WorldCoordPointLight D_shelter_b3_incinerator_control_room_801821A0[8] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -591, -1844, -2881 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3295, -3263, 141 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3734, 3791, 3811 }, { 0, 0 } }, 1000, 0x2D03 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6412, -2764, -1784 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2370, 2309, 2426 }, { 0, 0 } }, 1000, 5940 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4412, -2882, 2029 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2128, 2126, 2128 }, { 0, 0 } }, 1000, 2477 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6584, 160, 1519 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2553, 2457, 2457 }, { 0, 0 } }, 1000, 1297 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4412, -321, 1461 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 3981 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6679, 0, -121 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 2100 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4352, 0, -121 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 2100 },
+SpriteView gShelterB3IncineratorControlRoomSpriteViews[SHELTER_B3_INCINERATOR_CONTROL_ROOM_VIEW_COUNT] = {
+    { { .empty = _gShelterB3IncineratorControlRoomView1SpriteBatches }, _gShelterB3IncineratorControlRoomView1SpriteBatches, NULL },
+    { { .empty = _gShelterB3IncineratorControlRoomView2SpriteBatches }, _gShelterB3IncineratorControlRoomView2SpriteBatches, NULL },
+    { { .elements = _gShelterB3IncineratorControlRoomView3SpriteSources }, _gShelterB3IncineratorControlRoomView3SpriteBatches, NULL },
+    { { .elements = _gShelterB3IncineratorControlRoomView4SpriteSources }, _gShelterB3IncineratorControlRoomView4SpriteBatches, NULL },
+    { { .elements = _gShelterB3IncineratorControlRoomView5SpriteSources }, _gShelterB3IncineratorControlRoomView5SpriteBatches, NULL },
+    { { .empty = _gShelterB3IncineratorControlRoomView6SpriteBatches }, _gShelterB3IncineratorControlRoomView6SpriteBatches, NULL },
+    { { .empty = _gShelterB3IncineratorControlRoomView7SpriteBatches }, _gShelterB3IncineratorControlRoomView7SpriteBatches, NULL },
+    { { .empty = _gShelterB3IncineratorControlRoomView8SpriteBatches }, _gShelterB3IncineratorControlRoomView8SpriteBatches, NULL },
 };
 
-WorldCoordRoomLights D_shelter_b3_incinerator_control_room_801824A0 = { 0, NULL, ARRAY_SIZE(D_shelter_b3_incinerator_control_room_801821A0), D_shelter_b3_incinerator_control_room_801821A0, 0, NULL };
+/// Eight mutable point lights contributing in every control-room view.
+///
+/// Positions and inner/outer falloff distances use world-coordinate units; RGB
+/// intensities have 12 fractional bits. Coordinate parenting, composition and
+/// query attenuation are updated in place for the loaded room's lifetime.
+static WorldCoordPointLight _gShelterB3IncineratorControlRoomPointLights[8] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -591, -1844, -2881 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3295, -3263, 141 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3734, 3791, 3811 }, { 0, 0 } }, 1000, 0x2D03 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -6412, -2764, -1784 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2370, 2309, 2426 }, { 0, 0 } }, 1000, 5940 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4412, -2882, 2029 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2128, 2126, 2128 }, { 0, 0 } }, 1000, 2477 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -6584, 160, 1519 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2553, 2457, 2457 }, { 0, 0 } }, 1000, 1297 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4412, -321, 1461 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 3981 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -6679, 0, -121 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 2100 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4352, 0, -121 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1000, 2100 },
+};
+
+WorldCoordRoomLights gShelterB3IncineratorControlRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB3IncineratorControlRoomPointLights),
+    .pointLights           = _gShelterB3IncineratorControlRoomPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b3_incinerator_control_room_801824B8[4] = {
     { NULL, NULL, NULL, { -5537, -1536, 687, 0 }, { { -2101, -2016, -224, 0 }, { 2099, -2016, 222, 0 }, { -2101, 2016, -224, 0 }, { 2099, 2016, 222, 0 } }, { 435, 0, -4103, 0 }, { 0, 0, 4096, 0 }, 2918, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -246,13 +326,17 @@ AreaResource D_shelter_b3_incinerator_control_room_801825E8[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b3_incinerator_control_room_80182600[1] = {
+/// Sentinel-only actor placement list for area layout variant 1.
+///
+/// Both placement spawning and additional-file loading stop on the first record.
+/// The variant's separate resource list can still load its base scene resource.
+static AreaPlacement _gShelterB3IncineratorControlRoomEmptyPlacements[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaVariant D_shelter_b3_incinerator_control_room_80182610[11] = {
     { NULL, NULL },
-    { D_shelter_b3_incinerator_control_room_80182600, D_shelter_b3_incinerator_control_room_801825E8 },
+    { _gShelterB3IncineratorControlRoomEmptyPlacements, D_shelter_b3_incinerator_control_room_801825E8 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -285,43 +369,92 @@ WorldCollisionOccluder D_shelter_b3_incinerator_control_room_801829AC[1] = {
     { NULL, NULL, { -1312, -95, 368, 0 }, { { -2752, 4576, -2416, 0 }, { 2752, 4576, 2416, 0 }, { -2752, -4576, -2416, 0 }, { 2752, -4576, 2416, 0 } }, { -2705, 0, 3080, 0 }, 5860, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_shelter_b3_incinerator_control_room_801829E8 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Cue-2 bases in the loaded type-1 footstep bank.
+enum {
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SHARED_WALK_BASE     = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SHARED_RUN_BASE      = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SURFACE_2_WALK_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SURFACE_2_RUN_BASE   = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SURFACE_2_STAIR_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
 };
 
-WorldCollisionFootstepSounds D_shelter_b3_incinerator_control_room_801829F4 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Walk, run and stair-climb footstep cues shared by surface classes 1 and 3.
+///
+/// Stair climbing reuses the walk base. Animation cue 1 adds one; companion cues
+/// add another 100. Surface records borrow this room-owned record while loaded.
+static WorldCollisionFootstepSounds _gShelterB3IncineratorControlRoomSharedFootstepSounds = {
+    .walk         = SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SHARED_WALK_BASE,
+    .run          = SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SHARED_RUN_BASE,
+    .scriptedJump = SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SHARED_WALK_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b3_incinerator_control_room_80182A00[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Distinct walk, run and stair-climb footstep cues for surface class 2.
+///
+/// Animation cue 1 adds one to its type-1 base; companion cues add another 100.
+/// The class-2 surface record borrows this room-owned record while loaded.
+static WorldCollisionFootstepSounds _gShelterB3IncineratorControlRoomSurface2FootstepSounds = {
+    .walk         = SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SURFACE_2_WALK_BASE,
+    .run          = SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SURFACE_2_RUN_BASE,
+    .scriptedJump = SHELTER_B3_INCINERATOR_CONTROL_ROOM_FOOTSTEP_SURFACE_2_STAIR_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b3_incinerator_control_room_80182A08[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_incinerator_control_room_801829E8 },
+/// Probe-blocking, pushback and weapon-impact policy for classes 0 and 4..7.
+///
+/// No footstep cues are selected. The leading byte's role is unproven and its
+/// stored zero is retained. The class directory borrows this room-owned record.
+static WorldCollisionSurfaceProperties _gShelterB3IncineratorControlRoomSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b3_incinerator_control_room_80182A10[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_incinerator_control_room_801829F4 },
+/// Probe-blocking, pushback, weapon-impact and shared footstep policy for class 1.
+///
+/// The leading byte's role is unproven and its stored zero is retained.
+/// The class directory and footstep pointer require the room to stay loaded.
+static WorldCollisionSurfaceProperties _gShelterB3IncineratorControlRoomSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB3IncineratorControlRoomSharedFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b3_incinerator_control_room_80182A18[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b3_incinerator_control_room_801829E8 },
+/// Probe-blocking, pushback, weapon-impact and distinct footstep policy for class 2.
+///
+/// The leading byte's role is unproven and its stored zero is retained.
+/// The class directory and footstep pointer require the room to stay loaded.
+static WorldCollisionSurfaceProperties _gShelterB3IncineratorControlRoomSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB3IncineratorControlRoomSurface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b3_incinerator_control_room_80182A20[8] = {
-    D_shelter_b3_incinerator_control_room_80182A00,
-    D_shelter_b3_incinerator_control_room_80182A08,
-    D_shelter_b3_incinerator_control_room_80182A10,
-    D_shelter_b3_incinerator_control_room_80182A18,
-    D_shelter_b3_incinerator_control_room_80182A00,
-    D_shelter_b3_incinerator_control_room_80182A00,
-    D_shelter_b3_incinerator_control_room_80182A00,
-    D_shelter_b3_incinerator_control_room_80182A00,
+/// Probe-blocking, pushback and shared footstep policy without weapon impacts for class 3.
+///
+/// The leading byte's role is unproven and its stored zero is retained.
+/// The class directory and footstep pointer require the room to stay loaded.
+static WorldCollisionSurfaceProperties _gShelterB3IncineratorControlRoomSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB3IncineratorControlRoomSharedFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB3IncineratorControlRoomSurfacePropertiesByClass[SHELTER_B3_INCINERATOR_CONTROL_ROOM_SURFACE_CLASS_COUNT] = {
+    &_gShelterB3IncineratorControlRoomSilentSurfaceProperties,
+    &_gShelterB3IncineratorControlRoomSurface1Properties,
+    &_gShelterB3IncineratorControlRoomSurface2Properties,
+    &_gShelterB3IncineratorControlRoomSurface3Properties,
+    &_gShelterB3IncineratorControlRoomSilentSurfaceProperties,
+    &_gShelterB3IncineratorControlRoomSilentSurfaceProperties,
+    &_gShelterB3IncineratorControlRoomSilentSurfaceProperties,
+    &_gShelterB3IncineratorControlRoomSilentSurfaceProperties,
 };
 
 AreaApplyRec D_shelter_b3_incinerator_control_room_80182A40[5] = {
@@ -358,8 +491,8 @@ static inline void _shelterB3IncineratorControlRoomDrawStackedGlows(s32 radiusSc
         SHELTER_B3_INCINERATOR_CONTROL_ROOM_STACKED_GLOW_UPPER_PAIR_START = 4,
     };
 
-    _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[SHELTER_B3_INCINERATOR_CONTROL_ROOM_STACKED_GLOW_LOWER_PAIR_START], radiusScale, rgbNibbles);
-    _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[SHELTER_B3_INCINERATOR_CONTROL_ROOM_STACKED_GLOW_UPPER_PAIR_START], radiusScale, rgbNibbles);
+    _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[SHELTER_B3_INCINERATOR_CONTROL_ROOM_STACKED_GLOW_LOWER_PAIR_START], radiusScale, rgbNibbles);
+    _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[SHELTER_B3_INCINERATOR_CONTROL_ROOM_STACKED_GLOW_UPPER_PAIR_START], radiusScale, rgbNibbles);
 }
 
 void shelterB3IncineratorControlRoomDrawViewGlowsTask(Task* task)
@@ -378,30 +511,30 @@ void shelterB3IncineratorControlRoomDrawViewGlowsTask(Task* task)
     switch (mappedViewIndex) {
         case 2:
         case 3:
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[0], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181868[2], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(_gShelterB3IncineratorControlRoomViews2And3GlowCapsules[0], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(_gShelterB3IncineratorControlRoomViews2And3GlowCapsules[1], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
             break;
         case 4:
             _shelterB3IncineratorControlRoomDrawStackedGlows(SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[8], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[10], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawDiamond(&D_shelter_b3_incinerator_control_room_80181888[18], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_PULSE_RATE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_RADIUS_SCALE);
+            _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[8], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[10], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawDiamond(&_gShelterB3IncineratorControlRoomGlowPoints.cyanCenter, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_PULSE_RATE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_RADIUS_SCALE);
             break;
         case 5:
             _shelterB3IncineratorControlRoomDrawStackedGlows(SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[2], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[6], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[12], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[14], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[16], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_WARM);
+            _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[2], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[6], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[12], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[14], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[16], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_WARM);
             break;
         case 6:
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[12], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawCapsule(&D_shelter_b3_incinerator_control_room_80181888[14], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[12], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
+            _glowDrawCapsule(&_gShelterB3IncineratorControlRoomGlowPoints.capsuleEndpoints[14], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
             break;
         case 8:
             _shelterB3IncineratorControlRoomDrawStackedGlows(SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CAPSULE_RADIUS_SCALE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_DIM_GREY);
-            _glowDrawPulsingDisc(&D_shelter_b3_incinerator_control_room_80181888[18], SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_PULSE_RATE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_RADIUS_SCALE);
+            _glowDrawPulsingDisc(&_gShelterB3IncineratorControlRoomGlowPoints.cyanCenter, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_PULSE_RATE, SHELTER_B3_INCINERATOR_CONTROL_ROOM_GLOW_CYAN_RADIUS_SCALE);
             break;
     }
 }
