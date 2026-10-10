@@ -32,12 +32,28 @@ extern AreaVariant D_shelter_b1_underground_parking_8018B5C4[22];
 
 extern ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_parking_801871F0;
 
-// shelter_b1_underground_parking
-extern WorldCoordRoomLighting D_shelter_b1_underground_parking_801877B4[];
+/// Extents of the underground parking room directories and logical-view maps.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT = 8,
+    SHELTER_B1_UNDERGROUND_PARKING_VIEW_COUNT = 24,
+};
+
+/// Lighting resources for underground parking rooms 1 through 8.
+///
+/// Indexed by room - 1 through the Shelter map. All rooms share the same ten
+/// point lights and 24-view ambient table. The descriptors and referenced storage
+/// belong to this overlay and must remain loaded while gameplay uses them.
+extern WorldCoordRoomLighting gShelterB1UndergroundParkingRoomLighting[SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT];
 
 extern WorldCollisionRoomResources D_shelter_b1_underground_parking_801877F4[];
 
-extern u8* D_shelter_b1_underground_parking_8018791C[];
+/// Logical-view maps for underground parking rooms 1 through 8.
+///
+/// Index [room - 1][logicalView - 1] for logical views 1..24. Each unsigned byte
+/// is a 1-based camera, image and sprite index in 1..24; there is no terminator.
+/// Room 1 borrows gameplay's `gViewIdentityMap`; the other maps belong to this
+/// overlay. Keep both overlays loaded while their maps are used.
+extern u8* gShelterB1UndergroundParkingRoomViewMaps[SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT];
 
 extern ViewCount D_shelter_b1_underground_parking_8018793C[];
 
@@ -47,7 +63,13 @@ extern ViewCamera D_shelter_b1_underground_parking_80189778[];
 
 extern SpriteView D_shelter_b1_underground_parking_8018AB9C[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_underground_parking_8018D724[];
+/// Collision policies and footstep cues for underground parking surface classes 0..7.
+///
+/// Indexed by a grid face or contact's surface class, independently of room number.
+/// Every class blocks probes, allows weapon impacts and applies pushback; only
+/// class 1 has footstep cues. Classes 0 and 3..7 share the default record, and
+/// class 2 retains its separate silent record. Borrowed storage lasts with this overlay.
+extern WorldCollisionSurfaceProperties* gShelterB1UndergroundParkingSurfacePropertiesByClass[8];
 
 /// Runs the underground parking room's initialization, interaction checks and shutdown.
 ///
