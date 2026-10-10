@@ -13,27 +13,57 @@
 
 extern AreaVariant D_dryfield_night_toilet_8017F354[12];
 
-// dryfield_night_toilet
-extern WorldCoordRoomLighting D_dryfield_night_toilet_8017DAB0[];
+/// Room 1's model-light collection, using the default ambient minima.
+///
+/// Indexed by room - 1. The collection and its mutable light transforms are
+/// borrowed from this overlay and remain valid only while it is loaded.
+extern WorldCoordRoomLighting gDryfieldNightToiletRoomLighting[1];
 
 extern WorldCollisionRoomResources D_dryfield_night_toilet_8017DAB8[];
 
-extern u8* D_dryfield_night_toilet_8017DAC8[];
+/// Room 1's logical-view map directory, borrowing gameplay's identity mapping.
+///
+/// Indexed by room - 1, then logical view - 1. Views 1..9 select the same
+/// 1-based camera, image and sprite indices; the shared map's capacity is
+/// independently `VIEW_IDENTITY_MAP_LENGTH`. Keep both overlays loaded.
+extern u8* gDryfieldNightToiletViewMaps[1];
 
-extern ViewCount D_dryfield_night_toilet_8017DACC[];
+/// Room 1's nine logical views, limiting reverse searches of its view map.
+///
+/// Indexed by room - 1; this is a signed element count with no terminator.
+/// The stage map borrows the array while this room overlay is loaded.
+extern ViewCount gDryfieldNightToiletViewCounts[1];
 
 extern DirectionWarpEntry D_dryfield_night_toilet_8017DAD0[];
 
-extern ViewCamera D_dryfield_night_toilet_8017DDAC[];
+/// Camera transforms and projection distances for the night toilet's nine views.
+///
+/// Indexed by mapped view - 1. Rotation has 12 fractional bits, translation
+/// is the negated origin in world units, and projection distance is in pixels.
+/// The stage map borrows these records while this room overlay is loaded.
+extern ViewCamera gDryfieldNightToiletViewCameras[9];
 
-extern SpriteView D_dryfield_night_toilet_8017EC40[];
+/// Sprite sources, drawing ranges and clipping for the night toilet's nine views.
+///
+/// Indexed by mapped view - 1. Views 2..5 select source sprites; views 1 and
+/// 6..9 have empty batch lists. All views retain decoded background strips.
+/// Only view 5 supplies a clipping list. The records and mutable source arrays
+/// are borrowed while this room overlay is loaded.
+extern SpriteView gDryfieldNightToiletSpriteViews[9];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_toilet_8017F3D8[];
+/// Collision and footstep policies for the night toilet's surface classes 0..7.
+///
+/// Class 1 blocks probes and permits weapon impacts; class 2 passes probes
+/// and suppresses weapon impacts. Both share footstep cues. Classes 0 and
+/// 3..7 block probes, permit weapon impacts and have no footstep cues.
+/// Every class applies pushback. The stage map borrows this directory, its
+/// records and sounds while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightToiletSurfacePropertiesByClass[8];
 
 /// Draws the night toilet's flickering light flare selected by the camera view.
 ///
-/// Effect-bank 6 callback for slot 0x10C. View 4 selects the second world point;
-/// views 5 and 9 select the first, and every other view draws nothing. The task
+/// Effect-bank 6 callback for slot 0x10C. View 4 selects the negative-Z centre;
+/// views 5 and 9 select the positive-Z centre, and every other view draws nothing. The task
 /// is unused. Texture column 1 uses a perspective radius scale of 512, giving
 /// a pixel half-extent of 512 * 39 / (camera Z / 4).
 ///
