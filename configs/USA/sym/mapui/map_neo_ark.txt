@@ -4,7 +4,7 @@
 // packages, and marker models in the map pictures. Each lives in a package
 // loaded at a slot of its own, so each is absolute.
 shelter1fParkingGarageRoomTask = 0x8017DF14; // type:func absolute:True owner=shelter_1f_parking_garage shared=rooms
-gShelter1fParkingGarageCollisionRooms = 0x80180C64; // absolute:True owner=shelter_1f_parking_garage shared=rooms
+gShelter1fParkingGarageCollisionRooms = 0x80180C64; // absolute:True owner=shelter_1f_parking_garage
 gShelter1fParkingGarageRoomLighting = 0x80180C74; // absolute:True owner=shelter_1f_parking_garage
 gShelter1fParkingGarageViewMaps = 0x80180C7C; // absolute:True owner=shelter_1f_parking_garage
 gShelter1fParkingGarageViewCounts = 0x80180C80; // absolute:True owner=shelter_1f_parking_garage

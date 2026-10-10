@@ -13,13 +13,20 @@
 
 /// Extents of the patio's exported room, view, warp and collision-class tables.
 enum {
+    ACROPOLIS_PATIO_VARIANT_SLOT_COUNT  = 12,
     ACROPOLIS_PATIO_ROOM_COUNT          = 3,
     ACROPOLIS_PATIO_VIEW_COUNT          = 19,
     ACROPOLIS_PATIO_WARP_COUNT          = 4,
     ACROPOLIS_PATIO_SURFACE_CLASS_COUNT = 8,
 };
 
-extern AreaVariant D_acropolis_patio_80184A90[12];
+/// Actor placements and loading/spawn recipes indexed directly by placement variant.
+///
+/// Slots 1..5 and 10 pair map-owned placements with patio-owned resources;
+/// slots 0, 6..9 and 11 are absent. All twelve slots are retained storage, not a
+/// terminated list. Callers must supply an index in 0..11 and keep the patio,
+/// Acropolis map and referenced actor packages loaded through loading/spawning.
+extern AreaVariant gAcropolisPatioAreaVariants[ACROPOLIS_PATIO_VARIANT_SLOT_COUNT];
 
 /// Collision resources for patio rooms 1..3, indexed by room - 1.
 ///

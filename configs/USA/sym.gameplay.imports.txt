@@ -1409,7 +1409,7 @@ D_acropolis_helicopter_landing_pad_801861E8 = 0x801861E8; // absolute:True owner
 
 D_acropolis_observatory_80181264 = 0x80181264; // absolute:True owner=acropolis_observatory
 
-D_acropolis_patio_80184A90 = 0x80184A90; // absolute:True owner=acropolis_patio
+gAcropolisPatioAreaVariants = 0x80184A90; // absolute:True owner=acropolis_patio
 
 gAcropolisPromenadeAreaVariants = 0x80183020; // absolute:True owner=acropolis_promenade shared=rooms
 

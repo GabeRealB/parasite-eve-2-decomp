@@ -27,6 +27,7 @@
 #include "gameplay/items.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -57,17 +58,13 @@
 
 #include "rooms/room_common.h"
 
-extern TaskMessageEntry D_acropolis_patio_8018028C[6];
-extern s32              D_acropolis_patio_80180440;
 /// Retained bodyless controller for the opening scene's player head aim.
 ///
 /// Spawned on room-1 initialization while story progress is below 2. Script
 /// callbacks require this task to be live and set its phase through this handle.
 /// Session rebuild discards the task list and heap; this pointer is not cleared
 /// and must not be used again until a new qualifying initialization replaces it.
-static Task*      _gAcropolisPatioPlayerHeadAimTask;
-extern EvsCommand D_acropolis_patio_80180DEC[];
-extern EvsCommand D_acropolis_patio_80180EDC[];
+static Task* _gAcropolisPatioPlayerHeadAimTask;
 /// Cafeteria arrival ID saved after the door-choice task is spawned.
 ///
 /// This singleton byte is borrowed until the accepted choice commits it to the
@@ -78,13 +75,7 @@ static u8 _gAcropolisPatioCafeteriaArrivalWarp;
 ///
 /// Stores the request's signed room byte as the unsigned saved-location selector,
 /// preserving all eight bits. A later door request overwrites this singleton.
-static u8         _gAcropolisPatioCafeteriaArrivalRoom;
-extern EvsCommand D_acropolis_patio_80180484[];
-extern EvsCommand D_acropolis_patio_801806AC[];
-extern EvsCommand D_acropolis_patio_8018082C[];
-extern EvsCommand D_acropolis_patio_80180C64[];
-extern EvsCommand D_acropolis_patio_8018280C[];
-extern EvsCommand D_acropolis_patio_80182BE4[];
+static u8 _gAcropolisPatioCafeteriaArrivalRoom;
 
 /// Story thresholds, opening phases and one-shot latches used by the patio receiver.
 enum {
@@ -122,10 +113,11 @@ enum {
     ACROPOLIS_PATIO_JET_FLICKER_SHIFT = 4
 };
 
-/// State table of the room's three-state task dispatcher
-/// (`acropolisPatioRoomTask`): the entry tick, an idle state, then
-/// `taskKill`.
-static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
+/// Room-task states: initialize (0), idle (1), and release the task (2).
+///
+/// The dispatcher copies all three callbacks to the stack and indexes without
+/// a bounds check. Keep the patio and resident task code loaded through dispatch.
+static const TaskFuncTable3 _gAcropolisPatioRoomTaskStates = {
     { _acropolisPatioInitializeRoomTask, _acropolisPatioRoomIdleState, taskKill },
 };
 
@@ -138,10 +130,8 @@ static WorldCoordRoomLights   _gAcropolisPatioRoomLights;
 
 static void _acropolisPatioSetBattleActive(s32 battleActive);
 
-extern AnimationPlayRequest D_acropolis_patio_8018270C;
-extern AnimationPlayRequest D_acropolis_patio_80182720;
-static void                 _acropolisPatioSpawnPlayerTurnLeft(void);
-static void                 _acropolisPatioPlayerTurnLeftTask(Task* task);
+static void _acropolisPatioSpawnPlayerTurnLeft(void);
+static void _acropolisPatioPlayerTurnLeftTask(Task* task);
 
 static void _acropolisPatioSetPlayerHeadAimState(s32 headAimState);
 static void _acropolisPatioActivateRoom2(void);
@@ -295,7 +285,13 @@ static AnimationSet _gAcropolisPatioAnimation02CA4 = {
     { NULL, _gAcropolisPatioAnimation02CA4Bank1, NULL, NULL, _gAcropolisPatioAnimation02CA4Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_acropolis_patio_8018028C[6] = {
+/// Room receiver's exit, command, key-item, sound and action message handlers.
+///
+/// Five live entries precede TASK_MESSAGE_TABLE_END; unsupported IDs return 0.
+/// The table is read only and borrowed by the room task for its lifetime.
+/// Payload types and return meanings follow the selected handler; room actions
+/// leave the result word unset and their sender discards it.
+static const TaskMessageEntry _gAcropolisPatioRoomMessages[] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisPatioResolveRoomTransition },
     { ROOM_MESSAGE_COMMAND, _acropolisPatioHandleCommandMessage },
     { ACROPOLIS_PATIO_MESSAGE_USE_KEY_ITEM, _acropolisPatioRefuseKeyItemUse },
@@ -375,7 +371,17 @@ static AnimationPlayRequest _gAcropolisPatioFollowUpPlayerAnimation47Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_acropolis_patio_80180390 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 5, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained bank-1 clip-48 request with a five-frame blend and a disabled grid flag.
+///
+/// No live script or code selects this record; its intended receiver and pose
+/// are unproven. It is separate from the follow-up bank's installed clip data.
+static AnimationPlayRequest _gAcropolisPatioRetainedBank1Animation48Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACROPOLIS_PATIO_FOLLOW_UP_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Blended follow-up player clip 49, six script ticks after clip 47 starts.
 ///
@@ -461,7 +467,16 @@ static ActorTransform _gAcropolisPatioRestoredSwatPlacement = {
     .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
 };
 
-s32 D_acropolis_patio_80180440 = 769;
+enum { ACROPOLIS_PATIO_STRANGER_COMMAND_HIDE = 0 };
+
+/// Hides variant 1's Grinning Stranger before the opening scene (placed actor 1).
+///
+/// The patio namespace selects the hidden actor state. Borrowed synchronously
+/// during room initialization; retains the original four-byte word alignment.
+static ActorCommand _gAcropolisPatioHideStrangerCommand __attribute__((aligned(4))) = {
+    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO } },
+    .command = ACROPOLIS_PATIO_STRANGER_COMMAND_HIDE,
+};
 
 /// Starts SWAT clip 1 and selects the Grinning Stranger's scripted dormancy.
 ///
@@ -501,13 +516,29 @@ static ActorTransform _gAcropolisPatioOpeningStrangerPlacement = { .pos = { -796
 /// Grinning Stranger's placement after the opening scene and on room entry (actor 1).
 static ActorTransform _gAcropolisPatioRestoredStrangerPlacement = { .pos = { -7720, 0, 290, 0 }, .rot = { 0, 0, 0, 0 } };
 
-EvsCommand D_acropolis_patio_80180484[23] = {
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51030009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// CAP command slots and actor draw modes used by the patio's event streams.
+enum {
+    ACROPOLIS_PATIO_CAP_CAFETERIA_DOOR           = 8,
+    ACROPOLIS_PATIO_CAP_FOLLOW_UP                = 9,
+    ACROPOLIS_PATIO_CAP_OPENING                  = 10,
+    ACROPOLIS_PATIO_CAP_SECOND_VISIT             = 12,
+    ACROPOLIS_PATIO_ACTOR_DRAW_HIDE              = 0,
+    ACROPOLIS_PATIO_ACTOR_DRAW_SHOW              = 1,
+    ACROPOLIS_PATIO_LEAP_ACTOR_DRAW_HIDE_RELEASE = 2,
+};
+
+/// Opening scene: CAP command 10, SWAT/Stranger staging, then player-control restoration.
+///
+/// Room action 0 starts this 23-command stream with its skip target. CAP cues
+/// delimit staging and completion; no script calls or jumps occur. Borrow all
+/// commands, callbacks and payloads from the loaded patio through execution.
+static EvsCommand _gAcropolisPatioOpeningScript[] = {
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0x09) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PATIO_CAP_OPENING }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 67 }, { .value = 67 }, { .value = 78 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioOpeningActorsStartCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioOpeningStrangerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioOpeningSwatPlacement } }, { .value = 0 } },
@@ -523,11 +554,16 @@ EvsCommand D_acropolis_patio_80180484[23] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioOpeningPlayerEndPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioRestoredStrangerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_patio_801806AC[16] = {
+/// Skip path restoring the opening scene's actor/player placements and normal view.
+///
+/// Sixteen commands fade out, reset animation and placements, restore music/view,
+/// clean up CAP/HUD control, fade back and resume the player. Ends explicitly;
+/// the patio-owned stream and payloads must remain loaded through execution.
+static EvsCommand _gAcropolisPatioOpeningSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
@@ -542,15 +578,20 @@ EvsCommand D_acropolis_patio_801806AC[16] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_patio_8018082C[45] = {
+/// Opening follow-up: CAP command 9, player/SWAT animations, then patio room 2.
+///
+/// Room action 1 starts this 45-command stream after the opening Stranger leaves.
+/// CAP cues gate player clips and head-aim phases; completion restores weapons
+/// and player control. No calls/jumps; borrow patio storage through execution.
+static EvsCommand _gAcropolisPatioFollowUpScript[] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PATIO_CAP_FOLLOW_UP }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisPatioFollowUpPlayerBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetPlayerHeadAimState }, { .value = ACROPOLIS_PATIO_SCRIPT_HEAD_AIM_HOLD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -560,7 +601,7 @@ EvsCommand D_acropolis_patio_8018082C[45] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioFollowUpPlayerStartPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .transform = &_gAcropolisPatioFollowUpPlayerWalkDestination } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5103000B }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0x0B) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioSwatAnimation2Command } }, { .value = 0 } },
@@ -573,15 +614,15 @@ EvsCommand D_acropolis_patio_8018082C[45] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioFollowUpPlayerAnimation50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5103000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0x0C) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioSwatAnimation3Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5103000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 0x0A) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetPlayerHeadAimState }, { .value = ACROPOLIS_PATIO_SCRIPT_HEAD_AIM_START_SLIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisPatioActivateRoom2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioFollowUpPlayerEndPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioRestoredSwatPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -590,17 +631,22 @@ EvsCommand D_acropolis_patio_8018082C[45] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_patio_80180C64[16] = {
+/// Skip path restoring the follow-up scene's player placement, weapons and room 2.
+///
+/// Sixteen commands fade out, reset player animation, restore actor draw/head aim,
+/// music/view and CAP/HUD state, then resume control. Ends explicitly; borrow
+/// the loaded patio's commands, callbacks and payloads through execution.
+static EvsCommand _gAcropolisPatioFollowUpSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioFollowUpPlayerEndPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisPatioActivateRoom2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetPlayerHeadAimState }, { .value = ACROPOLIS_PATIO_SCRIPT_HEAD_AIM_IDLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -609,7 +655,7 @@ EvsCommand D_acropolis_patio_80180C64[16] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -619,27 +665,37 @@ EvsCommand D_acropolis_patio_80180C64[16] = {
 /// CAP playback borrows this record while the patio overlay remains loaded.
 static EvsSceneKey _gAcropolisPatioCafeteriaDoorSceneKey = { .group = 1, .streamId = 29, .subId = 11 };
 
-EvsCommand D_acropolis_patio_80180DEC[10] = {
+/// First post-battle cafeteria-door attempt: CAP command 8 and its scene audio.
+///
+/// Ten commands hold the player, start the selected audio and pause actors until
+/// a CAP cue, then resume both. The transition receiver starts it only once.
+/// No calls/jumps; borrow patio storage and callbacks through execution.
+static EvsCommand _gAcropolisPatioCafeteriaDoorScript[] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PATIO_CAP_CAFETERIA_DOOR }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gAcropolisPatioCafeteriaDoorSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _acropolisPatioSetActorControl }, { .value = SCENE_COMBAT_ACTORS_PAUSED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _acropolisPatioSetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_patio_80180EDC[9] = {
+/// Skip path cleaning up cafeteria-door playback and resuming player/actors.
+///
+/// Nine commands reset player animation under a fade, release CAP/HUD control,
+/// fade back and resume actors. It does not commit a room departure. Ends
+/// explicitly; borrow the loaded patio's stream and payloads through execution.
+static EvsCommand _gAcropolisPatioCafeteriaDoorSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioPlayerIdleAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _acropolisPatioSetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -753,11 +809,15 @@ static AnimationBankCopyRequest _gAcropolisPatioSecondVisitPlayerBankCopyRequest
     .wordCount = ARRAY_SIZE(_gAcropolisPatioSecondVisitPlayerAnimationSets),
 };
 
-AnimationPlayRequest D_acropolis_patio_801825CC[4] = {
-    { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Retained bank-1 requests for clips 1, 48, 49 and 50, all carrying a disabled grid flag.
+///
+/// The first two reset playback; the last two interpolate over six frames.
+/// No consumer or terminator exists. Intended receivers and scene use are unproven.
+static AnimationPlayRequest _gAcropolisPatioRetainedBank1AnimationRequests[] = {
+    { .source = { .index = 1 }, .animationId = 1, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 1, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 2, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 6, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 3, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 6, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 /// Player clip 9 at the second-visit battle handoff, shared by normal and skipped paths.
@@ -775,9 +835,13 @@ static AnimationPlayRequest _gAcropolisPatioSecondVisitPlayerAnimation9Request =
 /// Player's room-space starting placement for the second-visit battle introduction.
 static ActorTransform _gAcropolisPatioSecondVisitPlayerStartPlacement = { .pos = { -7100, 0, -1350, 0 }, .rot = { 0, 900, 0, 0 } };
 
-ActorTransform D_acropolis_patio_80182648[2] = {
-    { { -6590, 0, -1000, 0 }, { 0, 0, 0, 0 } },
-    { { 3900, 0, 2300, 0 }, { 0, 0, 0, 0 } },
+/// Two retained transform-shaped records with zero rotations; their role is unproven.
+///
+/// No code, event operand or other overlay selects them. Preserve both complete
+/// records in their original data position without assigning an actor or scene.
+static ActorTransform D_acropolis_patio_80182648[2] = {
+    { .pos = { -6590, 0, -1000, 0 }, .rot = { 0, 0, 0, 0 } },
+    { .pos = { 3900, 0, 2300, 0 }, .rot = { 0, 0, 0, 0 } },
 };
 
 /// Destination of the player's scripted run during the second-visit introduction.
@@ -791,30 +855,90 @@ static ActorTransform _gAcropolisPatioSecondVisitPlayerRunDestination = { .pos =
 /// Shares the run destination's XYZ with a separate arrival yaw.
 static ActorTransform _gAcropolisPatioSecondVisitPlayerSkipPlacement = { .pos = { -2300, 0, 700, 0 }, .rot = { 0, -848, 0, 0 } };
 
-AnimationPlayRequest D_acropolis_patio_801826A8[5] = {
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+/// Retained bank-0 requests: reset clip 1, then blend clips 1..4 over twenty frames.
+///
+/// Reset carries a disabled grid flag; blended records carry an enabled flag. No consumer or
+/// terminator exists, and the intended actor and scene use are unproven.
+static AnimationPlayRequest _gAcropolisPatioRetainedBank0Animation1To4Requests[] = {
+    { .source = { .index = 0 }, .animationId = 1, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 0 }, .animationId = 1, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 20, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE },
+    { .source = { .index = 0 }, .animationId = 2, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 20, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE },
+    { .source = { .index = 0 }, .animationId = 3, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 20, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE },
+    { .source = { .index = 0 }, .animationId = 4, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 20, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE },
 };
 
-AnimationPlayRequest D_acropolis_patio_8018270C = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
-
-AnimationPlayRequest D_acropolis_patio_80182720 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
-
-AnimationPlayRequest D_acropolis_patio_80182734[2] = {
-    { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
-    { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE },
+/// Clip selectors, transition duration and commands for the two scene-only Strangers.
+enum {
+    ACROPOLIS_PATIO_LEAP_ACTOR_1_SCENE_CLIP            = 5,
+    ACROPOLIS_PATIO_LEAP_ACTOR_2_SCENE_CLIP            = 6,
+    ACROPOLIS_PATIO_LEAP_START_CLIP                    = 7,
+    ACROPOLIS_PATIO_LEAP_LANDING_CLIP                  = 8,
+    ACROPOLIS_PATIO_LEAP_SCENE_BLEND_FRAMES            = 20,
+    ACROPOLIS_PATIO_STRANGER_COMMAND_LOWER_HEAD_WEIGHT = 0,
+    ACROPOLIS_PATIO_STRANGER_COMMAND_RAISE_HEAD_WEIGHT = 1,
+    ACROPOLIS_PATIO_STRANGER_COMMAND_PRINT_TRANSFORM   = 2,
 };
 
-ActorTransform D_acropolis_patio_8018275C = { { -6100, -3780, -1900, 0 }, { 0, -110, 0, 0 } };
+/// Bank-0 clip 5 for the second visit's leaping Stranger 1 (placed actor 0).
+///
+/// Borrowed through dispatch; the actor's bank and clip must stay loaded through
+/// playback. Requests twenty frames of interpolation on an already ticking rig.
+/// The stored grid flag is unused by this actor's animation handler.
+static AnimationPlayRequest _gAcropolisPatioLeapingStranger1AnimationRequest = {
+    .source               = { .index = 0 },
+    .animationId          = ACROPOLIS_PATIO_LEAP_ACTOR_1_SCENE_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACROPOLIS_PATIO_LEAP_SCENE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-ActorTransform D_acropolis_patio_80182774 = { 0 };
+/// Bank-0 clip 6 for the second visit's leaping Stranger 2 (placed actor 1).
+///
+/// Borrowed through dispatch; the actor's bank and clip must stay loaded through
+/// playback. Requests twenty frames of interpolation on an already ticking rig.
+/// The stored grid flag is unused by this actor's animation handler.
+static AnimationPlayRequest _gAcropolisPatioLeapingStranger2AnimationRequest = {
+    .source               = { .index = 0 },
+    .animationId          = ACROPOLIS_PATIO_LEAP_ACTOR_2_SCENE_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACROPOLIS_PATIO_LEAP_SCENE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-ActorTransform D_acropolis_patio_8018278C = { { -5100, -3780, -1900, 0 }, { 0, 80, 0, 0 } };
+/// Retained bank-0 clip-7/8 requests with twenty-frame blends and enabled grid flags.
+///
+/// No consumer or terminator exists; their intended actor and scene use are
+/// unproven. The live leap uses a separate start/landing clip pair.
+static AnimationPlayRequest _gAcropolisPatioRetainedBank0Animation7And8Requests[] = {
+    { .source = { .index = 0 }, .animationId = 7, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 20, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE },
+    { .source = { .index = 0 }, .animationId = 8, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = 20, .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE },
+};
 
-ActorTransform D_acropolis_patio_801827A4 = { { 0, 0, 0, 0 }, { 0, 512, 0, 0 } };
+/// First leaping Stranger's second-visit room-space starting placement (actor 0).
+///
+/// Borrowed through placement dispatch; XYZ uses game-coordinate units and yaw
+/// is -110 in 4096 units per turn.
+static ActorTransform _gAcropolisPatioLeapingStranger1StartPlacement = { .pos = { -6100, -3780, -1900, 0 }, .rot = { 0, -110, 0, 0 } };
+
+/// First scene Stranger's leap-launch heading: yaw 0 (placed actor 0).
+///
+/// The receiver copies XYZ and Euler angles, then uses only yaw in 4096 units
+/// per turn. Zero XYZ is retained storage, not a destination. Borrowed only
+/// through dispatch; the actor keeps its own copied values.
+static ActorTransform _gAcropolisPatioLeapingStranger1Launch = { .pos = { 0, 0, 0, 0 }, .rot = { 0, 0, 0, 0 } };
+
+/// Second leaping Stranger's second-visit room-space starting placement (actor 1).
+///
+/// Borrowed through placement dispatch; XYZ uses game-coordinate units and yaw
+/// is 80 in 4096 units per turn.
+static ActorTransform _gAcropolisPatioLeapingStranger2StartPlacement = { .pos = { -5100, -3780, -1900, 0 }, .rot = { 0, 80, 0, 0 } };
+
+/// Second scene Stranger's leap-launch heading: one eighth turn (placed actor 1).
+///
+/// The receiver copies XYZ and Euler angles, then uses only yaw in 4096 units
+/// per turn. Zero XYZ is retained storage, not a destination. Borrowed only
+/// through dispatch; the actor keeps its own copied values.
+static ActorTransform _gAcropolisPatioLeapingStranger2Launch = { .pos = { 0, 0, 0, 0 }, .rot = { 0, ACTOR_TRANSFORM_ANGLE_TURN / 8, 0, 0 } };
 
 /// First Grinning Stranger's battle placement after the second-visit scene (actor 2).
 ///
@@ -826,13 +950,45 @@ static ActorTransform _gAcropolisPatioSecondVisitStranger1BattlePlacement = { .p
 /// Both normal completion and skipping restore this room-space transform.
 static ActorTransform _gAcropolisPatioSecondVisitStranger2BattlePlacement = { .pos = { -3743, 210, -543, 0 }, .rot = { 0, 512, 0, 0 } };
 
-ActorMotionWalkAnim D_acropolis_patio_801827EC = { .animationId = 7, .nextAnimId = 8 };
+/// Start/landing clip pair for both scene Strangers' second-visit leap.
+///
+/// The start request selects bank-0 clip 7; the turn-to-launch step replaces it
+/// with clip 2. Clip 8 is retained for landing. Both payloads are borrowed only
+/// through dispatch, while the actors' clip data must remain loaded for playback.
+static ActorMotionWalkAnim _gAcropolisPatioStrangerLeapAnimations = {
+    .animationId = ACROPOLIS_PATIO_LEAP_START_CLIP,
+    .nextAnimId  = ACROPOLIS_PATIO_LEAP_LANDING_CLIP,
+};
 
-ActorCommand D_acropolis_patio_801827F4 = { { .loc = { 1, 3 } }, 0 };
+/// Lowers both scene Strangers' head-turn weight ramp after the leap requests.
+///
+/// The receiver ignores the stored patio context and sets a falling ramp.
+/// Its head-turn calculation currently ignores that weight.
+/// Borrowed synchronously by both placed actors (0 and 1).
+static ActorCommand _gAcropolisPatioLowerStrangerHeadWeightCommand = {
+    .context = { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO } },
+    .command = ACROPOLIS_PATIO_STRANGER_COMMAND_LOWER_HEAD_WEIGHT,
+};
 
-ActorCommand D_acropolis_patio_801827F8 = { { .loc = { 0, 0 } }, 1 };
+/// Raises both scene Strangers' head-turn weight ramp before their leap starts.
+///
+/// The receiver ignores the zero context and sets a rising ramp.
+/// Its head-turn calculation currently ignores that weight.
+/// Borrowed synchronously by both placed actors (0 and 1).
+static ActorCommand _gAcropolisPatioRaiseStrangerHeadWeightCommand = {
+    .context = { .loc = { 0, 0 } },
+    .command = ACROPOLIS_PATIO_STRANGER_COMMAND_RAISE_HEAD_WEIGHT,
+};
 
-ActorCommand D_acropolis_patio_801827FC = { { .loc = { 0, 0 } }, 2 };
+/// Prints both scene Strangers' root positions and Euler angles at battle handoff.
+///
+/// The receiver ignores the zero context and sends this command through its
+/// diagnostic path; it does not select a battle state.
+/// Borrowed synchronously by both placed actors (0 and 1).
+static ActorCommand _gAcropolisPatioPrintStrangerTransformCommand = {
+    .context = { .loc = { 0, 0 } },
+    .command = ACROPOLIS_PATIO_STRANGER_COMMAND_PRINT_TRANSFORM,
+};
 
 /// Bodyless controller that turns the live player left by half a turn over sixteen ticks.
 ///
@@ -840,29 +996,34 @@ ActorCommand D_acropolis_patio_801827FC = { { .loc = { 0, 0 } }, 2 };
 /// available until the controller finishes and releases its task.
 static TaskDesc _gAcropolisPatioPlayerTurnLeftTaskDescriptor = { { { TASK_BODY_NONE, ACROPOLIS_PATIO_SCENE_TASK_PRIORITY } }, _acropolisPatioPlayerTurnLeftTask, { .value = 0 } };
 
-EvsCommand D_acropolis_patio_8018280C[41] = {
+/// Second-visit battle introduction: CAP command 12, two Stranger leaps, then combat.
+///
+/// Room action 2 starts this 41-command stream in placement variant 2. Actors
+/// 0/1 are scene figures; 2/3 are the battle actors. Skipping is disabled at
+/// battle handoff. No calls/jumps; borrow all patio storage through execution.
+static EvsCommand _gAcropolisPatioSecondVisitScript[] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisPatioSecondVisitPlayerBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACROPOLIS_PATIO_CAP_SECOND_VISIT }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioSecondVisitPlayerStartPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_patio_8018275C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_patio_8018278C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_patio_8018270C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_patio_80182720 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioLeapingStranger1StartPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioLeapingStranger2StartPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPatioLeapingStranger1AnimationRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gAcropolisPatioLeapingStranger2AnimationRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .transform = &_gAcropolisPatioSecondVisitPlayerRunDestination } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827F8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827F8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioRaiseStrangerHeadWeightCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioRaiseStrangerHeadWeightCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_acropolis_patio_80182774 } }, { .message = { .pointer = &D_acropolis_patio_801827EC } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gAcropolisPatioLeapingStranger1Launch } }, { .message = { .pointer = &_gAcropolisPatioStrangerLeapAnimations } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_acropolis_patio_801827A4 } }, { .message = { .pointer = &D_acropolis_patio_801827EC } } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827F4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gAcropolisPatioLeapingStranger2Launch } }, { .message = { .pointer = &_gAcropolisPatioStrangerLeapAnimations } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioLowerStrangerHeadWeightCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioLowerStrangerHeadWeightCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioSecondVisitPlayerAnimation9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -871,31 +1032,36 @@ EvsCommand D_acropolis_patio_8018280C[41] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetBattleActive }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_LEAP_ACTOR_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_LEAP_ACTOR_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioSecondVisitStranger1BattlePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioSecondVisitStranger2BattlePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827FC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_patio_801827FC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioPrintStrangerTransformCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gAcropolisPatioPrintStrangerTransformCommand } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_acropolis_patio_80182BE4[21] = {
+/// Skip path placing the player and battle Strangers before engaging combat.
+///
+/// Twenty-one commands pause battle, hide/release scene figures, restore battle
+/// figures and player placement, clean up CAP/HUD under a fade, then engage.
+/// Ends explicitly; borrow patio commands, callbacks and payloads until then.
+static EvsCommand _gAcropolisPatioSecondVisitSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetBattleActive }, { .value = false }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_LEAP_ACTOR_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_LEAP_ACTOR_DRAW_HIDE_RELEASE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = ACROPOLIS_PATIO_ACTOR_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioSecondVisitStranger1BattlePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioSecondVisitStranger2BattlePlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gAcropolisPatioSecondVisitPlayerSkipPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisPatioSecondVisitPlayerAnimation9Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -903,7 +1069,7 @@ EvsCommand D_acropolis_patio_80182BE4[21] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetBattleActive }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1311,7 +1477,7 @@ static AreaResource _gAcropolisPatioVariant10ActorResources[] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_acropolis_patio_80184A90[12] = {
+AreaVariant gAcropolisPatioAreaVariants[ACROPOLIS_PATIO_VARIANT_SLOT_COUNT] = {
     { NULL, NULL },
     { gMapAkropolisPatioVariant1Placements, _gAcropolisPatioVariant1ActorResources },
     { gMapAkropolisPatioVariant2Placements, _gAcropolisPatioVariant2ActorResources },
@@ -1793,7 +1959,12 @@ static SpriteBatch _gAcropolisPatioView12SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_patio_80185EF8[2] = {
+/// Retained unused background-only sprite batch list.
+///
+/// A zero-count first record enables decoded strips; SPRITE_BATCH_END follows.
+/// No SpriteView selects this list, so it has no live source-sprite extent or
+/// established view assignment. Preserve both eight-byte records privately.
+static SpriteBatch _gAcropolisPatioUnusedBackgroundSpriteBatches1[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -1825,7 +1996,12 @@ static SpriteBatch _gAcropolisPatioView16SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_patio_80185F38[2] = {
+/// Retained unused background-only sprite batch list.
+///
+/// A zero-count first record enables decoded strips; SPRITE_BATCH_END follows.
+/// No SpriteView selects this list, so it has no live source-sprite extent or
+/// established view assignment. Preserve both eight-byte records privately.
+static SpriteBatch _gAcropolisPatioUnusedBackgroundSpriteBatches2[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -2278,7 +2454,7 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
     ActorCommand actorCommand;
     Task*        placedActor;
 
-    task->msgTable = D_acropolis_patio_8018028C;
+    task->msgTable = _gAcropolisPatioRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
@@ -2295,7 +2471,7 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
     if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
         placedActor = sceneFindPlacedActor(1);
         if (placedActor != 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_80180440, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &_gAcropolisPatioHideStrangerCommand, 0);
         }
     }
     // Commands are borrowed only through these synchronous dispatches.
@@ -2367,7 +2543,7 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
             transitionResult = ACROPOLIS_PATIO_TRANSITION_DEFERRED;
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == ACROPOLIS_PATIO_SCENE_UNSEEN) {
-                    evsStartScriptWithSkip(D_acropolis_patio_80180DEC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_80180EDC);
+                    evsStartScriptWithSkip(_gAcropolisPatioCafeteriaDoorScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioCafeteriaDoorSkipScript);
                     gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN, ACROPOLIS_PATIO_SCENE_SEEN);
                     return ACROPOLIS_PATIO_TRANSITION_DEFERRED;
                 }
@@ -2508,19 +2684,19 @@ static s32 _acropolisPatioHandleActionMessage(Task* unusedTask, s32 messageId, c
 
     if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_OPENING) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_STARTED);
-        evsStartScriptWithSkip(D_acropolis_patio_80180484, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_801806AC);
+        evsStartScriptWithSkip(_gAcropolisPatioOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioOpeningSkipScript);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
     if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_FOLLOW_UP) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED) &&
         (taskMessageDispatch(sceneFindPlacedActor(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
-        evsStartScriptWithSkip(D_acropolis_patio_8018082C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_80180C64);
+        evsStartScriptWithSkip(_gAcropolisPatioFollowUpScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioFollowUpSkipScript);
     }
     actionId = actionRequest->actionId;
     if ((actionId == ACROPOLIS_PATIO_ACTION_SECOND_VISIT) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == actionId)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PATIO_026, ACROPOLIS_PATIO_SCENE_SEEN);
-        evsStartScriptWithSkip(D_acropolis_patio_8018280C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_80182BE4);
+        evsStartScriptWithSkip(_gAcropolisPatioSecondVisitScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gAcropolisPatioSecondVisitSkipScript);
     }
     // No result is set; the sender of a room action ignores it.
 }
@@ -2704,7 +2880,7 @@ static void _acropolisPatioRoomIdleState(Task* task)
 
 void acropolisPatioRoomTask(Task* task)
 {
-    TaskFuncTable3 stateHandlers = D_acropolis_patio_8017D5C4;
+    TaskFuncTable3 stateHandlers = _gAcropolisPatioRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -2955,12 +3131,12 @@ void acropolisPatioFountainJetTask(Task* task)
     }
 }
 
-/// A non-zero padding byte the original toolchain left. Nothing refers to it.
+/// Retained nonzero alignment byte after the fountain's three grey-level constants.
 ///
-/// It fills out the word holding the three grey levels the function above
-/// initialises its local array from, so it has to stay directly below that
-/// function.
-static const u8 D_acropolis_patio_8017D5EB = 0xF2;
+/// The grey-level initializer loads exactly three bytes; this fourth byte is
+/// never read. Keep its value and emission position to preserve the aligned
+/// start of the following text section.
+static const u8 _gAcropolisPatioLightGreyAlignmentByte = 0xF2;
 
 /// Projects a cached light-mote position into a random-grey, average-blended pixel.
 ///
