@@ -15,11 +15,23 @@
 
 #include "main/task_types.h"
 
-extern SVECTOR gDryfieldNightMainStreetCollision06F80Normals[23];
+/// Room-space unit normals for the room-2/3 collision mesh (4096 per unit).
+///
+/// The opening scene replaces the first four entries in place. Keep the room
+/// overlay loaded while collision borrows this pool.
+extern SVECTOR gDryfieldNightMainStreetRooms2And3CollisionGridNormals[23];
 
-extern SVECTOR gDryfieldNightMainStreetCollision06F80Verts[196];
+/// Signed room-coordinate vertices for the room-2/3 collision mesh.
+///
+/// The opening scene replaces the first sixteen entries in place. Keep the room
+/// overlay loaded while collision borrows this pool.
+extern SVECTOR gDryfieldNightMainStreetRooms2And3CollisionGridVerts[196];
 
-extern WorldCollisionGridFace gDryfieldNightMainStreetCollision06F80Faces[89];
+/// Indexed collision faces and room-local surface classes for rooms 2 and 3.
+///
+/// The opening scene replaces the first four entries in place. Indices refer to
+/// this mesh's vertex and normal pools, which remain live with the room overlay.
+extern WorldCollisionGridFace gDryfieldNightMainStreetRooms2And3CollisionGridFaces[89];
 
 extern WorldCollisionTrigger D_dryfield_night_main_street_8018824C[12];
 
@@ -28,9 +40,20 @@ extern AreaVariant D_dryfield_night_main_street_80188A08[13];
 // dryfield_night_main_street
 extern WorldCollisionRoomResources D_dryfield_night_main_street_80182284[];
 
-extern WorldCoordRoomLighting D_dryfield_night_main_street_801822B4[];
+/// Light and ambient resources for main-street room selectors 1..3.
+///
+/// Indexed by room - 1; all three records borrow the same mutable point-light
+/// collection and logical-view ambient table. No terminator. The records and
+/// their resources remain valid only while this room overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldNightMainStreetRoomLighting[3];
 
-extern u8* D_dryfield_night_main_street_801822FC[];
+/// Logical-view maps for main-street room selectors 1..3.
+///
+/// Indexed by room - 1, then logical view - 1 for views 1..24. Room 1 borrows
+/// the gameplay identity map; rooms 2 and 3 supply their own byte mappings.
+/// Values are 1-based camera/image/sprite indices in 1..24. There is no
+/// terminator; keep gameplay and this room overlay loaded while borrowing them.
+extern u8* gDryfieldNightMainStreetViewMaps[3];
 
 extern ViewCount D_dryfield_night_main_street_80182308[];
 
@@ -40,7 +63,13 @@ extern ViewCamera D_dryfield_night_main_street_80184564[];
 
 extern SpriteView D_dryfield_night_main_street_801875E4[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_main_street_80188B84[];
+/// Collision and footstep policies indexed by room-local surface class 0..7.
+///
+/// Classes 0 and 5..7 share a blocking silent policy; class 1 passes probes and
+/// ignores weapon impacts without footsteps. Classes 2..4 block probes, allow
+/// impacts and select their own footstep pairs. Every class applies pushback.
+/// No terminator; the table and borrowed records live with this room overlay.
+extern WorldCollisionSurfaceProperties* gDryfieldNightMainStreetSurfacePropertiesByClass[8];
 
 /// Draws view-selected night main street lights and maintains its drifting puffs.
 ///

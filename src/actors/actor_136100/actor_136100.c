@@ -2431,9 +2431,9 @@ static void _actor136100SceneTask(Task* task)
                 _actor136100ResetBodyTracks(task, ACTOR_136100_BODY_BEFORE_BURNER_START);
                 work->rifleTask = taskSpawnFromTable(D_actor_136100_80140744, ACTOR_136100_SCENE_RIFLE_TASK, 1,
                                                      task->extra.tmd->coords + ACTOR_136100_SCENE_RIFLE_PART);
-                memCopyBytes(&D_actor_136100_8013F224, gDryfieldNightMainStreetCollision06F80Normals, sizeof(D_actor_136100_8013F224));
-                memCopyBytes(&D_actor_136100_8013F2C4, gDryfieldNightMainStreetCollision06F80Faces, sizeof(D_actor_136100_8013F2C4));
-                memCopyBytes(&D_actor_136100_8013F244, gDryfieldNightMainStreetCollision06F80Verts, sizeof(D_actor_136100_8013F244));
+                memCopyBytes(&D_actor_136100_8013F224, gDryfieldNightMainStreetRooms2And3CollisionGridNormals, sizeof(D_actor_136100_8013F224));
+                memCopyBytes(&D_actor_136100_8013F2C4, gDryfieldNightMainStreetRooms2And3CollisionGridFaces, sizeof(D_actor_136100_8013F2C4));
+                memCopyBytes(&D_actor_136100_8013F244, gDryfieldNightMainStreetRooms2And3CollisionGridVerts, sizeof(D_actor_136100_8013F244));
             }
             work->companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
             task->state++;
