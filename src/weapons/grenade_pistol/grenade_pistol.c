@@ -2071,36 +2071,44 @@ u8 gGrenadeShellSpeeds[4] = { 0x0C, 0x08, 0, 0 };
 
 /* Each package carries its own shell model. */
 #if GRENADE_VARIANT == 0
-static TmdBone _gGrenadePistolModel0E324Skeleton[1] = {
+/// Identity rest transform and self-parented root copied into each projectile.
+static const TmdBone _gGrenadePistolShellModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/grenade_pistol_model_0E324_skeleton.inc"
 };
 
-static u32 _gGrenadePistolModel0E324PartVerts[1] = {
+/// Vertex count of the projectile's single part-local group: eight.
+static const u32 _gGrenadePistolShellModelPartVerts[ARRAY_SIZE(_gGrenadePistolShellModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/grenade_pistol_model_0E324_partVerts.inc"
 };
 
-static SVECTOR _gGrenadePistolModel0E324Verts[8] = {
+/// Shared vertices in integer coordinates local to the projectile root.
+static SVECTOR _gGrenadePistolShellModelVerts[] = {
 #include "assets/grenade_pistol_model_0E324_verts.inc"
 };
 
-static SVECTOR _gGrenadePistolModel0E324Normals[8] = {
+/// Shared lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gGrenadePistolShellModelNormals[] = {
 #include "assets/grenade_pistol_model_0E324_normals.inc"
 };
 
-static u32 _gGrenadePistolModel0E324Stream[48] = {
+/// Writable commands for six textured Gouraud quads.
+///
+/// One skeletal group and an empty final group end in `TMD_STREAM_END`.
+/// Model creation resolves the command's draw-handler slot in place.
+static u32 _gGrenadePistolShellModelStream[] = {
 #include "assets/grenade_pistol_model_0E324_stream.inc"
 };
 
-TmdSource D_grenade_pistol_8012B5A4 = {
-    0,
-    312,
-    0,
-    1,
-    _gGrenadePistolModel0E324PartVerts,
-    _gGrenadePistolModel0E324Verts,
-    _gGrenadePistolModel0E324Normals,
-    _gGrenadePistolModel0E324Skeleton,
-    _gGrenadePistolModel0E324Stream,
+TmdSource gGrenadePistolShellModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = 6 * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gGrenadePistolShellModelSkeleton),
+    .partVertexCounts    = _gGrenadePistolShellModelPartVerts,
+    .verts               = _gGrenadePistolShellModelVerts,
+    .normals             = _gGrenadePistolShellModelNormals,
+    .skeleton            = _gGrenadePistolShellModelSkeleton,
+    .stream              = _gGrenadePistolShellModelStream,
 };
 #elif GRENADE_VARIANT == 1
 /// Identity rest transform and self-parented root copied into each MM1 shell.

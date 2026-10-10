@@ -345,7 +345,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_TMD, 0x52 } }, grenadePistolShellTask, { &D_grenade_pistol_8012B5A4 } },
+    { { { TASK_BODY_TMD, 0x52 } }, grenadePistolShellTask, { .model = &gGrenadePistolShellModel } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },

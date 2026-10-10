@@ -23,6 +23,15 @@ extern TmdSource gGrenadePistolWeaponModel;
 /// overlay and its textures loaded until every referring instance is released.
 extern TmdSource gMm1WeaponModel;
 
+/// Single-part Grenade Pistol projectile model used during flight and the blast countdown.
+///
+/// Eight vertices and eight lighting normals form six textured Gouraud quads;
+/// each primitive-buffer half holds those six packets. Instances borrow the
+/// geometry and writable command stream, while creation copies the initial
+/// root transform and resolves stream draw handlers in place. Keep the Grenade
+/// Pistol overlay and its textures loaded until every referring task is released.
+extern TmdSource gGrenadePistolShellModel;
+
 /// Single-part MM1 grenade-projectile model shared by its flying shells.
 ///
 /// Instances borrow its geometry and writable command stream; creation copies

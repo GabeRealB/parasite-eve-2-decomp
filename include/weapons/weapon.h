@@ -117,8 +117,4 @@ extern TmdSource gMp5a5WeaponModel;
 /// separate bank and rig.
 extern TmdSource gGunbladeModel;
 
-/// Model arguments of descriptors that point into the zeroed tail of their
-/// package, where the disc image holds no model record.
-extern TmdSource D_grenade_pistol_8012B5A4;
-
 #endif // INCLUDE_WEAPONS_WEAPON_H

@@ -194,7 +194,7 @@ gHypervelocityRootModel = 0x801202F8; // absolute:True owner=hypervelocity
 gHypervelocitySlideModel = 0x801205E4; // absolute:True owner=hypervelocity
 gM4a1JavelinWeaponModel = 0x8012071C; // absolute:True owner=m4a1_javelin
 gHypervelocityHingeModel = 0x80120860; // absolute:True owner=hypervelocity
-D_grenade_pistol_8012B5A4 = 0x8012B5A4; // absolute:True owner=grenade_pistol
+gGrenadePistolShellModel = 0x8012B5A4; // absolute:True owner=grenade_pistol
 gMm1ShellModel = 0x8012D444; // absolute:True owner=mm1
 gM4a1GrenadeProjectileModel = 0x8012E1FC; // absolute:True owner=m4a1_grenade
 actor800300Task = 0x801625F4; // type:func absolute:True owner=actor_800300
