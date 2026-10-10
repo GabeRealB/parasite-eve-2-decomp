@@ -66,30 +66,53 @@ typedef struct {
 } _AcropolisObservatorySceneWork;
 STATIC_ASSERT_SIZEOF(_AcropolisObservatorySceneWork, 8);
 
-extern s16 D_acropolis_observatory_8017FE68[];
-
-/// Per-view spawn table for the observatory's ambient effect. Entry `i` of
-/// `D_acropolis_observatory_8017FEB8` is the bitmask of camera views that want
-/// effect `i`, tested against `1 << viewGetMappedIndex()`; the matching entry of
-/// `D_acropolis_observatory_8017FE78` is the offset the effect is spawned at.
-extern SVECTOR D_acropolis_observatory_8017FE78[8];
-extern u16     D_acropolis_observatory_8017FEB8[8];
-
 static WorldCollisionGrid    _gAcropolisObservatoryCollisionGrid;
-extern WorldCollisionTrigger D_acropolis_observatory_80180A74[10];
-extern WorldCollisionTrigger D_acropolis_observatory_80180D6C[9];
+static WorldCollisionTrigger _gAcropolisObservatoryViewBoundaryTriggers[10];
+static WorldCollisionTrigger _gAcropolisObservatoryActionTriggers[9];
 static WorldCoordRoomLights  _gAcropolisObservatoryRoomLights;
 
 static void _acropolisObservatoryScriptedBattleTask(Task* task);
 
-s16 D_acropolis_observatory_8017FE68[2] = {
-    -1,
-    1,
+/// Clip-table values and scheduler priority of the scripted battle controller.
+enum {
+    ACROPOLIS_OBSERVATORY_SCENE_NO_FOLLOW_UP       = -1,
+    ACROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_CLIP     = 1,
+    ACROPOLIS_OBSERVATORY_SCRIPTED_BATTLE_PRIORITY = 192,
 };
 
-TaskDesc D_acropolis_observatory_8017FE6C = { { { TASK_BODY_NONE, 192 } }, _acropolisObservatoryScriptedBattleTask, { .value = 0 } };
+/// Player follow-up clip IDs indexed by the scene work's `followUpIndex`.
+///
+/// A negative signed halfword suppresses playback; entry 1 selects clip 1 of
+/// `gAcropolisObservatoryPlayerAnimationSets`. The zeroed, unwritten index
+/// selects entry 0 in this build. The table is borrowed while this overlay is loaded.
+static s16 _gAcropolisObservatorySceneFollowUpClips[2] = {
+    ACROPOLIS_OBSERVATORY_SCENE_NO_FOLLOW_UP,
+    ACROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_CLIP,
+};
 
-SVECTOR D_acropolis_observatory_8017FE78[8] = {
+TaskDesc gAcropolisObservatoryScriptedBattleTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, ACROPOLIS_OBSERVATORY_SCRIPTED_BATTLE_PRIORITY } },
+    .callback = _acropolisObservatoryScriptedBattleTask,
+    .data     = { .value = 0 },
+};
+
+/// Lens-flare table extent and enabled mapped-view bits (view IDs are 1-based).
+enum {
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_ANCHOR_COUNT = 8,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_2       = 1 << 2,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_3       = 1 << 3,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_4       = 1 << 4,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_5       = 1 << 5,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_6       = 1 << 6,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_7       = 1 << 7,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_8       = 1 << 8,
+};
+
+/// Lens-flare offsets in the emitter coordinate's local game units.
+///
+/// Entries pair with `_gAcropolisObservatoryLensFlareViewMasks`, without a
+/// terminator. Spawned effects borrow these offsets while this overlay is loaded.
+static SVECTOR _gAcropolisObservatoryLensFlareAnchors[ACROPOLIS_OBSERVATORY_LENS_FLARE_ANCHOR_COUNT] = {
     { -6832, -6250, -1216, 0 },
     { -6832, -6250, -4656, 0 },
     { -6832, -6250, -8176, 0 },
@@ -100,20 +123,21 @@ SVECTOR D_acropolis_observatory_8017FE78[8] = {
     { -576, -6250, -0x2E00, 0 },
 };
 
-u16 D_acropolis_observatory_8017FEB8[8] = {
-    268,
-    264,
-    16,
-    16,
-    364,
-    296,
-    144,
-    144,
+/// Mapped-view masks paired with the eight lens-flare anchors; bit N enables view N.
+static u16 _gAcropolisObservatoryLensFlareViewMasks[ACROPOLIS_OBSERVATORY_LENS_FLARE_ANCHOR_COUNT] = {
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_2 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_3 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_8,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_3 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_8,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_4,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_4,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_2 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_3 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_5 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_6 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_8,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_3 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_5 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_8,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_4 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_7,
+    ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_4 | ACROPOLIS_OBSERVATORY_LENS_FLARE_VIEW_7,
 };
 
-WorldCollisionRoomResources D_acropolis_observatory_8017FEC8[2] = {
-    { &_gAcropolisObservatoryCollisionGrid, D_acropolis_observatory_80180A74, D_acropolis_observatory_80180D6C, NULL },
-    { &_gAcropolisObservatoryCollisionGrid, D_acropolis_observatory_80180A74, D_acropolis_observatory_80180D6C, NULL },
+WorldCollisionRoomResources gAcropolisObservatoryRoomCollisionResources[ACROPOLIS_OBSERVATORY_ROOM_COUNT] = {
+    { &_gAcropolisObservatoryCollisionGrid, _gAcropolisObservatoryViewBoundaryTriggers, _gAcropolisObservatoryActionTriggers, NULL },
+    { &_gAcropolisObservatoryCollisionGrid, _gAcropolisObservatoryViewBoundaryTriggers, _gAcropolisObservatoryActionTriggers, NULL },
 };
 
 /// Room 2's eight logical-view mappings, exchanging camera/image/sprite indices 2 and 8.
@@ -133,18 +157,24 @@ u8* gAcropolisObservatoryViewMaps[ACROPOLIS_OBSERVATORY_ROOM_COUNT] = {
     _gAcropolisObservatoryRoom2ViewMap,
 };
 
-ViewCount D_acropolis_observatory_8017FEF8[2] = { 8, 8 };
+ViewCount gAcropolisObservatoryViewCounts[ACROPOLIS_OBSERVATORY_ROOM_COUNT] = {
+    ACROPOLIS_OBSERVATORY_VIEW_COUNT,
+    ACROPOLIS_OBSERVATORY_VIEW_COUNT,
+};
 
 WorldCoordRoomLighting gAcropolisObservatoryRoomLightingTable[ACROPOLIS_OBSERVATORY_ROOM_COUNT] = {
     { &_gAcropolisObservatoryRoomLights, NULL },
     { &_gAcropolisObservatoryRoomLights, NULL },
 };
 
-DirectionWarpEntry D_acropolis_observatory_8017FF0C[4] = {
-    { { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
-    { { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
+/// All defined arrival headings face a quarter turn from +Z.
+enum { ACROPOLIS_OBSERVATORY_WARP_ARRIVAL_YAW = 1024 };
+
+DirectionWarpEntry gAcropolisObservatoryWarpEntries[ACROPOLIS_OBSERVATORY_WARP_COUNT] = {
+    { { { .word = ACROPOLIS_OBSERVATORY_WARP_ARRIVAL_YAW }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, { { .word = ACROPOLIS_OBSERVATORY_WARP_ARRIVAL_YAW }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACROPOLIS_OBSERVATORY_WARP_ARRIVAL_YAW }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, { { .word = ACROPOLIS_OBSERVATORY_WARP_ARRIVAL_YAW }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
+    { { { .word = ACROPOLIS_OBSERVATORY_WARP_ARRIVAL_YAW }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, { { .word = ACROPOLIS_OBSERVATORY_WARP_ARRIVAL_YAW }, -2296, -2923, -0x2C02 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACROPOLIS_OBSERVATORY_WARP_ARRIVAL_YAW }, -2408, -2926, -1748 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
 };
 
 /// Room-space collision normals, with `ONE` representing unit length.
@@ -192,29 +222,47 @@ static WorldCollisionGrid _gAcropolisObservatoryCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gAcropolisObservatoryCollisionGridFaces),
 };
 
-WorldCollisionTrigger D_acropolis_observatory_80180A74[10] = {
-    { NULL, NULL, NULL, { -1089, -3648, -4219, 0 }, { { -2229, -2048, 147, 0 }, { 2229, -2048, -147, 0 }, { -2229, 2048, 147, 0 }, { 2229, 2048, -147, 0 } }, { -270, 0, -4091, 0 }, { 0, 0, 4096, 0 }, 3029, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4724, -3648, -3323, 0 }, { { -1441, -2048, 746, 0 }, { 1442, -2048, -746, 0 }, { -1441, 2048, 746, 0 }, { 1442, 2048, -746, 0 } }, { -1887, 0, -3646, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1217, -3616, -4753, 0 }, { { 2271, -2048, -109, 0 }, { -2270, -2048, 110, 0 }, { 2271, 2048, -109, 0 }, { -2270, 2048, 110, 0 } }, { 198, 0, 4113, 0 }, { 0, 0, 4096, 0 }, 3050, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -5121, -3776, -3777, 0 }, { { 1739, -2048, -978, 0 }, { -1738, -2048, 979, 0 }, { 1739, 2048, -978, 0 }, { -1738, 2048, 979, 0 } }, { 2012, 0, 3575, 0 }, { 0, 0, 4096, 0 }, 2850, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6433, -3776, -6722, 0 }, { { -794, -2048, 859, 0 }, { 778, -2048, -871, 0 }, { -794, 2048, 859, 0 }, { 778, 2048, -871, 0 } }, { -3038, 0, -2761, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3970, -3744, -7225, 0 }, { { -1571, -2048, -332, 0 }, { 1572, -2048, 333, 0 }, { -1571, 2048, -332, 0 }, { 1572, 2048, 333, 0 } }, { 849, 0, -4014, 0 }, { 0, 0, 4096, 0 }, 2598, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3890, -3712, -7703, 0 }, { { 1509, -2048, 332, 0 }, { -1508, -2048, -332, 0 }, { 1509, 2048, 332, 0 }, { -1508, 2048, -332, 0 } }, { -883, 0, 4008, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6688, -3712, -7296, 0 }, { { 823, -2048, -829, 0 }, { -832, -2048, 823, 0 }, { 823, 2048, -829, 0 }, { -832, 2048, 823, 0 } }, { 2900, 0, 2905, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1088, -3744, -7841, 0 }, { { 1456, -2048, -502, 0 }, { -1473, -2048, 479, 0 }, { 1456, 2048, -502, 0 }, { -1473, 2048, 479, 0 } }, { 1303, 0, 3891, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -992, -3680, -7298, 0 }, { { -1473, -2048, 481, 0 }, { 1456, -2048, -501, 0 }, { -1473, 2048, 481, 0 }, { 1456, 2048, -501, 0 } }, { -1305, 0, -3892, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Ten directed view boundaries shared by both rooms, connecting views 2, 3 and 4.
+///
+/// Origins, corner offsets and radii use room game units; normals use 4096 per
+/// unit. The final live quad carries `WORLD_COLLISION_TRIGGER_LAST`. Room setup
+/// binds coordinates and mutable list links; retain this storage until unlinked.
+static WorldCollisionTrigger _gAcropolisObservatoryViewBoundaryTriggers[10] = {
+    { NULL, NULL, NULL, { -1089, -3648, -4219, 0 }, { { -2229, -2048, 147, 0 }, { 2229, -2048, -147, 0 }, { -2229, 2048, 147, 0 }, { 2229, 2048, -147, 0 } }, { -270, 0, -4091, 0 }, { 0, 0, ONE, 0 }, 3029, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4724, -3648, -3323, 0 }, { { -1441, -2048, 746, 0 }, { 1442, -2048, -746, 0 }, { -1441, 2048, 746, 0 }, { 1442, 2048, -746, 0 } }, { -1887, 0, -3646, 0 }, { 0, 0, ONE, 0 }, 2610, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1217, -3616, -4753, 0 }, { { 2271, -2048, -109, 0 }, { -2270, -2048, 110, 0 }, { 2271, 2048, -109, 0 }, { -2270, 2048, 110, 0 } }, { 198, 0, 4113, 0 }, { 0, 0, ONE, 0 }, 3050, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -5121, -3776, -3777, 0 }, { { 1739, -2048, -978, 0 }, { -1738, -2048, 979, 0 }, { 1739, 2048, -978, 0 }, { -1738, 2048, 979, 0 } }, { 2012, 0, 3575, 0 }, { 0, 0, ONE, 0 }, 2850, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6433, -3776, -6722, 0 }, { { -794, -2048, 859, 0 }, { 778, -2048, -871, 0 }, { -794, 2048, 859, 0 }, { 778, 2048, -871, 0 } }, { -3038, 0, -2761, 0 }, { 0, 0, ONE, 0 }, 2346, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3970, -3744, -7225, 0 }, { { -1571, -2048, -332, 0 }, { 1572, -2048, 333, 0 }, { -1571, 2048, -332, 0 }, { 1572, 2048, 333, 0 } }, { 849, 0, -4014, 0 }, { 0, 0, ONE, 0 }, 2598, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3890, -3712, -7703, 0 }, { { 1509, -2048, 332, 0 }, { -1508, -2048, -332, 0 }, { 1509, 2048, 332, 0 }, { -1508, 2048, -332, 0 } }, { -883, 0, 4008, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6688, -3712, -7296, 0 }, { { 823, -2048, -829, 0 }, { -832, -2048, 823, 0 }, { 823, 2048, -829, 0 }, { -832, 2048, 823, 0 } }, { 2900, 0, 2905, 0 }, { 0, 0, ONE, 0 }, 2346, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1088, -3744, -7841, 0 }, { { 1456, -2048, -502, 0 }, { -1473, -2048, 479, 0 }, { 1456, 2048, -502, 0 }, { -1473, 2048, 479, 0 } }, { 1303, 0, 3891, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -992, -3680, -7298, 0 }, { { -1473, -2048, 481, 0 }, { 1456, -2048, -501, 0 }, { -1473, 2048, 481, 0 }, { 1456, 2048, -501, 0 } }, { -1305, 0, -3892, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_observatory_80180D6C[9] = {
-    { NULL, NULL, NULL, { -2352, -3016, -1664, 0 }, { { -752, 0, -480, 0 }, { 752, 0, -480, 0 }, { -752, 0, 480, 0 }, { 752, 0, 480, 0 } }, { 0, 4094, 0, 0 }, { 4096, 0, 0, 0 }, 891, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2192, -3024, -0x2AB0, 0 }, { { -752, 0, -512, 0 }, { 752, 0, -512, 0 }, { -752, 0, 512, 0 }, { 752, 0, 512, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 20, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Packed departure/arrival slots and the room-specific action sent by battle gates.
+enum {
+    ACROPOLIS_OBSERVATORY_FORKED_ROAD_WARP_SLOTS       = (2 << 4) | 2,
+    ACROPOLIS_OBSERVATORY_PROMENADE_WARP_SLOTS         = (1 << 4) | 4,
+    ACROPOLIS_OBSERVATORY_ACTION_START_SCRIPTED_BATTLE = 1,
+};
+
+/// Shared room interactions: two exits, five CAP regions and two automatic battle gates.
+///
+/// Exit bytes pack current/destination warp slots as high/low nibbles. CAP
+/// indices are 1, 1, 2, 3 and 5; both room gates send action 1. Geometry uses
+/// room game units and normals use 4096 per unit. The last live quad has LAST;
+/// room setup mutates coordinates, links, enable bits and hit latches.
+static WorldCollisionTrigger _gAcropolisObservatoryActionTriggers[9] = {
+    { NULL, NULL, NULL, { -2352, -3016, -1664, 0 }, { { -752, 0, -480, 0 }, { 752, 0, -480, 0 }, { -752, 0, 480, 0 }, { 752, 0, 480, 0 } }, { 0, 4094, 0, 0 }, { ONE, 0, 0, 0 }, 891, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FORKED_ROAD, ACROPOLIS_OBSERVATORY_FORKED_ROAD_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2192, -3024, -0x2AB0, 0 }, { { -752, 0, -512, 0 }, { 752, 0, -512, 0 }, { -752, 0, 512, 0 }, { 752, 0, 512, 0 } }, { 0, ONE, 0, 0 }, { ONE, 0, 0, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_PROMENADE, ACROPOLIS_OBSERVATORY_PROMENADE_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -576, -3072, -3520, 0 }, { { -784, 0, -672, 0 }, { 304, 0, -672, 0 }, { -784, 0, 672, 0 }, { 304, 0, 672, 0 } }, { 0, 4102, 0, 0 }, { -4076, 0, 401, 0 }, 1031, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -512, -3072, -7536, 0 }, { { -913, 0, -816, 0 }, { 208, 0, -816, 0 }, { -913, 0, 816, 0 }, { 208, 0, 816, 0 } }, { 0, 4097, 0, 0 }, { -4076, 0, 401, 0 }, 1221, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -5856, -3072, -2496, 0 }, { { -752, 0, -960, 0 }, { 752, 0, -960, 0 }, { -752, 0, -160, 0 }, { 752, 0, -160, 0 } }, { 0, 4115, 0, 0 }, { 201, 0, -4092, 0 }, 1214, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -7328, -3072, -6208, 0 }, { { -752, 0, -1216, 0 }, { 1424, 0, -1216, 0 }, { -752, 0, 1312, 0 }, { 1424, 0, 1312, 0 } }, { 0, 4097, 0, 0 }, { -4076, 0, 401, 0 }, 1932, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -5712, -3072, -7776, 0 }, { { -448, 0, -2016, 0 }, { 1280, 0, -2016, 0 }, { -448, 0, 1248, 0 }, { 1280, 0, 1248, 0 } }, { 0, 4108, 0, 0 }, { -4076, 0, 401, 0 }, 2387, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1488, -3072, -4576, 0 }, { { -1888, 0, -32, 0 }, { 1888, 0, -416, 0 }, { -1888, 0, 352, 0 }, { 1888, 0, 96, 0 } }, { 0, 4101, 0, 0 }, { 4096, 0, 0, 0 }, 1932, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -4864, -3104, -3584, 0 }, { { -1664, 0, 560, 0 }, { 1664, 0, -1072, 0 }, { -1664, 0, 1072, 0 }, { 1664, 0, -560, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1978, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { -1488, -3072, -4576, 0 }, { { -1888, 0, -32, 0 }, { 1888, 0, -416, 0 }, { -1888, 0, 352, 0 }, { 1888, 0, 96, 0 } }, { 0, 4101, 0, 0 }, { ONE, 0, 0, 0 }, 1932, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_OBSERVATORY_ACTION_START_SCRIPTED_BATTLE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -4864, -3104, -3584, 0 }, { { -1664, 0, 560, 0 }, { 1664, 0, -1072, 0 }, { -1664, 0, 1072, 0 }, { 1664, 0, -560, 0 } }, { 0, 4095, 0, 0 }, { ONE, 0, 0, 0 }, 1978, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_OBSERVATORY_ACTION_START_SCRIPTED_BATTLE, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Variant 1's entry-19 Grinning Stranger resource and terminating record.
@@ -235,42 +283,74 @@ static AreaResource _gAcropolisObservatoryVariant2Resources[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_observatory_80181048[2] = {
+/// Variant 3's entry-37 Bat resource, followed by `AREA_PLACEMENT_END`.
+///
+/// Loads base-10 file 37 and borrows task 0 while its actor overlay is loaded.
+/// The paired map-overlay table supplies nine placements with this entry ID.
+static AreaResource _gAcropolisObservatoryVariant3Resources[2] = {
     { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_observatory_80181060[2] = {
-    { 49, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
+/// Variant 7's entry-49 resource using actor 104900's task 0, then the terminator.
+///
+/// Loads base-10 file 49; two map-overlay placements use this resource entry.
+/// Keep this room and the referenced actor descriptor overlay loaded during use.
+static AreaResource _gAcropolisObservatoryVariant7Resources[2] = {
+    { 49, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor01100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_observatory_80181078[2] = {
+/// Variant 10's entry-13 Horned Stranger resource and terminating record.
+///
+/// Loads base-40 file 13 and borrows task 0. The paired map placement uses entry
+/// 18, so the ordinary resource-ID spawn search finds no matching recipe.
+static AreaResource _gAcropolisObservatoryVariant10Resources[2] = {
     { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_observatory_80181090[2] = {
+/// Variant 11's entry-10 Stranger resource and terminating record.
+///
+/// Loads base-40 file 10 and borrows actor 401000's task 0 while its overlay is loaded.
+static AreaResource _gAcropolisObservatoryVariant11Resources[2] = {
     { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401000StrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_acropolis_observatory_801810A8[2] = {
+/// Variant 11's single entry-10 placement in spawn mode 4, then the terminator.
+///
+/// XYZ uses world game units and yaw uses 4096 per turn. Uses the base file,
+/// texture-page offset 2 and CLUT-row offset 4. The high-half opening selector
+/// is zero (patrol); low-half mode 4 falls through to the default combat tuning.
+/// The actor borrows this record while the room overlay remains loaded.
+static AreaPlacement _gAcropolisObservatoryVariant11Placements[2] = {
     { 10, 0, 4, -4930, -2990, -5330, 820, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaResource D_acropolis_observatory_801810C8[2] = {
+/// Entry-12 Bone Suckler resource shared by variants 12 and 13, then the terminator.
+///
+/// Loads base-10 file 12; placements borrow actor 101200's task 0 while loaded.
+static AreaResource _gAcropolisObservatoryVariants12And13Resources[2] = {
     { 12, 12, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101200BoneSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_acropolis_observatory_801810E0[2] = {
+/// Variant 12's one entry-12 Bone Suckler placement, followed by the terminator.
+///
+/// XYZ uses world game units, yaw is zero and spawn mode is zero. Uses the base
+/// file, texture-page offset 0 and CLUT-row offset 2; the actor borrows the record.
+static AreaPlacement _gAcropolisObservatoryVariant12Placements[2] = {
     { 12, 0, 0, -1529, -2990, -6500, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_acropolis_observatory_80181100[7] = {
+/// Variant 13's six entry-12 Bone Suckler placements at one origin, then the terminator.
+///
+/// XYZ uses world game units, yaw is zero and spawn mode is zero. All borrow
+/// their records and use the base file, texture-page offset 0 and CLUT-row offset 2.
+static AreaPlacement _gAcropolisObservatoryVariant13Placements[7] = {
     { 12, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 12, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 12, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
@@ -280,43 +360,72 @@ AreaPlacement D_acropolis_observatory_80181100[7] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaResource D_acropolis_observatory_80181170[2] = {
+/// Variant 14's entry-40 Blood Suckler resource and terminating record.
+///
+/// Loads base-10 file 40 and borrows actor 04000's task 0 while its overlay is loaded.
+static AreaResource _gAcropolisObservatoryVariant14Resources[2] = {
     { 40, 40, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor04000BloodSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_acropolis_observatory_80181188[3] = {
+/// Variant 14's two entry-40 Blood Suckler placements at one origin, then the terminator.
+///
+/// XYZ uses world game units, yaw is zero and spawn mode is zero. Both borrow
+/// their records and use the base file, texture-page offset 0 and CLUT-row offset 2.
+static AreaPlacement _gAcropolisObservatoryVariant14Placements[3] = {
     { 40, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 40, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaResource D_acropolis_observatory_801811B8[1] = {
+/// Variant 15's empty resource list, consisting only of `AREA_PLACEMENT_END`.
+///
+/// Its entry-9 and entry-18 placements have no recipes here, so ordinary area
+/// spawning creates no actors and resource loading queues no base files.
+static AreaResource _gAcropolisObservatoryVariant15Resources[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_acropolis_observatory_801811C4[3] = {
+/// Variant 15's entry-9 and entry-18 placement records, followed by the terminator.
+///
+/// The paired resource list is empty, so ordinary area spawning skips both.
+/// XYZ uses world game units and yaw uses 4096 per turn; modes are 0 and 0.
+static AreaPlacement _gAcropolisObservatoryVariant15Placements[3] = {
     { 9, 0, 0, -1529, -2990, -8500, 0, 0, 0, 2, 0 },
     { 18, 0, 0, -3838, -2990, -4000, 1500, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaResource D_acropolis_observatory_801811F4[2] = {
+/// Variant 16's entry-18 Odd Stranger resource and terminating record.
+///
+/// Loads base-40 file 18 and borrows actor 401800's task 0 while its overlay is loaded.
+static AreaResource _gAcropolisObservatoryVariant16Resources[2] = {
     { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_acropolis_observatory_8018120C[2] = {
+/// Variant 16's single entry-18 Odd Stranger placement, followed by the terminator.
+///
+/// XYZ uses world game units and yaw uses 4096 per turn; spawn mode is zero.
+/// Uses the base file, texture-page offset 2 and CLUT-row offset 4; the actor borrows it.
+static AreaPlacement _gAcropolisObservatoryVariant16Placements[2] = {
     { 18, 0, 0, -4930, -2990, -5330, 820, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaResource D_acropolis_observatory_8018122C[2] = {
+/// Variant 17's entry-19 Grinning Stranger resource and terminating record.
+///
+/// Loads base-10 file 19 and borrows actor 101900's task 0 while its overlay is loaded.
+static AreaResource _gAcropolisObservatoryVariant17Resources[2] = {
     { 19, 19, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101900GrinningStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_acropolis_observatory_80181244[2] = {
+/// Variant 17's single entry-19 Grinning Stranger placement, followed by the terminator.
+///
+/// XYZ uses world game units and yaw uses 4096 per turn; spawn mode is zero.
+/// Uses the base file, texture-page offset 2 and CLUT-row offset 4; the actor borrows it.
+static AreaPlacement _gAcropolisObservatoryVariant17Placements[2] = {
     { 19, 0, 0, -4930, -2990, -5330, 820, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
@@ -325,21 +434,21 @@ AreaVariant D_acropolis_observatory_80181264[19] = {
     { NULL, NULL },
     { D_map_akropolis_8017B6DC, _gAcropolisObservatoryVariant1Resources },
     { D_map_akropolis_8017B70C, _gAcropolisObservatoryVariant2Resources },
-    { D_map_akropolis_8017B73C, D_acropolis_observatory_80181048 },
+    { D_map_akropolis_8017B73C, _gAcropolisObservatoryVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017B7DC, D_acropolis_observatory_80181060 },
+    { D_map_akropolis_8017B7DC, _gAcropolisObservatoryVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017B80C, D_acropolis_observatory_80181078 },
-    { D_acropolis_observatory_801810A8, D_acropolis_observatory_80181090 },
-    { D_acropolis_observatory_801810E0, D_acropolis_observatory_801810C8 },
-    { D_acropolis_observatory_80181100, D_acropolis_observatory_801810C8 },
-    { D_acropolis_observatory_80181188, D_acropolis_observatory_80181170 },
-    { D_acropolis_observatory_801811C4, D_acropolis_observatory_801811B8 },
-    { D_acropolis_observatory_8018120C, D_acropolis_observatory_801811F4 },
-    { D_acropolis_observatory_80181244, D_acropolis_observatory_8018122C },
+    { D_map_akropolis_8017B80C, _gAcropolisObservatoryVariant10Resources },
+    { _gAcropolisObservatoryVariant11Placements, _gAcropolisObservatoryVariant11Resources },
+    { _gAcropolisObservatoryVariant12Placements, _gAcropolisObservatoryVariants12And13Resources },
+    { _gAcropolisObservatoryVariant13Placements, _gAcropolisObservatoryVariants12And13Resources },
+    { _gAcropolisObservatoryVariant14Placements, _gAcropolisObservatoryVariant14Resources },
+    { _gAcropolisObservatoryVariant15Placements, _gAcropolisObservatoryVariant15Resources },
+    { _gAcropolisObservatoryVariant16Placements, _gAcropolisObservatoryVariant16Resources },
+    { _gAcropolisObservatoryVariant17Placements, _gAcropolisObservatoryVariant17Resources },
     { NULL, NULL },
 };
 
@@ -665,6 +774,7 @@ static SpriteBatch _gAcropolisObservatoryView3SpriteBatches[22] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
+/// Retained eight-byte initializer with no established consumer; role unproven.
 u16 D_acropolis_observatory_80182124[4] = {
     256,
     0,
@@ -1008,32 +1118,42 @@ ViewCamera gAcropolisObservatoryViewCameras[ACROPOLIS_OBSERVATORY_VIEW_COUNT] = 
     { { { { 3757, 0, 1630 }, { 1140, 2928, -2626 }, { -1165, 2863, 2686 } }, { 1914, 9275, 7324 } }, 230 },
 };
 
-PadScriptCmd D_acropolis_observatory_80183480[6] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 19), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+/// Binary-lane segment selectors, eligible script-frame durations and loop count.
+enum {
+    ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_FIRST_HOLD         = 0,
+    ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SECOND_HOLD        = 1,
+    ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_FIRST_HOLD_FRAMES  = 2,
+    ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SECOND_HOLD_FRAMES = 1,
+    ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_GAP_FRAMES         = 2,
+    ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_CYCLE_COUNT        = 20,
+};
+
+PadScriptCmd gAcropolisObservatoryForkedRoadArrivalVibrationCommands[ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_COMMAND_COUNT] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_FIRST_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_GAP_FRAMES), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SECOND_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_CYCLE_COUNT - 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_acropolis_observatory_80183498[2] = {
-    { 0, 0, 2, 0 },
-    { 60, 60, 1, 0 },
+PadScriptVibrationSegment gAcropolisObservatoryForkedRoadArrivalVibrationSegments[ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SEGMENT_COUNT] = {
+    { 0, 0, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_FIRST_HOLD_FRAMES, 0 },
+    { 60, 60, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SECOND_HOLD_FRAMES, 0 },
 };
 
-PadScriptCmd D_acropolis_observatory_801834A0[6] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 19), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+PadScriptCmd gAcropolisObservatoryPromenadeArrivalVibrationCommands[ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_COMMAND_COUNT] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_FIRST_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_GAP_FRAMES), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SECOND_HOLD), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_CYCLE_COUNT - 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_acropolis_observatory_801834B8[2] = {
-    { 0, 0, 2, 0 },
-    { 60, 60, 1, 0 },
+PadScriptVibrationSegment gAcropolisObservatoryPromenadeArrivalVibrationSegments[ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SEGMENT_COUNT] = {
+    { 0, 0, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_FIRST_HOLD_FRAMES, 0 },
+    { 60, 60, ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SECOND_HOLD_FRAMES, 0 },
 };
 
 /// Type-1 sound requests: cue-2 entries in the currently loaded bank.
@@ -1151,7 +1271,7 @@ static void _acropolisObservatoryScriptedBattleTask(Task* task)
     idleWork        = (sceneTask)->work;                                                                                         \
     followUpMessage = &followUpRequest;                                                                                          \
     if (idleWork->playerTask != NULL && taskMessageDispatch(idleWork->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {    \
-        followUpEntry         = &D_acropolis_observatory_8017FE68[idleWork->followUpIndex];                                      \
+        followUpEntry         = &_gAcropolisObservatorySceneFollowUpClips[idleWork->followUpIndex];                              \
         allocationCheckOrClip = *followUpEntry;                                                                                  \
         followUpAnimationId   = *followUpEntry;                                                                                  \
         if (allocationCheckOrClip >= 0) {                                                                                        \
@@ -1338,8 +1458,8 @@ void acropolisObservatoryLensFlareEmitterTask(Task* task)
     viewMask = 1 << viewGetMappedIndex();
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         anchorIndex    = 0;
-        anchor         = D_acropolis_observatory_8017FE78;
-        anchorViewMask = D_acropolis_observatory_8017FEB8;
+        anchor         = _gAcropolisObservatoryLensFlareAnchors;
+        anchorViewMask = _gAcropolisObservatoryLensFlareViewMasks;
         do {
             if (*anchorViewMask & viewMask) {
                 effectSpawn(EFFECT_ACROPOLIS_OBSERVATORY_LENS_FLARE, coord, 0, anchor);
@@ -1347,6 +1467,6 @@ void acropolisObservatoryLensFlareEmitterTask(Task* task)
             anchor++;
             anchorIndex++;
             anchorViewMask++;
-        } while (anchorIndex < ARRAY_SIZE(D_acropolis_observatory_8017FE78));
+        } while (anchorIndex < ARRAY_SIZE(_gAcropolisObservatoryLensFlareAnchors));
     }
 }

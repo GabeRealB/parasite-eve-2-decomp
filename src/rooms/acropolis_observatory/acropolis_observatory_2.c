@@ -155,8 +155,8 @@ static void _acropolisObservatoryForkedRoadArrivalMoviePathTask(Task* task)
 
         case ACROPOLIS_OBSERVATORY_MOVIE_WAIT_READY:
             if (cdQueue->movieReady != 0) {
-                work->padScriptTask           = padScriptSpawn(D_acropolis_observatory_80183480,
-                                                               D_acropolis_observatory_80183498);
+                work->padScriptTask           = padScriptSpawn(gAcropolisObservatoryForkedRoadArrivalVibrationCommands,
+                                                               gAcropolisObservatoryForkedRoadArrivalVibrationSegments);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;
@@ -256,8 +256,8 @@ static void _acropolisObservatoryPromenadeArrivalMoviePathTask(Task* task)
 
         case ACROPOLIS_OBSERVATORY_MOVIE_WAIT_READY:
             if (cdQueue->movieReady != 0) {
-                work->padScriptTask           = padScriptSpawn(D_acropolis_observatory_801834A0,
-                                                               D_acropolis_observatory_801834B8);
+                work->padScriptTask           = padScriptSpawn(gAcropolisObservatoryPromenadeArrivalVibrationCommands,
+                                                               gAcropolisObservatoryPromenadeArrivalVibrationSegments);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, work->padScriptTask);
                 task->state = task->state + 1;

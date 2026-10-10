@@ -15,14 +15,44 @@ extern AnimationSet gAcropolisObservatoryAnimation02878;
 /// Borrowed player animation table with the observatory clip in entry one.
 extern AnimationSet* gAcropolisObservatoryPlayerAnimationSets[2];
 
-extern TaskDesc D_acropolis_observatory_8017FE6C;
+/// Bodyless priority-192 recipe for the room-2 scripted player/battle handoff.
+///
+/// Direct spawning uses entry 0 and zero payloads; the callback owns its scene
+/// work and captures the player. Keep this room overlay loaded until task teardown.
+extern TaskDesc gAcropolisObservatoryScriptedBattleTaskDesc;
 
-extern PadScriptCmd D_acropolis_observatory_80183480[6];
+/// Extents of each arrival's separate command and vibration-segment arrays.
+enum {
+    ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_COMMAND_COUNT = 6,
+    ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SEGMENT_COUNT = 2,
+};
 
-extern PadScriptVibrationSegment D_acropolis_observatory_80183498[2];
+/// Forked-road arrival's port-0 vibration program: twenty cycles of two binary-motor holds.
+///
+/// The binary lane plays segment 0, waits two script frames, plays segment 1
+/// and repeats from step 0 using a loop operand of 19, then stops at step 5.
+/// The variable lane stops at step 0 (its operand 1 is ignored). Both the
+/// commands and paired segments are borrowed until the arrival's child task ends.
+extern PadScriptCmd gAcropolisObservatoryForkedRoadArrivalVibrationCommands[ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_COMMAND_COUNT];
 
-extern PadScriptCmd D_acropolis_observatory_801834A0[6];
+/// Two binary-motor hold segments for the forked-road arrival: two frames and one frame.
+///
+/// PLAY operands 0 and 1 index these entries. Intensity endpoints 0 and 60 are
+/// stored but unused by the binary lane. Keep this overlay loaded through playback.
+extern PadScriptVibrationSegment gAcropolisObservatoryForkedRoadArrivalVibrationSegments[ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SEGMENT_COUNT];
 
-extern PadScriptVibrationSegment D_acropolis_observatory_801834B8[2];
+/// Promenade arrival's port-0 vibration program: twenty cycles of two binary-motor holds.
+///
+/// Plays segment 0, waits two script frames, plays segment 1, then loops to step
+/// 0 with operand 19 before stopping at step 5. The variable lane stops at step
+/// 0 with an ignored operand 1. Borrows this program and its segment table until
+/// the arrival's child script task ends.
+extern PadScriptCmd gAcropolisObservatoryPromenadeArrivalVibrationCommands[ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_COMMAND_COUNT];
+
+/// Two binary-motor hold segments for the promenade arrival: two frames and one frame.
+///
+/// PLAY operands 0 and 1 index these entries. Intensity endpoints 0 and 60 are
+/// stored but unused by the binary lane. Keep this overlay loaded through playback.
+extern PadScriptVibrationSegment gAcropolisObservatoryPromenadeArrivalVibrationSegments[ACROPOLIS_OBSERVATORY_ARRIVAL_VIBRATION_SEGMENT_COUNT];
 
 #endif // SRC_ROOMS_ACROPOLIS_OBSERVATORY_ACROPOLIS_OBSERVATORY_PRIVATE_H

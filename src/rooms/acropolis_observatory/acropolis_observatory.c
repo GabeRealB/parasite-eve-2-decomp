@@ -133,7 +133,7 @@ static s32 _acropolisObservatoryHandleRoomAction(Task* unusedTask, s32 messageId
         (gGameSession->location.loc.room == ACROPOLIS_OBSERVATORY_EVENT_ROOM) &&
         (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN, ACROPOLIS_OBSERVATORY_EVENT_SEEN);
-        taskSpawnFromTable(&D_acropolis_observatory_8017FE6C, 0, 0, 0);
+        taskSpawnFromTable(&gAcropolisObservatoryScriptedBattleTaskDesc, 0, 0, 0);
     }
     return 0;
 }

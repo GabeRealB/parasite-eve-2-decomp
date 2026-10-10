@@ -212,7 +212,7 @@ gShelterB6GrowthRoomViewCounts = 0x8017F37C; // absolute:True owner=shelter_b6_g
 D_shelter_b6_growth_room_8017F380 = 0x8017F380; // absolute:True owner=shelter_b6_growth_room
 gShelterB6GrowthRoomCollisionGrid = 0x8017FAF0; // absolute:True owner=shelter_b6_growth_room
 gShelterB6GrowthRoomViewCameras = 0x8017FB14; // absolute:True owner=shelter_b6_growth_room
-gShelterB6GrowthRoomSpriteViews = 0x8017FEB8; // absolute:True owner=shelter_b6_growth_room shared=rooms
+gShelterB6GrowthRoomSpriteViews = 0x8017FEB8; // absolute:True owner=shelter_b6_growth_room
 gShelterB6GrowthRoomLights = 0x8017FF78; // absolute:True owner=shelter_b6_growth_room
 gShelterB6GrowthRoomViewBoundaryTriggers = 0x8017FF90; // absolute:True owner=shelter_b6_growth_room shared=rooms
 gShelterB6GrowthRoomActionTriggers = 0x801803A0; // absolute:True owner=shelter_b6_growth_room shared=rooms

@@ -16,12 +16,17 @@ enum {
     ACROPOLIS_OBSERVATORY_ROOM_COUNT          = 2,
     ACROPOLIS_OBSERVATORY_VIEW_COUNT          = 8,
     ACROPOLIS_OBSERVATORY_SURFACE_CLASS_COUNT = 8,
+    ACROPOLIS_OBSERVATORY_WARP_COUNT          = 4,
 };
 
 extern AreaVariant D_acropolis_observatory_80181264[19];
 
-// acropolis_observatory
-extern WorldCollisionRoomResources D_acropolis_observatory_8017FEC8[];
+/// Collision resources for rooms 1 and 2, indexed by room minus one.
+///
+/// Both entries borrow one grid, ten view boundaries and nine action triggers,
+/// with no sight occluders. Setup mutates the shared grid and trigger records;
+/// keep this overlay loaded while active and until its trigger lists are unlinked.
+extern WorldCollisionRoomResources gAcropolisObservatoryRoomCollisionResources[ACROPOLIS_OBSERVATORY_ROOM_COUNT];
 
 /// Logical-to-mapped view indices for rooms 1 and 2, indexed by room minus one.
 ///
@@ -31,7 +36,11 @@ extern WorldCollisionRoomResources D_acropolis_observatory_8017FEC8[];
 /// overlay loaded while using the borrowed maps.
 extern u8* gAcropolisObservatoryViewMaps[ACROPOLIS_OBSERVATORY_ROOM_COUNT];
 
-extern ViewCount D_acropolis_observatory_8017FEF8[];
+/// Signed logical-view counts for rooms 1 and 2, indexed by room minus one.
+///
+/// Both rooms have eight views; no terminator follows the two entries.
+/// The stage-map directory borrows this array while the room overlay is loaded.
+extern ViewCount gAcropolisObservatoryViewCounts[ACROPOLIS_OBSERVATORY_ROOM_COUNT];
 
 /// Lighting descriptors for rooms 1 and 2, indexed by room minus one.
 ///
@@ -40,7 +49,15 @@ extern ViewCount D_acropolis_observatory_8017FEF8[];
 /// loaded while the descriptors or light arrays are in use.
 extern WorldCoordRoomLighting gAcropolisObservatoryRoomLightingTable[ACROPOLIS_OBSERVATORY_ROOM_COUNT];
 
-extern DirectionWarpEntry D_acropolis_observatory_8017FF0C[];
+/// Four arrival/departure endpoints, indexed by 1-based warp ID minus one.
+///
+/// Slots 1 and 3 use the promenade-side origin with views 4 and 7; slots 2 and 4
+/// use the forked-road-side origin with views 2 and 6. XYZ uses world game units
+/// and yaw uses 4096 per turn. Slot 4 retains a zero companion transform.
+/// Sounds and option flags are absent; slots 2 and 4 mark the security room.
+/// No terminator is present. Keep this overlay loaded through endpoint lookup;
+/// consumers copy a complete entry before applying it.
+extern DirectionWarpEntry gAcropolisObservatoryWarpEntries[ACROPOLIS_OBSERVATORY_WARP_COUNT];
 
 /// Foreground sprite resources for mapped views 1..8, indexed by view minus one.
 ///
