@@ -41,6 +41,7 @@
 #include "gameplay/view.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -97,7 +98,6 @@ static void           _shelterB2SepticTankMonitorEncounterIntro(Task* task);
 static void _shelterB2SepticTankInitializeWater(Task* task);
 static void _shelterB2SepticTankDrawWater(Task* task);
 
-extern TaskDesc         D_shelter_b2_septic_tank_80182F40;
 extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern u8               D_shelter_b2_septic_tank_80187044;
@@ -112,16 +112,8 @@ static u8* _gShelterB2SepticTankWaterPacketCursor;
 
 static void _shelterB2SepticTankWaterTask(Task* task);
 
-extern AnimationPlayRequest     D_shelter_b2_septic_tank_80182F80;
-extern AnimationPlayRequest     D_shelter_b2_septic_tank_80182FC0;
-extern ActorCommand             D_shelter_b2_septic_tank_80182FA0;
-extern ActorCommand             D_shelter_b2_septic_tank_80182FA4;
-extern ActorCommand             D_shelter_b2_septic_tank_80182FA8;
-extern AnimationBankCopyRequest D_shelter_b2_septic_tank_80182F78;
-extern ActorTransform           D_shelter_b2_septic_tank_80182FD4;
-extern ActorTransform           D_shelter_b2_septic_tank_80182FEC;
-static void                     _shelterB2SepticTankSetEncounterPhase(s32 encounterPhase);
-static void                     _shelterB2SepticTankPrepareEncounterFacing(void);
+static void _shelterB2SepticTankSetEncounterPhase(s32 encounterPhase);
+static void _shelterB2SepticTankPrepareEncounterFacing(void);
 
 static s32 _shelterB2SepticTankRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _shelterB2SepticTankResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
@@ -138,6 +130,19 @@ enum {
     SHELTER_B2_SEPTIC_TANK_WATER_INITIALIZE,
     SHELTER_B2_SEPTIC_TANK_WATER_DRAW,
     SHELTER_B2_SEPTIC_TANK_WATER_STATE_COUNT
+};
+
+enum {
+    SHELTER_B2_SEPTIC_TANK_STAGED_EVENT_PRIORITY  = 32,
+    SHELTER_B2_SEPTIC_TANK_ENCOUNTER_BLEND_FRAMES = 8,
+    SHELTER_B2_SEPTIC_TANK_COMBAT_SETUP_ANIMATION = 1
+};
+
+// Commands in the Bog Diver's room-introduction namespace.
+enum {
+    SHELTER_B2_SEPTIC_TANK_COMMAND_INTRO_SWIM    = 3,
+    SHELTER_B2_SEPTIC_TANK_COMMAND_INTRO_SURFACE = 4,
+    SHELTER_B2_SEPTIC_TANK_COMMAND_FIGHT         = 5
 };
 
 static AnimationPackedPose _gShelterB2SepticTankAnimation05958Bank1[6] = {
@@ -162,7 +167,12 @@ static AnimationSet _gShelterB2SepticTankAnimation05958 = {
     { NULL, _gShelterB2SepticTankAnimation05958Bank1, NULL, NULL, _gShelterB2SepticTankAnimation05958Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b2_septic_tank_80182F40 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Bodyless priority-32 task recipe for the latched departure event.
+///
+/// The gate copies the destination and event records before spawning this
+/// task at state zero with unused zero payloads. The loaded room owns those
+/// records until the task finishes CAP/sound playback and requests reload.
+static TaskDesc _gShelterB2SepticTankStagedEventTaskDesc = { { { TASK_BODY_NONE, SHELTER_B2_SEPTIC_TANK_STAGED_EVENT_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2SepticTankResolveRoomEvent },
@@ -172,13 +182,26 @@ TaskMessageEntry D_shelter_b2_septic_tank_80182F4C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationSet* D_shelter_b2_septic_tank_80182F74[1] = {
+/// One room-owned player clip installed at the weapon bank's first extension slot.
+///
+/// The bank copy borrows this one-word table during dispatch; the set and its
+/// packed animation arrays must remain loaded throughout introductory playback.
+static AnimationSet* _gShelterB2SepticTankEncounterAnimationSets[1] = {
     &_gShelterB2SepticTankAnimation05958,
 };
 
-AnimationBankCopyRequest D_shelter_b2_septic_tank_80182F78 = { { .sets = D_shelter_b2_septic_tank_80182F74 }, ARRAY_SIZE(D_shelter_b2_septic_tank_80182F74) };
+/// Installs the encounter clip in the player's loaded weapon bank without playing it.
+///
+/// Copies exactly one set pointer at `ANIMATION_BANK_BASE_SET_COUNT`, leaving
+/// the base clips and later extension words intact. The request is borrowed
+/// through dispatch; playback subsequently borrows the room-owned clip data.
+static AnimationBankCopyRequest _gShelterB2SepticTankEncounterAnimationBankCopy = { { .sets = _gShelterB2SepticTankEncounterAnimationSets }, ARRAY_SIZE(_gShelterB2SepticTankEncounterAnimationSets) };
 
-AnimationPlayRequest D_shelter_b2_septic_tank_80182F80 = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Plays the installed encounter clip with an eight-frame blend and grid collision.
+///
+/// Event dispatch replaces `source.index` with the equipped weapon bank before
+/// consuming the request. Clip data remains borrowed from the loaded room.
+static AnimationPlayRequest _gShelterB2SepticTankIntroAnimationRequest = { { .index = 1 }, ANIMATION_BANK_BASE_SET_COUNT, ANIMATION_BLEND_INTERPOLATE, SHELTER_B2_SEPTIC_TANK_ENCOUNTER_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE };
 
 ActorCommand D_shelter_b2_septic_tank_80182F94[3] = {
     { { .loc = { 4, 34 } }, 0 },
@@ -186,27 +209,52 @@ ActorCommand D_shelter_b2_septic_tank_80182F94[3] = {
     { { .loc = { 4, 34 } }, 2 },
 };
 
-ActorCommand D_shelter_b2_septic_tank_80182FA0 = { { .loc = { 4, 34 } }, 3 };
+/// Broadcast cue starting the introductory diver's 48-tick swim.
+///
+/// The scene forwards this borrowed room-context command synchronously; divers
+/// latch its value, and the waiting partner ignores it until the fight cue.
+static ActorCommand _gShelterB2SepticTankIntroSwimCommand = { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK } }, SHELTER_B2_SEPTIC_TANK_COMMAND_INTRO_SWIM };
 
-ActorCommand D_shelter_b2_septic_tank_80182FA4 = { { .loc = { 4, 34 } }, 4 };
+/// Broadcast cue making the introductory diver surface and discharge.
+///
+/// The scene forwards this borrowed room-context command synchronously; the
+/// diver retains the value until its scripted surface-cue step consumes it.
+static ActorCommand _gShelterB2SepticTankIntroSurfaceCommand = { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK } }, SHELTER_B2_SEPTIC_TANK_COMMAND_INTRO_SURFACE };
 
-ActorCommand D_shelter_b2_septic_tank_80182FA8 = { { .loc = { 4, 34 } }, 5 };
+/// Broadcast cue handing both introductory divers to ordinary combat.
+///
+/// The scene forwards this borrowed room-context command synchronously. Each
+/// waiting diver becomes targetable, claims a surface spot and enters its dive.
+static ActorCommand _gShelterB2SepticTankFightCommand = { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK } }, SHELTER_B2_SEPTIC_TANK_COMMAND_FIGHT };
 
 AnimationPlayRequest D_shelter_b2_septic_tank_80182FAC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_shelter_b2_septic_tank_80182FC0 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Selects weapon-bank clip 1 before the player's encounter turn and combat setup.
+///
+/// Blends for eight frames with grid collision enabled. Event dispatch replaces
+/// `source.index` with the equipped weapon bank; that bank owns the clip data.
+static AnimationPlayRequest _gShelterB2SepticTankCombatSetupAnimationRequest = { { .index = 1 }, SHELTER_B2_SEPTIC_TANK_COMBAT_SETUP_ANIMATION, ANIMATION_BLEND_INTERPOLATE, SHELTER_B2_SEPTIC_TANK_ENCOUNTER_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE };
 
-ActorTransform D_shelter_b2_septic_tank_80182FD4 = { { 256, 0, -6802, 0 }, { 0, -1536, 0, 0 } };
+/// Player placement applied after the fight cue and the switch to view 3.
+///
+/// Position uses room-space game units and yaw uses 4096 units per turn.
+/// The player's placement message consumes both complete vectors synchronously.
+static ActorTransform _gShelterB2SepticTankCombatPlayerPlacement = { .pos = { 256, 0, -6802, 0 }, .rot = { 0, -1536, 0, 0 } };
 
-ActorTransform D_shelter_b2_septic_tank_80182FEC = { 0 };
+/// Persistent target-yaw request for the player's turn toward placed actor zero.
+///
+/// Only `rot.vy` is updated, in 4096ths of a turn wrapped to 0..4095. A missing
+/// target preserves the previous yaw. The turn message consumes that yaw during
+/// dispatch; the full transform remains allocated for the overlay's lifetime.
+static ActorTransform _gShelterB2SepticTankEncounterFacingRequest = { 0 };
 
 EvsCommand D_shelter_b2_septic_tank_80183004[11] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b2_septic_tank_80182F78 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShelterB2SepticTankEncounterAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b2_septic_tank_80182F80 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB2SepticTankIntroAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_CAP_DIRECT_VIEW_IDS, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_shelter_b2_septic_tank_80182FA0 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gShelterB2SepticTankIntroSwimCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -215,20 +263,20 @@ EvsCommand D_shelter_b2_septic_tank_80183004[11] = {
 };
 
 EvsCommand D_shelter_b2_septic_tank_8018310C[18] = {
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b2_septic_tank_80182FC0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB2SepticTankCombatSetupAnimationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB2SepticTankPrepareEncounterFacing }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_shelter_b2_septic_tank_80182FEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, { .message = { .transform = &_gShelterB2SepticTankEncounterFacingRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_shelter_b2_septic_tank_80182FA4 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gShelterB2SepticTankIntroSurfaceCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_shelter_b2_septic_tank_80182FA8 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b2_septic_tank_80182FD4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &_gShelterB2SepticTankFightCommand } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB2SepticTankCombatPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB2SepticTankSetEncounterPhase }, { .value = SHELTER_B2_SEPTIC_TANK_ENCOUNTER_COMBAT_READY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -310,15 +358,19 @@ u8* gShelterB2SepticTankViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b2_septic_tank_80183570[1] = { 6 };
+ViewCount gShelterB2SepticTankRoomViewCounts[1] = { 6 };
 
-DirectionWarpEntry D_shelter_b2_septic_tank_80183574[2] = {
-    { { { .word = 0 }, -89, 0, -0x3395 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 400, 0, -0x3106 }, { 0, 0, 0, 0 }, 0x54220002, 0x54220001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, -89, 0, -112 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 800, 0, -300 }, { 0, 0, 0, 0 }, 0x54220004, 0x54220003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterB2SepticTankWarpEntries[2] = {
+    { { { .word = 0 }, -89, 0, -0x3395 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 400, 0, -0x3106 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 2), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 1), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, -89, 0, -112 }, { 0, 0, 0, 0 }, { { .word = 2560 }, 800, 0, -300 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 4), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, 3), DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_shelter_b2_septic_tank_801835E4[8] = {
+/// Eight-waypoint Bog Diver patrol ring selected by spawn bits 4..5 equal to zero.
+///
+/// X/Z use room units and Y is depth 1500, added to the sampled water height.
+/// Wraps at index 7 without a terminator; the fourth halfwords are unused.
+/// The actor borrows the ring for its lifetime in the loaded room.
+static SVECTOR _gShelterB2SepticTankDiverPatrolRing0[8] = {
     { -1700, 1500, -6500, 0 },
     { 1700, 1500, -9000, 0 },
     { -1700, 1500, -9000, 0 },
@@ -329,8 +381,12 @@ SVECTOR D_shelter_b2_septic_tank_801835E4[8] = {
     { 1700, 1500, -3900, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_shelter_b2_septic_tank_80183624[8] = {
+/// Eight-waypoint Bog Diver patrol ring shared by selections 1 and 3.
+///
+/// X/Z use room units and Y is depth 3000, added to the sampled water height.
+/// Wraps at index 7 without a terminator; the fourth halfwords are unused.
+/// Both directory slots borrow this same storage for each diver's lifetime.
+static SVECTOR _gShelterB2SepticTankDiverPatrolRing1[8] = {
     { 1700, 3000, -8000, 0 },
     { -1700, 3000, -5500, 0 },
     { -1700, 3000, -0x2AF8, 0 },
@@ -341,8 +397,12 @@ SVECTOR D_shelter_b2_septic_tank_80183624[8] = {
     { 1700, 3000, -5500, 0 },
 };
 
-// Retained data: Eight-point coordinate pool explicitly addressed by the following pointer table; no runtime owner found.
-SVECTOR D_shelter_b2_septic_tank_80183664[8] = {
+/// Eight-waypoint Bog Diver patrol ring selected by spawn bits 4..5 equal to two.
+///
+/// X/Z use room units and Y is depth 2200, added to the sampled water height.
+/// Wraps at index 7 without a terminator; the fourth halfwords are unused.
+/// The actor borrows the ring for its lifetime in the loaded room.
+static SVECTOR _gShelterB2SepticTankDiverPatrolRing2[8] = {
     { -1700, 2200, -7200, 0 },
     { 1700, 2200, -7200, 0 },
     { 1700, 2200, -3000, 0 },
@@ -353,28 +413,31 @@ SVECTOR D_shelter_b2_septic_tank_80183664[8] = {
     { -1700, 2200, -0x2710, 0 },
 };
 
-// Retained data: Four retained references to the preceding eight-point coordinate pools; no runtime owner found.
-SVECTOR* D_shelter_b2_septic_tank_801836A4[4] = {
-    D_shelter_b2_septic_tank_801835E4,
-    D_shelter_b2_septic_tank_80183624,
-    D_shelter_b2_septic_tank_80183664,
-    D_shelter_b2_septic_tank_80183624,
+SVECTOR* gShelterB2SepticTankDiverPatrolRings[4] = {
+    _gShelterB2SepticTankDiverPatrolRing0,
+    _gShelterB2SepticTankDiverPatrolRing1,
+    _gShelterB2SepticTankDiverPatrolRing2,
+    _gShelterB2SepticTankDiverPatrolRing1,
 };
 
-// Retained data: Adjacent retained point data, ending with fourth halfword -1; no runtime owner found.
-SVECTOR D_shelter_b2_septic_tank_801836B4[12] = {
-    { 0, 0, 0, 0 },
-    { -1700, 0, -3900, 0 },
-    { 1700, 0, -3900, 0 },
-    { -1700, 0, -6000, 0 },
-    { 1700, 0, -6000, 0 },
-    { -1700, 0, -8000, 0 },
-    { 1700, 0, -8000, 0 },
-    { -1700, 0, -0x2904, 0 },
-    { 1700, 0, -0x2904, 0 },
-    { -1700, 0, -0x2FA8, 0 },
-    { 1700, 0, -0x2FA8, 0 },
-    { 0, 0, 0, -1 },
+enum {
+    SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE = 0,
+    SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_END  = -1
+};
+
+SVECTOR gShelterB2SepticTankDiverSurfaceSpots[12] = {
+    { 0, 0, 0, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { -1700, 0, -3900, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { 1700, 0, -3900, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { -1700, 0, -6000, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { 1700, 0, -6000, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { -1700, 0, -8000, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { 1700, 0, -8000, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { -1700, 0, -0x2904, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { 1700, 0, -0x2904, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { -1700, 0, -0x2FA8, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { 1700, 0, -0x2FA8, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_FREE },
+    { 0, 0, 0, SHELTER_B2_SEPTIC_TANK_SURFACE_SPOT_END },
 };
 
 /// Room-space face normals, with 4096 representing unit length.
@@ -1042,7 +1105,7 @@ static WorldCoordPointLight _gShelterB2SepticTankPointLights[8] = {
 
 WorldCoordRoomLights gShelterB2SepticTankRoomLights = { 0, NULL, ARRAY_SIZE(_gShelterB2SepticTankPointLights), _gShelterB2SepticTankPointLights, 0, NULL };
 
-WorldCollisionTrigger D_shelter_b2_septic_tank_80186A54[6] = {
+WorldCollisionTrigger gShelterB2SepticTankViewBoundaryTriggers[6] = {
     { NULL, NULL, NULL, { -48, -1872, -1809, 0 }, { { 2576, -3904, -176, 0 }, { -2576, -3904, 176, 0 }, { 2576, 3904, -176, 0 }, { -2576, 3904, 176, 0 } }, { 279, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 4664, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 80, -1985, -1712, 0 }, { { -2400, -3904, 192, 0 }, { 2400, -3904, -192, 0 }, { -2400, 3904, 192, 0 }, { 2400, 3904, -192, 0 } }, { -328, 0, -4092, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -32, -1889, -6671, 0 }, { { 2576, -3904, 0, 0 }, { -2576, -3904, 1, 0 }, { 2576, 3904, 0, 0 }, { -2576, 3904, 1, 0 } }, { 0, 0, 4118, 0 }, { 0, 0, 4096, 0 }, 4664, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1051,107 +1114,181 @@ WorldCollisionTrigger D_shelter_b2_septic_tank_80186A54[6] = {
     { NULL, NULL, NULL, { 0, -1952, -0x2B40, 0 }, { { -2400, -3904, -320, 0 }, { 2400, -3904, 320, 0 }, { -2400, 3904, -320, 0 }, { 2400, 3904, 320, 0 } }, { 542, 0, -4066, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b2_septic_tank_80186C1C[4] = {
-    { NULL, NULL, NULL, { 0, -48, -0x3290, 0 }, { { -1024, 0, -624, 0 }, { 1024, 0, -624, 0 }, { -1024, 0, 624, 0 }, { 1024, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_WARP, 33, 22, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -48, 192, 0 }, { { -1024, 0, -624, 0 }, { 1024, 0, -624, 0 }, { -1024, 0, 624, 0 }, { 1024, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_WARP, 35, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -1793, 0 }, { { -1024, 0, -624, 0 }, { 1024, 0, -624, 0 }, { -1024, 0, 624, 0 }, { 1024, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -64, -6080, 0 }, { { -1024, 0, -624, 0 }, { 1024, 0, -624, 0 }, { -1024, 0, 624, 0 }, { 1024, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+enum {
+    // High nibble is our departure slot; low nibble is the destination's arrival slot.
+    SHELTER_B2_SEPTIC_TANK_CORRIDOR_WARP_SLOTS    = (1 << 4) | 6,
+    SHELTER_B2_SEPTIC_TANK_TUNNEL_WARP_SLOTS      = (2 << 4) | 1,
+    SHELTER_B2_SEPTIC_TANK_TRIGGER_IGNORED_ACTION = 1,
+    SHELTER_B2_SEPTIC_TANK_TRIGGER_START_COMBAT   = 2
 };
 
-AreaResource D_shelter_b2_septic_tank_80186D4C[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+WorldCollisionTrigger gShelterB2SepticTankActionTriggers[4] = {
+    { NULL, NULL, NULL, { 0, -48, -0x3290, 0 }, { { -1024, 0, -624, 0 }, { 1024, 0, -624, 0 }, { -1024, 0, 624, 0 }, { 1024, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_MAIN_CORRIDOR, SHELTER_B2_SEPTIC_TANK_CORRIDOR_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -48, 192, 0 }, { { -1024, 0, -624, 0 }, { 1024, 0, -624, 0 }, { -1024, 0, 624, 0 }, { 1024, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL, SHELTER_B2_SEPTIC_TANK_TUNNEL_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, -1793, 0 }, { { -1024, 0, -624, 0 }, { 1024, 0, -624, 0 }, { -1024, 0, 624, 0 }, { 1024, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, SHELTER_B2_SEPTIC_TANK_TRIGGER_IGNORED_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -64, -6080, 0 }, { { -1024, 0, -624, 0 }, { 1024, 0, -624, 0 }, { -1024, 0, 624, 0 }, { 1024, 0, 624, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1193, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, SHELTER_B2_SEPTIC_TANK_TRIGGER_START_COMBAT, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+// Placement/resource join keys, independent of actor RAM-slot selection.
+enum {
+    SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER      = 4,
+    SHELTER_B2_SEPTIC_TANK_RESOURCE_PAWN_GOLEM     = 20,
+    SHELTER_B2_SEPTIC_TANK_RESOURCE_WATCHER        = 21,
+    SHELTER_B2_SEPTIC_TANK_RESOURCE_LARGE_MOSSBACK = 49
+};
+
+// Bog Diver mode bits: low nibble selects behavior; bits 4..5 select a patrol ring.
+enum {
+    SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_SWIM          = 1,
+    SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_INTRO         = 4,
+    SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_INTRO_PARTNER = 5,
+    SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_WOUNDED_FLOAT = 7,
+    SHELTER_B2_SEPTIC_TANK_DIVER_PATROL_RING_1       = 1 << 4,
+    SHELTER_B2_SEPTIC_TANK_DIVER_PATROL_RING_2       = 2 << 4
+};
+
+enum {
+    SHELTER_B2_SEPTIC_TANK_WATCHER_STATIONARY_GUN = 4,
+    SHELTER_B2_SEPTIC_TANK_PAWN_GOLEM_PATROLS     = 1
+};
+
+/// Slot-1 Bog Diver resource recipe for the paired-introduction layout, variant 1.
+///
+/// Entry 4 requests base file 100400 and body task index zero. Ends at
+/// `AREA_PLACEMENT_END`; borrowed room/actor storage stays live through teardown.
+static AreaResource _gShelterB2SepticTankVariant1Resources[2] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_septic_tank_80186D64[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Slot-1 Bog Diver resource recipe for the two swimming patrols, variant 2.
+///
+/// Entry 4 requests base file 100400 and body task index zero. Ends at
+/// `AREA_PLACEMENT_END`; borrowed room/actor storage stays live through teardown.
+static AreaResource _gShelterB2SepticTankVariant2Resources[2] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_septic_tank_80186D7C[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
+/// Slot-1 Bog Diver and slot-2 large Mossback resources for variant 3.
+///
+/// Join keys 4/49 request files 100400/204900 and task descriptor zero.
+/// Ends at `AREA_PLACEMENT_END`; room tables and actor recipes remain borrowed
+/// through resource loading, spawning and actor teardown.
+static AreaResource _gShelterB2SepticTankVariant3Resources[3] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_LARGE_MOSSBACK, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_septic_tank_80186DA0[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Slot-1 Bog Diver resource recipe for the single swimming patrol, variant 4.
+///
+/// Entry 4 requests base file 100400 and body task index zero. Ends at
+/// `AREA_PLACEMENT_END`; borrowed room/actor storage stays live through teardown.
+static AreaResource _gShelterB2SepticTankVariant4Resources[2] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_septic_tank_80186DB8[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 4, 4, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor200400Tasks },
+/// Slot-1 Watcher and slot-2 Bog Diver resources for variant 11.
+///
+/// Join keys 21/4 request files 102100/200400 and task descriptor zero.
+/// Ends at `AREA_PLACEMENT_END`; room tables and actor recipes remain borrowed
+/// through resource loading, spawning and actor teardown.
+static AreaResource _gShelterB2SepticTankVariant11Resources[3] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 4, AREA_RESOURCE_FILE_GROUP_BASE_20, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor200400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_septic_tank_80186DDC[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202000PawnGolemTasks },
+/// Slot-1 Watcher and slot-2 Pawn GOLEM resources for variant 21.
+///
+/// Join keys 21/20 request files 102100/202000 and task descriptor zero.
+/// Ends at `AREA_PLACEMENT_END`; room tables and actor recipes remain borrowed
+/// through resource loading, spawning and actor teardown.
+static AreaResource _gShelterB2SepticTankVariant21Resources[3] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_PAWN_GOLEM, 20, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202000PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b2_septic_tank_80186E00[3] = {
-    { 4, 0, 4, -1952, 3000, -7000, 0, 0, 0, 2, 0 },
-    { 4, 0, 5, 1792, 3000, -0x2E60, 0, 0, 0, 2, 0 },
+/// Paired Bog Divers for variant 1: the scripted introduction and its waiting partner.
+///
+/// Both select patrol ring 0. Entry IDs join the resource list; coordinates use
+/// room units and yaw uses 4096 per turn. Ends at `AREA_PLACEMENT_END`.
+/// Actors borrow their placement records until teardown.
+static AreaPlacement _gShelterB2SepticTankVariant1Placements[3] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 0, SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_INTRO, -1952, 3000, -7000, 0, 0, 0, 2, 0 },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 0, SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_INTRO_PARTNER, 1792, 3000, -0x2E60, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_septic_tank_80186E30[3] = {
-    { 4, 0, 1, 1700, 1500, -3900, 2500, 0, 0, 2, 0 },
-    { 4, 0, 17, -1700, 3000, -5500, 2048, 0, 0, 2, 0 },
+/// Two swimming Bog Diver patrols for variant 2, selecting rings 0 and 1.
+///
+/// Entry IDs join the resource list; coordinates use room units and yaw uses
+/// 4096 per turn. Ends at `AREA_PLACEMENT_END`; actors borrow the records
+/// until teardown.
+static AreaPlacement _gShelterB2SepticTankVariant2Placements[3] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 0, SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_SWIM, 1700, 1500, -3900, 2500, 0, 0, 2, 0 },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 0, SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_SWIM | SHELTER_B2_SEPTIC_TANK_DIVER_PATROL_RING_1, -1700, 3000, -5500, 2048, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_septic_tank_80186E60[3] = {
-    { 4, 0, 33, -1700, 2200, -0x2EE0, 0, 0, 0, 2, 4 },
-    { 49, 1, 0, 300, 0, -5500, 2200, 0, 2, 4, 0 },
+/// Ring-2 swimming Bog Diver and large Mossback placements for variant 3.
+///
+/// Entry 49 selects the Mossback's large model/parameter variant. Entry IDs join
+/// the resource list; coordinates use room units and yaw uses 4096 per turn.
+/// Ends at `AREA_PLACEMENT_END`; actors borrow the records until teardown.
+static AreaPlacement _gShelterB2SepticTankVariant3Placements[3] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 0, SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_SWIM | SHELTER_B2_SEPTIC_TANK_DIVER_PATROL_RING_2, -1700, 2200, -0x2EE0, 0, 0, 0, 2, 4 },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_LARGE_MOSSBACK, 1, 0, 300, 0, -5500, 2200, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_septic_tank_80186E90[2] = {
-    { 4, 0, 33, -1700, 2200, -0x2EE0, 0, 0, 0, 2, 4 },
+/// Single ring-2 swimming Bog Diver placement for variant 4.
+///
+/// Entry IDs join the resource list; coordinates use room units and yaw uses
+/// 4096 per turn. Ends at `AREA_PLACEMENT_END`; the actor borrows its record
+/// until teardown.
+static AreaPlacement _gShelterB2SepticTankVariant4Placements[2] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 0, SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_SWIM | SHELTER_B2_SEPTIC_TANK_DIVER_PATROL_RING_2, -1700, 2200, -0x2EE0, 0, 0, 0, 2, 4 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_septic_tank_80186EB0[5] = {
-    { 21, 4, 0, -700, -2400, 300, 2048, 0, 0, 2, 5 },
-    { 21, 4, 0, 700, -2400, 300, 2048, 0, 0, 2, 5 },
-    { 4, 0, 7, 1700, 0, -8300, 0, 0, 2, 4, 0 },
-    { 4, 0, 7, -1800, 0, -8000, 1600, 0, 2, 4, 0 },
+/// Two stationary gun Watchers and two wounded floating Bog Divers for variant 11.
+///
+/// Watcher row 5 sets sight range; divers select ring 0 and start at one eighth
+/// maximum HP. Entry IDs join the resource list; coordinates use room units
+/// and yaw uses 4096 per turn. Ends at `AREA_PLACEMENT_END`; actors borrow
+/// their placement records until teardown.
+static AreaPlacement _gShelterB2SepticTankVariant11Placements[5] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_WATCHER, SHELTER_B2_SEPTIC_TANK_WATCHER_STATIONARY_GUN, 0, -700, -2400, 300, 2048, 0, 0, 2, 5 },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_WATCHER, SHELTER_B2_SEPTIC_TANK_WATCHER_STATIONARY_GUN, 0, 700, -2400, 300, 2048, 0, 0, 2, 5 },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 0, SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_WOUNDED_FLOAT, 1700, 0, -8300, 0, 0, 2, 4, 0 },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_BOG_DIVER, 0, SHELTER_B2_SEPTIC_TANK_DIVER_SPAWN_WOUNDED_FLOAT, -1800, 0, -8000, 1600, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_septic_tank_80186F00[4] = {
-    { 21, 4, 0, -700, -2400, -0x3200, 0, 0, 0, 2, 5 },
-    { 21, 4, 0, 700, -2400, -0x3200, 0, 0, 0, 2, 5 },
-    { 20, 9, 1, 0, 0, -0x2710, 0, 0, 2, 4, 0 },
+/// Two stationary gun Watchers and a patrolling Pawn GOLEM for variant 21.
+///
+/// Watcher row 5 sets sight range; the GOLEM's variant 9 gives a 9000-unit
+/// patrol leg. Entry IDs join the resource list; coordinates use room units
+/// and yaw uses 4096 per turn. Ends at `AREA_PLACEMENT_END`; actors borrow
+/// their placement records until teardown.
+static AreaPlacement _gShelterB2SepticTankVariant21Placements[4] = {
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_WATCHER, SHELTER_B2_SEPTIC_TANK_WATCHER_STATIONARY_GUN, 0, -700, -2400, -0x3200, 0, 0, 0, 2, 5 },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_WATCHER, SHELTER_B2_SEPTIC_TANK_WATCHER_STATIONARY_GUN, 0, 700, -2400, -0x3200, 0, 0, 0, 2, 5 },
+    { SHELTER_B2_SEPTIC_TANK_RESOURCE_PAWN_GOLEM, 9, SHELTER_B2_SEPTIC_TANK_PAWN_GOLEM_PATROLS, 0, 0, -0x2710, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b2_septic_tank_80186F40[22] = {
-    { NULL, NULL },
-    { D_shelter_b2_septic_tank_80186E00, D_shelter_b2_septic_tank_80186D4C },
-    { D_shelter_b2_septic_tank_80186E30, D_shelter_b2_septic_tank_80186D64 },
-    { D_shelter_b2_septic_tank_80186E60, D_shelter_b2_septic_tank_80186D7C },
-    { D_shelter_b2_septic_tank_80186E90, D_shelter_b2_septic_tank_80186DA0 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_septic_tank_80186EB0, D_shelter_b2_septic_tank_80186DB8 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_septic_tank_80186F00, D_shelter_b2_septic_tank_80186DDC },
+AreaVariant gShelterB2SepticTankAreaVariants[22] = {
+    [1]  = { _gShelterB2SepticTankVariant1Placements, _gShelterB2SepticTankVariant1Resources },
+    [2]  = { _gShelterB2SepticTankVariant2Placements, _gShelterB2SepticTankVariant2Resources },
+    [3]  = { _gShelterB2SepticTankVariant3Placements, _gShelterB2SepticTankVariant3Resources },
+    [4]  = { _gShelterB2SepticTankVariant4Placements, _gShelterB2SepticTankVariant4Resources },
+    [11] = { _gShelterB2SepticTankVariant11Placements, _gShelterB2SepticTankVariant11Resources },
+    [21] = { _gShelterB2SepticTankVariant21Placements, _gShelterB2SepticTankVariant21Resources },
 };
 
 // Cue-2 entries in the currently loaded type-1 bank; cue 1 uses the next entry.
@@ -1228,7 +1365,7 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destina
             if (event->flagId != SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_b2_septic_tank_80182F40, 0, 0, 0);
+            taskSpawnFromTable(&_gShelterB2SepticTankStagedEventTaskDesc, 0, 0, 0);
             D_shelter_b2_septic_tank_80187044 = true;
         }
         return SHELTER_B2_SEPTIC_TANK_EVENT_ELIGIBLE;
@@ -1335,7 +1472,7 @@ static void _shelterB2SepticTankPrepareEncounterFacing(void)
     playerRoot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     if (targetTask != NULL) {
         targetRoot = targetTask->extra.tmd->coords;
-        D_shelter_b2_septic_tank_80182FEC.rot.vy =
+        _gShelterB2SepticTankEncounterFacingRequest.rot.vy =
             (ratan2(targetRoot->coord.t[0] - playerRoot->coord.t[0], targetRoot->coord.t[2] - playerRoot->coord.t[2]) + ACTOR_TRANSFORM_ANGLE_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
     }
 }

@@ -1348,7 +1348,7 @@ static AnimationSet _gActor00400Actor100400Animation15EF8 = {
 _Actor00400AreaConfig Actor00400_D15F20[12] = {
     { NULL, NULL, NULL, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, 0 },
     { gShelterB4ReservoirDiverPatrolRings, gShelterB4ReservoirDiverSurfaceSpots, &gShelterB4ReservoirMainWaterY, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
-    { D_shelter_b2_septic_tank_801836A4, D_shelter_b2_septic_tank_801836B4, &gShelterB2SepticTankWaterY, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
+    { gShelterB2SepticTankDiverPatrolRings, gShelterB2SepticTankDiverSurfaceSpots, &gShelterB2SepticTankWaterY, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_SEPTIC_TANK, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
     { D_shelter_b4_upper_sewer_801866F8, D_shelter_b4_upper_sewer_80186708, &D_shelter_b4_upper_sewer_80186438, GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },
     { D_neo_ark_bridge_801820BC, D_neo_ark_bridge_801820CC, &D_neo_ark_bridge_80181FF8, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_BRIDGE, 0 },
     { D_neo_ark_submarine_gallery_80181B0C, D_neo_ark_submarine_gallery_80181B1C, &D_neo_ark_submarine_gallery_80181A48, GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_SUBMARINE_GALLERY, ACTOR_00400_AREA_CONFIG_GRID_COLLISION },

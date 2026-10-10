@@ -1649,7 +1649,7 @@ gShelterB2PodAccessTunnelAreaVariants = 0x801855AC; // absolute:True owner=shelt
 
 gShelterB2PodBottomAreaVariants = 0x80187678; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
 
-D_shelter_b2_septic_tank_80186F40 = 0x80186F40; // absolute:True owner=shelter_b2_septic_tank
+gShelterB2SepticTankAreaVariants = 0x80186F40; // absolute:True owner=shelter_b2_septic_tank
 
 D_shelter_b2_south_maintenance_walkway_801837AC = 0x801837AC; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
 

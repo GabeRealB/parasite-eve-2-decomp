@@ -184,7 +184,7 @@ gShelterB1ControlRoomViewCameras = 0x8018211C; // absolute:True owner=shelter_b1
 gShelterB1ControlRoomSpriteViews = 0x801833BC; // absolute:True owner=shelter_b1_control_room
 gShelterB1ControlRoomRoomLights = 0x801834DC; // absolute:True owner=shelter_b1_control_room shared=rooms
 D_shelter_b1_control_room_801834F4 = 0x801834F4; // absolute:True owner=shelter_b1_control_room shared=rooms
-D_shelter_b1_control_room_80183624 = 0x80183624; // absolute:True owner=shelter_b1_control_room shared=rooms
+D_shelter_b1_control_room_80183624 = 0x80183624; // absolute:True owner=shelter_b1_control_room
 gShelterB1ControlRoomAmbientByView = 0x80183B48; // absolute:True owner=shelter_b1_control_room shared=rooms
 gShelterB1ControlRoomSurfacePropertiesByClass = 0x80183BC0; // absolute:True owner=shelter_b1_control_room shared=rooms
 shelterB1AccessTunnelRoomTask = 0x8017DD08; // type:func absolute:True owner=shelter_b1_access_tunnel shared=rooms
@@ -361,14 +361,14 @@ gShelterB2MainCorridorActionTriggers = 0x801893EC; // absolute:True owner=shelte
 gShelterB2MainCorridorSurfacePropertiesByClass = 0x80189624; // absolute:True owner=shelter_b2_main_corridor
 shelterB2SepticTankRoomTask = 0x8017DB10; // type:func absolute:True owner=shelter_b2_septic_tank shared=rooms
 gShelterB2SepticTankViewMaps = 0x8018356C; // absolute:True owner=shelter_b2_septic_tank
-D_shelter_b2_septic_tank_80183570 = 0x80183570; // absolute:True owner=shelter_b2_septic_tank
-D_shelter_b2_septic_tank_80183574 = 0x80183574; // absolute:True owner=shelter_b2_septic_tank
+gShelterB2SepticTankRoomViewCounts = 0x80183570; // absolute:True owner=shelter_b2_septic_tank
+gShelterB2SepticTankWarpEntries = 0x80183574; // absolute:True owner=shelter_b2_septic_tank
 gShelterB2SepticTankCollisionGrid = 0x80183E0C; // absolute:True owner=shelter_b2_septic_tank shared=rooms
 gShelterB2SepticTankViewCameras = 0x80183E30; // absolute:True owner=shelter_b2_septic_tank shared=rooms
 gShelterB2SepticTankSpriteViews = 0x801866F4; // absolute:True owner=shelter_b2_septic_tank
 gShelterB2SepticTankRoomLights = 0x80186A3C; // absolute:True owner=shelter_b2_septic_tank
-D_shelter_b2_septic_tank_80186A54 = 0x80186A54; // absolute:True owner=shelter_b2_septic_tank
-D_shelter_b2_septic_tank_80186C1C = 0x80186C1C; // absolute:True owner=shelter_b2_septic_tank
+gShelterB2SepticTankViewBoundaryTriggers = 0x80186A54; // absolute:True owner=shelter_b2_septic_tank
+gShelterB2SepticTankActionTriggers = 0x80186C1C; // absolute:True owner=shelter_b2_septic_tank
 gShelterB2SepticTankSurfacePropertiesByClass = 0x80187014; // absolute:True owner=shelter_b2_septic_tank
 shelterB2PodAccessTunnelRoomTask = 0x8017DC14; // type:func absolute:True owner=shelter_b2_pod_access_tunnel
 gShelterB2PodAccessTunnelRoomCollisionResources = 0x80183DEC; // absolute:True owner=shelter_b2_pod_access_tunnel

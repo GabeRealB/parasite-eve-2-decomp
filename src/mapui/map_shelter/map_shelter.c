@@ -949,7 +949,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     gShelterB2LaboratoryWarpEntries,
     gShelterB2BreedingRoomWarpEntries,
     gShelterB2MainCorridorWarpEntries,
-    D_shelter_b2_septic_tank_80183574,
+    gShelterB2SepticTankWarpEntries,
     gShelterB2PodAccessTunnelWarpEntries,
     gShelterR36WarpEntries,
     gShelterR37WarpEntries,
@@ -1001,7 +1001,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     gShelterB2LaboratoryRoomViewCounts,
     gShelterB2BreedingRoomRoomViewCounts,
     gShelterB2MainCorridorViewCounts,
-    D_shelter_b2_septic_tank_80183570,
+    gShelterB2SepticTankRoomViewCounts,
     gShelterB2PodAccessTunnelRoomViewCounts,
     gShelterR36ViewCounts,
     gShelterR37ViewCounts,
@@ -1098,7 +1098,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B234[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B244[1] = {
-    { &gShelterB2SepticTankCollisionGrid, D_shelter_b2_septic_tank_80186A54, D_shelter_b2_septic_tank_80186C1C, NULL },
+    { &gShelterB2SepticTankCollisionGrid, gShelterB2SepticTankViewBoundaryTriggers, gShelterB2SepticTankActionTriggers, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B254[1] = {

@@ -15,15 +15,35 @@
 
 #include "main/task_types.h"
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_shelter_b2_septic_tank_801836A4[4];
+/// Four Bog Diver patrol selections, indexed by spawn-argument bits 4..5.
+///
+/// Slots 0..2 borrow distinct eight-point rings; slot 3 repeats slot 1.
+/// Each ring wraps at index 7 and has no terminator. X/Z use room-space
+/// game units; ordinary swimming adds the sampled water Y to each depth.
+/// The directory and its rings must remain loaded for the divers' lifetimes.
+extern SVECTOR* gShelterB2SepticTankDiverPatrolRings[4];
 
-extern SVECTOR D_shelter_b2_septic_tank_801836B4[12];
+/// Writable Bog Diver emergence spots, shared by the room's live divers.
+///
+/// Entry 0 is the reserved fallback, entries 1..10 are candidate XZ positions
+/// in room-space game units, and entry 11 ends the list. `SVECTOR.pad` stores
+/// the claim marker (0 free, 1 claimed, -1 end); it is not padding here.
+/// Searches copy only X/Z, preserving the diver's own Y. Claims are released
+/// when moved or on teardown; retain the room storage until every diver exits.
+extern SVECTOR gShelterB2SepticTankDiverSurfaceSpots[12];
 
 /// Undisplaced water-surface Y in signed world units, shared with the room's actors.
 extern s16 gShelterB2SepticTankWaterY;
 
-extern AreaVariant D_shelter_b2_septic_tank_80186F40[22];
+/// Septic-tank actor layouts indexed directly by placement variant 0..21.
+///
+/// Populated slots are 1..4, 11 and 21; every other slot has two NULL pointers.
+/// Variant 1 starts the paired-diver introduction, 2 is swimming patrol, 3
+/// combines a patrol diver and large Mossback, and 4 retains just that diver.
+/// Variants 11 and 21 pair Watchers with wounded divers and a Pawn GOLEM,
+/// respectively. Each placement/resource list ends at `AREA_PLACEMENT_END`.
+/// Loaded room storage is borrowed through resource loading and actor teardown.
+extern AreaVariant gShelterB2SepticTankAreaVariants[22];
 
 /// Logical-view map directory for the septic tank's single room.
 ///
@@ -32,9 +52,21 @@ extern AreaVariant D_shelter_b2_septic_tank_80186F40[22];
 /// directory requires the room loaded; gameplay owns the mapped bytes.
 extern u8* gShelterB2SepticTankViewMaps[1];
 
-extern ViewCount D_shelter_b2_septic_tank_80183570[];
+/// Six logical views in the septic tank's single room.
+///
+/// Indexed by room ID minus one (only room 1), with no terminator. The signed
+/// halfword limits searches of the identity view map to logical views 1..6.
+/// The stage map borrows the count while this room overlay is loaded.
+extern ViewCount gShelterB2SepticTankRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b2_septic_tank_80183574[];
+/// Arrival and departure records for the corridor and pod-access-tunnel doors.
+///
+/// Warp IDs 1 and 2 select entries 0 and 1, starting in views 2 and 5.
+/// Each stores player/companion placements in room units, yaw in 4096ths of a
+/// turn and area-bank arrival/departure sounds; neither sets a map marker.
+/// There is no terminator. The stage map borrows the loaded room's records;
+/// transition consumers copy complete entries before using their placements.
+extern DirectionWarpEntry gShelterB2SepticTankWarpEntries[2];
 
 /// The septic tank's room-space collision mesh and 3-by-6 XZ cell index.
 ///
@@ -67,9 +99,22 @@ extern SpriteView gShelterB2SepticTankSpriteViews[6];
 /// and its array in the loaded room overlay while lighting uses them.
 extern WorldCoordRoomLights gShelterB2SepticTankRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b2_septic_tank_80186A54[];
+/// Six directed view boundaries connecting mapped views 2, 3, 4 and 5.
+///
+/// Opposing quads connect 2/3, 3/4 and 4/5; the last record carries LAST.
+/// Origins/corners use room units and normals use 4096 per unit. Runtime
+/// collision binds, links and latches these writable records while the room
+/// is active; keep their storage loaded until the trigger list is cleared.
+extern WorldCollisionTrigger gShelterB2SepticTankViewBoundaryTriggers[6];
 
-extern WorldCollisionTrigger D_shelter_b2_septic_tank_80186C1C[];
+/// Door warps and two automatic encounter-action regions for the septic tank.
+///
+/// Entries 0/1 require facing and warp to the main corridor/pod access tunnel.
+/// Entries 2/3 send room actions 1/2; the room handler ignores 1 and uses 2 to
+/// start combat setup after the introduction. The final record carries LAST.
+/// Geometry uses room units and normals use 4096 per unit. Runtime binding,
+/// linking and hit latching require writable loaded storage until list clear.
+extern WorldCollisionTrigger gShelterB2SepticTankActionTriggers[4];
 
 /// Collision and footstep records indexed by septic-tank surface class 0..7.
 ///

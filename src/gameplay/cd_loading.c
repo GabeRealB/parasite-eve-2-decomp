@@ -555,7 +555,7 @@ AreaRecord D_8010CF14[50] = {
     { gShelterB2LaboratoryAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[30].state },
     { gShelterB2BreedingRoomAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[31].state },
     { gShelterB2MainCorridorAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[32].state },
-    { D_shelter_b2_septic_tank_80186F40, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
+    { gShelterB2SepticTankAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
     { gShelterB2PodAccessTunnelAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[34].state },
     { gShelterR36AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[35].state },
     { NULL, NULL },
