@@ -119924,18 +119924,18 @@ rodata as `INCLUDE_RODATA` blobs. `_mineCavernTargetExplode` shows both.
 `printf("BOMB1\n")` the compiled listing is instruction-for-instruction
 identical to the target and still scores 99.785% (`regs=4`), because the relocs
 read `%hi(.rodata)` / `%hi(.rodata+8)` where the splat target names the symbol:
-`%hi(D_mine_cavern_8017D7E8)`. `dist.py` scores a differing field as a penalty
+`%hi(_gMineCavernTargetInitialBlastLog)`. `dist.py` scores a differing field as a penalty
 unless the *target* row itself contains `.data`/`.rodata`/`.text` — which is why
 the normalizer's `jtbl_*` → `.rodata` rename costs nothing, while a string label
 costs one penalty per `lui`/`addiu`. Writing the strings as named file-scope
 arrays reproduces the target's relocs and takes it to 100.000%:
 
 ```c
-const char D_mine_cavern_8017D7E8[8] __attribute__((section(".rodata"))) = "BOMB1\n";
-const char D_mine_cavern_8017D7F0[8] __attribute__((section(".rodata"))) = "BOMB2\n";
+const char _gMineCavernTargetInitialBlastLog[8] __attribute__((section(".rodata"))) = "BOMB1\n";
+const char _gMineCavernTargetSecondBlastLog[8] __attribute__((section(".rodata"))) = "BOMB2\n";
 
     case 0:
-        printf(D_mine_cavern_8017D7E8);
+        printf(_gMineCavernTargetInitialBlastLog);
 ```
 
 The explicit section attribute is load-bearing (8-byte data falls under the
@@ -119960,7 +119960,7 @@ lines moved from after the function to before it, and the
 that table now, so leaving it in duplicates 0xF0 bytes). Declaring the same
 sources after the function instead leaves the table 0x20 bytes early and shifts
 both blobs — a checksum failure with a 100% scratch score. The map is the check:
-`D_mine_cavern_8017D7E8`, `D_mine_cavern_8017D7F0`, `D_mine_cavern_8017D7F8`,
+`_gMineCavernTargetInitialBlastLog`, `_gMineCavernTargetSecondBlastLog`, `D_mine_cavern_8017D7F8`,
 `RoomsShared80183c10Table` came back at 0x8017D7E8 / 0x8017D7F0 / 0x8017D7F8 /
 0x8017D80C with the unit's `.rodata` still 0x2D8 long.
 

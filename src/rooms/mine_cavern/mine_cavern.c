@@ -309,7 +309,7 @@ s32 mineCavernResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEvent
 static inline void _mineCavernRunCaptionAndWatchProgress(s32 commandIndex)
 {
     capRunCommandWithTransition(commandIndex);
-    taskSpawnFromTable(D_mine_cavern_80183CA4, 0, 0, 0);
+    taskSpawnFromTable(gMineCavernCaptionProgressTasks, 0, 0, 0);
 }
 
 s32 mineCavernHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedArg)
@@ -444,7 +444,7 @@ static inline void _mineCavernStartIntroEvent(void)
 {
     enum { MINE_CAVERN_INTRO_SEEN = 1 };
 
-    evsStartScriptWithSkip(D_mine_cavern_80187C74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_8018804C);
+    evsStartScriptWithSkip(gMineCavernIntroScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gMineCavernIntroSkipScript);
     mineCavernResetEventBattleReleaseCount();
     gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN, MINE_CAVERN_INTRO_SEEN);
 }

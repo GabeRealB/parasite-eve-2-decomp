@@ -57,11 +57,30 @@ extern s32 D_mine_cavern_8018EB58;
 
 extern u16 D_mine_cavern_8018EB5C;
 
-extern TaskDesc D_mine_cavern_80183CA4[2];
+/// Bodyless task recipe that commits the final power-panel or passage caption choice.
+///
+/// Entry 0 spawns the priority-32 watcher; entry 1 is the descriptor terminator.
+/// The watcher waits until CAP is idle, commits progress and releases itself.
+/// Spawning borrows the recipe only synchronously; keep CAP and cavern code
+/// loaded until the independent watcher finishes.
+extern TaskDesc gMineCavernCaptionProgressTasks[2];
 
-extern EvsCommand D_mine_cavern_80187C74[41];
+/// Cavern intro: player approach and CAP cues, actor reveal, then scripted battle.
+///
+/// All 41 instructions, including the final END, are borrowed through playback.
+/// Requires the initial Mine/Shelter cavern layout, placed Blizzard Chaser slot 0,
+/// and loaded player/weapon, CAP and room animation resources. Installs the
+/// equipped-weapon scene extension before movement and releases player scripting
+/// while preserving the animated root offset. Pair with `gMineCavernIntroSkipScript`.
+extern EvsCommand gMineCavernIntroScript[41];
 
-extern EvsCommand D_mine_cavern_8018804C[19];
+/// Fade-covered skip path that reaches the cavern intro's battle setup.
+///
+/// All 19 instructions, including END, are borrowed through playback. Places the
+/// player at the approach destination, installs the scene extension and sets both
+/// actors' battle poses before restoring view 3 and releasing player scripting.
+/// Requires the same live actor, CAP and room resources as `gMineCavernIntroScript`.
+extern EvsCommand gMineCavernIntroSkipScript[19];
 
 extern EvsCommand D_mine_cavern_80188214[60];
 

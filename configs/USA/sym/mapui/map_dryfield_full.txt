@@ -189,7 +189,7 @@ gDryfieldNightFactoryRoomLighting = 0x80186F24; // absolute:True owner=dryfield_
 D_dryfield_night_factory_80186F34 = 0x80186F34; // absolute:True owner=dryfield_night_factory
 D_dryfield_night_factory_80186F54 = 0x80186F54; // absolute:True owner=dryfield_night_factory
 D_dryfield_night_factory_80186F58 = 0x80186F58; // absolute:True owner=dryfield_night_factory
-D_dryfield_night_factory_80187C14 = 0x80187C14; // absolute:True owner=dryfield_night_factory shared=rooms
+D_dryfield_night_factory_80187C14 = 0x80187C14; // absolute:True owner=dryfield_night_factory
 gDryfieldNightFactorySpriteViews = 0x80189A24; // absolute:True owner=dryfield_night_factory
 gDryfieldNightFactorySurfacePropertiesByClass = 0x8018A79C; // absolute:True owner=dryfield_night_factory
 dryfieldNightGarageRoomTask = 0x801803BC; // type:func absolute:True owner=dryfield_night_garage
