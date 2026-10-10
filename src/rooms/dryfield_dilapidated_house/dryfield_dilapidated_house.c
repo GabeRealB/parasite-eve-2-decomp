@@ -61,6 +61,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -229,39 +230,39 @@ enum {
     DRYFIELD_DILAPIDATED_HOUSE_HEAD_TRACK_ACTIVE = 2,
 };
 
-extern WorldCollisionGrid         D_dryfield_dilapidated_house_801872E4[1];
-extern WorldCollisionOccluder     D_dryfield_dilapidated_house_80189260[1];
-extern WorldCollisionTrigger      D_dryfield_dilapidated_house_80188D08[9];
-extern WorldCollisionTrigger      D_dryfield_dilapidated_house_80188FB4[9];
-extern WorldCoordRoomAmbientEntry D_dryfield_dilapidated_house_801899A0[22];
-extern WorldCoordRoomLights       D_dryfield_dilapidated_house_801898FC[1];
-extern PadScriptCmd               D_dryfield_dilapidated_house_80189B30[2];
-extern PadScriptCmd               D_dryfield_dilapidated_house_80189B40[4];
-extern PadScriptCmd               D_dryfield_dilapidated_house_80189B5C[2];
-extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B38[2];
-extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B50[3];
-extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B64[2];
-extern SVECTOR                    D_dryfield_dilapidated_house_80189CA0[40];
-static s32                        _dryfieldDilapidatedHouseRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-static s32                        _dryfieldDilapidatedHouseResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-static s32                        _dryfieldDilapidatedHouseIgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-static s32                        _dryfieldDilapidatedHouseStartEncounterMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
-static void                       _dryfieldDilapidatedHouseNegativeCaptureTask(Task* task);
-static void                       _dryfieldDilapidatedHouseBlackoutTask(Task* task);
-static void                       _dryfieldDilapidatedHouseEncounterFinishTask(Task* task);
-static void                       _dryfieldDilapidatedHouseHeadTrackTask(Task* task);
-static void                       _dryfieldDilapidatedHouseShakeYTask(Task* task);
-static void                       _dryfieldDilapidatedHouseModeExitCountdownTask(Task* task);
-static void                       _dryfieldDilapidatedHouseSetHeadTrackState(s32 state);
-static void                       _dryfieldDilapidatedHouseCancelEffects(void);
-static void                       _dryfieldDilapidatedHouseControlScreenWave(s32 request);
-static void                       _dryfieldDilapidatedHouseSetBlackoutDelay(s32 delayFrames);
-static void                       _dryfieldDilapidatedHouseSetMorphAttachment(s32 enabled);
-static void                       _dryfieldDilapidatedHouseLockAttachmentsForEvent(void);
-static void                       _dryfieldDilapidatedHouseMorphAttachmentTask(Task* task);
-static void                       _dryfieldDilapidatedHouseCurveDebugTask(Task* task);
-static void                       _dryfieldDilapidatedHouseCappedBeamTask(Task* task);
-static void                       _dryfieldDilapidatedHouseMorphConeTask(Task* task);
+extern WorldCollisionGrid               D_dryfield_dilapidated_house_801872E4[1];
+extern WorldCollisionOccluder           D_dryfield_dilapidated_house_80189260[1];
+extern WorldCollisionTrigger            D_dryfield_dilapidated_house_80188D08[9];
+extern WorldCollisionTrigger            D_dryfield_dilapidated_house_80188FB4[9];
+static const WorldCoordRoomAmbientEntry _gDryfieldDilapidatedHouseAmbientByView[22];
+static WorldCoordRoomLights             _gDryfieldDilapidatedHouseRoomLights;
+extern PadScriptCmd                     D_dryfield_dilapidated_house_80189B30[2];
+extern PadScriptCmd                     D_dryfield_dilapidated_house_80189B40[4];
+extern PadScriptCmd                     D_dryfield_dilapidated_house_80189B5C[2];
+extern PadScriptVibrationSegment        D_dryfield_dilapidated_house_80189B38[2];
+extern PadScriptVibrationSegment        D_dryfield_dilapidated_house_80189B50[3];
+extern PadScriptVibrationSegment        D_dryfield_dilapidated_house_80189B64[2];
+extern SVECTOR                          D_dryfield_dilapidated_house_80189CA0[40];
+static s32                              _dryfieldDilapidatedHouseRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+static s32                              _dryfieldDilapidatedHouseResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32                              _dryfieldDilapidatedHouseIgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
+static s32                              _dryfieldDilapidatedHouseStartEncounterMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
+static void                             _dryfieldDilapidatedHouseNegativeCaptureTask(Task* task);
+static void                             _dryfieldDilapidatedHouseBlackoutTask(Task* task);
+static void                             _dryfieldDilapidatedHouseEncounterFinishTask(Task* task);
+static void                             _dryfieldDilapidatedHouseHeadTrackTask(Task* task);
+static void                             _dryfieldDilapidatedHouseShakeYTask(Task* task);
+static void                             _dryfieldDilapidatedHouseModeExitCountdownTask(Task* task);
+static void                             _dryfieldDilapidatedHouseSetHeadTrackState(s32 state);
+static void                             _dryfieldDilapidatedHouseCancelEffects(void);
+static void                             _dryfieldDilapidatedHouseControlScreenWave(s32 request);
+static void                             _dryfieldDilapidatedHouseSetBlackoutDelay(s32 delayFrames);
+static void                             _dryfieldDilapidatedHouseSetMorphAttachment(s32 enabled);
+static void                             _dryfieldDilapidatedHouseLockAttachmentsForEvent(void);
+static void                             _dryfieldDilapidatedHouseMorphAttachmentTask(Task* task);
+static void                             _dryfieldDilapidatedHouseCurveDebugTask(Task* task);
+static void                             _dryfieldDilapidatedHouseCappedBeamTask(Task* task);
+static void                             _dryfieldDilapidatedHouseMorphConeTask(Task* task);
 
 TaskDesc D_dryfield_dilapidated_house_80183E48[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
@@ -410,7 +411,21 @@ AnimationPlayRequest D_dryfield_dilapidated_house_80184254 = { { .index = 1 }, 5
 
 AnimationPlayRequest D_dryfield_dilapidated_house_80184268 = { { .index = 1 }, 6, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_dilapidated_house_8018427C = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { DRYFIELD_DILAPIDATED_HOUSE_ENCOUNTER_WEAPON_CLIP = 9 };
+
+/// Resets the player's equipped-weapon stationary aim pose during encounter scripts.
+///
+/// The event interpreter copies the request and replaces `source.index` with
+/// the equipped weapon's bank before dispatch. Playback takes scripted control
+/// and disables world collision; the reset ignores the zero blend duration.
+/// Keep the authored data-section placement for this read-only template.
+static const AnimationPlayRequest _gDryfieldDilapidatedHousePlayerAimHoldRequest SECTION(".data") = {
+    .source               = { .index = 1 },
+    .animationId          = DRYFIELD_DILAPIDATED_HOUSE_ENCOUNTER_WEAPON_CLIP,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_dilapidated_house_80184290 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -508,7 +523,7 @@ EvsCommand D_dryfield_dilapidated_house_80184408[89] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_8018427C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldDilapidatedHousePlayerAimHoldRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_dilapidated_house_801843A8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -564,7 +579,7 @@ EvsCommand D_dryfield_dilapidated_house_80184C60[24] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_dilapidated_house_801842E8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_8018427C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldDilapidatedHousePlayerAimHoldRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldDilapidatedHouseCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -587,7 +602,7 @@ EvsCommand D_dryfield_dilapidated_house_80184EA0[78] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_dilapidated_house_80184254 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_dilapidated_house_80184318 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_8018427C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldDilapidatedHousePlayerAimHoldRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_dilapidated_house_801843D8 } }, { .value = 0 } },
@@ -903,14 +918,14 @@ WorldCollisionRoomResources D_dryfield_dilapidated_house_80186954[1] = {
     { D_dryfield_dilapidated_house_801872E4, D_dryfield_dilapidated_house_80188D08, D_dryfield_dilapidated_house_80188FB4, D_dryfield_dilapidated_house_80189260 },
 };
 
-u8* D_dryfield_dilapidated_house_80186964[1] = {
+u8* gDryfieldDilapidatedHouseRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
 ViewCount D_dryfield_dilapidated_house_80186968[1] = { 21 };
 
-WorldCoordRoomLighting D_dryfield_dilapidated_house_8018696C[1] = {
-    { D_dryfield_dilapidated_house_801898FC, D_dryfield_dilapidated_house_801899A0 },
+WorldCoordRoomLighting gDryfieldDilapidatedHouseRoomLighting[1] = {
+    { .lights = &_gDryfieldDilapidatedHouseRoomLights, .ambientTable = _gDryfieldDilapidatedHouseAmbientByView },
 };
 
 DirectionWarpEntry D_dryfield_dilapidated_house_80186974[2] = {
@@ -968,12 +983,14 @@ ViewCamera D_dryfield_dilapidated_house_80187308[21] = {
     { { { { 4095, 0, -58 }, { -41, 2903, -2888 }, { 41, 2889, 2903 } }, { -2480, 2960, 2650 } }, 257 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_801875FC[2] = {
+/// View 1's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_8018760C[67] = {
+/// View 2's 67 textured background rectangles, with pixel positions and sorting depths.
+static SpriteSource _gDryfieldDilapidatedHouseView2SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 16, 40 } }, 48, -48, 625, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 64, -56, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, 80, -40, 625, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
@@ -1043,15 +1060,17 @@ SpriteSource D_dryfield_dilapidated_house_8018760C[67] = {
     { 142, 0x3FC0, { .fields = { 16, 48 } }, 112, 32, 250, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80187B48[5] = {
+/// View 2's three sprite ranges after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 1, 0 } },
     { 5, 49, 0, 0, { 2, 0 } },
-    { 54, 13, 0, 0, { 0, 0 } },
+    { 54, ARRAY_SIZE(_gDryfieldDilapidatedHouseView2SpriteSources) - 54, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_80187B70[63] = {
+/// View 3's 63 textured background rectangles, with pixel positions and sorting depths.
+static SpriteSource _gDryfieldDilapidatedHouseView3SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 0, 1125, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -24, -48, 1125, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, -16, -48, 1125, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
@@ -1117,14 +1136,16 @@ SpriteSource D_dryfield_dilapidated_house_80187B70[63] = {
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, -88, 750, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_8018805C[4] = {
+/// View 3's two sprite ranges after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 31, 0, 0, { 1, 0 } },
-    { 31, 32, 0, 0, { 0, 0 } },
+    { 31, ARRAY_SIZE(_gDryfieldDilapidatedHouseView3SpriteSources) - 31, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_8018807C[17] = {
+/// View 4's 17 textured background rectangles, with pixel positions and sorting depths.
+static SpriteSource _gDryfieldDilapidatedHouseView4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, -56, 2125, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -136, 8, 1625, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -120, 8, 1625, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
@@ -1144,13 +1165,15 @@ SpriteSource D_dryfield_dilapidated_house_8018807C[17] = {
     { 143, 0x3FC0, { .fields = { 16, 104 } }, 104, -56, 2125, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_801881D0[3] = {
+/// View 4's complete sprite range after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 17, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldDilapidatedHouseView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_801881E8[6] = {
+/// View 5's six textured background rectangles, with pixel positions and sorting depths.
+static SpriteSource _gDryfieldDilapidatedHouseView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 16, 1425, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 0, 1375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 120, 0, 1475, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
@@ -1159,13 +1182,15 @@ SpriteSource D_dryfield_dilapidated_house_801881E8[6] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, 8, 1250, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188260[3] = {
+/// View 5's complete sprite range after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldDilapidatedHouseView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_80188278[10] = {
+/// View 6's ten textured background rectangles, with pixel positions and sorting depths.
+static SpriteSource _gDryfieldDilapidatedHouseView6SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, -8, 750, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 48, 750, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, 88, 8, 750, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
@@ -1178,13 +1203,15 @@ SpriteSource D_dryfield_dilapidated_house_80188278[10] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 128, 48, 875, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188340[3] = {
+/// View 6's complete sprite range after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldDilapidatedHouseView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_80188358[15] = {
+/// View 7's 15 textured background rectangles, with pixel positions and sorting depths.
+static SpriteSource _gDryfieldDilapidatedHouseView7SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 88 } }, 112, -120, 1100, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 88 } }, 96, -120, 1100, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 88 } }, 80, -120, 1100, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
@@ -1202,13 +1229,15 @@ SpriteSource D_dryfield_dilapidated_house_80188358[15] = {
     { 143, 0x3FC0, { .fields = { 16, 56 } }, 80, -32, 1125, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188484[3] = {
+/// View 7's complete sprite range after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 15, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldDilapidatedHouseView7SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_8018849C[7] = {
+/// View 8's seven textured background rectangles, with pixel positions and sorting depths.
+static SpriteSource _gDryfieldDilapidatedHouseView8SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, -120, 375, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, -120, 375, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -32, -120, 375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -1218,13 +1247,15 @@ SpriteSource D_dryfield_dilapidated_house_8018849C[7] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, 16, -88, 750, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188528[3] = {
+/// View 8's complete sprite range after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldDilapidatedHouseView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_80188540[23] = {
+/// View 9's 23 textured background rectangles, with pixel positions and sorting depths.
+static SpriteSource _gDryfieldDilapidatedHouseView9SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 88 } }, -160, -48, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 88 } }, -144, -48, 625, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 88 } }, -128, -48, 625, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
@@ -1250,18 +1281,21 @@ SpriteSource D_dryfield_dilapidated_house_80188540[23] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, 144, 72, 625, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_8018870C[3] = {
+/// View 9's complete sprite range after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 23, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldDilapidatedHouseView9SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_80188724[2] = {
+/// View 10's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_dilapidated_house_80188734[18] = {
+/// View 11's 18 textured background rectangles, with pixel positions and sorting depths.
+static SpriteSource _gDryfieldDilapidatedHouseView11SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 112, 175, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, 40, 312, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -152, 32, 337, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
@@ -1282,13 +1316,15 @@ SpriteSource D_dryfield_dilapidated_house_80188734[18] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 104, 175, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_8018889C[3] = {
+/// View 11's complete sprite range after the image-strip selector, then the end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView11SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 18, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldDilapidatedHouseView11SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_dilapidated_house_801888B4[2] = {
+/// View 12's empty sprite list, retaining decoded image strips and its end marker.
+static SpriteBatch _gDryfieldDilapidatedHouseView12SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -1381,18 +1417,18 @@ SpriteBatch D_dryfield_dilapidated_house_80188BFC[2] = {
 };
 
 SpriteView D_dryfield_dilapidated_house_80188C0C[21] = {
-    { { .empty = D_dryfield_dilapidated_house_801875FC }, D_dryfield_dilapidated_house_801875FC, NULL },
-    { { .elements = D_dryfield_dilapidated_house_8018760C }, D_dryfield_dilapidated_house_80187B48, NULL },
-    { { .elements = D_dryfield_dilapidated_house_80187B70 }, D_dryfield_dilapidated_house_8018805C, NULL },
-    { { .elements = D_dryfield_dilapidated_house_8018807C }, D_dryfield_dilapidated_house_801881D0, NULL },
-    { { .elements = D_dryfield_dilapidated_house_801881E8 }, D_dryfield_dilapidated_house_80188260, NULL },
-    { { .elements = D_dryfield_dilapidated_house_80188278 }, D_dryfield_dilapidated_house_80188340, NULL },
-    { { .elements = D_dryfield_dilapidated_house_80188358 }, D_dryfield_dilapidated_house_80188484, NULL },
-    { { .elements = D_dryfield_dilapidated_house_8018849C }, D_dryfield_dilapidated_house_80188528, NULL },
-    { { .elements = D_dryfield_dilapidated_house_80188540 }, D_dryfield_dilapidated_house_8018870C, NULL },
-    { { .empty = D_dryfield_dilapidated_house_80188724 }, D_dryfield_dilapidated_house_80188724, NULL },
-    { { .elements = D_dryfield_dilapidated_house_80188734 }, D_dryfield_dilapidated_house_8018889C, NULL },
-    { { .empty = D_dryfield_dilapidated_house_801888B4 }, D_dryfield_dilapidated_house_801888B4, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView1SpriteBatches }, _gDryfieldDilapidatedHouseView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView2SpriteSources }, _gDryfieldDilapidatedHouseView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView3SpriteSources }, _gDryfieldDilapidatedHouseView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView4SpriteSources }, _gDryfieldDilapidatedHouseView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView5SpriteSources }, _gDryfieldDilapidatedHouseView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView6SpriteSources }, _gDryfieldDilapidatedHouseView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView7SpriteSources }, _gDryfieldDilapidatedHouseView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView8SpriteSources }, _gDryfieldDilapidatedHouseView8SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView9SpriteSources }, _gDryfieldDilapidatedHouseView9SpriteBatches, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView10SpriteBatches }, _gDryfieldDilapidatedHouseView10SpriteBatches, NULL },
+    { { .elements = _gDryfieldDilapidatedHouseView11SpriteSources }, _gDryfieldDilapidatedHouseView11SpriteBatches, NULL },
+    { { .empty = _gDryfieldDilapidatedHouseView12SpriteBatches }, _gDryfieldDilapidatedHouseView12SpriteBatches, NULL },
     { { .elements = D_dryfield_dilapidated_house_801888C4 }, D_dryfield_dilapidated_house_80188A68, NULL },
     { { .elements = D_dryfield_dilapidated_house_80188A80 }, D_dryfield_dilapidated_house_80188B84, NULL },
     { { .empty = D_dryfield_dilapidated_house_80188B9C }, D_dryfield_dilapidated_house_80188B9C, NULL },
@@ -2369,8 +2405,17 @@ static u8 _gDryfieldDilapidatedHouseUnreferencedData[] = {
     0xF3,
 };
 
-WorldCoordRoomLights D_dryfield_dilapidated_house_801898FC[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldDilapidatedHousePointLights), _gDryfieldDilapidatedHousePointLights, ARRAY_SIZE(_gDryfieldDilapidatedHouseConeLights), _gDryfieldDilapidatedHouseConeLights },
+/// The room's eight point lights and one cone light for model shading.
+///
+/// No directional lights are authored. The light arrays stay writable for
+/// coordinate composition and query attenuation while this overlay is loaded.
+static WorldCoordRoomLights _gDryfieldDilapidatedHouseRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldDilapidatedHousePointLights),
+    .pointLights           = _gDryfieldDilapidatedHousePointLights,
+    .coneLightCount        = ARRAY_SIZE(_gDryfieldDilapidatedHouseConeLights),
+    .coneLights            = _gDryfieldDilapidatedHouseConeLights,
 };
 
 AreaResource D_dryfield_dilapidated_house_80189914[3] = {
@@ -2395,8 +2440,12 @@ AreaVariant D_dryfield_dilapidated_house_80189938[13] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_dilapidated_house_801899A0[22] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_dilapidated_house_801899A0) - 1 },
+/// Minimum ambient RGB for logical views 1..21, preceded by their count.
+///
+/// Colours use 16 units per 8-bit channel level. Lighting reads these minima
+/// while the room overlay is loaded. Keep the authored data-section placement.
+static const WorldCoordRoomAmbientEntry _gDryfieldDilapidatedHouseAmbientByView[22] SECTION(".data") = {
+    { .viewCount = ARRAY_SIZE(_gDryfieldDilapidatedHouseAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
@@ -2420,39 +2469,71 @@ WorldCoordRoomAmbientEntry D_dryfield_dilapidated_house_801899A0[22] = {
     { .color = { 750, 750, 750, 750 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_dilapidated_house_80189A50 = {
-    0x10000045,
-    0x10000047,
-    0x10000045,
+enum {
+    DRYFIELD_DILAPIDATED_HOUSE_CLASS_1_WALK_ENTRY = 0x45,
+    DRYFIELD_DILAPIDATED_HOUSE_CLASS_1_RUN_ENTRY  = 0x47,
+    DRYFIELD_DILAPIDATED_HOUSE_CLASS_2_WALK_ENTRY = 0x4D,
+    DRYFIELD_DILAPIDATED_HOUSE_CLASS_2_RUN_ENTRY  = 0x4F,
 };
 
-WorldCollisionFootstepSounds D_dryfield_dilapidated_house_80189A5C = {
-    0x1000004D,
-    0x1000004F,
-    0x1000004D,
+/// Surface class 1's walk/run cue bases in the loaded type-1 sound bank.
+///
+/// Scripted jumps use the walk base; cue 1 adds one and companion cues add
+/// 100. Surface properties borrow this read-only record while the room is loaded.
+/// Data-section placement preserves the authored layout.
+static const WorldCollisionFootstepSounds _gDryfieldDilapidatedHouseClass1FootstepSounds SECTION(".data") = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_DILAPIDATED_HOUSE_CLASS_1_WALK_ENTRY,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_DILAPIDATED_HOUSE_CLASS_1_RUN_ENTRY,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_DILAPIDATED_HOUSE_CLASS_1_WALK_ENTRY,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_dilapidated_house_80189A68[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 2's distinct walk/run cue bases in the loaded type-1 bank.
+///
+/// Scripted jumps use the walk base; cue 1 adds one and companion cues add
+/// 100. Surface properties borrow this read-only record while the room is loaded.
+/// Data-section placement preserves the authored layout.
+static const WorldCollisionFootstepSounds _gDryfieldDilapidatedHouseClass2FootstepSounds SECTION(".data") = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_DILAPIDATED_HOUSE_CLASS_2_WALK_ENTRY,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_DILAPIDATED_HOUSE_CLASS_2_RUN_ENTRY,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | DRYFIELD_DILAPIDATED_HOUSE_CLASS_2_WALK_ENTRY,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_dilapidated_house_80189A70[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_dilapidated_house_80189A50 },
+/// Blocking, impact-enabled surface for classes 0 and 3..7, without footsteps.
+static WorldCollisionSurfaceProperties _gDryfieldDilapidatedHouseSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_dilapidated_house_80189A78[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_dilapidated_house_80189A5C },
+/// Class 1's blocking, impact-enabled surface with pushback and footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldDilapidatedHouseClass1Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldDilapidatedHouseClass1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_dilapidated_house_80189A80[8] = {
-    D_dryfield_dilapidated_house_80189A68,
-    D_dryfield_dilapidated_house_80189A70,
-    D_dryfield_dilapidated_house_80189A78,
-    D_dryfield_dilapidated_house_80189A68,
-    D_dryfield_dilapidated_house_80189A68,
-    D_dryfield_dilapidated_house_80189A68,
-    D_dryfield_dilapidated_house_80189A68,
-    D_dryfield_dilapidated_house_80189A68,
+/// Class 2's blocking, impact-enabled surface with pushback and distinct footsteps.
+static WorldCollisionSurfaceProperties _gDryfieldDilapidatedHouseClass2Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldDilapidatedHouseClass2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldDilapidatedHouseSurfacePropertiesByClass[8] = {
+    &_gDryfieldDilapidatedHouseSilentSurface,
+    &_gDryfieldDilapidatedHouseClass1Surface,
+    &_gDryfieldDilapidatedHouseClass2Surface,
+    &_gDryfieldDilapidatedHouseSilentSurface,
+    &_gDryfieldDilapidatedHouseSilentSurface,
+    &_gDryfieldDilapidatedHouseSilentSurface,
+    &_gDryfieldDilapidatedHouseSilentSurface,
+    &_gDryfieldDilapidatedHouseSilentSurface,
 };
 
 AreaApplyRec D_dryfield_dilapidated_house_80189AA0[33] = {

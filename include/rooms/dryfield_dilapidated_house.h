@@ -16,11 +16,21 @@ extern AreaVariant D_dryfield_dilapidated_house_80189938[13];
 // dryfield_dilapidated_house
 extern WorldCollisionRoomResources D_dryfield_dilapidated_house_80186954[];
 
-extern u8* D_dryfield_dilapidated_house_80186964[];
+/// The room-1 directory mapping logical views 1..21 to the same camera/image indices.
+///
+/// Borrows gameplay's 50-byte identity map; only the first 21 entries are used
+/// by this room. The Dryfield map selects the directory at area 9, room 1.
+/// This one-entry directory stays valid while the room overlay is loaded.
+extern u8* gDryfieldDilapidatedHouseRoomViewMaps[1];
 
 extern ViewCount D_dryfield_dilapidated_house_80186968[];
 
-extern WorldCoordRoomLighting D_dryfield_dilapidated_house_8018696C[];
+/// Room 1's authored lights and minimum ambient levels for logical views 1..21.
+///
+/// The Dryfield map selects this one-entry room array at area 9. It borrows
+/// mutable point/cone lights and a read-only ambient table from this overlay;
+/// all must remain loaded through lighting updates and queries.
+extern WorldCoordRoomLighting gDryfieldDilapidatedHouseRoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_dilapidated_house_80186974[];
 
@@ -28,7 +38,13 @@ extern ViewCamera D_dryfield_dilapidated_house_80187308[];
 
 extern SpriteView D_dryfield_dilapidated_house_80188C0C[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_dilapidated_house_80189A80[];
+/// Collision policies and footstep cues for the room's surface classes 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Classes 1 and 2 have distinct footsteps; classes 0 and 3..7 share a silent
+/// surface. The Dryfield map selects this directory at area 9. Records and
+/// sound tables stay borrowed only while the room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldDilapidatedHouseSurfacePropertiesByClass[8];
 
 /// Draws the room's three pulsing light prisms selected by the current view.
 ///
