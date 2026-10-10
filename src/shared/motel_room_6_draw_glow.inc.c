@@ -14,10 +14,10 @@ void MOTEL_ROOM_6_DRAW_GLOW_TASK(Task* unusedTask)
     switch (mappedViewIndex) {
         case 3:
         case 4:
-            _glowDrawWideDiamond(gMotelRoom6GlowPos, MOTEL_ROOM_6_GLOW_PULSE_RATE, MOTEL_ROOM_6_GLOW_WIDE_DIAMOND_RADIUS_SCALE);
+            _glowDrawWideDiamond(&_gMotelRoom6GlowPosition, MOTEL_ROOM_6_GLOW_PULSE_RATE, MOTEL_ROOM_6_GLOW_WIDE_DIAMOND_RADIUS_SCALE);
             break;
         case 12:
-            _glowDrawPulsingDisc(gMotelRoom6GlowPos, MOTEL_ROOM_6_GLOW_PULSE_RATE, MOTEL_ROOM_6_GLOW_DISC_RADIUS_SCALE);
+            _glowDrawPulsingDisc(&_gMotelRoom6GlowPosition, MOTEL_ROOM_6_GLOW_PULSE_RATE, MOTEL_ROOM_6_GLOW_DISC_RADIUS_SCALE);
             break;
     }
 }

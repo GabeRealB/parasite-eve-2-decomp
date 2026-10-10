@@ -72,6 +72,15 @@
 static void _roomCutsceneTask(Task* task);
 
 static s32 _roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+
+/// Singleton playback configuration for motel room 6's command-22 cutscene.
+///
+/// Selects view 12 and CAP slot 1. Story chapter and stage select the CAP file
+/// and texture-page X; texture-page Y retains its zero-initialized value.
+/// The scene runner borrows this writable record through completion. Keep the
+/// overlay loaded and do not reconfigure it while that runner is using it.
+static RoomCutsceneRec _gMotelRoom6CutsceneRec;
+
 /// Selects the nighttime motel room 6 glow export.
 ///
 /// Keep this binding through all motel room 6 implementation fragments.
@@ -98,8 +107,6 @@ extern TaskMessageEntry D_dryfield_night_motel_room_6_80182EB0[];
 /// `_dryfieldNightMotelRoom6RestTask`.
 extern TaskDesc D_dryfield_night_motel_room_6_80182EE0;
 
-/// World position the room's marker is drawn at.
-
 /// Area-record patch lists the story task applies as it ends.
 extern AreaApplyRec D_dryfield_night_motel_room_6_80186270[];
 extern AreaApplyRec D_dryfield_night_motel_room_6_801862B0[];
@@ -107,9 +114,6 @@ extern AreaApplyRec D_dryfield_night_motel_room_6_801862B0[];
 /// The sound task the cutscene task spawned, killed when the player skips the
 /// scene.
 extern Task* gRoomCutsceneSoundTask;
-
-/// Script record the room's event handler fills in and hands to the cutscene
-/// task as its `spawnArg2`.
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xDF\xDC"
 #include "../../shared/telephone.h"
@@ -179,9 +183,10 @@ TaskDesc D_dryfield_night_motel_room_6_80182EE0 = { { { TASK_BODY_NONE, 32 } }, 
 
 TaskDesc D_dryfield_night_motel_room_6_80182EEC = { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelRoom6RestTask, { .value = 0 } };
 
-SVECTOR gMotelRoom6GlowPos[1] = {
-    { 550, -850, 5170, 0 },
-};
+/// Fixed world-space centre of motel room 6's cyan glow, in game-coordinate units.
+///
+/// The glow drawers borrow this point for one frame and do not modify it.
+static const SVECTOR _gMotelRoom6GlowPosition SECTION(".data") = { 550, -850, 5170, 0 };
 
 WorldCoordRoomLighting gDryfieldNightMotelRoom6RoomLighting[1] = {
     { .lights = &_gDryfieldNightMotelRoom6Lights, .ambientTable = NULL },
@@ -1074,8 +1079,6 @@ AreaApplyRec D_dryfield_night_motel_room_6_801862B0[1] = {
 };
 
 Task* gRoomCutsceneSoundTask = NULL;
-
-RoomCutsceneRec gMotelRoom6CutsceneRec;
 
 #include "../../shared/telephone.inc.c"
 

@@ -26,32 +26,32 @@ static s32 _motelRoom6CutsceneMessage(Task* task, s32 messageId, s32 command, s3
     // Retain untouched record fields; the runner borrows this singleton.
     followUpCommand = 0;
     if (command == MOTEL_ROOM_6_COMMAND_CUTSCENE) {
-        gMotelRoom6CutsceneRec.view    = MOTEL_ROOM_6_CUTSCENE_VIEW;
-        gMotelRoom6CutsceneRec.capSlot = MOTEL_ROOM_6_CUTSCENE_CAP_SLOT;
+        _gMotelRoom6CutsceneRec.view    = MOTEL_ROOM_6_CUTSCENE_VIEW;
+        _gMotelRoom6CutsceneRec.capSlot = MOTEL_ROOM_6_CUTSCENE_CAP_SLOT;
         switch (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER)) {
             case 0 ... 3:
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    followUpCommand                  = MOTEL_ROOM_6_CAP_DAY_FOLLOW_UP;
-                    gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_RIGHT_X;
-                    gMotelRoom6CutsceneRec.capFile   = MOTEL_ROOM_6_FIRST_CAP_FILE;
+                    followUpCommand                   = MOTEL_ROOM_6_CAP_DAY_FOLLOW_UP;
+                    _gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_RIGHT_X;
+                    _gMotelRoom6CutsceneRec.capFile   = MOTEL_ROOM_6_FIRST_CAP_FILE;
                 } else {
-                    followUpCommand                  = MOTEL_ROOM_6_CAP_LATER_FOLLOW_UP;
-                    gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_LEFT_X;
-                    gMotelRoom6CutsceneRec.capFile   = MOTEL_ROOM_6_FIRST_CAP_FILE;
+                    followUpCommand                   = MOTEL_ROOM_6_CAP_LATER_FOLLOW_UP;
+                    _gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_LEFT_X;
+                    _gMotelRoom6CutsceneRec.capFile   = MOTEL_ROOM_6_FIRST_CAP_FILE;
                 }
                 break;
             case 4 ... 6:
-                followUpCommand                  = MOTEL_ROOM_6_CAP_LATER_FOLLOW_UP;
-                gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_RIGHT_X;
-                gMotelRoom6CutsceneRec.capFile   = followUpCommand;
+                followUpCommand                   = MOTEL_ROOM_6_CAP_LATER_FOLLOW_UP;
+                _gMotelRoom6CutsceneRec.capTPageX = MOTEL_ROOM_6_CAP_TPAGE_RIGHT_X;
+                _gMotelRoom6CutsceneRec.capFile   = followUpCommand;
                 break;
         }
-        gMotelRoom6CutsceneRec.skipScene       = 0;
-        gMotelRoom6CutsceneRec.startSound      = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_START);
-        gMotelRoom6CutsceneRec.endSound        = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_END);
-        gMotelRoom6CutsceneRec.sceneSound      = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_TRACK);
-        gMotelRoom6CutsceneRec.afterSceneSound = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_COMPLETE);
-        taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, followUpCommand, &gMotelRoom6CutsceneRec);
+        _gMotelRoom6CutsceneRec.skipScene       = 0;
+        _gMotelRoom6CutsceneRec.startSound      = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_START);
+        _gMotelRoom6CutsceneRec.endSound        = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_END);
+        _gMotelRoom6CutsceneRec.sceneSound      = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_TRACK);
+        _gMotelRoom6CutsceneRec.afterSceneSound = sndScriptResolveStageId(SOUND_MOTEL_ROOM_6_SCENE_COMPLETE);
+        taskSpawnFromTable(_gRoomCutsceneTaskDescs, ROOM_CUTSCENE_TASK_SCENE, followUpCommand, &_gMotelRoom6CutsceneRec);
     } else {
         MOTEL_ROOM_6_HANDLE_OTHER_COMMAND(task, messageId, command, secondArg);
     }

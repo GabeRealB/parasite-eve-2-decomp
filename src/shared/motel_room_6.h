@@ -1,5 +1,7 @@
 /* Dryfield motel room 6's cutscene trigger and its glow, the same in the day and
- * night builds. Each build keeps its own cutscene record and glow position.
+ * night builds. Each carrier supplies its private _gMotelRoom6CutsceneRec
+ * and _gMotelRoom6GlowPosition before including the implementation fragments.
+ * The cutscene record is writable; the glow position is a const SVECTOR point.
  *
  * Include this header in the prologue and each fragment at its function's
  * position.
@@ -8,18 +10,7 @@
 #ifndef SRC_SHARED_MOTEL_ROOM_6_H
 #define SRC_SHARED_MOTEL_ROOM_6_H
 
-#include "types.h"
-
-#include "main/task_types.h"
-
 #include "dryfield_time.h"
-
-/// The cutscene record the 0x16 event fills in and spawns the cutscene task on.
-/// An uninitialized common: the image places commons in first-declaration
-/// order, so a room declares it before including this header.
-extern RoomCutsceneRec gMotelRoom6CutsceneRec;
-/// Where the room's glow is drawn.
-extern SVECTOR gMotelRoom6GlowPos[];
 
 /// Binds the shared glow task definition to its room overlay's public export.
 ///

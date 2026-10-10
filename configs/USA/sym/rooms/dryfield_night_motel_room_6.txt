@@ -42,7 +42,7 @@ _gRoomCutsceneTaskDescs = 0x80182E8C; // size:0x24 defined:True
 D_dryfield_night_motel_room_6_80182EB0 = 0x80182EB0; // size:0x30 defined:True
 D_dryfield_night_motel_room_6_80182EE0 = 0x80182EE0; // size:0xC defined:True
 D_dryfield_night_motel_room_6_80182EEC = 0x80182EEC; // size:0xC defined:True
-gMotelRoom6GlowPos = 0x80182EF8; // size:0x8 defined:True
+_gMotelRoom6GlowPosition = 0x80182EF8; // size:0x8 defined:True
 gDryfieldNightMotelRoom6RoomLighting = 0x80182F00; // size:0x8 defined:True
 D_dryfield_night_motel_room_6_80182F08 = 0x80182F08; // size:0x10 defined:True
 gDryfieldNightMotelRoom6ViewMaps = 0x80182F18; // size:0x4 defined:True
@@ -90,7 +90,7 @@ gDryfieldNightMotelRoom6SurfacePropertiesByClass = 0x80186250; // size:0x20 defi
 D_dryfield_night_motel_room_6_80186270 = 0x80186270; // size:0x40 defined:True
 D_dryfield_night_motel_room_6_801862B0 = 0x801862B0; // size:0x4 defined:True
 gRoomCutsceneSoundTask = 0x801862B4; // size:0x4 defined:True
-gMotelRoom6CutsceneRec = 0x801862B8; // size:0x18 defined:True
+_gMotelRoom6CutsceneRec = 0x801862B8; // size:0x18 defined:True
 
 dryfieldNightMotelRoom6TelephoneMenuTask = 0x8017EA74; // type:func
 

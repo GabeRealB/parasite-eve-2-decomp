@@ -11,12 +11,22 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_dryfield_motel_room_6_80182D0C[2];
+/// Player and held-model reflection recipes for daytime motel room 6.
+///
+/// Slots 0 and 1 are bodyless tasks at priority 112, without a terminator.
+/// Player spawnArg1.value = 1 selects the room mirror plane; attachment
+/// spawnArg2.pointer borrows the player reflection task. Spawning copies
+/// the descriptor; its callbacks and borrowed geometry must remain loaded.
+extern TaskDesc gDryfieldMotelRoom6ReflectionTaskDescs[2];
 
 extern AreaVariant D_dryfield_motel_room_6_80186764[12];
 
-// dryfield_motel_room_6
-extern WorldCollisionRoomResources D_dryfield_motel_room_6_80182D98[];
+/// Collision resources for daytime motel room 6's single room.
+///
+/// Room 1 borrows the grid, ten view boundaries and fifteen action triggers;
+/// there are no sight occluders. Keep this overlay loaded while the grid is
+/// active or any trigger is linked. The room directory has no terminator.
+extern WorldCollisionRoomResources gDryfieldMotelRoom6RoomCollisionResources[1];
 
 /// Logical-view maps for daytime motel room 6's single room.
 ///
@@ -25,7 +35,12 @@ extern WorldCollisionRoomResources D_dryfield_motel_room_6_80182D98[];
 /// remains valid only while this room overlay is loaded.
 extern u8* gDryfieldMotelRoom6RoomViewMaps[1];
 
-extern ViewCount D_dryfield_motel_room_6_80182DAC[];
+/// Logical-view reverse-search count for daytime motel room 6's single room.
+///
+/// Room 1 searches twelve entries in its identity map. This signed element
+/// count is independent of that map's capacity; the array has no terminator
+/// and remains valid only while this overlay is loaded.
+extern ViewCount gDryfieldMotelRoom6RoomViewCounts[1];
 
 /// Authored lights and per-view ambient minima for daytime motel room 6.
 ///
@@ -34,11 +49,31 @@ extern ViewCount D_dryfield_motel_room_6_80182DAC[];
 /// and must remain loaded while queried or composed.
 extern WorldCoordRoomLighting gDryfieldMotelRoom6RoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_motel_room_6_80182DB8[];
+/// Balcony and water-tower warp endpoints for daytime motel room 6.
+///
+/// Slots 1 and 2 select room views 2 and 5, respectively. Both place the
+/// player and companion at the same room-coordinate point. The water-tower
+/// departure fades; balcony arrival marks its map nibble. No terminator is
+/// stored. Consumers borrow or copy these entries while the overlay is loaded.
+extern DirectionWarpEntry gDryfieldMotelRoom6WarpEntries[2];
 
-extern ViewCamera D_dryfield_motel_room_6_80183840[];
+/// Camera transforms and perspective distances for daytime motel room 6's twelve views.
+///
+/// The identity view map selects entries at mapped index minus one. Rotation
+/// coefficients use `ONE` per unit, translation is the negated world-space
+/// camera origin, and perspective distance is in pixels. There is no terminator;
+/// the map and room overlays must remain loaded during camera lookup.
+extern ViewCamera gDryfieldMotelRoom6ViewCameras[12];
 
-extern SpriteView D_dryfield_motel_room_6_801856CC[];
+/// Borrowed sprite lists for daytime motel room 6's twelve mapped views.
+///
+/// Indexed by mapped view minus one, without a terminator. Views 1, 6, 9, 11
+/// and 12 have no source sprites; their retained source-slot addresses identify
+/// empty batch lists. View 10 selects all 28 of its sources. Every batch list
+/// starts with a zero-count background selector and ends at SPRITE_BATCH_END;
+/// no view supplies draw-area clips. Keep the overlay loaded while accessing
+/// these mutable records or allocating/linking their cached packets.
+extern SpriteView gDryfieldMotelRoom6SpriteViews[12];
 
 /// Collision policies and footstep cues for daytime motel room 6's surface classes.
 ///

@@ -82,26 +82,23 @@ static void _roomCutsceneSoundTask(Task* task);
 
 /// Area-record patch list applied when the cutscene advances the story flags.
 
-/// The room's message table, installed on the room entry task.
-extern TaskMessageEntry D_dryfield_motel_room_6_80182D48[];
-
-/// Task table whose entry 0 runs the room's event task
-/// `_dryfieldMotelRoom6RunActorEventTask`.
-extern TaskDesc D_dryfield_motel_room_6_80182D78[];
-
-/// World position the room's marker is drawn at.
-
-/// The event task `_dryfieldMotelRoom6RunActorEventTask` spawned and waits on.
-extern Task* D_dryfield_motel_room_6_80186828;
+/// Live scene actor awaited by the room's actor-event runner until its stop handshake.
+///
+/// Spawn publishes this handle; polling dispatches the actor's requested exit.
+/// Stop using it after a successful poll: it is left uncleared and may be stale.
+static Task* _gDryfieldMotelRoom6SceneActorTask;
 
 /// The sound task the cutscene task spawned, killed when the player skips the
 /// scene.
 extern Task* gRoomCutsceneSoundTask;
 
-/// Script record the room's event handler fills in and hands to the cutscene
-/// task as its `spawnArg2`. It is a common, placed in first-declaration order,
-/// so it is declared here, after its neighbours and before the library header.
-extern RoomCutsceneRec gMotelRoom6CutsceneRec;
+/// Singleton playback configuration for motel room 6's command-22 cutscene.
+///
+/// Selects view 12 and CAP slot 1. Story chapter and stage select the CAP file
+/// and texture-page X; texture-page Y retains its zero-initialized value.
+/// The scene runner borrows this writable record through completion. Keep the
+/// overlay loaded and do not reconfigure it while that runner is using it.
+static RoomCutsceneRec _gMotelRoom6CutsceneRec;
 
 /// Selects the daytime motel room 6 glow export.
 ///
@@ -112,9 +109,6 @@ extern RoomCutsceneRec gMotelRoom6CutsceneRec;
 static s32 _motelRoom6CutsceneMessage(Task* task, s32 messageId, s32 command, s32 secondArg);
 
 static void _dryfieldMotelRoom6IgnoreCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg);
-
-/// Script record the room's event handler fills in and hands to the cutscene
-/// task as its `spawnArg2`.
 
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xFF\x1F"
 #include "../../shared/telephone.h"
@@ -129,8 +123,8 @@ static void _dryfieldMotelRoom6InitRoomTask(Task* task);
 static void _dryfieldMotelRoom6IdleTask(Task* unusedTask);
 
 static WorldCollisionGrid               _gDryfieldMotelRoom6CollisionGrid;
-extern WorldCollisionTrigger            D_dryfield_motel_room_6_8018575C[10];
-extern WorldCollisionTrigger            D_dryfield_motel_room_6_80185A54[15];
+static WorldCollisionTrigger            _gDryfieldMotelRoom6ViewBoundaryTriggers[10];
+static WorldCollisionTrigger            _gDryfieldMotelRoom6ActionTriggers[15];
 static const WorldCoordRoomAmbientEntry _gDryfieldMotelRoom6AmbientByView[13] SECTION(".data");
 static WorldCoordRoomLights             _gDryfieldMotelRoom6RoomLights;
 static s32                              _dryfieldMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg);
@@ -146,9 +140,15 @@ enum { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 #include "../../shared/planar_reflection_data.inc.c"
 
-TaskDesc D_dryfield_motel_room_6_80182D0C[2] = {
-    { { { TASK_BODY_NONE, 112 } }, dryfieldMotelRoom6PlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
+/// Execution priority shared by this carrier's two reflection recipes.
+enum { DRYFIELD_MOTEL_ROOM_6_REFLECTION_TASK_PRIORITY = 112 };
+
+/// Execution priority of this room's bodyless actor-event runner.
+enum { DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_TASK_PRIORITY = 32 };
+
+TaskDesc gDryfieldMotelRoom6ReflectionTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_MOTEL_ROOM_6_REFLECTION_TASK_PRIORITY } }, dryfieldMotelRoom6PlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRYFIELD_MOTEL_ROOM_6_REFLECTION_TASK_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// Borrows this overlay's two reflection task descriptors.
@@ -158,7 +158,7 @@ TaskDesc D_dryfield_motel_room_6_80182D0C[2] = {
 /// while the overlay is loaded; the caller neither owns nor copies the table.
 static inline TaskDesc* _planarReflectionGetTaskTable(void)
 {
-    return D_dryfield_motel_room_6_80182D0C;
+    return gDryfieldMotelRoom6ReflectionTaskDescs;
 }
 
 /// This carrier's bodyless scene runner and timed sound task, followed by END.
@@ -173,7 +173,12 @@ static TaskDesc _gRoomCutsceneTaskDescs[ROOM_CUTSCENE_TASK_DESCRIPTOR_COUNT] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-TaskMessageEntry D_dryfield_motel_room_6_80182D48[6] = {
+/// Room receiver routes for transitions, key items, actions, sounds and commands.
+///
+/// Five synchronous callbacks followed by TASK_MESSAGE_TABLE_END. The room task
+/// borrows this table for its lifetime; callback arguments follow each message's
+/// contract. The terminal record is not dispatched.
+static TaskMessageEntry _gDryfieldMotelRoom6MessageTable[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom6GateWaterTowerExit },
     { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom6RejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelRoom6HandleRoomAction },
@@ -182,32 +187,72 @@ TaskMessageEntry D_dryfield_motel_room_6_80182D48[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_motel_room_6_80182D78[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _dryfieldMotelRoom6RunActorEventTask, { .value = 0 } },
+/// Bodyless actor-event runner recipe, followed by TASK_DESC_END.
+///
+/// Entry 0 runs at priority 32 with unused spawn arguments. The action-zero
+/// receiver spawns it once, after latching progress. Spawning copies the recipe;
+/// keep this room and actor_120500 loaded until the event's stop handshake ends.
+static TaskDesc _gDryfieldMotelRoom6ActorEventTaskDescs[2] = {
+    { { { TASK_BODY_NONE, DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_TASK_PRIORITY } }, _dryfieldMotelRoom6RunActorEventTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-SVECTOR gMotelRoom6GlowPos[1] = {
-    { 550, -850, 5170, 0 },
-};
+/// Fixed world-space centre of motel room 6's cyan glow, in game-coordinate units.
+///
+/// The glow drawers borrow this point for one frame and do not modify it.
+static const SVECTOR _gMotelRoom6GlowPosition SECTION(".data") = { 550, -850, 5170, 0 };
 
-WorldCollisionRoomResources D_dryfield_motel_room_6_80182D98[1] = {
-    { &_gDryfieldMotelRoom6CollisionGrid, D_dryfield_motel_room_6_8018575C, D_dryfield_motel_room_6_80185A54, NULL },
+WorldCollisionRoomResources gDryfieldMotelRoom6RoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldMotelRoom6CollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldMotelRoom6ViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldMotelRoom6ActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* gDryfieldMotelRoom6RoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_motel_room_6_80182DAC[1] = { 12 };
+ViewCount gDryfieldMotelRoom6RoomViewCounts[1] = { ARRAY_SIZE(gDryfieldMotelRoom6ViewCameras) };
 
 WorldCoordRoomLighting gDryfieldMotelRoom6RoomLighting[1] = {
     { .lights = &_gDryfieldMotelRoom6RoomLights, .ambientTable = _gDryfieldMotelRoom6AmbientByView },
 };
 
-DirectionWarpEntry D_dryfield_motel_room_6_80182DB8[2] = {
-    { { { .word = 3072 }, 4350, 0, 1500 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4350, 0, 1500 }, { 0, 0, 0, 0 }, 0x521E0002, 0x521E0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 465 },
-    { { { .word = 1024 }, 715, 0, 6640 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 715, 0, 6640 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x521E0003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Endpoint headings in 4096 units per turn, and the balcony entrance's map nibble.
+enum {
+    DRYFIELD_MOTEL_ROOM_6_BALCONY_WARP_YAW     = 3072,
+    DRYFIELD_MOTEL_ROOM_6_WATER_TOWER_WARP_YAW = 1024,
+    DRYFIELD_MOTEL_ROOM_6_BALCONY_MAP_FLAG     = 465,
+};
+
+DirectionWarpEntry gDryfieldMotelRoom6WarpEntries[2] = {
+    {
+        .player         = { { .word = DRYFIELD_MOTEL_ROOM_6_BALCONY_WARP_YAW }, 4350, 0, 1500 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = DRYFIELD_MOTEL_ROOM_6_BALCONY_WARP_YAW }, 4350, 0, 1500 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_6, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_6, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_MOTEL_ROOM_6_BALCONY_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = DRYFIELD_MOTEL_ROOM_6_WATER_TOWER_WARP_YAW }, 715, 0, 6640 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = DRYFIELD_MOTEL_ROOM_6_WATER_TOWER_WARP_YAW }, 715, 0, 6640 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_6, 3),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 /// Unit normals for the room's collision faces, in room axes with 4096 per unit.
@@ -259,8 +304,8 @@ static WorldCollisionGrid _gDryfieldMotelRoom6CollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldMotelRoom6CollisionGridFaces),
 };
 
-ViewCamera D_dryfield_motel_room_6_80183840[12] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x3656, -4000 } }, 289 },
+ViewCamera gDryfieldMotelRoom6ViewCameras[12] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -2500, 0x3656, -4000 } }, 289 },
     { { { { -3958, 0, -1051 }, { -55, 4090, 209 }, { 1049, 216, -3953 } }, { -1150, 1360, -5850 } }, 221 },
     { { { { 3963, 0, -1033 }, { -53, 4090, -206 }, { 1032, 213, 3957 } }, { -1200, 1360, -200 } }, 216 },
     { { { { 3992, 0, -914 }, { -253, 3935, -1106 }, { 879, 1134, 3836 } }, { -1000, 1960, -2700 } }, 246 },
@@ -270,7 +315,7 @@ ViewCamera D_dryfield_motel_room_6_80183840[12] = {
     { { { { 4092, 0, -163 }, { -99, 3249, -2491 }, { 129, 2493, 3246 } }, { -3350, 2390, -5000 } }, 246 },
     { { { { -3961, 0, -1041 }, { -524, 3537, 1997 }, { 899, 2065, -3421 } }, { -2523, 1553, -1908 } }, 282 },
     { { { { 1777, 0, 3690 }, { -2798, 2670, 1347 }, { -2405, -3105, 1158 } }, { -1947, 0x2BC9, 3461 } }, 257 },
-    { { { { 1823, 0, 3667 }, { 2, 4096, -1 }, { -3667, 2, 1823 } }, { -7945, 4655, 5950 } }, 230 },
+    { { { { 1823, 0, 3667 }, { 2, ONE, -1 }, { -3667, 2, 1823 } }, { -7945, 4655, 5950 } }, 230 },
     { { { { 887, 0, 3998 }, { 2647, 3069, -587 }, { -2996, 2711, 665 } }, { -1401, 1658, -4928 } }, 680 },
 };
 
@@ -717,60 +762,89 @@ static SpriteBatch _gDryfieldMotelRoom6View8SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_motel_room_6_8018544C[2] = {
+/// View 9's empty sprite list, retaining decoded background image strips.
+///
+/// The first record selects the background; the second ends the list. Its
+/// retained source-slot address is not a source array and is never dereferenced.
+static SpriteBatch _gDryfieldMotelRoom6View9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_motel_room_6_8018545C[28] = {
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -16, 32, 250, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -16, 72, 250, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 0, 16, 250, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 0, 72, 250, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 16, 0, 250, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 16, 56, 250, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 32, -8, 250, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 32, 56, 250, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 48, -8, 250, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 48, 56, 250, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 64, -16, 250, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 64, 56, 250, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 80, -16, 250, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 80, 56, 250, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 96, -24, 250, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 96, 56, 250, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 112, 56, 250, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 112, -24, 250, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -48, 16, 250, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -40, 0, 250, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -32, -16, 250, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -32, 48, 250, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -24, 24, 250, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -24, -48, 250, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -8, -72, 250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 8, -88, 250, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -88, 250, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, -56, 250, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+/// Encoded 8-bit page at VRAM (960, 0), palette at (0, 255), and neutral RGB modulation.
+enum {
+    DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE = getTPage(1, 0, 960, 0),
+    DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE      = getClut(0, 255),
+    DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB   = 128,
 };
 
-SpriteBatch D_dryfield_motel_room_6_8018568C[4] = {
+/// View 10's 28 texture rectangles, in pixels relative to the view drawing origin.
+///
+/// Batches cover sources [0, 18) and [18, 28) at unscaled sorting depth 250.
+/// The sprite renderer borrows these mutable sources for packet allocation and
+/// per-frame depth lookup; there is no source terminator.
+static SpriteSource _gDryfieldMotelRoom6View10SpriteSources[28] = {
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 40 } }, -16, 32, 250, { .fields = { 24, 48 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 48 } }, -16, 72, 250, { .fields = { 24, 0 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 56 } }, 0, 16, 250, { .fields = { 40, 192 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 48 } }, 0, 72, 250, { .fields = { 80, 208 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 56 } }, 16, 0, 250, { .fields = { 32, 112 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 64 } }, 16, 56, 250, { .fields = { 80, 0 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 64 } }, 32, -8, 250, { .fields = { 80, 144 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 64 } }, 32, 56, 250, { .fields = { 72, 64 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 64 } }, 48, -8, 250, { .fields = { 64, 192 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 64 } }, 48, 56, 250, { .fields = { 64, 128 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 72 } }, 64, -16, 250, { .fields = { 88, 72 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 64 } }, 64, 56, 250, { .fields = { 64, 0 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 72 } }, 80, -16, 250, { .fields = { 96, 152 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 64 } }, 80, 56, 250, { .fields = { 48, 0 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 80 } }, 96, -24, 250, { .fields = { 112, 160 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 64 } }, 96, 56, 250, { .fields = { 48, 64 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 8, 64 } }, 112, 56, 250, { .fields = { 56, 192 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 8, 80 } }, 112, -24, 250, { .fields = { 120, 80 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 8, 56 } }, -48, 16, 250, { .fields = { 40, 0 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 8, 64 } }, -40, 0, 250, { .fields = { 56, 128 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 8, 64 } }, -32, -16, 250, { .fields = { 64, 64 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 8, 56 } }, -32, 48, 250, { .fields = { 40, 56 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 8, 64 } }, -24, 24, 250, { .fields = { 48, 128 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 72 } }, -24, -48, 250, { .fields = { 96, 0 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 80 } }, -8, -72, 250, { .fields = { 112, 0 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 16, 72 } }, 8, -88, 250, { .fields = { 104, 80 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 8, 16 } }, 24, -88, 250, { .fields = { 120, 240 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_MOTEL_ROOM_6_VIEW_10_TEXTURE_PAGE, DRYFIELD_MOTEL_ROOM_6_VIEW_10_PALETTE, { .fields = { 8, 24 } }, 24, -56, 250, { .fields = { 104, 224 } }, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, DRYFIELD_MOTEL_ROOM_6_SPRITE_NEUTRAL_RGB, 0 },
+};
+
+/// View 10's background selector, two contiguous sprite ranges and terminal record.
+///
+/// The ranges select all 28 sources exactly once. All are initially visible
+/// and included in cached packet processing; the two bytes after each range's
+/// visibility controls retain their authored values and have unproven roles.
+static SpriteBatch _gDryfieldMotelRoom6View10SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 18, 0, 0, { 1, 0 } },
-    { 18, 10, 0, 0, { 0, 0 } },
+    { 18, ARRAY_SIZE(_gDryfieldMotelRoom6View10SpriteSources) - 18, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_motel_room_6_801856AC[2] = {
+/// View 11's empty sprite list, retaining decoded background image strips.
+///
+/// A zero-count background selector precedes SPRITE_BATCH_END. The source slot
+/// retains this list's address but supplies no sprite elements.
+static SpriteBatch _gDryfieldMotelRoom6View11SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_motel_room_6_801856BC[2] = {
+/// View 12's empty sprite list, retaining decoded background image strips.
+///
+/// A zero-count background selector precedes SPRITE_BATCH_END. The source slot
+/// retains this list's address but supplies no sprite elements.
+static SpriteBatch _gDryfieldMotelRoom6View12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_motel_room_6_801856CC[12] = {
+SpriteView gDryfieldMotelRoom6SpriteViews[12] = {
     { { .empty = _gDryfieldMotelRoom6View1SpriteBatches }, _gDryfieldMotelRoom6View1SpriteBatches, NULL },
     { { .elements = _gDryfieldMotelRoom6View2SpriteSources }, _gDryfieldMotelRoom6View2SpriteBatches, NULL },
     { { .elements = _gDryfieldMotelRoom6View3SpriteSources }, _gDryfieldMotelRoom6View3SpriteBatches, NULL },
@@ -779,41 +853,62 @@ SpriteView D_dryfield_motel_room_6_801856CC[12] = {
     { { .empty = _gDryfieldMotelRoom6View6SpriteBatches }, _gDryfieldMotelRoom6View6SpriteBatches, NULL },
     { { .elements = _gDryfieldMotelRoom6View7SpriteSources }, _gDryfieldMotelRoom6View7SpriteBatches, NULL },
     { { .elements = _gDryfieldMotelRoom6View8SpriteSources }, _gDryfieldMotelRoom6View8SpriteBatches, NULL },
-    { { .empty = D_dryfield_motel_room_6_8018544C }, D_dryfield_motel_room_6_8018544C, NULL },
-    { { .elements = D_dryfield_motel_room_6_8018545C }, D_dryfield_motel_room_6_8018568C, NULL },
-    { { .empty = D_dryfield_motel_room_6_801856AC }, D_dryfield_motel_room_6_801856AC, NULL },
-    { { .empty = D_dryfield_motel_room_6_801856BC }, D_dryfield_motel_room_6_801856BC, NULL },
+    { { .empty = _gDryfieldMotelRoom6View9SpriteBatches }, _gDryfieldMotelRoom6View9SpriteBatches, NULL },
+    { { .elements = _gDryfieldMotelRoom6View10SpriteSources }, _gDryfieldMotelRoom6View10SpriteBatches, NULL },
+    { { .empty = _gDryfieldMotelRoom6View11SpriteBatches }, _gDryfieldMotelRoom6View11SpriteBatches, NULL },
+    { { .empty = _gDryfieldMotelRoom6View12SpriteBatches }, _gDryfieldMotelRoom6View12SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_motel_room_6_8018575C[10] = {
-    { NULL, NULL, NULL, { 3590, -1168, 3040, 0 }, { { -1702, -2192, 0, 0 }, { 1690, -2192, 0, 0 }, { -1702, 2192, 0, 0 }, { 1716, 2192, 0, 0 } }, { 0, 0, -4098, 0 }, { 0, 0, 4096, 0 }, 2780, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3743, -1104, 2911, 0 }, { { 1727, -2128, 51, 0 }, { -1726, -2128, -50, 0 }, { 1727, 2128, 51, 0 }, { -1726, 2128, -50, 0 } }, { -120, 0, 4098, 0 }, { 0, 0, 4096, 0 }, 2733, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1215, -1088, 4559, 0 }, { { 1311, -2112, 99, 0 }, { -1310, -2112, -98, 0 }, { 1311, 2112, 99, 0 }, { -1310, 2112, -98, 0 } }, { -309, 0, 4084, 0 }, { 0, 0, 4096, 0 }, 2482, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1247, -1200, 4735, 0 }, { { -1304, -2224, -163, 0 }, { 1304, -2224, 163, 0 }, { -1304, 2224, -163, 0 }, { 1304, 2224, 163, 0 } }, { 508, 0, -4070, 0 }, { 0, 0, 4096, 0 }, 2572, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1471, -1248, 6271, 0 }, { { -1248, -2272, -415, 0 }, { 1247, -2272, 414, 0 }, { -1248, 2272, -415, 0 }, { 1247, 2272, 414, 0 } }, { 1294, 0, -3900, 0 }, { 0, 0, 4096, 0 }, 2623, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1663, -1296, 6207, 0 }, { { 1247, -2320, 414, 0 }, { -1247, -2320, -414, 0 }, { 1247, 2320, 414, 0 }, { -1247, 2320, -414, 0 } }, { -1292, 0, 3889, 0 }, { 0, 0, 4096, 0 }, 2660, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2654, -1296, 5439, 0 }, { { -1, -2320, 639, 0 }, { 1, -2320, -639, 0 }, { -1, 2320, 639, 0 }, { 1, 2320, -639, 0 } }, { -4111, 0, -9, 0 }, { 0, 0, 4096, 0 }, 2401, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2527, -1376, 5407, 0 }, { { 33, -2400, -638, 0 }, { -32, -2400, 639, 0 }, { 33, 2400, -638, 0 }, { -32, 2400, 639, 0 } }, { 4103, 0, 208, 0 }, { 0, 0, 4096, 0 }, 2482, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3455, -1248, 6365, 0 }, { { -627, -2272, 124, 0 }, { 627, -2272, -123, 0 }, { -627, 2272, 124, 0 }, { 627, 2272, -123, 0 } }, { -797, 0, -4032, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3392, -1312, 6237, 0 }, { { 627, -2336, -123, 0 }, { -627, -2336, 124, 0 }, { 627, 2336, -123, 0 }, { -627, 2336, 124, 0 } }, { 791, 0, 4028, 0 }, { 0, 0, 4096, 0 }, 2415, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed camera boundaries for view pairs 2/3, 3/4, 4/5, 4/7 and 7/8.
+///
+/// Each direction has its own quad, in room-coordinate game units with normals
+/// scaled by ONE. Source and destination are 1-based logical views. Setup binds
+/// and links all ten mutable records, including the final LAST record; storage
+/// must remain loaded until unlinked.
+static WorldCollisionTrigger _gDryfieldMotelRoom6ViewBoundaryTriggers[10] = {
+    { NULL, NULL, NULL, { 3590, -1168, 3040, 0 }, { { -1702, -2192, 0, 0 }, { 1690, -2192, 0, 0 }, { -1702, 2192, 0, 0 }, { 1716, 2192, 0, 0 } }, { 0, 0, -4098, 0 }, { 0, 0, ONE, 0 }, 2780, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3743, -1104, 2911, 0 }, { { 1727, -2128, 51, 0 }, { -1726, -2128, -50, 0 }, { 1727, 2128, 51, 0 }, { -1726, 2128, -50, 0 } }, { -120, 0, 4098, 0 }, { 0, 0, ONE, 0 }, 2733, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1215, -1088, 4559, 0 }, { { 1311, -2112, 99, 0 }, { -1310, -2112, -98, 0 }, { 1311, 2112, 99, 0 }, { -1310, 2112, -98, 0 } }, { -309, 0, 4084, 0 }, { 0, 0, ONE, 0 }, 2482, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1247, -1200, 4735, 0 }, { { -1304, -2224, -163, 0 }, { 1304, -2224, 163, 0 }, { -1304, 2224, -163, 0 }, { 1304, 2224, 163, 0 } }, { 508, 0, -4070, 0 }, { 0, 0, ONE, 0 }, 2572, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1471, -1248, 6271, 0 }, { { -1248, -2272, -415, 0 }, { 1247, -2272, 414, 0 }, { -1248, 2272, -415, 0 }, { 1247, 2272, 414, 0 } }, { 1294, 0, -3900, 0 }, { 0, 0, ONE, 0 }, 2623, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1663, -1296, 6207, 0 }, { { 1247, -2320, 414, 0 }, { -1247, -2320, -414, 0 }, { 1247, 2320, 414, 0 }, { -1247, 2320, -414, 0 } }, { -1292, 0, 3889, 0 }, { 0, 0, ONE, 0 }, 2660, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2654, -1296, 5439, 0 }, { { -1, -2320, 639, 0 }, { 1, -2320, -639, 0 }, { -1, 2320, 639, 0 }, { 1, 2320, -639, 0 } }, { -4111, 0, -9, 0 }, { 0, 0, ONE, 0 }, 2401, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2527, -1376, 5407, 0 }, { { 33, -2400, -638, 0 }, { -32, -2400, 639, 0 }, { 33, 2400, -638, 0 }, { -32, 2400, 639, 0 } }, { 4103, 0, 208, 0 }, { 0, 0, ONE, 0 }, 2482, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3455, -1248, 6365, 0 }, { { -627, -2272, 124, 0 }, { 627, -2272, -123, 0 }, { -627, 2272, 124, 0 }, { 627, 2272, -123, 0 } }, { -797, 0, -4032, 0 }, { 0, 0, ONE, 0 }, 2346, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3392, -1312, 6237, 0 }, { { 627, -2336, -123, 0 }, { -627, -2336, 124, 0 }, { 627, 2336, -123, 0 }, { -627, 2336, 124, 0 } }, { 791, 0, 4028, 0 }, { 0, 0, ONE, 0 }, 2415, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_motel_room_6_80185A54[15] = {
-    { NULL, NULL, NULL, { 4512, -48, 1328, 0 }, { { -320, 0, -784, 0 }, { 320, 0, -784, 0 }, { -320, 0, 784, 0 }, { 320, 0, 784, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, 29, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 896, -64, 1199, 0 }, { { -320, 0, -1088, 0 }, { 320, 0, -1088, 0 }, { -320, 0, 1089, 0 }, { 320, 0, 1089, 0 } }, { 0, 4111, 0, 0 }, { 4096, 0, 0, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1304, -64, 7248, 0 }, { { -504, 0, -1087, 0 }, { -216, 0, -1087, 0 }, { -504, 0, 1088, 0 }, { 1224, 0, 1088, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 1634, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 0, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 3328, -64, 4384, 0 }, { { -704, 0, -400, 0 }, { 704, 0, -400, 0 }, { -704, 0, 400, 0 }, { 704, 0, 400, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, -4096, 0 }, 809, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1264, -64, 3024, 0 }, { { -1776, 0, -1280, 0 }, { 1776, 0, -1280, 0 }, { -1776, 0, 1280, 0 }, { 1776, 0, 1280, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 384, -128, 5664, 0 }, { { -336, 0, -1344, 0 }, { 1520, 0, -1344, 0 }, { -336, 0, 512, 0 }, { 1520, 0, 512, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 2027, WORLD_COLLISION_TRIGGER_ACTION_CAP, 22, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 672, -48, 6656, 0 }, { { -320, 0, -432, 0 }, { 320, 0, -432, 0 }, { -320, 0, 432, 0 }, { 320, 0, 432, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 535, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 36, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2920, -64, 240, 0 }, { { -1480, 0, -160, 0 }, { 1432, 0, -160, 0 }, { -936, 0, 992, 0 }, { 984, 0, 992, 0 } }, { 0, 4104, 0, 0 }, { -4096, 0, 0, 0 }, 1487, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+/// Departure slots and the command routed to the paired rooms' cutscene receiver.
+enum {
+    DRYFIELD_MOTEL_ROOM_6_BALCONY_WARP_SLOTS     = (1 << 4) | 3,
+    DRYFIELD_MOTEL_ROOM_6_WATER_TOWER_WARP_SLOTS = (2 << 4) | 4,
+    DRYFIELD_MOTEL_ROOM_6_CUTSCENE_COMMAND       = 22,
+    DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_ACTION     = 0,
+};
+
+/// Fifteen interaction quads: two warps, one automatic actor event and twelve CAP actions.
+///
+/// The balcony warp uses departure slot 1 / arrival slot 3; water tower uses
+/// departure slot 2 / arrival slot 4. Command 22 is routed to the room receiver.
+/// Origins, vertices and radii use room game units; normals use ONE per unit.
+/// Setup binds and links every mutable record, including the final LAST record;
+/// keep this overlay loaded until all records are unlinked.
+static WorldCollisionTrigger _gDryfieldMotelRoom6ActionTriggers[15] = {
+    { NULL, NULL, NULL, { 4512, -48, 1328, 0 }, { { -320, 0, -784, 0 }, { 320, 0, -784, 0 }, { -320, 0, 784, 0 }, { 320, 0, 784, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_BALCONY, DRYFIELD_MOTEL_ROOM_6_BALCONY_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 896, -64, 1199, 0 }, { { -320, 0, -1088, 0 }, { 320, 0, -1088, 0 }, { -320, 0, 1089, 0 }, { 320, 0, 1089, 0 } }, { 0, 4111, 0, 0 }, { ONE, 0, 0, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1304, -64, 7248, 0 }, { { -504, 0, -1087, 0 }, { -216, 0, -1087, 0 }, { -504, 0, 1088, 0 }, { 1224, 0, 1088, 0 } }, { 0, 4101, 0, 0 }, { -ONE, 0, 0, 0 }, 1634, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 3328, -64, 4384, 0 }, { { -704, 0, -400, 0 }, { 704, 0, -400, 0 }, { -704, 0, 400, 0 }, { 704, 0, 400, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, -ONE, 0 }, 809, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1264, -64, 3024, 0 }, { { -1776, 0, -1280, 0 }, { 1776, 0, -1280, 0 }, { -1776, 0, 1280, 0 }, { 1776, 0, 1280, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -ONE, 0 }, 2187, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 384, -128, 5664, 0 }, { { -336, 0, -1344, 0 }, { 1520, 0, -1344, 0 }, { -336, 0, 512, 0 }, { 1520, 0, 512, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -ONE, 0 }, 2027, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_MOTEL_ROOM_6_CUTSCENE_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 672, -48, 6656, 0 }, { { -320, 0, -432, 0 }, { 320, 0, -432, 0 }, { -320, 0, 432, 0 }, { 320, 0, 432, 0 } }, { 0, 4100, 0, 0 }, { ONE, 0, 0, 0 }, 535, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_WATER_TOWER, DRYFIELD_MOTEL_ROOM_6_WATER_TOWER_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2920, -64, 240, 0 }, { { -1480, 0, -160, 0 }, { 1432, 0, -160, 0 }, { -936, 0, 992, 0 }, { 984, 0, 992, 0 } }, { 0, 4104, 0, 0 }, { -ONE, 0, 0, 0 }, 1487, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1728, -64, 576, 0 }, { { -320, 0, -464, 0 }, { 320, 0, -464, 0 }, { -320, 0, 464, 0 }, { 320, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 401, 0, 4076, 0 }, 561, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4256, -64, 608, 0 }, { { -320, 0, -464, 0 }, { 320, 0, -464, 0 }, { -320, 0, 464, 0 }, { 320, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 401, 0, 4076, 0 }, 561, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3936, -64, 4000, 0 }, { { -320, 0, -464, 0 }, { 320, 0, -464, 0 }, { -320, 0, 464, 0 }, { 320, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 561, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3936, -64, 4000, 0 }, { { -320, 0, -464, 0 }, { 320, 0, -464, 0 }, { -320, 0, 464, 0 }, { 320, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { -ONE, 0, 0, 0 }, 561, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1631, -64, 7391, 0 }, { { 581, 0, -1196, 0 }, { 667, 0, 502, 0 }, { -699, 0, -500, 0 }, { -548, 0, 1197, 0 } }, { 0, 4109, 0, 0 }, { -2896, 0, -2896, 0 }, 1324, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4544, -64, 7104, 0 }, { { -400, 0, -512, 0 }, { 400, 0, -512, 0 }, { -400, 0, 512, 0 }, { 400, 0, 512, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 649, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4384, -64, 5568, 0 }, { { -1072, 0, -576, 0 }, { 400, 0, -576, 0 }, { -1072, 0, 1184, 0 }, { 400, 0, 1184, 0 } }, { 0, 4106, 0, 0 }, { -4096, 0, 0, 0 }, 1593, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2976, -64, 6528, 0 }, { { -176, 0, -1024, 0 }, { 816, 0, -1024, 0 }, { -176, 0, 960, 0 }, { 816, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { 4544, -64, 7104, 0 }, { { -400, 0, -512, 0 }, { 400, 0, -512, 0 }, { -400, 0, 512, 0 }, { 400, 0, 512, 0 } }, { 0, 4098, 0, 0 }, { -ONE, 0, 0, 0 }, 649, WORLD_COLLISION_TRIGGER_ACTION_CAP, 13, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4384, -64, 5568, 0 }, { { -1072, 0, -576, 0 }, { 400, 0, -576, 0 }, { -1072, 0, 1184, 0 }, { 400, 0, 1184, 0 } }, { 0, 4106, 0, 0 }, { -ONE, 0, 0, 0 }, 1593, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2976, -64, 6528, 0 }, { { -176, 0, -1024, 0 }, { 816, 0, -1024, 0 }, { -176, 0, 960, 0 }, { 816, 0, 960, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 15, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Authored point lights for daytime Dryfield motel room 6, contributing in every view.
@@ -1042,8 +1137,8 @@ static WorldCoordSpotLight _gDryfieldMotelRoom6ConeLights[2] = {
     },
 };
 
-/// Unreferenced image bytes following the room's cone lights; original purpose unproven.
-static u8 _gDryfieldMotelRoom6UnreferencedData[] = {
+/// Preserved 864 image bytes with no recovered runtime consumer or established record layout.
+static u8 _gDryfieldMotelRoom6UnreferencedData[864] = {
     0x00,
     0x00,
     0x00,
@@ -1909,6 +2004,7 @@ static u8 _gDryfieldMotelRoom6UnreferencedData[] = {
     0x06,
     0x08,
 };
+STATIC_ASSERT_SIZEOF(_gDryfieldMotelRoom6UnreferencedData, 864);
 
 /// Authored point and cone light collection used throughout daytime motel room 6.
 ///
@@ -1944,19 +2040,33 @@ static const WorldCoordRoomAmbientEntry _gDryfieldMotelRoom6AmbientByView[13] SE
     { .color = { 16, 0, 0, 6 } },
 };
 
-AreaResource D_dryfield_motel_room_6_80186740[2] = {
-    { 101, 205, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor120500EmptyPlacementTaskDesc },
+/// Placement entry and decimal actor-file selector used by the default room variant.
+enum {
+    DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_PLACEMENT = 101,
+    DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_FILE      = 205,
+};
+
+/// Default variant's actor_120500 resource, followed by AREA_PLACEMENT_END.
+///
+/// Placement entry 101 loads global-library file 120500 and spawns the empty
+/// placement recipe at slot 0; the room separately spawns the adjacent scene
+/// recipe for the actor event. Resources and recipes are borrowed while loaded.
+static AreaResource _gDryfieldMotelRoom6Variant1Resources[2] = {
+    { DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_PLACEMENT, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_FILE, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor120500EmptyPlacementTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_motel_room_6_80186758[1] = {
+/// Variant 2's empty resource list, containing only AREA_PLACEMENT_END.
+///
+/// Paired with its empty placement list; this variant loads or spawns no actors.
+static AreaResource _gDryfieldMotelRoom6Variant2Resources[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_dryfield_motel_room_6_80186764[12] = {
     { NULL, NULL },
-    { D_map_dryfield_8017BB54, D_dryfield_motel_room_6_80186740 },
-    { D_map_dryfield_8017BB74, D_dryfield_motel_room_6_80186758 },
+    { D_map_dryfield_8017BB54, _gDryfieldMotelRoom6Variant1Resources },
+    { D_map_dryfield_8017BB74, _gDryfieldMotelRoom6Variant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -2055,11 +2165,7 @@ WorldCollisionSurfaceProperties* gDryfieldMotelRoom6SurfacePropertiesByClass[8] 
     &_gDryfieldMotelRoom6SilentSurfaceProperties,
 };
 
-Task* D_dryfield_motel_room_6_80186828;
-
 Task* gRoomCutsceneSoundTask;
-
-RoomCutsceneRec gMotelRoom6CutsceneRec;
 
 #include "../../shared/telephone.inc.c"
 
@@ -2083,9 +2189,10 @@ void dryfieldMotelRoom6PlayerReflectionTask(Task* reflectionTask)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// State handlers of the room entry task `dryfieldMotelRoom6Task`,
-/// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
-static const TaskFuncTable3 D_dryfield_motel_room_6_8017D6B4 = {
+/// Three room-task states: register the receiver, idle, then release the task.
+///
+/// Indexed by Task::state 0..2; copied by value before dispatch.
+static const TaskFuncTable3 _gDryfieldMotelRoom6RoomTaskStates = {
     {
         _dryfieldMotelRoom6InitRoomTask,
         _dryfieldMotelRoom6IdleTask,
@@ -2171,7 +2278,7 @@ static s32 _dryfieldMotelRoom6HandleRoomAction(Task* unusedTask, s32 unusedMessa
 
     if (request->actionId == DRYFIELD_MOTEL_ROOM_6_ACTION_ACTOR_EVENT && gameFlagGetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031) == DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_UNSEEN) {
         gameFlagSetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031, DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_SEEN);
-        taskSpawnFromTable(D_dryfield_motel_room_6_80182D78, 0, 0, 0);
+        taskSpawnFromTable(_gDryfieldMotelRoom6ActorEventTaskDescs, 0, 0, 0);
     }
     return DRYFIELD_MOTEL_ROOM_6_ACTION_HANDLED;
 }
@@ -2203,11 +2310,11 @@ static void _dryfieldMotelRoom6RunActorEventTask(Task* task)
 
     switch (task->state) {
         case DRYFIELD_MOTEL_ROOM_6_EVENT_SPAWN:
-            D_dryfield_motel_room_6_80186828 = taskSpawnFromTable(&gActor120500EmptyPlacementTaskDesc, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_DESCRIPTOR, 0, 0);
+            _gDryfieldMotelRoom6SceneActorTask = taskSpawnFromTable(&gActor120500EmptyPlacementTaskDesc, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_DESCRIPTOR, 0, 0);
             task->state++;
             break;
         case DRYFIELD_MOTEL_ROOM_6_EVENT_WAIT:
-            if (taskPollKill(D_dryfield_motel_room_6_80186828, &ignoredActorResult) != 0) {
+            if (taskPollKill(_gDryfieldMotelRoom6SceneActorTask, &ignoredActorResult) != 0) {
                 task->state++;
             }
             break;
@@ -2225,7 +2332,7 @@ static void _dryfieldMotelRoom6InitRoomTask(Task* task)
 {
     enum { DRYFIELD_MOTEL_ROOM_6_POST_CAP_SOUND_ENABLED = 1 };
 
-    task->msgTable = D_dryfield_motel_room_6_80182D48;
+    task->msgTable = _gDryfieldMotelRoom6MessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state += 1;
     D_80115598   = DRYFIELD_MOTEL_ROOM_6_POST_CAP_SOUND_ENABLED;
@@ -2242,7 +2349,7 @@ void dryfieldMotelRoom6Task(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_motel_room_6_8017D6B4;
+    stateHandlers = _gDryfieldMotelRoom6RoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

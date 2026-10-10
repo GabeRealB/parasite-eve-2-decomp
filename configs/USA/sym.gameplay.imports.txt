@@ -498,7 +498,7 @@ D_shelter_b2_breeding_room_80183EEC = 0x80183EEC; // absolute:True owner=shelter
 
 D_acropolis_plaza_80199390 = 0x80199390; // absolute:True
 
-D_dryfield_motel_room_6_80182D0C = 0x80182D0C; // absolute:True owner=dryfield_motel_room_6
+gDryfieldMotelRoom6ReflectionTaskDescs = 0x80182D0C; // absolute:True owner=dryfield_motel_room_6
 
 D_dryfield_night_motel_room_6_80182E74 = 0x80182E74; // absolute:True owner=dryfield_night_motel_room_6 shared=rooms
 
