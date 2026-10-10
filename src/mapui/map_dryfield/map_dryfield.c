@@ -505,7 +505,7 @@ WorldCoordRoomLighting* gMapDryfieldRoomLightingTables[38] = {
     NULL,
     gDryfieldBackStreetRoomLighting,
     gDryfieldSouvenirShopRoomLighting,
-    D_dryfield_warehouse_8017FC18,
+    gDryfieldWarehouseRoomLighting,
     gDryfieldR08RoomLighting,
     gDryfieldDilapidatedHouseRoomLighting,
     NULL,

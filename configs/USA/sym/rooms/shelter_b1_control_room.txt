@@ -1,5 +1,5 @@
 // Overlay-local symbols for shelter_b1_control_room.
-D_shelter_b1_control_room_80181BD4 = 0x80181BD4; // size:0x90 defined:True
+_gShelterB1ControlRoomGlowWorldPoints = 0x80181BD4; // size:0x90 defined:True
 D_shelter_b1_control_room_80181B94 = 0x80181B94; // size:0x28 defined:True
 _gRoomVisualEffectsGlowDiscShades = 0x80181C64; // size:0xC defined:True
 gShelterB1ControlRoomRoomViewMaps = 0x80181C70; // size:0x4 defined:True

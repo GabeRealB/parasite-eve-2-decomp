@@ -38,21 +38,32 @@
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
 
-/// The points the room's glows are drawn at, per view.
+/// The armory's beam endpoint pairs and indicator centres in signed world units.
+typedef struct {
+    SVECTOR greenBeam[2];      // Green beam drawn in mapped view 2
+    SVECTOR whiteBeams[3][2];  // White beam pairs: 0 in views 2/8, 1 in view 2, 2 in view 3
+    SVECTOR cyanDisc;          // Cyan disc centre in mapped views 3 and 13
+    SVECTOR unlockedIndicator; // Green lock centre in mapped views 3 and 9
+    SVECTOR lockedIndicator;   // Red lock centre in mapped views 3 and 9
+} _ShelterB1ArmoryGlowWorldPoints;
+STATIC_ASSERT_SIZEOF(_ShelterB1ArmoryGlowWorldPoints, 0x58);
 
-// Indexed views below share one contiguous table.
-SVECTOR D_shelter_b1_armory_80182528[11] = {
-    { -300, -2200, 2400, 0 },
-    { -300, -2200, 1600, 0 },
-    { 1780, -2920, 4880, 0 },
-    { 2580, -2920, 4880, 0 },
-    { 1780, -2920, 1720, 0 },
-    { 2580, -2920, 1720, 0 },
-    { 1780, -2920, -1610, 0 },
-    { 2580, -2920, -1610, 0 },
-    { 3860, -1640, -2860, 0 },
-    { 5210, -1450, -570, 0 },
-    { 5210, -1490, -570, 0 },
+/// Fixed world points for the armory's view-selected beams and lock indicators.
+///
+/// Drawing borrows the selected points while the room overlay is loaded.
+static _ShelterB1ArmoryGlowWorldPoints _gShelterB1ArmoryGlowWorldPoints = {
+    .greenBeam = {
+        { -300, -2200, 2400, 0 },
+        { -300, -2200, 1600, 0 },
+    },
+    .whiteBeams = {
+        { { 1780, -2920, 4880, 0 }, { 2580, -2920, 4880, 0 } },
+        { { 1780, -2920, 1720, 0 }, { 2580, -2920, 1720, 0 } },
+        { { 1780, -2920, -1610, 0 }, { 2580, -2920, -1610, 0 } },
+    },
+    .cyanDisc          = { 3860, -1640, -2860, 0 },
+    .unlockedIndicator = { 5210, -1450, -570, 0 },
+    .lockedIndicator   = { 5210, -1490, -570, 0 },
 };
 
 u8* gShelterB1ArmoryRoomViewMaps[1] = {
@@ -651,9 +662,9 @@ static inline void _shelterB1ArmoryDrawLockGlow(s16 radiusScale)
     };
 
     if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_ARMORY_UNLOCKED) != 0) {
-        _glowDrawTintedDisc(&D_shelter_b1_armory_80182528[9], radiusScale, SHELTER_B1_ARMORY_UNLOCKED_GLOW_COLOR);
+        _glowDrawTintedDisc(&_gShelterB1ArmoryGlowWorldPoints.unlockedIndicator, radiusScale, SHELTER_B1_ARMORY_UNLOCKED_GLOW_COLOR);
     } else {
-        _glowDrawTintedDisc(&D_shelter_b1_armory_80182528[10], radiusScale, SHELTER_B1_ARMORY_LOCKED_GLOW_COLOR);
+        _glowDrawTintedDisc(&_gShelterB1ArmoryGlowWorldPoints.lockedIndicator, radiusScale, SHELTER_B1_ARMORY_LOCKED_GLOW_COLOR);
     }
 }
 
@@ -676,23 +687,23 @@ void shelterB1ArmoryDrawGlowsTask(Task* unusedTask)
     mappedViewIndex = viewGetMappedIndex();
     switch (mappedViewIndex) {
         case 2:
-            _glowDrawBeam(&D_shelter_b1_armory_80182528[0], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, 0, SHELTER_B1_ARMORY_GREEN_BEAM_COLOR);
-            _glowDrawBeam(&D_shelter_b1_armory_80182528[2], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
-            _glowDrawBeam(&D_shelter_b1_armory_80182528[4], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
+            _glowDrawBeam(&_gShelterB1ArmoryGlowWorldPoints.greenBeam[0], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, 0, SHELTER_B1_ARMORY_GREEN_BEAM_COLOR);
+            _glowDrawBeam(&_gShelterB1ArmoryGlowWorldPoints.whiteBeams[0][0], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
+            _glowDrawBeam(&_gShelterB1ArmoryGlowWorldPoints.whiteBeams[1][0], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
             break;
         case 3:
-            _glowDrawBeam(&D_shelter_b1_armory_80182528[6], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, 0, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
-            _glowDrawBitDisc(&D_shelter_b1_armory_80182528[8], SHELTER_B1_ARMORY_CYAN_DISC_RADIUS_SCALE, SHELTER_B1_ARMORY_CYAN_DISC_COLOR);
+            _glowDrawBeam(&_gShelterB1ArmoryGlowWorldPoints.whiteBeams[2][0], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, 0, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
+            _glowDrawBitDisc(&_gShelterB1ArmoryGlowWorldPoints.cyanDisc, SHELTER_B1_ARMORY_CYAN_DISC_RADIUS_SCALE, SHELTER_B1_ARMORY_CYAN_DISC_COLOR);
             _shelterB1ArmoryDrawLockGlow(SHELTER_B1_ARMORY_VIEW3_LOCK_RADIUS_SCALE);
             break;
         case 8:
-            _glowDrawBeam(&D_shelter_b1_armory_80182528[2], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
+            _glowDrawBeam(&_gShelterB1ArmoryGlowWorldPoints.whiteBeams[0][0], SHELTER_B1_ARMORY_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B1_ARMORY_WHITE_BEAM_COLOR);
             break;
         case 9:
             _shelterB1ArmoryDrawLockGlow(SHELTER_B1_ARMORY_VIEW9_LOCK_RADIUS_SCALE);
             break;
         case 13:
-            _glowDrawBitDisc(&D_shelter_b1_armory_80182528[8], SHELTER_B1_ARMORY_CYAN_DISC_RADIUS_SCALE, SHELTER_B1_ARMORY_CYAN_DISC_COLOR);
+            _glowDrawBitDisc(&_gShelterB1ArmoryGlowWorldPoints.cyanDisc, SHELTER_B1_ARMORY_CYAN_DISC_RADIUS_SCALE, SHELTER_B1_ARMORY_CYAN_DISC_COLOR);
             break;
     }
 }

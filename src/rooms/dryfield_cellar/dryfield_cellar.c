@@ -45,11 +45,6 @@
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_dryfield_cellar_8017DB8C[];
 
-/// The cellar's glow points, one pair per camera view that shows them: view 2
-/// draws the pair at the first address and view 3 the pair at the second.
-extern SVECTOR D_dryfield_cellar_8017DBBC[2];
-extern SVECTOR D_dryfield_cellar_8017DBCC[2];
-
 /// Room message sent by the inventory's key-item use prompt.
 enum { DRYFIELD_CELLAR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -74,12 +69,18 @@ TaskMessageEntry D_dryfield_cellar_8017DB8C[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_dryfield_cellar_8017DBBC[2] = {
+/// View 2's flare centres in the glow task coordinate's local game units.
+///
+/// Borrowed as a complete pair for drawing; the room overlay owns the storage.
+static SVECTOR _gDryfieldCellarView2GlowLocalPoints[2] = {
     { 2000, -2330, 2200, 0 },
     { 5000, -2330, 2200, 0 },
 };
 
-SVECTOR D_dryfield_cellar_8017DBCC[2] = {
+/// View 3's flare centres in the glow task coordinate's local game units.
+///
+/// Borrowed as a complete pair for drawing; the room overlay owns the storage.
+static SVECTOR _gDryfieldCellarView3GlowLocalPoints[2] = {
     { 8300, -2330, 3190, 0 },
     { 8300, -2330, 200, 0 },
 };
@@ -1153,9 +1154,9 @@ void dryfieldCellarDrawGlowsTask(Task* task)
     coord = task->extra.coordBody->coord;
     if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == DRYFIELD_CELLAR_GLOW_SWITCH_ON) {
         if (gGameSession->location.loc.view == DRYFIELD_CELLAR_GLOW_VIEW_2) {
-            _dryfieldCellarDrawGlowPair(coord, &D_dryfield_cellar_8017DBBC, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
+            _dryfieldCellarDrawGlowPair(coord, &_gDryfieldCellarView2GlowLocalPoints, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
         } else if (gGameSession->location.loc.view == DRYFIELD_CELLAR_GLOW_VIEW_3) {
-            _dryfieldCellarDrawGlowPair(coord, &D_dryfield_cellar_8017DBCC, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
+            _dryfieldCellarDrawGlowPair(coord, &_gDryfieldCellarView3GlowLocalPoints, DRYFIELD_CELLAR_GLOW_TEXTURE, DRYFIELD_CELLAR_GLOW_RADIUS_SCALE);
         }
     }
 }

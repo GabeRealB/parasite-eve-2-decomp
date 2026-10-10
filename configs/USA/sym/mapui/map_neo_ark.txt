@@ -54,7 +54,7 @@ shelter1fGuardroomRoomTask = 0x8017D880; // type:func absolute:True owner=shelte
 gShelter1fGuardroomRoomCollisionResources = 0x8017DA78; // absolute:True owner=shelter_1f_guardroom shared=rooms
 gShelter1fGuardroomRoomLighting = 0x8017DA88; // absolute:True owner=shelter_1f_guardroom
 gShelter1fGuardroomViewMaps = 0x8017DA90; // absolute:True owner=shelter_1f_guardroom shared=rooms
-gShelter1fGuardroomRoomViewCounts = 0x8017DA94; // absolute:True owner=shelter_1f_guardroom shared=rooms
+gShelter1fGuardroomRoomViewCounts = 0x8017DA94; // absolute:True owner=shelter_1f_guardroom
 gShelter1fGuardroomWarpEntries = 0x8017DA98; // absolute:True owner=shelter_1f_guardroom shared=rooms
 gShelter1fGuardroomViewCameras = 0x8017DC14; // absolute:True owner=shelter_1f_guardroom
 gShelter1fGuardroomSpriteViews = 0x8017DCE0; // absolute:True owner=shelter_1f_guardroom

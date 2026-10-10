@@ -310,7 +310,7 @@ ViewCount gDryfieldWarehouseRoomViewCounts[3] = {
     DRYFIELD_WAREHOUSE_LOGICAL_VIEW_COUNT,
 };
 
-WorldCoordRoomLighting D_dryfield_warehouse_8017FC18[3] = {
+WorldCoordRoomLighting gDryfieldWarehouseRoomLighting[3] = {
     { &gDryfieldWarehouseLights, NULL },
     { &gDryfieldWarehouseLights, NULL },
     { &gDryfieldWarehouseLights, NULL },

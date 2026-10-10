@@ -47,12 +47,6 @@ extern TaskDesc D_neo_ark_substation_8017E2BC[];
 /// The room's ambience table, one `(panOffset, attenuation)` entry per view slot.
 extern RoomAmbienceEntry D_neo_ark_substation_8017E2C8[];
 
-extern SVECTOR D_neo_ark_substation_8017E310[];
-extern SVECTOR D_neo_ark_substation_8017E330[];
-extern SVECTOR D_neo_ark_substation_8017E350[];
-extern SVECTOR D_neo_ark_substation_8017E360[];
-extern SVECTOR D_neo_ark_substation_8017E380[];
-
 static void _neoArkSubstationInitializeRoom(Task* task);
 static void _neoArkSubstationMessageTaskIdle(Task* unusedTask);
 
@@ -107,33 +101,26 @@ RoomAmbienceEntry D_neo_ark_substation_8017E2C8[9] = {
     { 14, 0, 16, 0 },
 };
 
-SVECTOR D_neo_ark_substation_8017E310[4] = {
+/// Fourteen capsule-light endpoint pairs in signed integer world units.
+///
+/// Entries 0..7 run along X at Z=75, 8..15 along Z at X=9065;
+/// 16..19 and 20..27 form the two raised rows. Mapped camera views borrow
+/// overlapping spans of these 28 points while the room overlay is loaded.
+static SVECTOR _gNeoArkSubstationGlowWorldPoints[28] = {
     { 1320, -220, 75, 0 },
     { 1680, -220, 75, 0 },
     { 3320, -220, 75, 0 },
     { 3680, -220, 75, 0 },
-};
-
-SVECTOR D_neo_ark_substation_8017E330[4] = {
     { 5320, -220, 75, 0 },
     { 5680, -220, 75, 0 },
     { 7320, -220, 75, 0 },
     { 7680, -220, 75, 0 },
-};
-
-SVECTOR D_neo_ark_substation_8017E350[2] = {
     { 9065, -220, -1320, 0 },
     { 9065, -220, -1680, 0 },
-};
-
-SVECTOR D_neo_ark_substation_8017E360[4] = {
     { 9065, -220, -3320, 0 },
     { 9065, -220, -3680, 0 },
     { 9065, -220, -5320, 0 },
     { 9065, -220, -5680, 0 },
-};
-
-SVECTOR D_neo_ark_substation_8017E380[14] = {
     { 9065, -220, -7320, 0 },
     { 9065, -220, -7680, 0 },
     { 1500, -2440, -1170, 0 },
@@ -764,16 +751,16 @@ void neoArkSubstationDrawLightGlowsTask(Task* unusedTask)
     };
     u8 mappedView;
 
-    // Keep one endpoint base per view; some pairs occupy the following tables.
+    // Each view selects endpoint pairs from the complete world-point table.
     mappedView = viewGetMappedIndex();
     switch (mappedView) {
         case 2: {
-            const SVECTOR* lightPoints = D_neo_ark_substation_8017E310;
+            const SVECTOR* lightPoints = _gNeoArkSubstationGlowWorldPoints;
             _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             break;
         }
         case 3: {
-            const SVECTOR* lightPoints = D_neo_ark_substation_8017E310;
+            const SVECTOR* lightPoints = _gNeoArkSubstationGlowWorldPoints;
             _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             _glowDrawCapsule(&lightPoints[4], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
@@ -781,7 +768,7 @@ void neoArkSubstationDrawLightGlowsTask(Task* unusedTask)
             break;
         }
         case 4: {
-            const SVECTOR* lightPoints = D_neo_ark_substation_8017E310;
+            const SVECTOR* lightPoints = _gNeoArkSubstationGlowWorldPoints;
             _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_DIM_RGB444);
             _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
             _glowDrawCapsule(&lightPoints[4], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
@@ -791,20 +778,20 @@ void neoArkSubstationDrawLightGlowsTask(Task* unusedTask)
             break;
         }
         case 5: {
-            const SVECTOR* lightPoints = D_neo_ark_substation_8017E330;
+            const SVECTOR* lightPoints = &_gNeoArkSubstationGlowWorldPoints[4];
             _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
             break;
         }
         case 6: {
-            const SVECTOR* lightPoints = D_neo_ark_substation_8017E350;
+            const SVECTOR* lightPoints = &_gNeoArkSubstationGlowWorldPoints[8];
             _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
             _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             _glowDrawCapsule(&lightPoints[12], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             break;
         }
         case 7: {
-            const SVECTOR* lightPoints = D_neo_ark_substation_8017E360;
+            const SVECTOR* lightPoints = &_gNeoArkSubstationGlowWorldPoints[10];
             _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             _glowDrawCapsule(&lightPoints[2], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_MEDIUM_RGB444);
             _glowDrawCapsule(&lightPoints[4], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_DIM_RGB444);
@@ -814,7 +801,7 @@ void neoArkSubstationDrawLightGlowsTask(Task* unusedTask)
             break;
         }
         case 8: {
-            const SVECTOR* lightPoints = D_neo_ark_substation_8017E380;
+            const SVECTOR* lightPoints = &_gNeoArkSubstationGlowWorldPoints[14];
             _glowDrawCapsule(&lightPoints[0], NEO_ARK_SUBSTATION_GLOW_RADIUS_SCALE, NEO_ARK_SUBSTATION_GLOW_BRIGHT_RGB444);
             break;
         }

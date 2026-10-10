@@ -52,22 +52,21 @@ enum {
     DRYFIELD_NIGHT_JUNK_YARD_SMALL_FLARE_RADIUS_SCALE = 0x200
 };
 
-extern SVECTOR D_dryfield_night_junk_yard_8018073C[];
-extern SVECTOR D_dryfield_night_junk_yard_80180754[];
-
 static WorldCollisionGrid     _gDryfieldNightJunkYardCollisionGrid;
 extern WorldCollisionOccluder D_dryfield_night_junk_yard_80184318[1];
 extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183778[10];
 extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183D28[20];
 static WorldCoordRoomLights   _gDryfieldNightJunkYardRoomLights;
 
-SVECTOR D_dryfield_night_junk_yard_8018073C[3] = {
+/// World-space capsule endpoints followed by the junk yard's five flare centres.
+///
+/// Entries 0..1 are one capsule; 2..6 are flare centres in signed game units.
+/// Camera views select overlapping spans of this seven-point table, borrowed
+/// only during drawing while the room overlay is loaded.
+static SVECTOR _gDryfieldNightJunkYardGlowWorldPoints[7] = {
     { 4021, -2596, 348, 0 },
     { 4021, -2396, 71, 0 },
     { -46, -2914, 4605, 0 },
-};
-
-SVECTOR D_dryfield_night_junk_yard_80180754[4] = {
     { 0x278A, -2914, 4897, 0 },
     { 0x589B, -2917, 4106, 0 },
     { 0x4718, -4530, 1335, 0 },
@@ -1144,7 +1143,7 @@ void dryfieldNightJunkYardDrawGlowsTask(Task* task)
     switch (gGameSession->location.loc.view) {
         case 2:
         case 8: {
-            const SVECTOR* lightPoints = D_dryfield_night_junk_yard_8018073C;
+            const SVECTOR* lightPoints = _gDryfieldNightJunkYardGlowWorldPoints;
             _glowDrawGreyCapsule(&lightPoints[0], DRYFIELD_NIGHT_JUNK_YARD_CAPSULE_RADIUS_SCALE, GLOW_QUARTER_TURN);
             glowDrawFlareClipped(&lightPoints[3], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
             glowDrawFlareClipped(&lightPoints[4], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
@@ -1154,7 +1153,7 @@ void dryfieldNightJunkYardDrawGlowsTask(Task* task)
         }
         case 4:
         case 9: {
-            const SVECTOR* flarePoints = D_dryfield_night_junk_yard_80180754;
+            const SVECTOR* flarePoints = &_gDryfieldNightJunkYardGlowWorldPoints[3];
             glowDrawFlareClipped(&flarePoints[0], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
             glowDrawFlareClipped(&flarePoints[1], 0, DRYFIELD_NIGHT_JUNK_YARD_LARGE_FLARE_RADIUS_SCALE);
             glowDrawFlareClipped(&flarePoints[3], 1, DRYFIELD_NIGHT_JUNK_YARD_SMALL_FLARE_RADIUS_SCALE);
@@ -1162,13 +1161,13 @@ void dryfieldNightJunkYardDrawGlowsTask(Task* task)
         }
         case 5:
         case 10: {
-            const SVECTOR* lightPoints = D_dryfield_night_junk_yard_8018073C;
+            const SVECTOR* lightPoints = _gDryfieldNightJunkYardGlowWorldPoints;
             _dryfieldNightJunkYardDrawCapsuleAndFlares(lightPoints);
             glowDrawFlareClipped(&lightPoints[6], 1, DRYFIELD_NIGHT_JUNK_YARD_SMALL_FLARE_RADIUS_SCALE);
             break;
         }
         case 7: {
-            const SVECTOR* lightPoints = D_dryfield_night_junk_yard_8018073C;
+            const SVECTOR* lightPoints = _gDryfieldNightJunkYardGlowWorldPoints;
             _dryfieldNightJunkYardDrawCapsuleAndFlares(lightPoints);
             break;
         }

@@ -40,7 +40,12 @@ extern u8* gDryfieldWarehouseRoomViewMaps[3];
 /// the warehouse overlay is loaded.
 extern ViewCount gDryfieldWarehouseRoomViewCounts[3];
 
-extern WorldCoordRoomLighting D_dryfield_warehouse_8017FC18[];
+/// Model-light directory for warehouse rooms 1..3, using default ambient minima.
+///
+/// Indexed by room ID - 1. All three entries borrow `gDryfieldWarehouseLights`;
+/// its transforms and attenuation remain writable. The directory and light
+/// storage remain live only while the warehouse overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldWarehouseRoomLighting[3];
 
 extern DirectionWarpEntry D_dryfield_warehouse_8017FC30[];
 

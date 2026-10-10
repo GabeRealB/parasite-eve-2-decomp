@@ -42,11 +42,6 @@
 /// The room's message table, installed on the room entry task.
 extern TaskMessageEntry D_dryfield_night_cellar_8017DAA8[];
 
-/// The cellar's glow points, one pair per camera view that shows them: view 2
-/// draws the pair at the first address and view 3 the pair at the second.
-extern SVECTOR D_dryfield_night_cellar_8017DAD0[];
-extern SVECTOR D_dryfield_night_cellar_8017DAE0[];
-
 /// Room message sent by the inventory's key-item use prompt.
 enum { DRYFIELD_NIGHT_CELLAR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -70,12 +65,18 @@ TaskMessageEntry D_dryfield_night_cellar_8017DAA8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_dryfield_night_cellar_8017DAD0[2] = {
+/// View 2's flare centres in signed integer world-coordinate units.
+///
+/// Borrowed as a complete pair for drawing while the room overlay is loaded.
+static SVECTOR _gDryfieldNightCellarView2GlowWorldPoints[2] = {
     { 2000, -2330, 2200, 0 },
     { 5000, -2330, 2200, 0 },
 };
 
-SVECTOR D_dryfield_night_cellar_8017DAE0[2] = {
+/// View 3's flare centres in signed integer world-coordinate units.
+///
+/// Borrowed as a complete pair for drawing while the room overlay is loaded.
+static SVECTOR _gDryfieldNightCellarView3GlowWorldPoints[2] = {
     { 8300, -2330, 3190, 0 },
     { 8300, -2330, 200, 0 },
 };
@@ -1116,9 +1117,9 @@ void dryfieldNightCellarDrawGlowsTask(Task* unused)
     if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_2) == DRYFIELD_NIGHT_CELLAR_GLOW_SWITCH_ON) {
         viewId = gGameSession->location.loc.view;
         if (viewId == DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_2) {
-            _dryfieldNightCellarDrawGlowPair(&D_dryfield_night_cellar_8017DAD0);
+            _dryfieldNightCellarDrawGlowPair(&_gDryfieldNightCellarView2GlowWorldPoints);
         } else if (viewId == DRYFIELD_NIGHT_CELLAR_GLOW_VIEW_3) {
-            _dryfieldNightCellarDrawGlowPair(&D_dryfield_night_cellar_8017DAE0);
+            _dryfieldNightCellarDrawGlowPair(&_gDryfieldNightCellarView3GlowWorldPoints);
         }
     }
 }

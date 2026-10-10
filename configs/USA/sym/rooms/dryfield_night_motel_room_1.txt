@@ -1,6 +1,6 @@
 // Overlay-local symbols for dryfield_night_motel_room_1.
-D_dryfield_night_motel_room_1_8017DA54 = 0x8017DA54; // size:0x8 defined:True
-D_dryfield_night_motel_room_1_8017DA5C = 0x8017DA5C; // size:0x8 defined:True
+_gDryfieldNightMotelRoom1LargeFlareWorldPoint = 0x8017DA54; // size:0x8 defined:True
+_gDryfieldNightMotelRoom1SmallFlareWorldPoint = 0x8017DA5C; // size:0x8 defined:True
 D_dryfield_night_motel_room_1_8017DA2C = 0x8017DA2C; // size:0x28 defined:True
 gDryfieldNightMotelRoom1RoomLighting = 0x8017DA64; // size:0x10 defined:True
 D_dryfield_night_motel_room_1_8017DA74 = 0x8017DA74; // size:0x20 defined:True

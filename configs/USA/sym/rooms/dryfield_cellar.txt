@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_cellar.
-D_dryfield_cellar_8017DBBC = 0x8017DBBC; // size:0x10 defined:True
+_gDryfieldCellarView2GlowLocalPoints = 0x8017DBBC; // size:0x10 defined:True
 D_dryfield_cellar_8017DB8C = 0x8017DB8C; // size:0x30 defined:True
-D_dryfield_cellar_8017DBCC = 0x8017DBCC; // size:0x10 defined:True
+_gDryfieldCellarView3GlowLocalPoints = 0x8017DBCC; // size:0x10 defined:True
 D_dryfield_cellar_8017DBDC = 0x8017DBDC; // size:0x20 defined:True
 _gDryfieldCellarRoom2ViewMap = 0x8017DBFC; // size:0x8 defined:True
 gDryfieldCellarRoomViewMaps = 0x8017DC04; // size:0x8 defined:True

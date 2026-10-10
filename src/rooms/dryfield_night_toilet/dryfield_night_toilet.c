@@ -39,9 +39,6 @@
 #include "../../shared/room_variants.h"
 static s32 _toiletSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
-/// The room's message table, published at `Task::msgTable` by the room task.
-extern TaskMessageEntry D_dryfield_night_toilet_8017DA70[];
-
 /// Gameplay's task descriptor table; the room task spawns its entry 0.
 extern TaskDesc Actor04000_D0C6FC;
 
@@ -53,13 +50,18 @@ static s32  _dryfieldNightToiletIgnoreCommandMessage(Task* unusedTask, s32 messa
 static s32  _dryfieldNightToiletIgnoreActionRequest(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _dryfieldNightToiletIdleRoomTask(Task* unusedTask);
 
-extern WorldCollisionGrid     D_dryfield_night_toilet_8017DD88[1];
-extern WorldCollisionOccluder D_dryfield_night_toilet_8017F2C4[1];
-extern WorldCollisionTrigger  D_dryfield_night_toilet_8017EE9C[6];
-extern WorldCollisionTrigger  D_dryfield_night_toilet_8017F064[8];
+static WorldCollisionGrid     _gDryfieldNightToiletCollisionGrid;
+static WorldCollisionOccluder _gDryfieldNightToiletOccluders[1];
+static WorldCollisionTrigger  _gDryfieldNightToiletViewBoundaryTriggers[6];
+static WorldCollisionTrigger  _gDryfieldNightToiletActionTriggers[8];
 static WorldCoordRoomLights   _gDryfieldNightToiletLights;
 
-TaskMessageEntry D_dryfield_night_toilet_8017DA70[6] = {
+/// The room receiver's five synchronous message handlers and end marker.
+///
+/// Resolves destinations, refuses key items, ignores actions and commands, and
+/// routes sound cues. Borrowed by the registered room task while it stays live;
+/// the table and callbacks remain owned by the loaded room overlay.
+static TaskMessageEntry _gDryfieldNightToiletRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
     { DRYFIELD_NIGHT_TOILET_MESSAGE_USE_KEY_ITEM, _dryfieldNightToiletRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightToiletIgnoreActionRequest },
@@ -78,8 +80,8 @@ WorldCoordRoomLighting gDryfieldNightToiletRoomLighting[1] = {
     { &_gDryfieldNightToiletLights, NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_toilet_8017DAB8[1] = {
-    { D_dryfield_night_toilet_8017DD88, D_dryfield_night_toilet_8017EE9C, D_dryfield_night_toilet_8017F064, D_dryfield_night_toilet_8017F2C4 },
+WorldCollisionRoomResources gDryfieldNightToiletRoomCollisionResources[1] = {
+    { .grid = &_gDryfieldNightToiletCollisionGrid, .viewBoundaryTriggers = _gDryfieldNightToiletViewBoundaryTriggers, .actionTriggers = _gDryfieldNightToiletActionTriggers, .occluders = _gDryfieldNightToiletOccluders },
 };
 
 u8* gDryfieldNightToiletViewMaps[1] = {
@@ -88,34 +90,79 @@ u8* gDryfieldNightToiletViewMaps[1] = {
 
 ViewCount gDryfieldNightToiletViewCounts[1] = { ARRAY_SIZE(gDryfieldNightToiletViewCameras) };
 
-DirectionWarpEntry D_dryfield_night_toilet_8017DAD0[1] = {
-    { { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -1660, 0, 1653 }, { 0, 0, 0, 0 }, 0x53100002, 0x53100001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 480 },
+/// Door descriptor/arrival slots, map-marker nibble and room-bank sound entries.
+enum {
+    DRYFIELD_NIGHT_TOILET_DOOR_WARP_SLOT                = 1,
+    DRYFIELD_NIGHT_TOILET_PARKING_LOT_ARRIVAL_WARP_SLOT = 3,
+    DRYFIELD_NIGHT_TOILET_DOOR_MAP_FLAG                 = 480,
+    DRYFIELD_NIGHT_TOILET_DOOR_ARRIVAL_SOUND            = 2,
+    DRYFIELD_NIGHT_TOILET_DOOR_DEPARTURE_SOUND          = 1,
 };
 
-static SVECTOR _gDryfieldNightToiletCollision007C8Normals[7] = {
+DirectionWarpEntry gDryfieldNightToiletWarpEntries[1] = {
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -1660, 0, 1653 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -1660, 0, 1653 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TOILET, DRYFIELD_NIGHT_TOILET_DOOR_ARRIVAL_SOUND),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TOILET, DRYFIELD_NIGHT_TOILET_DOOR_DEPARTURE_SOUND),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_TOILET_DOOR_MAP_FLAG,
+    },
+};
+
+/// Side length of each grid cell in game-coordinate units.
+enum { DRYFIELD_NIGHT_TOILET_COLLISION_CELL_SIZE = 4000 };
+
+/// Room-space unit normals with 4096 representing one for the toilet mesh.
+static SVECTOR _gDryfieldNightToiletCollisionGridNormals[7] = {
 #include "assets/dryfield_night_toilet_collision_007C8_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightToiletCollision007C8Verts[36] = {
+/// Signed room-coordinate vertices in game units for the toilet mesh.
+static SVECTOR _gDryfieldNightToiletCollisionGridVerts[36] = {
 #include "assets/dryfield_night_toilet_collision_007C8_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightToiletCollision007C8Faces[18] = {
+/// Indexed quads and one triangle carrying surface classes 0..2.
+static WorldCollisionGridFace _gDryfieldNightToiletCollisionGridFaces[18] = {
 #include "assets/dryfield_night_toilet_collision_007C8_faces.inc"
 };
 
-static s16 _gDryfieldNightToiletCollision007C8Cells[36] = {
+/// Two face-index lists ending in `WORLD_COLLISION_GRID_CELL_END`.
+///
+/// The zero between the lists is retained asset storage outside either list.
+static s16 _gDryfieldNightToiletCollisionGridCells[36] = {
 #include "assets/dryfield_night_toilet_collision_007C8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightToiletCollision007C8Cells[i])
-static s16* _gDryfieldNightToiletCollision007C8Table[2] = {
+#define GRID_CELL(i) (&_gDryfieldNightToiletCollisionGridCells[i])
+/// X-major cell-list directory for one X cell and two Z cells.
+static s16* _gDryfieldNightToiletCollisionGridTable[2] = {
 #include "assets/dryfield_night_toilet_collision_007C8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_toilet_8017DD88[1] = {
-    { NULL, _gDryfieldNightToiletCollision007C8Normals, _gDryfieldNightToiletCollision007C8Verts, _gDryfieldNightToiletCollision007C8Faces, _gDryfieldNightToiletCollision007C8Table, 2970, 2300, 1, 2, 4000, 18 },
+/// The night toilet's writable collision mesh and two-cell spatial index.
+///
+/// Grid origin is (-2970, -2300) on XZ; each cell spans 4000 game units.
+/// Room activation binds the view coordinate. The descriptor and mesh pools
+/// are borrowed for collision queries while the room overlay is loaded.
+static WorldCollisionGrid _gDryfieldNightToiletCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightToiletCollisionGridNormals,
+    .vertices    = _gDryfieldNightToiletCollisionGridVerts,
+    .faces       = _gDryfieldNightToiletCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightToiletCollisionGridTable,
+    .xBias       = 2970,
+    .zBias       = 2300,
+    .cellCountX  = 1,
+    .cellCountZ  = ARRAY_SIZE(_gDryfieldNightToiletCollisionGridTable),
+    .cellSize    = DRYFIELD_NIGHT_TOILET_COLLISION_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightToiletCollisionGridFaces),
 };
 
 ViewCamera gDryfieldNightToiletViewCameras[9] = {
@@ -436,7 +483,12 @@ static WorldCoordRoomLights _gDryfieldNightToiletLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_dryfield_night_toilet_8017EE9C[6] = {
+/// Six directed camera boundaries: 4/5, 3/4 and 2/3 in both directions.
+///
+/// Room-local geometry uses game units and normals use 4096 per unit. Setup
+/// binds and links every record, including the final LAST record; hit state
+/// and list links remain mutable while the overlay is loaded.
+static WorldCollisionTrigger _gDryfieldNightToiletViewBoundaryTriggers[6] = {
     { NULL, NULL, NULL, { 127, -992, 6, 0 }, { { -1024, -2016, 0, 0 }, { 1025, -2016, 0, 0 }, { -1024, 2016, 0, 0 }, { 1025, 2016, 0, 0 } }, { 0, 0, -4098, 0 }, { 0, 0, 4096, 0 }, 2260, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 128, -1056, -96, 0 }, { { 1024, -2080, 0, 0 }, { -1024, -2080, 0, 0 }, { 1024, 2080, 0, 0 }, { -1024, 2080, 0, 0 } }, { 0, 0, 4096, 0 }, { 0, 0, 4096, 0 }, 2318, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -1184, -1088, -1568, 0 }, { { -157, -2112, -1018, 0 }, { 145, -2112, 1008, 0 }, { -157, 2112, -1018, 0 }, { 145, 2112, 1008, 0 } }, { 4052, 0, -606, 0 }, { 0, 0, 4096, 0 }, 2346, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -445,8 +497,14 @@ WorldCollisionTrigger D_dryfield_night_toilet_8017EE9C[6] = {
     { NULL, NULL, NULL, { -1857, -1072, 638, 0 }, { { 1016, -2096, -53, 0 }, { -1027, -2096, 45, 0 }, { 1016, 2096, -53, 0 }, { -1027, 2096, 45, 0 } }, { 196, 0, 4115, 0 }, { 0, 0, 4096, 0 }, 2332, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_toilet_8017F064[8] = {
-    { NULL, NULL, NULL, { -1808, -48, 1728, 0 }, { { -656, 0, -256, 0 }, { 656, 0, -256, 0 }, { -656, 0, 256, 0 }, { 656, 0, 256, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 704, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Door warp and seven facing-gated CAP interaction quads for the night toilet.
+///
+/// The warp goes to parking-lot area 15, departure slot 1 and arrival slot 3.
+/// CAP command IDs are 1..5, 9 and 10. Positions and radii use room units;
+/// normals use 4096 per unit. Room setup borrows and links through LAST,
+/// mutating list links, coordinates, enabled flags and hit latches.
+static WorldCollisionTrigger _gDryfieldNightToiletActionTriggers[8] = {
+    { NULL, NULL, NULL, { -1808, -48, 1728, 0 }, { { -656, 0, -256, 0 }, { 656, 0, -256, 0 }, { -656, 0, 256, 0 }, { 656, 0, 256, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 704, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_PARKING_LOT, (DRYFIELD_NIGHT_TOILET_DOOR_WARP_SLOT << 4) | DRYFIELD_NIGHT_TOILET_PARKING_LOT_ARRIVAL_WARP_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 729, -64, -1472, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 765, -64, -480, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 764, -64, 448, 0 }, { { -320, 0, -416, 0 }, { 320, 0, -416, 0 }, { -320, 0, 416, 0 }, { 320, 0, 416, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -456,7 +514,11 @@ WorldCollisionTrigger D_dryfield_night_toilet_8017F064[8] = {
     { NULL, NULL, NULL, { -1824, -64, -1392, 0 }, { { -320, 0, -624, 0 }, { 320, 0, -624, 0 }, { -320, 0, 624, 0 }, { 320, 0, 624, 0 } }, { 0, 4102, 0, 0 }, { 4096, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_night_toilet_8017F2C4[1] = {
+/// The night toilet's single room-space line-of-sight blocking quad.
+///
+/// Positions use game units and the normal uses 4096 per unit. The lone
+/// record carries LAST and remains writable for runtime list links and flags.
+static WorldCollisionOccluder _gDryfieldNightToiletOccluders[1] = {
     { NULL, NULL, { -864, -1488, 624, 0 }, { { 0, 1904, -1520, 0 }, { 0, -1904, -1520, 0 }, { 0, 1904, 1520, 0 }, { 0, -1904, 1520, 0 } }, { 4109, 0, 0, 0 }, 2428, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
@@ -598,7 +660,7 @@ static s32 _dryfieldNightToiletIgnoreActionRequest(Task* unusedTask, s32 message
 static void _dryfieldNightToiletInitializeRoom(Task* task)
 {
     enum { DRYFIELD_NIGHT_TOILET_EVENT_VARIANT = 1 };
-    task->msgTable = D_dryfield_night_toilet_8017DA70;
+    task->msgTable = _gDryfieldNightToiletRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == DRYFIELD_NIGHT_TOILET_EVENT_VARIANT) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN, 1);
@@ -615,8 +677,10 @@ static void _dryfieldNightToiletIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The room task's three states.
-static const TaskFuncTable3 D_dryfield_night_toilet_8017D5C4 = {
+/// Room-task handlers in state order: initialize (0), idle (1), release (2).
+///
+/// Copied as a complete three-callback value for dispatch; contains no sentinel.
+static const TaskFuncTable3 _gDryfieldNightToiletRoomStateHandlers = {
     { _dryfieldNightToiletInitializeRoom, _dryfieldNightToiletIdleRoomTask, taskKill },
 };
 
@@ -624,7 +688,7 @@ void dryfieldNightToiletRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_toilet_8017D5C4;
+    stateHandlers = _gDryfieldNightToiletRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

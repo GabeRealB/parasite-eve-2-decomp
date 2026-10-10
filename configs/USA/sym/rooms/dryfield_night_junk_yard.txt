@@ -1,7 +1,6 @@
 // Overlay-local symbols for dryfield_night_junk_yard.
 D_dryfield_night_junk_yard_801805A0 = 0x801805A0; // size:0x4 defined:True
-D_dryfield_night_junk_yard_8018073C = 0x8018073C; // size:0x18 defined:True
-D_dryfield_night_junk_yard_80180754 = 0x80180754; // size:0x20 defined:True
+_gDryfieldNightJunkYardGlowWorldPoints = 0x8018073C; // size:0x38 defined:True
 gDryfieldNightJunkYardRoomLighting = 0x80180784; // size:0x10 defined:True
 D_dryfield_night_junk_yard_80180794 = 0x80180794; // size:0x20 defined:True
 _gDryfieldNightJunkYardRoom2ViewMap = 0x801807B4; // size:0xC defined:True

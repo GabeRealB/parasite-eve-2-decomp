@@ -36,23 +36,17 @@ typedef struct {
 } _DryfieldNightMotelRoom1SpotLightStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldNightMotelRoom1SpotLightStorage, 432);
 
-/// The night motel room's drawable points, one 8-byte `SVECTOR` per disc.
-extern SVECTOR D_dryfield_night_motel_room_1_8017DA54[];
-extern SVECTOR D_dryfield_night_motel_room_1_8017DA5C[];
-
 static WorldCollisionGrid     _gDryfieldNightMotelRoom1CollisionGrid;
 extern WorldCollisionOccluder D_dryfield_night_motel_room_1_801806C0[1];
 extern WorldCollisionTrigger  D_dryfield_night_motel_room_1_8017FF04[8];
 extern WorldCollisionTrigger  D_dryfield_night_motel_room_1_801804AC[7];
 static WorldCoordRoomLights   _gDryfieldNightMotelRoom1RoomLights;
 
-SVECTOR D_dryfield_night_motel_room_1_8017DA54[1] = {
-    { 1920, -970, 470, 0 },
-};
+/// Large textured-flare centre for mapped views 2, 3, 8 and 9, in world units.
+static SVECTOR _gDryfieldNightMotelRoom1LargeFlareWorldPoint = { 1920, -970, 470, 0 };
 
-SVECTOR D_dryfield_night_motel_room_1_8017DA5C[1] = {
-    { 2030, -2070, 6320, 0 },
-};
+/// Small textured-flare centre for mapped views 5 and 6, in world units.
+static SVECTOR _gDryfieldNightMotelRoom1SmallFlareWorldPoint = { 2030, -2070, 6320, 0 };
 
 WorldCoordRoomLighting gDryfieldNightMotelRoom1RoomLighting[2] = {
     { .lights = &_gDryfieldNightMotelRoom1RoomLights, .ambientTable = NULL },
@@ -1273,12 +1267,12 @@ void dryfieldNightMotelRoom1DrawGlowsTask(Task* task)
         case 3:
         case 8:
         case 9:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_1_8017DA54[0], DRYFIELD_NIGHT_MOTEL_ROOM_1_LARGE_FLARE_TEXTURE_INDEX,
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom1LargeFlareWorldPoint, DRYFIELD_NIGHT_MOTEL_ROOM_1_LARGE_FLARE_TEXTURE_INDEX,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_1_LARGE_FLARE_RADIUS_SCALE);
             break;
         case 5:
         case 6:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_1_8017DA5C[0], DRYFIELD_NIGHT_MOTEL_ROOM_1_SMALL_FLARE_TEXTURE_INDEX,
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom1SmallFlareWorldPoint, DRYFIELD_NIGHT_MOTEL_ROOM_1_SMALL_FLARE_TEXTURE_INDEX,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_1_SMALL_FLARE_RADIUS_SCALE);
             break;
     }

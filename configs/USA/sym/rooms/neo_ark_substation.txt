@@ -1,10 +1,6 @@
 // Overlay-local symbols for neo_ark_substation.
 D_neo_ark_substation_8017E2C8 = 0x8017E2C8; // size:0x48 defined:True
-D_neo_ark_substation_8017E310 = 0x8017E310; // size:0x20 defined:True
-D_neo_ark_substation_8017E330 = 0x8017E330; // size:0x20 defined:True
-D_neo_ark_substation_8017E350 = 0x8017E350; // size:0x10 defined:True
-D_neo_ark_substation_8017E360 = 0x8017E360; // size:0x20 defined:True
-D_neo_ark_substation_8017E380 = 0x8017E380; // size:0x70 defined:True
+_gNeoArkSubstationGlowWorldPoints = 0x8017E310; // size:0xE0 defined:True
 D_neo_ark_substation_8017E294 = 0x8017E294; // size:0x28 defined:True
 D_neo_ark_substation_8017E2BC = 0x8017E2BC; // size:0xC defined:True
 D_neo_ark_substation_8017E3F0 = 0x8017E3F0; // size:0x10 defined:True

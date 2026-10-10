@@ -45,24 +45,20 @@ typedef struct {
 } _DryfieldNightMotelRoom3SpotLightStorage;
 STATIC_ASSERT_SIZEOF(_DryfieldNightMotelRoom3SpotLightStorage, 756);
 
-/// The night motel room's drawable points, one 8-byte `SVECTOR` per disc. Each
-/// is reached by its own address, so the compiler materialises it whole into
-/// `$a0` rather than indexing one base.
-extern SVECTOR D_dryfield_night_motel_room_3_8017DA84;
-extern SVECTOR D_dryfield_night_motel_room_3_8017DA8C;
-extern SVECTOR D_dryfield_night_motel_room_3_8017DA94;
-
 static WorldCollisionGrid     _gDryfieldNightMotelRoom3CollisionGrid;
 extern WorldCollisionOccluder D_dryfield_night_motel_room_3_801806F4[1];
 extern WorldCollisionTrigger  D_dryfield_night_motel_room_3_8018019C[11];
 extern WorldCollisionTrigger  D_dryfield_night_motel_room_3_801804E0[7];
 static WorldCoordRoomLights   _gDryfieldNightMotelRoom3RoomLights;
 
-SVECTOR D_dryfield_night_motel_room_3_8017DA84 = { 510, -990, 3200, 0 };
+/// Textured-flare centre for logical views 4, 10 and 11, in world units.
+static SVECTOR _gDryfieldNightMotelRoom3View4And10And11FlareWorldPoint = { 510, -990, 3200, 0 };
 
-SVECTOR D_dryfield_night_motel_room_3_8017DA8C = { 2520, -2240, 2480, 0 };
+/// Textured-flare centre for logical views 3 and 4, in world units.
+static SVECTOR _gDryfieldNightMotelRoom3View3And4FlareWorldPoint = { 2520, -2240, 2480, 0 };
 
-SVECTOR D_dryfield_night_motel_room_3_8017DA94 = { 1810, -1920, 6700, 0 };
+/// Textured-flare centre for logical view 8, in world units.
+static SVECTOR _gDryfieldNightMotelRoom3View8FlareWorldPoint = { 1810, -1920, 6700, 0 };
 
 WorldCoordRoomLighting gDryfieldNightMotelRoom3RoomLighting[1] = {
     { .lights = &_gDryfieldNightMotelRoom3RoomLights, .ambientTable = NULL },
@@ -1520,23 +1516,23 @@ void dryfieldNightMotelRoom3DrawFlaresTask(Task* task)
     // View 4 includes both flares, preserving their packet reservation order.
     switch (gGameSession->location.loc.view) {
         case 3:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA8C,
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom3View3And4FlareWorldPoint,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_3_COMMON_FLARE_TEXTURE_COLUMN,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_3_4_FLARE_RADIUS_SCALE);
             break;
         case 4:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA8C,
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom3View3And4FlareWorldPoint,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_3_COMMON_FLARE_TEXTURE_COLUMN,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_3_4_FLARE_RADIUS_SCALE);
             /* fallthrough */
         case 10:
         case 11:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA84,
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom3View4And10And11FlareWorldPoint,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_3_COMMON_FLARE_TEXTURE_COLUMN,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_4_10_11_FLARE_RADIUS_SCALE);
             break;
         case 8:
-            glowDrawFlareClipped(&D_dryfield_night_motel_room_3_8017DA94,
+            glowDrawFlareClipped(&_gDryfieldNightMotelRoom3View8FlareWorldPoint,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_8_FLARE_TEXTURE_COLUMN,
                                  DRYFIELD_NIGHT_MOTEL_ROOM_3_VIEW_8_FLARE_RADIUS_SCALE);
             break;

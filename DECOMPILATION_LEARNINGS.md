@@ -1542,10 +1542,10 @@ later, at `a1`, which leaves `a0=coord` in each arm and reaches 100%:
 
 ```c
 if (gGameSession->location.loc.view == 2) {
-    _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC, 1, 0x280);
-    _glowDrawFlareLocal(coord, D_dryfield_cellar_8017DBBC + 1, 1, 0x280);
+    _glowDrawFlareLocal(coord, _gDryfieldCellarView2GlowLocalPoints, 1, 0x280);
+    _glowDrawFlareLocal(coord, _gDryfieldCellarView2GlowLocalPoints + 1, 1, 0x280);
 } else if (gGameSession->location.loc.view == 3) {
-    ... D_dryfield_cellar_8017DBCC ...
+    ... _gDryfieldCellarView3GlowLocalPoints ...
 }
 ```
 
@@ -93221,9 +93221,9 @@ Retail draws the two anchors of the current camera view through a tail both bran
 reach with a `j`, with the `%hi` scratch in the destination's own register:
 
 ```asm
-lui   $s0,%hi(D_dryfield_night_cellar_8017DAD0)
+lui   $s0,%hi(_gDryfieldNightCellarView2GlowWorldPoints)
 j     .Ldraw
-addiu $s0,$s0,%lo(D_dryfield_night_cellar_8017DAD0)
+addiu $s0,$s0,%lo(_gDryfieldNightCellarView2GlowWorldPoints)
 ...
 .Ldraw:  addu $a0,$s0,$zero ; jal _glowDrawFlare ; ... addiu $a0,$s0,0x8 ; jal _glowDrawFlare
 ```
@@ -122272,17 +122272,17 @@ Three consecutive `SVECTOR`s at `0x8017DA84` / `0x8017DA8C` / `0x8017DA94`, one
 visit each, and the target materialises every one of them whole into `$a0`:
 
 ```
-lui   a0,%hi(D_dryfield_night_motel_room_3_8017DA8C)
-addiu a0,a0,%lo(D_dryfield_night_motel_room_3_8017DA8C)
+lui   a0,%hi(_gDryfieldNightMotelRoom3View3And4FlareWorldPoint)
+addiu a0,a0,%lo(_gDryfieldNightMotelRoom3View3And4FlareWorldPoint)
 ```
 
-Declaring a single base array and indexing it (`&D_..._8017DA84[1]`,
-`&D_..._8017DA84[2]`) compiles to the *same instruction bytes* - 2.8.1 keeps
+Declaring a single base array and indexing it (`&points[1]`,
+`&points[2]`) compiles to the *same instruction bytes* - 2.8.1 keeps
 `%hi` on the base symbol and folds only the offset into `%lo`:
 
 ```
-lui   a0,%hi(D_dryfield_night_motel_room_3_8017DA84)
-addiu a0,a0,%lo(D_dryfield_night_motel_room_3_8017DA84+8)
+lui   a0,%hi(_gDryfieldNightMotelRoom3View4And10And11FlareWorldPoint)
+addiu a0,a0,%lo(_gDryfieldNightMotelRoom3View4And10And11FlareWorldPoint+8)
 ```
 
 Both forms link to the same address, so the overlay checksum passes either way -
@@ -122291,12 +122291,12 @@ indexed form scores 99.286% (`regs=6`) with a diff that is nothing but those
 reloc lines. The fix is to declare each named address as its own object:
 
 ```c
-extern SVECTOR D_dryfield_night_motel_room_3_8017DA84;
-extern SVECTOR D_dryfield_night_motel_room_3_8017DA8C;
-extern SVECTOR D_dryfield_night_motel_room_3_8017DA94;
+static SVECTOR _gDryfieldNightMotelRoom3View4And10And11FlareWorldPoint = { 510, -990, 3200, 0 };
+static SVECTOR _gDryfieldNightMotelRoom3View3And4FlareWorldPoint = { 2520, -2240, 2480, 0 };
+static SVECTOR _gDryfieldNightMotelRoom3View8FlareWorldPoint = { 1810, -1920, 6700, 0 };
 ```
 
-The *variable*-pointer spelling of the same thing (`SVECTOR* p = D_...DA84;`
+The *variable*-pointer spelling of the same thing (`SVECTOR* p = points;`
 then `&p[1]`) is much worse here - 78.780%, `insert=9 regs=12`, 50 instructions
 against 42 - because a pointer that is not a constant index keeps
 `(plus (reg) (const_int 8))`, so the address is materialised into a register and

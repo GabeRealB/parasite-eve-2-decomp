@@ -19,7 +19,12 @@ extern AreaVariant D_dryfield_night_toilet_8017F354[12];
 /// borrowed from this overlay and remain valid only while it is loaded.
 extern WorldCoordRoomLighting gDryfieldNightToiletRoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_toilet_8017DAB8[];
+/// Room 1's collision grid, camera boundaries, interactions and sight blocker.
+///
+/// Indexed by room - 1. The stage map borrows this directory and its mutable
+/// resources while the night toilet overlay is loaded; trigger and occluder
+/// arrays include their final LAST records.
+extern WorldCollisionRoomResources gDryfieldNightToiletRoomCollisionResources[1];
 
 /// Room 1's logical-view map directory, borrowing gameplay's identity mapping.
 ///
@@ -34,7 +39,13 @@ extern u8* gDryfieldNightToiletViewMaps[1];
 /// The stage map borrows the array while this room overlay is loaded.
 extern ViewCount gDryfieldNightToiletViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_toilet_8017DAD0[];
+/// The night toilet's single arrival/departure endpoint, selected by warp ID 1.
+///
+/// Indexed by warp ID - 1, without a terminator. Player and companion share
+/// world placement (-1660, 0, 1653), yaw 2048 of 4096, and initial view 2.
+/// Uses night-toilet sound entries 2 on arrival and 1 on departure, with map
+/// marker 480. Borrowed through the stage map while this overlay is loaded.
+extern DirectionWarpEntry gDryfieldNightToiletWarpEntries[1];
 
 /// Camera transforms and projection distances for the night toilet's nine views.
 ///
