@@ -13,8 +13,12 @@
 
 extern AreaVariant D_dryfield_dilapidated_house_80189938[13];
 
-// dryfield_dilapidated_house
-extern WorldCollisionRoomResources D_dryfield_dilapidated_house_80186954[];
+/// Room 1's collision grid, view/action triggers and sight-blocking quad.
+///
+/// The Dryfield map selects this one-entry directory at area 9, indexed by
+/// room minus one. Binding borrows and mutates its referenced resources;
+/// keep the room overlay loaded until collision lists have been unlinked.
+extern WorldCollisionRoomResources gDryfieldDilapidatedHouseRoomCollisionResources[1];
 
 /// The room-1 directory mapping logical views 1..21 to the same camera/image indices.
 ///
@@ -37,7 +41,14 @@ extern ViewCount gDryfieldDilapidatedHouseRoomViewCounts[1];
 /// all must remain loaded through lighting updates and queries.
 extern WorldCoordRoomLighting gDryfieldDilapidatedHouseRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_dilapidated_house_80186974[];
+/// Arrival placements and departure options for the room's two warp endpoints.
+///
+/// The Dryfield map selects the area-9 array by warp ID minus one (IDs 1..2).
+/// Endpoint 1 selects view 6, area-bank arrival/departure cues and map nibble
+/// 467; endpoint 2 selects view 2 without sounds or a map update. Neither has
+/// scripted-player or departure-fade flags. Positions use room game units and
+/// yaw uses 4096 units per turn. Borrowed records require the loaded overlay.
+extern DirectionWarpEntry gDryfieldDilapidatedHouseWarpEntries[2];
 
 /// Cameras for mapped views 1..21 of the Dryfield dilapidated house.
 ///

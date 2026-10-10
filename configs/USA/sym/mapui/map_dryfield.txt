@@ -10,7 +10,7 @@ gDryfieldGasStationRoomLighting = 0x80183160; // absolute:True owner=dryfield_ga
 D_dryfield_gas_station_80183168 = 0x80183168; // absolute:True owner=dryfield_gas_station
 D_dryfield_gas_station_8018316C = 0x8018316C; // absolute:True owner=dryfield_gas_station shared=rooms
 D_dryfield_gas_station_80183EC8 = 0x80183EC8; // absolute:True owner=dryfield_gas_station
-D_dryfield_gas_station_801842A8 = 0x801842A8; // absolute:True owner=dryfield_gas_station shared=rooms
+D_dryfield_gas_station_801842A8 = 0x801842A8; // absolute:True owner=dryfield_gas_station
 gDryfieldGasStationSurfacePropertiesByClass = 0x80184BAC; // absolute:True owner=dryfield_gas_station
 dryfieldMainStreetTask = 0x8017E168; // type:func absolute:True owner=dryfield_main_street
 D_dryfield_main_street_80181BBC = 0x80181BBC; // absolute:True owner=dryfield_main_street shared=rooms
@@ -73,11 +73,11 @@ gDryfieldR08ViewCameras = 0x8017FBBC; // absolute:True owner=dryfield_r08 shared
 gDryfieldR08SpriteViews = 0x80180918; // absolute:True owner=dryfield_r08
 gDryfieldR08SurfacePropertiesByClass = 0x80180C04; // absolute:True owner=dryfield_r08
 dryfieldDilapidatedHouseRoomTask = 0x8017EB60; // type:func absolute:True owner=dryfield_dilapidated_house
-D_dryfield_dilapidated_house_80186954 = 0x80186954; // absolute:True owner=dryfield_dilapidated_house
+gDryfieldDilapidatedHouseRoomCollisionResources = 0x80186954; // absolute:True owner=dryfield_dilapidated_house
 gDryfieldDilapidatedHouseRoomViewMaps = 0x80186964; // absolute:True owner=dryfield_dilapidated_house
 gDryfieldDilapidatedHouseRoomViewCounts = 0x80186968; // absolute:True owner=dryfield_dilapidated_house
 gDryfieldDilapidatedHouseRoomLighting = 0x8018696C; // absolute:True owner=dryfield_dilapidated_house
-D_dryfield_dilapidated_house_80186974 = 0x80186974; // absolute:True owner=dryfield_dilapidated_house
+gDryfieldDilapidatedHouseWarpEntries = 0x80186974; // absolute:True owner=dryfield_dilapidated_house
 gDryfieldDilapidatedHouseViewCameras = 0x80187308; // absolute:True owner=dryfield_dilapidated_house
 gDryfieldDilapidatedHouseSpriteViews = 0x80188C0C; // absolute:True owner=dryfield_dilapidated_house
 gDryfieldDilapidatedHouseSurfacePropertiesByClass = 0x80189A80; // absolute:True owner=dryfield_dilapidated_house shared=rooms
