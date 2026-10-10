@@ -283,7 +283,7 @@ NULL.
 | 8 | `gTaskBank8Descs` | 6 | Stubs + shared `effectBurstModelPartTask` |
 | 9 | `gTaskBank9Descs` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
 | 10 | `gEffectBurstTaskDescriptors` | 6 | Stubs + `effectBurstModelPartTask`; actors set the last descriptor's model |
-| 14 | `D_80068B7C` | 5 | Stubs + one `0x807xxxxx` |
+| 14 | `gTaskBank14Descs` | 5 | Bodyless teardown slots 0..3; slot 4 targets development RAM, role unproven |
 
 Callback addresses fall in four windows:
 

@@ -5,14 +5,6 @@
 
 extern u8 D_80068AF0[];
 
-extern u16 Spu_SemitonePitchTable[];
-
-extern u16 Spu_FinePitchTable[];
-
-extern u16 Snd_PanGainTable[];
-
-extern u16 Snd_VelocityGainTable[];
-
 /// Results of requesting CD-audio cancellation.
 enum {
     CD_AUDIO_CANCEL_OPEN_PENDING = -3, // Track setup has not reached its opening driver; cancel remains requested

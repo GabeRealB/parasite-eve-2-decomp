@@ -8502,7 +8502,7 @@ reloads it into `$s0` only on the fallthrough path that *does* call, do not
 share one local pointer for both arms. Access the global by name (or return
 early) on the no-call arm, and introduce `p = &global` only after joining the
 call path. A single `p` live across both arms pins `$s0` for the whole function
-and mismatches prologue/early stores (`_cdStreamCompleteOpeningRead` / `CdStream_State`).
+and mismatches prologue/early stores (`_cdStreamCompleteOpeningRead` / `_gCdStreamRuntime.state`).
 
 **Also: capture a dest address before a call that you assign after.** Writing
 `Fs_ChunkWritePtr = (u8*)&Fs_CdSector` after `CdSync` materialises the address
@@ -8572,13 +8572,13 @@ fresh `lui`/`addiu %lo` for a *post-call* store (instead of `off($s0)`), use the
 local pointer only up through the call and name the global for the later write:
 
 ```c
-_CdReadyQueue* queue = &CdReady_Queue;
+_CdReadyQueue* queue = &_gCdReadyQueue;
 if (queue->callbackInstalled == 0) {
     queue->prevCallback = CdReadyCallback(arg0); /* uses $s0 */
 } else {
     CdReadyCallback(arg0);
 }
-CdReady_Queue.callbackInstalled = 1; /* reloads address into $v0 — not $s0 */
+_gCdReadyQueue.callbackInstalled = 1; /* reloads address into $v0 — not $s0 */
 ```
 
 `_cdReadyInstallCallback` needs this plus `volatile` on the field (base+offset `sb`, not
@@ -12242,7 +12242,7 @@ if (seekFlags >> CD_STREAM_SEEK_ENABLED_BIT) {
 That produces the clean `lbu` / `srl` / `beqz` sequence. Casting at the use site
 (`if ((u8)state->flags1 >> CD_STREAM_SEEK_ENABLED_BIT)`) is not enough — the temporary is required.
 
-`_cdStreamRequestPlayhead` is a pure example (bit 7 of `CdStream_Runtime.state.flags1`).
+`_cdStreamRequestPlayhead` is a pure example (bit 7 of `_gCdStreamRuntime.state.flags1`).
 
 
 ## Early-load order among independent `&= ~mask` globals
@@ -13494,12 +13494,12 @@ Fix: keep the pre-call clear as a direct field expression (so it stays
 plus a local pointer for the base:
 
 ```c
-CdStream_State.unknown_0[0] = CdStream_State.unknown_0[0] & 0xF7;
+_gCdStreamRuntime.state.flags0 = _gCdStreamRuntime.state.flags0 & 0xF7;
 /* ... */
 func(...);
-p = &CdStream_State;
-temp = p->unknown_0[2];
-p->unknown_0[2] = temp & 0xF7; /* separate andi — mask not CSE'd into $sN */
+p = &_gCdStreamRuntime.state;
+temp = p->flags2;
+p->flags2 = temp & 0xF7; /* separate andi — mask not CSE'd into $sN */
 ```
 
 Using the temp form on *both* sides also yields `andi`, but loads into `$a1`
@@ -13536,7 +13536,7 @@ e->field_0 = (flags & ~1) | 4; /* still li -2; and */
 can put the `lbu` in `$a1`; the split `t = field; t = t & 0xFE; field = t`
 keeps `lbu`/`andi` on `$v0`.
 
-`_cdStreamQueueRestartRead` is the pure example (pairs with the `CdReady_Queue` entry flag
+`_cdStreamQueueRestartRead` is the pure example (pairs with the `_gCdReadyQueue` entry flag
 update used by `cdStreamStop`).
 
 ## Non-volatile store reordered past volatile field stores
@@ -13553,14 +13553,14 @@ Fix: declare the halfword `volatile`. That pins the store in source order
 relative to the surrounding volatile accesses:
 
 ```c
-extern volatile s16 D_80082808;
+extern volatile u16 _gCdStreamErrorCode;
 /* ... */
-p->unknown_0[2] = temp & 0xF7;
-D_80082808 = 0; /* stays here when volatile */
-CdStream_State.unknown_0[0] = CdStream_State.unknown_0[0] | 1;
+p->flags2 = temp & 0xF7;
+_gCdStreamErrorCode = 0; /* stays here when volatile */
+_gCdStreamRuntime.state.flags0 = _gCdStreamRuntime.state.flags0 | 1;
 ```
 
-`_cdStreamResumePlayback` / `D_80082808` is the example.
+`_cdStreamResumePlayback` / `_gCdStreamErrorCode` is the example.
 
 ## Default return value belongs in the fall-through branch
 
@@ -13808,8 +13808,8 @@ if (state->field_4 != pos) {  /* beq v1,v0 — field in v1, pos in v0 */
 
 ## Volatile global: index via global name, not a local pointer
 
-For a global struct with `volatile` header fields and an embedded array (e.g. `CdReady_Queue.entries`),
-taking a local `p = &CdReady_Queue` and then forming `&((T*)((u8*)p + off))[idx]`
+For a global struct with `volatile` header fields and an embedded array (e.g. `_gCdReadyQueue.entries`),
+taking a local `p = &_gCdReadyQueue` and then forming `&((T*)((u8*)p + off))[idx]`
 (or `p->entries[idx]` through that pointer) often folds the field offset into
 the scaled index:
 
@@ -13831,11 +13831,11 @@ Use the global directly (no local pointer) so the address of the struct is
 shared between the `%lo(sym)` `locked` access and the array base:
 
 ```c
-savedLock = CdReady_Queue.locked; /* lui/addiu + %lo lbu */
+savedLock = _gCdReadyQueue.locked; /* lui/addiu + %lo lbu */
 if (slot != 0) {
-    queuedJob = &CdReady_Queue.entries[(s16)(slot - 1)];
+    queuedJob = &_gCdReadyQueue.entries[(s16)(slot - 1)];
     ...
-    CdReady_Queue.locked = savedLock;
+    _gCdReadyQueue.locked = savedLock;
 }
 ```
 
@@ -14509,8 +14509,8 @@ gGpuCurrentOt = ot + 0x20; /* addiu reuses ot — no reload */
 
 A tail of independent stores to distinct globals (`g1 = 0; g2 = 0; g3 = g2; …`)
 can be reordered when some targets are non-volatile: GCC 2.8.1 may hoist the
-volatile chain (e.g. `D_80082808 = 0; D_80082810 = D_80082808`) ahead of an
-earlier non-volatile `D_80068B58 = 0`, and may sink the `D_80082810` store past
+volatile chain (e.g. `_gCdStreamErrorCode = 0; _gCdStreamLastErrorCode = _gCdStreamErrorCode`) ahead of an
+earlier non-volatile `_gCdStreamServiceActive = 0`, and may sink the `_gCdStreamLastErrorCode` store past
 later non-volatile stores.
 
 Symptom: body matches except the final store sequence is permuted (and `%hi`
@@ -14520,15 +14520,15 @@ Fix: declare every global in that ordered sequence `volatile` so each access is
 a sequence point the scheduler cannot cross:
 
 ```c
-extern volatile s32 D_80068B58;
-extern volatile u16 D_80082808;
-extern volatile u16 D_80082810;
+extern volatile s32 _gCdStreamServiceActive;
+extern volatile u16 _gCdStreamErrorCode;
+extern volatile u16 _gCdStreamLastErrorCode;
 /* ... */
-D_80068B58 = 0;
-D_80082808 = 0;
-D_80082810 = D_80082808; /* lhu requires unsigned half on the source */
-D_80068B6A = 0;
-D_80068B5C = 0;
+_gCdStreamServiceActive = 0;
+_gCdStreamErrorCode = 0;
+_gCdStreamLastErrorCode = _gCdStreamErrorCode; /* lhu requires unsigned half on the source */
+_gCdStreamReadyCallbackActive = 0;
+_gCdStreamPlaybackIrqArmed = 0;
 ```
 
 Also match load width to the source type: `lhu` ⇒ `volatile u16` (not `s16`,
@@ -15074,8 +15074,8 @@ Reuse the lo-index local for the multiply result so the product/`0x3FFF` clamp
 lands in `$v1` (the register that held the second table address) instead of
 `$a0`. Use `u32` temps so `>>` is `srl`, not `sra`.
 
-`spuCalcPitch` is the example (pitch-register lookup: `Spu_SemitonePitchTable[semitoneIndex] *
-Spu_FinePitchTable[fineIndexAndPitch] >> 8`, clamp to `0x3FFF`).
+`spuCalcPitch` is the example (pitch-register lookup: `gSpuSemitonePitchTable[semitoneIndex] *
+gSpuFinePitchTable[fineIndexAndPitch] >> 8`, clamp to `0x3FFF`).
 
 ## Early halfword temp so `lh` stays live across intervening stores
 
@@ -16907,20 +16907,20 @@ the target holds the same pointer in two callee-saved regs for interleaved
 
 ## Adjacent BSS via typed pointer subtraction
 
-When two BSS symbols are laid out back-to-back (e.g. `CdStream_State` size `0x58`,
-then `CdStream_Channels`) and the target forms the earlier address as
+When two members of a BSS allocation sit back-to-back (e.g. `_gCdStreamRuntime.state` size `0x58`,
+then `_gCdStreamRuntime.channels`) and the target forms the earlier address as
 `addiu a1, a2, -0x58` off the later base (`lbu v0, -0x58(a2)`), do not name both
-globals independently — that reloads `%hi/%lo(CdStream_State)`. Anchor on the later
-symbol and step back one typed element:
+members independently — that reloads `%hi/%lo(_gCdStreamRuntime)`. Anchor on the later
+member and recover its containing object:
 
 ```c
-_CdStreamChannels* p = &CdStream_Channels;
-volatile CdStreamState* q = (volatile CdStreamState*)p - 1; /* sizeof == gap */
+_CdStreamChannels* p = &_gCdStreamRuntime.channels;
+volatile CdStreamState* q = &PARENT_OF(p, CdStreamRuntime, channels)->state; /* state size == gap */
 ```
 
 `sizeof(*q)` must equal the BSS gap. Same pattern as "BSS adjacency: hold the later symbol, step back by typed size".
-`CdStream_SetPitch` needs this (with `volatile` on `q` so the else path reloads
-`unknown_0[1]` instead of CSEing the bit test).
+`cdStreamSetVolume` needs this (with `volatile` on `q` so the else path reloads
+`flags1` instead of CSEing the bit test).
 
 ## Else-only `register … asm("v0")` for dual channel pointers
 
@@ -16950,7 +16950,7 @@ stereoRightVoiceAttr = &channels->voiceAttr[1];   /* register SpuVoiceAttr* ster
 stereoRightVoiceAttr->volume.right = volume;
 ```
 
-`cdStreamSetVolume` is the pure example (`CdStream_Runtime.channels.voiceAttr[0]` / `voiceAttr[1]`, stride `0x40`).
+`cdStreamSetVolume` is the pure example (`_gCdStreamRuntime.channels.voiceAttr[0]` / `voiceAttr[1]`, stride `0x40`).
 
 ## Dual `if (size != 0)` fill loops need a reloaded `cond`
 
@@ -17897,13 +17897,13 @@ target builds `idx*stride` first then `addiu base, p, offsetof(entries)`:
 
 ```c
 /* Right: multiply first, then base = p+8 */
-entry = &CdReady_Queue.entries[queue->writeIdx];
+entry = &_gCdReadyQueue.entries[queue->writeIdx];
 
 /* Wrong fold: (idx*20 + 8) + queue */
 entry = &queue->entries[queue->writeIdx];
 ```
 
-`_cdReadyEnqueue` is the pure example (CdReady_Queue.entries queue push).
+`_cdReadyEnqueue` is the pure example (_gCdReadyQueue.entries queue push).
 
 ## Dual `goto` return labels for `beqz` + `j`/`li` fallthrough layout
 
@@ -20069,7 +20069,7 @@ callback ring. Two matching details that look like style nits but are required:
    members rather than the whole object says exactly that and needs no cast:
 
 ```c
-entry = &CdReady_Queue.entries[queue->readIdx];
+entry = &_gCdReadyQueue.entries[queue->readIdx];
 entry->active    = 0;
 entry->cancelled = 0;
 ```
@@ -20080,8 +20080,8 @@ entry->cancelled = 0;
 
 2. **Do not share the "advance index" block across arms.** The bit-0 path
    advances through the base already in `$s1` (`queue->readIdx = …`). The bit-2
-   path reloads the global (`lui`/`addiu` of `CdReady_Queue`) and writes
-   `CdReady_Queue.readIdx`. Sharing one advance via `goto` from both arms merges
+   path reloads the global (`lui`/`addiu` of `_gCdReadyQueue`) and writes
+   `_gCdReadyQueue.readIdx`. Sharing one advance via `goto` from both arms merges
    them onto `$s1` and shrinks the function. Duplicate the increment/wrap
    literally, once via `queue` and once via the global name.
 
@@ -22459,7 +22459,7 @@ tails need `and s0, s0, a0` (mask in `$a0`). `_uiDrawPanel` is the pure example.
 When the target does:
 
 ```
-addiu  a3, …, %lo(CdReady_Queue)
+addiu  a3, …, %lo(_gCdReadyQueue)
 …
 sll    v1, idx, …          /* idx * stride */
 addiu  v0, a3, 8           /* &entries[0] */
@@ -22468,7 +22468,7 @@ lw     a0, 0(v1)
 ```
 
 writing `e = &p->entries[idx]` with `p` a local that already holds
-`&CdReady_Queue` often produces the algebraically equal but different form
+`&_gCdReadyQueue` often produces the algebraically equal but different form
 `addiu v1, scaled, 8; addu v1, v1, a3`.
 
 Using the **global** for the array index keeps the `addiu v0, base, 8` shape
@@ -22476,20 +22476,21 @@ even when a register also holds the same address (e.g. assigned earlier for
 another purpose, then reused after the block):
 
 ```c
-setup.queue = &CdReady_Queue; /* may be needed for reg color */
+setup.queue = &_gCdReadyQueue; /* may be needed for reg color */
 …
-queuedJob = &CdReady_Queue.entries[(s16)(slot - 1)]; /* global → addiu v0, base, 8 */
+queuedJob = &_gCdReadyQueue.entries[(s16)(slot - 1)]; /* global → addiu v0, base, 8 */
 ```
 
 `cdStreamOpen` is the pure example — 99.9% until this one form difference.
 
 ## Adjacent BSS: `p + 1` for the next object
 
-When two BSS globals are laid out back-to-back (here `CdStream_State` size 0x58,
-then `CdStream_Channels`), the original code often never names the second symbol and
-instead uses `(NextType*)(p + 1)` / `(PrevType*)q - 1`. Prefer that over loading
-`&CdStream_Channels` so codegen keeps a single base plus a fixed offset (`addiu t0,
-a3, 0x58`). See also `CdStream_SetPitch` which walks the other direction.
+When two members of a BSS allocation sit back-to-back (here `_gCdStreamRuntime.state` size 0x58,
+then `_gCdStreamRuntime.channels`), derive the next member from the containing
+object rather than reloading its address. From a state pointer `p`, use
+`&PARENT_OF(p, CdStreamRuntime, state)->channels` so codegen keeps a single base
+plus a fixed offset (`addiu t0, a3, 0x58`). See also `cdStreamSetVolume` which
+walks the other direction.
 
 ## QImode `register asm` compare: `andi v0,tN` vs `andi tN,tN`
 
@@ -22956,8 +22957,8 @@ the next attempt:
    `mtsPeriod`/`gapSectors`, `sectorsLeft`, `voiceL`/`voiceR`/`channelCount`, `sector` as
    `_MtsHeader*`.
 
-4. **Error counters** at `CdStream_ShellOpenErrors`, `D_80068B5F` and
-   `*(volatile u8*)&D_80068B65` want `%lo(sym)` form (`lbu`/`sb` with folded reloc). Separate byte symbols or
+4. **Error counters** at `_gCdStreamShellOpenErrorCount`, `_gCdStreamSectorPositionErrorCount` and
+   `_gCdStreamSectorTransferErrorCount` want `%lo(sym)` form (`lbu`/`sb` with folded reloc). Separate byte symbols or
    non-volatile struct fields; array index often emits `addiu` base + offset.
 
 
@@ -66488,13 +66489,13 @@ scheduling penalties because it delayed the call arguments too.
 
 ## Duplicate branch-end reads to stop early address CSE, then let jump2 share the load
 
-`func_8005896C` reached 99.636% with `delete=1`, `branch=16`,
+`_cdStreamAdvanceEvenChunk` reached 99.636% with `delete=1`, `branch=16`,
 `regs=2`: one missing `lui` shifted every later branch destination.
-The `.cse` dump reused an earlier `%hi(CdStream_State)` through a
+The `.cse` dump reused an earlier `%hi(_gCdStreamRuntime)` through a
 conditional update. A reused scalar holding first the state pointer and
-then its `field_18` value already made the pointer die at the reload.
+then its `playhead` value already made the pointer die at the reload.
 
-Moving the volatile `field_18` reload into both the updating arm and an
+Moving the volatile `playhead` reload into both the updating arm and an
 explicit `else` stopped that early CSE. Later jump optimization merged the
 identical loads, leaving the target's fresh `lui` immediately after the
 shared load. This reached 100% without register pins or empty asm.
@@ -66525,9 +66526,9 @@ uses no register pins or empty asm.
 
 ## func_80058ED4: volatile reload placement and reusing the quotient local
 
-Matched using the adjacent `func_8005896C` stop-voice and ready-queue paths.
+Matched using the adjacent `_cdStreamAdvanceEvenChunk` stop-voice and ready-queue paths.
 A `_CdReadyEntry` local preserves the callback stores that m2c's separate stack
-locals lose. Save `CdReady_Queue.locked` before the inner slot check and restore
+locals lose. Save `_gCdReadyQueue.locked` before the inner slot check and restore
 that saved byte after cancellation; self-assignment reads it too late.
 
 The 97.544% attempt had `branch=0 regs=8 reorder=1 insert=3 delete=3`.
@@ -147508,7 +147509,7 @@ isolated. A temp for the phase, `<< 4` on that temp and the `s32`
 switch variable are all folded the same way; `+ 0xA` keeps the three shifts
 but emits `addiu`.
 
-**Fix.** A narrowing cast on the way: `CdStream_ErrorCode = (u16)(entry->phase
+**Fix.** A narrowing cast on the way: `_gCdStreamErrorCode = (u16)(entry->phase
 << 4) | 0xA;`, the type the code is stored as. `(u8)` or `(s16)` on the phase
 itself matches as well. No word view of the bitfield is needed.
 
@@ -150614,7 +150615,7 @@ attempts; left as it was.
     out of the retry loop into `$s8/$s4/$s6` (5 insns longer, larger frame).
     The image reloads them, so the retry was not a loop to loop.c.
   - `_cdStreamAdvanceEvenChunk`, `_cdStreamAdvanceOddChunk` (`goto stopVoices`
-    back into the first arm): the label has a fresh `lui s1,%hi(CdStream_Runtime)`
+    back into the first arm): the label has a fresh `lui s1,%hi(_gCdStreamRuntime)`
     that the backward jump repeats in its delay slot. An inline called in both
     arms reuses the function's `$s2` base in the fall-through copy, the copies
     differ, and the surviving copy is the later one (1 insn longer, blocks in
@@ -150624,7 +150625,7 @@ attempts; left as it was.
     sites is merged into the *later* site (the earlier `break` is processed
     first and its copy deleted), 23 insns longer. Its `wait_for_progress` and
     `stream_error` tails follow the switch behind the `break` target; a
-    duplicate of either after `CdStream_LastErrorCode = CdStream_ErrorCode`
+    duplicate of either after `_gCdStreamLastErrorCode = _gCdStreamErrorCode`
     would reuse the loaded error code where the label reloads it.
   - `_cdAudioReadHeaderDriver`: the tick-and-return after the switch is the `break`
     target (a `j` to it carries a fresh `lui v1,%hi(CdAudio_Ctl)` right after

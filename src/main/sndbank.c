@@ -8,7 +8,6 @@
 
 #include "common.h"
 
-#include "cdaudio.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/sound_types.h"
@@ -835,12 +834,12 @@ void spuCalcPanVolumes(SpuVolume* volumes, s16 pan, s32 volume)
         index = 0;
     }
 
-    left  = (u32)(volume * Snd_PanGainTable[index]) >> SPU_PAN_GAIN_FRACTION_BITS;
-    right = (u32)(volume * Snd_PanGainTable[SPU_PAN_TABLE_LAST_INDEX - index]) >> SPU_PAN_GAIN_FRACTION_BITS;
+    left  = (u32)(volume * gSpuPanGainTable[index]) >> SPU_PAN_GAIN_FRACTION_BITS;
+    right = (u32)(volume * gSpuPanGainTable[SPU_PAN_TABLE_LAST_INDEX - index]) >> SPU_PAN_GAIN_FRACTION_BITS;
 
     // Mono folds both gains through the same centre-pan attenuation.
     if (!sndOutputIsStereo()) {
-        right = (u32)((left + right) * Snd_PanGainTable[SPU_PAN_TABLE_CENTER_INDEX]) >> SPU_PAN_GAIN_FRACTION_BITS;
+        right = (u32)((left + right) * gSpuPanGainTable[SPU_PAN_TABLE_CENTER_INDEX]) >> SPU_PAN_GAIN_FRACTION_BITS;
         left  = right;
     }
 

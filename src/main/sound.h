@@ -8,6 +8,26 @@
 #include "main/sound_types.h"
 #include "sound_types.h"
 
+/// Q10 semitone pitch factors, with unity at index 72.
+///
+/// The embedded table has 96 entries. The pitch lookup masks its integer
+/// coordinate to eight bits without a bounds check; callers must stay in 0..95.
+extern u16 gSpuSemitonePitchTable[96];
+
+/// Q10 pitch multipliers for the fractional semitone, indexed in 1/128-semitone steps (0..127).
+extern u16 gSpuFinePitchTable[128];
+
+/// Descending Q12 left-pan gain curve, with unity at index zero.
+///
+/// Pan conversion uses indices 0..126, mirrors the right gain around 126 and
+/// uses index 63 for mono attenuation. The embedded element 127 is also zero.
+extern u16 gSpuPanGainTable[128];
+
+/// Quadratic 0..127 velocity/gain curve returning direct SPU gains from zero to 0x3FFF.
+///
+/// MIDI indexes note velocity; scripts index their clamped attenuated gain.
+extern u16 gSpuVelocityGainTable[128];
+
 extern SndBank Snd_Banks[];
 
 extern SndLoadState SndLoad_State;

@@ -7,7 +7,6 @@
 
 #include "common.h"
 
-#include "cdaudio.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "sound.h"
@@ -2786,7 +2785,7 @@ static void _sndVoiceCalcMixVolumes(s8 panOffset, s8 attenuation, _SndVoice* voi
         gainIndex = voice->scaledVolume * abs(gainIndex) / SOUND_SCRIPT_VOLUME_UNITY;
         gainIndex = (gainIndex < SOUND_SCRIPT_VOLUME_UNITY + 1) ? ((gainIndex < 0) ? 0 : gainIndex) : SOUND_SCRIPT_VOLUME_UNITY;
         spuCalcPanVolumes(panVolumes, (s8)voice->basePan + panOffset * SOUND_SCRIPT_PAN_STEPS_PER_OFFSET,
-                          linInterpApply(volumeRamp, Snd_VelocityGainTable[gainIndex]));
+                          linInterpApply(volumeRamp, gSpuVelocityGainTable[gainIndex]));
     }
 }
 

@@ -6,7 +6,6 @@
 
 #include "common.h"
 
-#include "cdaudio.h"
 #include "sound_types.h"
 
 /// Number of hardware voices the SPU mixes; voice indices run below it.
@@ -780,14 +779,14 @@ u16 spuCalcPitch(s32 key, s32 pitchOffset, s32 rootKey, s32 fineTune)
     semitoneByteOffset = 0;
     semitoneIndex      = pitchCoordinate & 0xFFFF;
     do {
-        semitonePitches = Spu_SemitonePitchTable;
+        semitonePitches = gSpuSemitonePitchTable;
         semitoneIndex >>= SPU_PITCH_FRACTION_BITS;
         if (semitoneIndex != 0) {
             semitoneByteOffset = semitoneIndex << 1;
         }
     } while (0);
     // The compiled lookup scales the semitone index in bytes before loading a u16.
-    fineIndexAndPitch = ((u32) * (const u16*)((const u8*)semitonePitches + semitoneByteOffset) * (u32)Spu_FinePitchTable[fineIndexAndPitch]) >> SPU_PITCH_PRODUCT_SHIFT;
+    fineIndexAndPitch = ((u32) * (const u16*)((const u8*)semitonePitches + semitoneByteOffset) * (u32)gSpuFinePitchTable[fineIndexAndPitch]) >> SPU_PITCH_PRODUCT_SHIFT;
     if ((fineIndexAndPitch & 0xFFFF) >= SPU_PITCH_REGISTER_MAX + 1) {
         fineIndexAndPitch = SPU_PITCH_REGISTER_MAX;
     }

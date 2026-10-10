@@ -36,7 +36,11 @@ extern TaskDesc D_80067828[];
 
 extern TaskDesc D_800678F4[];
 
-extern TaskDesc D_80068B7C[];
+/// Bank-14 spawn descriptors: four bodyless teardown slots and one development-RAM callback.
+///
+/// Indices are 0..4; every slot has execution priority 192. Slot 4 targets
+/// code outside the retail images; its role is unproven. There is no terminator.
+extern TaskDesc gTaskBank14Descs[5];
 
 /// Initializes an empty execution-list head and selects it for spawning.
 ///

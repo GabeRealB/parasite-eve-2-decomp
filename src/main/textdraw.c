@@ -242,7 +242,7 @@ TaskDesc* gTaskDescBanks[15] = {
     D_80067828,
     D_80067828,
     D_80067828,
-    D_80068B7C,
+    gTaskBank14Descs,
 };
 
 /// Medium UI-font glyph metrics, one record per character byte from ' ' through 0xFF.

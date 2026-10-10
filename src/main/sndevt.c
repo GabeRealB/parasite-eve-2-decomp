@@ -4,7 +4,6 @@
 
 #include "common.h"
 
-#include "cdaudio.h"
 #include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -1721,7 +1720,7 @@ static void _midiUpdateVoiceVolumes(_MidiSong* song)
             channelMask  = 1 << channelIndex;
             if (song->volumeDirtyChannels & channelMask) {
                 channelControls = &song->channels.entries[channelIndex];
-                channelGain     = channelControls->volume * channelControls->expression * Snd_VelocityGainTable[slot->velocity];
+                channelGain     = channelControls->volume * channelControls->expression * gSpuVelocityGainTable[slot->velocity];
                 channelGain     = channelGain / MIDI_CHANNEL_GAIN_DIVISOR;
                 voiceVolume     = (u32)(songVolume * slot->volumeScale * channelGain) / (u32)MIDI_VOICE_GAIN_DIVISOR;
                 panOffset       = channelControls->pan - MIDI_CHANNEL_PAN_CENTER;
