@@ -130,32 +130,37 @@ TmdSource gMappicS202BackStreetShape = {
     .stream           = _gMappicS202BackStreetShapeStream,
 };
 
-static TmdBone _gMappicS202Model00C48002E8Skeleton[1] = {
+/// Identity transform and self-parented root for the Souvenir Shop shape.
+static TmdBone _gMappicS202SouvenirShopShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_002E8_skeleton.inc"
 };
 
-static u32 _gMappicS202Model00C48002E8PartVerts[1] = {
+/// Vertex count of the Souvenir Shop shape's sole part (four vertices).
+static u32 _gMappicS202SouvenirShopShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_002E8_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202Model00C48002E8Verts[4] = {
+/// Souvenir Shop's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202SouvenirShopShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_002E8_verts.inc"
 };
 
-static u32 _gMappicS202Model00C48002E8Stream[9] = {
+/// Packed command stream for the Souvenir Shop shape's single unlit quad.
+///
+/// Four SVECTOR byte offsets and white colour; two group ends precede the
+/// stream end. The map reads only the first group.
+static u32 _gMappicS202SouvenirShopShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_002E8_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012F218 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS202Model00C48002E8PartVerts,
-    _gMappicS202Model00C48002E8Verts,
-    &_gMappicS202Model00C48002E8Verts[4],
-    _gMappicS202Model00C48002E8Skeleton,
-    _gMappicS202Model00C48002E8Stream,
+TmdSource gMappicS202SouvenirShopShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202SouvenirShopShapeSkeleton),
+    .partVertexCounts = _gMappicS202SouvenirShopShapePartVerts,
+    .verts            = _gMappicS202SouvenirShopShapeVerts,
+    .normals          = &_gMappicS202SouvenirShopShapeVerts[ARRAY_SIZE(_gMappicS202SouvenirShopShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202SouvenirShopShapeSkeleton,
+    .stream           = _gMappicS202SouvenirShopShapeStream,
 };
 
 static TmdBone _gMappicS202Model00C4800378Skeleton[1] = {
