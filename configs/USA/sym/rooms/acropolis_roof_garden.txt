@@ -47,10 +47,10 @@ gActor105500MaggotCaterpillarTasks = 0x8013A8DC; // absolute:True owner=actor_10
 gActor00700MothTaskDesc = 0x801513C8; // absolute:True owner=actor_200700
 gActor202600MaggotCaterpillarBodyTask = 0x801528D4; // absolute:True owner=actor_202600
 gActor205500MaggotCaterpillarTasks = 0x801528DC; // absolute:True owner=actor_205500
-D_map_akropolis_8017BABC = 0x8017BABC; // absolute:True owner=map_akropolis
-D_map_akropolis_8017BB1C = 0x8017BB1C; // absolute:True owner=map_akropolis
-D_map_akropolis_8017BB9C = 0x8017BB9C; // absolute:True owner=map_akropolis
-D_map_akropolis_8017BBFC = 0x8017BBFC; // absolute:True owner=map_akropolis
+gMapAkropolisRoofGardenVariant1Placements = 0x8017BABC; // absolute:True owner=map_akropolis
+gMapAkropolisRoofGardenVariant2Placements = 0x8017BB1C; // absolute:True owner=map_akropolis
+gMapAkropolisRoofGardenVariant7Placements = 0x8017BB9C; // absolute:True owner=map_akropolis
+gMapAkropolisRoofGardenVariant8Placements = 0x8017BBFC; // absolute:True owner=map_akropolis
 D_acropolis_roof_garden_80184B08 = 0x80184B08; // size:0xF0 defined:True
 _gAcropolisRoofGardenEntranceStartPlayerAnimation = 0x80184ACC; // size:0x14 defined:True
 _gAcropolisRoofGardenEntranceEndPlayerAnimation = 0x80184AE0; // size:0x14 defined:True

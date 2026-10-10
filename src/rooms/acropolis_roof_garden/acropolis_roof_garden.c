@@ -852,14 +852,14 @@ static AreaResource _gAcropolisRoofGardenVariant8Resources[3] = {
 
 AreaVariant D_acropolis_roof_garden_80185934[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BABC, _gAcropolisRoofGardenVariant1Resources },
-    { D_map_akropolis_8017BB1C, _gAcropolisRoofGardenVariant2Resources },
+    { gMapAkropolisRoofGardenVariant1Placements, _gAcropolisRoofGardenVariant1Resources },
+    { gMapAkropolisRoofGardenVariant2Placements, _gAcropolisRoofGardenVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017BB9C, _gAcropolisRoofGardenVariant7Resources },
-    { D_map_akropolis_8017BBFC, _gAcropolisRoofGardenVariant8Resources },
+    { gMapAkropolisRoofGardenVariant7Placements, _gAcropolisRoofGardenVariant7Resources },
+    { gMapAkropolisRoofGardenVariant8Placements, _gAcropolisRoofGardenVariant8Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

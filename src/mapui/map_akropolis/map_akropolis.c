@@ -84,6 +84,68 @@
  * map pictures' marker models.
  */
 
+/// Placement-entry keys matched against each selected room variant's resource list.
+///
+/// Keys identify recipes within that list, rather than actor-file numbers.
+/// UNUSED retains a record position without matching these variants' recipes.
+enum {
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_UNUSED            = 0,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT               = 7,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH              = 8,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_STRANGER          = 10,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_MOSSBACK          = 11,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_MIND_SUCKLER      = 15,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_SCAVENGER         = 16,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_ODD_STRANGER      = 18,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_GRINNING_STRANGER = 19,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_PAWN_GOLEM        = 20,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_KNIGHT_GOLEM      = 22,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_AMOEBA            = 24,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_SCORPION          = 25,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR       = 26,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_NO9_GOLEM         = 27,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT               = 37,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_BLACK_BEETLE      = 38,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_BRIDGE_ENEMY      = 41,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_SUCKLERCEPH       = 46,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_SKULL_STALKER     = 47,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_LARGE_MOSSBACK    = 49,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT            = 55,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_SLOUCH            = 70,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_CREEPING_STRANGER = 72,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_RUPERT            = 102,
+    MAP_AKROPOLIS_PLACEMENT_ENTRY_VIEW_FIGURE       = 110,
+};
+
+/// Actor-specific placement modes and variant spawn selectors used below.
+///
+/// Crawlers use the decimal entrance suffix for leap/drop and variant 0..3
+/// for their entrance slot; the Pawn uses variant as patrol distance in thousands
+/// of world units. These constants retain the records' byte/halfword storage.
+enum {
+    MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT                = 0,
+    MAP_AKROPOLIS_PLACEMENT_CRAWLER_AIMED                  = 1,
+    MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_LEADER            = 2,
+    MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_FOLLOWER          = 3,
+    MAP_AKROPOLIS_PLACEMENT_CRAWLER_LEAP_ENTRANCE          = 10,
+    MAP_AKROPOLIS_PLACEMENT_CRAWLER_DROP_ENTRANCE          = 11,
+    MAP_AKROPOLIS_PLACEMENT_SCORPION_ROAM                  = 0,
+    MAP_AKROPOLIS_PLACEMENT_SCORPION_AMBUSH_LEADER         = 1,
+    MAP_AKROPOLIS_PLACEMENT_BAT_PERCH_DROP                 = 0,
+    MAP_AKROPOLIS_PLACEMENT_BAT_PERCH_BACK                 = 1,
+    MAP_AKROPOLIS_PLACEMENT_BAT_WANDER                     = 2,
+    MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE          = 30,
+    MAP_AKROPOLIS_PLACEMENT_AMOEBA_VARIANT_NORMAL          = 0,
+    MAP_AKROPOLIS_PLACEMENT_AMOEBA_VARIANT_ALTERNATE       = 1,
+    MAP_AKROPOLIS_PLACEMENT_BLACK_BEETLE_IDLE              = 0,
+    MAP_AKROPOLIS_PLACEMENT_BLACK_BEETLE_WANDER            = 1,
+    MAP_AKROPOLIS_PLACEMENT_MIND_SUCKLER_PERCH             = 1,
+    MAP_AKROPOLIS_PLACEMENT_PAWN_GOLEM_PATROL              = 1,
+    MAP_AKROPOLIS_PLACEMENT_STRANGER_SCRIPTED_DORMANT      = 4,
+    MAP_AKROPOLIS_PLACEMENT_MOSSBACK_AWARENESS_NEAR        = 0,
+    MAP_AKROPOLIS_PLACEMENT_MOSSBACK_AWARENESS_RUN_OR_NEAR = 1,
+};
+
 static void _mapAkropolisDrawKeyItemRow(UiList* list, UiObject* object);
 static void _mapAkropolisKeyItemPanelTask(Task* task);
 static void _mapAkropolisKeyItemMenuTask(Task* task);
@@ -1179,275 +1241,275 @@ AreaPlacement D_map_akropolis_8017B1DC[2] = {
     { AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B1FC[5] = {
-    { 0xA, 0, 0, -0xFA0, 0, -0x3E8, 0x320, 0, 0, 2, 0 },
-    { 7, 0, 0, -0x1F4, 0, -0x4B0, 0x2BC, 0, 2, 4, 0 },
-    { 7, 0, 0, 0, 0, -0x320, 0x400, 0, 2, 4, 0 },
-    { 7, 0, 0, 0, 0, -0x12C, 0x514, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant3Placements[5] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_STRANGER, .variant = 0, .mode = 0, .x = -4000, .y = 0, .z = -1000, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -500, .y = 0, .z = -1200, .yaw = 0x2BC, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = -800, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = -300, .yaw = 0x514, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B24C[5] = {
-    { 0x37, 3, 0xA, 0x2BC, 0, -0x1194, 0xE10, 0, 0, 2, 0 },
-    { 0x37, 0, 0xA, 0x578, 0, -0x960, 0xD48, 0, 0, 2, 0 },
-    { 0x37, 2, 0xA, 0x7D0, 0, 0, 0xC00, 0, 0, 2, 0 },
-    { 0x37, 1, 0xA, 0x4B0, 0, 0x5DC, 0xB86, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant4Placements[5] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 3, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_LEAP_ENTRANCE, .x = 700, .y = 0, .z = -4500, .yaw = 0xE10, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_LEAP_ENTRANCE, .x = 1400, .y = 0, .z = -2400, .yaw = 0xD48, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 2, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_LEAP_ENTRANCE, .x = 2000, .y = 0, .z = 0, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 1, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_LEAP_ENTRANCE, .x = 1200, .y = 0, .z = 1500, .yaw = 0xB86, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B29C[5] = {
-    { 0x14, 3, 1, -0x73A, 0, 0x320, 0x9F6, 0, 0, 2, 0 },
-    { 7, 0, 0, -0x1F4, 0, -0x4B0, 0x2BC, 0, 3, 5, 7 },
-    { 7, 0, 0, 0, 0, -0x320, 0x400, 0, 3, 5, 7 },
-    { 7, 0, 0, 0, 0, -0x12C, 0x514, 0, 3, 5, 7 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant7Placements[5] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_PAWN_GOLEM, .variant = 3, .mode = MAP_AKROPOLIS_PLACEMENT_PAWN_GOLEM_PATROL, .x = -1850, .y = 0, .z = 800, .yaw = 0x9F6, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -500, .y = 0, .z = -1200, .yaw = 0x2BC, .fileIdLow = 0, .texturePageOffset = 3, .clutRowOffset = 5, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = -800, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 3, .clutRowOffset = 5, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = -300, .yaw = 0x514, .fileIdLow = 0, .texturePageOffset = 3, .clutRowOffset = 5, .rowIndex = 7 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B2EC[5] = {
-    { 0x1A, 3, 0xA, 0x2BC, 0, -0x1194, 0xE10, 0, 0, 2, 7 },
-    { 0x1A, 0, 0xA, 0x578, 0, -0x960, 0xD48, 0, 0, 2, 7 },
-    { 0x1A, 2, 0xA, 0x7D0, 0, 0, 0xC00, 0, 0, 2, 7 },
-    { 0x1A, 1, 0xA, 0x4B0, 0, 0x5DC, 0xB86, 0, 0, 2, 7 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant8Placements[5] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 3, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_LEAP_ENTRANCE, .x = 700, .y = 0, .z = -4500, .yaw = 0xE10, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_LEAP_ENTRANCE, .x = 1400, .y = 0, .z = -2400, .yaw = 0xD48, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 2, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_LEAP_ENTRANCE, .x = 2000, .y = 0, .z = 0, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 1, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_LEAP_ENTRANCE, .x = 1200, .y = 0, .z = 1500, .yaw = 0xB86, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B33C[2] = {
-    { 0x12, 4, 0, -0x186, 1, -0x384, 0x44C, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant9Placements[2] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_ODD_STRANGER, .variant = MAP_AKROPOLIS_PLACEMENT_STRANGER_SCRIPTED_DORMANT, .mode = 0, .x = -390, .y = 1, .z = -900, .yaw = 0x44C, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B35C[12] = {
-    { 7, 0, 0, -0x1820, 0, -0x1C0, 0, 0, 0, 2, 0 },
-    { 7, 0, 0, -0x2E0, 0, -0x480, 0, 0, 0, 2, 2 },
-    { 7, 0, 0, -0x1500, 0, -0xAA0, 0, 0, 0, 2, 4 },
-    { 7, 0, 0, -0x4A0, 0, 0x520, 0, 0, 0, 2, 5 },
-    { 7, 0, 0, -0x3C0, 0, 0x80, 0, 0, 0, 2, 6 },
-    { 7, 0, 0, -0xA60, 0, -0x548, 0, 0, 0, 2, 7 },
-    { 8, 0, 0, -0x1880, -0x320, -0x680, 0, 0, 0, 2, 0 },
-    { 8, 0, 0, -0x1880, -0x320, -0x3E8, 0, 0, 0, 2, 2 },
-    { 8, 0, 0, -0x1900, -0x320, -0xB20, 0, 0, 0, 2, 4 },
-    { 8, 0, 0, -0x16BF, -0x320, -0x7A1, 0, 0, 0, 2, 6 },
-    { 8, 0, 0, -0x14E0, -0x320, -0x6A0, 0, 0, 0, 2, 7 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant10Placements[12] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -6176, .y = 0, .z = -448, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -736, .y = 0, .z = -1152, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 2 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -5376, .y = 0, .z = -2720, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 4 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -1184, .y = 0, .z = 1312, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 5 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -960, .y = 0, .z = 128, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 6 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -2656, .y = 0, .z = -1352, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -6272, .y = -800, .z = -1664, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -6272, .y = -800, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 2 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -6400, .y = -800, .z = -2848, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 4 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -5823, .y = -800, .z = -1953, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 6 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -5344, .y = -800, .z = -1696, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B41C[7] = {
-    { 0x18, 0, 0, -0xA28, 0, -0x3E8, 0, 0, 0, 2, 0 },
-    { 0x18, 0, 1, -0x1820, 0, -0x1C0, 0, 0, 0, 2, 1 },
-    { 0x18, 0, 0, -0x2E0, 0, -0x480, 0, 0, 0, 2, 2 },
-    { 0x18, 0, 1, -0x1500, 0, -0xAA0, 0, 0, 0, 2, 3 },
-    { 0x18, 0, 0, -0x4A0, 0, 0x520, 0, 0, 0, 2, 4 },
-    { 0x18, 0, 1, -0x3C0, 0, 0x80, 0, 0, 0, 2, 5 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant11Placements[7] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_AMOEBA, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_AMOEBA_VARIANT_NORMAL, .x = -2600, .y = 0, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_AMOEBA, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_AMOEBA_VARIANT_ALTERNATE, .x = -6176, .y = 0, .z = -448, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_AMOEBA, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_AMOEBA_VARIANT_NORMAL, .x = -736, .y = 0, .z = -1152, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 2 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_AMOEBA, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_AMOEBA_VARIANT_ALTERNATE, .x = -5376, .y = 0, .z = -2720, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_AMOEBA, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_AMOEBA_VARIANT_NORMAL, .x = -1184, .y = 0, .z = 1312, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 4 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_AMOEBA, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_AMOEBA_VARIANT_ALTERNATE, .x = -960, .y = 0, .z = 128, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 5 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B48C[7] = {
-    { 0x19, 0, 0, -0xA28, 0, -0x3E8, 0, 0, 0, 2, 0 },
-    { 0x19, 0, 1, -0x1820, 0, -0x1C0, 0, 0, 0, 2, 1 },
-    { 0x19, 0, 1, -0x2E0, 0, -0x480, 0, 0, 0, 2, 2 },
-    { 0x19, 0, 1, -0x1500, 0, -0xAA0, 0, 0, 0, 2, 3 },
-    { 0x19, 0, 1, -0x4A0, 0, 0x520, 0, 0, 0, 2, 4 },
-    { 0x19, 0, 1, -0x3C0, 0, 0x80, 0, 0, 0, 2, 5 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant12Placements[7] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SCORPION, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_SCORPION_ROAM, .x = -2600, .y = 0, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SCORPION, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_SCORPION_AMBUSH_LEADER, .x = -6176, .y = 0, .z = -448, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SCORPION, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_SCORPION_AMBUSH_LEADER, .x = -736, .y = 0, .z = -1152, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 2 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SCORPION, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_SCORPION_AMBUSH_LEADER, .x = -5376, .y = 0, .z = -2720, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SCORPION, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_SCORPION_AMBUSH_LEADER, .x = -1184, .y = 0, .z = 1312, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 4 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SCORPION, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_SCORPION_AMBUSH_LEADER, .x = -960, .y = 0, .z = 128, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 5 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B4FC[5] = {
-    { 0x1A, 0, 0, -0xA28, 0, -0x3E8, 0, 0, 0, 2, 0 },
-    { 0x1A, 0, 1, -0x1518, 0, -0x7D0, 0x200, 0, 0, 2, 0 },
-    { 0x1A, 0, 2, -0x1518, -0x1770, 0, 0, 0, 0, 2, 0 },
-    { 0x1A, 0, 2, -0x1388, -0x1770, -0xA8C, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant13Placements[5] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT, .x = -2600, .y = 0, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_AIMED, .x = -5400, .y = 0, .z = -2000, .yaw = 0x200, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_LEADER, .x = -5400, .y = -6000, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_LEADER, .x = -5000, .y = -6000, .z = -2700, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B54C[7] = {
-    { 0x25, 0, 0, -0xA28, -0x3E8, -0x3E8, 0, 0, 0, 2, 0 },
-    { 0x25, 0, 1, -0x1500, -0x3E8, -0xAA0, 0, 0, 0, 2, 1 },
-    { 0x25, 0, 2, -0x2E0, -0x3E8, -0x480, 0, 0, 0, 2, 2 },
-    { 0x25, 0, 0, -0x3C0, -0x3E8, 0x80, 0, 0, 0, 2, 3 },
-    { 0x25, 0, 0, -0x4A0, -0x3E8, 0x520, 0, 0, 0, 2, 4 },
-    { 0x25, 0, 0, -0x1820, -0x3E8, -0x1C0, 0, 0, 0, 2, 5 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant14Placements[7] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_PERCH_DROP, .x = -2600, .y = -1000, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_PERCH_BACK, .x = -5376, .y = -1000, .z = -2720, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_WANDER, .x = -736, .y = -1000, .z = -1152, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 2 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_PERCH_DROP, .x = -960, .y = -1000, .z = 128, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_PERCH_DROP, .x = -1184, .y = -1000, .z = 1312, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 4 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_PERCH_DROP, .x = -6176, .y = -1000, .z = -448, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 5 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B5BC[3] = {
-    { 0xF, 0, 0, -0xA28, -0x5DC, -0x3E8, 0, 0, 0, 2, 0 },
-    { 0xF, 0, 1, -0x14B4, -0x5DC, -0x3E8, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant15Placements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MIND_SUCKLER, .variant = 0, .mode = 0, .x = -2600, .y = -1500, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MIND_SUCKLER, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_MIND_SUCKLER_PERCH, .x = -5300, .y = -1500, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B5EC[7] = {
-    { 0x26, 0, 0, -0xA28, 0, -0x3E8, 0, 0, 0, 2, 0 },
-    { 0x26, 0, 1, -0x1820, 0, -0x1C0, 0, 0, 0, 2, 1 },
-    { 0x26, 0, 0, -0x2E0, 0, -0x480, 0, 0, 0, 2, 2 },
-    { 0x26, 0, 1, -0x1500, 0, -0xAA0, 0, 0, 0, 2, 3 },
-    { 0x26, 0, 0, -0x4A0, 0, 0x520, 0, 0, 0, 2, 4 },
-    { 0x26, 0, 1, -0x3C0, 0, 0x80, 0, 0, 0, 2, 5 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant16Placements[7] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BLACK_BEETLE, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BLACK_BEETLE_IDLE, .x = -2600, .y = 0, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BLACK_BEETLE, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BLACK_BEETLE_WANDER, .x = -6176, .y = 0, .z = -448, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BLACK_BEETLE, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BLACK_BEETLE_IDLE, .x = -736, .y = 0, .z = -1152, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 2 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BLACK_BEETLE, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BLACK_BEETLE_WANDER, .x = -5376, .y = 0, .z = -2720, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BLACK_BEETLE, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BLACK_BEETLE_IDLE, .x = -1184, .y = 0, .z = 1312, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 4 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BLACK_BEETLE, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BLACK_BEETLE_WANDER, .x = -960, .y = 0, .z = 128, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 5 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B65C[2] = {
-    { 0x10, 0, 0, -0xA60, 0, -0x3E8, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant20Placements[2] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SCAVENGER, .variant = 0, .mode = 0, .x = -2656, .y = 0, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B67C[3] = {
-    { 0x2E, 0, 0, -0x147D, 0, -0xCCF, 0, 0, 0, 2, 0 },
-    { 0x2F, 0, 0, -0xA60, 0, -0x3E8, 0x3E8, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant21Placements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SUCKLERCEPH, .variant = 0, .mode = 0, .x = -5245, .y = 0, .z = -3279, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SKULL_STALKER, .variant = 0, .mode = 0, .x = -2656, .y = 0, .z = -1000, .yaw = 0x3E8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B6AC[3] = {
-    { 0x46, 0, 0, -0xA60, 0, -0x3E8, 0, 0, 0, 2, 0 },
-    { 0x48, 0, 0, 0x3C, 0, 0x380, 0x3E8, 0, 2, 3, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisForkedRoadVariant22Placements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_SLOUCH, .variant = 0, .mode = 0, .x = -2656, .y = 0, .z = -1000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CREEPING_STRANGER, .variant = 0, .mode = 0, .x = 60, .y = 0, .z = 896, .yaw = 0x3E8, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 3, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B6DC[3] = {
-    { 0x13, 0, 0, -0x9C4, -0xBAE, -0x1450, 0x708, 0, 0, 2, 0 },
-    { 0x13, 4, 0, -0x139E, -0xBAE, -0x1F97, -0x400, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisObservatoryVariant1Placements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_GRINNING_STRANGER, .variant = 0, .mode = 0, .x = -2500, .y = -2990, .z = -5200, .yaw = 0x708, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_GRINNING_STRANGER, .variant = MAP_AKROPOLIS_PLACEMENT_STRANGER_SCRIPTED_DORMANT, .mode = 0, .x = -5022, .y = -2990, .z = -8087, .yaw = -0x400, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B70C[3] = {
-    { 0xB, 1, 0, -0x640, -0xBAE, -0x1194, 0x800, 0, 0, 2, 0 },
-    { 0xB, 0, 0, -0x1194, -0xBAE, -0x1F40, 0xC00, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisObservatoryVariant2Placements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOSSBACK, .variant = MAP_AKROPOLIS_PLACEMENT_MOSSBACK_AWARENESS_RUN_OR_NEAR, .mode = 0, .x = -1600, .y = -2990, .z = -4500, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOSSBACK, .variant = MAP_AKROPOLIS_PLACEMENT_MOSSBACK_AWARENESS_NEAR, .mode = 0, .x = -4500, .y = -2990, .z = -8000, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B73C[10] = {
-    { 0x25, 0, 0x1E, -0x76C, -0x2454, -0x1C84, 0, 0, 0, 2, 0 },
-    { 0x25, 0, 0x1E, -0x8FC, -0x251C, -0x1B58, 0, 0, 0, 2, 0 },
-    { 0x25, 0, 0x1E, -0xA28, -0x24B8, -0x1CE8, 0, 0, 0, 2, 0 },
-    { 0x25, 0, 0x1E, -0x640, -0x2580, -0x1C84, 0, 0, 0, 2, 0 },
-    { 0x25, 0, 0x1E, -0x578, -0x251C, -0x1BBC, 0, 0, 0, 2, 0 },
-    { 0x25, 0, 0x1E, -0x3E8, -0x24B8, -0x1A90, 0, 0, 0, 2, 0 },
-    { 0x25, 0, 0x1E, -0x5DC, -0x2454, -0x1AF4, 0, 0, 0, 2, 0 },
-    { 0x25, 0, 0x1E, -0x834, -0x251C, -0x1C20, 0, 0, 0, 2, 0 },
-    { 0x25, 0, 0x1E, -0x6A4, -0x251C, -0x1B58, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisObservatoryVariant3Placements[10] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE, .x = -1900, .y = -9300, .z = -7300, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE, .x = -2300, .y = -9500, .z = -7000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE, .x = -2600, .y = -9400, .z = -7400, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE, .x = -1600, .y = -9600, .z = -7300, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE, .x = -1400, .y = -9500, .z = -7100, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE, .x = -1000, .y = -9400, .z = -6800, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE, .x = -1500, .y = -9300, .z = -6900, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE, .x = -2100, .y = -9500, .z = -7200, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BAT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_BAT_SCRIPTED_ENTRANCE, .x = -1700, .y = -9500, .z = -7000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B7DC[3] = {
-    { 0x31, 1, 0, -0x640, -0xBAE, -0x1194, 0x800, 0, 0, 2, 0 },
-    { 0x31, 0, 0, -0x1194, -0xBAE, -0x1F40, 0xC00, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisObservatoryVariant7Placements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_LARGE_MOSSBACK, .variant = MAP_AKROPOLIS_PLACEMENT_MOSSBACK_AWARENESS_RUN_OR_NEAR, .mode = 0, .x = -1600, .y = -2990, .z = -4500, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_LARGE_MOSSBACK, .variant = MAP_AKROPOLIS_PLACEMENT_MOSSBACK_AWARENESS_NEAR, .mode = 0, .x = -4500, .y = -2990, .z = -8000, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B80C[2] = {
-    { 0x12, 0, 0, -0x1194, -0xBAE, -0x1D4C, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisObservatoryVariant10Placements[2] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_ODD_STRANGER, .variant = 0, .mode = 0, .x = -4500, .y = -2990, .z = -7500, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B82C[3] = {
-    { 0xB, 1, 0, -0x5DC, 0x28, -0x1770, 0x8FC, 0, 0, 2, 0 },
-    { 0xB, 1, 0, -0x1F4, 0x28, -0x3E8, 0x800, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisPromenadeVariant1Placements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOSSBACK, .variant = MAP_AKROPOLIS_PLACEMENT_MOSSBACK_AWARENESS_RUN_OR_NEAR, .mode = 0, .x = -1500, .y = 40, .z = -6000, .yaw = 0x8FC, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOSSBACK, .variant = MAP_AKROPOLIS_PLACEMENT_MOSSBACK_AWARENESS_RUN_OR_NEAR, .mode = 0, .x = -500, .y = 40, .z = -1000, .yaw = 0x800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B85C[8] = {
-    { 7, 0, 0, -0x898, 0x28, -0x1A2C, 0x898, 0, 2, 4, 1 },
-    { 7, 0, 0, -0x7D0, 0x28, -0x1CE8, 0x8FC, 0, 2, 4, 1 },
-    { 7, 0, 0, -0x640, 0x28, -0x1B26, 0x9C4, 0, 2, 4, 1 },
-    { 7, 0, 0, -0x708, 0x28, -0x1E14, 0xB86, 0, 2, 4, 1 },
-    { 8, 0, 0, -0x898, -0x7D0, -0xAF0, 0xAF0, 0, 2, 4, 0 },
-    { 8, 0, 0, -0x898, -0x708, -0xBB8, 0xC00, 0, 2, 4, 0 },
-    { 8, 0, 0, -0x898, -0x898, -0xC80, 0xC80, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisPromenadeVariant2Placements[8] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -2200, .y = 40, .z = -6700, .yaw = 0x898, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -2000, .y = 40, .z = -7400, .yaw = 0x8FC, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -1600, .y = 40, .z = -6950, .yaw = 0x9C4, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RAT, .variant = 0, .mode = 0, .x = -1800, .y = 40, .z = -7700, .yaw = 0xB86, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -2200, .y = -2000, .z = -2800, .yaw = 0xAF0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -2200, .y = -1800, .z = -3000, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -2200, .y = -2200, .z = -3200, .yaw = 0xC80, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B8DC[11] = {
-    { 0x37, 0, 0, -0x7D0, 0x28, 0x258, 0x258, 0, 0, 2, 0 },
-    { 0x37, 0, 0, -0x640, 0x28, -0x384, 0x258, 0, 0, 2, 0 },
-    { 0x37, 0, 0, -0x12C, 0x28, -0x258, -0xC8, 0, 0, 2, 0 },
-    { 0x37, 0, 0, -0x672, 0x28, -0x1388, 0xC8, 0, 0, 2, 0 },
-    { 8, 0, 0, -0x898, -0x7D0, -0xC8, 0xAF0, 0, 2, 4, 1 },
-    { 8, 0, 0, -0x898, -0x708, -0x190, 0xC00, 0, 2, 4, 1 },
-    { 8, 0, 0, -0x898, -0x898, -0x258, 0xC80, 0, 2, 4, 1 },
-    { 8, 0, 0, 0x320, -0x9C4, -0x1068, 0x258, 0, 2, 4, 1 },
-    { 8, 0, 0, 0x320, -0xAF0, -0xF3C, 0x400, 0, 2, 4, 1 },
-    { 8, 0, 0, 0x320, -0x960, -0xE10, 0x640, 0, 2, 4, 1 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisPromenadeVariant3Placements[11] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT, .x = -2000, .y = 40, .z = 600, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT, .x = -1600, .y = 40, .z = -900, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT, .x = -300, .y = 40, .z = -600, .yaw = -0xC8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT, .x = -1650, .y = 40, .z = -5000, .yaw = 0xC8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -2200, .y = -2000, .z = -200, .yaw = 0xAF0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -2200, .y = -1800, .z = -400, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -2200, .y = -2200, .z = -600, .yaw = 0xC80, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = 800, .y = -2500, .z = -4200, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = 800, .y = -2800, .z = -3900, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = 800, .y = -2400, .z = -3600, .yaw = 0x640, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B98C[2] = {
-    { 0x16, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisPromenadeVariant7Placements[2] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_KNIGHT_GOLEM, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017B9AC[11] = {
-    { 0x1A, 0, 0, -0x7D0, 0x28, 0x258, 0x258, 0, 0, 2, 7 },
-    { 0x1A, 0, 0, -0x640, 0x28, -0x384, 0x258, 0, 0, 2, 7 },
-    { 0x1A, 0, 0, -0x12C, 0x28, -0x258, -0xC8, 0, 0, 2, 7 },
-    { 0x1A, 0, 0, -0x672, 0x28, -0x1388, 0xC8, 0, 0, 2, 7 },
-    { 8, 0, 0, -0x898, -0x7D0, -0xC8, 0xAF0, 0, 2, 4, 7 },
-    { 8, 0, 0, -0x898, -0x708, -0x190, 0xC00, 0, 2, 4, 7 },
-    { 8, 0, 0, -0x898, -0x898, -0x258, 0xC80, 0, 2, 4, 7 },
-    { 8, 0, 0, 0x320, -0x9C4, -0x1068, 0x258, 0, 2, 4, 7 },
-    { 8, 0, 0, 0x320, -0xAF0, -0xF3C, 0x400, 0, 2, 4, 7 },
-    { 8, 0, 0, 0x320, -0x960, -0xE10, 0x640, 0, 2, 4, 7 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisPromenadeVariant8Placements[11] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT, .x = -2000, .y = 40, .z = 600, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT, .x = -1600, .y = 40, .z = -900, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT, .x = -300, .y = 40, .z = -600, .yaw = -0xC8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DORMANT, .x = -1650, .y = 40, .z = -5000, .yaw = 0xC8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -2200, .y = -2000, .z = -200, .yaw = 0xAF0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -2200, .y = -1800, .z = -400, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -2200, .y = -2200, .z = -600, .yaw = 0xC80, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = 800, .y = -2500, .z = -4200, .yaw = 0x258, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = 800, .y = -2800, .z = -3900, .yaw = 0x400, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = 800, .y = -2400, .z = -3600, .yaw = 0x640, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BA5C[3] = {
-    { 0x1B, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0x66, 0, 0, 0, 0, 0, 0, 0, 4, 6, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisSanctuaryNo9AndRupertPlacements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_NO9_GOLEM, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RUPERT, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 4, .clutRowOffset = 6, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BA8C[3] = {
-    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0x66, 0, 0, 0, 0, 0, 0, 0, 4, 6, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisSanctuaryRupertPlacements[3] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_UNUSED, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_RUPERT, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 4, .clutRowOffset = 6, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BABC[6] = {
-    { 0x6E, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0x37, 0, 0xB, -0x1A2C, -0x1388, -0x1D4C, 0x320, 0, 2, 4, 0 },
-    { 0x37, 1, 0xB, -0x1450, -0x1388, -0x1E14, 0xC8, 0, 2, 4, 0 },
-    { 0x37, 2, 0xB, -0x1DB0, -0x1388, -0x2328, 0, 0, 2, 4, 0 },
-    { 0x37, 3, 0xB, -0xF3C, -0x1388, -0x1644, 0xAF0, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisRoofGardenVariant1Placements[6] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_VIEW_FIGURE, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DROP_ENTRANCE, .x = -6700, .y = -5000, .z = -7500, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 1, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DROP_ENTRANCE, .x = -5200, .y = -5000, .z = -7700, .yaw = 0xC8, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 2, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DROP_ENTRANCE, .x = -7600, .y = -5000, .z = -9000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 3, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DROP_ENTRANCE, .x = -3900, .y = -5000, .z = -5700, .yaw = 0xAF0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BB1C[8] = {
-    { 0x37, 0, 3, -0x1A2C, -0x1388, -0x1D4C, 0x320, 0, 0, 2, 0 },
-    { 0x37, 0, 3, -0x1450, -0x14B4, -0x1E14, 0xC8, 0, 0, 2, 0 },
-    { 0x37, 0, 3, -0x1DB0, -0x15E0, -0x2328, 0, 0, 0, 2, 0 },
-    { 0x37, 0, 2, -0xF3C, -0x170C, -0x1644, 0xAF0, 0, 0, 2, 0 },
-    { 8, 0, 0, -0x157C, -0x7D0, -0x9C4, 0, 0, 2, 4, 1 },
-    { 8, 0, 0, -0xFA0, -0x7D0, -0x9C4, 0, 0, 2, 4, 1 },
-    { 8, 0, 0, -0x1388, -0x7D0, -0x9C4, 0, 0, 2, 4, 1 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisRoofGardenVariant2Placements[8] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_FOLLOWER, .x = -6700, .y = -5000, .z = -7500, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_FOLLOWER, .x = -5200, .y = -5300, .z = -7700, .yaw = 0xC8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_FOLLOWER, .x = -7600, .y = -5600, .z = -9000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MAGGOT, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_LEADER, .x = -3900, .y = -5900, .z = -5700, .yaw = 0xAF0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -5500, .y = -2000, .z = -2500, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -4000, .y = -2000, .z = -2500, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -5000, .y = -2000, .z = -2500, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 1 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BB9C[6] = {
-    { 0x6E, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { 0x1A, 0, 0xB, -0x1A2C, -0x1388, -0x1D4C, 0x320, 0, 2, 4, 7 },
-    { 0x1A, 1, 0xB, -0x1450, -0x1388, -0x1E14, 0xC8, 0, 2, 4, 7 },
-    { 0x1A, 2, 0xB, -0x1DB0, -0x1388, -0x2328, 0, 0, 2, 4, 7 },
-    { 0x1A, 3, 0xB, -0xF3C, -0x1388, -0x1644, 0xAF0, 0, 2, 4, 7 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisRoofGardenVariant7Placements[6] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_VIEW_FIGURE, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DROP_ENTRANCE, .x = -6700, .y = -5000, .z = -7500, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 1, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DROP_ENTRANCE, .x = -5200, .y = -5000, .z = -7700, .yaw = 0xC8, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 2, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DROP_ENTRANCE, .x = -7600, .y = -5000, .z = -9000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 3, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_DROP_ENTRANCE, .x = -3900, .y = -5000, .z = -5700, .yaw = 0xAF0, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BBFC[8] = {
-    { 0x1A, 0, 3, -0x1A2C, -0x1388, -0x1D4C, 0x320, 0, 0, 2, 7 },
-    { 0x1A, 0, 3, -0x1450, -0x14B4, -0x1E14, 0xC8, 0, 0, 2, 7 },
-    { 0x1A, 0, 3, -0x1DB0, -0x15E0, -0x2328, 0, 0, 0, 2, 7 },
-    { 0x1A, 0, 2, -0xF3C, -0x170C, -0x1644, 0xAF0, 0, 0, 2, 7 },
-    { 8, 0, 0, -0x157C, -0x7D0, -0x9C4, 0xC00, 0, 2, 4, 7 },
-    { 8, 0, 0, -0xFA0, -0x7D0, -0x9C4, 0xC00, 0, 2, 4, 7 },
-    { 8, 0, 0, -0x1388, -0x7D0, -0x9C4, 0xC00, 0, 2, 4, 7 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisRoofGardenVariant8Placements[8] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_FOLLOWER, .x = -6700, .y = -5000, .z = -7500, .yaw = 0x320, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_FOLLOWER, .x = -5200, .y = -5300, .z = -7700, .yaw = 0xC8, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_FOLLOWER, .x = -7600, .y = -5600, .z = -9000, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_CATERPILLAR, .variant = 0, .mode = MAP_AKROPOLIS_PLACEMENT_CRAWLER_HANG_LEADER, .x = -3900, .y = -5900, .z = -5700, .yaw = 0xAF0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -5500, .y = -2000, .z = -2500, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -4000, .y = -2000, .z = -2500, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_MOTH, .variant = 0, .mode = 0, .x = -5000, .y = -2000, .z = -2500, .yaw = 0xC00, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 7 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_map_akropolis_8017BC7C[7] = {
-    { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x7A0, 0, 0, 0, 2, 0 },
-    { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x548, 0, 0, 0, 2, 0 },
-    { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x610, 0, 0, 0, 2, 0 },
-    { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x7A0, 0, 0, 0, 2, 0 },
-    { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x548, 0, 0, 0, 2, 0 },
-    { 0x29, 0, 0, -0x2EE0, 0x1F4, -0x76C, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END },
+AreaPlacement gMapAkropolisBridgeDefaultPlacements[7] = {
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BRIDGE_ENEMY, .variant = 0, .mode = 0, .x = -12000, .y = 500, .z = -1952, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BRIDGE_ENEMY, .variant = 0, .mode = 0, .x = -12000, .y = 500, .z = -1352, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BRIDGE_ENEMY, .variant = 0, .mode = 0, .x = -12000, .y = 500, .z = -1552, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BRIDGE_ENEMY, .variant = 0, .mode = 0, .x = -12000, .y = 500, .z = -1952, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BRIDGE_ENEMY, .variant = 0, .mode = 0, .x = -12000, .y = 500, .z = -1352, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = MAP_AKROPOLIS_PLACEMENT_ENTRY_BRIDGE_ENEMY, .variant = 0, .mode = 0, .x = -12000, .y = 500, .z = -1900, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaPlacement D_map_akropolis_8017BCEC[1] = {

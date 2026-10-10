@@ -1081,8 +1081,8 @@ static AreaResource _gAcropolisSanctuaryRupertResources[2] = {
 
 AreaVariant D_acropolis_sanctuary_8018402C[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BA5C, _gAcropolisSanctuaryNo9AndRupertResources },
-    { D_map_akropolis_8017BA8C, _gAcropolisSanctuaryRupertResources },
+    { gMapAkropolisSanctuaryNo9AndRupertPlacements, _gAcropolisSanctuaryNo9AndRupertResources },
+    { gMapAkropolisSanctuaryRupertPlacements, _gAcropolisSanctuaryRupertResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

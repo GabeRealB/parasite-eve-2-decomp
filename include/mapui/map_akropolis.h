@@ -176,69 +176,273 @@ extern AreaPlacement D_map_akropolis_8017B1AC[];
 
 extern AreaPlacement D_map_akropolis_8017B1DC[];
 
-extern AreaPlacement D_map_akropolis_8017B1FC[];
+/// One Stranger and three Rats for forked-road variant 3.
+///
+/// Entry keys 10 and 7 select the Stranger and Rat recipes.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant3Placements[5];
 
-extern AreaPlacement D_map_akropolis_8017B24C[];
+/// Four Maggot leap entrances for forked-road variant 4.
+///
+/// Entry 55 uses leap mode 10, with entrance slots 3, 0, 2 and 1.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant4Placements[5];
 
-extern AreaPlacement D_map_akropolis_8017B29C[];
+/// One patrolling Pawn GOLEM and three Rats for forked-road variant 7.
+///
+/// Entry 20 patrols 3000 world units; entry 7 uses tuning row 7.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant7Placements[5];
 
-extern AreaPlacement D_map_akropolis_8017B2EC[];
+/// Four Caterpillar leap entrances for forked-road variant 8.
+///
+/// Entry 26 uses leap mode 10, entrance slots 3, 0, 2 and 1, and tuning row 7.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant8Placements[5];
 
-extern AreaPlacement D_map_akropolis_8017B33C[];
+/// One scripted dormant Odd Stranger for forked-road variant 9.
+///
+/// Entry 18 uses variant selector 4 and the default pursuit tuning.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant9Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017B35C[];
+/// Six Rats and five Moths for forked-road variant 10.
+///
+/// Entry keys 7 and 8 select separate recipes from the same actor library.
+/// Their tuning rows remain in 0..7.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant10Placements[12];
 
-extern AreaPlacement D_map_akropolis_8017B41C[];
+/// Six Amoebas for forked-road variant 11.
+///
+/// Entry 24 alternates normal and alternate parameter/palette variants.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant11Placements[7];
 
-extern AreaPlacement D_map_akropolis_8017B48C[];
+/// Six Scorpions for forked-road variant 12.
+///
+/// Entry 25 starts one roaming Scorpion and five proximity-triggered ambush
+/// leaders, using tuning rows 0..5.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant12Placements[7];
 
-extern AreaPlacement D_map_akropolis_8017B4FC[];
+/// Four Caterpillars for forked-road variant 13.
+///
+/// Entry 26 starts dormant, aimed and two hanging-leader placements.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant13Placements[5];
 
-extern AreaPlacement D_map_akropolis_8017B54C[];
+/// Six Bats for forked-road variant 14.
+///
+/// Entry 37 selects perch-drop, perch-back and wandering starts;
+/// tuning rows 0..5 select the turn rates.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant14Placements[7];
 
-extern AreaPlacement D_map_akropolis_8017B5BC[];
+/// Two Mind Sucklers for forked-road variant 15.
+///
+/// Entry 15 starts one unperched and one perched enemy.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant15Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B5EC[];
+/// Six Black Beetles for forked-road variant 16.
+///
+/// Entry 38 alternates idle and wandering floor starts.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant16Placements[7];
 
-extern AreaPlacement D_map_akropolis_8017B65C[];
+/// One Scavenger for forked-road variant 20.
+///
+/// Entry 16 selects its default spawn recipe.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant20Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017B67C[];
+/// One Sucklerceph and one Skull Stalker for forked-road variant 21.
+///
+/// Entry keys 46 and 47 select the two separate task recipes.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant21Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B6AC[];
+/// One Slouch and one Creeping Stranger for forked-road variant 22.
+///
+/// Entry keys 70 and 72 select the spawned recipes; the resource list also
+/// loads entries 71 and 73 without corresponding placements.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant22Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B6DC[];
+/// Two Grinning Strangers for observatory variant 1.
+///
+/// Entry 19 starts one patrol and one scripted dormant actor (selector 4).
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisObservatoryVariant1Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B70C[];
+/// Two standard Mossbacks for observatory variant 2.
+///
+/// Entry 11 selects the normal-sized body; variant selectors 1 and 0
+/// choose run-or-near and ordinary proximity awareness.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisObservatoryVariant2Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B73C[];
+/// Nine scripted Bat entrances for observatory variant 3.
+///
+/// Entry 37 uses scripted entrance mode 30 and turn-rate row 0.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisObservatoryVariant3Placements[10];
 
-extern AreaPlacement D_map_akropolis_8017B7DC[];
+/// Two large Mossbacks for observatory variant 7.
+///
+/// Entry 49 selects the larger body through the same actor task as entry 11;
+/// variant selectors 1 and 0 choose its awareness behavior.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisObservatoryVariant7Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B80C[];
+/// One unmatched placement record for observatory variant 10.
+///
+/// Its entry key 18 has no match in the selected resource list (key 13),
+/// so this record spawns no actor. The reason for that pairing is unproven.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisObservatoryVariant10Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017B82C[];
+/// Two Mossbacks for promenade variant 1.
+///
+/// Entry 11 uses the actor-301100 recipe with run-or-near awareness.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisPromenadeVariant1Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B85C[];
+/// Four Rats and three Moths for promenade variant 2.
+///
+/// Entry keys 7 and 8 select Rat tuning row 1 and Moth tuning row 0.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisPromenadeVariant2Placements[8];
 
-extern AreaPlacement D_map_akropolis_8017B8DC[];
+/// Four dormant Maggots and six Moths for promenade variant 3.
+///
+/// Entry keys 55 and 8 select Maggot tuning row 0 and Moth tuning row 1.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisPromenadeVariant3Placements[11];
 
-extern AreaPlacement D_map_akropolis_8017B98C[];
+/// One Knight GOLEM for promenade variant 7.
+///
+/// Entry 22 selects its default spawn recipe.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisPromenadeVariant7Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017B9AC[];
+/// Four dormant Caterpillars and six Moths for promenade variant 8.
+///
+/// Entry keys 26 and 8 both use tuning row 7.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisPromenadeVariant8Placements[11];
 
-extern AreaPlacement D_map_akropolis_8017BA5C[];
+/// No. 9 GOLEM and Rupert placements for sanctuary variant 1.
+///
+/// Entry keys 27 and 102 select the two actors; Rupert uses texture-page
+/// offset 4 and CLUT-row offset 6.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisSanctuaryNo9AndRupertPlacements[3];
 
-extern AreaPlacement D_map_akropolis_8017BA8C[];
+/// Rupert placement and an unused record for sanctuary variant 2.
+///
+/// The zero-key first record matches no recipe and retains Rupert's
+/// placement index 1. Entry 102 uses texture-page offset 4 and CLUT offset 6.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisSanctuaryRupertPlacements[3];
 
-extern AreaPlacement D_map_akropolis_8017BABC[];
+/// One view-parented figure and four Maggot drop entrances for roof-garden variant 1.
+///
+/// Entry 110 selects the figure; entry 55 selects the room-bound Maggots.
+/// Drop mode 11 uses entrance slots 0..3 and tuning row 0.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisRoofGardenVariant1Placements[6];
 
-extern AreaPlacement D_map_akropolis_8017BB1C[];
+/// Four hanging Maggots and three Moths for roof-garden variant 2.
+///
+/// Entry 55 starts three followers and one leader; entry 8 uses Moth row 1.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisRoofGardenVariant2Placements[8];
 
-extern AreaPlacement D_map_akropolis_8017BB9C[];
+/// One view-parented figure and four Caterpillar drop entrances for roof-garden variant 7.
+///
+/// Entry 110 selects the figure; entry 26 selects the room-bound Caterpillars.
+/// Drop mode 11 uses entrance slots 0..3 and tuning row 7.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisRoofGardenVariant7Placements[6];
 
-extern AreaPlacement D_map_akropolis_8017BBFC[];
+/// Four hanging Caterpillars and three Moths for roof-garden variant 8.
+///
+/// Entry 26 starts three followers and one leader; both actor kinds use row 7.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisRoofGardenVariant8Placements[8];
 
-extern AreaPlacement D_map_akropolis_8017BC7C[];
+/// Six independently indexed enemies for the bridge's default variant.
+///
+/// All use resource key 41 and the room's enemy recipe. Repeated poses retain
+/// separate placement identities for the room's indexed movement and scenes.
+/// XYZ uses world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The final `AREA_PLACEMENT_END` record is included in the
+/// extent; keep the map overlay loaded while actors borrow these records.
+extern AreaPlacement gMapAkropolisBridgeDefaultPlacements[7];
 
 extern AreaPlacement D_map_akropolis_8017BCEC[];
 

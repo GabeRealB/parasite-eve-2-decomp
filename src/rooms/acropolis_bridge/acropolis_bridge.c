@@ -2184,7 +2184,7 @@ static AreaResource _gAcropolisBridgeVariant3AreaResources[] = {
 
 AreaVariant D_acropolis_bridge_8019004C[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BC7C, _gAcropolisBridgeDefaultAreaResources },
+    { gMapAkropolisBridgeDefaultPlacements, _gAcropolisBridgeDefaultAreaResources },
     { D_map_akropolis_8017BCEC, _gAcropolisBridgeVariant2AreaResources },
     { D_map_akropolis_8017BCFC, _gAcropolisBridgeVariant3AreaResources },
     { NULL, NULL },
