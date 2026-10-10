@@ -18,11 +18,30 @@ extern AreaVariant D_mist_parking_801951B4[13];
 // mist_parking
 extern WorldCollisionRoomResources D_mist_parking_8019155C[];
 
-extern u8* D_mist_parking_801915B0[];
+/// Dimensions of the parking area's room variants, logical views and surface classes.
+enum {
+    MIST_PARKING_ROOM_VARIANT_COUNT  = 4,
+    MIST_PARKING_VIEW_COUNT          = 20,
+    MIST_PARKING_SURFACE_CLASS_COUNT = 8
+};
+
+/// Logical-view maps for the parking area's four room variants.
+///
+/// Index by room - 1, then logical view - 1, with rooms 1..4 and views 1..20.
+/// Each byte is a 1-based camera/image/sprite index. Rooms 1/2 use the early
+/// chapter permutation; rooms 3/4 borrow `gViewIdentityMap`. No terminator is
+/// stored. The map overlay borrows this directory while this room is loaded.
+extern u8* gMistParkingViewMaps[MIST_PARKING_ROOM_VARIANT_COUNT];
 
 extern ViewCount D_mist_parking_801915C0[];
 
-extern WorldCoordRoomLighting D_mist_parking_801915C8[];
+/// Light collections and ambient minima for the parking area's four room variants.
+///
+/// Index by room - 1 for rooms 1..4. Rooms 1/3 select 28 point lights and the
+/// default ambient minima; rooms 2/4 select two point lights and a table of
+/// minimum ambient RGB levels indexed by logical view 1..20. Light transforms
+/// and attenuation stay writable. All borrowed data requires this overlay loaded.
+extern WorldCoordRoomLighting gMistParkingRoomLightingTable[MIST_PARKING_ROOM_VARIANT_COUNT];
 
 extern DirectionWarpEntry D_mist_parking_801915E8[];
 
@@ -30,7 +49,13 @@ extern ViewCamera D_mist_parking_80192228[];
 
 extern SpriteView D_mist_parking_8019399C[];
 
-extern WorldCollisionSurfaceProperties* D_mist_parking_801952F0[];
+/// Collision policies and footstep cues indexed by parking surface class 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Classes 1/3 select paired walk/run cues; classes 0/2/4..7 have no footstep
+/// table. The leading policy byte's role is unproven. The stage-map directory
+/// borrows these records only while the parking overlay is loaded.
+extern WorldCollisionSurfaceProperties* gMistParkingSurfacePropertiesByClass[MIST_PARKING_SURFACE_CLASS_COUNT];
 
 /// Placement choices for the collision patch controlled with Pierce's visibility.
 enum {

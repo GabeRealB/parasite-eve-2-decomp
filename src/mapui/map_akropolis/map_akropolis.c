@@ -711,7 +711,7 @@ WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
     gAcropolisHelicopterLandingPadRoomLightingTable,
     gAcropolisWestElevatorHallRoomLightingTable,
     gMistR18RoomLightingTable,
-    D_mist_parking_801915C8,
+    gMistParkingRoomLightingTable,
     gMistShootingGalleryRoomLightingTable,
 };
 
@@ -857,7 +857,7 @@ static u8** D_map_akropolis_8017AC18[20] = {
     gAcropolisHelicopterLandingPadViewMaps,
     gAcropolisWestElevatorHallViewMaps,
     gMistR18ViewMaps,
-    D_mist_parking_801915B0,
+    gMistParkingViewMaps,
     gMistShootingGalleryViewMaps,
 };
 
@@ -882,7 +882,7 @@ WorldCollisionSurfaceProperties** D_map_akropolis_8017AC6C[20] = {
     gAcropolisHelicopterLandingPadSurfacePropertiesByClass,
     gAcropolisWestElevatorHallSurfacePropertiesByClass,
     gMistR18SurfacePropertiesByClass,
-    D_mist_parking_801952F0,
+    gMistParkingSurfacePropertiesByClass,
     gMistShootingGallerySurfacePropertiesByClass,
 };
 

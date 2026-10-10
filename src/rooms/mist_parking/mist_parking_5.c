@@ -31,6 +31,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_akropolis.h"
@@ -49,9 +50,9 @@
 extern WorldCollisionTrigger      D_mist_parking_80193A8C[12];
 extern WorldCollisionTrigger      D_mist_parking_80193E1C[13];
 extern WorldCollisionTrigger      D_mist_parking_801941F8[14];
-extern WorldCoordRoomAmbientEntry D_mist_parking_8019521C[21];
-extern WorldCoordRoomLights       D_mist_parking_801950A0[1];
-extern WorldCoordRoomLights       D_mist_parking_80195178[1];
+static WorldCoordRoomAmbientEntry _gMistParkingRoom2AmbientByView[MIST_PARKING_VIEW_COUNT + 1];
+static WorldCoordRoomLights       _gMistParkingRoom1Lights;
+static WorldCoordRoomLights       _gMistParkingRoom2Lights;
 
 EvsCommand D_mist_parking_80191154[8] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &gMistParkingShopPlayerAnimationBankCopy } }, { .value = 0 } },
@@ -136,7 +137,11 @@ WorldCollisionRoomResources D_mist_parking_8019155C[4] = {
     { &D_mist_parking_80192204, D_mist_parking_80193A8C, D_mist_parking_801941F8, NULL },
 };
 
-u8 D_mist_parking_8019159C[20] = {
+/// Early-chapter logical-view permutation for room variants 1 and 2.
+///
+/// Twenty bytes indexed by logical view - 1, each selecting a 1-based camera,
+/// image and sprite slot. Later-chapter variants use the gameplay identity map.
+static u8 _gMistParkingEarlyChapterViewMap[MIST_PARKING_VIEW_COUNT] = {
     1,
     2,
     3,
@@ -159,20 +164,20 @@ u8 D_mist_parking_8019159C[20] = {
     8,
 };
 
-u8* D_mist_parking_801915B0[4] = {
-    D_mist_parking_8019159C,
-    D_mist_parking_8019159C,
+u8* gMistParkingViewMaps[MIST_PARKING_ROOM_VARIANT_COUNT] = {
+    _gMistParkingEarlyChapterViewMap,
+    _gMistParkingEarlyChapterViewMap,
     gViewIdentityMap,
     gViewIdentityMap,
 };
 
 ViewCount D_mist_parking_801915C0[4] = { 20, 20, 20, 20 };
 
-WorldCoordRoomLighting D_mist_parking_801915C8[4] = {
-    { D_mist_parking_801950A0, NULL },
-    { D_mist_parking_80195178, D_mist_parking_8019521C },
-    { D_mist_parking_801950A0, NULL },
-    { D_mist_parking_80195178, D_mist_parking_8019521C },
+WorldCoordRoomLighting gMistParkingRoomLightingTable[MIST_PARKING_ROOM_VARIANT_COUNT] = {
+    { &_gMistParkingRoom1Lights, NULL },
+    { &_gMistParkingRoom2Lights, _gMistParkingRoom2AmbientByView },
+    { &_gMistParkingRoom1Lights, NULL },
+    { &_gMistParkingRoom2Lights, _gMistParkingRoom2AmbientByView },
 };
 
 DirectionWarpEntry D_mist_parking_801915E8[4] = {
@@ -229,255 +234,355 @@ ViewCamera D_mist_parking_80192228[20] = {
     { { { { 3944, 0, -1103 }, { -319, 3920, -1143 }, { 1055, 1187, 3775 } }, { -2890, 2770, 4790 } }, 257 },
 };
 
-SpriteBatch D_mist_parking_801924F8[2] = {
+/// Texture depth, neutral modulation and opaque code flags for parking sprites.
+enum {
+    MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT = 1,
+    MIST_PARKING_SPRITE_NEUTRAL_RGB        = 128,
+    MIST_PARKING_SPRITE_OPAQUE             = 0
+};
+
+/// Background-only batch list for mapped parking view 1.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_parking_80192508[21] = {
-    { 143, 0x3FC0, { .fields = { 48, 128 } }, -160, -120, 725, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 112 } }, -160, 8, 725, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 128 } }, -112, -120, 725, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 112 } }, -112, 8, 725, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -88, -120, 725, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -88, -48, 725, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -88, 8, 725, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -88, 64, 725, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -72, -120, 725, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -72, -48, 725, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -72, 8, 725, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -72, 64, 725, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -64, -112, 775, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -64, -48, 775, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -64, 8, 775, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -64, 64, 775, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, 8, 825, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, 56, 825, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, 24, 875, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, 56, 875, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -40, 32, 925, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped parking view 2.
+///
+/// Contains 21 source elements, without a terminator. XY and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// Uses opaque 8-bit textures and neutral RGB. The batch ranges select these
+/// overlay-owned records while the view's cached packets are allocated/drawn.
+static SpriteSource _gMistParkingView2SpriteSources[] = {
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 128 } }, -160, -120, 725, { .fields = { 80, 128 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 112 } }, -160, 8, 725, { .fields = { 32, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 128 } }, -112, -120, 725, { .fields = { 104, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 112 } }, -112, 8, 725, { .fields = { 80, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, -88, -120, 725, { .fields = { 64, 184 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -88, -48, 725, { .fields = { 32, 168 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -88, 8, 725, { .fields = { 32, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -88, 64, 725, { .fields = { 16, 56 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -72, -120, 725, { .fields = { 72, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -72, -48, 725, { .fields = { 24, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -72, 8, 725, { .fields = { 48, 168 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -72, 64, 725, { .fields = { 56, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -64, -112, 775, { .fields = { 64, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -64, -48, 775, { .fields = { 48, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -64, 8, 775, { .fields = { 56, 168 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -64, 64, 775, { .fields = { 24, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -56, 8, 825, { .fields = { 24, 160 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -56, 56, 825, { .fields = { 16, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -48, 24, 875, { .fields = { 48, 224 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -48, 56, 875, { .fields = { 56, 224 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -40, 32, 925, { .fields = { 24, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_parking_801926AC[3] = {
+/// Drawing ranges for mapped parking view 2.
+///
+/// The first zero-count record keeps decoded background image strips. Ranges
+/// index source elements; the terminal record contributes no sprites. The two
+/// serialized tail bytes are preserved; their role is unproven.
+static SpriteBatch _gMistParkingView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistParkingView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_801926C4[2] = {
+/// Background-only batch list for mapped parking view 3.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_parking_801926D4[26] = {
-    { 142, 0x3FC0, { .fields = { 64, 24 } }, -120, -8, 720, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -56, -8, 802, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -16, -8, 799, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 32 } }, -16, -120, 650, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 32 } }, -88, -120, 637, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 32 } }, -160, -120, 625, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -152, -88, 637, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -88, -88, 650, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -16, -88, 662, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 24 } }, -144, -72, 650, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 24 } }, -80, -72, 662, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -16, -72, 675, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -136, -48, 614, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -80, -48, 671, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -16, -48, 731, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -16, -32, 766, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -72, -32, 715, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -128, -32, 663, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -8, -24, 799, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -48, -16, 769, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -80, -8, 750, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -112, -8, 723, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, 16, 840, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 0, 16, 925, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, 16, 905, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -48, 24, 875, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped parking view 4.
+///
+/// Contains 26 source elements, without a terminator. XY and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// Uses opaque 8-bit textures and neutral RGB. The batch ranges select these
+/// overlay-owned records while the view's cached packets are allocated/drawn.
+static SpriteSource _gMistParkingView4SpriteSources[] = {
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 24 } }, -120, -8, 720, { .fields = { 120, 184 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -56, -8, 802, { .fields = { 8, 136 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 16 } }, -16, -8, 799, { .fields = { 120, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 32 } }, -16, -120, 650, { .fields = { 48, 120 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 32 } }, -88, -120, 637, { .fields = { 32, 152 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 32 } }, -160, -120, 625, { .fields = { 56, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -152, -88, 637, { .fields = { 120, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 72, 16 } }, -88, -88, 650, { .fields = { 104, 120 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 16 } }, -16, -88, 662, { .fields = { 112, 48 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 24 } }, -144, -72, 650, { .fields = { 24, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 24 } }, -80, -72, 662, { .fields = { 24, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, -16, -72, 675, { .fields = { 0, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 16 } }, -136, -48, 614, { .fields = { 104, 152 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -80, -48, 671, { .fields = { 96, 32 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 16 } }, -16, -48, 731, { .fields = { 112, 16 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 24 } }, -16, -32, 766, { .fields = { 40, 48 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, -72, -32, 715, { .fields = { 32, 24 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, -128, -32, 663, { .fields = { 40, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -8, -24, 799, { .fields = { 88, 80 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, -48, -16, 769, { .fields = { 88, 40 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -80, -8, 750, { .fields = { 96, 184 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -112, -8, 723, { .fields = { 96, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 16, 16, 840, { .fields = { 112, 120 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 0, 16, 925, { .fields = { 104, 152 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -8, 16, 905, { .fields = { 120, 152 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, -48, 24, 875, { .fields = { 56, 184 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_parking_801928DC[5] = {
+/// Drawing ranges for mapped parking view 4.
+///
+/// The first zero-count record keeps decoded background image strips. Ranges
+/// index source elements; the terminal record contributes no sprites. The two
+/// serialized tail bytes are preserved; their role is unproven.
+static SpriteBatch _gMistParkingView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 0, 0, 0, { 1, 0 } },
     { 0, 18, 0, 0, { 2, 0 } },
-    { 18, 8, 0, 0, { 0, 0 } },
+    { 18, ARRAY_SIZE(_gMistParkingView4SpriteSources) - 18, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_parking_80192904[39] = {
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -160, -56, 1050, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -152, -48, 1075, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -40, 1125, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, -32, 1150, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 16, 1375, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 112 } }, -160, -40, 1050, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -136, -40, 1150, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -136, 16, 1100, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -120, -48, 1200, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -120, 0, 1150, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, -48, 1250, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -104, 0, 1200, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -88, -48, 1250, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -88, 0, 1250, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -80, -48, 1375, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -80, 0, 1375, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -72, -24, 1375, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, 0, 1375, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, -64, 0, 1375, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 96 } }, -160, 24, 1050, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 112 } }, -104, 8, 1050, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 120 } }, -72, 0, 1050, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 120 } }, -48, 0, 1050, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, -16, 1375, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -24, -32, 1375, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -8, -32, 1350, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 8, -24, 1350, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, -24, 1350, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, -24, 1350, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, 0, 1100, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -16, 0, 1150, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 0, 0, 1200, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 16, 0, 1275, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 32, 8, 1350, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 40, 8, 1350, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 16, 40, 1275, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 0, 48, 1200, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -16, 48, 1150, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -32, 48, 1100, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped parking view 5.
+///
+/// Contains 39 source elements, without a terminator. XY and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// Uses opaque 8-bit textures and neutral RGB. The batch ranges select these
+/// overlay-owned records while the view's cached packets are allocated/drawn.
+static SpriteSource _gMistParkingView5SpriteSources[] = {
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, -160, -56, 1050, { .fields = { 72, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -152, -48, 1075, { .fields = { 64, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -144, -40, 1125, { .fields = { 0, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -136, -32, 1150, { .fields = { 80, 224 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -56, 16, 1375, { .fields = { 104, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 112 } }, -160, -40, 1050, { .fields = { 80, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -136, -40, 1150, { .fields = { 32, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -136, 16, 1100, { .fields = { 48, 160 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -120, -48, 1200, { .fields = { 32, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, -120, 0, 1150, { .fields = { 32, 152 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -104, -48, 1250, { .fields = { 16, 192 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -104, 0, 1200, { .fields = { 16, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -88, -48, 1250, { .fields = { 8, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -88, 0, 1250, { .fields = { 16, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -80, -48, 1375, { .fields = { 24, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -80, 0, 1375, { .fields = { 88, 224 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 24 } }, -72, -24, 1375, { .fields = { 120, 120 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -72, 0, 1375, { .fields = { 0, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 24 } }, -64, 0, 1375, { .fields = { 120, 176 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 96 } }, -160, 24, 1050, { .fields = { 24, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 112 } }, -104, 8, 1050, { .fields = { 80, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 120 } }, -72, 0, 1050, { .fields = { 104, 120 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 120 } }, -48, 0, 1050, { .fields = { 112, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -32, -16, 1375, { .fields = { 120, 240 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -24, -32, 1375, { .fields = { 120, 40 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -8, -32, 1350, { .fields = { 120, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, 8, -24, 1350, { .fields = { 120, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 24, -24, 1350, { .fields = { 8, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 32, -24, 1350, { .fields = { 112, 240 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -32, 0, 1100, { .fields = { 8, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -16, 0, 1150, { .fields = { 8, 48 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 0, 0, 1200, { .fields = { 0, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 16, 0, 1275, { .fields = { 0, 192 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 32, 8, 1350, { .fields = { 96, 224 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 24 } }, 40, 8, 1350, { .fields = { 120, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, 16, 40, 1275, { .fields = { 112, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 0, 48, 1200, { .fields = { 48, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -16, 48, 1150, { .fields = { 48, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, -32, 48, 1100, { .fields = { 64, 176 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_parking_80192C10[5] = {
+/// Drawing ranges for mapped parking view 5.
+///
+/// The first zero-count record keeps decoded background image strips. Ranges
+/// index source elements; the terminal record contributes no sprites. The two
+/// serialized tail bytes are preserved; their role is unproven.
+static SpriteBatch _gMistParkingView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 15, 0, 0, { 2, 0 } },
-    { 19, 20, 0, 0, { 0, 0 } },
+    { 19, ARRAY_SIZE(_gMistParkingView5SpriteSources) - 19, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_parking_80192C38[37] = {
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 144, -24, 1250, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 128, -24, 1250, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 48 } }, 104, -16, 1250, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, 72, -16, 1250, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 64, 8, 1250, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, 72, -16, 1250, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, 32, 1250, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, 80, -16, 1250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, 80, 32, 1250, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 88, -16, 1200, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 56 } }, 88, 40, 1200, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 56 } }, 104, -16, 1150, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 104, 40, 1150, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 128, -8, 1050, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 128, 56, 1050, { .fields = { 24, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 24 } }, 16, -120, 1250, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 72 } }, 24, -96, 1250, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 72 } }, 16, -24, 1250, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -64, 16, 1625, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, 16, 1500, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 40 } }, -48, 8, 1500, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 32 } }, -48, 48, 1500, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -40, 8, 1500, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -40, 48, 1500, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 40 } }, -24, 8, 1500, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -8, 8, 1500, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 8, 8, 1450, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 24, 8, 1400, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -24, 48, 1500, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -8, 48, 1500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 8, 48, 1450, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 24, 48, 1400, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 40, 24, 1350, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 40, 72, 1350, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, 32, 1300, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, 56, 72, 1300, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 72 } }, 72, 48, 1250, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped parking view 6.
+///
+/// Contains 37 source elements, without a terminator. XY and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// Uses opaque 8-bit textures and neutral RGB. The batch ranges select these
+/// overlay-owned records while the view's cached packets are allocated/drawn.
+static SpriteSource _gMistParkingView6SpriteSources[] = {
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 144, -24, 1250, { .fields = { 8, 136 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, 128, -24, 1250, { .fields = { 16, 200 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 48 } }, 104, -16, 1250, { .fields = { 104, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 48 } }, 72, -16, 1250, { .fields = { 96, 160 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, 64, 8, 1250, { .fields = { 80, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 48 } }, 72, -16, 1250, { .fields = { 104, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 72, 32, 1250, { .fields = { 56, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 48 } }, 80, -16, 1250, { .fields = { 112, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, 80, 32, 1250, { .fields = { 96, 88 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 56 } }, 88, -16, 1200, { .fields = { 0, 200 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 56 } }, 88, 40, 1200, { .fields = { 120, 56 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 56 } }, 104, -16, 1150, { .fields = { 120, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, 104, 40, 1150, { .fields = { 32, 200 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, 128, -8, 1050, { .fields = { 24, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, 128, 56, 1050, { .fields = { 24, 136 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 72, 24 } }, 16, -120, 1250, { .fields = { 24, 88 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 72 } }, 24, -96, 1250, { .fields = { 72, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 72 } }, 16, -24, 1250, { .fields = { 72, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -64, 16, 1625, { .fields = { 0, 160 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -56, 16, 1500, { .fields = { 0, 112 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 40 } }, -48, 8, 1500, { .fields = { 88, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 32 } }, -48, 48, 1500, { .fields = { 96, 128 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, -40, 8, 1500, { .fields = { 88, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -40, 48, 1500, { .fields = { 8, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 40 } }, -24, 8, 1500, { .fields = { 88, 48 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -8, 8, 1500, { .fields = { 112, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 8, 8, 1450, { .fields = { 96, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 24, 8, 1400, { .fields = { 64, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, -24, 48, 1500, { .fields = { 112, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, -8, 48, 1500, { .fields = { 96, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 8, 48, 1450, { .fields = { 56, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 24, 48, 1400, { .fields = { 56, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 48 } }, 40, 24, 1350, { .fields = { 112, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 48 } }, 40, 72, 1350, { .fields = { 96, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 56, 32, 1300, { .fields = { 80, 216 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 48 } }, 56, 72, 1300, { .fields = { 104, 48 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 72 } }, 72, 48, 1250, { .fields = { 16, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_parking_80192F1C[7] = {
+/// Drawing ranges for mapped parking view 6.
+///
+/// The first zero-count record keeps decoded background image strips. Ranges
+/// index source elements; the terminal record contributes no sprites. The two
+/// serialized tail bytes are preserved; their role is unproven.
+static SpriteBatch _gMistParkingView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 0, 0 } },
     { 4, 1, 0, 0, { 3, 0 } },
     { 5, 10, 0, 0, { 2, 0 } },
     { 15, 3, 0, 0, { 4, 0 } },
-    { 18, 19, 0, 0, { 1, 0 } },
+    { 18, ARRAY_SIZE(_gMistParkingView6SpriteSources) - 18, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_parking_80192F54[9] = {
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -120, 1425, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -160, -56, 1325, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, 8, 1412, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -144, 8, 1412, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -144, -56, 1350, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -144, -112, 1437, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -136, -56, 1375, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -136, 8, 1425, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -128, 8, 1425, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped parking view 7.
+///
+/// Contains 9 source elements, without a terminator. XY and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// Uses opaque 8-bit textures and neutral RGB. The batch ranges select these
+/// overlay-owned records while the view's cached packets are allocated/drawn.
+static SpriteSource _gMistParkingView7SpriteSources[] = {
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -160, -120, 1425, { .fields = { 112, 72 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -160, -56, 1325, { .fields = { 112, 136 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, -160, 8, 1412, { .fields = { 112, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -144, 8, 1412, { .fields = { 104, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -144, -56, 1350, { .fields = { 104, 64 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -144, -112, 1437, { .fields = { 120, 200 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -136, -56, 1375, { .fields = { 104, 128 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -136, 8, 1425, { .fields = { 112, 200 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -128, 8, 1425, { .fields = { 104, 192 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_parking_80193008[3] = {
+/// Drawing ranges for mapped parking view 7.
+///
+/// The first zero-count record keeps decoded background image strips. Ranges
+/// index source elements; the terminal record contributes no sprites. The two
+/// serialized tail bytes are preserved; their role is unproven.
+static SpriteBatch _gMistParkingView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistParkingView7SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_80193020[2] = {
+/// Background-only batch list for mapped parking view 8.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_parking_80193030[2] = {
+/// Background-only batch list for mapped parking view 9.
+///
+/// The zero-count header keeps decoded image strips; the next record ends the
+/// list. Its retained `SpriteView.sources.empty` address supplies no sprites.
+static SpriteBatch _gMistParkingView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_parking_80193040[25] = {
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, -120, 125, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, -56, 125, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -128, -120, 112, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -128, -64, 112, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -96, -120, 100, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, -80, 100, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -120, 87, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -120, 75, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, -120, 50, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, -72, 50, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, -120, 50, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, -88, 50, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, -120, 50, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 72, 42, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 24, 42, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 96, 80, 45, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 96, 40, 45, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 64, 88, 50, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 64, 56, 50, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 32, 96, 55, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 32, 72, 55, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, 88, 57, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -8, 96, 62, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, 104, 67, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 112, 75, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped parking view 10.
+///
+/// Contains 25 source elements, without a terminator. XY and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// Uses opaque 8-bit textures and neutral RGB. The batch ranges select these
+/// overlay-owned records while the view's cached packets are allocated/drawn.
+static SpriteSource _gMistParkingView10SpriteSources[] = {
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, -160, -120, 125, { .fields = { 96, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, -160, -56, 125, { .fields = { 96, 64 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 56 } }, -128, -120, 112, { .fields = { 96, 128 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, -128, -64, 112, { .fields = { 64, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -96, -120, 100, { .fields = { 40, 136 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -96, -80, 100, { .fields = { 40, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -64, -120, 87, { .fields = { 48, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -48, -120, 75, { .fields = { 48, 240 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, 136, -120, 50, { .fields = { 72, 144 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, 136, -72, 50, { .fields = { 72, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 112, -120, 50, { .fields = { 40, 64 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 120, -88, 50, { .fields = { 112, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 96, -120, 50, { .fields = { 96, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, 128, 72, 42, { .fields = { 96, 184 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, 128, 24, 42, { .fields = { 64, 48 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 96, 80, 45, { .fields = { 64, 192 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 96, 40, 45, { .fields = { 40, 96 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, 64, 88, 50, { .fields = { 32, 176 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, 64, 56, 50, { .fields = { 16, 32 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, 32, 96, 55, { .fields = { 64, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, 32, 72, 55, { .fields = { 16, 232 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 16, 88, 57, { .fields = { 48, 32 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, -8, 96, 62, { .fields = { 24, 208 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -24, 104, 67, { .fields = { 24, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -40, 112, 75, { .fields = { 24, 16 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_parking_80193234[3] = {
+/// Drawing ranges for mapped parking view 10.
+///
+/// The first zero-count record keeps decoded background image strips. Ranges
+/// index source elements; the terminal record contributes no sprites. The two
+/// serialized tail bytes are preserved; their role is unproven.
+static SpriteBatch _gMistParkingView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 25, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistParkingView10SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_parking_8019324C[4] = {
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -88, -64, 675, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -104, -56, 675, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -112, -32, 700, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 8, 725, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped parking view 11.
+///
+/// Contains 4 source elements, without a terminator. XY and dimensions are
+/// pixels relative to the view centre; depths are unscaled OT sorting values.
+/// Uses opaque 8-bit textures and neutral RGB. The batch ranges select these
+/// overlay-owned records while the view's cached packets are allocated/drawn.
+static SpriteSource _gMistParkingView11SpriteSources[] = {
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, -88, -64, 675, { .fields = { 112, 0 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, -104, -56, 675, { .fields = { 112, 80 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -112, -32, 700, { .fields = { 120, 160 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
+    { getTPage(MIST_PARKING_SPRITE_TEXTURE_DEPTH_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -120, 8, 725, { .fields = { 120, 224 } }, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_NEUTRAL_RGB, MIST_PARKING_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_parking_8019329C[3] = {
+/// Drawing ranges for mapped parking view 11.
+///
+/// The first zero-count record keeps decoded background image strips. Ranges
+/// index source elements; the terminal record contributes no sprites. The two
+/// serialized tail bytes are preserved; their role is unproven.
+static SpriteBatch _gMistParkingView11SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistParkingView11SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -619,17 +724,17 @@ SpriteBatch D_mist_parking_8019398C[2] = {
 };
 
 SpriteView D_mist_parking_8019399C[20] = {
-    { { .empty = D_mist_parking_801924F8 }, D_mist_parking_801924F8, NULL },
-    { { .elements = D_mist_parking_80192508 }, D_mist_parking_801926AC, NULL },
-    { { .empty = D_mist_parking_801926C4 }, D_mist_parking_801926C4, NULL },
-    { { .elements = D_mist_parking_801926D4 }, D_mist_parking_801928DC, NULL },
-    { { .elements = D_mist_parking_80192904 }, D_mist_parking_80192C10, NULL },
-    { { .elements = D_mist_parking_80192C38 }, D_mist_parking_80192F1C, NULL },
-    { { .elements = D_mist_parking_80192F54 }, D_mist_parking_80193008, NULL },
-    { { .empty = D_mist_parking_80193020 }, D_mist_parking_80193020, NULL },
-    { { .empty = D_mist_parking_80193030 }, D_mist_parking_80193030, NULL },
-    { { .elements = D_mist_parking_80193040 }, D_mist_parking_80193234, NULL },
-    { { .elements = D_mist_parking_8019324C }, D_mist_parking_8019329C, NULL },
+    { { .empty = _gMistParkingView1SpriteBatches }, _gMistParkingView1SpriteBatches, NULL },
+    { { .elements = _gMistParkingView2SpriteSources }, _gMistParkingView2SpriteBatches, NULL },
+    { { .empty = _gMistParkingView3SpriteBatches }, _gMistParkingView3SpriteBatches, NULL },
+    { { .elements = _gMistParkingView4SpriteSources }, _gMistParkingView4SpriteBatches, NULL },
+    { { .elements = _gMistParkingView5SpriteSources }, _gMistParkingView5SpriteBatches, NULL },
+    { { .elements = _gMistParkingView6SpriteSources }, _gMistParkingView6SpriteBatches, NULL },
+    { { .elements = _gMistParkingView7SpriteSources }, _gMistParkingView7SpriteBatches, NULL },
+    { { .empty = _gMistParkingView8SpriteBatches }, _gMistParkingView8SpriteBatches, NULL },
+    { { .empty = _gMistParkingView9SpriteBatches }, _gMistParkingView9SpriteBatches, NULL },
+    { { .elements = _gMistParkingView10SpriteSources }, _gMistParkingView10SpriteBatches, NULL },
+    { { .elements = _gMistParkingView11SpriteSources }, _gMistParkingView11SpriteBatches, NULL },
     { { .empty = D_mist_parking_801932B4 }, D_mist_parking_801932B4, NULL },
     { { .empty = D_mist_parking_801932C4 }, D_mist_parking_801932C4, NULL },
     { { .empty = D_mist_parking_801932D4 }, D_mist_parking_801932D4, NULL },
@@ -689,48 +794,74 @@ WorldCollisionTrigger D_mist_parking_801941F8[14] = {
     { NULL, NULL, NULL, { -8784, -64, -1328, 0 }, { { 1530, 0, -544, 0 }, { 1519, 0, 545, 0 }, { -1519, 0, -545, 0 }, { -1530, 0, 544, 0 } }, { 0, 4097, 0, 0 }, { -202, 0, -4092, 0 }, 1619, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_mist_parking_80194620[28] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x4FB0, -4600, -1460 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x4FB0, -4600, -5530 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x5F64, -5400, -5530 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x5F64, -5400, -1460 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x6F04, -6200, -1460 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x6F04, -6200, -5530 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3870, -3000, 1630 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3870, -3000, -990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3870, -3000, -4270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -3000, -4270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -3000, -990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -3000, 1630 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5870, -3000, 1630 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5870, -3000, -990 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5870, -3000, -4270 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8370, -3000, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8370, -3000, -2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5143, -2876, -4752 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3428, 4033, 3661 }, { 0, 0 } }, 3221, 4203 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8510, -2320, -590 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7518, -2500, -4749 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 2048, 2457 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4257, -3000, 6007 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 4000, 5000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x289F, -2500, -4746 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 2048, 2457 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x7404, -6000, -3500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3174, 3788, 3788 }, { 0, 0 } }, 7000, 0x4650 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x3052, -3000, -1460 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x3052, -3000, -5530 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x4024, -3800, -5530 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x4024, -3800, -1460 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 869, -3000, -5187 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+/// Authored point lights for parking room variants 1 and 3.
+///
+/// Contains 28 mutable records, all admitted in every view. Positions and
+/// falloff radii use world units; RGB uses Q12 intensity. Room-light updates
+/// parent and compose the transforms, and lighting queries overwrite attenuation.
+static WorldCoordPointLight _gMistParkingRoom1PointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x4FB0, -4600, -1460 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x4FB0, -4600, -5530 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x5F64, -5400, -5530 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x5F64, -5400, -1460 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x6F04, -6200, -1460 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x6F04, -6200, -5530 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3870, -3000, 1630 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3870, -3000, -990 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3870, -3000, -4270 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2000, -3000, -4270 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2000, -3000, -990 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2000, -3000, 1630 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5870, -3000, 1630 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5870, -3000, -990 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5870, -3000, -4270 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -8370, -3000, -5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -8370, -3000, -2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5143, -2876, -4752 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3428, 4033, 3661 }, { 0, 0 } }, 3221, 4203 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8510, -2320, -590 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7518, -2500, -4749 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 2048, 2457 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4257, -3000, 6007 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 4000, 5000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x289F, -2500, -4746 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 2048, 2457 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x7404, -6000, -3500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3174, 3788, 3788 }, { 0, 0 } }, 7000, 0x4650 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x3052, -3000, -1460 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x3052, -3000, -5530 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x4024, -3800, -5530 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x4024, -3800, -1460 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2785, 3768, 3768 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 869, -3000, -5187 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3276, 3276 }, { 0, 0 } }, 3000, 4000 },
 };
 
-WorldCoordRoomLights D_mist_parking_801950A0[1] = {
-    { 0, NULL, ARRAY_SIZE(D_mist_parking_80194620), D_mist_parking_80194620, 0, NULL },
+/// Point-light collection for parking room variants 1 and 3.
+///
+/// Borrows the complete mutable point-light array; no directional or cone lights.
+static WorldCoordRoomLights _gMistParkingRoom1Lights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gMistParkingRoom1PointLights),
+    .pointLights           = _gMistParkingRoom1PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCoordPointLight D_mist_parking_801950B8[2] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8510, -2000, 209 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2252, 2048 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8510, -2000, -1857 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2252, 2048 }, { 0, 0 } }, 1500, 2500 },
+/// Authored point lights for parking room variants 2 and 4.
+///
+/// Contains 2 mutable records, all admitted in every view. Positions and
+/// falloff radii use world units; RGB uses Q12 intensity. Room-light updates
+/// parent and compose the transforms, and lighting queries overwrite attenuation.
+static WorldCoordPointLight _gMistParkingRoom2PointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8510, -2000, 209 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2252, 2048 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8510, -2000, -1857 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2252, 2048 }, { 0, 0 } }, 1500, 2500 },
 };
 
-WorldCoordRoomLights D_mist_parking_80195178[1] = {
-    { 0, NULL, ARRAY_SIZE(D_mist_parking_801950B8), D_mist_parking_801950B8, 0, NULL },
+/// Point-light collection for parking room variants 2 and 4.
+///
+/// Borrows the complete mutable point-light array; no directional or cone lights.
+static WorldCoordRoomLights _gMistParkingRoom2Lights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gMistParkingRoom2PointLights),
+    .pointLights           = _gMistParkingRoom2PointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 AreaResource D_mist_parking_80195190[3] = {
@@ -755,8 +886,13 @@ AreaVariant D_mist_parking_801951B4[13] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_mist_parking_8019521C[21] = {
-    { .viewCount = ARRAY_SIZE(D_mist_parking_8019521C) - 1 },
+/// Minimum ambient RGB levels by logical view for parking room variants 2 and 4.
+///
+/// Entry zero holds the count; entries 1..20 use 16 units per 8-bit colour level.
+/// Views 3/4 have elevated minima (1000/1500); other views use 16. The fourth
+/// colour halfword stores the equal-channel brightness and is not used by shading.
+static WorldCoordRoomAmbientEntry _gMistParkingRoom2AmbientByView[MIST_PARKING_VIEW_COUNT + 1] = {
+    { .viewCount = ARRAY_SIZE(_gMistParkingRoom2AmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 1000, 1000, 1000, 1000 } },
@@ -779,37 +915,63 @@ WorldCoordRoomAmbientEntry D_mist_parking_8019521C[21] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_mist_parking_801952C4 = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+/// Type-1 loaded-bank request bases for paired parking footstep cues.
+enum {
+    MIST_PARKING_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 17,
+    MIST_PARKING_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 19
 };
 
-WorldCollisionSurfaceProperties D_mist_parking_801952D0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump cue bases for parking surface classes 1/3.
+///
+/// Cue 2 uses the base, cue 1 adds one and companions add 100. Scripted jumps
+/// reuse the walking pair. Surface policies borrow this record while loaded.
+static WorldCollisionFootstepSounds _gMistParkingFootstepSounds = {
+    .walk         = MIST_PARKING_FOOTSTEP_WALK,
+    .run          = MIST_PARKING_FOOTSTEP_RUN,
+    .scriptedJump = MIST_PARKING_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_mist_parking_801952D8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mist_parking_801952C4 },
+/// Parking surface policy for classes 0 and 4..7.
+///
+/// Blocks probes, allows weapon impacts and applies pushback. No footstep cues.
+/// The leading zero byte is retained; its role is unproven.
+static WorldCollisionSurfaceProperties _gMistParkingDefaultSurfaceProperties = {
+    0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL
 };
 
-WorldCollisionSurfaceProperties D_mist_parking_801952E0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Parking surface policy for class 1.
+///
+/// Blocks probes, allows weapon impacts and applies pushback. Borrows the parking footstep cues.
+/// The leading zero byte is retained; its role is unproven.
+static WorldCollisionSurfaceProperties _gMistParkingSurfaceClass1Properties = {
+    0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gMistParkingFootstepSounds
 };
 
-WorldCollisionSurfaceProperties D_mist_parking_801952E8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mist_parking_801952C4 },
+/// Parking surface policy for class 2.
+///
+/// Blocks probes, allows weapon impacts and applies pushback. No footstep cues.
+/// The leading zero byte is retained; its role is unproven.
+static WorldCollisionSurfaceProperties _gMistParkingSurfaceClass2Properties = {
+    0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL
 };
 
-WorldCollisionSurfaceProperties* D_mist_parking_801952F0[8] = {
-    D_mist_parking_801952D0,
-    D_mist_parking_801952D8,
-    D_mist_parking_801952E0,
-    D_mist_parking_801952E8,
-    D_mist_parking_801952D0,
-    D_mist_parking_801952D0,
-    D_mist_parking_801952D0,
-    D_mist_parking_801952D0,
+/// Parking surface policy for class 3.
+///
+/// Blocks probes, allows weapon impacts and applies pushback. Borrows the parking footstep cues.
+/// The leading zero byte is retained; its role is unproven.
+static WorldCollisionSurfaceProperties _gMistParkingSurfaceClass3Properties = {
+    0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &_gMistParkingFootstepSounds
+};
+
+WorldCollisionSurfaceProperties* gMistParkingSurfacePropertiesByClass[MIST_PARKING_SURFACE_CLASS_COUNT] = {
+    &_gMistParkingDefaultSurfaceProperties,
+    &_gMistParkingSurfaceClass1Properties,
+    &_gMistParkingSurfaceClass2Properties,
+    &_gMistParkingSurfaceClass3Properties,
+    &_gMistParkingDefaultSurfaceProperties,
+    &_gMistParkingDefaultSurfaceProperties,
+    &_gMistParkingDefaultSurfaceProperties,
+    &_gMistParkingDefaultSurfaceProperties,
 };
 
 s32 gShopRefillDisplayQuantityFixed = 0;
