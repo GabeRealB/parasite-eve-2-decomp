@@ -17,8 +17,13 @@ extern AreaVariant D_dryfield_junk_yard_8017F558[13];
 /// Models the Dryfield map UI overlay's enemy descriptors attach.
 extern TmdSource gDryfieldJunkYardModel01378;
 
-// dryfield_junk_yard
-extern WorldCollisionRoomResources D_dryfield_junk_yard_8017ED04[];
+/// Collision resources for the junk yard's sole room, indexed by room ID minus one.
+///
+/// Borrows the room grid, ten view boundaries, nineteen action triggers and one
+/// sight occluder. Setup binds their coordinates and mutable list links. Keep
+/// this overlay loaded while the grid is active or any of the lists are linked.
+/// The Dryfield map overlay imports this one-entry directory; it has no terminator.
+extern WorldCollisionRoomResources gDryfieldJunkYardRoomCollisionResources[1];
 
 /// Lighting for the junk yard's sole room, indexed by room ID minus one.
 ///
@@ -40,7 +45,15 @@ extern u8* gDryfieldJunkYardRoomViewMaps[1];
 /// The directory has no terminator and belongs to this loaded overlay.
 extern ViewCount gDryfieldJunkYardRoomViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_junk_yard_8017ED24[];
+/// Three arrival/departure endpoints indexed by 1-based warp ID minus one.
+///
+/// Slots 1/2 serve the garage and trailer coach doors, selecting views 2/5 and
+/// map markers 472/471. Slot 3 selects view 3 without a marker; its caller is
+/// unproven. Positions use whole world units and yaw uses 4096 units per turn.
+/// All blocked sounds and flags are zero. Entries are copied in full during
+/// transitions and borrowed synchronously for actor spawning; keep this overlay
+/// loaded while the map directory refers to them. There is no terminator.
+extern DirectionWarpEntry gDryfieldJunkYardWarpEntries[3];
 
 /// Cameras for mapped junk-yard views 1..7, indexed by mapped view minus one.
 ///

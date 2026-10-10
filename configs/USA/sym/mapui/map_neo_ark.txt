@@ -6,7 +6,7 @@
 shelter1fParkingGarageRoomTask = 0x8017DF14; // type:func absolute:True owner=shelter_1f_parking_garage shared=rooms
 D_shelter_1f_parking_garage_80180C64 = 0x80180C64; // absolute:True owner=shelter_1f_parking_garage shared=rooms
 D_shelter_1f_parking_garage_80180C74 = 0x80180C74; // absolute:True owner=shelter_1f_parking_garage
-D_shelter_1f_parking_garage_80180C7C = 0x80180C7C; // absolute:True owner=shelter_1f_parking_garage shared=rooms
+D_shelter_1f_parking_garage_80180C7C = 0x80180C7C; // absolute:True owner=shelter_1f_parking_garage
 D_shelter_1f_parking_garage_80180C80 = 0x80180C80; // absolute:True owner=shelter_1f_parking_garage
 D_shelter_1f_parking_garage_80180C84 = 0x80180C84; // absolute:True owner=shelter_1f_parking_garage
 D_shelter_1f_parking_garage_8018100C = 0x8018100C; // absolute:True owner=shelter_1f_parking_garage

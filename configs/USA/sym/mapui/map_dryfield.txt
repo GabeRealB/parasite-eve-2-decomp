@@ -219,11 +219,11 @@ D_dryfield_driveway_80180660 = 0x80180660; // absolute:True owner=dryfield_drive
 dryfieldJunkYardWireRopeTask = 0x8017D5F4; // type:func absolute:True owner=dryfield_junk_yard
 dryfieldJunkYardRoomTask = 0x8017DCB4; // type:func absolute:True owner=dryfield_junk_yard
 gDryfieldJunkYardModel01378 = 0x8017ECE0; // absolute:True owner=dryfield_junk_yard
-D_dryfield_junk_yard_8017ED04 = 0x8017ED04; // absolute:True owner=dryfield_junk_yard shared=rooms
+gDryfieldJunkYardRoomCollisionResources = 0x8017ED04; // absolute:True owner=dryfield_junk_yard shared=rooms
 gDryfieldJunkYardRoomLighting = 0x8017ED14; // absolute:True owner=dryfield_junk_yard
 gDryfieldJunkYardRoomViewMaps = 0x8017ED1C; // absolute:True owner=dryfield_junk_yard shared=rooms
 gDryfieldJunkYardRoomViewCounts = 0x8017ED20; // absolute:True owner=dryfield_junk_yard
-D_dryfield_junk_yard_8017ED24 = 0x8017ED24; // absolute:True owner=dryfield_junk_yard
+gDryfieldJunkYardWarpEntries = 0x8017ED24; // absolute:True owner=dryfield_junk_yard
 gDryfieldJunkYardViewCameras = 0x8017F5C0; // absolute:True owner=dryfield_junk_yard
 gDryfieldJunkYardSpriteViews = 0x80180C28; // absolute:True owner=dryfield_junk_yard shared=rooms
 gDryfieldJunkYardSurfacePropertiesByClass = 0x80181C28; // absolute:True owner=dryfield_junk_yard shared=rooms

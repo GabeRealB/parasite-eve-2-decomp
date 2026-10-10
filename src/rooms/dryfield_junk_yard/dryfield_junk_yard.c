@@ -50,39 +50,19 @@ static s32 _junkYardCommandMessage(Task* task, s32 messageId, s32 command, s32 u
 /// constants and the `"DOG"` name below; what it does with them is unproven.
 void func_80724608(void* owner, s32 arg1, s32 arg2, void* name);
 
-/// Main-executable halfword the room task's second state waits on before it
-/// calls `func_80724608`.
-
-/// The room's message table, published in `Task::msgTable` for
-/// `taskMessageDispatch` to walk.
-extern TaskMessageEntry     D_dryfield_junk_yard_8017DD20[];
-extern TaskDesc             D_dryfield_junk_yard_8017DD48[];
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DD88;
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DDD8;
-extern AnimationPlayRequest D_dryfield_junk_yard_8017DDEC;
-extern ActorTransform       D_dryfield_junk_yard_8017DE00;
-extern ActorTransform       D_dryfield_junk_yard_8017DE18;
-extern ActorTransform       D_dryfield_junk_yard_8017DE30;
-extern EvsCommand           D_dryfield_junk_yard_8017DE48[];
-extern EvsCommand           D_dryfield_junk_yard_8017E028[];
-extern EvsCommand           D_dryfield_junk_yard_8017E160[];
-extern EvsCommand           D_dryfield_junk_yard_8017E2B0[];
-extern EvsCommand           D_dryfield_junk_yard_8017E3D0[];
-extern EvsCommand           D_dryfield_junk_yard_8017E490[];
-extern EvsCommand           D_dryfield_junk_yard_8017E658[];
-
 static void _dryfieldJunkYardDrawModelGroundShadow(Task* task);
 static void _dryfieldJunkYardInitRoomTask(Task* task);
 static void _dryfieldJunkYardIdleRoomTask(Task* unusedTask);
 
-/// The room task's states: set up, idle with a conditional companion
-/// debug hook, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
+/// Initialization, idle and teardown handlers indexed by room-task state 0..2.
+static const TaskFuncTable3 _gDryfieldJunkYardRoomTaskStates = {
     { _dryfieldJunkYardInitRoomTask, _dryfieldJunkYardIdleRoomTask, taskKill },
 };
 
-/// Name the room task's second state hands to `func_80724608`.
-static const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
+/// Companion label borrowed by the room's debug hook while this overlay is loaded.
+///
+/// The hook receives the literal "DOG"; its display or other use is unproven.
+static const char _gDryfieldJunkYardCompanionDebugLabel[] = "DOG";
 
 static void _dryfieldJunkYardCompanionSequenceTask(Task* task);
 static s32  _dryfieldJunkYardRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
@@ -94,31 +74,84 @@ enum {
     DRYFIELD_JUNK_YARD_RETURN_SCENE_EVENT   = 5,
 };
 
-extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD74;
-extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD88;
-extern AnimationPlayRequest       D_dryfield_junk_yard_8017DD9C;
-extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDB0;
-extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDC4;
-extern AnimationPlayRequest       D_dryfield_junk_yard_8017DDEC;
-extern WorldCollisionGrid         D_dryfield_junk_yard_8017F4C8[1];
-extern WorldCollisionOccluder     D_dryfield_junk_yard_80181518[1];
-extern WorldCollisionTrigger      D_dryfield_junk_yard_80180C7C[10];
-extern WorldCollisionTrigger      D_dryfield_junk_yard_80180F74[19];
+/// Native companion bank and clip selections used by this room's scenes.
+enum {
+    DRYFIELD_JUNK_YARD_COMPANION_ANIMATION_BANK                 = 6,
+    DRYFIELD_JUNK_YARD_COMPANION_IDLE_ANIMATION                 = 1,
+    DRYFIELD_JUNK_YARD_COMPANION_REST_ANIMATION                 = 7,
+    DRYFIELD_JUNK_YARD_COMPANION_REST_EXIT_ANIMATION            = 8,
+    DRYFIELD_JUNK_YARD_COMPANION_REST_HOLD_ANIMATION            = 9,
+    DRYFIELD_JUNK_YARD_COMPANION_ACTION_ANIMATION               = 10,
+    DRYFIELD_JUNK_YARD_COMPANION_OPENING_ANIMATION              = 34,
+    DRYFIELD_JUNK_YARD_COMPANION_OPENING_CONTINUATION_ANIMATION = 35,
+};
+
+/// CAP command slots and sound requests synchronized by the companion scripts.
+enum {
+    DRYFIELD_JUNK_YARD_CAP_COMPANION_FINISH      = 1,
+    DRYFIELD_JUNK_YARD_CAP_COMPANION_RETURN      = 2,
+    DRYFIELD_JUNK_YARD_CAP_COMPANION_OPENING     = 5,
+    DRYFIELD_JUNK_YARD_CAP_COMPANION_DEPARTURE   = 7,
+    DRYFIELD_JUNK_YARD_COMPANION_ACTION_SOUND    = 0x40720009,
+    DRYFIELD_JUNK_YARD_COMPANION_DEPARTURE_SOUND = 0x521A0008,
+};
+
+/// Interpreter-update delays shared by the scene and skip streams.
+enum {
+    DRYFIELD_JUNK_YARD_SKIP_FADE_WAIT_FRAMES        = 8,
+    DRYFIELD_JUNK_YARD_COMPANION_ACTION_HOLD_FRAMES = 38,
+};
+
+/// Door sound requests and map markers stored in the area's warp endpoints.
+enum {
+    DRYFIELD_JUNK_YARD_GARAGE_ARRIVAL_SOUND    = 0x521A0004,
+    DRYFIELD_JUNK_YARD_GARAGE_DEPARTURE_SOUND  = 0x521A0003,
+    DRYFIELD_JUNK_YARD_TRAILER_ARRIVAL_SOUND   = 0x521A0002,
+    DRYFIELD_JUNK_YARD_TRAILER_DEPARTURE_SOUND = 0x521A0001,
+    DRYFIELD_JUNK_YARD_WARP3_ARRIVAL_SOUND     = 0x521A0006,
+    DRYFIELD_JUNK_YARD_WARP3_DEPARTURE_SOUND   = 0x521A0005,
+    DRYFIELD_JUNK_YARD_GARAGE_MAP_MARKER       = 472,
+    DRYFIELD_JUNK_YARD_TRAILER_MAP_MARKER      = 471,
+};
+
+/// Action-trigger payloads: room action IDs and packed departure/arrival warp slots.
+enum {
+    DRYFIELD_JUNK_YARD_TRIGGER_BEGIN_SEQUENCE  = 1,
+    DRYFIELD_JUNK_YARD_TRIGGER_FINISH_SEQUENCE = 2,
+    DRYFIELD_JUNK_YARD_GARAGE_WARP_SLOTS       = (1 << 4) | 2,
+    DRYFIELD_JUNK_YARD_TRAILER_WARP_SLOTS      = (2 << 4) | 1,
+};
+
+/// Execution-list priority of the room's bodyless companion controller.
+enum { DRYFIELD_JUNK_YARD_COMPANION_SEQUENCE_PRIORITY = 32 };
+
+static WorldCollisionGrid         _gDryfieldJunkYardCollisionGrid;
+static WorldCollisionOccluder     _gDryfieldJunkYardSightOccluders[1];
+static WorldCollisionTrigger      _gDryfieldJunkYardViewBoundaryTriggers[10];
+static WorldCollisionTrigger      _gDryfieldJunkYardActionTriggers[19];
 static WorldCoordRoomAmbientEntry _gDryfieldJunkYardAmbientByView[8];
 static WorldCoordRoomLights       _gDryfieldJunkYardRoomLights;
-extern ActorTransform             D_dryfield_junk_yard_8017DE00;
 static void                       _dryfieldJunkYardSetSceneEvent(s8 sceneEvent);
 
-TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
+/// Room receiver's transition, key-item, dialogue and trigger-action messages.
+///
+/// The loaded overlay owns the table and callbacks. The final end-ID record
+/// makes unsupported messages return zero; payload types follow each handler.
+static TaskMessageEntry _gDryfieldJunkYardRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldJunkYardResolveRoomTransition },
-    { DRYFIELD_JUNK_YARD_MESSAGE_USE_KEY_ITEM, _dryfieldJunkYardRejectKeyItemUse },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldJunkYardRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, _junkYardCommandMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldJunkYardHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_junk_yard_8017DD48[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _dryfieldJunkYardCompanionSequenceTask, { .value = 0 } },
+/// Bodyless companion-sequence controller at descriptor index 0, then an end marker.
+///
+/// Priority 32 orders it on the execution list. The task starts the opening
+/// scene at state 0 with both spawn arguments zero. Keep the overlay loaded
+/// until the task ends.
+static TaskDesc _gDryfieldJunkYardCompanionSequenceTasks[] = {
+    { { { TASK_BODY_NONE, DRYFIELD_JUNK_YARD_COMPANION_SEQUENCE_PRIORITY } }, _dryfieldJunkYardCompanionSequenceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -142,141 +175,277 @@ static AnimationPlayRequest _gDryfieldJunkYardPlayerIdleRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
 };
 
-AnimationPlayRequest D_dryfield_junk_yard_8017DD74 = { { .index = 6 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts native companion idle after the finish scene, with world collision off.
+///
+/// Bank 6 and clip 1 are consumed synchronously; the loaded animation bank must
+/// remain live through playback. Reset playback ignores the zero blend duration.
+static AnimationPlayRequest _gDryfieldJunkYardCompanionIdleRequest = {
+    .source               = { .index = DRYFIELD_JUNK_YARD_COMPANION_ANIMATION_BANK },
+    .animationId          = DRYFIELD_JUNK_YARD_COMPANION_IDLE_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_junk_yard_8017DD88 = { { .index = 6 }, 34, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Selects opening clip 34 at room entry and at the opening scene's first cue.
+///
+/// Room initialization overwrites the bank index with the current companion's
+/// selection before dispatch. The script reuses that stored index directly.
+/// Playback resets without blending and disables world collision; the request
+/// is consumed synchronously and the selected bank stays borrowed for playback.
+static AnimationPlayRequest _gDryfieldJunkYardCompanionOpeningRequest = {
+    .source               = { .index = DRYFIELD_JUNK_YARD_COMPANION_ANIMATION_BANK },
+    .animationId          = DRYFIELD_JUNK_YARD_COMPANION_OPENING_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_junk_yard_8017DD9C = { { .index = 6 }, 35, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays opening clip 35 after a CAP cue, before the script waits for completion.
+///
+/// The interpreter copies the request and substitutes the current companion
+/// bank. Playback resets without blending and disables world collision; keep
+/// the overlay live until dispatch and the selected animation bank through playback.
+static AnimationPlayRequest _gDryfieldJunkYardCompanionOpeningContinuationRequest = {
+    .source               = { .index = DRYFIELD_JUNK_YARD_COMPANION_ANIMATION_BANK },
+    .animationId          = DRYFIELD_JUNK_YARD_COMPANION_OPENING_CONTINUATION_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_junk_yard_8017DDB0 = { { .index = 6 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the companion's rest-exit clip before its scene action.
+///
+/// The opening script substitutes the current companion bank in a copy; the
+/// return scene uses bank 6 directly. Clip 8 resets without blending and world
+/// collision stays off. The request is consumed synchronously; retain the bank for playback.
+static AnimationPlayRequest _gDryfieldJunkYardCompanionRestExitRequest = {
+    .source               = { .index = DRYFIELD_JUNK_YARD_COMPANION_ANIMATION_BANK },
+    .animationId          = DRYFIELD_JUNK_YARD_COMPANION_REST_EXIT_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_junk_yard_8017DDC4 = { { .index = 6 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the companion's player-directed action clip 10 alongside its sound cue.
+///
+/// The opening script substitutes the current companion bank in a copy; finish
+/// and return scenes use bank 6 directly. Reset playback disables world collision.
+/// Dispatch consumes the request synchronously and playback borrows the bank.
+static AnimationPlayRequest _gDryfieldJunkYardCompanionAction10Request = {
+    .source               = { .index = DRYFIELD_JUNK_YARD_COMPANION_ANIMATION_BANK },
+    .animationId          = DRYFIELD_JUNK_YARD_COMPANION_ACTION_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_junk_yard_8017DDD8 = { { .index = 6 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts native companion rest after the controller's scripted yaw turn.
+///
+/// Clip 7 in bank 6 resets without blending and disables world collision. The
+/// controller waits for playback before selecting rest hold. Dispatch consumes
+/// the request synchronously; the bank remains borrowed through playback.
+static AnimationPlayRequest _gDryfieldJunkYardCompanionRestRequest = {
+    .source               = { .index = DRYFIELD_JUNK_YARD_COMPANION_ANIMATION_BANK },
+    .animationId          = DRYFIELD_JUNK_YARD_COMPANION_REST_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_junk_yard_8017DDEC = { { .index = 6 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Holds native companion rest after the turn sequence or skipped opening scene.
+///
+/// Also sets the return scene's initial rest pose. Clip 9 in bank 6 resets without
+/// blending and disables world collision. Dispatch consumes this overlay-owned
+/// request synchronously; the selected animation bank must outlive playback.
+static AnimationPlayRequest _gDryfieldJunkYardCompanionRestHoldRequest = {
+    .source               = { .index = DRYFIELD_JUNK_YARD_COMPANION_ANIMATION_BANK },
+    .animationId          = DRYFIELD_JUNK_YARD_COMPANION_REST_HOLD_ANIMATION,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_dryfield_junk_yard_8017DE00 = { { 0x288B, 0, 3893, 0 }, { 0, 2700, 0, 0 } };
+/// Companion placement for initial room entry and the normal or skipped opening scene.
+///
+/// Position uses whole room-coordinate units; yaw uses 4096 units per turn.
+/// Placement consumes both vectors synchronously; the overlay owns this record.
+static ActorTransform _gDryfieldJunkYardCompanionOpeningPlacement = {
+    .pos = { 0x288B, 0, 3893, 0 },
+    .rot = { 0, 2700, 0, 0 },
+};
 
-ActorTransform D_dryfield_junk_yard_8017DE18 = { { 0x530A, 0, 3407, 0 }, { 0, 3074, 0, 0 } };
+/// Target yaw before the companion's rest animation, in 4096 units per turn.
+///
+/// The turn message consumes only rot.vy, synchronously. The retained position
+/// and other rotation components have no consumer in this room.
+static ActorTransform _gDryfieldJunkYardCompanionRestFacing = {
+    .pos = { 0x530A, 0, 3407, 0 },
+    .rot = { 0, 3074, 0, 0 },
+};
 
-ActorTransform D_dryfield_junk_yard_8017DE30 = { { 0x54C4, 0, 3800, 0 }, { 0, 2048, 0, 0 } };
+/// Companion destination beside the trailer coach for finish, return and arrival 2.
+///
+/// Position uses whole room-coordinate units; yaw is a half-turn (2048).
+/// Placement messages consume both vectors; the finish scene's turn message
+/// reads only yaw. The overlay-owned record is borrowed through dispatch.
+static ActorTransform _gDryfieldJunkYardCompanionTrailerPlacement = {
+    .pos = { 0x54C4, 0, 3800, 0 },
+    .rot = { 0, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 },
+};
 
-EvsCommand D_dryfield_junk_yard_8017DE48[20] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
+/// Runs the opening companion scene for room action 1.
+///
+/// CAP command 5 cues opening clips 34/35, rest exit and action clip 10, then
+/// restores the saved view and releases both actors from scripted control.
+/// Zero-frame waits still yield one update before polling animation. Commands
+/// and referenced overlay payloads remain borrowed until the final END.
+static EvsCommand _gDryfieldJunkYardCompanionOpeningScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_JUNK_YARD_CAP_COMPANION_OPENING }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DE00 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1000 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DD88 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldJunkYardCompanionOpeningPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .message = { .animation = &_gDryfieldJunkYardCompanionOpeningRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_junk_yard_8017DD9C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldJunkYardCompanionOpeningContinuationRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_junk_yard_8017DDB0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldJunkYardCompanionRestExitRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_junk_yard_8017DDC4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x40720009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldJunkYardCompanionAction10Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = DRYFIELD_JUNK_YARD_COMPANION_ACTION_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_junk_yard_8017E028[13] = {
+/// Completes a skipped opening scene under the primary fade.
+///
+/// Places the companion at its opening position in rest hold, restores the
+/// saved view, cleans up CAP and releases both actors after fading back.
+/// The overlay-owned stream and its payloads must stay live through END.
+static EvsCommand _gDryfieldJunkYardCompanionOpeningSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DE00 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1000 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DDEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_JUNK_YARD_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldJunkYardCompanionOpeningPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .message = { .animation = &_gDryfieldJunkYardCompanionRestHoldRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_JUNK_YARD_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_junk_yard_8017E160[14] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1006 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DE30 } }, { .value = 0 } },
+/// Runs the companion finish scene once room action 2 reaches its X threshold.
+///
+/// CAP command 1 accompanies a yaw turn toward the trailer placement, action
+/// clip 10 and idle. Releases player control after the CAP cue; companion
+/// control stays scripted. The overlay and animation bank must remain loaded.
+static EvsCommand _gDryfieldJunkYardCompanionFinishScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_JUNK_YARD_CAP_COMPANION_FINISH }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_TURN_TO_YAW }, { .message = { .transform = &_gDryfieldJunkYardCompanionTrailerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x40720009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1000 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DDC4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1000 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DD74 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = DRYFIELD_JUNK_YARD_COMPANION_ACTION_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .message = { .animation = &_gDryfieldJunkYardCompanionAction10Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_JUNK_YARD_COMPANION_ACTION_HOLD_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .message = { .animation = &_gDryfieldJunkYardCompanionIdleRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_junk_yard_8017E2B0[12] = {
+/// Completes either skipped finish scene or skipped trailer-departure scene.
+///
+/// Under a primary fade, places the companion beside the trailer in idle,
+/// selects view 5, cleans up CAP and releases the player. Companion control
+/// remains scripted. The borrowed overlay stream ends with END.
+static EvsCommand _gDryfieldJunkYardCompanionFinishSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DE30 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1000 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DD74 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_JUNK_YARD_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldJunkYardCompanionTrailerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .message = { .animation = &_gDryfieldJunkYardCompanionIdleRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_JUNK_YARD_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_junk_yard_8017E3D0[8] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
+/// Runs the final companion scene when departure for the trailer is intercepted.
+///
+/// CAP command 7 and the room sound play before player control is restored.
+/// Uses the finish skip stream; it does not commit a room transition itself.
+/// Commands and callback code remain in the loaded overlay through END.
+static EvsCommand _gDryfieldJunkYardCompanionDepartureScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_JUNK_YARD_CAP_COMPANION_DEPARTURE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x521A0008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = DRYFIELD_JUNK_YARD_COMPANION_DEPARTURE_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_junk_yard_8017E490[19] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+/// Runs the first companion return scene after trailer-coach progress reaches 2.
+///
+/// CAP command 2 cues rest hold, rest exit and action beside the trailer.
+/// A secondary fade covers entry; both actors resume before scene event 5
+/// is stored. Area music is requested before that store on the normal path.
+/// Commands, payloads and callback code must stay loaded through END.
+static EvsCommand _gDryfieldJunkYardCompanionReturnScript[] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_JUNK_YARD_CAP_COMPANION_RETURN }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DE30 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1000 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DDEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldJunkYardPlayerIdleRequest }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldJunkYardCompanionTrailerPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .message = { .animation = &_gDryfieldJunkYardCompanionRestHoldRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1000 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DDB0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .message = { .animation = &_gDryfieldJunkYardCompanionRestExitRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x40720009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1000 }, { .message = { .pointer = &D_dryfield_junk_yard_8017DDC4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_ANIMATION, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = DRYFIELD_JUNK_YARD_COMPANION_ACTION_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .message = { .animation = &_gDryfieldJunkYardCompanionAction10Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_JUNK_YARD_COMPANION_ACTION_HOLD_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _dryfieldJunkYardSetSceneEvent }, { .value = DRYFIELD_JUNK_YARD_RETURN_SCENE_EVENT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_junk_yard_8017E658[11] = {
+/// Cleans up a skipped return scene and records its scene event under a fade.
+///
+/// Stores scene event 5 before requesting area music, then fades back and
+/// releases both actors. It retains the companion pose reached before skipping.
+/// The overlay-owned stream and callback code must remain loaded through END.
+static EvsCommand _gDryfieldJunkYardCompanionReturnSkipScript[] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_JUNK_YARD_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _dryfieldJunkYardSetSceneEvent }, { .value = DRYFIELD_JUNK_YARD_RETURN_SCENE_EVENT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRYFIELD_JUNK_YARD_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -308,8 +477,13 @@ TmdSource gDryfieldJunkYardModel01378 = {
     _gDryfieldJunkYardModel01378Stream,
 };
 
-WorldCollisionRoomResources D_dryfield_junk_yard_8017ED04[1] = {
-    { D_dryfield_junk_yard_8017F4C8, D_dryfield_junk_yard_80180C7C, D_dryfield_junk_yard_80180F74, D_dryfield_junk_yard_80181518 },
+WorldCollisionRoomResources gDryfieldJunkYardRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldJunkYardCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldJunkYardViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldJunkYardActionTriggers,
+        .occluders            = _gDryfieldJunkYardSightOccluders,
+    },
 };
 
 WorldCoordRoomLighting gDryfieldJunkYardRoomLighting[1] = {
@@ -322,36 +496,91 @@ u8* gDryfieldJunkYardRoomViewMaps[1] = {
 
 ViewCount gDryfieldJunkYardRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldJunkYardViewCameras) };
 
-DirectionWarpEntry D_dryfield_junk_yard_8017ED24[3] = {
-    { { { .word = 0 }, 5030, 0, 390 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 4800, 0, 1000 }, { 0, 0, 0, 0 }, 0x521A0004, 0x521A0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 472 },
-    { { { .word = 0 }, 0x55A1, 0, 1639 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x55A1, 0, 1639 }, { 0, 0, 0, 0 }, 0x521A0002, 0x521A0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 471 },
-    { { { .word = 0 }, 1859, 0, 672 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1859, 0, 672 }, { 0, 0, 0, 0 }, 0x521A0006, 0x521A0005, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gDryfieldJunkYardWarpEntries[3] = {
+    {
+        .player         = { { .word = 0 }, 5030, 0, 390 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 4800, 0, 1000 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_JUNK_YARD_GARAGE_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_JUNK_YARD_GARAGE_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_JUNK_YARD_GARAGE_MAP_MARKER,
+    },
+    {
+        .player         = { { .word = 0 }, 0x55A1, 0, 1639 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 0x55A1, 0, 1639 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_JUNK_YARD_TRAILER_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_JUNK_YARD_TRAILER_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_JUNK_YARD_TRAILER_MAP_MARKER,
+    },
+    {
+        .player         = { { .word = 0 }, 1859, 0, 672 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 1859, 0, 672 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_JUNK_YARD_WARP3_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_JUNK_YARD_WARP3_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 3,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
-static SVECTOR _gDryfieldJunkYardCollision01F08Normals[33] = {
+/// Room-grid plane normals in 4096-per-unit coordinates, indexed by each face.
+static SVECTOR _gDryfieldJunkYardCollisionGridNormals[] = {
 #include "assets/dryfield_junk_yard_collision_01F08_normals.inc"
 };
 
-static SVECTOR _gDryfieldJunkYardCollision01F08Verts[88] = {
+/// Room-grid vertices in whole signed room-coordinate units.
+static SVECTOR _gDryfieldJunkYardCollisionGridVerts[] = {
 #include "assets/dryfield_junk_yard_collision_01F08_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldJunkYardCollision01F08Faces[36] = {
+/// Room-grid quads; face 0 uses footstep surface class 1, all others class 0.
+static WorldCollisionGridFace _gDryfieldJunkYardCollisionGridFaces[] = {
 #include "assets/dryfield_junk_yard_collision_01F08_faces.inc"
 };
 
-static s16 _gDryfieldJunkYardCollision01F08Cells[166] = {
+/// Cell face-index lists ending at -1, with retained zero words between lists.
+static s16 _gDryfieldJunkYardCollisionGridCells[] = {
 #include "assets/dryfield_junk_yard_collision_01F08_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldJunkYardCollision01F08Cells[i])
-static s16* _gDryfieldJunkYardCollision01F08Table[14] = {
+#define GRID_CELL(i) (&_gDryfieldJunkYardCollisionGridCells[i])
+/// Fourteen X-major cell lists for the seven-by-two room grid.
+static s16* _gDryfieldJunkYardCollisionGridTable[] = {
 #include "assets/dryfield_junk_yard_collision_01F08_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_junk_yard_8017F4C8[1] = {
-    { NULL, _gDryfieldJunkYardCollision01F08Normals, _gDryfieldJunkYardCollision01F08Verts, _gDryfieldJunkYardCollision01F08Faces, _gDryfieldJunkYardCollision01F08Table, 2400, 608, 7, 2, 4000, 36 },
+/// The junk yard's sole collision mesh and its seven-by-two XZ cell index.
+///
+/// Cell side length is 4000 room-coordinate units; biases 2400 and 608 put the
+/// grid origin at (-2400, -608). Face indices address all 36 quads, with 88
+/// vertices and 33 normals. Setup supplies the current view coordinate.
+/// The descriptor and mutable pools belong to this loaded overlay and must
+/// outlive active-grid queries; no room-specific geometry edits are present.
+static WorldCollisionGrid _gDryfieldJunkYardCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldJunkYardCollisionGridNormals,
+    .vertices    = _gDryfieldJunkYardCollisionGridVerts,
+    .faces       = _gDryfieldJunkYardCollisionGridFaces,
+    .cellFaceIds = _gDryfieldJunkYardCollisionGridTable,
+    .xBias       = 2400,
+    .zBias       = 608,
+    .cellCountX  = 7,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldJunkYardCollisionGridFaces),
 };
 
 /// Empty resource list for placement variant 1.
@@ -820,7 +1049,13 @@ SpriteView gDryfieldJunkYardSpriteViews[7] = {
     { { .elements = _gDryfieldJunkYardView7SpriteSources }, _gDryfieldJunkYardView7SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_junk_yard_80180C7C[10] = {
+/// Ten directed camera boundaries between views 2..5 and 7.
+///
+/// Each source/destination pair is 1-based. The last record participates before
+/// LAST stops setup; links, coordinate bindings and hit latches remain mutable.
+/// Quad positions/radii use room units and normals use 4096 per unit. Keep the
+/// owning overlay loaded until the view-boundary list is unlinked.
+static WorldCollisionTrigger _gDryfieldJunkYardViewBoundaryTriggers[10] = {
     { NULL, NULL, NULL, { 3568, -1408, 2448, 0 }, { { 467, -2432, -3264, 0 }, { -494, -2432, 3235, 0 }, { 467, 2432, -3264, 0 }, { -494, 2432, 3235, 0 } }, { 4052, 0, 599, 0 }, { 0, 0, 4096, 0 }, 4087, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3680, -1376, 2336, 0 }, { { -517, -2400, 3225, 0 }, { 476, -2400, -3264, 0 }, { -517, 2400, 3225, 0 }, { 476, 2400, -3264, 0 } }, { -4056, 0, -621, 0 }, { 0, 0, 4096, 0 }, 4063, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 7324, -1328, 2299, 0 }, { { 335, -2352, -3268, 0 }, { -337, -2352, 3267, 0 }, { 335, 2352, -3268, 0 }, { -337, 2352, 3267, 0 } }, { 4074, 0, 418, 0 }, { 0, 0, 4096, 0 }, 4039, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -833,12 +1068,20 @@ WorldCollisionTrigger D_dryfield_junk_yard_80180C7C[10] = {
     { NULL, NULL, NULL, { 0x345F, -1345, 1296, 0 }, { { -1058, -2352, 2442, 0 }, { 1058, -2352, -2442, 0 }, { -1058, 2352, 2442, 0 }, { 1058, 2352, -2442, 0 } }, { -3765, 0, -1632, 0 }, { 0, 0, 4096, 0 }, 3547, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_junk_yard_80180F74[19] = {
-    { NULL, NULL, NULL, { 5248, -48, 336, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 24, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x5600, -48, 1568, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, 27, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Nineteen room interactions: two warps, two automatic actions and fifteen CAP spots.
+///
+/// Warp keys pack departure/arrival slots: 0x12 goes to the garage and 0x21 to
+/// the trailer. Room actions 1/2 start and finish the companion sequence; the
+/// CAP room-message spot sends dialogue command 6, while others index CAP.
+/// Setup includes the LAST record and mutates links, coordinates and latches.
+/// Positions/radii use room units and normals use 4096 per unit; the overlay
+/// must remain loaded until all action triggers are unlinked.
+static WorldCollisionTrigger _gDryfieldJunkYardActionTriggers[19] = {
+    { NULL, NULL, NULL, { 5248, -48, 336, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_GARAGE, DRYFIELD_JUNK_YARD_GARAGE_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x5600, -48, 1568, 0 }, { { -1024, 0, -464, 0 }, { 1024, 0, -464, 0 }, { -1024, 0, 464, 0 }, { 1024, 0, 464, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1123, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_TRAILER_COACH, DRYFIELD_JUNK_YARD_TRAILER_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 432, -64, 4592, 0 }, { { -896, 0, -1056, 0 }, { 896, 0, -1056, 0 }, { -896, 0, 1056, 0 }, { 896, 0, 1056, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1384, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6623, -64, 2783, 0 }, { { -935, 0, 3140, 0 }, { -306, 0, -3261, 0 }, { 307, 0, 3262, 0 }, { 936, 0, -3139, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 3268, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4A1F, -64, 3487, 0 }, { { -449, 0, 1009, 0 }, { -148, 0, -1017, 0 }, { 149, 0, 1018, 0 }, { 450, 0, -1008, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 6623, -64, 2783, 0 }, { { -935, 0, 3140, 0 }, { -306, 0, -3261, 0 }, { 307, 0, 3262, 0 }, { 936, 0, -3139, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 3268, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_JUNK_YARD_TRIGGER_BEGIN_SEQUENCE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4A1F, -64, 3487, 0 }, { { -449, 0, 1009, 0 }, { -148, 0, -1017, 0 }, { 149, 0, 1018, 0 }, { 450, 0, -1008, 0 } }, { 0, 4109, 0, 0 }, { 0, 0, 4096, 0 }, 1101, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_JUNK_YARD_TRIGGER_FINISH_SEQUENCE, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
     { NULL, NULL, NULL, { 1744, -64, 351, 0 }, { { -1040, 0, -592, 0 }, { 1040, 0, -592, 0 }, { -1040, 0, 849, 0 }, { 1040, 0, 849, 0 } }, { 0, 4101, 0, 0 }, { 0, 0, -4096, 0 }, 1342, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 0x41A2, -64, 3328, 0 }, { { -2624, 0, -272, 0 }, { 2624, 0, -656, 0 }, { -2624, 0, 656, 0 }, { 2624, 0, 272, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 2697, WORLD_COLLISION_TRIGGER_ACTION_CAP, 16, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 352, -64, 2336, 0 }, { { -896, 0, -1056, 0 }, { 896, 0, -1056, 0 }, { -896, 0, 1056, 0 }, { 896, 0, 1056, 0 } }, { 0, 4100, 0, 0 }, { 3973, 0, -995, 0 }, 1384, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -855,7 +1098,12 @@ WorldCollisionTrigger D_dryfield_junk_yard_80180F74[19] = {
     { NULL, NULL, NULL, { 7520, -64, 4704, 0 }, { { -3216, 0, -624, 0 }, { 3216, 0, -624, 0 }, { -3216, 0, 624, 0 }, { 3216, 0, 624, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 3268, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_junk_yard_80181518[1] = {
+/// One room-space sight-blocking quad, included as the list's LAST record.
+///
+/// Setup links and enables it; positions/radius use room units and its normal
+/// uses 4096 per unit. Retained low flag value 1 has no established meaning.
+/// Keep this mutable record alive until the occluder list is unlinked.
+static WorldCollisionOccluder _gDryfieldJunkYardSightOccluders[1] = {
     { NULL, NULL, { 0x4980, -544, 1536, 0 }, { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, { 4096, 0, 0, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
@@ -1831,19 +2079,19 @@ static void _dryfieldJunkYardInitRoomTask(Task* task)
         DRYFIELD_JUNK_YARD_RETURN_SCENE_SEEN    = 1,
     };
 
-    task->msgTable = D_dryfield_junk_yard_8017DD20;
+    task->msgTable = _gDryfieldJunkYardRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
         if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_junk_yard_8017DE00, 0);
-            companionWriteAnimationBankIndex(&D_dryfield_junk_yard_8017DD88.source.index);
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DD88, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldJunkYardCompanionOpeningPlacement, 0);
+            companionWriteAnimationBankIndex(&_gDryfieldJunkYardCompanionOpeningRequest.source.index);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &_gDryfieldJunkYardCompanionOpeningRequest, 0);
         }
         if ((gameFlagGetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN) == 0) && (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= DRYFIELD_JUNK_YARD_TRAILER_RETURN_READY)) {
             gameFlagSetNibble(GAME_FLAG_JUNK_YARD_RETURN_SCENE_SEEN, DRYFIELD_JUNK_YARD_RETURN_SCENE_SEEN);
-            evsStartScriptWithSkip(D_dryfield_junk_yard_8017E490, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E658);
+            evsStartScriptWithSkip(_gDryfieldJunkYardCompanionReturnScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldJunkYardCompanionReturnSkipScript);
         } else if (gGameSession->location.loc.warp == DRYFIELD_JUNK_YARD_COMPANION_ARRIVAL) {
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_junk_yard_8017DE30, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &_gDryfieldJunkYardCompanionTrailerPlacement, 0);
         }
     }
     task->state = task->state + 1;
@@ -1869,7 +2117,7 @@ static void _dryfieldJunkYardCompanionSequenceTask(Task* task)
 
     switch (task->state) {
         case COMPANION_SCENE_START:
-            evsStartScriptWithSkip(D_dryfield_junk_yard_8017DE48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E028);
+            evsStartScriptWithSkip(_gDryfieldJunkYardCompanionOpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldJunkYardCompanionOpeningSkipScript);
             task->state = task->state + 1;
             return;
         case COMPANION_SCENE_WAIT:
@@ -1879,7 +2127,7 @@ static void _dryfieldJunkYardCompanionSequenceTask(Task* task)
             task->state = task->state + 1;
             return;
         case COMPANION_TURN_START:
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_TURN_TO_YAW, &D_dryfield_junk_yard_8017DE18, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_TURN_TO_YAW, &_gDryfieldJunkYardCompanionRestFacing, 0);
             task->state = task->state + 1;
             return;
         case COMPANION_TURN_WAIT:
@@ -1889,7 +2137,7 @@ static void _dryfieldJunkYardCompanionSequenceTask(Task* task)
             task->state = task->state + 1;
             return;
         case COMPANION_ANIMATION_START:
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDD8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &_gDryfieldJunkYardCompanionRestRequest, 0);
             task->state = task->state + 1;
             return;
         case COMPANION_ANIMATION_WAIT:
@@ -1899,7 +2147,7 @@ static void _dryfieldJunkYardCompanionSequenceTask(Task* task)
             task->state = task->state + 1;
             return;
         case COMPANION_FINAL_ANIMATION:
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDEC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &_gDryfieldJunkYardCompanionRestHoldRequest, 0);
             /* fallthrough */
         case COMPANION_SEQUENCE_RELEASE:
             taskKill(task);
@@ -1953,7 +2201,7 @@ static s32 _dryfieldJunkYardResolveRoomTransition(Task* unusedTask, s32 unusedMe
         if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == JUNK_YARD_SEQUENCE_ACTIVE) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, JUNK_YARD_SEQUENCE_FINISHED);
-                evsStartScriptWithSkip(D_dryfield_junk_yard_8017E3D0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E2B0);
+                evsStartScriptWithSkip(_gDryfieldJunkYardCompanionDepartureScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldJunkYardCompanionFinishSkipScript);
             }
             return COMPANION_SCENE_ELIGIBLE;
         }
@@ -1991,7 +2239,7 @@ static s32 _dryfieldJunkYardHandleRoomAction(Task* task, s32 messageId, const Di
     if (request->actionId == DRYFIELD_JUNK_YARD_ACTION_BEGIN_SEQUENCE) {
         if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == DRYFIELD_JUNK_YARD_PROGRESS_INITIAL) {
             gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, DRYFIELD_JUNK_YARD_PROGRESS_SEQUENCE);
-            taskSpawnFromTable(D_dryfield_junk_yard_8017DD48, DRYFIELD_JUNK_YARD_SEQUENCE_TASK, 0, 0);
+            taskSpawnFromTable(_gDryfieldJunkYardCompanionSequenceTasks, DRYFIELD_JUNK_YARD_SEQUENCE_TASK, 0, 0);
         }
     }
     if (request->actionId == DRYFIELD_JUNK_YARD_ACTION_FINISH_SEQUENCE) {
@@ -1999,7 +2247,7 @@ static s32 _dryfieldJunkYardHandleRoomAction(Task* task, s32 messageId, const Di
         if ((companion != NULL) && (companion->extra.tmd->coords->coord.t[0] >= DRYFIELD_JUNK_YARD_COMPANION_EXIT_X_MIN) &&
             (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == DRYFIELD_JUNK_YARD_PROGRESS_SEQUENCE)) {
             gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, DRYFIELD_JUNK_YARD_PROGRESS_FINAL_SCENE);
-            evsStartScriptWithSkip(D_dryfield_junk_yard_8017E160, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E2B0);
+            evsStartScriptWithSkip(_gDryfieldJunkYardCompanionFinishScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldJunkYardCompanionFinishSkipScript);
         }
     }
     return 0;
@@ -2024,7 +2272,7 @@ static void _dryfieldJunkYardSetSceneEvent(s8 sceneEvent)
 static void _dryfieldJunkYardIdleRoomTask(Task* unusedTask)
 {
     if ((gDisplayState.debugMode != 0) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
-        func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), -0x8C, 0xA, D_dryfield_junk_yard_8017D5D0);
+        func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), -0x8C, 0xA, _gDryfieldJunkYardCompanionDebugLabel);
     }
 }
 
@@ -2032,7 +2280,7 @@ void dryfieldJunkYardRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_junk_yard_8017D5C4;
+    stateHandlers = _gDryfieldJunkYardRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 

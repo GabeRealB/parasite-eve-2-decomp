@@ -1451,7 +1451,7 @@ D_dryfield_motel_room_2_80180410 = 0x80180410; // absolute:True owner=dryfield_m
 
 D_dryfield_motel_room_6_80186764 = 0x80186764; // absolute:True owner=dryfield_motel_room_6
 
-D_dryfield_night_back_street_80181518 = 0x80181518; // absolute:True owner=dryfield_night_back_street shared=rooms
+D_dryfield_night_back_street_80181518 = 0x80181518; // absolute:True owner=dryfield_night_back_street
 
 D_dryfield_night_breezeway_801803E4 = 0x801803E4; // absolute:True owner=dryfield_night_breezeway shared=rooms
 
@@ -1683,7 +1683,7 @@ D_shelter_r47_80187CB8 = 0x80187CB8; // absolute:True owner=shelter_r47
 
 D_shelter_r48_8018BC10 = 0x8018BC10; // absolute:True owner=shelter_r48 shared=rooms
 
-D_shelter_r49_8017DD74 = 0x8017DD74; // absolute:True owner=shelter_r49 shared=rooms
+D_shelter_r49_8017DD74 = 0x8017DD74; // absolute:True owner=shelter_r49
 
 D_mist_shooting_gallery_80185000 = 0x80185000; // absolute:True owner=mist_shooting_gallery shared=rooms
 
