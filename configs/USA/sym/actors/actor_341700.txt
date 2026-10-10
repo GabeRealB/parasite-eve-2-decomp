@@ -139,7 +139,7 @@ gActor341700MadChaserTaskDescs = 0x80174D58; // size:0x30 defined:True
 
 D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True owner=shelter_b3_garbage_incinerator
 
-D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True owner=shelter_b3_dumping_hole
+gShelterB3DumpingHoleEncounterSpots = 0x8018B74C; // absolute:True owner=shelter_b3_dumping_hole
 
 shelterB3DumpingHoleSpawnActorSprite = 0x8017FCF4; // type:func absolute:True owner=shelter_b3_dumping_hole
 _actorRenderYawJointInWorld = 0x8016AC64; // type:func

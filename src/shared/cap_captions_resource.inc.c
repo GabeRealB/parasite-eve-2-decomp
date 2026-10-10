@@ -10,7 +10,7 @@
 static void _capCaptionShowModal(s16 commandIndex, s16 key, s16 durationTicks)
 {
     CAP_CAPTION_SELECT_RECORD(commandIndex, key, CAP_CAPTION_DEFAULT_BOTTOM_BASELINE_Y);
-    displayQueueModeTask(&CapCaption_Data_80154508, durationTicks, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(&_gCapCaptionCancelableTaskDesc, durationTicks, 0, STAGE_ENTRY_RELOAD);
 }
 
 /// Selects a loaded CAP data payload and its font texture-page origin.

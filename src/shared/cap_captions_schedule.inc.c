@@ -6,6 +6,7 @@ static void _capCaptionCancelableTask(Task* task);
 static void _capCaptionTimedTask(Task* task);
 
 enum {
+    CAP_CAPTION_CANCELABLE_TASK_PRIORITY      = 32,
     CAP_CAPTION_TIMED_TASK_PRIORITY           = 32,
     CAP_CAPTION_SCHEDULE_EARLY_NOTICE_COMMAND = 16,
     CAP_CAPTION_SCHEDULE_FINAL_NOTICE_COMMAND = 17,
@@ -18,7 +19,12 @@ enum {
 /// selection and resources belong to the carrier and must outlive the task.
 static TaskDesc _gCapCaptionTimedTaskDesc = { { { TASK_BODY_NONE, CAP_CAPTION_TIMED_TASK_PRIORITY } }, _capCaptionTimedTask, { .value = 0 } };
 
-static TaskDesc CapCaption_Data_80154508 = { { { TASK_BODY_NONE, 32 } }, _capCaptionCancelableTask, { .value = 0 } };
+/// Bodyless mode-task recipe for a caption cancellable by port zero's cancel button.
+///
+/// Spawn argument 1 is a signed tick duration, consumed after the arming tick.
+/// Expiry or cancellation kills the task and requests mode exit, still drawing
+/// that tick. Caption selection and resources must remain live through mode exit.
+static TaskDesc _gCapCaptionCancelableTaskDesc = { { { TASK_BODY_NONE, CAP_CAPTION_CANCELABLE_TASK_PRIORITY } }, _capCaptionCancelableTask, { .value = 0 } };
 
 /// Caption notices for a descending scene clock, followed by a terminating window.
 ///

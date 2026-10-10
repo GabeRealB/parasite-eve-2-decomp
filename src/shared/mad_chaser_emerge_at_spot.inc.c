@@ -70,7 +70,7 @@ static void _madChaserEmergeAtSpot(Task* task)
         enemy->node.state.parts.flags = 0;
         stageAreaKey                  = GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK;
         if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 0, 0)) {
-            _madChaserPlaceEmergeRoot(work, root, D_shelter_b3_dumping_hole_8018B74C);
+            _madChaserPlaceEmergeRoot(work, root, gShelterB3DumpingHoleEncounterSpots);
             soundEnemy = task->spawnArg2.pointer;
             soundId    = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << MAD_CHASER_EMERGE_SOUND_INSTANCE_SHIFT) | MAD_CHASER_EMERGE_DUMPING_HOLE_SOUND;
             audioPan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);

@@ -714,7 +714,7 @@ static void _actor342100EncounterBlazeControllerTask(Task* task)
                     break;
                 case GAME_SESSION_SPAWN_ARMED:
                     // Keep the entry pointer: this store precedes its next-tick refresh.
-                    entryWork->encounterTask = taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 1, 0);
+                    entryWork->encounterTask = taskSpawnFromTable(gShelterB3DumpingHoleEncounterTaskDescriptors, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_TASK_CONTROLLER, 1, 0);
                 default:
                     task->state = ACTOR_342100_CONTROLLER_WAIT_CLOCK;
                     break;
@@ -723,7 +723,7 @@ static void _actor342100EncounterBlazeControllerTask(Task* task)
         case ACTOR_342100_CONTROLLER_WAIT_ACTION:
             if (gameFlagGetNibble(GAME_FLAG_11E) != 0) {
                 if (worldCollisionReadActionHit(&actionControl, &roomActionId, &roomActionArgument) != 0 && (actionControl & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (s8)roomActionId == ACTOR_342100_CONTROLLER_START_ENCOUNTER_ACTION) {
-                    entryWork->encounterTask = taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
+                    entryWork->encounterTask = taskSpawnFromTable(gShelterB3DumpingHoleEncounterTaskDescriptors, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_TASK_CONTROLLER, 0, 0);
                     task->state++;
                 }
             }

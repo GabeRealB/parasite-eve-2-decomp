@@ -110,7 +110,7 @@ extern EvsCommand D_actor_215100_8014EA90[];
 extern EvsCommand D_actor_215100_8014EB08[];
 
 static TaskDesc _gCapCaptionTimedTaskDesc;
-static TaskDesc CapCaption_Data_80154508;
+static TaskDesc _gCapCaptionCancelableTaskDesc;
 extern Task*    D_actor_215100_8015E64C;
 
 extern EvsCommand D_actor_215100_80153ED4[];

@@ -229,7 +229,7 @@ static CapCaptionScheduleWindow _gCapCaptionSceneClockSchedule[];
 
 static TaskDesc _gCapCaptionTimedTaskDesc;
 
-static TaskDesc CapCaption_Data_80154508;
+static TaskDesc _gCapCaptionCancelableTaskDesc;
 
 static void _shelterB3GarbageIncineratorExitEncounterTask(Task* task);
 static void _shelterB3GarbageIncineratorLiftTask(Task* task);

@@ -411,10 +411,10 @@ gShelter1fHeliportS4ViewBoundaryTriggers = 0x8017DE84; // absolute:True owner=sh
 gShelter1fHeliportS4SurfacePropertiesByClass = 0x8017E060; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 shelterB3DumpingHoleRoomTask = 0x8017D9A8; // type:func absolute:True owner=shelter_b3_dumping_hole shared=rooms
 gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 = 0x80187550; // absolute:True owner=shelter_b3_dumping_hole
-D_shelter_b3_dumping_hole_8018B678 = 0x8018B678; // absolute:True owner=shelter_b3_dumping_hole
+gShelterB3DumpingHoleRoomCollisionResources = 0x8018B678; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleViewMaps = 0x8018B698; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleViewCounts = 0x8018B6A0; // absolute:True owner=shelter_b3_dumping_hole
-D_shelter_b3_dumping_hole_8018B6A4 = 0x8018B6A4; // absolute:True owner=shelter_b3_dumping_hole
+gShelterB3DumpingHoleWarpEntries = 0x8018B6A4; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleViewCameras = 0x8018C410; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleSpriteViews = 0x8018E050; // absolute:True owner=shelter_b3_dumping_hole
 gShelterB3DumpingHoleRoom1Lights = 0x8018E3DC; // absolute:True owner=shelter_b3_dumping_hole shared=rooms
@@ -475,7 +475,7 @@ gShelterB4UpperSewerCollisionGrid = 0x80186EF8; // absolute:True owner=shelter_b
 D_shelter_b4_upper_sewer_80186F1C = 0x80186F1C; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
 D_shelter_b4_upper_sewer_801879BC = 0x801879BC; // absolute:True owner=shelter_b4_upper_sewer
 gShelterB4UpperSewerRoomLights = 0x80188184; // absolute:True owner=shelter_b4_upper_sewer
-D_shelter_b4_upper_sewer_8018819C = 0x8018819C; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
+D_shelter_b4_upper_sewer_8018819C = 0x8018819C; // absolute:True owner=shelter_b4_upper_sewer
 D_shelter_b4_upper_sewer_801886F4 = 0x801886F4; // absolute:True owner=shelter_b4_upper_sewer
 D_shelter_b4_upper_sewer_80188BFC = 0x80188BFC; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
 gShelterB4UpperSewerSurfacePropertiesByClass = 0x80188CFC; // absolute:True owner=shelter_b4_upper_sewer shared=rooms

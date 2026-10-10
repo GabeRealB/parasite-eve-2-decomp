@@ -190,12 +190,11 @@ static void _shelterB3DumpingHoleShowTimedCaption(s16 commandIndex, s16 key, s16
 
 static void _capCaptionRunSchedule(Task* task);
 
-extern u16 D_shelter_b3_dumping_hole_8018F4D4;
+static u16 _gShelterB3DumpingHoleEncounterEnemyCount;
 
 static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage;
-// Scalar symbol view preserves the original byte/halfword address formation.
 
-extern u16 D_shelter_b3_dumping_hole_8018F4B0;
+static u16 _gShelterB3DumpingHoleCollapseShardsActive;
 
 /// Work block of the debris event's director task, which starts the event
 /// script once the player passes a set X position and stays reachable to the script's
@@ -408,18 +407,10 @@ enum {
     SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FLICKER      = 6, // Multi-frame: flicker the view's sprites, then start the framebuffer blend
 };
 
-extern s32                                  D_shelter_b3_dumping_hole_8018819C[];
-extern ActorTransform                       D_shelter_b3_dumping_hole_801881CC;
-extern ActorTransform                       D_shelter_b3_dumping_hole_801881E4;
-extern ActorTransform                       D_shelter_b3_dumping_hole_801881FC[];
-extern ActorTransform                       D_shelter_b3_dumping_hole_80188304[];
-extern _ShelterB3DumpingHoleDebrisPlacement D_shelter_b3_dumping_hole_801884CC[];
-
 extern EvsCommand            D_shelter_b3_dumping_hole_80188640[];
 extern EvsCommand            D_shelter_b3_dumping_hole_80188A78[];
 static WorldCollisionTrigger _gShelterB3DumpingHoleRoom1ActionTriggers[10];
-extern Task*                 D_shelter_b3_dumping_hole_8018F4AC;
-extern ActorTransform        D_shelter_b3_dumping_hole_8018966C;
+static Task*                 _gShelterB3DumpingHoleCollapseEventTask;
 
 /// Signed-word gate for the cyan and green disc anchors in mapped view 14.
 ///
@@ -436,7 +427,6 @@ static s32 _gShelterB3DumpingHoleView14GlowEnabled;
 extern TaskMessageEntry         D_shelter_b3_dumping_hole_8018965C[2];
 extern EvsCommand               D_shelter_b3_dumping_hole_8018968C[];
 extern EvsCommand               D_shelter_b3_dumping_hole_801899A4[];
-extern TaskDesc                 D_shelter_b3_dumping_hole_8018AFBC;
 static CapSequenceRecord*       _gCapCaptionSequence;
 static s16                      _gCapCaptionRecordIndex;
 static CapCaptionScheduleWindow _gCapCaptionSceneClockSchedule[];
@@ -455,14 +445,7 @@ static u16      _gCapCaptionCaretTipY;
 static s32      _gCapCaptionCaretPulseLevel;
 static s32      _gCapCaptionCaretPulseFalling;
 static TaskDesc _gCapCaptionTimedTaskDesc;
-static TaskDesc CapCaption_Data_80154508;
-
-/// Encounter controller's message table, installed in `Task::msgTable`.
-///
-/// `ACTOR_COMMAND_MESSAGE_APPLY` stops the controller when the borrowed
-/// `ActorCommand::command` is 4. Any other id reaches `TASK_MESSAGE_TABLE_END`
-/// and returns zero.
-extern TaskMessageEntry D_shelter_b3_dumping_hole_8018B7AC[2];
+static TaskDesc _gCapCaptionCancelableTaskDesc;
 
 /// Player commands posted by the debris event's scripts, including its skip script.
 enum {
@@ -592,22 +575,13 @@ static AnimationSet _gShelterB3DumpingHoleAnimation0C810;
 static AnimationSet _gShelterB3DumpingHoleAnimation0CCB4;
 static AnimationSet _gShelterB3DumpingHoleAnimation0D9C4;
 
-extern AnimationPlayRequest      D_shelter_b3_dumping_hole_8018AFF4;
-extern AnimationPlayRequest      D_shelter_b3_dumping_hole_8018B008;
-extern AnimationPlayRequest      D_shelter_b3_dumping_hole_8018B01C;
-extern ActorCommand              D_shelter_b3_dumping_hole_8018B078;
-extern PadScriptCmd              D_shelter_b3_dumping_hole_8018AFAC[2];
-extern PadScriptVibrationSegment D_shelter_b3_dumping_hole_8018AFB4[2];
-extern ActorTransform            D_shelter_b3_dumping_hole_8018B030;
-extern ActorTransform            D_shelter_b3_dumping_hole_8018B048;
-extern ActorTransform            D_shelter_b3_dumping_hole_8018B060;
-static void                      _shelterB3DumpingHoleSpawnShake(void);
-static void                      _shelterB3DumpingHoleSpawnPlayerSprites(s16 selector);
-static void                      _shelterB3DumpingHoleRequestPlayerSpriteStop(s32 selector);
+static void _shelterB3DumpingHoleSpawnShake(void);
+static void _shelterB3DumpingHoleSpawnPlayerSprites(s16 selector);
+static void _shelterB3DumpingHoleRequestPlayerSpriteStop(s32 selector);
 
 static WorldCollisionGrid    _gShelterB3DumpingHoleCollisionGrid;
 static WorldCollisionTrigger _gShelterB3DumpingHoleRoom2ViewBoundaries[8];
-extern WorldCollisionTrigger D_shelter_b3_dumping_hole_8018EF9C[8];
+static WorldCollisionTrigger _gShelterB3DumpingHoleRoom2ActionTriggers[8];
 
 s32         _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, ActorCommand* request, s32 unused);
 static void _shelterB3DumpingHoleEncounterTask(Task* task);
@@ -700,26 +674,26 @@ static s16 _gShelterB3DumpingHolePlayerSpriteFrameThresholds[ARRAY_SIZE(_gShelte
     SHELTER_B3_DUMPING_HOLE_SPRITE_FRAME_SHORT_THRESHOLD,
 };
 
-s32 D_shelter_b3_dumping_hole_8018819C[12] = {
-    8000,
-    0,
-    -6000,
-    0,
-    0x4000000,
-    0,
-    0x290E,
-    0,
-    -6000,
-    0,
-    0x4000000,
-    0,
+/// Player placement and walking destination before the debris scene's first clip.
+///
+/// Entry 0 places the player at X 8000; entry 1 walks to X 10510.
+/// Coordinates are world units, with both poses facing a quarter turn about Y.
+/// Dispatch copies the values; neither receiver retains the placement pointer.
+static ActorTransform _gShelterB3DumpingHoleDebrisPlayerApproachTransforms[2] = {
+    { { 8000, 0, -6000, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
+    { { 10510, 0, -6000, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } },
 };
 
-ActorTransform D_shelter_b3_dumping_hole_801881CC = { { 0x290E, 0, -6000, 0 }, { 0, 3072, 0, 0 } };
+/// Player's restored world pose at normal or skipped debris-scene completion.
+static ActorTransform _gShelterB3DumpingHoleDebrisPlayerFinalTransform = { { 10510, 0, -6000, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4, 0, 0 } };
 
-ActorTransform D_shelter_b3_dumping_hole_801881E4 = { { 5000, 1800, -6000, 0 }, { 0, 0, 0, 0 } };
+/// World pose of the placement-1 prop during the debris scene.
+static ActorTransform _gShelterB3DumpingHoleDebrisActor1Transform = { { 5000, 1800, -6000, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_shelter_b3_dumping_hole_801881FC[11] = {
+/// Ten initial world poses for debris model 0, followed by the X-coordinate end marker.
+///
+/// Pieces use the fast +X launch class and borrow their pose through initialization.
+static ActorTransform _gShelterB3DumpingHoleDebrisModel0Placements[11] = {
     { { 9000, -1000, -1500, 0 }, { 0, 0, 0, 0 } },
     { { 8900, -1600, -5100, 0 }, { 0, 0, 0, 0 } },
     { { 8200, -2300, -5300, 0 }, { 0, 0, 0, 0 } },
@@ -733,7 +707,10 @@ ActorTransform D_shelter_b3_dumping_hole_801881FC[11] = {
     { { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END, 0, 0, 0 }, { 0, 0, 0, 0 } },
 };
 
-ActorTransform D_shelter_b3_dumping_hole_80188304[19] = {
+/// Eighteen initial world poses for debris model 1, followed by the X-coordinate end marker.
+///
+/// Pieces use the medium +X launch class and borrow their pose through initialization.
+static ActorTransform _gShelterB3DumpingHoleDebrisModel1Placements[19] = {
     { { 8800, -1000, -5900, 0 }, { 0, 0, 0, 0 } },
     { { 8800, -2400, -6200, 0 }, { 0, 0, 0, 0 } },
     { { 8800, -1400, -7200, 0 }, { 0, 0, 0, 0 } },
@@ -755,23 +732,30 @@ ActorTransform D_shelter_b3_dumping_hole_80188304[19] = {
     { { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END, 0, 0, 0 }, { 0, 0, 0, 0 } },
 };
 
-_ShelterB3DumpingHoleDebrisPlacement D_shelter_b3_dumping_hole_801884CC[13] = {
-    { { { 8300, -2900, -5600, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 9000, -1200, -6700, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 8600, -2700, -7000, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 8600, -2300, -6700, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 8600, -1800, -5500, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 8800, -1500, -5400, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 8900, -1000, -7700, 0 }, { 0, 0, 0, 0 } }, 0 },
-    { { { 8800, -1900, -6300, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 8300, -2300, -4800, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 8700, -1700, -4400, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 8500, -1800, -7700, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { 8700, -2300, -5600, 0 }, { 0, 0, 0, 0 } }, 1 },
-    { { { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END, 0, 0, 0 }, { 0, 0, 0, 0 } }, 0 },
+/// Twelve initial world poses and sprite-ring choices for debris model 2, then the end marker.
+///
+/// Pieces use the slow +X launch class. Eleven also emit five sprites in a YZ ring;
+/// the model borrows the pose through initialization and sprites copy their seeds.
+static _ShelterB3DumpingHoleDebrisPlacement _gShelterB3DumpingHoleDebrisModel2Placements[13] = {
+    { { { 8300, -2900, -5600, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 9000, -1200, -6700, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 8600, -2700, -7000, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 8600, -2300, -6700, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 8600, -1800, -5500, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 8800, -1500, -5400, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 8900, -1000, -7700, 0 }, { 0, 0, 0, 0 } }, false },
+    { { { 8800, -1900, -6300, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 8300, -2300, -4800, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 8700, -1700, -4400, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 8500, -1800, -7700, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { 8700, -2300, -5600, 0 }, { 0, 0, 0, 0 } }, true },
+    { { { SHELTER_B3_DUMPING_HOLE_TRANSFORM_END, 0, 0, 0 }, { 0, 0, 0, 0 } }, false },
 };
 
-EvsSceneKey D_shelter_b3_dumping_hole_80188638 = { 4, 17, 11 };
+/// Scene/audio stream key for the debris event.
+///
+/// The event borrows this key through scene cleanup; group 4 selects stream 17, qualifier 11.
+static EvsSceneKey _gShelterB3DumpingHoleDebrisSceneKey = { 4, 17, 11 };
 
 EvsCommand D_shelter_b3_dumping_hole_80188640[45] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
@@ -780,7 +764,7 @@ EvsCommand D_shelter_b3_dumping_hole_80188640[45] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_PLACE_ACTOR1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor0DrawMode }, { .value = SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleDebrisEventSetActor1DrawMode }, { .value = ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_shelter_b3_dumping_hole_80188638 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gShelterB3DumpingHoleDebrisSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleDebrisEventStageAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -905,14 +889,21 @@ TaskMessageEntry D_shelter_b3_dumping_hole_8018965C[2] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
 };
 
-ActorTransform D_shelter_b3_dumping_hole_8018966C = { { 4500, -0x2CEC, -5450, 0 }, { 341, 0, 0, 0 } };
+/// Initial world pose of the three-section collapse model.
+///
+/// The director copies XYZ and Euler angles, then shakes about the initial X angle
+/// before dropping and tipping the sections. Angles use 4096 units per turn.
+static ActorTransform _gShelterB3DumpingHoleCollapseModelTransform = { { 4500, -11500, -5450, 0 }, { 341, 0, 0, 0 } };
 
-EvsSceneKey D_shelter_b3_dumping_hole_80189684 = { 4, 18, 11 };
+/// Scene/audio stream key for the collapse event.
+///
+/// The event borrows this key through scene cleanup; group 4 selects stream 18, qualifier 11.
+static EvsSceneKey _gShelterB3DumpingHoleCollapseSceneKey = { 4, 18, 11 };
 
 EvsCommand D_shelter_b3_dumping_hole_8018968C[33] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_PREPARE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_shelter_b3_dumping_hole_80189684 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gShelterB3DumpingHoleCollapseSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleCollapseEventStageAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -961,9 +952,11 @@ EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_shelter_b3_dumping_hole_80189ADC[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3DumpingHoleCollapseEventTask, { .model = &_gShelterB3DumpingHoleModel0BAC8 } },
-    { { { TASK_BODY_COORD, 192 } }, _shelterB3DumpingHoleShardTask, { .value = 0 } },
+enum { SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_PRIORITY = 192 };
+
+TaskDesc gShelterB3DumpingHoleCollapseTaskDescriptors[2] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_PRIORITY } }, _shelterB3DumpingHoleCollapseEventTask, { .model = &_gShelterB3DumpingHoleModel0BAC8 } },
+    { { { TASK_BODY_COORD, SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_PRIORITY } }, _shelterB3DumpingHoleShardTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gShelterB3DumpingHoleAnimation0C810Bank1[6] = {
@@ -1032,70 +1025,114 @@ static AnimationSet _gShelterB3DumpingHoleAnimation0D9C4 = {
     { NULL, _gShelterB3DumpingHoleAnimation0D9C4Bank1, NULL, NULL, _gShelterB3DumpingHoleAnimation0D9C4Bank4, NULL, NULL, NULL },
 };
 
-PadScriptCmd D_shelter_b3_dumping_hole_8018AFAC[2] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+enum {
+    SHELTER_B3_DUMPING_HOLE_ARRIVAL_VARIABLE_MOTOR_SEGMENT = 0,
+    SHELTER_B3_DUMPING_HOLE_ARRIVAL_BINARY_MOTOR_SEGMENT   = 1,
+    SHELTER_B3_DUMPING_HOLE_ARRIVAL_VIBRATION_FRAMES       = 9,
+    SHELTER_B3_DUMPING_HOLE_ARRIVAL_SHAKE_PRIORITY         = 192,
+    SHELTER_B3_DUMPING_HOLE_ARRIVAL_CLIP_48                = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    SHELTER_B3_DUMPING_HOLE_ARRIVAL_CLIP_49                = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    SHELTER_B3_DUMPING_HOLE_ARRIVAL_CLIP_50                = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    SHELTER_B3_DUMPING_HOLE_ARRIVAL_BLEND_FRAMES           = 30,
+    SHELTER_B3_DUMPING_HOLE_ARRIVAL_ACTOR_COMMAND_HIDE     = 0,
+};
+
+/// Two-lane vibration program for the arrival scene's nine-frame shake.
+///
+/// Step 0 plays segment 1 on the binary motor and segment 0 on the variable motor;
+/// step 1 stops both lanes. The vibration task borrows both arrays until teardown.
+static PadScriptCmd _gShelterB3DumpingHoleArrivalVibrationCommands[2] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, SHELTER_B3_DUMPING_HOLE_ARRIVAL_BINARY_MOTOR_SEGMENT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, SHELTER_B3_DUMPING_HOLE_ARRIVAL_VARIABLE_MOTOR_SEGMENT) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_shelter_b3_dumping_hole_8018AFB4[2] = {
-    { 255, 250, 9, 1 },
-    { 0, 0, 9, 0 },
+/// Arrival-scene vibration segments indexed by the two motor lanes.
+///
+/// Segment 0 ramps intensity 255 to 250 over nine eligible script frames.
+/// Segment 1 gives the binary motor the same duration; its intensity bytes are unused.
+/// The final bytes are retained without assigning them a role.
+static PadScriptVibrationSegment _gShelterB3DumpingHoleArrivalVibrationSegments[2] = {
+    { 255, 250, SHELTER_B3_DUMPING_HOLE_ARRIVAL_VIBRATION_FRAMES, 1 },
+    { 0, 0, SHELTER_B3_DUMPING_HOLE_ARRIVAL_VIBRATION_FRAMES, 0 },
 };
 
-TaskDesc D_shelter_b3_dumping_hole_8018AFBC = { { { TASK_BODY_NONE, 192 } }, _shelterB3DumpingHoleShakeTask, { .value = 0 } };
-
-/// Player clips for extended ids 47-50, added by the dumping hole's one-time
-/// arrival scene; NULL at id 47, which nothing plays.
+/// Bodyless arrival-scene task that shakes the display vertically and clears it on completion.
 ///
-/// The scene's event script opens by sending the player the copy request.
-/// `D_shelter_b3_dumping_hole_8018AFD8` copies five words starting here into
-/// the player's bank, which is one word past the end of this array: the read
-/// runs on through the first word of `D_shelter_b3_dumping_hole_8018AFD8`, that
-/// request's own source pointer. That overrun is the original's and is kept as
-/// it is: the request carries a literal count larger than the table, while the
-/// table was stored with only its own entries. The script then plays ids 48, 49
-/// and 50 in turn. Id 51, which receives the source pointer, is never played.
-AnimationSet* D_shelter_b3_dumping_hole_8018AFC8[4] = { NULL, &_gShelterB3DumpingHoleAnimation0C810, &_gShelterB3DumpingHoleAnimation0CCB4, &_gShelterB3DumpingHoleAnimation0D9C4 };
+/// No work or spawn payload is required; the callback initializes its own amplitude and timer.
+static TaskDesc _gShelterB3DumpingHoleArrivalShakeTaskDescriptor = { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ARRIVAL_SHAKE_PRIORITY } }, _shelterB3DumpingHoleShakeTask, { .value = 0 } };
 
-// Installs the player's clips; the count is five, not the four entries of its source.
-AnimationBankCopyRequest D_shelter_b3_dumping_hole_8018AFD8 = { { .sets = D_shelter_b3_dumping_hole_8018AFC8 }, 5 };
+/// Arrival-scene player clips at bank-extension indices 47..50.
+///
+/// Index 47 is NULL; the script plays 48, 49 and 50 in order. The copy request
+/// transfers one word beyond these four pointers, copying its own source address
+/// into index 51. That extra word is not a clip and is never played here.
+/// Preserve the table and request consecutively and keep both loaded through copying.
+static AnimationSet* _gShelterB3DumpingHoleArrivalAnimationSets[4] = { NULL, &_gShelterB3DumpingHoleAnimation0C810, &_gShelterB3DumpingHoleAnimation0CCB4, &_gShelterB3DumpingHoleAnimation0D9C4 };
+
+/// Copies the arrival clips and the following source-pointer word into the player's extension.
+///
+/// The fifth word is retained original behavior, not a fifth playable set.
+/// Dispatch borrows this request and source; clip data stays loaded during playback.
+static AnimationBankCopyRequest _gShelterB3DumpingHoleArrivalAnimationBankCopy = { { .sets = _gShelterB3DumpingHoleArrivalAnimationSets }, ARRAY_SIZE(_gShelterB3DumpingHoleArrivalAnimationSets) + 1 };
 
 AnimationPlayRequest D_shelter_b3_dumping_hole_8018AFE0 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_shelter_b3_dumping_hole_8018AFF4 = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 30, ANIMATION_WORLD_COLLISION_ENABLE };
+/// First arrival-scene player clip, blended over 30 normal-rate frames with world collision enabled.
+///
+/// The event copies this request and replaces its stored bank selector with the
+/// equipped weapon's bank before dispatch; the source record remains borrowed.
+static AnimationPlayRequest _gShelterB3DumpingHoleArrivalAnimation48 = { { .index = 1 }, SHELTER_B3_DUMPING_HOLE_ARRIVAL_CLIP_48, ANIMATION_BLEND_INTERPOLATE, SHELTER_B3_DUMPING_HOLE_ARRIVAL_BLEND_FRAMES, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_shelter_b3_dumping_hole_8018B008 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Second arrival-scene player clip, reset with world collision disabled.
+///
+/// The event copies this request and resolves the equipped weapon's bank before dispatch.
+static AnimationPlayRequest _gShelterB3DumpingHoleArrivalAnimation49 = { { .index = 1 }, SHELTER_B3_DUMPING_HOLE_ARRIVAL_CLIP_49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_shelter_b3_dumping_hole_8018B01C = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Final arrival-scene player clip, reset with world collision disabled.
+///
+/// The event copies this request and resolves the equipped weapon's bank before dispatch.
+static AnimationPlayRequest _gShelterB3DumpingHoleArrivalAnimation50 = { { .index = 1 }, SHELTER_B3_DUMPING_HOLE_ARRIVAL_CLIP_50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-ActorTransform D_shelter_b3_dumping_hole_8018B030 = { { 0x2904, 0, -3300, 0 }, { 0, -2048, 0, 0 } };
+/// Player's world pose immediately after the arrival scene starts clip 49.
+///
+/// The placement message consumes XYZ and all three angles synchronously.
+static ActorTransform _gShelterB3DumpingHoleArrivalAnimation49Transform = { { 10500, 0, -3300, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 } };
 
-ActorTransform D_shelter_b3_dumping_hole_8018B048 = { { 0x2904, -100, -3300, 0 }, { 0, -1024, 0, 0 } };
+/// Player's world pose immediately after the arrival scene starts clip 50.
+///
+/// The placement message consumes XYZ and all three angles synchronously.
+static ActorTransform _gShelterB3DumpingHoleArrivalAnimation50Transform = { { 10500, -100, -3300, 0 }, { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorTransform D_shelter_b3_dumping_hole_8018B060 = { { 8800, 0, -6000, 0 }, { 0, 1024, 0, 0 } };
+/// Player's final world pose shared by normal and skipped arrival-scene completion.
+///
+/// The placement message consumes XYZ and all three angles synchronously.
+static ActorTransform _gShelterB3DumpingHoleArrivalPlayerFinalTransform = { { 8800, 0, -6000, 0 }, { 0, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 } };
 
-ActorCommand D_shelter_b3_dumping_hole_8018B078 = { { .loc = { 4, 39 } }, 0 };
+/// Hides the dumping-hole Glutton at placement 0 when the arrival scene starts or is skipped.
+///
+/// The borrowed command uses the Mine/Shelter dumping-hole stage/area namespace.
+static ActorCommand _gShelterB3DumpingHoleArrivalActor0Command = { { .loc = { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE } }, SHELTER_B3_DUMPING_HOLE_ARRIVAL_ACTOR_COMMAND_HIDE };
 
 ActorCommand D_shelter_b3_dumping_hole_8018B07C = { { .loc = { 4, 39 } }, 1 };
 
 EvsCommand D_shelter_b3_dumping_hole_8018B080[39] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &D_shelter_b3_dumping_hole_8018AFD8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b3_dumping_hole_8018B078 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShelterB3DumpingHoleArrivalAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB3DumpingHoleArrivalActor0Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018AFF4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB3DumpingHoleArrivalAnimation48 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54270001 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 130 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018B008 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b3_dumping_hole_8018B030 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB3DumpingHoleArrivalAnimation49 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB3DumpingHoleArrivalAnimation49Transform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54270002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleSpawnShake }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_shelter_b3_dumping_hole_8018AFAC }, { .vibrationSegments = D_shelter_b3_dumping_hole_8018AFB4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = _gShelterB3DumpingHoleArrivalVibrationCommands }, { .vibrationSegments = _gShelterB3DumpingHoleArrivalVibrationSegments }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleSpawnPlayerSprites }, { .value = SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1104,8 +1141,8 @@ EvsCommand D_shelter_b3_dumping_hole_8018B080[39] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleRequestPlayerSpriteStop }, { .value = SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 90 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b3_dumping_hole_8018B01C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b3_dumping_hole_8018B048 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB3DumpingHoleArrivalAnimation50 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB3DumpingHoleArrivalAnimation50Transform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1114,7 +1151,7 @@ EvsCommand D_shelter_b3_dumping_hole_8018B080[39] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b3_dumping_hole_8018B060 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB3DumpingHoleArrivalPlayerFinalTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1122,12 +1159,12 @@ EvsCommand D_shelter_b3_dumping_hole_8018B080[39] = {
 
 EvsCommand D_shelter_b3_dumping_hole_8018B428[14] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b3_dumping_hole_8018B078 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB3DumpingHoleArrivalActor0Command } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x54270001 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x54270002 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b3_dumping_hole_8018B060 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB3DumpingHoleArrivalPlayerFinalTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleRequestPlayerSpriteStop }, { .value = SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1145,9 +1182,9 @@ TaskDesc D_shelter_b3_dumping_hole_8018B57C[1] = {
 
 #include "../../shared/cap_captions_schedule.inc.c"
 
-WorldCollisionRoomResources D_shelter_b3_dumping_hole_8018B678[2] = {
+WorldCollisionRoomResources gShelterB3DumpingHoleRoomCollisionResources[2] = {
     { &_gShelterB3DumpingHoleCollisionGrid, NULL, _gShelterB3DumpingHoleRoom1ActionTriggers, NULL },
-    { &_gShelterB3DumpingHoleCollisionGrid, _gShelterB3DumpingHoleRoom2ViewBoundaries, D_shelter_b3_dumping_hole_8018EF9C, NULL },
+    { &_gShelterB3DumpingHoleCollisionGrid, _gShelterB3DumpingHoleRoom2ViewBoundaries, _gShelterB3DumpingHoleRoom2ActionTriggers, NULL },
 };
 
 u8* gShelterB3DumpingHoleViewMaps[2] = {
@@ -1157,19 +1194,24 @@ u8* gShelterB3DumpingHoleViewMaps[2] = {
 
 ViewCount gShelterB3DumpingHoleViewCounts[2] = { ARRAY_SIZE(gShelterB3DumpingHoleViewCameras), ARRAY_SIZE(gShelterB3DumpingHoleViewCameras) };
 
-DirectionWarpEntry D_shelter_b3_dumping_hole_8018B6A4[3] = {
-    { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, 0x54270004, 0x54270003, DIRECTION_WARP_SOUND_NONE, 30, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 30, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4C2C, 0, -4450 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 15, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+enum {
+    SHELTER_B3_DUMPING_HOLE_WARP_ARRIVAL_SOUND   = 0x54270004,
+    SHELTER_B3_DUMPING_HOLE_WARP_DEPARTURE_SOUND = 0x54270003,
 };
 
-OverlayEncounterSpot D_shelter_b3_dumping_hole_8018B74C[12] = {
-    { 1500, -3950, -550, 2048 },
-    { 4500, -3950, -550, 2048 },
-    { 7500, -3950, -550, 2048 },
-    { 10500, -3950, -550, 2048 },
-    { 13500, -3950, -550, 2048 },
-    { 16500, -3950, -550, 2048 },
+DirectionWarpEntry gShelterB3DumpingHoleWarpEntries[3] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 19500, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 19500, 0, -4450 }, { 0, 0, 0, 0 }, SHELTER_B3_DUMPING_HOLE_WARP_ARRIVAL_SOUND, SHELTER_B3_DUMPING_HOLE_WARP_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 30, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 19500, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 19500, 0, -4450 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 30, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 19500, 0, -4450 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 19500, 0, -4450 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 15, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+};
+
+OverlayEncounterSpot gShelterB3DumpingHoleEncounterSpots[12] = {
+    { 1500, -3950, -550, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
+    { 4500, -3950, -550, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
+    { 7500, -3950, -550, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
+    { 10500, -3950, -550, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
+    { 13500, -3950, -550, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
+    { 16500, -3950, -550, ACTOR_TRANSFORM_ANGLE_HALF_TURN },
     { 1500, -3950, -12450, 0 },
     { 4500, -3950, -12450, 0 },
     { 7500, -3950, -12450, 0 },
@@ -1178,7 +1220,12 @@ OverlayEncounterSpot D_shelter_b3_dumping_hole_8018B74C[12] = {
     { 16500, -3950, -12450, 0 },
 };
 
-TaskMessageEntry D_shelter_b3_dumping_hole_8018B7AC[2] = {
+/// Encounter-controller stop-command handler followed by the message-table terminator.
+///
+/// `ACTOR_COMMAND_MESSAGE_APPLY` latches command `OVERLAY_ENCOUNTER_COMMAND_STOP`;
+/// other command values leave the controller running. The matched handler returns
+/// no defined result, so senders must ignore it. Unlisted message IDs return zero.
+static TaskMessageEntry _gShelterB3DumpingHoleEncounterMessageTable[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _shelterB3DumpingHoleEncounterStopMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -1207,11 +1254,16 @@ static OverlayEncounterSlot _gShelterB3DumpingHoleEncounterSlots[16] = {
     { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER, OVERLAY_ENCOUNTER_APPEAR_COMMAND(3, 0), { 0, 0 }, OVERLAY_ENCOUNTER_SLOT_WAITING },
 };
 
-TaskDesc D_shelter_b3_dumping_hole_8018B83C[4] = {
-    { { { TASK_BODY_NONE, 32 } }, _shelterB3DumpingHoleEncounterTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, _shelterB3DumpingHoleEncounterMadChaserTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, _shelterB3DumpingHoleEncounterSlouchTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, _shelterB3DumpingHoleEncounterPairTask, { .value = 0 } },
+enum {
+    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_CONTROLLER_PRIORITY = 32,
+    SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_PRIORITY    = 97,
+};
+
+TaskDesc gShelterB3DumpingHoleEncounterTaskDescriptors[4] = {
+    { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_CONTROLLER_PRIORITY } }, _shelterB3DumpingHoleEncounterTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_PRIORITY } }, _shelterB3DumpingHoleEncounterMadChaserTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_PRIORITY } }, _shelterB3DumpingHoleEncounterSlouchTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_PRIORITY } }, _shelterB3DumpingHoleEncounterPairTask, { .value = 0 } },
 };
 
 /// World-space anchors for the dumping hole's view-dependent glow shapes.
@@ -2292,15 +2344,19 @@ static WorldCollisionTrigger _gShelterB3DumpingHoleRoom1ActionTriggers[10] = {
     { NULL, NULL, NULL, { -496, -64, -6080, 0 }, { { -1504, 0, -4336, 0 }, { 1504, 0, -4336, 0 }, { -1504, 0, 4336, 0 }, { 1504, 0, 4336, 0 } }, { 0, 4104, 0, 0 }, { ONE, 0, 0, 0 }, 4579, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b3_dumping_hole_8018EF9C[8] = {
-    { NULL, NULL, NULL, { 0x4BD0, -48, -4688, 0 }, { { -688, 0, -624, 0 }, { 688, 0, -624, 0 }, { -688, 0, 624, 0 }, { 688, 0, 624, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 927, WORLD_COLLISION_TRIGGER_ACTION_WARP, 40, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6334, -64, -5984, 0 }, { { -144, 0, -2576, 0 }, { 144, 0, -2576, 0 }, { -144, 0, 2576, 0 }, { 144, 0, 2576, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 2572, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4B61, -64, -3760, 0 }, { { -1008, 0, -832, 0 }, { 1008, 0, -832, 0 }, { -1008, 0, 832, 0 }, { 1008, 0, 832, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -4096, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Room 2's eight interaction and transition triggers, including the last marked record.
+///
+/// Runtime setup links and enables all eight records. Origins are world units;
+/// facing normals use `ONE` scale. Storage stays mutable until the triggers are unlinked.
+static WorldCollisionTrigger _gShelterB3DumpingHoleRoom2ActionTriggers[8] = {
+    { NULL, NULL, NULL, { 0x4BD0, -48, -4688, 0 }, { { -688, 0, -624, 0 }, { 688, 0, -624, 0 }, { -688, 0, 624, 0 }, { 688, 0, 624, 0 } }, { 0, 4099, 0, 0 }, { -ONE, 0, 0, 0 }, 927, WORLD_COLLISION_TRIGGER_ACTION_WARP, 40, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6334, -64, -5984, 0 }, { { -144, 0, -2576, 0 }, { 144, 0, -2576, 0 }, { -144, 0, 2576, 0 }, { 144, 0, 2576, 0 } }, { 0, 4110, 0, 0 }, { -ONE, 0, 0, 0 }, 2572, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x4B61, -64, -3760, 0 }, { { -1008, 0, -832, 0 }, { 1008, 0, -832, 0 }, { -1008, 0, 832, 0 }, { 1008, 0, 832, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, -ONE, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4224, -64, -5808, 0 }, { { -464, 0, -1184, 0 }, { 464, 0, -1184, 0 }, { -464, 0, 1184, 0 }, { 464, 0, 1184, 0 } }, { 0, 4099, 0, 0 }, { 4075, 0, -402, 0 }, 1267, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 8816, -64, -3984, 0 }, { { -800, 0, -1008, 0 }, { 800, 0, -432, 0 }, { -800, 0, 432, 0 }, { 800, 0, 1008, 0 } }, { 0, 4098, 0, 0 }, { 399, 0, -4075, 0 }, 1286, WORLD_COLLISION_TRIGGER_ACTION_CAP, 19, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 8816, -64, -7824, 0 }, { { -816, 0, -224, 0 }, { 816, 0, -1216, 0 }, { -816, 0, 1216, 0 }, { 816, 0, 224, 0 } }, { 0, 4099, 0, 0 }, { 14, 0, 4094, 0 }, 1459, WORLD_COLLISION_TRIGGER_ACTION_CAP, 25, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2D70, -64, -3808, 0 }, { { -2080, 0, -512, 0 }, { 2080, 0, -512, 0 }, { -2080, 0, 512, 0 }, { 2080, 0, 512, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 2141, WORLD_COLLISION_TRIGGER_ACTION_CAP, 19, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2DB0, -64, -8272, 0 }, { { -2000, 0, -368, 0 }, { 2000, 0, -368, 0 }, { -2000, 0, 368, 0 }, { 2000, 0, 368, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, 4096, 0 }, 2031, WORLD_COLLISION_TRIGGER_ACTION_CAP, 25, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { 0x2D70, -64, -3808, 0 }, { { -2080, 0, -512, 0 }, { 2080, 0, -512, 0 }, { -2080, 0, 512, 0 }, { 2080, 0, 512, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, -ONE, 0 }, 2141, WORLD_COLLISION_TRIGGER_ACTION_CAP, 19, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2DB0, -64, -8272, 0 }, { { -2000, 0, -368, 0 }, { 2000, 0, -368, 0 }, { -2000, 0, 368, 0 }, { 2000, 0, 368, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, ONE, 0 }, 2031, WORLD_COLLISION_TRIGGER_ACTION_CAP, 25, 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 WorldCoordRoomAmbientEntry gShelterB3DumpingHoleRoom1AmbientByView[38] = {
@@ -2460,9 +2516,19 @@ u8 D_shelter_b3_dumping_hole_8018F4A7 = 8;
 /// handle, so it must not be dereferenced after script completion.
 static Task* _gShelterB3DumpingHoleDebrisEventTask = NULL;
 
-Task* D_shelter_b3_dumping_hole_8018F4AC = NULL;
+/// Borrowed handle to the live collapse-event director.
+///
+/// Published after its work is allocated; event callbacks require the director
+/// to stay live through script completion. The task owns the work. Teardown
+/// leaves the handle unchanged, so later dereferences are invalid.
+static Task* _gShelterB3DumpingHoleCollapseEventTask = NULL;
 
-u16 D_shelter_b3_dumping_hole_8018F4B0 = 0;
+/// Collapse shard-lifetime gate (0 stop, 1 active).
+///
+/// Collapse setup enables it; the end command and skip clear it. Every shard
+/// checks it before setup or drawing and kills itself on the first zero tick.
+/// Keep the halfword storage and its first declaration position.
+static u16 _gShelterB3DumpingHoleCollapseShardsActive = 0;
 
 /// A halfword stored after the scalar; nothing references it.
 u16 D_shelter_b3_dumping_hole_8018F4B2 = 0xDF0D;
@@ -2543,7 +2609,13 @@ static u16 _gCapCaptionCaretTipY = 0;
 /// caret calls consume it; all initializer bytes remain stored verbatim.
 static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage = { 0, { 19, 111, 0 } };
 
-u16 D_shelter_b3_dumping_hole_8018F4D4 = 0;
+/// Number of successfully spawned enemies in the current dumping-hole encounter.
+///
+/// Reset at controller initialization; singles consume one index and pairs up
+/// to two. The sixteen configured slots can spawn twenty enemies. The u16
+/// increment wraps; placement keys keep only its low four bits as their index,
+/// so indices 16..19 reuse 0..3. This counter does not own any enemy task.
+static u16 _gShelterB3DumpingHoleEncounterEnemyCount = 0;
 
 /// A halfword stored after the scalar; nothing references it.
 u16 D_shelter_b3_dumping_hole_8018F4D6 = 0xD086;
@@ -3176,8 +3248,8 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PREPARE_ANIMATION_47:
             switch (work->playerStep) {
                 case SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_PLACE:
-                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, D_shelter_b3_dumping_hole_8018819C, 0);
-                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_MOVE_TO, &D_shelter_b3_dumping_hole_8018819C[6], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, _gShelterB3DumpingHoleDebrisPlayerApproachTransforms, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_MOVE_TO, &_gShelterB3DumpingHoleDebrisPlayerApproachTransforms[1], 0);
                     work->playerStep++;
                     return;
                 case SHELTER_B3_DUMPING_HOLE_DEBRIS_PREPARE_WAIT_MOTION:
@@ -3204,7 +3276,7 @@ static void _shelterB3DumpingHoleDebrisEventHandlePlayerCommand(Task* directorTa
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_RESTORE_PLAYER:
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_shelter_b3_dumping_hole_801881CC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gShelterB3DumpingHoleDebrisPlayerFinalTransform, 0);
             SHELTER_B3_DUMPING_HOLE_PLAY_DEBRIS_PLAYER_ANIMATION(directorTask, request, SHELTER_B3_DUMPING_HOLE_DEBRIS_RESTORE_CLIP, ANIMATION_BLEND_RESET, 0);
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_PLAY_ANIMATION_48:
@@ -3346,7 +3418,7 @@ static void _shelterB3DumpingHoleDebrisEventHandleSceneCommand(Task* directorTas
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_PLACE_ACTOR1:
-            TASK_MESSAGE_DISPATCH_POINTER(work->placement1Actor, ACTOR_MESSAGE_PLACE, &D_shelter_b3_dumping_hole_801881E4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->placement1Actor, ACTOR_MESSAGE_PLACE, &_gShelterB3DumpingHoleDebrisActor1Transform, 0);
             break;
         case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_CREATE_DEBRIS:
             switch (work->sceneStep) {
@@ -3356,14 +3428,14 @@ static void _shelterB3DumpingHoleDebrisEventHandleSceneCommand(Task* directorTas
                     return;
                 case SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMPLETE:
                     // Placement tables retain their terminators; models borrow entries until setup.
-                    for (placementIndex = 0; D_shelter_b3_dumping_hole_801881FC[placementIndex].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; placementIndex++) {
-                        taskSpawnFromTable(_gShelterB3DumpingHoleDebrisEventTaskDescriptors, SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL0_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_FAST, &D_shelter_b3_dumping_hole_801881FC[placementIndex]);
+                    for (placementIndex = 0; _gShelterB3DumpingHoleDebrisModel0Placements[placementIndex].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; placementIndex++) {
+                        taskSpawnFromTable(_gShelterB3DumpingHoleDebrisEventTaskDescriptors, SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL0_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_FAST, &_gShelterB3DumpingHoleDebrisModel0Placements[placementIndex]);
                     }
-                    for (placementIndex = 0; D_shelter_b3_dumping_hole_80188304[placementIndex].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; placementIndex++) {
-                        taskSpawnFromTable(_gShelterB3DumpingHoleDebrisEventTaskDescriptors, SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL1_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_MEDIUM, &D_shelter_b3_dumping_hole_80188304[placementIndex]);
+                    for (placementIndex = 0; _gShelterB3DumpingHoleDebrisModel1Placements[placementIndex].pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; placementIndex++) {
+                        taskSpawnFromTable(_gShelterB3DumpingHoleDebrisEventTaskDescriptors, SHELTER_B3_DUMPING_HOLE_DEBRIS_MODEL1_TASK_INDEX, SHELTER_B3_DUMPING_HOLE_DEBRIS_X_SPEED_MEDIUM, &_gShelterB3DumpingHoleDebrisModel1Placements[placementIndex]);
                     }
-                    for (placementIndex = 0; D_shelter_b3_dumping_hole_801884CC[placementIndex].transform.pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; placementIndex++) {
-                        placement = &D_shelter_b3_dumping_hole_801884CC[placementIndex];
+                    for (placementIndex = 0; _gShelterB3DumpingHoleDebrisModel2Placements[placementIndex].transform.pos.vx != SHELTER_B3_DUMPING_HOLE_TRANSFORM_END; placementIndex++) {
+                        placement = &_gShelterB3DumpingHoleDebrisModel2Placements[placementIndex];
                         SHELTER_B3_DUMPING_HOLE_SPAWN_RINGED_DEBRIS_PLACEMENT(placement);
                     }
                     break;
@@ -3686,7 +3758,7 @@ static void _shelterB3DumpingHoleDebrisEventSkip(void)
     // Restore the player independently of the script's canceled pending commands.
     taskMessageDispatch(work->placement1Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER, 0);
     taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_shelter_b3_dumping_hole_801881CC, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &_gShelterB3DumpingHoleDebrisPlayerFinalTransform, 0);
     animationWork = directorTask->work;
     /// Builds a reset-animation request with world collision disabled.
     ///
@@ -3788,7 +3860,7 @@ static void _shelterB3DumpingHoleShardTask(Task* task)
     work  = task->work;
     coord = task->extra.coordBody->coord;
     spawn = task->spawnArg2.pointer;
-    if (D_shelter_b3_dumping_hole_8018F4B0 == 0) {
+    if (_gShelterB3DumpingHoleCollapseShardsActive == 0) {
         taskKill(task);
         return;
     }
@@ -3999,23 +4071,23 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
                     worldCoordSetAmbientColorOverride(&scratch.effects.ambientColor);
                     taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_HIDE_RESET, 0);
                     taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
-                    work->pose.pos.vx = D_shelter_b3_dumping_hole_8018966C.pos.vx;
-                    work->pose.pos.vy = D_shelter_b3_dumping_hole_8018966C.pos.vy;
-                    work->pose.pos.vz = D_shelter_b3_dumping_hole_8018966C.pos.vz;
-                    work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx;
-                    work->pose.rot.vy = D_shelter_b3_dumping_hole_8018966C.rot.vy;
-                    work->pose.rot.vz = D_shelter_b3_dumping_hole_8018966C.rot.vz;
+                    work->pose.pos.vx = _gShelterB3DumpingHoleCollapseModelTransform.pos.vx;
+                    work->pose.pos.vy = _gShelterB3DumpingHoleCollapseModelTransform.pos.vy;
+                    work->pose.pos.vz = _gShelterB3DumpingHoleCollapseModelTransform.pos.vz;
+                    work->pose.rot.vx = _gShelterB3DumpingHoleCollapseModelTransform.rot.vx;
+                    work->pose.rot.vy = _gShelterB3DumpingHoleCollapseModelTransform.rot.vy;
+                    work->pose.rot.vz = _gShelterB3DumpingHoleCollapseModelTransform.rot.vz;
                     TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &work->pose, 0);
-                    work->shardSpawn.offset.vx         = 0;
-                    work->shardSpawn.offset.vy         = 0;
-                    work->shardSpawn.offset.vz         = 0;
-                    D_shelter_b3_dumping_hole_8018F4B0 = true;
-                    work->shardSpawn.emitter           = &task->extra.tmd->coords[2];
-                    work->shardSpawn.radius            = 0x14;
-                    work->part3Scale.vx                = ONE;
-                    work->part3Scale.vy                = ONE;
-                    work->part3Scale.vz                = ONE;
-                    work->timer                        = 0;
+                    work->shardSpawn.offset.vx                 = 0;
+                    work->shardSpawn.offset.vy                 = 0;
+                    work->shardSpawn.offset.vz                 = 0;
+                    _gShelterB3DumpingHoleCollapseShardsActive = true;
+                    work->shardSpawn.emitter                   = &task->extra.tmd->coords[2];
+                    work->shardSpawn.radius                    = 0x14;
+                    work->part3Scale.vx                        = ONE;
+                    work->part3Scale.vy                        = ONE;
+                    work->part3Scale.vz                        = ONE;
+                    work->timer                                = 0;
                     work->step++;
                     break;
                 case SHELTER_B3_DUMPING_HOLE_COLLAPSE_STEP_SHAKE:
@@ -4026,7 +4098,7 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
                         work->shardSpawn.vel.vz  = 0;
                         work->shardSpawn.gravity = 4;
                         for (shardIndex = 0; shardIndex < SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHARDS_PER_BURST; shardIndex++) {
-                            taskSpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 1, 0, &work->shardSpawn);
+                            taskSpawnFromTable(gShelterB3DumpingHoleCollapseTaskDescriptors, SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_SHARD, 0, &work->shardSpawn);
                         }
                     }
                     if (work->timer >= SHELTER_B3_DUMPING_HOLE_COLLAPSE_SHAKE_END_TICK) {
@@ -4056,9 +4128,9 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
                         }
                     }
                     if (gDisplayState.animFrame & 1) {
-                        work->part1Pitch = work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx + 0x10;
+                        work->part1Pitch = work->pose.rot.vx = _gShelterB3DumpingHoleCollapseModelTransform.rot.vx + 0x10;
                     } else {
-                        work->part1Pitch = work->pose.rot.vx = D_shelter_b3_dumping_hole_8018966C.rot.vx - 0x10;
+                        work->part1Pitch = work->pose.rot.vx = _gShelterB3DumpingHoleCollapseModelTransform.rot.vx - 0x10;
                     }
                     TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &work->pose, 0);
                     break;
@@ -4092,8 +4164,8 @@ static void _shelterB3DumpingHoleCollapseEventHandleCommand(Task* task)
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
             taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_COLLAPSE_ACTOR_DRAW_SHOW_ALLOCATE, 0);
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
-            D_shelter_b3_dumping_hole_8018F4B0 = false;
-            work->field_96                     = 1;
+            _gShelterB3DumpingHoleCollapseShardsActive = false;
+            work->field_96                             = 1;
             roomEffectRequestCancelAll();
             effectScratch.actorCommand.context.loc.stage = gGameSession->location.loc.stage;
             effectScratch.actorCommand.context.loc.area  = gGameSession->location.loc.area;
@@ -4191,7 +4263,7 @@ static void _shelterB3DumpingHoleCollapseEventSkip(void)
     AnimationPlayRequest                    animation;
     AnimationPlayRequest*                   animationRequest;
 
-    work = D_shelter_b3_dumping_hole_8018F4AC->work;
+    work = _gShelterB3DumpingHoleCollapseEventTask->work;
     // End room-owned presentation before advancing the boss's own collapse.
     worldCoordSetAmbientColorOverride(NULL);
     if (work->framebufferBlend != NULL) {
@@ -4200,10 +4272,10 @@ static void _shelterB3DumpingHoleCollapseEventSkip(void)
     }
     work->field_96 = 1;
     roomEffectRequestCancelAll();
-    D_shelter_b3_dumping_hole_8018F4B0 = false;
-    request.context.loc.stage          = gGameSession->location.loc.stage;
-    request.context.loc.area           = gGameSession->location.loc.area;
-    request.command                    = SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_COLLAPSE_SKIP_LONG;
+    _gShelterB3DumpingHoleCollapseShardsActive = false;
+    request.context.loc.stage                  = gGameSession->location.loc.stage;
+    request.context.loc.area                   = gGameSession->location.loc.area;
+    request.command                            = SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_COLLAPSE_SKIP_LONG;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 
     displaySetShakeY(0);
@@ -4257,12 +4329,12 @@ static void _shelterB3DumpingHoleCollapseEventTask(Task* task)
                 task->extra.tmd->coords->parent = &gGfxViewCoord;
                 work                            = task->work;
                 memFillBytes(work, 0, sizeof(*work));
-                work->player                       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_shelter_b3_dumping_hole_8018F4AC = task;
-                work->placement0Actor              = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
-                model->lightMtx                    = &work->lightMtx;
-                model->colorMtx                    = &work->colorMtx;
-                task->msgTable                     = D_shelter_b3_dumping_hole_8018965C;
+                work->player                            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                _gShelterB3DumpingHoleCollapseEventTask = task;
+                work->placement0Actor                   = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT))->task;
+                model->lightMtx                         = &work->lightMtx;
+                model->colorMtx                         = &work->colorMtx;
+                task->msgTable                          = D_shelter_b3_dumping_hole_8018965C;
                 _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_HIDE_BOTH);
             }
             _gShelterB3DumpingHoleView14GlowEnabled                          = 0;
@@ -4310,7 +4382,7 @@ static void _shelterB3DumpingHoleCollapseEventTask(Task* task)
 /// leaves the player's hidden-weapon flag intact and does not destroy the enemy.
 static void _shelterB3DumpingHoleCollapseEventReleaseBattleOnce(void)
 {
-    _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
+    _ShelterB3DumpingHoleCollapseEventWork* work = _gShelterB3DumpingHoleCollapseEventTask->work;
     if (!work->battleReleased) {
         sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x20);
         // The scripted end retires all remaining holds after the reward-bearing release.
@@ -4326,7 +4398,7 @@ static void _shelterB3DumpingHoleCollapseEventReleaseBattleOnce(void)
 /// `PLAYER_ACTOR_MODEL_DRAW_*` value forwarded without narrowing.
 static void _shelterB3DumpingHoleCollapseEventSetPlayerDrawMode(s32 drawMode)
 {
-    _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
+    _ShelterB3DumpingHoleCollapseEventWork* work = _gShelterB3DumpingHoleCollapseEventTask->work;
     taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
@@ -4337,7 +4409,7 @@ static void _shelterB3DumpingHoleCollapseEventSetPlayerDrawMode(s32 drawMode)
 /// command. Restarts at step zero without clearing the command timer.
 static void _shelterB3DumpingHoleCollapseEventPostCommand(s16 command)
 {
-    _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
+    _ShelterB3DumpingHoleCollapseEventWork* work = _gShelterB3DumpingHoleCollapseEventTask->work;
     work->command                                = command;
     work->step                                   = 0;
 }
@@ -4374,7 +4446,7 @@ static void _shelterB3DumpingHoleCollapseEventFinishPlayback(void)
 /// Spawns a vertical three-pixel shake alternating for nine updates, then clearing.
 static void _shelterB3DumpingHoleSpawnShake(void)
 {
-    taskSpawnFromTable(&D_shelter_b3_dumping_hole_8018AFBC, 0, 0, NULL);
+    taskSpawnFromTable(&_gShelterB3DumpingHoleArrivalShakeTaskDescriptor, 0, 0, NULL);
 }
 
 /// Alternates the display's vertical shake by three pixels for nine updates, then clears it.
@@ -4503,8 +4575,8 @@ static void _shelterB3DumpingHoleEncounterPairSpawn(Task* waveTask)
     }
     if (work->enemy0 != NULL) {
         enemy           = work->enemy0;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << ENEMY_PLACE_INDEX_SHIFT;
-        D_shelter_b3_dumping_hole_8018F4D4++;
+        enemy->placeKey = _gShelterB3DumpingHoleEncounterEnemyCount << ENEMY_PLACE_INDEX_SHIFT;
+        _gShelterB3DumpingHoleEncounterEnemyCount++;
         enemyTask                = enemy->task;
         model                    = enemyTask->extra.tmd;
         model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
@@ -4513,8 +4585,8 @@ static void _shelterB3DumpingHoleEncounterPairSpawn(Task* waveTask)
     }
     if (work->enemy1 != NULL) {
         enemy           = work->enemy1;
-        enemy->placeKey = D_shelter_b3_dumping_hole_8018F4D4 << ENEMY_PLACE_INDEX_SHIFT;
-        D_shelter_b3_dumping_hole_8018F4D4++;
+        enemy->placeKey = _gShelterB3DumpingHoleEncounterEnemyCount << ENEMY_PLACE_INDEX_SHIFT;
+        _gShelterB3DumpingHoleEncounterEnemyCount++;
         enemyTask                = enemy->task;
         model                    = enemyTask->extra.tmd;
         model->texturePageOffset = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
@@ -4557,13 +4629,13 @@ static void _shelterB3DumpingHoleEncounterFeed(Task* controllerTask)
             appearCommand = _gShelterB3DumpingHoleEncounterSlots[nextSlot].command;
             switch (kind) {
                 case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER:
-                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_MAD_CHASER, (nextSlot << 16) + appearCommand, 0);
+                    taskSpawnFromTable(gShelterB3DumpingHoleEncounterTaskDescriptors, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_MAD_CHASER, (nextSlot << 16) + appearCommand, 0);
                     break;
                 case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH:
-                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SLOUCH, (nextSlot << 16) + appearCommand, 0);
+                    taskSpawnFromTable(gShelterB3DumpingHoleEncounterTaskDescriptors, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SLOUCH, (nextSlot << 16) + appearCommand, 0);
                     break;
                 case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR:
-                    taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SUCKLERCEPH_PAIR, (nextSlot << 16) + appearCommand, 0);
+                    taskSpawnFromTable(gShelterB3DumpingHoleEncounterTaskDescriptors, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SUCKLERCEPH_PAIR, (nextSlot << 16) + appearCommand, 0);
                     break;
             }
             work->nextSlot++;
@@ -4706,10 +4778,10 @@ static void _shelterB3DumpingHoleEncounterInitialize(Task* controllerTask)
     for (slotIndex = (s32)ARRAY_SIZE(_gShelterB3DumpingHoleEncounterSlots) - 1; slotIndex >= 0; slotIndex--) {
         _gShelterB3DumpingHoleEncounterSlots[slotIndex].status = OVERLAY_ENCOUNTER_SLOT_WAITING;
     }
-    D_shelter_b3_dumping_hole_8018F4D4 = 0;
-    controllerTask->work               = work;
-    controllerTask->msgTable           = D_shelter_b3_dumping_hole_8018B7AC;
-    controllerTask->state             += 1;
+    _gShelterB3DumpingHoleEncounterEnemyCount = 0;
+    controllerTask->work                      = work;
+    controllerTask->msgTable                  = _gShelterB3DumpingHoleEncounterMessageTable;
+    controllerTask->state                    += 1;
 }
 
 /// Opens the encounter by spawning its first three rows and advancing.
@@ -4790,10 +4862,10 @@ static inline void _shelterB3DumpingHoleRegisterSingleEncounter(Task* waveTask, 
     u16 placeIndex;
 
     _gShelterB3DumpingHoleEncounterSlots[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
-    placeIndex                                                                   = D_shelter_b3_dumping_hole_8018F4D4;
+    placeIndex                                                                   = _gShelterB3DumpingHoleEncounterEnemyCount;
     work->enemy                                                                  = enemy;
     enemy->placeKey                                                              = placeIndex << ENEMY_PLACE_INDEX_SHIFT;
-    D_shelter_b3_dumping_hole_8018F4D4                                           = placeIndex + 1;
+    _gShelterB3DumpingHoleEncounterEnemyCount                                    = placeIndex + 1;
     waveTask->state                                                             += 1;
 }
 
@@ -4980,13 +5052,13 @@ static void _shelterB3DumpingHoleEncounterSpawnSlot(s16 slotIndex, s16 kind, s16
 {
     switch (kind) {
         case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_MAD_CHASER:
-            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_MAD_CHASER, (slotIndex << 16) + appearCommand, 0);
+            taskSpawnFromTable(gShelterB3DumpingHoleEncounterTaskDescriptors, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_MAD_CHASER, (slotIndex << 16) + appearCommand, 0);
             break;
         case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SLOUCH:
-            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SLOUCH, (slotIndex << 16) + appearCommand, 0);
+            taskSpawnFromTable(gShelterB3DumpingHoleEncounterTaskDescriptors, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SLOUCH, (slotIndex << 16) + appearCommand, 0);
             break;
         case SHELTER_B3_DUMPING_HOLE_ENCOUNTER_KIND_SUCKLERCEPH_PAIR:
-            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SUCKLERCEPH_PAIR, (slotIndex << 16) + appearCommand, 0);
+            taskSpawnFromTable(gShelterB3DumpingHoleEncounterTaskDescriptors, SHELTER_B3_DUMPING_HOLE_ENCOUNTER_SPAWNER_SUCKLERCEPH_PAIR, (slotIndex << 16) + appearCommand, 0);
             break;
     }
 }

@@ -85107,7 +85107,7 @@ room's own code spawns from (`gShelterR49ObservatoryTransitionTasks`, via `displ
 Other actor overlays reach into the same region the same way (`func_8017D9B8`
 from `actor_400600`, `D_8017DC54` from `actor_461800`), and the project already
 calls one of these "map 0x427's spawn points"
-(`D_shelter_b3_dumping_hole_8018B74C`, a table of `OverlayEncounterSpot`).
+(`gShelterB3DumpingHoleEncounterSpots`, a table of `OverlayEncounterSpot`).
 
 **Fix - establish the loaded room owner and use its public declaration.** A
 `taskSpawnFromTable` table argument points to `TaskDesc` elements. Shelter R49

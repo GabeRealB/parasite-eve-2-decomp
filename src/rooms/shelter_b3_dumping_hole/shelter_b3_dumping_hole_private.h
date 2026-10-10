@@ -19,7 +19,15 @@ extern s16 D_shelter_b3_dumping_hole_8018809C;
 
 extern AnimationSet* D_shelter_b3_dumping_hole_801880A0[6];
 
-extern TaskDesc D_shelter_b3_dumping_hole_80189ADC[2];
+enum { SHELTER_B3_DUMPING_HOLE_COLLAPSE_TASK_SHARD = 1 };
+
+/// Collapse director and triangular-shard task recipes, both at priority 192.
+///
+/// Entry 0 owns a TMD body and allocates its primitive buffer explicitly.
+/// Entry 1 owns one coordinate and borrows a director-owned shard spawn record
+/// through its first update. Both allocate their own work; argument 1 is unused.
+/// Keep the room loaded until the director, callbacks and shards finish.
+extern TaskDesc gShelterB3DumpingHoleCollapseTaskDescriptors[2];
 
 extern EvsCommand D_shelter_b3_dumping_hole_8018B080[39];
 

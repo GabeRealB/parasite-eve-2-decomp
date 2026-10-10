@@ -2490,11 +2490,11 @@ static s32 _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorC
         if ((u32)(task->state - ACTOR_07000_SLOUCH_TASK_ACTIVE_FIRST) >= (u32)ACTOR_07000_SLOUCH_TASK_ACTIVE_COUNT) {
             if (gGameSession->location.loc.area == GAME_AREA_SHELTER_B3_DUMPING_HOLE) {
                 placementRotation.vx = 0;
-                placementRotation.vy = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].heading;
+                placementRotation.vy = gShelterB3DumpingHoleEncounterSpots[request->command >> 8].heading;
                 placementRotation.vz = 0;
-                coord->coord.t[0]    = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].x;
-                coord->coord.t[1]    = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].y;
-                coord->coord.t[2]    = D_shelter_b3_dumping_hole_8018B74C[request->command >> 8].z;
+                coord->coord.t[0]    = gShelterB3DumpingHoleEncounterSpots[request->command >> 8].x;
+                coord->coord.t[1]    = gShelterB3DumpingHoleEncounterSpots[request->command >> 8].y;
+                coord->coord.t[2]    = gShelterB3DumpingHoleEncounterSpots[request->command >> 8].z;
                 soundKey             = (((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_07000_SLOUCH_SOUND_APPEAR);
                 soundPan             = (s8)worldCoordGetOriginAudioPan(coord);
                 sndEvtRequestScriptStart(soundKey, soundPan, (s8)worldCoordGetOriginAudioDepth(coord));

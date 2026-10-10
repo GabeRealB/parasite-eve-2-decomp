@@ -289,7 +289,7 @@ static s32 _shelterB3DumpingHoleStartCollapseOnActorEvent(Task* task, s32 messag
     enum { DUMPING_HOLE_COLLAPSE_TASK_INDEX = 0,
            DUMPING_HOLE_ACTOR_EVENT_REPLY   = 0 };
 
-    taskSpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, DUMPING_HOLE_COLLAPSE_TASK_INDEX, 0, 0);
+    taskSpawnFromTable(gShelterB3DumpingHoleCollapseTaskDescriptors, DUMPING_HOLE_COLLAPSE_TASK_INDEX, 0, 0);
     return DUMPING_HOLE_ACTOR_EVENT_REPLY;
 }
 

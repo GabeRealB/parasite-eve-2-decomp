@@ -17,11 +17,24 @@
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
-extern OverlayEncounterSpot D_shelter_b3_dumping_hole_8018B74C[12];
+/// Twelve enemy-entry spots around the dumping hole's two opposing walls.
+///
+/// Commands select indices 0..11 in their high byte. XYZ are signed world units;
+/// heading uses 4096 units per turn. All spots lie at Y -3950; rows 0..5 and
+/// 6..11 face opposite ways. Actor overlays borrow the table while this room is loaded.
+extern OverlayEncounterSpot gShelterB3DumpingHoleEncounterSpots[12];
 
 extern TmdSource gShelterB3DumpingHoleAcropolisSanctuaryModel090F0;
 
-extern TaskDesc D_shelter_b3_dumping_hole_8018B83C[4];
+enum { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_TASK_CONTROLLER = 0 };
+
+/// Bodyless tasks for the encounter controller, Mad Chaser, Slouch and Sucklerceph pair.
+///
+/// Entries 0..3 have priorities 32, 97, 97 and 97. Controller argument 1 is
+/// unused. Spawner argument 1 packs slot 0..15 in its high halfword and the
+/// appearance command in its low halfword; argument 2 is unused. Callbacks
+/// allocate task-owned work and borrow room tables, which must remain loaded.
+extern TaskDesc gShelterB3DumpingHoleEncounterTaskDescriptors[4];
 
 extern TaskDesc D_shelter_b3_dumping_hole_8018B57C[1];
 
@@ -32,8 +45,12 @@ extern TaskDesc D_shelter_b3_dumping_hole_8018B57C[1];
 /// Gameplay borrows the directory and its tables while this overlay is loaded.
 extern AreaVariant gShelterB3DumpingHoleAreaVariants[13];
 
-// shelter_b3_dumping_hole
-extern WorldCollisionRoomResources D_shelter_b3_dumping_hole_8018B678[];
+/// Collision-resource directory for dumping-hole rooms 1 and 2, indexed by room minus one.
+///
+/// Both use the same grid and have distinct mutable action-trigger arrays.
+/// Room 2 also supplies view boundaries; neither room supplies sight occluders.
+/// The Shelter stage map borrows this directory while the room overlay is loaded.
+extern WorldCollisionRoomResources gShelterB3DumpingHoleRoomCollisionResources[2];
 
 /// Logical-view map directory for dumping-hole rooms 1 and 2.
 ///
@@ -47,7 +64,12 @@ extern u8* gShelterB3DumpingHoleViewMaps[2];
 /// The Shelter stage directory borrows this array while the room is loaded.
 extern ViewCount gShelterB3DumpingHoleViewCounts[2];
 
-extern DirectionWarpEntry D_shelter_b3_dumping_hole_8018B6A4[];
+/// Three dumping-hole warp endpoints, indexed by one-based warp ID minus one.
+///
+/// Both actors arrive at the same world position and yaw. Warp 1 has arrival
+/// and departure sounds; warps 2 and 3 are silent. Default views are 30, 30 and
+/// 15. The Shelter stage map borrows these records while the room stays loaded.
+extern DirectionWarpEntry gShelterB3DumpingHoleWarpEntries[3];
 
 /// Cameras for the dumping hole's 37 mapped views, shared by both rooms.
 ///
