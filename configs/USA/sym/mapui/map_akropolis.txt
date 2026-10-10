@@ -96,7 +96,7 @@ D_acropolis_forked_road_801850A4 = 0x801850A4; // absolute:True owner=acropolis_
 acropolisObservatoryRoomTask = 0x8017D950; // type:func absolute:True owner=acropolis_observatory shared=rooms
 D_acropolis_observatory_8017FEC8 = 0x8017FEC8; // absolute:True owner=acropolis_observatory shared=rooms
 D_acropolis_observatory_8017FEF0 = 0x8017FEF0; // absolute:True owner=acropolis_observatory
-D_acropolis_observatory_8017FEF8 = 0x8017FEF8; // absolute:True owner=acropolis_observatory shared=rooms
+D_acropolis_observatory_8017FEF8 = 0x8017FEF8; // absolute:True owner=acropolis_observatory
 D_acropolis_observatory_8017FEFC = 0x8017FEFC; // absolute:True owner=acropolis_observatory
 D_acropolis_observatory_8017FF0C = 0x8017FF0C; // absolute:True owner=acropolis_observatory
 D_acropolis_observatory_80183300 = 0x80183300; // absolute:True owner=acropolis_observatory shared=rooms
