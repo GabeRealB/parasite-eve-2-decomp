@@ -16,12 +16,23 @@ extern TmdSource gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0;
 
 extern AreaVariant D_shelter_b1_sterilization_room_8018C14C[11];
 
-// shelter_b1_sterilization_room
-extern WorldCoordRoomLighting D_shelter_b1_sterilization_room_80189354[];
+/// Lighting descriptors for this area's three 1-based room IDs.
+///
+/// All three borrow the same mutable point/cone lights and the same 24-view
+/// minimum-ambient table. The map overlay selects this array for the
+/// sterilization-room area; its records and resources require this overlay
+/// to remain loaded while lighting is queried or updated.
+extern WorldCoordRoomLighting gShelterB1SterilizationRoomLighting[3];
 
 extern WorldCollisionRoomResources D_shelter_b1_sterilization_room_8018936C[];
 
-extern u8* D_shelter_b1_sterilization_room_801893CC[];
+/// Logical-to-mapped view maps for this area's three 1-based room IDs.
+///
+/// Each room uses 24 logical views, indexed at view - 1, with mapped indices
+/// 1..24 shared by camera, image and sprite resources. Room 1 borrows gameplay's
+/// identity map; rooms 2/3 borrow this overlay's mutable remaps. No terminator
+/// is stored. The directory and room-owned maps live with this overlay.
+extern u8* gShelterB1SterilizationRoomViewMaps[3];
 
 extern ViewCount D_shelter_b1_sterilization_room_801893D8[];
 
@@ -31,7 +42,13 @@ extern ViewCamera D_shelter_b1_sterilization_room_80189E68[];
 
 extern SpriteView D_shelter_b1_sterilization_room_8018B00C[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b1_sterilization_room_8018C314[];
+/// Collision policies and footstep cues indexed by surface class 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Classes
+/// 1/2 have distinct footstep cue sets; classes 0 and 3..7 share the record
+/// without footstep sounds. The map overlay publishes this directory for the
+/// sterilization-room area. Its borrowed records live with this overlay.
+extern WorldCollisionSurfaceProperties* gShelterB1SterilizationRoomSurfacePropertiesByClass[8];
 
 /// Initializes the sterilization room and updates its event actor each tick.
 ///
@@ -52,7 +69,7 @@ void shelterB1SterilizationRoomTask(Task* task);
 ///
 /// Puff sources are indices 0..63, grouped in four Q12 directions. Their packed
 /// high halfword adjusts perspective size by -128, 96, 256 or 384 by view.
-/// Smoke points occupy writable entries 81/82 of the room's 87-vector table;
+/// Smoke points occupy the room effect geometry's writable `smokePoints`;
 /// both use the same random angle (4096 units/turn) and radius 256..767 game
 /// units in the task coordinate's local space. Spawns copy their placement.
 /// Requires loaded room resources, composed view transforms, a scratch stack

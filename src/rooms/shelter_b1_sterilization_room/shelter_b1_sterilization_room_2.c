@@ -65,9 +65,28 @@ extern EvsCommand D_shelter_b1_sterilization_room_80188E14[];
 
 static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint, s16 pulseRate, s16 radiusScale);
 
-// Indexed views below share one contiguous table.
-extern WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25];
-extern WorldCoordRoomLights       D_shelter_b1_sterilization_room_8018B630[1];
+static WorldCoordRoomAmbientEntry _gShelterB1SterilizationRoomAmbientByView[25];
+static WorldCoordRoomLights       _gShelterB1SterilizationRoomLights;
+
+/// Authored glow geometry, puff origins and reusable smoke samples for this room.
+///
+/// Positions use integer game units; puff and smoke origins are local to the
+/// effect controller's coordinate, while glow centres and endpoints are world
+/// points. Each sixteen-origin puff group uses the corresponding Q12 drift
+/// direction. Smoke samples are overwritten before each spawn, which copies
+/// placement. Keep this storage loaded while the room's effects are live.
+typedef struct {
+    SVECTOR puffOrigins[64];        // Four groups of sixteen trap-puff origins
+    SVECTOR field_200[4];           // Four retained vectors; purpose unproven
+    SVECTOR capsuleEndpoints[4][2]; // Four world-space endpoint pairs for capsule glows
+    SVECTOR singleDiscCenter;       // Large disc centre drawn in mapped view 11
+    SVECTOR pairedDiscCenters[2];   // Large disc centres drawn together in mapped view 10
+    SVECTOR bladeGlowCenter;        // Diamond or pulsing blade-glow centre in mapped views 8/19
+    SVECTOR smallDiscCenter;        // Small disc centre drawn in mapped views 8/19
+    SVECTOR smokePoints[2];         // Mutable local ring samples, copied by particle spawning
+    SVECTOR puffDirections[4];      // Q12 XY drift directions for the four puff-origin groups
+} _ShelterB1SterilizationRoomEffectGeometry;
+STATIC_ASSERT_SIZEOF(_ShelterB1SterilizationRoomEffectGeometry, 0x2B8);
 
 static void _shelterB1SterilizationRoomReloadDumpingHole(void);
 static void _shelterB1SterilizationRoomResetCapResource(s32 selectSceneFile);
@@ -204,100 +223,121 @@ EvsCommand D_shelter_b1_sterilization_room_80188FDC[8] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_shelter_b1_sterilization_room_8018909C[87] = {
-    { 4020, -2640, 6625, 0 },
-    { 4020, -2640, 6775, 0 },
-    { 4020, -2640, 6975, 0 },
-    { 4020, -2640, 7125, 0 },
-    { 4020, -2640, 7725, 0 },
-    { 4020, -2640, 7875, 0 },
-    { 4020, -2640, 8075, 0 },
-    { 4020, -2640, 8225, 0 },
-    { 4020, -2640, 8775, 0 },
-    { 4020, -2640, 8925, 0 },
-    { 4020, -2640, 9125, 0 },
-    { 4020, -2640, 9275, 0 },
-    { 4020, -2640, 9875, 0 },
-    { 4020, -2640, 10025, 0 },
-    { 4020, -2640, 10225, 0 },
-    { 4020, -2640, 10375, 0 },
-    { 6730, -2640, 6625, 0 },
-    { 6730, -2640, 6775, 0 },
-    { 6730, -2640, 6975, 0 },
-    { 6730, -2640, 7125, 0 },
-    { 6730, -2640, 7725, 0 },
-    { 6730, -2640, 7875, 0 },
-    { 6730, -2640, 8075, 0 },
-    { 6730, -2640, 8225, 0 },
-    { 6730, -2640, 8775, 0 },
-    { 6730, -2640, 8925, 0 },
-    { 6730, -2640, 9125, 0 },
-    { 6730, -2640, 9275, 0 },
-    { 6730, -2640, 9875, 0 },
-    { 6730, -2640, 10025, 0 },
-    { 6730, -2640, 10225, 0 },
-    { 6730, -2640, 10375, 0 },
-    { 4090, -150, 6625, 0 },
-    { 4090, -150, 6775, 0 },
-    { 4090, -150, 6975, 0 },
-    { 4090, -150, 7125, 0 },
-    { 4090, -150, 7725, 0 },
-    { 4090, -150, 7875, 0 },
-    { 4090, -150, 8075, 0 },
-    { 4090, -150, 8225, 0 },
-    { 4090, -150, 8775, 0 },
-    { 4090, -150, 8925, 0 },
-    { 4090, -150, 9125, 0 },
-    { 4090, -150, 9275, 0 },
-    { 4090, -150, 9875, 0 },
-    { 4090, -150, 10025, 0 },
-    { 4090, -150, 10225, 0 },
-    { 4090, -150, 10375, 0 },
-    { 6660, -150, 6625, 0 },
-    { 6660, -150, 6775, 0 },
-    { 6660, -150, 6975, 0 },
-    { 6660, -150, 7125, 0 },
-    { 6660, -150, 7725, 0 },
-    { 6660, -150, 7875, 0 },
-    { 6660, -150, 8075, 0 },
-    { 6660, -150, 8225, 0 },
-    { 6660, -150, 8775, 0 },
-    { 6660, -150, 8925, 0 },
-    { 6660, -150, 9125, 0 },
-    { 6660, -150, 9275, 0 },
-    { 6660, -150, 9875, 0 },
-    { 6660, -150, 10025, 0 },
-    { 6660, -150, 10225, 0 },
-    { 6660, -150, 10375, 0 },
-    { 4575, -2910, 10590, 0 },
-    { 4575, -2910, 6390, 0 },
-    { 6175, -2910, 10590, 0 },
-    { 6175, -2910, 6390, 0 },
-    { 910, -2150, 1270, 0 },
-    { 910, -2150, 1720, 0 },
-    { 910, -2150, 4270, 0 },
-    { 910, -2150, 4720, 0 },
-    { 910, -2150, 2270, 0 },
-    { 910, -2150, 2730, 0 },
-    { 910, -2150, 3270, 0 },
-    { 910, -2150, 3730, 0 },
-    { 5000, -2310, 10650, 0 },
-    { 5000, -2310, 6350, 0 },
-    { 6250, -1660, 6350, 0 },
-    { 1200, -1320, 12490, 0 },
-    { 1200, -1570, 12470, 0 },
-    { 1500, 0, 2500, 0 },
-    { 5250, 0, 2000, 0 },
-    { 4096, 4096, 0, 0 },
-    { -4096, 4096, 0, 0 },
-    { 4096, -4096, 0, 0 },
-    { -4096, -4096, 0, 0 },
+/// Room-owned effect geometry and writable smoke samples.
+static _ShelterB1SterilizationRoomEffectGeometry _gShelterB1SterilizationRoomEffectGeometry = {
+    .puffOrigins = {
+        { 4020, -2640, 6625, 0 },
+        { 4020, -2640, 6775, 0 },
+        { 4020, -2640, 6975, 0 },
+        { 4020, -2640, 7125, 0 },
+        { 4020, -2640, 7725, 0 },
+        { 4020, -2640, 7875, 0 },
+        { 4020, -2640, 8075, 0 },
+        { 4020, -2640, 8225, 0 },
+        { 4020, -2640, 8775, 0 },
+        { 4020, -2640, 8925, 0 },
+        { 4020, -2640, 9125, 0 },
+        { 4020, -2640, 9275, 0 },
+        { 4020, -2640, 9875, 0 },
+        { 4020, -2640, 10025, 0 },
+        { 4020, -2640, 10225, 0 },
+        { 4020, -2640, 10375, 0 },
+        { 6730, -2640, 6625, 0 },
+        { 6730, -2640, 6775, 0 },
+        { 6730, -2640, 6975, 0 },
+        { 6730, -2640, 7125, 0 },
+        { 6730, -2640, 7725, 0 },
+        { 6730, -2640, 7875, 0 },
+        { 6730, -2640, 8075, 0 },
+        { 6730, -2640, 8225, 0 },
+        { 6730, -2640, 8775, 0 },
+        { 6730, -2640, 8925, 0 },
+        { 6730, -2640, 9125, 0 },
+        { 6730, -2640, 9275, 0 },
+        { 6730, -2640, 9875, 0 },
+        { 6730, -2640, 10025, 0 },
+        { 6730, -2640, 10225, 0 },
+        { 6730, -2640, 10375, 0 },
+        { 4090, -150, 6625, 0 },
+        { 4090, -150, 6775, 0 },
+        { 4090, -150, 6975, 0 },
+        { 4090, -150, 7125, 0 },
+        { 4090, -150, 7725, 0 },
+        { 4090, -150, 7875, 0 },
+        { 4090, -150, 8075, 0 },
+        { 4090, -150, 8225, 0 },
+        { 4090, -150, 8775, 0 },
+        { 4090, -150, 8925, 0 },
+        { 4090, -150, 9125, 0 },
+        { 4090, -150, 9275, 0 },
+        { 4090, -150, 9875, 0 },
+        { 4090, -150, 10025, 0 },
+        { 4090, -150, 10225, 0 },
+        { 4090, -150, 10375, 0 },
+        { 6660, -150, 6625, 0 },
+        { 6660, -150, 6775, 0 },
+        { 6660, -150, 6975, 0 },
+        { 6660, -150, 7125, 0 },
+        { 6660, -150, 7725, 0 },
+        { 6660, -150, 7875, 0 },
+        { 6660, -150, 8075, 0 },
+        { 6660, -150, 8225, 0 },
+        { 6660, -150, 8775, 0 },
+        { 6660, -150, 8925, 0 },
+        { 6660, -150, 9125, 0 },
+        { 6660, -150, 9275, 0 },
+        { 6660, -150, 9875, 0 },
+        { 6660, -150, 10025, 0 },
+        { 6660, -150, 10225, 0 },
+        { 6660, -150, 10375, 0 },
+    },
+    .field_200 = {
+        { 4575, -2910, 10590, 0 },
+        { 4575, -2910, 6390, 0 },
+        { 6175, -2910, 10590, 0 },
+        { 6175, -2910, 6390, 0 },
+    },
+    .capsuleEndpoints = {
+        {
+            { 910, -2150, 1270, 0 },
+            { 910, -2150, 1720, 0 },
+        },
+        {
+            { 910, -2150, 4270, 0 },
+            { 910, -2150, 4720, 0 },
+        },
+        {
+            { 910, -2150, 2270, 0 },
+            { 910, -2150, 2730, 0 },
+        },
+        {
+            { 910, -2150, 3270, 0 },
+            { 910, -2150, 3730, 0 },
+        },
+    },
+    .singleDiscCenter  = { 5000, -2310, 10650, 0 },
+    .pairedDiscCenters = {
+        { 5000, -2310, 6350, 0 },
+        { 6250, -1660, 6350, 0 },
+    },
+    .bladeGlowCenter = { 1200, -1320, 12490, 0 },
+    .smallDiscCenter = { 1200, -1570, 12470, 0 },
+    .smokePoints     = {
+        { 1500, 0, 2500, 0 },
+        { 5250, 0, 2000, 0 },
+    },
+    .puffDirections = {
+        { ONE, ONE, 0, 0 },
+        { -ONE, ONE, 0, 0 },
+        { ONE, -ONE, 0, 0 },
+        { -ONE, -ONE, 0, 0 },
+    },
 };
 
-WorldCoordRoomLighting D_shelter_b1_sterilization_room_80189354[3] = {
-    { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },
-    { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },
-    { D_shelter_b1_sterilization_room_8018B630, D_shelter_b1_sterilization_room_8018C21C },
+WorldCoordRoomLighting gShelterB1SterilizationRoomLighting[3] = {
+    { &_gShelterB1SterilizationRoomLights, _gShelterB1SterilizationRoomAmbientByView },
+    { &_gShelterB1SterilizationRoomLights, _gShelterB1SterilizationRoomAmbientByView },
+    { &_gShelterB1SterilizationRoomLights, _gShelterB1SterilizationRoomAmbientByView },
 };
 
 WorldCollisionRoomResources D_shelter_b1_sterilization_room_8018936C[3] = {
@@ -306,7 +346,11 @@ WorldCollisionRoomResources D_shelter_b1_sterilization_room_8018936C[3] = {
     { &D_shelter_b1_sterilization_room_80189E44, D_shelter_b1_sterilization_room_8018B648, D_shelter_b1_sterilization_room_8018B8A8, D_shelter_b1_sterilization_room_8018C1A4 },
 };
 
-u8 D_shelter_b1_sterilization_room_8018939C[24] = {
+/// Room-2 map from 24 logical views to 1-based camera/image/sprite indices.
+///
+/// Indexed by logical view - 1, without a terminator. Views 4..7 use indices
+/// 10..13, and views 10..13 use indices 4..7; all other slots are identity.
+static u8 _gShelterB1SterilizationRoomViewMap2[24] = {
     1,
     2,
     3,
@@ -333,7 +377,11 @@ u8 D_shelter_b1_sterilization_room_8018939C[24] = {
     24,
 };
 
-u8 D_shelter_b1_sterilization_room_801893B4[24] = {
+/// Room-3 map from 24 logical views to 1-based camera/image/sprite indices.
+///
+/// Indexed by logical view - 1, without a terminator. Logical views 2/3 select
+/// indices 23/24; those indices are also retained in logical slots 23/24.
+static u8 _gShelterB1SterilizationRoomViewMap3[24] = {
     1,
     23,
     24,
@@ -360,10 +408,10 @@ u8 D_shelter_b1_sterilization_room_801893B4[24] = {
     24,
 };
 
-u8* D_shelter_b1_sterilization_room_801893CC[3] = {
+u8* gShelterB1SterilizationRoomViewMaps[3] = {
     gViewIdentityMap,
-    D_shelter_b1_sterilization_room_8018939C,
-    D_shelter_b1_sterilization_room_801893B4,
+    _gShelterB1SterilizationRoomViewMap2,
+    _gShelterB1SterilizationRoomViewMap3,
 };
 
 ViewCount D_shelter_b1_sterilization_room_801893D8[3] = { 24, 24, 24 };
@@ -425,179 +473,260 @@ ViewCamera D_shelter_b1_sterilization_room_80189E68[24] = {
     { { { { 4009, 0, 835 }, { 674, 2419, -3235 }, { -493, 3305, 2368 } }, { -4078, 4407, -1394 } }, 230 },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A1C8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 1's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView1SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A1D8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 2's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView2SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A1E8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 3's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView3SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A1F8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 4's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView4SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A208[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 5's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView5SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A218[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 6's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView6SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A228[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 7's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView7SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b1_sterilization_room_8018A238[89] = {
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -120, 800, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, -88, 825, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -64, 850, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -40, 875, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, -16, 900, { .fields = { 48, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 8, 925, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 24, 925, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 48, 925, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 24, 925, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 48, 925, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, -56, 825, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, -32, 825, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, -8, 825, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 16, 825, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 40, 825, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 56, 825, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -120, 675, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -88, 675, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -56, 675, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, -24, 675, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, 8, 675, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, 40, 675, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -152, -120, 625, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -152, -88, 625, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -152, -56, 625, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -144, -24, 625, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 8, 625, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -136, 32, 625, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, -16, 994, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -8, 1025, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, 8, 1042, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, 8, 1046, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 8, 1043, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -16, 1050, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, -16, 1015, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -40, 992, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -40, 992, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -64, 967, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -64, 962, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, -88, 949, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, -88, 932, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 72, 587, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 88, 568, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 96, 104, 549, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 88, 544, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 72, 575, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 48, 575, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, 72, 522, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 136, 72, 468, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, 48, 523, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, 48, 528, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 48, 486, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 32, 552, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 16, 547, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, 16, 510, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 136, 16, 492, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 0, 535, { .fields = { 16, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, -16, 526, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, -32, 523, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, -32, 482, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, -8, 497, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -32, 476, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -8, 479, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -48, 510, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -64, 501, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -80, 494, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -96, 492, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, -120, 476, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, -120, 443, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 136, -96, 453, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 136, -72, 464, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 136, -48, 475, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, -96, 457, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, -72, 462, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, -48, 464, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, -40, 598, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -40, 644, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -40, 650, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -32, 616, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -32, 626, { .fields = { 16, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, -32, 669, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -24, 621, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -24, 625, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -96, -24, 637, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -24, 662, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -16, 620, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -16, 679, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -8, 624, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -8, 657, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
+/// View-8 sprite texture, palette and neutral RGB modulation.
+///
+/// Texture data is 8-bit indexed at VRAM X=960 words, Y=0; its palette starts
+/// at X=0 words, Y=255. The blend field is averaging, with opaque source flags.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE  = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT          = getClut(0, 255),
+    SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR = 128,
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A92C[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 28, 0, 0, { 1, 0 } },
-    { 28, 47, 0, 0, { 2, 0 } },
-    { 75, 14, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View-8 textured rectangles and sorting depths for its 89 cached sprites.
+///
+/// Position/size use drawing-origin-relative pixels; UVs are texture-page
+/// texels and depths are unscaled OT sorting values. Batches cover elements
+/// 0..88. Packet allocation snapshots geometry into both frame buffers, so
+/// this array and its owning room overlay must be live during allocation.
+static SpriteSource _gShelterB1SterilizationRoomView8SpriteSources[89] = {
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, -112, -120, 800, { .fields = { 96, 128 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, -112, -88, 825, { .fields = { 88, 192 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, -96, -64, 850, { .fields = { 48, 120 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, -96, -40, 875, { .fields = { 48, 96 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, -96, -16, 900, { .fields = { 48, 168 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 16 } }, -96, 8, 925, { .fields = { 32, 224 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, -88, 24, 925, { .fields = { 48, 216 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, -88, 48, 925, { .fields = { 48, 192 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, -96, 24, 925, { .fields = { 48, 72 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, -96, 48, 925, { .fields = { 56, 24 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, -112, -56, 825, { .fields = { 48, 0 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, -112, -32, 825, { .fields = { 48, 144 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, -112, -8, 825, { .fields = { 40, 48 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, -112, 16, 825, { .fields = { 40, 24 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, -112, 40, 825, { .fields = { 16, 0 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, -112, 56, 825, { .fields = { 16, 88 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, -128, -120, 675, { .fields = { 112, 128 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, -128, -88, 675, { .fields = { 112, 160 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, -128, -56, 675, { .fields = { 112, 0 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, -128, -24, 675, { .fields = { 112, 32 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, -128, 8, 675, { .fields = { 112, 64 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, -128, 40, 675, { .fields = { 96, 32 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 24, 32 } }, -152, -120, 625, { .fields = { 88, 64 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 24, 32 } }, -152, -88, 625, { .fields = { 88, 96 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 24, 32 } }, -152, -56, 625, { .fields = { 104, 192 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, -144, -24, 625, { .fields = { 112, 224 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, -136, 8, 625, { .fields = { 40, 72 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 32 } }, -136, 32, 625, { .fields = { 104, 0 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, 64, -16, 994, { .fields = { 32, 88 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 16 } }, 24, -8, 1025, { .fields = { 32, 120 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, 24, 8, 1042, { .fields = { 40, 120 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 32, 8, 1046, { .fields = { 32, 0 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 48, 8, 1043, { .fields = { 32, 168 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 32, -16, 1050, { .fields = { 32, 144 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 48, -16, 1015, { .fields = { 56, 224 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 32, -40, 992, { .fields = { 72, 56 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 24, 24 } }, 48, -40, 992, { .fields = { 72, 224 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 32, -64, 967, { .fields = { 72, 80 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 24, 24 } }, 48, -64, 962, { .fields = { 64, 152 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 32, -88, 949, { .fields = { 72, 104 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 24, 24 } }, 48, -88, 932, { .fields = { 72, 128 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 88, 72, 587, { .fields = { 24, 192 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 88, 88, 568, { .fields = { 24, 208 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 24, 8 } }, 96, 104, 549, { .fields = { 8, 16 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 104, 88, 544, { .fields = { 16, 104 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 104, 72, 575, { .fields = { 16, 224 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 96, 48, 575, { .fields = { 64, 24 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, 120, 72, 522, { .fields = { 112, 96 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 24, 32 } }, 136, 72, 468, { .fields = { 80, 0 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 112, 48, 523, { .fields = { 64, 0 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 128, 48, 528, { .fields = { 56, 72 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 144, 48, 486, { .fields = { 56, 176 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 104, 32, 552, { .fields = { 16, 240 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 104, 16, 547, { .fields = { 16, 168 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 32 } }, 120, 16, 510, { .fields = { 96, 224 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 24, 32 } }, 136, 16, 492, { .fields = { 88, 160 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 112, 0, 535, { .fields = { 16, 120 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 112, -16, 526, { .fields = { 16, 136 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 112, -32, 523, { .fields = { 16, 152 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 128, -32, 482, { .fields = { 72, 176 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 128, -8, 497, { .fields = { 56, 120 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 144, -32, 476, { .fields = { 56, 96 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 144, -8, 479, { .fields = { 56, 200 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 120, -48, 510, { .fields = { 24, 56 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 120, -64, 501, { .fields = { 24, 72 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 120, -80, 494, { .fields = { 24, 24 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 120, -96, 492, { .fields = { 32, 240 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 128, -120, 476, { .fields = { 56, 48 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 144, -120, 443, { .fields = { 72, 200 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 136, -96, 453, { .fields = { 80, 32 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 24 } }, 136, -72, 464, { .fields = { 32, 96 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 16, 16 } }, 136, -48, 475, { .fields = { 24, 40 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, 152, -96, 457, { .fields = { 40, 192 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 24 } }, 152, -72, 462, { .fields = { 40, 216 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 16 } }, 152, -48, 464, { .fields = { 48, 240 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -120, -40, 598, { .fields = { 56, 248 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -112, -40, 644, { .fields = { 32, 136 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -104, -40, 650, { .fields = { 16, 32 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -112, -32, 616, { .fields = { 24, 184 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -104, -32, 626, { .fields = { 16, 24 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -96, -32, 669, { .fields = { 88, 248 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -112, -24, 621, { .fields = { 80, 248 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -104, -24, 625, { .fields = { 88, 56 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -96, -24, 637, { .fields = { 88, 152 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -88, -24, 662, { .fields = { 72, 48 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -112, -16, 620, { .fields = { 64, 248 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -104, -16, 679, { .fields = { 56, 168 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -112, -8, 624, { .fields = { 64, 144 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_STERILIZATION_ROOM_VIEW8_TEXTURE_PAGE, SHELTER_B1_STERILIZATION_ROOM_VIEW8_CLUT, { .fields = { 8, 8 } }, -104, -8, 657, { .fields = { 72, 248 } }, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, SHELTER_B1_STERILIZATION_ROOM_VIEW8_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A954[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// View-8 image background followed by all 89 source sprites in three ranges.
+///
+/// Ranges [0,28), [28,75), [75,89) partition the source array. The leading
+/// zero-count record requests decoded image strips; SPRITE_BATCH_END ends
+/// the list. The retained field_6 bytes 1/2 have no established meaning.
+static SpriteBatch _gShelterB1SterilizationRoomView8SpriteBatches[5] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 28, .field_6 = { 1, 0 } },
+    { .firstSprite = 28, .spriteCount = 47, .field_6 = { 2, 0 } },
+    { .firstSprite = 75, .spriteCount = ARRAY_SIZE(_gShelterB1SterilizationRoomView8SpriteSources) - 75 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A964[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 9's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView9SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A974[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 10's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView10SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A984[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 11's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView11SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A994[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 12's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView12SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A9A4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 13's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView13SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A9B4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 14's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView14SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_sterilization_room_8018A9C4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Mapped view 15's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView15SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
+};
+
+/// Mapped view 16's image-background selector and empty sprite-batch list.
+///
+/// The zero-count first record requests decoded image strips; the following
+/// SPRITE_BATCH_END record terminates the list without selecting any sprites.
+static SpriteBatch _gShelterB1SterilizationRoomView16SpriteBatches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteBatch D_shelter_b1_sterilization_room_8018A9D4[2] = {
@@ -722,22 +851,22 @@ SpriteBatch D_shelter_b1_sterilization_room_8018AFFC[2] = {
 };
 
 SpriteView D_shelter_b1_sterilization_room_8018B00C[24] = {
-    { { .empty = D_shelter_b1_sterilization_room_8018A1C8 }, D_shelter_b1_sterilization_room_8018A1C8, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A1D8 }, D_shelter_b1_sterilization_room_8018A1D8, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A1E8 }, D_shelter_b1_sterilization_room_8018A1E8, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A1F8 }, D_shelter_b1_sterilization_room_8018A1F8, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A208 }, D_shelter_b1_sterilization_room_8018A208, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A218 }, D_shelter_b1_sterilization_room_8018A218, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A228 }, D_shelter_b1_sterilization_room_8018A228, NULL },
-    { { .elements = D_shelter_b1_sterilization_room_8018A238 }, D_shelter_b1_sterilization_room_8018A92C, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A954 }, D_shelter_b1_sterilization_room_8018A954, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A964 }, D_shelter_b1_sterilization_room_8018A964, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A974 }, D_shelter_b1_sterilization_room_8018A974, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A984 }, D_shelter_b1_sterilization_room_8018A984, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A994 }, D_shelter_b1_sterilization_room_8018A994, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A9A4 }, D_shelter_b1_sterilization_room_8018A9A4, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A9B4 }, D_shelter_b1_sterilization_room_8018A9B4, NULL },
-    { { .empty = D_shelter_b1_sterilization_room_8018A9C4 }, D_shelter_b1_sterilization_room_8018A9C4, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView1SpriteBatches }, _gShelterB1SterilizationRoomView1SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView2SpriteBatches }, _gShelterB1SterilizationRoomView2SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView3SpriteBatches }, _gShelterB1SterilizationRoomView3SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView4SpriteBatches }, _gShelterB1SterilizationRoomView4SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView5SpriteBatches }, _gShelterB1SterilizationRoomView5SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView6SpriteBatches }, _gShelterB1SterilizationRoomView6SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView7SpriteBatches }, _gShelterB1SterilizationRoomView7SpriteBatches, NULL },
+    { { .elements = _gShelterB1SterilizationRoomView8SpriteSources }, _gShelterB1SterilizationRoomView8SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView9SpriteBatches }, _gShelterB1SterilizationRoomView9SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView10SpriteBatches }, _gShelterB1SterilizationRoomView10SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView11SpriteBatches }, _gShelterB1SterilizationRoomView11SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView12SpriteBatches }, _gShelterB1SterilizationRoomView12SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView13SpriteBatches }, _gShelterB1SterilizationRoomView13SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView14SpriteBatches }, _gShelterB1SterilizationRoomView14SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView15SpriteBatches }, _gShelterB1SterilizationRoomView15SpriteBatches, NULL },
+    { { .empty = _gShelterB1SterilizationRoomView16SpriteBatches }, _gShelterB1SterilizationRoomView16SpriteBatches, NULL },
     { { .empty = D_shelter_b1_sterilization_room_8018A9D4 }, D_shelter_b1_sterilization_room_8018A9D4, NULL },
     { { .elements = D_shelter_b1_sterilization_room_8018A9E4 }, D_shelter_b1_sterilization_room_8018AD2C, NULL },
     { { .empty = D_shelter_b1_sterilization_room_8018AD44 }, D_shelter_b1_sterilization_room_8018AD44, NULL },
@@ -748,26 +877,41 @@ SpriteView D_shelter_b1_sterilization_room_8018B00C[24] = {
     { { .empty = D_shelter_b1_sterilization_room_8018AFFC }, D_shelter_b1_sterilization_room_8018AFFC, NULL },
 };
 
-WorldCoordPointLight D_shelter_b1_sterilization_room_8018B12C[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3500, -2000, 0x30D4 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2129, 3686, 3276 }, { 0, 0 } }, 3500, 3750 },
+/// One room-owned point light with mutable transform and attenuation caches.
+///
+/// Position and falloff radii use world game units; RGB uses Q12 intensity.
+/// It contributes in every view and is shared by all three room descriptors.
+static WorldCoordPointLight _gShelterB1SterilizationRoomPointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3500, -2000, 0x30D4 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2129, 3686, 3276 }, { 0, 0 } }, 3500, 3750 },
 };
 
-WorldCoordSpotLight D_shelter_b1_sterilization_room_8018B18C[11] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 865, -2750, 1490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1625, -4500, 8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3522 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 4500, 5250, 887 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5375, -4500, 8500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3522 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 4500, 5250, 887 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 865, -2750, 2490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 865, -2750, 3490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 865, -2750, 4490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6140, -2750, 1490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6140, -2750, 2490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6140, -2750, 3490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6140, -2750, 4490 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3500, -4750, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 3686, 3276 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 5500, 6000, 853 },
+/// Eleven room-owned cone lights shared by all three room descriptors.
+///
+/// Positions and falloff radii use world game units, axes and RGB use Q12,
+/// and full cone openings use 4096 angle units per turn. All contribute in
+/// every view; coordinate composition and attenuation overwrite their caches.
+static WorldCoordSpotLight _gShelterB1SterilizationRoomConeLights[11] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 865, -2750, 1490 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1625, -4500, 8500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3522 }, { 0, 0 } }, { 0, ONE, 0, 0 }, 4500, 5250, 887 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5375, -4500, 8500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 3276, 3522 }, { 0, 0 } }, { 0, ONE, 0, 0 }, 4500, 5250, 887 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 865, -2750, 2490 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 865, -2750, 3490 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 865, -2750, 4490 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { 208, 4090, 14, 0 }, 1000, 3500, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6140, -2750, 1490 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6140, -2750, 2490 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6140, -2750, 3490 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6140, -2750, 4490 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3031 }, { 0, 0 } }, { -356, 4080, 14, 0 }, 1000, 3500, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3500, -4750, 3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 3686, 3276 }, { 0, 0 } }, { 0, ONE, 0, 0 }, 5500, 6000, 853 },
 };
 
-WorldCoordRoomLights D_shelter_b1_sterilization_room_8018B630[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_b1_sterilization_room_8018B12C), D_shelter_b1_sterilization_room_8018B12C, ARRAY_SIZE(D_shelter_b1_sterilization_room_8018B18C), D_shelter_b1_sterilization_room_8018B18C },
+/// Shared collection of one point light and eleven cone lights, with no directional lights.
+static WorldCoordRoomLights _gShelterB1SterilizationRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB1SterilizationRoomPointLights),
+    .pointLights           = _gShelterB1SterilizationRoomPointLights,
+    .coneLightCount        = ARRAY_SIZE(_gShelterB1SterilizationRoomConeLights),
+    .coneLights            = _gShelterB1SterilizationRoomConeLights,
 };
 
 WorldCollisionTrigger D_shelter_b1_sterilization_room_8018B648[8] = {
@@ -849,8 +993,12 @@ WorldCollisionOccluder D_shelter_b1_sterilization_room_8018C1A4[2] = {
     { NULL, NULL, { 3488, -1360, 0x2B00, 0 }, { { -3888, 2384, 0, 0 }, { 3888, 2384, 0, 0 }, { -3888, -2384, 0, 0 }, { 3888, -2384, 0, 0 } }, { 0, 0, 4099, 0 }, 4550, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b1_sterilization_room_8018C21C) - 1 },
+/// Minimum ambient colours for 24 logical views, preceded by the view count.
+///
+/// Entry zero stores 24; entries 1..24 store RGB in 16 units per colour level
+/// and retained luma. All three room descriptors borrow this table.
+static WorldCoordRoomAmbientEntry _gShelterB1SterilizationRoomAmbientByView[25] = {
+    { .viewCount = ARRAY_SIZE(_gShelterB1SterilizationRoomAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 1006, 1603, 1284, 1339 } },
     { .color = { 925, 1526, 1344, 1277 } },
@@ -877,39 +1025,70 @@ WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_sterilization_room_8018C2E4 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Type-1 cue-2 bases; cue 1 uses the following entry and companions add 100.
+enum {
+    SHELTER_B1_STERILIZATION_ROOM_SURFACE1_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B1_STERILIZATION_ROOM_SURFACE1_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
+    SHELTER_B1_STERILIZATION_ROOM_SURFACE2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B1_STERILIZATION_ROOM_SURFACE2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-WorldCollisionFootstepSounds D_shelter_b1_sterilization_room_8018C2F0 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Surface-class-1 walk/run cue bases, with scripted jumps using the walk base.
+///
+/// Borrows the loaded type-1 sound bank; paired cues and companion offsets
+/// select further entries. The surface property record borrows this storage.
+static WorldCollisionFootstepSounds _gShelterB1SterilizationRoomSurface1FootstepSounds = {
+    .walk         = SHELTER_B1_STERILIZATION_ROOM_SURFACE1_WALK_SOUND,
+    .run          = SHELTER_B1_STERILIZATION_ROOM_SURFACE1_RUN_SOUND,
+    .scriptedJump = SHELTER_B1_STERILIZATION_ROOM_SURFACE1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_sterilization_room_8018C2FC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface-class-2 walk/run cue bases, with scripted jumps using the walk base.
+///
+/// Borrows the loaded type-1 sound bank; paired cues and companion offsets
+/// select further entries. The surface property record borrows this storage.
+static WorldCollisionFootstepSounds _gShelterB1SterilizationRoomSurface2FootstepSounds = {
+    .walk         = SHELTER_B1_STERILIZATION_ROOM_SURFACE2_WALK_SOUND,
+    .run          = SHELTER_B1_STERILIZATION_ROOM_SURFACE2_RUN_SOUND,
+    .scriptedJump = SHELTER_B1_STERILIZATION_ROOM_SURFACE2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_sterilization_room_8018C304[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_sterilization_room_8018C2E4 },
+/// Blocking surface policy without footstep cues, shared by classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gShelterB1SterilizationRoomDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b1_sterilization_room_8018C30C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b1_sterilization_room_8018C2F0 },
+/// Blocking surface-class-1 policy with its walk, run and scripted-jump cues.
+static WorldCollisionSurfaceProperties _gShelterB1SterilizationRoomSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB1SterilizationRoomSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b1_sterilization_room_8018C314[8] = {
-    D_shelter_b1_sterilization_room_8018C2FC,
-    D_shelter_b1_sterilization_room_8018C304,
-    D_shelter_b1_sterilization_room_8018C30C,
-    D_shelter_b1_sterilization_room_8018C2FC,
-    D_shelter_b1_sterilization_room_8018C2FC,
-    D_shelter_b1_sterilization_room_8018C2FC,
-    D_shelter_b1_sterilization_room_8018C2FC,
-    D_shelter_b1_sterilization_room_8018C2FC,
+/// Blocking surface-class-2 policy with its walk, run and scripted-jump cues.
+static WorldCollisionSurfaceProperties _gShelterB1SterilizationRoomSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB1SterilizationRoomSurface2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB1SterilizationRoomSurfacePropertiesByClass[8] = {
+    &_gShelterB1SterilizationRoomDefaultSurfaceProperties,
+    &_gShelterB1SterilizationRoomSurface1Properties,
+    &_gShelterB1SterilizationRoomSurface2Properties,
+    &_gShelterB1SterilizationRoomDefaultSurfaceProperties,
+    &_gShelterB1SterilizationRoomDefaultSurfaceProperties,
+    &_gShelterB1SterilizationRoomDefaultSurfaceProperties,
+    &_gShelterB1SterilizationRoomDefaultSurfaceProperties,
+    &_gShelterB1SterilizationRoomDefaultSurfaceProperties,
 };
 
 AreaApplyRec D_shelter_b1_sterilization_room_8018C334[2] = {
@@ -1183,20 +1362,9 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CANCEL_UNARMED             = 0,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CANCEL_ARMED               = 1,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_VIEW_MASK                  = 0xFF,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT          = 64,
+        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT          = ARRAY_SIZE(_gShelterB1SterilizationRoomEffectGeometry.puffOrigins),
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION = 16,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP     = 4,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_FIRST              = 68,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_SECOND             = 70,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_THIRD              = 72,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_FOURTH             = 74,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_DISC_SINGLE                = 76,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_DISC_PAIR_FIRST            = 77,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_DISC_PAIR_SECOND           = 78,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_BLADE_GLOW                 = 79,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMALL_DISC                 = 80,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_FIRST                = 81,
-        SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_SECOND               = 82,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN            = 256,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK           = 511,
         SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS           = 0x80023400, // Size 1024, three ticks/frame, growth 2, additive blend
@@ -1215,70 +1383,70 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
 
     /// Samples one ring for two smoke centres, then emits an independently blended puff at each.
     ///
-    /// Captures ringAngle, the room's writable position table and controller constants.
+    /// Captures ringAngle, the room geometry's smokePoints and controller constants.
     /// parentCoord must be a stable, side-effect-free GfxCoord*: evaluated twice.
     /// Expands declarations/statements in an otherwise empty braced block. Each puff
     /// independently chooses additive or subtractive blending; random draw order matters.
-#define SHELTER_B1_STERILIZATION_ROOM_EMIT_PAIRED_RING_SMOKE(parentCoord)                                                 \
-    u32      randomState;                                                                                                 \
-    u32      randomHigh;                                                                                                  \
-    u32      shiftedRandomHigh;                                                                                           \
-    s16      ringRadius;                                                                                                  \
-    SVECTOR* firstSmokePoint;                                                                                             \
-    SVECTOR* secondSmokePoint;                                                                                            \
-    firstSmokePoint      = &D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_FIRST];  \
-    secondSmokePoint     = &D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_SECOND]; \
-    randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;      \
-    shiftedRandomHigh    = randomHigh << 16;                                                                              \
-    ringAngle            = shiftedRandomHigh >> 16;                                                                       \
-    ringAngle           &= (GLOW_FULL_TURN - 1);                                                                          \
-    randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                \
-    gRandomLcgState      = randomState;                                                                                   \
-    randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;                  \
-    ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                            \
-    firstSmokePoint->vx  = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + 0x5DC;                                   \
-    firstSmokePoint->vy  = 0;                                                                                             \
-    firstSmokePoint->vz  = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + 0xBB8;                              \
-    secondSmokePoint->vx = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + 0x157C;                                  \
-    secondSmokePoint->vy = 0;                                                                                             \
-    secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + 0x7D0;                              \
-    effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                         \
-                ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)         \
-                 << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                                    \
-                    SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                               \
-                firstSmokePoint);                                                                                         \
-    effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                         \
-                ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)         \
-                 << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                                    \
-                    SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                               \
+#define SHELTER_B1_STERILIZATION_ROOM_EMIT_PAIRED_RING_SMOKE(parentCoord)                                            \
+    u32      randomState;                                                                                            \
+    u32      randomHigh;                                                                                             \
+    u32      shiftedRandomHigh;                                                                                      \
+    s16      ringRadius;                                                                                             \
+    SVECTOR* firstSmokePoint;                                                                                        \
+    SVECTOR* secondSmokePoint;                                                                                       \
+    firstSmokePoint      = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[0];                               \
+    secondSmokePoint     = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[1];                               \
+    randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16; \
+    shiftedRandomHigh    = randomHigh << 16;                                                                         \
+    ringAngle            = shiftedRandomHigh >> 16;                                                                  \
+    ringAngle           &= (GLOW_FULL_TURN - 1);                                                                     \
+    randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                           \
+    gRandomLcgState      = randomState;                                                                              \
+    randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;             \
+    ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                       \
+    firstSmokePoint->vx  = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + 0x5DC;                              \
+    firstSmokePoint->vy  = 0;                                                                                        \
+    firstSmokePoint->vz  = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + 0xBB8;                         \
+    secondSmokePoint->vx = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + 0x157C;                             \
+    secondSmokePoint->vy = 0;                                                                                        \
+    secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + 0x7D0;                         \
+    effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                    \
+                ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)    \
+                 << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                               \
+                    SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                          \
+                firstSmokePoint);                                                                                    \
+    effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                    \
+                ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)    \
+                 << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                               \
+                    SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                          \
                 secondSmokePoint);
 
     /// Samples and emits smoke only at the second centre, with one random blend choice.
     ///
     /// Shares the paired operation's captures and braced-block requirement.
     /// parentCoord is evaluated once and must be a stable GfxCoord*.
-#define SHELTER_B1_STERILIZATION_ROOM_EMIT_SECOND_RING_SMOKE(parentCoord)                                                 \
-    u32      randomState;                                                                                                 \
-    u32      randomHigh;                                                                                                  \
-    u32      shiftedRandomHigh;                                                                                           \
-    s16      ringRadius;                                                                                                  \
-    SVECTOR* secondSmokePoint;                                                                                            \
-    secondSmokePoint     = &D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_SECOND]; \
-    randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;      \
-    shiftedRandomHigh    = randomHigh << 16;                                                                              \
-    ringAngle            = shiftedRandomHigh >> 16;                                                                       \
-    ringAngle           &= (GLOW_FULL_TURN - 1);                                                                          \
-    randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                \
-    gRandomLcgState      = randomState;                                                                                   \
-    randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;                  \
-    ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                            \
-    secondSmokePoint->vx = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + 0x157C;                                  \
-    secondSmokePoint->vy = 0;                                                                                             \
-    secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + 0x7D0;                              \
-    effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                         \
-                ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)         \
-                 << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                                    \
-                    SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                               \
+#define SHELTER_B1_STERILIZATION_ROOM_EMIT_SECOND_RING_SMOKE(parentCoord)                                            \
+    u32      randomState;                                                                                            \
+    u32      randomHigh;                                                                                             \
+    u32      shiftedRandomHigh;                                                                                      \
+    s16      ringRadius;                                                                                             \
+    SVECTOR* secondSmokePoint;                                                                                       \
+    secondSmokePoint     = &_gShelterB1SterilizationRoomEffectGeometry.smokePoints[1];                               \
+    randomHigh           = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16; \
+    shiftedRandomHigh    = randomHigh << 16;                                                                         \
+    ringAngle            = shiftedRandomHigh >> 16;                                                                  \
+    ringAngle           &= (GLOW_FULL_TURN - 1);                                                                     \
+    randomState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                           \
+    gRandomLcgState      = randomState;                                                                              \
+    randomHigh           = (randomState >> 16) & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MASK;             \
+    ringRadius           = randomHigh + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_RING_RADIUS_MIN;                       \
+    secondSmokePoint->vx = ((ringRadius * rcos(ringAngle)) >> GLOW_TRIG_SHIFT) + 0x157C;                             \
+    secondSmokePoint->vy = 0;                                                                                        \
+    secondSmokePoint->vz = ((ringRadius * rsin((s16)ringAngle)) >> GLOW_TRIG_SHIFT) + 0x7D0;                         \
+    effectSpawn(EFFECT_SMOKE_PUFF, (parentCoord),                                                                    \
+                ((((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1)    \
+                 << SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_BLEND_VARIANT_SHIFT) |                               \
+                    SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMOKE_PARAMETERS,                                          \
                 secondSmokePoint);
 
     coord = task->extra.coordBody->coord;
@@ -1287,10 +1455,10 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
     if (task->state == SHELTER_B1_STERILIZATION_ROOM_EFFECTS_GLOW_AND_SMOKE) {
         switch (viewGetMappedIndex() & SHELTER_B1_STERILIZATION_ROOM_EFFECTS_VIEW_MASK) {
             case 2:
-                _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_FIRST], 0x200, 0x222);
+                _glowDrawCapsule(&_gShelterB1SterilizationRoomEffectGeometry.capsuleEndpoints[0][0], 0x200, 0x222);
                 break;
             case 3:
-                _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_SECOND], 0x200, 0x222);
+                _glowDrawCapsule(&_gShelterB1SterilizationRoomEffectGeometry.capsuleEndpoints[1][0], 0x200, 0x222);
                 break;
                 // These cases share a scope in the original switch layout.
                 do {
@@ -1301,21 +1469,21 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
                         }
                         break;
                     case 8:
-                        glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMALL_DISC], 0x100, 0x440);
-                        _glowDrawDiamond(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_BLADE_GLOW], 0x60, 0x80);
+                        glowDrawDisc(&_gShelterB1SterilizationRoomEffectGeometry.smallDiscCenter, 0x100, 0x440);
+                        _glowDrawDiamond(&_gShelterB1SterilizationRoomEffectGeometry.bladeGlowCenter, 0x60, 0x80);
                         break;
                     case 14:
                         task->state = SHELTER_B1_STERILIZATION_ROOM_EFFECTS_TRAP_PUFFS;
                         break;
                     case 19:
-                        glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_SMALL_DISC], 0x100, 0x440);
-                        _shelterB1SterilizationRoomDrawPulsingGlow(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_BLADE_GLOW], 0x60, 0x80);
+                        glowDrawDisc(&_gShelterB1SterilizationRoomEffectGeometry.smallDiscCenter, 0x100, 0x440);
+                        _shelterB1SterilizationRoomDrawPulsingGlow(&_gShelterB1SterilizationRoomEffectGeometry.bladeGlowCenter, 0x60, 0x80);
                         break;
                     case 20:
-                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_FIRST], 0x200, 0x222);
-                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_SECOND], 0x200, 0x222);
-                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_THIRD], 0x200, 0x222);
-                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_FOURTH], 0x200, 0x222);
+                        _glowDrawCapsule(&_gShelterB1SterilizationRoomEffectGeometry.capsuleEndpoints[0][0], 0x200, 0x222);
+                        _glowDrawCapsule(&_gShelterB1SterilizationRoomEffectGeometry.capsuleEndpoints[1][0], 0x200, 0x222);
+                        _glowDrawCapsule(&_gShelterB1SterilizationRoomEffectGeometry.capsuleEndpoints[2][0], 0x200, 0x222);
+                        _glowDrawCapsule(&_gShelterB1SterilizationRoomEffectGeometry.capsuleEndpoints[3][0], 0x200, 0x222);
                         task->spawnArg1.value = SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CANCEL_ARMED;
                         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             SHELTER_B1_STERILIZATION_ROOM_EMIT_PAIRED_RING_SMOKE(coord);
@@ -1328,21 +1496,21 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
                         }
                         break;
                     case 22:
-                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_SECOND], 0x200, 0x222);
+                        _glowDrawCapsule(&_gShelterB1SterilizationRoomEffectGeometry.capsuleEndpoints[1][0], 0x200, 0x222);
                         task->spawnArg1.value = SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CANCEL_ARMED;
                         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             SHELTER_B1_STERILIZATION_ROOM_EMIT_SECOND_RING_SMOKE(coord);
                         }
                         break;
                     case 23:
-                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_FIRST], 0x200, 0x222);
+                        _glowDrawCapsule(&_gShelterB1SterilizationRoomEffectGeometry.capsuleEndpoints[0][0], 0x200, 0x222);
                         task->spawnArg1.value = SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CANCEL_ARMED;
                         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             SHELTER_B1_STERILIZATION_ROOM_EMIT_PAIRED_RING_SMOKE(coord);
                         }
                         break;
                     case 24:
-                        _glowDrawCapsule(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CAPSULE_SECOND], 0x200, 0x222);
+                        _glowDrawCapsule(&_gShelterB1SterilizationRoomEffectGeometry.capsuleEndpoints[1][0], 0x200, 0x222);
                         task->spawnArg1.value = SHELTER_B1_STERILIZATION_ROOM_EFFECTS_CANCEL_ARMED;
                         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                             SHELTER_B1_STERILIZATION_ROOM_EMIT_PAIRED_RING_SMOKE(coord);
@@ -1357,7 +1525,7 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (sourceGroup = 8; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
                         sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                        effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex, &D_shelter_b1_sterilization_room_8018909C[sourceIndex]);
+                        effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                     }
                 }
                 break;
@@ -1366,7 +1534,7 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
                     for (sourceGroup = 4; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
                         if (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1) {
                             sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                            effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex - SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SMALL_SIZE_BIAS, &D_shelter_b1_sterilization_room_8018909C[sourceIndex]);
+                            effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex - SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SMALL_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                         }
                     }
                 }
@@ -1376,33 +1544,33 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
                     for (sourceGroup = 0; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
                         if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
                             sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                            effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex, &D_shelter_b1_sterilization_room_8018909C[sourceIndex]);
+                            effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                         }
                     }
                 }
                 break;
             case 11:
-                glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_DISC_SINGLE], 0x300, 0x800);
+                glowDrawDisc(&_gShelterB1SterilizationRoomEffectGeometry.singleDiscCenter, 0x300, 0x800);
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (directionGroup = 0; directionGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; directionGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION) {
                         for (sourceGroup = 4; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
                             if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
                                 sourceIndex = directionGroup + sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                                effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_MEDIUM_SIZE_BIAS, &D_shelter_b1_sterilization_room_8018909C[sourceIndex]);
+                                effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_MEDIUM_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                             }
                         }
                     }
                 }
                 break;
             case 10:
-                glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_DISC_PAIR_FIRST], 0x300, 0x800);
-                glowDrawDisc(&D_shelter_b1_sterilization_room_8018909C[SHELTER_B1_STERILIZATION_ROOM_EFFECTS_DISC_PAIR_SECOND], 0x300, 0x800);
+                glowDrawDisc(&_gShelterB1SterilizationRoomEffectGeometry.pairedDiscCenters[0], 0x300, 0x800);
+                glowDrawDisc(&_gShelterB1SterilizationRoomEffectGeometry.pairedDiscCenters[1], 0x300, 0x800);
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (directionGroup = 0; directionGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; directionGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION) {
                         for (sourceGroup = 0; sourceGroup < 0xC; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_GROUP) {
                             if (!(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3)) {
                                 sourceIndex = directionGroup + sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                                effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_MEDIUM_SIZE_BIAS, &D_shelter_b1_sterilization_room_8018909C[sourceIndex]);
+                                effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_MEDIUM_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                             }
                         }
                     }
@@ -1412,7 +1580,7 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (sourceGroup = 0xC; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION) {
                         sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                        effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_LARGE_SIZE_BIAS, &D_shelter_b1_sterilization_room_8018909C[sourceIndex]);
+                        effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_LARGE_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                     }
                 }
                 break;
@@ -1420,7 +1588,7 @@ void shelterB1SterilizationRoomEffectsTask(Task* task)
                 if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
                     for (sourceGroup = 0xC; sourceGroup < SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCE_COUNT; sourceGroup += SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SOURCES_PER_DIRECTION) {
                         sourceIndex = sourceGroup + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 3);
-                        effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SECOND_SIZE_BIAS, &D_shelter_b1_sterilization_room_8018909C[sourceIndex]);
+                        effectSpawn(EFFECT_SHELTER_B1_STERILIZATION_PUFF, coord, sourceIndex + SHELTER_B1_STERILIZATION_ROOM_EFFECTS_PUFF_SECOND_SIZE_BIAS, &_gShelterB1SterilizationRoomEffectGeometry.puffOrigins[sourceIndex]);
                     }
                 }
                 break;
@@ -1460,7 +1628,7 @@ void shelterB1SterilizationRoomPuffTask(Task* task)
             work->step             = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF;
             // Scale the source group's Q12 direction, then jitter each component.
             gte_lddp(work->period);
-            gte_ldsv(&D_shelter_b1_sterilization_room_8018909C[83 + task->spawnArg1.value / SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCES_PER_DIRECTION]);
+            gte_ldsv(&_gShelterB1SterilizationRoomEffectGeometry.puffDirections[task->spawnArg1.value / SHELTER_B1_STERILIZATION_ROOM_PUFF_SOURCES_PER_DIRECTION]);
             gte_gpf12();
             velocity = &work->move;
             gte_stsv(velocity);
