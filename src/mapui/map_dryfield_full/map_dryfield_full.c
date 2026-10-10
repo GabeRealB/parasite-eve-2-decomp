@@ -495,7 +495,7 @@ WorldCoordRoomLighting* D_map_dryfield_full_8017A774[38] = {
 DirectionWarpEntry* D_map_dryfield_full_8017A80C[38] = {
     gDryfieldNightGasStationWarpEntries,
     D_dryfield_night_main_street_80182310,
-    D_dryfield_night_general_store_8017E84C,
+    gDryfieldNightGeneralStoreWarpEntries,
     NULL,
     D_dryfield_night_back_street_801803CC,
     D_dryfield_night_souvenir_shop_8017E104,
@@ -536,7 +536,7 @@ DirectionWarpEntry* D_map_dryfield_full_8017A80C[38] = {
 static ViewCount* D_map_dryfield_full_8017A8A4[38] = {
     gDryfieldNightGasStationViewCounts,
     D_dryfield_night_main_street_80182308,
-    D_dryfield_night_general_store_8017E848,
+    gDryfieldNightGeneralStoreViewCounts,
     NULL,
     gDryfieldNightBackStreetRoomViewCounts,
     D_dryfield_night_souvenir_shop_8017E100,
@@ -579,7 +579,7 @@ ViewCountTable D_map_dryfield_full_8017A93C = { D_map_dryfield_full_8017A8A4 };
 static WorldCollisionRoomResources* D_map_dryfield_full_8017A940[38] = {
     gDryfieldNightGasStationRoomCollisionResources,
     D_dryfield_night_main_street_80182284,
-    D_dryfield_night_general_store_8017E834,
+    gDryfieldNightGeneralStoreRoomCollisionResources,
     NULL,
     D_dryfield_night_back_street_801803AC,
     D_dryfield_night_souvenir_shop_8017E0EC,
@@ -622,7 +622,7 @@ WorldCollisionStageResources D_map_dryfield_full_8017A9D8 = { D_map_dryfield_ful
 static ViewCamera* D_map_dryfield_full_8017A9DC[38] = {
     gDryfieldNightGasStationViewCameras,
     D_dryfield_night_main_street_80184564,
-    D_dryfield_night_general_store_8017F4A8,
+    gDryfieldNightGeneralStoreViewCameras,
     NULL,
     gDryfieldNightBackStreetViewCameras,
     D_dryfield_night_souvenir_shop_8017E628,
@@ -708,7 +708,7 @@ ViewIndexTable D_map_dryfield_full_8017AB10 = { D_map_dryfield_full_8017AA78 };
 static SpriteView* D_map_dryfield_full_8017AB14[38] = {
     gDryfieldNightGasStationSpriteViews,
     D_dryfield_night_main_street_801875E4,
-    D_dryfield_night_general_store_80184278,
+    gDryfieldNightGeneralStoreSpriteViews,
     NULL,
     gDryfieldNightBackStreetSpriteViews,
     D_dryfield_night_souvenir_shop_8017EF08,

@@ -24,6 +24,7 @@
 #include "gameplay/view.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gfx.h"
@@ -41,26 +42,35 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
 
-extern WorldCollisionGrid         D_dryfield_night_general_store_8017F484[1];
-extern WorldCollisionOccluder     D_dryfield_night_general_store_801855C4[4];
-extern WorldCollisionTrigger      D_dryfield_night_general_store_801847D0[28];
-extern WorldCollisionTrigger      D_dryfield_night_general_store_80185020[19];
+static WorldCollisionGrid         _gDryfieldNightGeneralStoreCollisionGrid;
+static WorldCollisionOccluder     _gDryfieldNightGeneralStoreSightOccluders[4];
+static WorldCollisionTrigger      _gDryfieldNightGeneralStoreViewBoundaryTriggers[28];
+static WorldCollisionTrigger      _gDryfieldNightGeneralStoreActionTriggers[19];
 static WorldCoordRoomAmbientEntry _gDryfieldNightGeneralStoreAmbientByView[17];
 static WorldCoordRoomLights       _gDryfieldNightGeneralStoreRoomLights;
 
-SVECTOR D_dryfield_night_general_store_8017E7EC[4] = {
-    { 3240, -2820, 1750, 0 },
-    { 2260, -2820, 1750, 0 },
-    { 3240, -2820, 4250, 0 },
-    { 2260, -2820, 4250, 0 },
+/// Two light-shaft point pairs in world game coordinates.
+///
+/// Pair 0 is visible in views 2, 4 and 8; pair 1 in views 3, 4 and 8.
+/// Each row supplies the two consecutive points projected by the shaft drawer.
+/// Immutable shaft tables retain initialized-data placement in the room image.
+static const SVECTOR _gDryfieldNightGeneralStoreLightShaftPoints[2][2] __attribute__((section(".data"))) = {
+    { { 3240, -2820, 1750, 0 }, { 2260, -2820, 1750, 0 } },
+    { { 3240, -2820, 4250, 0 }, { 2260, -2820, 4250, 0 } },
 };
 
-SVECTOR D_dryfield_night_general_store_8017E80C[2] = {
+/// View 12's two light-shaft points in world game coordinates.
+///
+/// Immutable coordinates retain initialized-data placement in the room image.
+static const SVECTOR _gDryfieldNightGeneralStoreView12LightShaftPoints[2] __attribute__((section(".data"))) = {
     { 3240, -2820, 7000, 0 },
     { 2260, -2820, 7000, 0 },
 };
 
-SVECTOR D_dryfield_night_general_store_8017E81C[2] = {
+/// View 13's two light-shaft points in world game coordinates.
+///
+/// Immutable coordinates retain initialized-data placement in the room image.
+static const SVECTOR _gDryfieldNightGeneralStoreView13LightShaftPoints[2] __attribute__((section(".data"))) = {
     { 7750, -2820, 7000, 0 },
     { 6800, -2820, 7000, 0 },
 };
@@ -69,50 +79,85 @@ WorldCoordRoomLighting gDryfieldNightGeneralStoreRoomLighting[1] = {
     { .lights = &_gDryfieldNightGeneralStoreRoomLights, .ambientTable = _gDryfieldNightGeneralStoreAmbientByView },
 };
 
-WorldCollisionRoomResources D_dryfield_night_general_store_8017E834[1] = {
-    { D_dryfield_night_general_store_8017F484, D_dryfield_night_general_store_801847D0, D_dryfield_night_general_store_80185020, D_dryfield_night_general_store_801855C4 },
+WorldCollisionRoomResources gDryfieldNightGeneralStoreRoomCollisionResources[1] = {
+    { &_gDryfieldNightGeneralStoreCollisionGrid, _gDryfieldNightGeneralStoreViewBoundaryTriggers, _gDryfieldNightGeneralStoreActionTriggers, _gDryfieldNightGeneralStoreSightOccluders },
 };
 
 u8* gDryfieldNightGeneralStoreViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_night_general_store_8017E848[1] = { 16 };
+ViewCount gDryfieldNightGeneralStoreViewCounts[1] = { DRYFIELD_NIGHT_GENERAL_STORE_VIEW_COUNT };
 
-DirectionWarpEntry D_dryfield_night_general_store_8017E84C[3] = {
-    { { { .word = 0 }, 3100, 0, 439 }, { 0, 0, 0, 0 }, { { .word = 1536 }, 2496, 0, 920 }, { 0, 0, 0, 0 }, 0x53030004, 0x53030003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 489 },
-    { { { .word = 3072 }, 9669, 0, 4832 }, { 0, 0, 0, 0 }, { { .word = 512 }, 9128, 0, 4172 }, { 0, 0, 0, 0 }, 0x53030002, 0x53030001, 0x5303000B, 7, DIRECTION_WARP_FLAG_NONE, 470 },
-    { { { .word = 3072 }, 8649, 0, 7411 }, { 0, 0, 0, 0 }, { { .word = 512 }, 8209, 0, 6766 }, { 0, 0, 0, 0 }, 0x5303000E, 0x5303000D, 0x53030006, 14, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Doorway sound requests in the night General Store's sound bank.
+enum {
+    DRYFIELD_NIGHT_GENERAL_STORE_GAS_STATION_ARRIVAL_SOUND   = 0x53030004,
+    DRYFIELD_NIGHT_GENERAL_STORE_GAS_STATION_DEPARTURE_SOUND = 0x53030003,
+    DRYFIELD_NIGHT_GENERAL_STORE_BACK_STREET_ARRIVAL_SOUND   = 0x53030002,
+    DRYFIELD_NIGHT_GENERAL_STORE_BACK_STREET_DEPARTURE_SOUND = 0x53030001,
+    DRYFIELD_NIGHT_GENERAL_STORE_BACK_STREET_BLOCKED_SOUND   = 0x5303000B,
+    DRYFIELD_NIGHT_GENERAL_STORE_UNDERPASS_ARRIVAL_SOUND     = 0x5303000E,
+    DRYFIELD_NIGHT_GENERAL_STORE_UNDERPASS_DEPARTURE_SOUND   = 0x5303000D,
+    DRYFIELD_NIGHT_GENERAL_STORE_UNDERPASS_BLOCKED_SOUND     = 0x53030006,
 };
 
-static SVECTOR _gDryfieldNightGeneralStoreCollision01EC4Normals[13] = {
+DirectionWarpEntry gDryfieldNightGeneralStoreWarpEntries[DRYFIELD_NIGHT_GENERAL_STORE_WARP_COUNT] = {
+    { { { .word = 0 }, 3100, 0, 439 }, { 0, 0, 0, 0 }, { { .word = 1536 }, 2496, 0, 920 }, { 0, 0, 0, 0 }, DRYFIELD_NIGHT_GENERAL_STORE_GAS_STATION_ARRIVAL_SOUND, DRYFIELD_NIGHT_GENERAL_STORE_GAS_STATION_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 489 },
+    { { { .word = 3072 }, 9669, 0, 4832 }, { 0, 0, 0, 0 }, { { .word = 512 }, 9128, 0, 4172 }, { 0, 0, 0, 0 }, DRYFIELD_NIGHT_GENERAL_STORE_BACK_STREET_ARRIVAL_SOUND, DRYFIELD_NIGHT_GENERAL_STORE_BACK_STREET_DEPARTURE_SOUND, DRYFIELD_NIGHT_GENERAL_STORE_BACK_STREET_BLOCKED_SOUND, 7, DIRECTION_WARP_FLAG_NONE, 470 },
+    { { { .word = 3072 }, 8649, 0, 7411 }, { 0, 0, 0, 0 }, { { .word = 512 }, 8209, 0, 6766 }, { 0, 0, 0, 0 }, DRYFIELD_NIGHT_GENERAL_STORE_UNDERPASS_ARRIVAL_SOUND, DRYFIELD_NIGHT_GENERAL_STORE_UNDERPASS_DEPARTURE_SOUND, DRYFIELD_NIGHT_GENERAL_STORE_UNDERPASS_BLOCKED_SOUND, 14, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+};
+
+/// Collision-grid normal pool, with 4096 representing unit length.
+static SVECTOR _gDryfieldNightGeneralStoreCollisionGridNormals[13] = {
 #include "assets/dryfield_night_general_store_collision_01EC4_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightGeneralStoreCollision01EC4Verts[143] = {
+/// Collision-grid vertex pool in signed room-local game coordinates.
+static SVECTOR _gDryfieldNightGeneralStoreCollisionGridVerts[143] = {
 #include "assets/dryfield_night_general_store_collision_01EC4_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightGeneralStoreCollision01EC4Faces[88] = {
+/// Indexed collision-grid faces with room-local surface classes.
+static WorldCollisionGridFace _gDryfieldNightGeneralStoreCollisionGridFaces[88] = {
 #include "assets/dryfield_night_general_store_collision_01EC4_faces.inc"
 };
 
-static s16 _gDryfieldNightGeneralStoreCollision01EC4Cells[310] = {
+/// Packed signed face-index lists for the nine collision-grid cells.
+///
+/// Each list ends with `WORLD_COLLISION_GRID_CELL_END`; the table points into
+/// this complete 310-halfword asset span, including zeros outside the lists.
+static s16 _gDryfieldNightGeneralStoreCollisionGridCells[310] = {
 #include "assets/dryfield_night_general_store_collision_01EC4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightGeneralStoreCollision01EC4Cells[i])
-static s16* _gDryfieldNightGeneralStoreCollision01EC4Table[9] = {
+#define GRID_CELL(i) (&_gDryfieldNightGeneralStoreCollisionGridCells[i])
+/// X-major 3-by-3 cell directory into the collision grid's face-index pool.
+static s16* _gDryfieldNightGeneralStoreCollisionGridTable[9] = {
 #include "assets/dryfield_night_general_store_collision_01EC4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_general_store_8017F484[1] = {
-    { NULL, _gDryfieldNightGeneralStoreCollision01EC4Normals, _gDryfieldNightGeneralStoreCollision01EC4Verts, _gDryfieldNightGeneralStoreCollision01EC4Faces, _gDryfieldNightGeneralStoreCollision01EC4Table, 0, 0, 3, 3, 4000, 88 },
+/// Room 1's collision mesh and XZ face-selection grid.
+///
+/// Nine 4000-game-unit cells cover nonnegative X/Z from (0, 0), with X-major
+/// indexing. Setup binds `viewCoord` to the current view. The descriptor and
+/// mesh storage remain borrowed and writable while the room is loaded.
+static WorldCollisionGrid _gDryfieldNightGeneralStoreCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightGeneralStoreCollisionGridNormals,
+    .vertices    = _gDryfieldNightGeneralStoreCollisionGridVerts,
+    .faces       = _gDryfieldNightGeneralStoreCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightGeneralStoreCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 0,
+    .cellCountX  = 3,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightGeneralStoreCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_general_store_8017F4A8[16] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5000, 0x7530, -4000 } }, 589 },
+ViewCamera gDryfieldNightGeneralStoreViewCameras[DRYFIELD_NIGHT_GENERAL_STORE_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -5000, 0x7530, -4000 } }, 589 },
     { { { { -3828, 0, -1456 }, { -650, 3664, 1709 }, { 1303, 1829, -3425 } }, { -750, 2800, -5920 } }, 230 },
     { { { { 3759, 0, -1625 }, { -775, 3599, -1793 }, { 1428, 1954, 3304 } }, { -800, 2800, -1820 } }, 230 },
     { { { { 905, 0, 3994 }, { 1197, 3907, -271 }, { -3810, 1227, 864 } }, { -8200, 2100, -220 } }, 230 },
@@ -1243,142 +1288,185 @@ static SpriteBatch _gDryfieldNightGeneralStoreView11SpriteBatches[4] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_80183A74[34] = {
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -104, -120, 700, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -104, -56, 650, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -104, 8, 650, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -104, 72, 650, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, -120, 1025, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, -72, 900, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, -24, 900, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, 24, 875, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, 72, 850, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -48, -104, 1100, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -48, -72, 1100, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -40, 1100, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, -72, 1221, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, -56, 1125, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -40, 1125, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -24, 1125, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, -8, 1075, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 8, 1050, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 32, 1025, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 56, 1000, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 80, 1000, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, -48, 1225, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -16, -32, 1225, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, -16, 1225, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 64 } }, -160, -120, 575, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 64 } }, -160, -56, 525, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 64 } }, -160, 8, 525, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 48 } }, -160, 72, 550, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -48, 0, 952, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -40, 0, 1025, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -48, 40, 935, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -40, 40, 1000, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, 80, 918, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -40, 80, 1000, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
+/// Authored foreground-sprite colour and command values.
+enum {
+    DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION = 128,
+    DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE        = 0,
 };
 
-SpriteBatch D_dryfield_night_general_store_80183D1C[3] = {
+/// View 12's 34 textured foreground rectangles and sorting depths.
+///
+/// Positions and dimensions are pixels, UVs are texels, and depth uses the
+/// renderer's unscaled sorting domain. RGB 128 is neutral modulation and
+/// zero code flags select opaque emission. Storage is borrowed with the room.
+static SpriteSource _gDryfieldNightGeneralStoreView12SpriteSources[34] = {
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, -104, -120, 700, { .fields = { 64, 192 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, -104, -56, 650, { .fields = { 96, 192 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, -104, 8, 650, { .fields = { 40, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, -104, 72, 650, { .fields = { 32, 208 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, -120, 1025, { .fields = { 40, 160 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, -72, 900, { .fields = { 24, 64 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, -24, 900, { .fields = { 16, 160 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, 24, 875, { .fields = { 16, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, 72, 850, { .fields = { 48, 64 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -48, -104, 1100, { .fields = { 0, 112 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -48, -72, 1100, { .fields = { 0, 80 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, -40, 1100, { .fields = { 0, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, -72, 1221, { .fields = { 8, 232 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, -56, 1125, { .fields = { 120, 40 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -40, 1125, { .fields = { 24, 48 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -24, 1125, { .fields = { 0, 216 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -32, -8, 1075, { .fields = { 120, 56 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 8, 1050, { .fields = { 8, 144 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 32, 1025, { .fields = { 16, 88 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 56, 1000, { .fields = { 8, 192 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 80, 1000, { .fields = { 0, 176 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, -48, 1225, { .fields = { 0, 192 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -16, -32, 1225, { .fields = { 120, 144 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, -16, 1225, { .fields = { 0, 160 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 56, 64 } }, -160, -120, 575, { .fields = { 72, 128 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 56, 64 } }, -160, -56, 525, { .fields = { 72, 64 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 56, 64 } }, -160, 8, 525, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 56, 48 } }, -160, 72, 550, { .fields = { 16, 112 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -48, 0, 952, { .fields = { 16, 48 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -40, 0, 1025, { .fields = { 24, 208 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -48, 40, 935, { .fields = { 16, 208 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -40, 40, 1000, { .fields = { 8, 40 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, 80, 918, { .fields = { 8, 168 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -40, 80, 1000, { .fields = { 64, 160 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+};
+
+/// View 12's background-preserving batch list and complete sprite range.
+///
+/// The zero-count first record retains decoded strips; the second covers all
+/// source elements, followed by `SPRITE_BATCH_END`. Batch storage is mutable.
+static SpriteBatch _gDryfieldNightGeneralStoreView12SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 34, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightGeneralStoreView12SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_80183D34[41] = {
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -48, 32, 800, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -32, 72, 800, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -32, 112, 321, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -72, 16, 832, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -56, 16, 800, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 32, 684, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, 32, 762, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 48, 618, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, 48, 656, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -48, 48, 800, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, 40, 800, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, 56, 800, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -96, 64, 454, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -80, 64, 454, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, 64, 454, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, 64, 750, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -112, 88, 353, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -88, 88, 352, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -64, 88, 352, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -48, 88, 750, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, 120, -120, 575, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, -56, 600, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, 120, 0, 587, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 56 } }, 120, 64, 600, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, 80, -120, 670, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 80, -56, 675, { .fields = { 16, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 64 } }, 80, 0, 687, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 80, 64, 687, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 48, -120, 882, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, 48, -56, 900, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, 48, 0, 900, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, 48, 48, 900, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 96, 780, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 24, -112, 1250, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 24, -56, 1300, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 24, 0, 1300, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 24, 56, 1198, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 0, -72, 1875, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 0, -32, 1875, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 8, 1875, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, 40, 1508, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+/// View 13's 41 textured foreground rectangles in two batch ranges.
+///
+/// Positions and dimensions are pixels, UVs are texels, and depth uses the
+/// renderer's unscaled sorting domain. RGB 128 is neutral modulation and
+/// zero code flags select opaque emission. Storage is borrowed with the room.
+static SpriteSource _gDryfieldNightGeneralStoreView13SpriteSources[41] = {
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -48, 32, 800, { .fields = { 96, 8 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -32, 72, 800, { .fields = { 96, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 8, 8 } }, -32, 112, 321, { .fields = { 104, 248 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -72, 16, 832, { .fields = { 96, 232 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -56, 16, 800, { .fields = { 96, 184 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 32, 684, { .fields = { 96, 120 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, 32, 762, { .fields = { 104, 200 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 48, 618, { .fields = { 104, 136 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, 48, 656, { .fields = { 104, 168 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 16 } }, -48, 48, 800, { .fields = { 104, 152 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, 40, 800, { .fields = { 112, 184 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 8, 16 } }, -32, 56, 800, { .fields = { 112, 120 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -96, 64, 454, { .fields = { 104, 96 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 24 } }, -80, 64, 454, { .fields = { 112, 232 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, 64, 454, { .fields = { 56, 168 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, 64, 750, { .fields = { 72, 168 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, -112, 88, 353, { .fields = { 96, 64 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 24, 32 } }, -88, 88, 352, { .fields = { 96, 32 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 16, 32 } }, -64, 88, 352, { .fields = { 104, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -48, 88, 750, { .fields = { 16, 224 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 64 } }, 120, -120, 575, { .fields = { 88, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, -56, 600, { .fields = { 24, 56 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 64 } }, 120, 0, 587, { .fields = { 88, 128 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 40, 56 } }, 120, 64, 600, { .fields = { 120, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 64 } }, 80, -120, 670, { .fields = { 56, 192 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, 80, -56, 675, { .fields = { 16, 168 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 64 } }, 80, 0, 687, { .fields = { 88, 64 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 56 } }, 80, 64, 687, { .fields = { 48, 112 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 48, -120, 882, { .fields = { 96, 192 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 32, 56 } }, 48, -56, 900, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, 48, 0, 900, { .fields = { 120, 56 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 32, 48 } }, 48, 48, 900, { .fields = { 120, 104 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 96, 780, { .fields = { 0, 232 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 24, -112, 1250, { .fields = { 24, 112 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 24, -56, 1300, { .fields = { 64, 56 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, 24, 0, 1300, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 24, 16 } }, 24, 56, 1198, { .fields = { 96, 216 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, 0, -72, 1875, { .fields = { 120, 152 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 142, 0x3FC0, { .fields = { 24, 40 } }, 0, -32, 1875, { .fields = { 120, 192 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 8, 1875, { .fields = { 32, 224 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, 40, 1508, { .fields = { 16, 152 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
 };
 
-SpriteBatch D_dryfield_night_general_store_80184068[4] = {
+/// View 13's background-preserving batches for source ranges 0..19 and 20..40.
+///
+/// Both ranges start visible and participate in cached packet processing.
+/// The zero-count first record retains decoded strips; `SPRITE_BATCH_END` ends
+/// the list. The first range retains serialized bytes {1, 0}, whose role is
+/// unproven. Batch storage is mutable and borrowed with the room overlay.
+static SpriteBatch _gDryfieldNightGeneralStoreView13SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 1, 0 } },
-    { 20, 21, 0, 0, { 0, 0 } },
+    { 20, ARRAY_SIZE(_gDryfieldNightGeneralStoreView13SpriteSources) - 20, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_general_store_80184088[22] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 8, 842, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, -120, 500, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, -48, 500, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, 24, 550, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 88, -120, 511, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 88, -56, 600, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 88, 8, 625, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 88, 72, 675, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -120, 633, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -72, 663, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -24, 721, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, 24, 800, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 72, 712, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, -120, 762, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -88, 828, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -56, 861, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -24, 898, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 32, 849, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 32, -32, 801, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 8, 835, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 96, 550, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 96, 550, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
+/// View 14's 22 textured foreground rectangles and sorting depths.
+///
+/// Positions and dimensions are pixels, UVs are texels, and depth uses the
+/// renderer's unscaled sorting domain. RGB 128 is neutral modulation and
+/// zero code flags select opaque emission. Storage is borrowed with the room.
+static SpriteSource _gDryfieldNightGeneralStoreView14SpriteSources[22] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, 8, 842, { .fields = { 120, 248 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, -120, 500, { .fields = { 88, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, -48, 500, { .fields = { 88, 72 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, 24, 550, { .fields = { 88, 144 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 88, -120, 511, { .fields = { 56, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 88, -56, 600, { .fields = { 56, 64 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 88, 8, 625, { .fields = { 56, 128 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 32, 48 } }, 88, 72, 675, { .fields = { 56, 192 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -120, 633, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -72, 663, { .fields = { 32, 48 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, -24, 721, { .fields = { 32, 96 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, 64, 24, 800, { .fields = { 32, 144 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 72, 712, { .fields = { 112, 216 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, -120, 762, { .fields = { 96, 216 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -88, 828, { .fields = { 32, 192 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -56, 861, { .fields = { 32, 224 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -24, 898, { .fields = { 8, 0 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 32, 849, { .fields = { 80, 240 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 32, -32, 801, { .fields = { 88, 216 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 8, 835, { .fields = { 16, 32 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 96, 550, { .fields = { 16, 80 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
+    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 96, 550, { .fields = { 8, 56 } }, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_NEUTRAL_MODULATION, DRYFIELD_NIGHT_GENERAL_STORE_SPRITE_CODE_OPAQUE },
 };
 
-SpriteBatch D_dryfield_night_general_store_80184240[3] = {
+/// View 14's background-preserving batch list and complete sprite range.
+///
+/// The zero-count first record retains decoded strips; the second covers all
+/// source elements, followed by `SPRITE_BATCH_END`. Batch storage is mutable.
+static SpriteBatch _gDryfieldNightGeneralStoreView14SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 22, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightGeneralStoreView14SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_general_store_80184258[2] = {
+/// View 15's empty sprite list, retaining decoded background strips.
+///
+/// A zero-count batch precedes `SPRITE_BATCH_END`; the same list address fills
+/// `sources.empty`. Mutable storage remains borrowed while the room is loaded.
+static SpriteBatch _gDryfieldNightGeneralStoreView15SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_general_store_80184268[2] = {
+/// View 16's empty sprite list, retaining decoded background strips.
+///
+/// A zero-count batch precedes `SPRITE_BATCH_END`; the same list address fills
+/// `sources.empty`. Mutable storage remains borrowed while the room is loaded.
+static SpriteBatch _gDryfieldNightGeneralStoreView16SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_general_store_80184278[16] = {
+SpriteView gDryfieldNightGeneralStoreSpriteViews[DRYFIELD_NIGHT_GENERAL_STORE_VIEW_COUNT] = {
     { { .empty = _gDryfieldNightGeneralStoreView1SpriteBatches }, _gDryfieldNightGeneralStoreView1SpriteBatches, NULL },
     { { .elements = _gDryfieldNightGeneralStoreView2SpriteSources }, _gDryfieldNightGeneralStoreView2SpriteBatches, NULL },
     { { .elements = _gDryfieldNightGeneralStoreView3SpriteSources }, _gDryfieldNightGeneralStoreView3SpriteBatches, NULL },
@@ -1390,11 +1478,11 @@ SpriteView D_dryfield_night_general_store_80184278[16] = {
     { { .elements = _gDryfieldNightGeneralStoreView9SpriteSources }, _gDryfieldNightGeneralStoreView9SpriteBatches, NULL },
     { { .elements = _gDryfieldNightGeneralStoreView10SpriteSources }, _gDryfieldNightGeneralStoreView10SpriteBatches, NULL },
     { { .elements = _gDryfieldNightGeneralStoreView11SpriteSources }, _gDryfieldNightGeneralStoreView11SpriteBatches, NULL },
-    { { .elements = D_dryfield_night_general_store_80183A74 }, D_dryfield_night_general_store_80183D1C, NULL },
-    { { .elements = D_dryfield_night_general_store_80183D34 }, D_dryfield_night_general_store_80184068, NULL },
-    { { .elements = D_dryfield_night_general_store_80184088 }, D_dryfield_night_general_store_80184240, NULL },
-    { { .empty = D_dryfield_night_general_store_80184258 }, D_dryfield_night_general_store_80184258, NULL },
-    { { .empty = D_dryfield_night_general_store_80184268 }, D_dryfield_night_general_store_80184268, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView12SpriteSources }, _gDryfieldNightGeneralStoreView12SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView13SpriteSources }, _gDryfieldNightGeneralStoreView13SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightGeneralStoreView14SpriteSources }, _gDryfieldNightGeneralStoreView14SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightGeneralStoreView15SpriteBatches }, _gDryfieldNightGeneralStoreView15SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightGeneralStoreView16SpriteBatches }, _gDryfieldNightGeneralStoreView16SpriteBatches, NULL },
 };
 
 /// Twelve point lights contributing in every logical view of the night general store.
@@ -1432,7 +1520,13 @@ static WorldCoordRoomLights _gDryfieldNightGeneralStoreRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_dryfield_night_general_store_801847D0[28] = {
+/// Fourteen pairs of directed view boundaries for room 1's views 2..14.
+///
+/// Positions and radii are game units; normals use 4096 per unit. Each record
+/// names its source and destination view. Setup binds the view coordinate,
+/// links and enables all records through the LAST-marked final boundary;
+/// storage stays mutable and loaded until the list is cleared.
+static WorldCollisionTrigger _gDryfieldNightGeneralStoreViewBoundaryTriggers[28] = {
     { NULL, NULL, NULL, { 2000, -1216, 4064, 0 }, { { 1872, 2240, 0, 0 }, { 1872, -2240, 0, 0 }, { -1872, 2240, 0, 0 }, { -1872, -2240, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 4096, 0 }, 2918, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1920, -1232, 4320, 0 }, { { -1872, 2256, 0, 0 }, { -1872, -2256, 0, 0 }, { 1872, 2256, 0, 0 }, { 1872, -2256, 0, 0 } }, { 0, 0, -4125, 0 }, { 0, 0, 4096, 0 }, 2930, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 3616, -1232, 784, 0 }, { { 0, 2256, -1088, 0 }, { 0, -2256, -1088, 0 }, { 0, 2256, 1088, 0 }, { 0, -2256, 1088, 0 } }, { 4111, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2495, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1463,10 +1557,24 @@ WorldCollisionTrigger D_dryfield_night_general_store_801847D0[28] = {
     { NULL, NULL, NULL, { 7904, -1200, 7040, 0 }, { { 0, 2224, 1232, 0 }, { 0, -2224, 1232, 0 }, { 0, 2224, -1232, 0 }, { 0, -2224, -1232, 0 } }, { -4101, 0, 0, 0 }, { 0, 0, 4096, 0 }, 2534, 0, 13, 14, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_general_store_80185020[19] = {
-    { NULL, NULL, NULL, { 2816, -55, 224, 0 }, { { -480, 0, -224, 0 }, { 480, 0, -224, 0 }, { -480, 0, 224, 0 }, { 480, 0, 224, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, 1, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9792, -55, 4816, 0 }, { { 224, 0, -560, 0 }, { 224, 0, 560, 0 }, { -224, 0, -560, 0 }, { -224, 0, 560, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 600, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8704, -55, 7488, 0 }, { { 224, 0, -480, 0 }, { 224, 0, 480, 0 }, { -224, 0, -480, 0 }, { -224, 0, 480, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, 38, 51, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Room-command IDs sent by the action-trigger list.
+enum {
+    DRYFIELD_NIGHT_GENERAL_STORE_COMMAND_TOGGLE_FLAG        = 9,
+    DRYFIELD_NIGHT_GENERAL_STORE_COMMAND_COMPANION_DIALOGUE = 24,
+};
+
+/// Room 1's three doorway warps and sixteen CAP or room-command interactions.
+///
+/// Positions and radii are game units; normals use 4096 per unit. The warp
+/// parameter packs a departure slot in the high nibble and arrival slot in
+/// the low nibble. CAP records select commands, except the room-message
+/// sentinel routes IDs 9 and 24 to flag toggling and companion dialogue.
+/// Setup binds and enables all records through the LAST-marked final one;
+/// mutable links and hit latches remain live until the list is cleared.
+static WorldCollisionTrigger _gDryfieldNightGeneralStoreActionTriggers[19] = {
+    { NULL, NULL, NULL, { 2816, -55, 224, 0 }, { { -480, 0, -224, 0 }, { 480, 0, -224, 0 }, { -480, 0, 224, 0 }, { 480, 0, 224, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_GAS_STATION, (DRYFIELD_NIGHT_GENERAL_STORE_WARP_GAS_STATION << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9792, -55, 4816, 0 }, { { 224, 0, -560, 0 }, { 224, 0, 560, 0 }, { -224, 0, -560, 0 }, { -224, 0, 560, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 600, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_BACK_STREET, (DRYFIELD_NIGHT_GENERAL_STORE_WARP_BACK_STREET << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8704, -55, 7488, 0 }, { { 224, 0, -480, 0 }, { 224, 0, 480, 0 }, { -224, 0, -480, 0 }, { -224, 0, 480, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_NIGHT_UNDERPASS, (DRYFIELD_NIGHT_GENERAL_STORE_WARP_UNDERPASS << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 1680, -64, 2432, 0 }, { { -976, 0, -864, 0 }, { 976, 0, -864, 0 }, { -976, 0, 864, 0 }, { 976, 0, 864, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, 4096, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5888, -64, 3360, 0 }, { { -2224, 0, -336, 0 }, { 2224, 0, -336, 0 }, { -2224, 0, 336, 0 }, { 2224, 0, 336, 0 } }, { 0, 4107, 0, 0 }, { 200, 0, -4091, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5824, -64, 1344, 0 }, { { -2224, 0, -256, 0 }, { 2224, 0, -256, 0 }, { -2224, 0, 256, 0 }, { 2224, 0, 256, 0 } }, { 0, 4108, 0, 0 }, { 0, 0, -4096, 0 }, 2231, WORLD_COLLISION_TRIGGER_ACTION_CAP, 23, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -1479,36 +1587,60 @@ WorldCollisionTrigger D_dryfield_night_general_store_80185020[19] = {
     { NULL, NULL, NULL, { 5856, -64, 2672, 0 }, { { -2224, 0, -352, 0 }, { 2224, 0, -352, 0 }, { -2224, 0, 352, 0 }, { 2224, 0, 352, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4095, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, 22, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 5920, -64, 4576, 0 }, { { -2224, 0, -368, 0 }, { 2224, 0, -368, 0 }, { -2224, 0, 368, 0 }, { 2224, 0, 368, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4095, 0 }, 2246, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 544, -64, 4560, 0 }, { { -624, 0, -1072, 0 }, { 624, 0, -1072, 0 }, { -624, 0, 1072, 0 }, { 624, 0, 1072, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1234, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8240, -64, 6384, 0 }, { { 432, 0, -304, 0 }, { 432, 0, 304, 0 }, { -432, 0, -304, 0 }, { -432, 0, 304, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8240, -64, 6384, 0 }, { { 432, 0, -304, 0 }, { 432, 0, 304, 0 }, { -432, 0, -304, 0 }, { -432, 0, 304, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 527, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_GENERAL_STORE_COMMAND_TOGGLE_FLAG, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 4176, -64, 544, 0 }, { { 480, 0, -304, 0 }, { 480, 0, 304, 0 }, { -480, 0, -304, 0 }, { -480, 0, 304, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 565, WORLD_COLLISION_TRIGGER_ACTION_CAP, 21, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6624, -64, 288, 0 }, { { 1776, 0, -304, 0 }, { 1776, 0, 304, 0 }, { -1776, 0, -304, 0 }, { -1776, 0, 304, 0 } }, { 0, 4120, 0, 0 }, { 0, 0, 4096, 0 }, 1801, WORLD_COLLISION_TRIGGER_ACTION_CAP, 24, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6624, -64, 288, 0 }, { { 1776, 0, -304, 0 }, { 1776, 0, 304, 0 }, { -1776, 0, -304, 0 }, { -1776, 0, 304, 0 } }, { 0, 4120, 0, 0 }, { 0, 0, 4096, 0 }, 1801, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_NIGHT_GENERAL_STORE_COMMAND_COMPANION_DIALOGUE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 480, -64, 880, 0 }, { { 624, 0, -928, 0 }, { 624, 0, 928, 0 }, { -624, 0, -928, 0 }, { -624, 0, 928, 0 } }, { 0, 4120, 0, 0 }, { 4076, 0, 401, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 17, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_night_general_store_801855C4[4] = {
+/// Room 1's four line-of-sight blocking quads.
+///
+/// Origins, corner offsets and radii use game units; normals use 4096 per
+/// unit. Setup links and enables the final LAST-marked record too. The low
+/// flag bit 0 is retained without an established role. Links and flags stay
+/// writable and loaded until the occluder list is cleared.
+static WorldCollisionOccluder _gDryfieldNightGeneralStoreSightOccluders[4] = {
     { NULL, NULL, { 6128, -1376, 6144, 0 }, { { -4176, -2496, 0, 0 }, { 4176, -2496, 0, 0 }, { -4176, 2496, 0, 0 }, { 4176, 2496, 0, 0 } }, { 0, 0, -4113, 0 }, 4857, 1, 0 },
     { NULL, NULL, { 5872, -160, 4128, 0 }, { { -2144, -1152, 0, 0 }, { 2144, -1152, 0, 0 }, { -2144, 1152, 0, 0 }, { 2144, 1152, 0, 0 } }, { 0, 0, -4114, 0 }, 2428, 1, 0 },
     { NULL, NULL, { 5889, -16, 2016, 0 }, { { -2144, -1328, 0, 0 }, { 2144, -1328, 0, 0 }, { -2144, 1328, 0, 0 }, { 2144, 1328, 0, 0 } }, { 0, 0, -4096, 0 }, 2521, 1, 0 },
     { NULL, NULL, { 1824, -64, 1568, 0 }, { { 0, -768, 1376, 0 }, { 0, -640, -1376, 0 }, { 0, 640, 1376, 0 }, { 0, 768, -1376, 0 } }, { -4100, 0, 0, 0 }, 1572, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_dryfield_night_general_store_801856B4[2] = {
+/// Variant 1's moth resource for placement entry 8, followed by the end sentinel.
+///
+/// Loads decimal file 7 from base group 10 and spawns descriptor 0 from
+/// actor_100700. The loader and spawner borrow this table with the room.
+static AreaResource _gDryfieldNightGeneralStoreVariant1Resources[2] = {
     { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor00700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_general_store_801856CC[2] = {
+/// Variant 2's Scavenger resource for placement entry 16, followed by the end sentinel.
+///
+/// Loads decimal file 16 from base group 10 and spawns descriptor 0 from
+/// actor_101600. The loader and spawner borrow this table with the room.
+static AreaResource _gDryfieldNightGeneralStoreVariant2Resources[2] = {
     { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_general_store_801856E4[3] = {
+/// Variant 3's moth and scorpion resources for placement entries 8 and 25.
+///
+/// Loads files 7 and 25 from base groups 10 and 20 and spawns descriptor 0
+/// from actor_100700 and actor_202500 respectively. `AREA_PLACEMENT_END` ends
+/// the borrowed room-overlay table.
+static AreaResource _gDryfieldNightGeneralStoreVariant3Resources[3] = {
     { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor00700MothTaskDesc },
     { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor02500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_general_store_80185708[3] = {
+/// Variant 21's rat and Scavenger resources for placement entries 7 and 16.
+///
+/// Loads files 7 and 16 from base groups 10 and 20 and spawns descriptor 0
+/// from actor_100700 and actor_201600 respectively. `AREA_PLACEMENT_END` ends
+/// the borrowed room-overlay table.
+static AreaResource _gDryfieldNightGeneralStoreVariant21Resources[3] = {
     { 7, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor00700RatTaskDesc },
     { 16, 16, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
@@ -1516,9 +1648,9 @@ AreaResource D_dryfield_night_general_store_80185708[3] = {
 
 AreaVariant D_dryfield_night_general_store_8018572C[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017AEC8, D_dryfield_night_general_store_801856B4 },
-    { D_map_dryfield_full_8017AF18, D_dryfield_night_general_store_801856CC },
-    { D_map_dryfield_full_8017AF58, D_dryfield_night_general_store_801856E4 },
+    { D_map_dryfield_full_8017AEC8, _gDryfieldNightGeneralStoreVariant1Resources },
+    { D_map_dryfield_full_8017AF18, _gDryfieldNightGeneralStoreVariant2Resources },
+    { D_map_dryfield_full_8017AF58, _gDryfieldNightGeneralStoreVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1536,7 +1668,7 @@ AreaVariant D_dryfield_night_general_store_8018572C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017AFE8, D_dryfield_night_general_store_80185708 },
+    { D_map_dryfield_full_8017AFE8, _gDryfieldNightGeneralStoreVariant21Resources },
 };
 
 /// Minimum model ambient colours for logical views 1..16, following a count header.
@@ -1656,6 +1788,7 @@ u8 gStoreWarp = 0;
 
 u8 gStoreRoom = 0;
 
+/// Retained initialized byte with value 3; no consumer or role is established.
 u8 D_dryfield_night_general_store_801858C7 = 3;
 
 RoomEventReq gRoomEventReq;
@@ -1671,24 +1804,24 @@ void dryfieldNightGeneralStoreDrawLightShaftsTask(Task* unusedTask)
 
     switch (gGameSession->location.loc.view) {
         case 2:
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(_gDryfieldNightGeneralStoreLightShaftPoints[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 3:
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(_gDryfieldNightGeneralStoreLightShaftPoints[1], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 4:
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(_gDryfieldNightGeneralStoreLightShaftPoints[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(_gDryfieldNightGeneralStoreLightShaftPoints[1], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 8:
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
-            _glowDrawShaft(&D_dryfield_night_general_store_8017E7EC[2], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(_gDryfieldNightGeneralStoreLightShaftPoints[0], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(_gDryfieldNightGeneralStoreLightShaftPoints[1], DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 12:
-            _glowDrawShaft(D_dryfield_night_general_store_8017E80C, DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(_gDryfieldNightGeneralStoreView12LightShaftPoints, DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
         case 13:
-            _glowDrawShaft(D_dryfield_night_general_store_8017E81C, DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(_gDryfieldNightGeneralStoreView13LightShaftPoints, DRYFIELD_NIGHT_GENERAL_STORE_LIGHT_SHAFT_RADIUS_SCALE);
             break;
     }
 }
