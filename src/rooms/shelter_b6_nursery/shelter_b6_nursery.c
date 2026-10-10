@@ -267,7 +267,7 @@ TmdSource gShelterB6NurseryModel07BAC = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-u8* D_shelter_b6_nursery_80185304[1] = {
+u8* gShelterB6NurseryViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -278,29 +278,47 @@ DirectionWarpEntry D_shelter_b6_nursery_8018530C[2] = {
     { { { .word = 3072 }, 0x4CF4, 0, 3600 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x4CF4, 0, 3600 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelterB6NurseryCollision082E0Normals[14] = {
+/// Q12 room-space normals referenced by the nursery collision mesh.
+static SVECTOR _gShelterB6NurseryCollisionGridNormals[14] = {
 #include "assets/shelter_b6_nursery_collision_082E0_normals.inc"
 };
 
-static SVECTOR _gShelterB6NurseryCollision082E0Verts[54] = {
+/// Room-space vertices in signed game-coordinate units for the nursery mesh.
+static SVECTOR _gShelterB6NurseryCollisionGridVerts[54] = {
 #include "assets/shelter_b6_nursery_collision_082E0_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB6NurseryCollision082E0Faces[43] = {
+/// Nursery collision triangles/quads, with room-local surface classes 0 and 1.
+static WorldCollisionGridFace _gShelterB6NurseryCollisionGridFaces[43] = {
 #include "assets/shelter_b6_nursery_collision_082E0_faces.inc"
 };
 
-static s16 _gShelterB6NurseryCollision082E0Cells[120] = {
+/// Four terminated face-index lists and the final retained serialized halfword.
+static s16 _gShelterB6NurseryCollisionGridCells[120] = {
 #include "assets/shelter_b6_nursery_collision_082E0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB6NurseryCollision082E0Cells[i])
-static s16* _gShelterB6NurseryCollision082E0Table[4] = {
+// The generated table supplies halfword offsets into this grid's face lists.
+#define GRID_CELL(i) (&_gShelterB6NurseryCollisionGridCells[i])
+/// X-major pointers into the nursery grid's four face-index lists.
+static s16* _gShelterB6NurseryCollisionGridTable[4] = {
 #include "assets/shelter_b6_nursery_collision_082E0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_nursery_801858A0 = { NULL, _gShelterB6NurseryCollision082E0Normals, _gShelterB6NurseryCollision082E0Verts, _gShelterB6NurseryCollision082E0Faces, _gShelterB6NurseryCollision082E0Table, -50, 1450, 2, 2, 4000, 43 };
+WorldCollisionGrid gShelterB6NurseryCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB6NurseryCollisionGridNormals,
+    .vertices    = _gShelterB6NurseryCollisionGridVerts,
+    .faces       = _gShelterB6NurseryCollisionGridFaces,
+    .cellFaceIds = _gShelterB6NurseryCollisionGridTable,
+    .xBias       = -50,
+    .zBias       = 1450,
+    .cellCountX  = 2,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB6NurseryCollisionGridFaces),
+};
 
 ViewCamera D_shelter_b6_nursery_801858C4[19] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -3500, 0x61A8, -2500 } }, 447 },
@@ -324,225 +342,263 @@ ViewCamera D_shelter_b6_nursery_801858C4[19] = {
     { { { { 2356, 0, 3349 }, { -350, 4073, 246 }, { -3331, -428, 2344 } }, { -6700, 780, 110 } }, 289 },
 };
 
-SpriteBatch D_shelter_b6_nursery_80185B70[2] = {
+/// Empty view-1 sprite list; the zero first count keeps decoded background strips.
+static SpriteBatch _gShelterB6NurseryView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b6_nursery_80185B80[2] = {
+/// Empty view-2 sprite list; the zero first count keeps decoded background strips.
+static SpriteBatch _gShelterB6NurseryView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b6_nursery_80185B90[24] = {
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -136, -120, 760, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -136, -88, 758, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -136, -48, 750, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -128, -16, 775, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -136, -16, 762, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -128, 24, 775, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -136, 24, 757, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -128, 64, 787, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -136, 64, 758, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 96, 759, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -144, -120, 717, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -88, 721, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -144, -48, 720, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -16, 721, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 24, 723, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -144, 64, 724, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, 96, 726, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, -120, 673, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -88, 693, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, -48, 676, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -16, 677, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 24, 679, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -160, 64, 680, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 96, 682, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
+/// Texture and presentation values shared by the nursery's source sprites.
+enum {
+    SHELTER_B6_NURSERY_SPRITE_TPAGE         = getTPage(1, 0, 960, 0),
+    SHELTER_B6_NURSERY_SPRITE_CLUT          = getClut(0, 255),
+    SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR = 128,
 };
 
-SpriteBatch D_shelter_b6_nursery_80185D70[3] = {
+/// View-3 textured rectangles in screen pixels with unscaled sorting depths.
+static SpriteSource _gShelterB6NurseryView3SpriteSources[24] = {
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 32 } }, -136, -120, 760, { .fields = { 104, 184 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 40 } }, -136, -88, 758, { .fields = { 104, 40 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 32 } }, -136, -48, 750, { .fields = { 104, 120 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 40 } }, -128, -16, 775, { .fields = { 112, 120 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 40 } }, -136, -16, 762, { .fields = { 112, 80 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 40 } }, -128, 24, 775, { .fields = { 112, 40 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 40 } }, -136, 24, 757, { .fields = { 104, 80 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 40 } }, -128, 64, 787, { .fields = { 120, 80 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 32 } }, -136, 64, 758, { .fields = { 96, 64 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 16 } }, -136, 96, 759, { .fields = { 120, 240 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 32 } }, -144, -120, 717, { .fields = { 96, 32 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, -88, 721, { .fields = { 120, 40 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 32 } }, -144, -48, 720, { .fields = { 96, 96 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, -16, 721, { .fields = { 120, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, 24, 723, { .fields = { 120, 120 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 32 } }, -144, 64, 724, { .fields = { 96, 184 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 24 } }, -144, 96, 726, { .fields = { 88, 32 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 32 } }, -160, -120, 673, { .fields = { 96, 152 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, -88, 693, { .fields = { 104, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 32 } }, -160, -48, 676, { .fields = { 96, 216 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, -16, 677, { .fields = { 112, 200 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, 24, 679, { .fields = { 112, 160 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 32 } }, -160, 64, 680, { .fields = { 88, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 24 } }, -160, 96, 682, { .fields = { 88, 128 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+};
+
+/// View-3 sprite ranges: keep background strips, draw every source, then end.
+static SpriteBatch _gShelterB6NurseryView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 24, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB6NurseryView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b6_nursery_80185D88[44] = {
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 16, 836, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 16, 787, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 16, 806, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, 16, 793, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 64, 8, 806, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 16, 777, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 40, 800, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 48, 688, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 56, 656, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 64, 637, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 64, 637, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 72, 547, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 72, 554, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 80, 535, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 80, 510, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 16, 88, 476, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, 88, 428, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 96, 434, { .fields = { 72, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, 104, 438, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 32, 800, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, 32, 800, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, 48, 675, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, 64, 514, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, 80, 493, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 96, 424, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 104, 427, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, 96, 415, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 32, 803, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 48, 664, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 64, 491, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 80, 492, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, 96, 403, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 32, 785, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, 24, 773, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 104, 48, 642, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, -24, 849, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, -48, 917, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, -48, 913, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, -32, 915, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, -32, 846, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 88, -24, 884, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, -8, 897, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 8, 792, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 24, 799, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+/// View-4 textured rectangles partitioned between two drawing batches.
+static SpriteSource _gShelterB6NurseryView4SpriteSources[44] = {
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 40, 16, 836, { .fields = { 88, 144 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 56, 16, 787, { .fields = { 88, 96 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 16, 806, { .fields = { 88, 48 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, 16, 793, { .fields = { 88, 64 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 8 } }, 64, 8, 806, { .fields = { 80, 184 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, 16, 777, { .fields = { 88, 80 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 40, 800, { .fields = { 88, 16 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 48, 688, { .fields = { 80, 160 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 56, 656, { .fields = { 80, 192 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 24, 64, 637, { .fields = { 80, 40 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 64, 637, { .fields = { 80, 32 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 24, 72, 547, { .fields = { 80, 224 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 72, 554, { .fields = { 80, 240 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 24, 80, 535, { .fields = { 80, 232 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 80, 510, { .fields = { 88, 216 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 16, 88, 476, { .fields = { 88, 208 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 8 } }, 32, 88, 428, { .fields = { 72, 24 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 8 } }, 16, 96, 434, { .fields = { 72, 8 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 16, 104, 438, { .fields = { 80, 128 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 32, 800, { .fields = { 80, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, 32, 800, { .fields = { 104, 176 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, 48, 675, { .fields = { 104, 160 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, 64, 514, { .fields = { 104, 208 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, 80, 493, { .fields = { 104, 192 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 96, 424, { .fields = { 88, 200 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 40, 104, 427, { .fields = { 112, 112 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, 96, 415, { .fields = { 104, 48 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 32, 803, { .fields = { 104, 144 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 48, 664, { .fields = { 104, 128 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 64, 491, { .fields = { 88, 112 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 80, 492, { .fields = { 96, 240 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, 96, 403, { .fields = { 104, 72 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 104, 32, 785, { .fields = { 96, 224 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 24 } }, 120, 24, 773, { .fields = { 120, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 32, 24 } }, 104, 48, 642, { .fields = { 96, 24 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 8 } }, 104, -24, 849, { .fields = { 112, 16 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, -48, 917, { .fields = { 104, 96 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 96, -48, 913, { .fields = { 104, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 80, -32, 915, { .fields = { 88, 176 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 96, -32, 846, { .fields = { 88, 168 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 88, -24, 884, { .fields = { 112, 224 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, -8, 897, { .fields = { 120, 240 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 8, 792, { .fields = { 96, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 24, 799, { .fields = { 120, 96 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b6_nursery_801860F8[4] = {
+/// Number of source sprites selected by view 4's first nonempty batch.
+enum { SHELTER_B6_NURSERY_VIEW4_BATCH1_SPRITE_COUNT = 35 };
+
+/// View-4 ranges: background strips, 35 sprites, the remaining nine, then end.
+///
+/// The first nonempty range retains an uninterpreted 1 in its serialized bytes.
+static SpriteBatch _gShelterB6NurseryView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 35, 0, 0, { 1, 0 } },
-    { 35, 9, 0, 0, { 0, 0 } },
+    { 0, SHELTER_B6_NURSERY_VIEW4_BATCH1_SPRITE_COUNT, 0, 0, { 1, 0 } },
+    { SHELTER_B6_NURSERY_VIEW4_BATCH1_SPRITE_COUNT, ARRAY_SIZE(_gShelterB6NurseryView4SpriteSources) - SHELTER_B6_NURSERY_VIEW4_BATCH1_SPRITE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b6_nursery_80186118[17] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 48, 381, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 144, 88, 326, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, 112, 475, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 48, 396, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 64, 399, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, 72, 432, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 80, 404, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 56, 374, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 72, 377, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 88, 392, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 104, 400, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, 96, 476, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 64, 354, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 80, 360, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, 96, 363, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 80, 332, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 96, 346, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
+/// View-5 textured rectangles in screen pixels with unscaled sorting depths.
+static SpriteSource _gShelterB6NurseryView5SpriteSources[17] = {
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, 48, 381, { .fields = { 112, 24 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 8 } }, 144, 88, 326, { .fields = { 120, 248 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, 112, 475, { .fields = { 120, 240 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, 48, 396, { .fields = { 112, 160 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, 64, 399, { .fields = { 112, 144 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 16 } }, 72, 72, 432, { .fields = { 120, 128 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, 80, 404, { .fields = { 112, 176 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 96, 56, 374, { .fields = { 112, 224 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 96, 72, 377, { .fields = { 112, 208 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 96, 88, 392, { .fields = { 112, 192 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 96, 104, 400, { .fields = { 112, 64 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, 96, 476, { .fields = { 120, 48 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 64, 354, { .fields = { 112, 80 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 80, 360, { .fields = { 112, 112 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 24 } }, 112, 96, 363, { .fields = { 112, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 128, 80, 332, { .fields = { 112, 96 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 24 } }, 128, 96, 346, { .fields = { 120, 24 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b6_nursery_8018626C[3] = {
+/// View-5 sprite ranges: keep background strips, draw every source, then end.
+static SpriteBatch _gShelterB6NurseryView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 17, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB6NurseryView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b6_nursery_80186284[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b6_nursery_80186294[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b6_nursery_801862A4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b6_nursery_801862B4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteSource D_shelter_b6_nursery_801862C4[38] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 88, 32, 129, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, 56, 154, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 80, 142, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 24, 135, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 24, 132, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, 40, 150, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 72, 40, 122, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 96, 40, 150, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 48, 151, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, 48, 153, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -16, 64, 150, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 8, 64, 150, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 32, 64, 150, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, 64, 150, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, 64, 121, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 104, 64, 139, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -24, 88, 150, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 8, 88, 150, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 40, 88, 137, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 72, 88, 122, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 104, 88, 128, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, 0, 739, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, -8, 745, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, -8, 752, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -8, 759, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -8, 766, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, 8, 732, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, 8, 742, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -48, 8, 752, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -24, 8, 763, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, -8, 774, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, 32, 722, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -96, 56, 713, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, 32, 732, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -48, 32, 742, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -24, 32, 752, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, 56, 700, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 56, 1163, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-};
-
-SpriteBatch D_shelter_b6_nursery_801865BC[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 1, 0 } },
-    { 21, 17, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b6_nursery_801865DC[2] = {
+/// Empty view-6 sprite list; the zero first count keeps decoded background strips.
+static SpriteBatch _gShelterB6NurseryView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b6_nursery_801865EC[2] = {
+/// Empty view-7 sprite list; the zero first count keeps decoded background strips.
+static SpriteBatch _gShelterB6NurseryView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b6_nursery_801865FC[12] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, -16, 511, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, -120, 536, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -96, 681, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -72, 861, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -48, 1000, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -24, 1000, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, -80, 766, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, -64, 905, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, -48, 1123, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, -24, 1130, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, 0, 977, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 0, 696, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+/// Empty view-8 sprite list; the zero first count keeps decoded background strips.
+static SpriteBatch _gShelterB6NurseryView8SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b6_nursery_801866EC[3] = {
+/// Empty view-9 sprite list; the zero first count keeps decoded background strips.
+static SpriteBatch _gShelterB6NurseryView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// View-10 textured rectangles partitioned between two drawing batches.
+static SpriteSource _gShelterB6NurseryView10SpriteSources[38] = {
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 8 } }, 88, 32, 129, { .fields = { 80, 152 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 8 } }, 8, 56, 154, { .fields = { 80, 120 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 8 } }, 128, 80, 142, { .fields = { 72, 120 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 56, 24, 135, { .fields = { 56, 64 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 24, 132, { .fields = { 56, 80 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 48, 40, 150, { .fields = { 104, 232 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 72, 40, 122, { .fields = { 56, 176 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 96, 40, 150, { .fields = { 56, 200 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 48, 151, { .fields = { 56, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 16, 48, 153, { .fields = { 56, 16 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -16, 64, 150, { .fields = { 72, 128 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 8, 64, 150, { .fields = { 72, 48 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 32, 64, 150, { .fields = { 56, 224 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, 64, 150, { .fields = { 56, 152 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, 64, 121, { .fields = { 64, 96 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 104, 64, 139, { .fields = { 72, 72 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 32, 32 } }, -24, 88, 150, { .fields = { 96, 32 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 32, 32 } }, 8, 88, 150, { .fields = { 96, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 32, 32 } }, 40, 88, 137, { .fields = { 96, 64 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 32, 32 } }, 72, 88, 122, { .fields = { 96, 128 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 40, 32 } }, 104, 88, 128, { .fields = { 88, 96 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 8 } }, -88, 0, 739, { .fields = { 88, 152 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, -80, -8, 745, { .fields = { 56, 120 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, -64, -8, 752, { .fields = { 40, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, -8, 759, { .fields = { 48, 96 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, -8, 766, { .fields = { 56, 136 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, 8, 732, { .fields = { 104, 184 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -72, 8, 742, { .fields = { 72, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -48, 8, 752, { .fields = { 72, 24 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -24, 8, 763, { .fields = { 80, 232 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, -8, 774, { .fields = { 56, 32 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, 32, 722, { .fields = { 80, 184 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -96, 56, 713, { .fields = { 80, 208 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -72, 32, 732, { .fields = { 104, 208 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -48, 32, 742, { .fields = { 80, 160 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, -24, 32, 752, { .fields = { 104, 160 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, -72, 56, 700, { .fields = { 48, 48 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 56, 1163, { .fields = { 56, 248 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+};
+
+/// Number of source sprites selected by view 10's first nonempty batch.
+enum { SHELTER_B6_NURSERY_VIEW10_BATCH1_SPRITE_COUNT = 21 };
+
+/// View-10 ranges: background strips, 21 sprites, the remaining 17, then end.
+///
+/// The first nonempty range retains an uninterpreted 1 in its serialized bytes.
+static SpriteBatch _gShelterB6NurseryView10SpriteBatches[4] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, SHELTER_B6_NURSERY_VIEW10_BATCH1_SPRITE_COUNT, 0, 0, { 1, 0 } },
+    { SHELTER_B6_NURSERY_VIEW10_BATCH1_SPRITE_COUNT, ARRAY_SIZE(_gShelterB6NurseryView10SpriteSources) - SHELTER_B6_NURSERY_VIEW10_BATCH1_SPRITE_COUNT, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// Empty view-11 sprite list; the zero first count keeps decoded background strips.
+static SpriteBatch _gShelterB6NurseryView11SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// Empty view-12 sprite list; the zero first count keeps decoded background strips.
+static SpriteBatch _gShelterB6NurseryView12SpriteBatches[2] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+/// View-13 textured rectangles in screen pixels with unscaled sorting depths.
+static SpriteSource _gShelterB6NurseryView13SpriteSources[12] = {
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 8 } }, 104, -16, 511, { .fields = { 120, 216 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 24 } }, 88, -120, 536, { .fields = { 112, 120 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, -96, 681, { .fields = { 104, 96 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, -72, 861, { .fields = { 104, 144 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, -48, 1000, { .fields = { 104, 72 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 80, -24, 1000, { .fields = { 104, 0 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 8, 16 } }, 72, -80, 766, { .fields = { 120, 184 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 16 } }, 64, -64, 905, { .fields = { 112, 200 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, -48, 1123, { .fields = { 104, 48 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 24 } }, 56, -24, 1130, { .fields = { 104, 24 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, 0, 977, { .fields = { 104, 168 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_NURSERY_SPRITE_TPAGE, SHELTER_B6_NURSERY_SPRITE_CLUT, { .fields = { 16, 8 } }, 80, 0, 696, { .fields = { 112, 224 } }, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, SHELTER_B6_NURSERY_SPRITE_NEUTRAL_COLOR, 0 },
+};
+
+/// View-13 sprite ranges; the source range can be hidden by room scripts.
+///
+/// The zero-count first record keeps background strips; the next covers every
+/// source, followed by `SPRITE_BATCH_END`. Hidden state is mutable at runtime.
+static SpriteBatch _gShelterB6NurseryView13SpriteBatches[3] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB6NurseryView13SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -692,19 +748,19 @@ SpriteBatch D_shelter_b6_nursery_80186FC0[2] = {
 };
 
 SpriteView D_shelter_b6_nursery_80186FD0[19] = {
-    { { .empty = D_shelter_b6_nursery_80185B70 }, D_shelter_b6_nursery_80185B70, NULL },
-    { { .empty = D_shelter_b6_nursery_80185B80 }, D_shelter_b6_nursery_80185B80, NULL },
-    { { .elements = D_shelter_b6_nursery_80185B90 }, D_shelter_b6_nursery_80185D70, NULL },
-    { { .elements = D_shelter_b6_nursery_80185D88 }, D_shelter_b6_nursery_801860F8, NULL },
-    { { .elements = D_shelter_b6_nursery_80186118 }, D_shelter_b6_nursery_8018626C, NULL },
-    { { .empty = D_shelter_b6_nursery_80186284 }, D_shelter_b6_nursery_80186284, NULL },
-    { { .empty = D_shelter_b6_nursery_80186294 }, D_shelter_b6_nursery_80186294, NULL },
-    { { .empty = D_shelter_b6_nursery_801862A4 }, D_shelter_b6_nursery_801862A4, NULL },
-    { { .empty = D_shelter_b6_nursery_801862B4 }, D_shelter_b6_nursery_801862B4, NULL },
-    { { .elements = D_shelter_b6_nursery_801862C4 }, D_shelter_b6_nursery_801865BC, NULL },
-    { { .empty = D_shelter_b6_nursery_801865DC }, D_shelter_b6_nursery_801865DC, NULL },
-    { { .empty = D_shelter_b6_nursery_801865EC }, D_shelter_b6_nursery_801865EC, NULL },
-    { { .elements = D_shelter_b6_nursery_801865FC }, D_shelter_b6_nursery_801866EC, NULL },
+    { { .empty = _gShelterB6NurseryView1SpriteBatches }, _gShelterB6NurseryView1SpriteBatches, NULL },
+    { { .empty = _gShelterB6NurseryView2SpriteBatches }, _gShelterB6NurseryView2SpriteBatches, NULL },
+    { { .elements = _gShelterB6NurseryView3SpriteSources }, _gShelterB6NurseryView3SpriteBatches, NULL },
+    { { .elements = _gShelterB6NurseryView4SpriteSources }, _gShelterB6NurseryView4SpriteBatches, NULL },
+    { { .elements = _gShelterB6NurseryView5SpriteSources }, _gShelterB6NurseryView5SpriteBatches, NULL },
+    { { .empty = _gShelterB6NurseryView6SpriteBatches }, _gShelterB6NurseryView6SpriteBatches, NULL },
+    { { .empty = _gShelterB6NurseryView7SpriteBatches }, _gShelterB6NurseryView7SpriteBatches, NULL },
+    { { .empty = _gShelterB6NurseryView8SpriteBatches }, _gShelterB6NurseryView8SpriteBatches, NULL },
+    { { .empty = _gShelterB6NurseryView9SpriteBatches }, _gShelterB6NurseryView9SpriteBatches, NULL },
+    { { .elements = _gShelterB6NurseryView10SpriteSources }, _gShelterB6NurseryView10SpriteBatches, NULL },
+    { { .empty = _gShelterB6NurseryView11SpriteBatches }, _gShelterB6NurseryView11SpriteBatches, NULL },
+    { { .empty = _gShelterB6NurseryView12SpriteBatches }, _gShelterB6NurseryView12SpriteBatches, NULL },
+    { { .elements = _gShelterB6NurseryView13SpriteSources }, _gShelterB6NurseryView13SpriteBatches, NULL },
     { { .empty = D_shelter_b6_nursery_80186704 }, D_shelter_b6_nursery_80186704, NULL },
     { { .elements = D_shelter_b6_nursery_80186714 }, D_shelter_b6_nursery_80186B10, NULL },
     { { .elements = D_shelter_b6_nursery_80186B28 }, D_shelter_b6_nursery_80186F88, NULL },
@@ -713,15 +769,26 @@ SpriteView D_shelter_b6_nursery_80186FD0[19] = {
     { { .empty = D_shelter_b6_nursery_80186FC0 }, D_shelter_b6_nursery_80186FC0, NULL },
 };
 
-WorldCoordPointLight D_shelter_b6_nursery_801870B4[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5491, -2000, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5491, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5491, -2000, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3491, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1491, -2000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
+/// Five warm point lights with 2000-unit full-strength and 2750-unit outer radii.
+///
+/// Positions use room-coordinate units and RGB uses Q12 intensity. Every light
+/// applies in every view; transform caches, parents and attenuation are mutable.
+static WorldCoordPointLight _gShelterB6NurseryPointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5491, -2000, 5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5491, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5491, -2000, 2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3491, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1491, -2000, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3112, 3031, 2949 }, { 0, 0 } }, 2000, 2750 },
 };
 
-WorldCoordRoomLights D_shelter_b6_nursery_80187294 = { 0, NULL, ARRAY_SIZE(D_shelter_b6_nursery_801870B4), D_shelter_b6_nursery_801870B4, 0, NULL };
+WorldCoordRoomLights gShelterB6NurseryRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB6NurseryPointLights),
+    .pointLights           = _gShelterB6NurseryPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b6_nursery_801872AC[6] = {
     { NULL, NULL, NULL, { 5616, -1504, 4352, 0 }, { { 2032, -1904, 0, 0 }, { -2032, -1904, 0, 0 }, { 2032, 1904, 0, 0 }, { -2032, 1904, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 4096, 0 }, 2780, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -770,8 +837,8 @@ WorldCollisionTrigger D_shelter_b6_nursery_8018750C[12] = {
     { NULL, NULL, NULL, { 5536, -64, 5440, 0 }, { { -1584, 0, -704, 0 }, { 1584, 0, -704, 0 }, { -1584, 0, 704, 0 }, { 1584, 0, 704, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 1731, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b6_nursery_8018789C[20] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b6_nursery_8018789C) - 1 },
+WorldCoordRoomAmbientEntry gShelterB6NurseryAmbientByView[20] = {
+    { .viewCount = ARRAY_SIZE(gShelterB6NurseryAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 1098, 1116, 1256, 1126 } },
     { .color = { 1237, 1258, 1320, 1257 } },
@@ -793,29 +860,46 @@ WorldCoordRoomAmbientEntry D_shelter_b6_nursery_8018789C[20] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_shelter_b6_nursery_8018793C = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Cue-2 script entries in the loaded type-1 bank; cue 1 uses the next entry.
+enum {
+    SHELTER_B6_NURSERY_FOOTSTEP_WALK_SCRIPT = 0x2D,
+    SHELTER_B6_NURSERY_FOOTSTEP_RUN_SCRIPT  = 0x2F,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_nursery_80187948[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class-1 paired footstep requests, with walking cues reused for scripted jumps.
+static WorldCollisionFootstepSounds _gShelterB6NurseryFootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B6_NURSERY_FOOTSTEP_WALK_SCRIPT,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B6_NURSERY_FOOTSTEP_RUN_SCRIPT,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B6_NURSERY_FOOTSTEP_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_nursery_80187950[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_nursery_8018793C },
+/// Blocking, impact-enabled surface with pushback and no footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB6NurserySilentBlockingSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b6_nursery_80187958[8] = {
-    D_shelter_b6_nursery_80187948,
-    D_shelter_b6_nursery_80187950,
-    D_shelter_b6_nursery_80187948,
-    D_shelter_b6_nursery_80187948,
-    D_shelter_b6_nursery_80187948,
-    D_shelter_b6_nursery_80187948,
-    D_shelter_b6_nursery_80187948,
-    D_shelter_b6_nursery_80187948,
+/// Blocking, impact-enabled class-1 surface with pushback and paired footsteps.
+static WorldCollisionSurfaceProperties _gShelterB6NurseryFootstepBlockingSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gShelterB6NurseryFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB6NurserySurfaceProperties[8] = {
+    &_gShelterB6NurserySilentBlockingSurface,
+    &_gShelterB6NurseryFootstepBlockingSurface,
+    &_gShelterB6NurserySilentBlockingSurface,
+    &_gShelterB6NurserySilentBlockingSurface,
+    &_gShelterB6NurserySilentBlockingSurface,
+    &_gShelterB6NurserySilentBlockingSurface,
+    &_gShelterB6NurserySilentBlockingSurface,
+    &_gShelterB6NurserySilentBlockingSurface,
 };
 
 Task* gRoomCutsceneSoundTask;

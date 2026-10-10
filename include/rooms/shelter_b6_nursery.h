@@ -17,28 +17,54 @@ extern TmdSource gShelterB6NurseryModel07BAC;
 
 extern AreaVariant D_shelter_b6_nursery_801874A4[13];
 
-// shelter_b6_nursery
-extern u8* D_shelter_b6_nursery_80185304[];
+/// Logical-view maps for the nursery's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..19 select the same
+/// camera, image and sprite indices. The directory has no terminator and
+/// stays valid while the nursery overlay is loaded.
+extern u8* gShelterB6NurseryViewMaps[1];
 
 extern ViewCount D_shelter_b6_nursery_80185308[];
 
 extern DirectionWarpEntry D_shelter_b6_nursery_8018530C[];
 
-extern WorldCollisionGrid D_shelter_b6_nursery_801858A0;
+/// Nursery collision mesh and its four XZ face-index cells.
+///
+/// Contains 43 faces over 54 vertices and 14 Q12 normals. The 2 by 2 cells
+/// have 4000-unit sides and an origin at room X=50, Z=-1450; lists end at
+/// `WORLD_COLLISION_GRID_CELL_END`. Activation binds the view coordinate.
+/// The descriptor and its private pools must stay loaded while active.
+extern WorldCollisionGrid gShelterB6NurseryCollisionGrid;
 
 extern ViewCamera D_shelter_b6_nursery_801858C4[];
 
 extern SpriteView D_shelter_b6_nursery_80186FD0[];
 
-extern WorldCoordRoomLights D_shelter_b6_nursery_80187294;
+/// The nursery's five point lights for model shading and spatial light queries.
+///
+/// All five apply in every view; there are no directional or cone lights.
+/// Coordinate composition and lighting queries mutate the private light array,
+/// which stays live with this record while the nursery overlay is loaded.
+extern WorldCoordRoomLights gShelterB6NurseryRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b6_nursery_801872AC[];
 
 extern WorldCollisionTrigger D_shelter_b6_nursery_8018750C[];
 
-extern WorldCoordRoomAmbientEntry D_shelter_b6_nursery_8018789C[];
+/// Minimum model ambient colours for nursery views 1..19.
+///
+/// Entry zero holds the count; entry `view` holds that view's RGB minima
+/// in sixteenths of an 8-bit colour level and a retained weighted luma.
+/// Views 2..5 have brighter minima; the other views use one colour level.
+/// Consumers borrow this table while the nursery overlay is loaded.
+extern WorldCoordRoomAmbientEntry gShelterB6NurseryAmbientByView[20];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b6_nursery_80187958[];
+/// Collision and footstep policies indexed by nursery surface class 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies pushback.
+/// Class 1 supplies paired footstep cues; the other classes have none and
+/// share one record. All pointers borrow storage in the loaded nursery overlay.
+extern WorldCollisionSurfaceProperties* gShelterB6NurserySurfaceProperties[8];
 
 /// Dispatches the nursery room task's initialization, idle or release state.
 ///
