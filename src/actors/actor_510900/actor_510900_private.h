@@ -7,6 +7,7 @@
 #include "common.h"
 
 #include "actors/actor.h"
+#include "actors/task_tables.h"
 
 #include "gameplay/actor.h"
 #include "gameplay/animation.h"
@@ -129,16 +130,19 @@ typedef struct {
 } Actor510900Work;
 STATIC_ASSERT_SIZEOF(Actor510900Work, 0x5C8);
 
-/// `TaskDesc` table the state hands `enemySpawnFromTable` (entry 4).
-extern TaskDesc D_actor_510900_80167A18[];
+/// Akropolis No. 9 GOLEM combat parameters, borrowed by its body enemy.
+///
+/// Six attack rows; starts with 1600 HP. Release awards 500 experience,
+/// 800 battle points and 30 magic points. Critical-hit chance is 50 percent;
+/// buildup lasts three base steps and damage over time is disabled.
+extern EnemyParams gActor510900EnemyParams;
 
-/// The enemy parameters the context's `field_50` points at; its `hpMax` seeds
-/// the enemy's hit points.
-extern EnemyParams D_actor_510900_80167980;
-
-/// The animation data `animationInitContext` builds the work block's clip context
-/// from; the spawn hands it over whole, so it is only ever a byte address here.
-extern u8 D_actor_510900_80167AA4[];
+/// Animation-set bank borrowed by the nineteen-part No. 9 body rig.
+///
+/// Slot 0 is NULL; combat and event clips occupy IDs 1..33. Event requests
+/// add 27 to their ID and must remain within this bank. Keep this overlay
+/// loaded for every animation context borrowing its sets.
+extern AnimationSet* gActor510900BodyAnimationSets[34];
 
 extern TmdSource gActor510900No9GolemAkropolisBody;
 
@@ -151,6 +155,40 @@ extern TmdSource gActor510900Model10468;
 extern TmdSource gActor510900GolemGrenade;
 
 extern TmdSource gActor510900Model10C8C;
+
+extern AnimationSet _gActor510900Animation11CC0;
+extern AnimationSet _gActor510900Animation11FB8;
+extern AnimationSet _gActor510900Animation129B0;
+extern AnimationSet _gActor510900Animation13884;
+extern AnimationSet _gActor510900Animation142A0;
+extern AnimationSet _gActor510900Animation14E4C;
+extern AnimationSet _gActor510900Animation172DC;
+extern AnimationSet _gActor510900Animation17CB8;
+extern AnimationSet _gActor510900Animation186E0;
+extern AnimationSet _gActor510900Animation18B5C;
+extern AnimationSet _gActor510900Animation1A250;
+extern AnimationSet _gActor510900Animation1A994;
+extern AnimationSet _gActor510900Animation1BFA8;
+extern AnimationSet _gActor510900Animation1CBA8;
+extern AnimationSet _gActor510900Animation1D868;
+extern AnimationSet _gActor510900Animation1E56C;
+extern AnimationSet _gActor510900Animation1EF7C;
+extern AnimationSet _gActor510900Animation2035C;
+extern AnimationSet _gActor510900Animation2093C;
+extern AnimationSet _gActor510900Animation213E4;
+extern AnimationSet _gActor510900Animation217A4;
+extern AnimationSet _gActor510900Animation22074;
+extern AnimationSet _gActor510900Animation223F8;
+extern AnimationSet _gActor510900Animation24128;
+extern AnimationSet _gActor510900Animation24FE8;
+extern AnimationSet _gActor510900Animation267A8;
+extern AnimationSet _gActor510900Animation273B8;
+extern AnimationSet _gActor510900Animation2A068;
+extern AnimationSet _gActor510900Animation2B800;
+extern AnimationSet _gActor510900Animation2E9DC;
+extern AnimationSet _gActor510900Animation2BC04;
+extern AnimationSet _gActor510900Animation324C0;
+extern AnimationSet _gActor510900Animation353AC;
 
 extern AnimationSet gActor510900Animation27994;
 
@@ -166,7 +204,12 @@ extern AnimationSet gActor510900Animation35B20;
 /// ignition. Each row's power and player reaction are copied into a contact key.
 extern DamageAttack gActor510900Attacks[6];
 
-extern TaskMessageEntry D_actor_510900_80167A6C[7];
+/// No. 9 body messages for grenade release, animation, placement, draw, activation and presence.
+///
+/// Six callbacks followed by `TASK_MESSAGE_TABLE_END`. Activation message
+/// 2007 takes command 0 show, 1 start the fight, 2 hide. Pointer payloads are
+/// borrowed only during synchronous dispatch; the table lives in this overlay.
+extern TaskMessageEntry gActor510900BodyMessages[7];
 
 /// Initializes the Akropolis No. 9 golem body, children and collision spheres.
 ///

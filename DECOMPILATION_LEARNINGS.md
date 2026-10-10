@@ -75492,7 +75492,7 @@ Recognise the family from the call rather than from the score: all of these
 handlers are the `(task, opcodeId, args)` shape and several end in the same
 slots-reseed loop `for (i = 1; i < 0x13; i++) animationSeekSlotWithBlend(ctx, i, animId, 0,
 blend)`. Example: `_actor510900PlayEventAnimation`, the 0x7D3 entry of the
-`D_actor_510900_80167A6C` table the section above is about. Matched first try;
+`gActor510900BodyMessages` table the section above is about. Matched first try;
 input `base_1.i`
 `e79c7d071e85b9876a009ba260d18c10616e87483c0ed056511d3b42c1f06a8c`.
 
@@ -75718,7 +75718,7 @@ idiom `src/actors/lib/actor_100700_text.c:94` already uses — is the whole fix:
 
 ```c
 work->stateCounter =
-    D_actor_510900_801679F0[((u32)(rng = gRandomLcgState * 5 + 0x71357911) >> 16) & 0xF];
+    _gActor510900ReactionWaitFrames[((u32)(rng = gRandomLcgState * 5 + 0x71357911) >> 16) & 0xF];
 gRandomLcgState = rng;
 ```
 
@@ -95978,7 +95978,7 @@ goes to a struct field:
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
 work->weaponAttack.flags &= 0x7FFF;
 work->forearmAttack.flags &= 0x7FFF;
-work->stateCounter = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
+work->stateCounter = _gActor510900PostAttackWaitFrames[(gRandomLcgState >> 16) & 0xF];
 ```
 
 put the `lhu` after the flag updates, while the target has it before them and
@@ -95987,7 +95987,7 @@ against each other, so the `sh` pins the whole expression; giving the load its
 own temp lets it float ahead while the store stays last:
 
 ```c
-val = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
+val = _gActor510900PostAttackWaitFrames[(gRandomLcgState >> 16) & 0xF];
 work->weaponAttack.flags &= 0x7FFF;
 work->forearmAttack.flags &= 0x7FFF;
 work->stateCounter = val;
@@ -96657,15 +96657,15 @@ of the function merges the live ranges instead and scores worse.
 
 ## A symbol-based `array[i]` materialises its address *after* the index; a pointer local moves it before
 
-`work->stateCounter = D_actor_510900_801679D0[(gRandomLcgState >> 0x10) & 0xF];` puts
+`work->stateCounter = _gActor510900PostAttackWaitFrames[(gRandomLcgState >> 0x10) & 0xF];` puts
 the `lui`/`addiu` pair at the end of the block:
 
 ```
 sll   a0,a1,0x2        ; index: gRandomLcgState * 5 + 0x71357911
 addu  a0,a0,a1
 addu  a0,a0,a3
-lui   v1,%hi(D_actor_510900_801679D0)
-addiu v1,v1,%lo(D_actor_510900_801679D0)
+lui   v1,%hi(_gActor510900PostAttackWaitFrames)
+addiu v1,v1,%lo(_gActor510900PostAttackWaitFrames)
 srl   v0,a0,0xf
 ```
 
@@ -96680,7 +96680,7 @@ at the end by `memory_address`. Give the base its own pointer local and the pair
 is emitted at that assignment instead, ahead of the index:
 
 ```c
-u16* tbl = D_actor_510900_801679D0;
+u16* tbl = _gActor510900PostAttackWaitFrames;
 ...
 work->stateCounter = tbl[(gRandomLcgState >> 0x10) & 0xF];
 ```
@@ -96714,7 +96714,7 @@ memory; the fix is to put the global store that the original had there back
 between them, by embedding the assignment in the comparison:
 
 ```c
-if ((D_actor_510900_80167A10[work->stateCounter] <
+if ((_gActor510900SlashContinuationThresholds[work->stateCounter] <
      (s32)(((gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 0x10) & 0xF)) ||
     (work->stateCounter >= 3)) {
 ```
@@ -117107,7 +117107,7 @@ all four are about *where an instruction lands in sched1's output*.
 `actor_510900` writes this same LCG-plus-table pattern as
 
 ```c
-    u16* tbl        = D_actor_510900_801679D0;
+    u16* tbl        = _gActor510900PostAttackWaitFrames;
     gRandomLcgState     = gRandomLcgState * 5 + 0x71357911;
     work->stateCounter = tbl[(gRandomLcgState >> 0x10) & 0xF];
 ```

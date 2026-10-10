@@ -54,7 +54,7 @@ enum {
     /// (actor_311900 sets it, and is torn down on later loads).
     GAME_FLAG_SECURITY_MONITOR_SCENES_SEEN = 0x00A,
     /// Unidentified. Written every tick by enemy actor_510900 with a value from its
-    /// table D_actor_510900_80167CEC indexed by its state; no reader found.
+    /// table `_gActor510900HelipadStatusFlagValues` indexed by source phase and light-2 status; no reader found.
     GAME_FLAG_00D = 0x00D,
     /// Unidentified. Akropolis cafeteria-related state: 1 after the cafeteria scene, 2
     /// when the patio door message (3) is used while it equals 3, 4 when the follow-up

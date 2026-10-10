@@ -259,8 +259,15 @@ static s32 _actor510900SetModelDraw(Task* task, s32 messageId, s32 drawEnabled, 
 
 static s32 _actor510900IsPresent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-// Only the leading view ID is read; retain the following halfwords.
-extern u16 D_actor_510900_80167CE4[4];
+/// Mapped views in which each of the three helipad lights runs.
+///
+/// The blast source uses the first view of light 2. The final stored halfword
+/// has no observed reader and its role is unproven.
+typedef struct {
+    u16 lightViews[3][3]; // Three mapped camera-view IDs per light, indexed by light 0..2
+    u16 field_12;         // Unread halfword; role unproven
+} _Actor510900HelipadViews;
+STATIC_ASSERT_SIZEOF(_Actor510900HelipadViews, 0x14);
 
 /// Scratch block of the step that carries the golem's three wall faces in the
 /// room's collision grid to where the golem stands.
@@ -370,21 +377,6 @@ typedef struct {
 } _Actor510900GrenadeWork;
 STATIC_ASSERT_SIZEOF(_Actor510900GrenadeWork, 0xD0);
 
-/// Animation-set table handed to the player as the 0x3FF payload's `source.sets`.
-extern AnimationSet* D_actor_510900_80167B2C[];
-
-/// Spawn position of the child, indexed by its `Task::spawnArg1`.
-extern SVECTOR D_actor_510900_80167CB8[];
-/// Spawn rotation about Y, indexed the same way.
-extern u16 D_actor_510900_80167CD0[];
-/// Animation set table `animationInitContext` installs in the context above.
-extern AnimationSet* D_actor_510900_80167CAC[];
-
-/// `_Actor510900GrenadeWork::phaseCounter` of the flight, the pitch added each
-/// frame, per 1000 units of distance between the grenade and the player,
-/// clamped to the last entry.
-extern u16 D_actor_510900_80167C94[12];
-
 /// Values of `_Actor510900BlastSourceWork::state`.
 enum {
     ACTOR_510900_BLAST_SOURCE_DORMANT = 0, // Waiting for helipad light 2 to break
@@ -420,23 +412,6 @@ typedef struct {
 } _Actor510900BlastSourceWork;
 STATIC_ASSERT_SIZEOF(_Actor510900BlastSourceWork, 0x7C);
 
-/// Table the state 1 handler below picks `stateCounter` from; a 4-bit
-/// `gRandomLcgState` draw indexes at least sixteen `u16` entries.
-extern u16 D_actor_510900_801679F0[];
-
-/// Table the 0x14-animation state picks `stateCounter` from, indexed by a 4-bit
-/// `gRandomLcgState` draw the same way `D_actor_510900_801679F0` is.
-extern u16 D_actor_510900_801679D0[];
-
-/// Per-cycle threshold the patrol walk in `_actor510900TickSlash` compares
-/// a 4-bit `gRandomLcgState` draw against, indexed by the `stateCounter` cycle counter;
-/// a draw above the entry ends the walk.
-extern s16 D_actor_510900_80167A10[];
-
-/// Per-animation-id value `_actor510900UpdateBodyAnimation` hands `animationSeekSlotWithBlend`
-/// as its fifth argument when it restarts animation slots 1..18.
-extern s16 D_actor_510900_80167B38[];
-
 /// One corner of the square lap the golem walks, in world X and Z. A side of
 /// the lap starts at its corner.
 typedef struct {
@@ -454,21 +429,6 @@ typedef struct {
 } _Actor510900LapDirection;
 STATIC_ASSERT_SIZEOF(_Actor510900LapDirection, 0x2);
 
-/// The four corners of the lap, indexed by `Actor510900Work::lapSide`.
-extern _Actor510900LapCorner D_actor_510900_80167B84[4];
-
-/// The direction of each of its four sides, indexed the same way.
-extern _Actor510900LapDirection D_actor_510900_80167B94[4];
-
-/// `effectSpawnHit` argument record the state-3 handler refreshes every sixth
-/// frame from the player's model coordinates.
-extern EffectSpawnArg D_actor_510900_80167B7C;
-
-/// The yaws `_actor510900TurnAlongLap` turns the actor's coordinate
-/// towards, indexed by `Actor510900Work::lapSide` (one entry further on
-/// while `sideRemaining` is below 0x3E8).
-extern u16 D_actor_510900_80167B9C[];
-
 /// The strip of the landing pad that runs along one side of the lap, as a
 /// world-space rectangle; all four edges are exclusive.
 ///
@@ -483,9 +443,6 @@ typedef struct {
 } _Actor510900LapStrip;
 STATIC_ASSERT_SIZEOF(_Actor510900LapStrip, 0x8);
 
-/// The strip along each side of the lap, in the same order as the corners.
-extern _Actor510900LapStrip D_actor_510900_80167BA4[4];
-
 /// The three face normals `actor510900RestoreGridFaces` copies into
 /// `gWorldCollisionActiveGrid->normals`, restoring the collision grid this actor edited.
 static SVECTOR _gActor510900Collision35DA4[3];
@@ -497,18 +454,6 @@ static SVECTOR _gActor510900Collision35DBC[12];
 /// The three `WorldCollisionGridFace` records `actor510900RestoreGridFaces` copies into
 /// `gWorldCollisionActiveGrid->faces`.
 static WorldCollisionGridFace _gActor510900Collision35E1C[3];
-
-/// The extra face normal `actor510900SetExtraGridFace` installs as
-/// `gWorldCollisionActiveGrid->normals[3]` while the actor's own face is in the grid.
-extern SVECTOR D_actor_510900_80167C60[1];
-
-/// The four face corners that face uses, copied into
-/// `gWorldCollisionActiveGrid->vertices[12..15]`.
-extern SVECTOR D_actor_510900_80167C68[4];
-
-/// The `WorldCollisionGridFace` record for that face, copied into
-/// `gWorldCollisionActiveGrid->faces[3]`.
-extern WorldCollisionGridFace D_actor_510900_80167C88[1];
 
 static s32  _actor510900TrySelectAttack(Task* task);
 static void _actor510900UpdatePlayerRange(Task* task);
@@ -528,10 +473,6 @@ static void _actor510900UpdateFlameJet(Task* task);
 static void _actor510900ExitHelipadLight(Task* task);
 static void _actor510900ExitBlastSource(Task* task);
 
-/// `stateCounter` reload tables, indexed by four bits of `gRandomLcgState`.
-extern s16 D_actor_510900_80167990[];
-extern s16 D_actor_510900_801679B0[];
-
 static void _actor510900BodyTask(Task* task);
 static void _actor510900PropTask(Task* task);
 static void _actor510900WeaponTask(Task* task);
@@ -540,9 +481,12 @@ static void _actor510900GrenadeTask(Task* task);
 static void _actor510900HelipadLightTask(Task* task);
 static void _actor510900BlastSourceTask(Task* task);
 
-EnemyParams D_actor_510900_80167980 = { gActor510900Attacks, 1600, 500, 800, 30, 50, 3, 0, 0 };
+EnemyParams gActor510900EnemyParams = { gActor510900Attacks, 1600, 500, 800, 30, 50, 3, 0, 0 };
 
-s16 D_actor_510900_80167990[16] = {
+/// Walk distances in world units, sampled with bits 16..19 of a fresh LCG draw.
+///
+/// Normal and shotgun-response walks subtract 29 world units per frame.
+static s16 _gActor510900PatrolWalkDistances[16] = {
     2000,
     2100,
     2200,
@@ -561,7 +505,8 @@ s16 D_actor_510900_80167990[16] = {
     4000,
 };
 
-s16 D_actor_510900_801679B0[16] = {
+/// Patrol waiting times in frames after a walk, indexed by LCG bits 16..19.
+static s16 _gActor510900PatrolWaitFrames[16] = {
     14,
     16,
     18,
@@ -580,7 +525,10 @@ s16 D_actor_510900_801679B0[16] = {
     60,
 };
 
-u16 D_actor_510900_801679D0[16] = {
+/// Patrol waiting times in frames after a missed or completed attack.
+///
+/// Slash, lunge, grenade, dash and lethal-strike exits sample LCG bits 16..19.
+static u16 _gActor510900PostAttackWaitFrames[16] = {
     5,
     5,
     5,
@@ -599,7 +547,10 @@ u16 D_actor_510900_801679D0[16] = {
     30,
 };
 
-u16 D_actor_510900_801679F0[16] = {
+/// Patrol waiting times in frames after a damage reaction, sampled by LCG bits 16..19.
+///
+/// Also used when simultaneous player death cancels the golem's death state.
+static u16 _gActor510900ReactionWaitFrames[16] = {
     15,
     15,
     15,
@@ -618,24 +569,31 @@ u16 D_actor_510900_801679F0[16] = {
     45,
 };
 
-s16 D_actor_510900_80167A10[4] = {
+/// Slash continuation thresholds indexed by the completed-stroke counter 0..3.
+///
+/// A fresh four-bit random sample strictly greater than the entry ends the
+/// sequence. The second-stroke exit also stops at the final entry regardless
+/// of the sample; entry 3 is not followed by another first stroke.
+static s16 _gActor510900SlashContinuationThresholds[4] = {
     14,
     12,
     10,
     0,
 };
 
-TaskDesc D_actor_510900_80167A18[7] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor510900BodyTask, { .model = &gActor510900No9GolemAkropolisBody } },
-    { { { TASK_BODY_TMD, 96 } }, _actor510900PropTask, { .model = &gActor510900No9GolemAkropolisProp } },
-    { { { TASK_BODY_TMD, 96 } }, _actor510900WeaponTask, { .model = &gActor510900Model0FE60 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor510900ChestModelTask, { .model = &gActor510900Model10468 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor510900GrenadeTask, { .model = &gActor510900GolemGrenade } },
-    { { { TASK_BODY_TMD, 96 } }, _actor510900HelipadLightTask, { .model = &gActor510900Model10C8C } },
-    { { { TASK_BODY_COORD, 96 } }, _actor510900BlastSourceTask, { .value = 0 } },
+enum { ACTOR_510900_TASK_PRIORITY = 96 };
+
+TaskDesc gActor510900TaskDescriptors[7] = {
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900BodyTask, { .model = &gActor510900No9GolemAkropolisBody } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900PropTask, { .model = &gActor510900No9GolemAkropolisProp } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900WeaponTask, { .model = &gActor510900Model0FE60 } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900ChestModelTask, { .model = &gActor510900Model10468 } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900GrenadeTask, { .model = &gActor510900GolemGrenade } },
+    { { { TASK_BODY_TMD, ACTOR_510900_TASK_PRIORITY } }, _actor510900HelipadLightTask, { .model = &gActor510900Model10C8C } },
+    { { { TASK_BODY_COORD, ACTOR_510900_TASK_PRIORITY } }, _actor510900BlastSourceTask, { .value = 0 } },
 };
 
-TaskMessageEntry D_actor_510900_80167A6C[7] = {
+TaskMessageEntry gActor510900BodyMessages[7] = {
     { ACTOR_MESSAGE_RELEASE_HOLD, _actor510900ReleaseGrenadeHold },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor510900PlayEventAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
@@ -645,152 +603,58 @@ TaskMessageEntry D_actor_510900_80167A6C[7] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u8 D_actor_510900_80167AA4[136] = {
-    0,
-    0,
-    0,
-    0,
-    224,
-    58,
-    20,
-    128,
-    216,
-    61,
-    20,
-    128,
-    208,
-    71,
-    20,
-    128,
-    164,
-    86,
-    20,
-    128,
-    192,
-    96,
-    20,
-    128,
-    108,
-    108,
-    20,
-    128,
-    252,
-    144,
-    20,
-    128,
-    216,
-    154,
-    20,
-    128,
-    0,
-    165,
-    20,
-    128,
-    124,
-    169,
-    20,
-    128,
-    112,
-    192,
-    20,
-    128,
-    180,
-    199,
-    20,
-    128,
-    200,
-    221,
-    20,
-    128,
-    200,
-    233,
-    20,
-    128,
-    136,
-    246,
-    20,
-    128,
-    140,
-    3,
-    21,
-    128,
-    156,
-    13,
-    21,
-    128,
-    124,
-    33,
-    21,
-    128,
-    92,
-    39,
-    21,
-    128,
-    4,
-    50,
-    21,
-    128,
-    196,
-    53,
-    21,
-    128,
-    148,
-    62,
-    21,
-    128,
-    24,
-    66,
-    21,
-    128,
-    72,
-    95,
-    21,
-    128,
-    8,
-    110,
-    21,
-    128,
-    200,
-    133,
-    21,
-    128,
-    216,
-    145,
-    21,
-    128,
-    136,
-    190,
-    21,
-    128,
-    32,
-    214,
-    21,
-    128,
-    252,
-    7,
-    22,
-    128,
-    36,
-    218,
-    21,
-    128,
-    224,
-    66,
-    22,
-    128,
-    204,
-    113,
-    22,
-    128,
+AnimationSet* gActor510900BodyAnimationSets[34] = {
+    NULL,
+    &_gActor510900Animation11CC0,
+    &_gActor510900Animation11FB8,
+    &_gActor510900Animation129B0,
+    &_gActor510900Animation13884,
+    &_gActor510900Animation142A0,
+    &_gActor510900Animation14E4C,
+    &_gActor510900Animation172DC,
+    &_gActor510900Animation17CB8,
+    &_gActor510900Animation186E0,
+    &_gActor510900Animation18B5C,
+    &_gActor510900Animation1A250,
+    &_gActor510900Animation1A994,
+    &_gActor510900Animation1BFA8,
+    &_gActor510900Animation1CBA8,
+    &_gActor510900Animation1D868,
+    &_gActor510900Animation1E56C,
+    &_gActor510900Animation1EF7C,
+    &_gActor510900Animation2035C,
+    &_gActor510900Animation2093C,
+    &_gActor510900Animation213E4,
+    &_gActor510900Animation217A4,
+    &_gActor510900Animation22074,
+    &_gActor510900Animation223F8,
+    &_gActor510900Animation24128,
+    &_gActor510900Animation24FE8,
+    &_gActor510900Animation267A8,
+    &_gActor510900Animation273B8,
+    &_gActor510900Animation2A068,
+    &_gActor510900Animation2B800,
+    &_gActor510900Animation2E9DC,
+    &_gActor510900Animation2BC04,
+    &_gActor510900Animation324C0,
+    &_gActor510900Animation353AC,
 };
 
-AnimationSet* D_actor_510900_80167B2C[3] = {
+/// Player clips borrowed during the stun grenade's hold: 0 unused, 1 stunned, 2 recovery.
+///
+/// The player retains this bank for playback; keep this overlay loaded until
+/// the hold returns the player to ordinary control.
+static AnimationSet* _gActor510900PlayerGrenadeAnimationSets[3] = {
     NULL,
     &gActor510900Animation27994,
     &gActor510900Animation27FDC,
 };
 
-s16 D_actor_510900_80167B38[34] = {
+/// Whole-frame transition durations indexed by the body's animation ID 0..33.
+///
+/// Uses the same slot order as `gActor510900BodyAnimationSets`; zero starts
+/// without a transition pose.
+static s16 _gActor510900BodyAnimationBlendFrames[34] = {
     0,
     8,
     8,
@@ -827,30 +691,46 @@ s16 D_actor_510900_80167B38[34] = {
     0,
 };
 
-EffectSpawnArg D_actor_510900_80167B7C = { NULL, 300, 1 };
+/// Reusable splatter-spray argument for the lethal strike's repeated player hit effect.
+///
+/// The player root coordinate is refreshed before each spawn and borrowed by
+/// the effects. Low half 300 sets initial speed to floor(300 * 3 / 16);
+/// high half 1 gives four emission frames. The record itself is not retained.
+static EffectSpawnArg _gActor510900LethalHitEffectArg = { NULL, 300, 1 };
 
-_Actor510900LapCorner D_actor_510900_80167B84[4] = {
+/// World X/Z origins of lap sides 0..3, in walking order.
+static _Actor510900LapCorner _gActor510900LapCorners[4] = {
     { -6600, -6600 },
     { 6600, -6600 },
     { 6600, 6600 },
     { -6600, 6600 },
 };
 
-_Actor510900LapDirection D_actor_510900_80167B94[4] = {
+/// Axis-aligned unit X/Z directions from each lap corner to the next.
+static _Actor510900LapDirection _gActor510900LapDirections[4] = {
     { 1, 0 },
     { 0, 1 },
     { -1, 0 },
     { 0, -1 },
 };
 
-u16 D_actor_510900_80167B9C[4] = {
-    1024,
+/// Facing angles of lap sides 0..3, in units of 4096 per turn.
+///
+/// A moving golem targets the next entry within 1000 world units of a corner.
+/// On side 3 the terminal distance clamp leaves at least 6100 units, so that
+/// lookahead never indexes past the four headings.
+static u16 _gActor510900LapYaws[4] = {
+    ACTOR_TRANSFORM_ANGLE_TURN / 4,
     0,
-    3072,
-    2048,
+    ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4,
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
 };
 
-_Actor510900LapStrip D_actor_510900_80167BA4[4] = {
+/// Exclusive world X/Z rectangles assigning the player to lap sides 0..3.
+///
+/// The first containing strip wins where rectangles overlap. Outside them
+/// all, the player's preceding side is retained.
+static _Actor510900LapStrip _gActor510900LapStrips[4] = {
     { -7200, 7200, -7200, -6000 },
     { 6000, 7200, -6000, 7200 },
     { -7200, 6000, 6000, 7200 },
@@ -869,19 +749,30 @@ static WorldCollisionGridFace _gActor510900Collision35E1C[3] = {
 #include "assets/actor_510900_collision_35E1C.inc"
 };
 
-SVECTOR D_actor_510900_80167C60[1] = {
+/// Q12 normal of the extra landing-pad collision face, installed at normal index 3.
+static SVECTOR _gActor510900ExtraGridNormals[1] = {
 #include "assets/actor_510900_collision_35E40.inc"
 };
 
-SVECTOR D_actor_510900_80167C68[4] = {
+/// Four world-coordinate vertices of the extra landing-pad face, installed at indices 12..15.
+static SVECTOR _gActor510900ExtraGridVertices[4] = {
 #include "assets/actor_510900_collision_35E48.inc"
 };
 
-WorldCollisionGridFace D_actor_510900_80167C88[1] = {
+/// Extra landing-pad face linking vertices 12..15 to normal 3.
+///
+/// Enabling copies this record; disabling collapses its vertices and normal
+/// without changing these indices.
+static WorldCollisionGridFace _gActor510900ExtraGridFaces[1] = {
 #include "assets/actor_510900_collision_35E68.inc"
 };
 
-u16 D_actor_510900_80167C94[12] = {
+/// Grenade pitch-step magnitudes per flight frame, in angle units of 4096 per turn.
+///
+/// Index by horizontal launch-to-player distance divided by 1000 world units;
+/// distances of 11000 or more use the final entry of this twelve-entry bank.
+/// Flight rotates the launch basis by the negative of the selected step.
+static u16 _gActor510900GrenadePitchStepsByRange[12] = {
     25,
     20,
     15,
@@ -896,44 +787,60 @@ u16 D_actor_510900_80167C94[12] = {
     5,
 };
 
-AnimationSet* D_actor_510900_80167CAC[3] = {
+/// Helipad-light animation bank: 0 unused, 1 intact, 2 breaking.
+///
+/// Light-owned animation contexts borrow the bank for the light task's lifetime.
+static AnimationSet* _gActor510900HelipadLightAnimationSets[3] = {
     NULL,
     &gActor510900Animation35474,
     &gActor510900Animation35B20,
 };
 
-SVECTOR D_actor_510900_80167CB8[3] = {
+/// Root positions of helipad lights 0..2, in room-coordinate units beneath `gGfxViewCoord`.
+static SVECTOR _gActor510900HelipadLightPositions[3] = {
     { 6458, -2658, 535, 0 },
     { -1336, -2658, 6552, 0 },
     { -6441, -2658, -100, 0 },
 };
 
-u16 D_actor_510900_80167CD0[4] = {
-    2048,
-    1024,
+/// Root Y rotations of helipad lights 0..2, in angle units of 4096 per turn.
+///
+/// The fourth stored entry is unread; its role is unproven.
+static u16 _gActor510900HelipadLightYaws[4] = {
+    ACTOR_TRANSFORM_ANGLE_HALF_TURN,
+    ACTOR_TRANSFORM_ANGLE_TURN / 4,
     0,
     0,
 };
 
-u16 D_actor_510900_80167CD8[2][3] = {
-    { 5, 6, 7 },
-    { 7, 8, 9 },
-};
-
-u16 D_actor_510900_80167CE4[4] = {
-    10,
-    10,
-    10,
+/// Mapped-view rows shared by the three helipad lights and the light-2 blast source.
+static _Actor510900HelipadViews _gActor510900HelipadViews = {
+    { { 5, 6, 7 }, { 7, 8, 9 }, { 10, 10, 10 } },
     0,
 };
 
-u16 D_actor_510900_80167CEC[7][4] = {
-    { 0, 1, 2, 6 },
-    { 0, 1, 2, 6 },
-    { 0, 4, 4, 6 },
-    { 0, 4, 4, 6 },
-    { 0, 5, 5, 6 },
-    { 0, 5, 5, 6 },
+/// Status encodings emitted by the source/light pair; the flag's reader is unproven.
+enum {
+    ACTOR_510900_HELIPAD_FLAG_LIGHT_INTACT   = 0,
+    ACTOR_510900_HELIPAD_FLAG_LIGHT_SPARKING = 1,
+    ACTOR_510900_HELIPAD_FLAG_LIGHT_SPENT    = 2,
+    ACTOR_510900_HELIPAD_FLAG_SOURCE_FLARING = 4,
+    ACTOR_510900_HELIPAD_FLAG_SOURCE_SPENT   = 5,
+    ACTOR_510900_HELIPAD_FLAG_LIGHT_STOPPED  = 6,
+};
+
+/// Game-flag nibble values combining blast-source phase with light-2 status.
+///
+/// Rows 0..5 are `ACTOR_510900_BLAST_SOURCE_*`; columns are intact, sparking,
+/// spent and stopped. Row 6 is stored but has no observed state selecting it.
+/// The consumer of the published flag and the unused row's role are unproven.
+static u16 _gActor510900HelipadStatusFlagValues[7][4] = {
+    { ACTOR_510900_HELIPAD_FLAG_LIGHT_INTACT, ACTOR_510900_HELIPAD_FLAG_LIGHT_SPARKING, ACTOR_510900_HELIPAD_FLAG_LIGHT_SPENT, ACTOR_510900_HELIPAD_FLAG_LIGHT_STOPPED },
+    { ACTOR_510900_HELIPAD_FLAG_LIGHT_INTACT, ACTOR_510900_HELIPAD_FLAG_LIGHT_SPARKING, ACTOR_510900_HELIPAD_FLAG_LIGHT_SPENT, ACTOR_510900_HELIPAD_FLAG_LIGHT_STOPPED },
+    { ACTOR_510900_HELIPAD_FLAG_LIGHT_INTACT, ACTOR_510900_HELIPAD_FLAG_SOURCE_FLARING, ACTOR_510900_HELIPAD_FLAG_SOURCE_FLARING, ACTOR_510900_HELIPAD_FLAG_LIGHT_STOPPED },
+    { ACTOR_510900_HELIPAD_FLAG_LIGHT_INTACT, ACTOR_510900_HELIPAD_FLAG_SOURCE_FLARING, ACTOR_510900_HELIPAD_FLAG_SOURCE_FLARING, ACTOR_510900_HELIPAD_FLAG_LIGHT_STOPPED },
+    { ACTOR_510900_HELIPAD_FLAG_LIGHT_INTACT, ACTOR_510900_HELIPAD_FLAG_SOURCE_SPENT, ACTOR_510900_HELIPAD_FLAG_SOURCE_SPENT, ACTOR_510900_HELIPAD_FLAG_LIGHT_STOPPED },
+    { ACTOR_510900_HELIPAD_FLAG_LIGHT_INTACT, ACTOR_510900_HELIPAD_FLAG_SOURCE_SPENT, ACTOR_510900_HELIPAD_FLAG_SOURCE_SPENT, ACTOR_510900_HELIPAD_FLAG_LIGHT_STOPPED },
     { 0, 0, 0, 0 },
 };
 
@@ -947,11 +854,6 @@ static void _actor510900UpdateHelipadLightLighting(Task* task, const GfxCoord* r
 
 static void _actor510900TickBlastSourcePhases(Task* task);
 
-/// View index the child keeps running in; any other view parks it.
-/// Game-flag nibble 0xD values, indexed by the blast source's
-/// `_Actor510900BlastSourceWork::state` and the parent work's `light2Status`.
-extern u16 D_actor_510900_80167CEC[][4];
-
 static void _actor510900TickBody(Enemy* enemy, Task* task);
 
 static void _actor510900InitProp(Enemy* enemy, Task* task);
@@ -963,10 +865,6 @@ static void _actor510900UpdateWeapon(Enemy* enemy, Task* task);
 static void _actor510900InitChestModel(Enemy* enemy, Task* task);
 
 static void _actor510900UpdateChestModel(Enemy* enemy, Task* task);
-
-/// The three views a helipad light is visible in, indexed by its
-/// `_Actor510900HelipadLightWork::lightIndex`.
-extern u16 D_actor_510900_80167CD8[][3];
 
 static void _actor510900ResolveBodyContacts(Task* task);
 static void _actor510900TickOpening(Task* task);
@@ -1541,7 +1439,7 @@ static void _actor510900TickPatrol(Task* task)
                     work->animationId   = ACTOR_510900_ANIM_WALK_FIRE;
                     work->shotCountdown = ACTOR_510900_PATROL_FIRST_SHOT_FRAMES;
                 }
-                work->stateCounter = D_actor_510900_80167990[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                work->stateCounter = _gActor510900PatrolWalkDistances[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             break;
         case ACTOR_510900_PATROL_WALK:
@@ -1550,7 +1448,7 @@ static void _actor510900TickPatrol(Task* task)
             if (work->stateCounter <= 0 || work->lapDistance > (u32)ACTOR_510900_PATROL_END_DISTANCE) {
                 work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->subState     = ACTOR_510900_PATROL_WAIT;
-                work->stateCounter = D_actor_510900_801679B0[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                work->stateCounter = _gActor510900PatrolWaitFrames[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             // The binary retains this empty lap-distance interval.
             if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)ACTOR_510900_LAST_ATTACK_DISTANCE &&
@@ -1583,7 +1481,7 @@ static void _actor510900TickPatrol(Task* task)
             if (work->stateCounter <= 0 || work->lapDistance > (u32)ACTOR_510900_PATROL_END_DISTANCE) {
                 work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->subState     = ACTOR_510900_PATROL_WAIT;
-                work->stateCounter = D_actor_510900_801679B0[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                work->stateCounter = _gActor510900PatrolWaitFrames[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             if (work->sideRemaining >= 0x7D0 && work->playerDistance < 0x3E8 && work->lapDistance <= (u32)ACTOR_510900_LAST_ATTACK_DISTANCE &&
                 work->lapDistance > (u32)ACTOR_510900_LETHAL_ATTACK_DISTANCE) {
@@ -1615,7 +1513,7 @@ static void _actor510900TickPatrol(Task* task)
             if (work->animationFrame >= 0xF) {
                 work->subState     = ACTOR_510900_PATROL_SHOTGUN_RESPONSE_WALK;
                 work->animationId  = ACTOR_510900_ANIM_SHOTGUN_RESPONSE_WALK;
-                work->stateCounter = D_actor_510900_80167990[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                work->stateCounter = _gActor510900PatrolWalkDistances[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
             }
             break;
         case ACTOR_510900_PATROL_SHOTGUN_RESPONSE_WALK:
@@ -1636,7 +1534,7 @@ static void _actor510900TickPatrol(Task* task)
                     work->lapDistance > (u32)ACTOR_510900_LETHAL_ATTACK_DISTANCE) {
                     work->stateCounter = 0;
                 } else {
-                    work->stateCounter = D_actor_510900_801679B0[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                    work->stateCounter = _gActor510900PatrolWaitFrames[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
                 }
             }
             break;
@@ -1821,8 +1719,8 @@ static void _actor510900TickSlash(Task* task)
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (D_actor_510900_80167A10[work->stateCounter] < (s32)((gRandomLcgState >> 0x10) & 0xF)) {
-                        u16* patrolWaitFrames      = D_actor_510900_801679D0;
+                    if (_gActor510900SlashContinuationThresholds[work->stateCounter] < (s32)((gRandomLcgState >> 0x10) & 0xF)) {
+                        u16* patrolWaitFrames      = _gActor510900PostAttackWaitFrames;
                         work->state                = ACTOR_510900_STATE_PATROL;
                         work->animationId          = ACTOR_510900_ANIM_PATROL_IDLE;
                         work->subState             = ACTOR_510900_PATROL_WAIT;
@@ -1856,10 +1754,10 @@ static void _actor510900TickSlash(Task* task)
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    if ((D_actor_510900_80167A10[work->stateCounter] <
+                    if ((_gActor510900SlashContinuationThresholds[work->stateCounter] <
                          (s32)(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF)) ||
-                        (work->stateCounter >= (s32)ARRAY_SIZE(D_actor_510900_80167A10) - 1)) {
-                        u16* patrolWaitFrames      = D_actor_510900_801679D0;
+                        (work->stateCounter >= (s32)ARRAY_SIZE(_gActor510900SlashContinuationThresholds) - 1)) {
+                        u16* patrolWaitFrames      = _gActor510900PostAttackWaitFrames;
                         work->state                = ACTOR_510900_STATE_PATROL;
                         work->subState             = ACTOR_510900_PATROL_WAIT;
                         work->animationId          = ACTOR_510900_ANIM_PATROL_IDLE;
@@ -1882,7 +1780,7 @@ static void _actor510900TickSlash(Task* task)
                                          (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
             if (work->animationFrame >= 0x5A) {
-                u16* patrolWaitFrames = D_actor_510900_801679D0;
+                u16* patrolWaitFrames = _gActor510900PostAttackWaitFrames;
                 work->state           = ACTOR_510900_STATE_PATROL;
                 work->subState        = ACTOR_510900_PATROL_WAIT;
                 work->animationId     = ACTOR_510900_ANIM_PATROL_IDLE;
@@ -1965,7 +1863,7 @@ static void _actor510900TickFlameLunge(Task* task)
                     work->state        = ACTOR_510900_STATE_PATROL;
                     work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->subState     = ACTOR_510900_PATROL_WAIT;
-                    work->stateCounter = D_actor_510900_801679D0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                    work->stateCounter = _gActor510900PostAttackWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
                     gRandomLcgState    = randomState;
                 }
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2013,7 +1911,7 @@ static void _actor510900TickGrenadeThrow(Task* task)
     work->lapSpeed = 0;
     if (work->animationFrame == ACTOR_510900_GRENADE_THROW_FRAME) {
         work->grenadeLive = 1;
-        grenadeModel      = enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_GRENADE_DESCRIPTOR, dashNext, enemy)->task->extra.tmd;
+        grenadeModel      = enemySpawnFromTable(gActor510900TaskDescriptors, ACTOR_510900_GRENADE_DESCRIPTOR, dashNext, enemy)->task->extra.tmd;
         placeIndex        = (u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
         liveLocation      = &gGameSession->location.loc;
         location.stage    = liveLocation->stage;
@@ -2044,7 +1942,7 @@ static void _actor510900TickGrenadeThrow(Task* task)
             work->state        = ACTOR_510900_STATE_PATROL;
             work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
             work->subState     = ACTOR_510900_PATROL_WAIT;
-            work->stateCounter = D_actor_510900_801679D0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+            work->stateCounter = _gActor510900PostAttackWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
             gRandomLcgState    = randomState;
             return;
         }
@@ -2095,7 +1993,7 @@ static void _actor510900TickDash(Task* task)
                     work->subState             = ACTOR_510900_PATROL_WAIT;
                     work->animationId          = ACTOR_510900_ANIM_PATROL_IDLE;
                     gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    patrolWaitFrames           = D_actor_510900_801679D0[(gRandomLcgState >> 16) & 0xF];
+                    patrolWaitFrames           = _gActor510900PostAttackWaitFrames[(gRandomLcgState >> 16) & 0xF];
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->stateCounter         = patrolWaitFrames;
@@ -2240,7 +2138,7 @@ static void _actor510900TickLethalAttack(Task* task)
                 work->state        = ACTOR_510900_STATE_PATROL;
                 work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->subState     = ACTOR_510900_PATROL_WAIT;
-                work->stateCounter = D_actor_510900_801679D0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                work->stateCounter = _gActor510900PostAttackWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
                 gRandomLcgState    = randomState;
             }
             break;
@@ -2255,10 +2153,10 @@ static void _actor510900TickLethalAttack(Task* task)
             }
             work->stateCounter++;
             if (work->stateCounter >= ACTOR_510900_LETHAL_HIT_EFFECT_INTERVAL) {
-                work->stateCounter            = 0;
-                D_actor_510900_80167B7C.coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+                work->stateCounter                    = 0;
+                _gActor510900LethalHitEffectArg.coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
                 effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4], NULL,
-                               &D_actor_510900_80167B7C);
+                               &_gActor510900LethalHitEffectArg);
             }
             switch (work->deathSoundLoadStep) {
                 case ACTOR_510900_DEATH_SOUND_IDLE:
@@ -2330,7 +2228,7 @@ static void _actor510900TickRecoil(Task* task)
                     work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->subState    = ACTOR_510900_PATROL_WAIT;
                     work->stateCounter =
-                        D_actor_510900_801679F0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                        _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
                     gRandomLcgState = randomState;
                 }
             }
@@ -2407,7 +2305,7 @@ static void _actor510900TickSparkRecoil(Task* task)
                     work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->subState    = ACTOR_510900_PATROL_WAIT;
                     work->stateCounter =
-                        D_actor_510900_801679F0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                        _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
                     gRandomLcgState = randomState;
                 }
             }
@@ -2478,7 +2376,7 @@ static void _actor510900TickSparkStun(Task* task)
                     work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->subState    = ACTOR_510900_PATROL_WAIT;
                     work->stateCounter =
-                        D_actor_510900_801679F0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                        _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
                     gRandomLcgState = randomState;
                 }
             }
@@ -2511,7 +2409,7 @@ static void _actor510900TickDeath(Task* task)
         work->state                           = ACTOR_510900_STATE_PATROL;
         work->animationId                     = ACTOR_510900_ANIM_PATROL_IDLE;
         work->subState                        = ACTOR_510900_PATROL_WAIT;
-        work->stateCounter                    = D_actor_510900_801679F0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+        work->stateCounter                    = _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
         gRandomLcgState                       = randomState;
         return;
     }
@@ -2561,11 +2459,11 @@ static void _actor510900UpdatePlayerRange(Task* task)
     playerOffset = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
 
     // Outside all strips, preserve the last side that contained the player.
-    for (stripIndex = 0; stripIndex < ARRAY_SIZE(D_actor_510900_80167BA4); stripIndex++) {
-        if (D_actor_510900_80167BA4[stripIndex].minX < gPlayerStatus.coordMtx->t[0] &&
-            gPlayerStatus.coordMtx->t[0] < D_actor_510900_80167BA4[stripIndex].maxX &&
-            D_actor_510900_80167BA4[stripIndex].minZ < gPlayerStatus.coordMtx->t[2] &&
-            gPlayerStatus.coordMtx->t[2] < D_actor_510900_80167BA4[stripIndex].maxZ) {
+    for (stripIndex = 0; stripIndex < ARRAY_SIZE(_gActor510900LapStrips); stripIndex++) {
+        if (_gActor510900LapStrips[stripIndex].minX < gPlayerStatus.coordMtx->t[0] &&
+            gPlayerStatus.coordMtx->t[0] < _gActor510900LapStrips[stripIndex].maxX &&
+            _gActor510900LapStrips[stripIndex].minZ < gPlayerStatus.coordMtx->t[2] &&
+            gPlayerStatus.coordMtx->t[2] < _gActor510900LapStrips[stripIndex].maxZ) {
             work->playerSide = stripIndex;
             break;
         }
@@ -2612,9 +2510,9 @@ static void _actor510900TurnAlongLap(Task* task)
     if (work->lapSpeed != 0) {
         rotation = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
         if (work->sideRemaining < ACTOR_510900_LAP_TURN_DISTANCE) {
-            targetYaw = D_actor_510900_80167B9C[work->lapSide + 1];
+            targetYaw = _gActor510900LapYaws[work->lapSide + 1];
         } else {
-            targetYaw = D_actor_510900_80167B9C[work->lapSide];
+            targetYaw = _gActor510900LapYaws[work->lapSide];
         }
         currentYaw          = ratan2(bodyCoord->coord.m[0][2], bodyCoord->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
         yawDifference       = targetYaw - currentYaw;
@@ -2680,10 +2578,10 @@ static void _actor510900AdvanceAlongLap(Task* task)
     work->lapSide = lapSide;
     sideDistance  = work->lapDistance % ACTOR_510900_LAP_SIDE;
 
-    bodyCoord->coord.t[0] = D_actor_510900_80167B84[lapSide].x + (sideDistance * D_actor_510900_80167B94[lapSide].x);
+    bodyCoord->coord.t[0] = _gActor510900LapCorners[lapSide].x + (sideDistance * _gActor510900LapDirections[lapSide].x);
     bodyCoord->coord.t[1] = 0;
     bodyCoord->coord.t[2] =
-        D_actor_510900_80167B84[work->lapSide].z + (sideDistance * D_actor_510900_80167B94[work->lapSide].z);
+        _gActor510900LapCorners[work->lapSide].z + (sideDistance * _gActor510900LapDirections[work->lapSide].z);
 }
 
 /// Plays step sounds when slot 1's animation cue bits fall.
@@ -2973,7 +2871,7 @@ static s32 _actor510900SetActivation(Task* task, s32 messageId, s32 command, s32
             vector[ARRAY_SIZE(_gActor510900Collision35DA4)].vx = 0;
             vector[ARRAY_SIZE(_gActor510900Collision35DA4)].vy = 0;
             vector[ARRAY_SIZE(_gActor510900Collision35DA4)].vz = 0;
-            for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_actor_510900_80167C68); cornerIndex++) {
+            for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(_gActor510900ExtraGridVertices); cornerIndex++) {
                 extraVertices[ARRAY_SIZE(_gActor510900Collision35DBC) + cornerIndex].vx = 0;
                 extraVertices[ARRAY_SIZE(_gActor510900Collision35DBC) + cornerIndex].vy = 0;
                 extraVertices[ARRAY_SIZE(_gActor510900Collision35DBC) + cornerIndex].vz = 0;
@@ -3100,11 +2998,11 @@ static void _actor510900InitGrenade(Enemy* enemy, Task* task)
     playerDeltaZ         = gPlayerStatus.coordMtx->t[2] - grenadeCoord->coord.t[2];
     placement->offset.vz = playerDeltaZ;
     pitchBucket          = SquareRoot0((playerDeltaX * playerDeltaX) + (playerDeltaZ * playerDeltaZ)) / ACTOR_510900_GRENADE_PITCH_BUCKET_DISTANCE;
-    if (pitchBucket >= ARRAY_SIZE(D_actor_510900_80167C94)) {
-        pitchBucket = ARRAY_SIZE(D_actor_510900_80167C94) - 1;
+    if (pitchBucket >= ARRAY_SIZE(_gActor510900GrenadePitchStepsByRange)) {
+        pitchBucket = ARRAY_SIZE(_gActor510900GrenadePitchStepsByRange) - 1;
     }
 
-    work->phaseCounter = D_actor_510900_80167C94[pitchBucket];
+    work->phaseCounter = _gActor510900GrenadePitchStepsByRange[pitchBucket];
     // A sphere catches the player; the capsule tests the room grid only.
     work->attack.coord            = grenadeCoord;
     work->attack.context.contacts = work->attackContacts;
@@ -3370,7 +3268,7 @@ static void _actor510900TickGrenadeHold(Task* task)
                     break;
                 }
                 taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gActor510900Attacks, ACTOR_510900_ATTACK_GRENADE), 0);
-                scratch->playerAnim.source.sets          = D_actor_510900_80167B2C;
+                scratch->playerAnim.source.sets          = _gActor510900PlayerGrenadeAnimationSets;
                 scratch->playerAnim.animationId          = ACTOR_510900_PLAYER_ANIM_GRENADE_STUN;
                 scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
                 scratch->playerAnim.blendFrames          = 0;
@@ -3391,7 +3289,7 @@ static void _actor510900TickGrenadeHold(Task* task)
                 break;
             }
             parent->playerEscaped                    = 0;
-            scratch->playerAnim.source.sets          = D_actor_510900_80167B2C;
+            scratch->playerAnim.source.sets          = _gActor510900PlayerGrenadeAnimationSets;
             scratch->playerAnim.animationId          = ACTOR_510900_PLAYER_ANIM_GRENADE_RECOVER;
             scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
             scratch->playerAnim.blendFrames          = 0;
@@ -3462,15 +3360,15 @@ static void _actor510900InitHelipadLight(Enemy* enemy, Task* task)
     enemy->bodyPos.vz             = 0;
     work->lightIndex              = task->spawnArg1.value;
     spawnRotation->vx             = 0;
-    spawnRotation->vy             = D_actor_510900_80167CD0[work->lightIndex];
+    spawnRotation->vy             = _gActor510900HelipadLightYaws[work->lightIndex];
     spawnRotation->vz             = 0;
     RotMatrix(spawnRotation, &partCoords->coord);
     slotIndex              = 1;
-    partCoords->coord.t[0] = D_actor_510900_80167CB8[work->lightIndex].vx;
-    partCoords->coord.t[1] = D_actor_510900_80167CB8[work->lightIndex].vy;
-    partCoords->coord.t[2] = D_actor_510900_80167CB8[work->lightIndex].vz;
+    partCoords->coord.t[0] = _gActor510900HelipadLightPositions[work->lightIndex].vx;
+    partCoords->coord.t[1] = _gActor510900HelipadLightPositions[work->lightIndex].vy;
+    partCoords->coord.t[2] = _gActor510900HelipadLightPositions[work->lightIndex].vz;
     partCoords->parent     = &gGfxViewCoord;
-    animationInitContext(&work->anim, D_actor_510900_80167CAC, model, work->poses, work->slots);
+    animationInitContext(&work->anim, _gActor510900HelipadLightAnimationSets, model, work->poses, work->slots);
     do {
         animationResetSlot(&work->anim, slotIndex, ACTOR_510900_HELIPAD_LIGHT_ANIM_INTACT);
         slotIndex++;
@@ -3780,7 +3678,7 @@ static void _actor510900TickBlastSource(Enemy* enemy, Task* task)
     parentWork = task->parent->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            if ((viewGetMappedIndex() & 0xFF) != D_actor_510900_80167CE4[0]) {
+            if ((viewGetMappedIndex() & 0xFF) != _gActor510900HelipadViews.lightViews[2][0]) {
                 enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->blast.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3804,7 +3702,7 @@ static void _actor510900TickBlastSource(Enemy* enemy, Task* task)
     }
     // Publish the new phase before drawing this frame's ambient ember.
     _actor510900TickBlastSourcePhases(task);
-    gameFlagSetNibble(GAME_FLAG_00D, D_actor_510900_80167CEC[work->state][parentWork->light2Status]);
+    gameFlagSetNibble(GAME_FLAG_00D, _gActor510900HelipadStatusFlagValues[work->state][parentWork->light2Status]);
     randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState = randomState;
     if ((u16)((randomState >> 16) % 3) == 0) {
@@ -3812,8 +3710,12 @@ static void _actor510900TickBlastSource(Enemy* enemy, Task* task)
     }
 }
 
-/// The grenade's initialization, flight and hidden burst handlers, indexed by `Task::state`.
-static const EnemyTaskFuncTable3 D_actor_510900_80131ECC = {
+/// Grenade task-state callbacks: 0 initialize, 1 flight, 2 hidden burst and player hold.
+///
+/// Copied as a complete three-pointer value before dispatch; no terminator.
+/// The live enemy and task are lent to the selected handler, which may release
+/// them. The grenade and its adopted effects require the overlay to stay loaded.
+static const EnemyTaskFuncTable3 _gActor510900GrenadeTaskStates = {
     { _actor510900InitGrenade, _actor510900TickGrenadeFlight, _actor510900TickGrenadeBurst },
 };
 
@@ -3961,16 +3863,16 @@ void actor510900SetExtraGridFace(s32 enabled)
     WorldCollisionGridFace* faces    = gWorldCollisionActiveGrid->faces;
 
     if (enabled == true) {
-        for (vertexIndex = 0; vertexIndex < ARRAY_SIZE(D_actor_510900_80167C68); vertexIndex++) {
-            vertices[ARRAY_SIZE(_gActor510900Collision35DBC) + vertexIndex] = D_actor_510900_80167C68[vertexIndex];
+        for (vertexIndex = 0; vertexIndex < ARRAY_SIZE(_gActor510900ExtraGridVertices); vertexIndex++) {
+            vertices[ARRAY_SIZE(_gActor510900Collision35DBC) + vertexIndex] = _gActor510900ExtraGridVertices[vertexIndex];
         }
-        normals[ARRAY_SIZE(_gActor510900Collision35DA4)] = D_actor_510900_80167C60[0];
-        faces[ARRAY_SIZE(_gActor510900Collision35E1C)]   = D_actor_510900_80167C88[0];
+        normals[ARRAY_SIZE(_gActor510900Collision35DA4)] = _gActor510900ExtraGridNormals[0];
+        faces[ARRAY_SIZE(_gActor510900Collision35E1C)]   = _gActor510900ExtraGridFaces[0];
     } else {
         normals[ARRAY_SIZE(_gActor510900Collision35DA4)].vx = 0;
         normals[ARRAY_SIZE(_gActor510900Collision35DA4)].vy = 0;
         normals[ARRAY_SIZE(_gActor510900Collision35DA4)].vz = 0;
-        for (vertexIndex = 0; vertexIndex < ARRAY_SIZE(D_actor_510900_80167C68); vertexIndex++) {
+        for (vertexIndex = 0; vertexIndex < ARRAY_SIZE(_gActor510900ExtraGridVertices); vertexIndex++) {
             vertices[ARRAY_SIZE(_gActor510900Collision35DBC) + vertexIndex].vx = 0;
             vertices[ARRAY_SIZE(_gActor510900Collision35DBC) + vertexIndex].vy = 0;
             vertices[ARRAY_SIZE(_gActor510900Collision35DBC) + vertexIndex].vz = 0;
@@ -4185,7 +4087,7 @@ static void _actor510900TickBuildupStun(Task* task)
                 work->subState    = ACTOR_510900_PATROL_WAIT;
                 work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                 work->stateCounter =
-                    D_actor_510900_801679F0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                    _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
                 gRandomLcgState = randomState;
             }
             break;
@@ -4226,7 +4128,7 @@ static void _actor510900TickFlinch(Task* task)
                     work->subState    = ACTOR_510900_PATROL_WAIT;
                     work->animationId = ACTOR_510900_ANIM_PATROL_IDLE;
                     work->stateCounter =
-                        D_actor_510900_801679F0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                        _gActor510900ReactionWaitFrames[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
                     gRandomLcgState = randomState;
                 }
             }
@@ -4250,7 +4152,7 @@ static void _actor510900UpdateBodyAnimation(Task* task)
     if (work->animationId != work->seededAnimationId) {
         work->seededAnimationId = work->animationId;
         work->animationFrame    = 0;
-        blendFrames             = D_actor_510900_80167B38[work->animationId];
+        blendFrames             = _gActor510900BodyAnimationBlendFrames[work->animationId];
         for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
             animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animationId, 0, blendFrames);
         }
@@ -4506,7 +4408,7 @@ static void _actor510900GrenadeTask(Task* task)
 {
     EnemyTaskFuncTable3 states;
 
-    states = D_actor_510900_80131ECC;
+    states = _gActor510900GrenadeTaskStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -4548,7 +4450,7 @@ static s32 _actor510900CheckHelipadLightView(Task* task)
     viewMisses = 0;
     mappedView = viewGetMappedIndex();
     for (viewIndex = 0; viewIndex < ACTOR_510900_LIGHT_VIEW_COUNT; viewIndex++) {
-        if (mappedView != D_actor_510900_80167CD8[work->lightIndex][viewIndex]) {
+        if (mappedView != _gActor510900HelipadViews.lightViews[work->lightIndex][viewIndex]) {
             viewMisses++;
         }
     }

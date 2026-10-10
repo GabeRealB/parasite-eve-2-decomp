@@ -208,7 +208,7 @@ WorldCollisionOccluder gAcropolisHelicopterLandingPadSightOccluders[2] = {
 };
 
 AreaResource D_acropolis_helicopter_landing_pad_801861A0[2] = {
-    { 27, 109, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_510900_80167A18 },
+    { 27, 109, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor510900TaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 

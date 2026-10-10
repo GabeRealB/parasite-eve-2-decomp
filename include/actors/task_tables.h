@@ -767,7 +767,14 @@ extern TaskDesc gActor444000GluttonHostTaskDesc;
 /// model geometry are in use.
 extern TaskDesc gActor300700MothTaskDesc;
 
-extern TaskDesc D_actor_510900_80167A18[];
+/// Akropolis No. 9 spawn recipes: body, prop, weapon, chest, grenade, light and blast source.
+///
+/// Indices 0..6, without a terminator; all run at priority 96. Entries 0..5
+/// allocate TMD bodies with automatic buffers, entry 6 a coordinate body.
+/// Child entries borrow the body enemy through spawn argument 2; light entry
+/// 5 takes index 0..2 in argument 1. Keep actor_510900 and its models loaded
+/// throughout the tasks' lifetimes.
+extern TaskDesc gActor510900TaskDescriptors[7];
 
 /// Bone Suckler TMD spawn descriptor exported by actor slot 3.
 ///

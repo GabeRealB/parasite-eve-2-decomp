@@ -334,7 +334,7 @@ static u16 _gActor510900Animation11CC0Indices[20] = {
 #include "assets/actor_510900_animation_11CC0_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation11CC0 = {
+AnimationSet _gActor510900Animation11CC0 = {
     _gActor510900Animation11CC0Records,
     _gActor510900Animation11CC0Indices,
     { NULL, _gActor510900Animation11CC0Bank1, NULL, NULL, _gActor510900Animation11CC0Bank4, NULL, NULL, NULL },
@@ -356,7 +356,7 @@ static u16 _gActor510900Animation11FB8Indices[20] = {
 #include "assets/actor_510900_animation_11FB8_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation11FB8 = {
+AnimationSet _gActor510900Animation11FB8 = {
     _gActor510900Animation11FB8Records,
     _gActor510900Animation11FB8Indices,
     { NULL, _gActor510900Animation11FB8Bank1, NULL, NULL, _gActor510900Animation11FB8Bank4, NULL, NULL, NULL },
@@ -378,7 +378,7 @@ static u16 _gActor510900Animation129B0Indices[20] = {
 #include "assets/actor_510900_animation_129B0_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation129B0 = {
+AnimationSet _gActor510900Animation129B0 = {
     _gActor510900Animation129B0Records,
     _gActor510900Animation129B0Indices,
     { NULL, _gActor510900Animation129B0Bank1, NULL, NULL, _gActor510900Animation129B0Bank4, NULL, NULL, NULL },
@@ -400,7 +400,7 @@ static u16 _gActor510900Animation13884Indices[20] = {
 #include "assets/actor_510900_animation_13884_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation13884 = {
+AnimationSet _gActor510900Animation13884 = {
     _gActor510900Animation13884Records,
     _gActor510900Animation13884Indices,
     { NULL, _gActor510900Animation13884Bank1, NULL, NULL, _gActor510900Animation13884Bank4, NULL, NULL, NULL },
@@ -422,7 +422,7 @@ static u16 _gActor510900Animation142A0Indices[20] = {
 #include "assets/actor_510900_animation_142A0_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation142A0 = {
+AnimationSet _gActor510900Animation142A0 = {
     _gActor510900Animation142A0Records,
     _gActor510900Animation142A0Indices,
     { NULL, _gActor510900Animation142A0Bank1, NULL, NULL, _gActor510900Animation142A0Bank4, NULL, NULL, NULL },
@@ -444,7 +444,7 @@ static u16 _gActor510900Animation14E4CIndices[20] = {
 #include "assets/actor_510900_animation_14E4C_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation14E4C = {
+AnimationSet _gActor510900Animation14E4C = {
     _gActor510900Animation14E4CRecords,
     _gActor510900Animation14E4CIndices,
     { NULL, _gActor510900Animation14E4CBank1, NULL, NULL, _gActor510900Animation14E4CBank4, NULL, NULL, NULL },
@@ -466,7 +466,7 @@ static u16 _gActor510900Animation172DCIndices[20] = {
 #include "assets/actor_510900_animation_172DC_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation172DC = {
+AnimationSet _gActor510900Animation172DC = {
     _gActor510900Animation172DCRecords,
     _gActor510900Animation172DCIndices,
     { NULL, _gActor510900Animation172DCBank1, NULL, NULL, _gActor510900Animation172DCBank4, NULL, NULL, NULL },
@@ -488,7 +488,7 @@ static u16 _gActor510900Animation17CB8Indices[20] = {
 #include "assets/actor_510900_animation_17CB8_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation17CB8 = {
+AnimationSet _gActor510900Animation17CB8 = {
     _gActor510900Animation17CB8Records,
     _gActor510900Animation17CB8Indices,
     { NULL, _gActor510900Animation17CB8Bank1, NULL, NULL, _gActor510900Animation17CB8Bank4, NULL, NULL, NULL },
@@ -510,7 +510,7 @@ static u16 _gActor510900Animation186E0Indices[20] = {
 #include "assets/actor_510900_animation_186E0_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation186E0 = {
+AnimationSet _gActor510900Animation186E0 = {
     _gActor510900Animation186E0Records,
     _gActor510900Animation186E0Indices,
     { NULL, _gActor510900Animation186E0Bank1, NULL, NULL, _gActor510900Animation186E0Bank4, NULL, NULL, NULL },
@@ -532,7 +532,7 @@ static u16 _gActor510900Animation18B5CIndices[20] = {
 #include "assets/actor_510900_animation_18B5C_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation18B5C = {
+AnimationSet _gActor510900Animation18B5C = {
     _gActor510900Animation18B5CRecords,
     _gActor510900Animation18B5CIndices,
     { NULL, _gActor510900Animation18B5CBank1, NULL, NULL, _gActor510900Animation18B5CBank4, NULL, NULL, NULL },
@@ -554,7 +554,7 @@ static u16 _gActor510900Animation1A250Indices[20] = {
 #include "assets/actor_510900_animation_1A250_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation1A250 = {
+AnimationSet _gActor510900Animation1A250 = {
     _gActor510900Animation1A250Records,
     _gActor510900Animation1A250Indices,
     { NULL, _gActor510900Animation1A250Bank1, NULL, NULL, _gActor510900Animation1A250Bank4, NULL, NULL, NULL },
@@ -576,7 +576,7 @@ static u16 _gActor510900Animation1A994Indices[20] = {
 #include "assets/actor_510900_animation_1A994_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation1A994 = {
+AnimationSet _gActor510900Animation1A994 = {
     _gActor510900Animation1A994Records,
     _gActor510900Animation1A994Indices,
     { NULL, _gActor510900Animation1A994Bank1, NULL, NULL, _gActor510900Animation1A994Bank4, NULL, NULL, NULL },
@@ -598,7 +598,7 @@ static u16 _gActor510900Animation1BFA8Indices[20] = {
 #include "assets/actor_510900_animation_1BFA8_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation1BFA8 = {
+AnimationSet _gActor510900Animation1BFA8 = {
     _gActor510900Animation1BFA8Records,
     _gActor510900Animation1BFA8Indices,
     { NULL, _gActor510900Animation1BFA8Bank1, NULL, NULL, _gActor510900Animation1BFA8Bank4, NULL, NULL, NULL },
@@ -620,7 +620,7 @@ static u16 _gActor510900Animation1CBA8Indices[20] = {
 #include "assets/actor_510900_animation_1CBA8_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation1CBA8 = {
+AnimationSet _gActor510900Animation1CBA8 = {
     _gActor510900Animation1CBA8Records,
     _gActor510900Animation1CBA8Indices,
     { NULL, _gActor510900Animation1CBA8Bank1, NULL, NULL, _gActor510900Animation1CBA8Bank4, NULL, NULL, NULL },
@@ -642,7 +642,7 @@ static u16 _gActor510900Animation1D868Indices[20] = {
 #include "assets/actor_510900_animation_1D868_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation1D868 = {
+AnimationSet _gActor510900Animation1D868 = {
     _gActor510900Animation1D868Records,
     _gActor510900Animation1D868Indices,
     { NULL, _gActor510900Animation1D868Bank1, NULL, NULL, _gActor510900Animation1D868Bank4, NULL, NULL, NULL },
@@ -664,7 +664,7 @@ static u16 _gActor510900Animation1E56CIndices[20] = {
 #include "assets/actor_510900_animation_1E56C_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation1E56C = {
+AnimationSet _gActor510900Animation1E56C = {
     _gActor510900Animation1E56CRecords,
     _gActor510900Animation1E56CIndices,
     { NULL, _gActor510900Animation1E56CBank1, NULL, NULL, _gActor510900Animation1E56CBank4, NULL, NULL, NULL },
@@ -686,7 +686,7 @@ static u16 _gActor510900Animation1EF7CIndices[20] = {
 #include "assets/actor_510900_animation_1EF7C_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation1EF7C = {
+AnimationSet _gActor510900Animation1EF7C = {
     _gActor510900Animation1EF7CRecords,
     _gActor510900Animation1EF7CIndices,
     { NULL, _gActor510900Animation1EF7CBank1, NULL, NULL, _gActor510900Animation1EF7CBank4, NULL, NULL, NULL },
@@ -730,7 +730,7 @@ static u16 _gActor510900Animation2035CIndices[20] = {
 #include "assets/actor_510900_animation_2035C_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation2035C = {
+AnimationSet _gActor510900Animation2035C = {
     _gActor510900Animation2035CRecords,
     _gActor510900Animation2035CIndices,
     { NULL, _gActor510900Animation2035CBank1, NULL, NULL, _gActor510900Animation2035CBank4, NULL, NULL, NULL },
@@ -752,7 +752,7 @@ static u16 _gActor510900Animation2093CIndices[20] = {
 #include "assets/actor_510900_animation_2093C_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation2093C = {
+AnimationSet _gActor510900Animation2093C = {
     _gActor510900Animation2093CRecords,
     _gActor510900Animation2093CIndices,
     { NULL, _gActor510900Animation2093CBank1, NULL, NULL, _gActor510900Animation2093CBank4, NULL, NULL, NULL },
@@ -774,7 +774,7 @@ static u16 _gActor510900Animation213E4Indices[20] = {
 #include "assets/actor_510900_animation_213E4_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation213E4 = {
+AnimationSet _gActor510900Animation213E4 = {
     _gActor510900Animation213E4Records,
     _gActor510900Animation213E4Indices,
     { NULL, _gActor510900Animation213E4Bank1, NULL, NULL, _gActor510900Animation213E4Bank4, NULL, NULL, NULL },
@@ -796,7 +796,7 @@ static u16 _gActor510900Animation217A4Indices[20] = {
 #include "assets/actor_510900_animation_217A4_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation217A4 = {
+AnimationSet _gActor510900Animation217A4 = {
     _gActor510900Animation217A4Records,
     _gActor510900Animation217A4Indices,
     { NULL, _gActor510900Animation217A4Bank1, NULL, NULL, _gActor510900Animation217A4Bank4, NULL, NULL, NULL },
@@ -818,7 +818,7 @@ static u16 _gActor510900Animation22074Indices[20] = {
 #include "assets/actor_510900_animation_22074_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation22074 = {
+AnimationSet _gActor510900Animation22074 = {
     _gActor510900Animation22074Records,
     _gActor510900Animation22074Indices,
     { NULL, _gActor510900Animation22074Bank1, NULL, NULL, _gActor510900Animation22074Bank4, NULL, NULL, NULL },
@@ -840,7 +840,7 @@ static u16 _gActor510900Animation223F8Indices[20] = {
 #include "assets/actor_510900_animation_223F8_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation223F8 = {
+AnimationSet _gActor510900Animation223F8 = {
     _gActor510900Animation223F8Records,
     _gActor510900Animation223F8Indices,
     { NULL, _gActor510900Animation223F8Bank1, NULL, NULL, _gActor510900Animation223F8Bank4, NULL, NULL, NULL },
@@ -862,7 +862,7 @@ static u16 _gActor510900Animation24128Indices[20] = {
 #include "assets/actor_510900_animation_24128_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation24128 = {
+AnimationSet _gActor510900Animation24128 = {
     _gActor510900Animation24128Records,
     _gActor510900Animation24128Indices,
     { NULL, _gActor510900Animation24128Bank1, NULL, NULL, _gActor510900Animation24128Bank4, NULL, NULL, NULL },
@@ -884,7 +884,7 @@ static u16 _gActor510900Animation24FE8Indices[20] = {
 #include "assets/actor_510900_animation_24FE8_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation24FE8 = {
+AnimationSet _gActor510900Animation24FE8 = {
     _gActor510900Animation24FE8Records,
     _gActor510900Animation24FE8Indices,
     { NULL, _gActor510900Animation24FE8Bank1, NULL, NULL, _gActor510900Animation24FE8Bank4, NULL, NULL, NULL },
@@ -906,7 +906,7 @@ static u16 _gActor510900Animation267A8Indices[20] = {
 #include "assets/actor_510900_animation_267A8_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation267A8 = {
+AnimationSet _gActor510900Animation267A8 = {
     _gActor510900Animation267A8Records,
     _gActor510900Animation267A8Indices,
     { NULL, _gActor510900Animation267A8Bank1, NULL, NULL, _gActor510900Animation267A8Bank4, NULL, NULL, NULL },
@@ -928,7 +928,7 @@ static u16 _gActor510900Animation273B8Indices[20] = {
 #include "assets/actor_510900_animation_273B8_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation273B8 = {
+AnimationSet _gActor510900Animation273B8 = {
     _gActor510900Animation273B8Records,
     _gActor510900Animation273B8Indices,
     { NULL, _gActor510900Animation273B8Bank1, NULL, NULL, _gActor510900Animation273B8Bank4, NULL, NULL, NULL },
@@ -994,7 +994,7 @@ static u16 _gActor510900Animation2A068Indices[20] = {
 #include "assets/actor_510900_animation_2A068_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation2A068 = {
+AnimationSet _gActor510900Animation2A068 = {
     _gActor510900Animation2A068Records,
     _gActor510900Animation2A068Indices,
     { NULL, _gActor510900Animation2A068Bank1, NULL, NULL, _gActor510900Animation2A068Bank4, NULL, NULL, NULL },
@@ -1016,7 +1016,7 @@ static u16 _gActor510900Animation2B800Indices[20] = {
 #include "assets/actor_510900_animation_2B800_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation2B800 = {
+AnimationSet _gActor510900Animation2B800 = {
     _gActor510900Animation2B800Records,
     _gActor510900Animation2B800Indices,
     { NULL, _gActor510900Animation2B800Bank1, NULL, NULL, _gActor510900Animation2B800Bank4, NULL, NULL, NULL },
@@ -1038,7 +1038,7 @@ static u16 _gActor510900Animation2BC04Indices[20] = {
 #include "assets/actor_510900_animation_2BC04_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation2BC04 = {
+AnimationSet _gActor510900Animation2BC04 = {
     _gActor510900Animation2BC04Records,
     _gActor510900Animation2BC04Indices,
     { NULL, _gActor510900Animation2BC04Bank1, NULL, NULL, _gActor510900Animation2BC04Bank4, NULL, NULL, NULL },
@@ -1060,7 +1060,7 @@ static u16 _gActor510900Animation2E9DCIndices[20] = {
 #include "assets/actor_510900_animation_2E9DC_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation2E9DC = {
+AnimationSet _gActor510900Animation2E9DC = {
     _gActor510900Animation2E9DCRecords,
     _gActor510900Animation2E9DCIndices,
     { NULL, _gActor510900Animation2E9DCBank1, NULL, NULL, _gActor510900Animation2E9DCBank4, NULL, NULL, NULL },
@@ -1082,7 +1082,7 @@ static u16 _gActor510900Animation324C0Indices[20] = {
 #include "assets/actor_510900_animation_324C0_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation324C0 = {
+AnimationSet _gActor510900Animation324C0 = {
     _gActor510900Animation324C0Records,
     _gActor510900Animation324C0Indices,
     { NULL, _gActor510900Animation324C0Bank1, NULL, NULL, _gActor510900Animation324C0Bank4, NULL, NULL, NULL },
@@ -1104,7 +1104,7 @@ static u16 _gActor510900Animation353ACIndices[20] = {
 #include "assets/actor_510900_animation_353AC_indices.inc"
 };
 
-static AnimationSet _gActor510900Animation353AC = {
+AnimationSet _gActor510900Animation353AC = {
     _gActor510900Animation353ACRecords,
     _gActor510900Animation353ACIndices,
     { NULL, _gActor510900Animation353ACBank1, NULL, NULL, _gActor510900Animation353ACBank4, NULL, NULL, NULL },
@@ -2285,20 +2285,20 @@ void actor510900InitBody(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &D_actor_510900_80167980;
+    enemy->param                  = &gActor510900EnemyParams;
     enemy->recs                   = work->bodyContacts;
-    enemy->hp                     = D_actor_510900_80167980.hpMax;
+    enemy->hp                     = gActor510900EnemyParams.hpMax;
     work->hitEffectArg.coord      = &task->extra.tmd->coords[ACTOR_510900_BODY_CHEST_PART];
     work->hitEffectArg.spawnArgLo = ACTOR_510900_HIT_EFFECT_ARGUMENT_LOW;
     work->hitEffectArg.spawnArgHi = ACTOR_510900_HIT_EFFECT_ARGUMENT_HIGH;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_510900_80167AA4, bodyModel,
+    animationInitContext(&work->rig.anim, gActor510900BodyAnimationSets, bodyModel,
                          work->rig.poses, work->rig.slots);
     for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
         animationResetSlot(&work->rig.anim, slotIndex, ACTOR_510900_BODY_INITIAL_ANIMATION);
     }
     work->present = 1;
-    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_PROP_DESCRIPTOR, 0, enemy);
-    childEnemy = enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_WEAPON_DESCRIPTOR, 0, enemy);
+    enemySpawnFromTable(gActor510900TaskDescriptors, ACTOR_510900_PROP_DESCRIPTOR, 0, enemy);
+    childEnemy = enemySpawnFromTable(gActor510900TaskDescriptors, ACTOR_510900_WEAPON_DESCRIPTOR, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(childEnemy->task->extra.tmd, enemy);
     work->weaponTask = childEnemy->task;
     flameEffect      = effectSpawn((EFFECT_ACTOR_510900_FLAME_JET | EFFECT_SPAWN_UNLIMITED), childEnemy->task->extra.tmd->coords, 0, NULL);
@@ -2309,13 +2309,13 @@ void actor510900InitBody(Enemy* enemy, Task* task)
     if (work->flameJetTask != NULL) {
         work->flameJetTask->spawnArg1.value = ACTOR_510900_FLAME_OFF;
     }
-    childEnemy = enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_CHEST_DESCRIPTOR, 0, enemy);
+    childEnemy = enemySpawnFromTable(gActor510900TaskDescriptors, ACTOR_510900_CHEST_DESCRIPTOR, 0, enemy);
     _actorRenderApplyPlacementTextureOffsets(childEnemy->task->extra.tmd, enemy);
     work->chestModelTask = childEnemy->task;
-    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_LIGHT_DESCRIPTOR, 0, enemy);
-    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_LIGHT_DESCRIPTOR, 1, enemy);
-    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_LIGHT_DESCRIPTOR, 2, enemy);
-    enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_BLAST_SOURCE_DESCRIPTOR, 0, enemy);
+    enemySpawnFromTable(gActor510900TaskDescriptors, ACTOR_510900_LIGHT_DESCRIPTOR, 0, enemy);
+    enemySpawnFromTable(gActor510900TaskDescriptors, ACTOR_510900_LIGHT_DESCRIPTOR, 1, enemy);
+    enemySpawnFromTable(gActor510900TaskDescriptors, ACTOR_510900_LIGHT_DESCRIPTOR, 2, enemy);
+    enemySpawnFromTable(gActor510900TaskDescriptors, ACTOR_510900_BLAST_SOURCE_DESCRIPTOR, 0, enemy);
     work->body.coord            = &task->extra.tmd->coords[ACTOR_510900_BODY_CHEST_PART];
     bodyContacts                = work->bodyContacts;
     work->body.context.contacts = bodyContacts;
@@ -2350,7 +2350,7 @@ void actor510900InitBody(Enemy* enemy, Task* task)
     work->forearmAttack.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->forearmAttack);
     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    task->msgTable             = D_actor_510900_80167A6C;
+    task->msgTable             = gActor510900BodyMessages;
     task->exitCallback         = actor510900ExitBody;
     actor510900RestoreGridFaces(task);
     actor510900SetExtraGridFace(true);
