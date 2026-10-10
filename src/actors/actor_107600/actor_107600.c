@@ -327,10 +327,6 @@ static void _actor107600MeasureTargetPlayerDistance(Task* task);
 static void _actor107600PlaceTargetOffset(GfxCoord* rootCoord);
 static void _actor107600ApplyTargetScale(Task* task);
 
-/* Waypoint paths `_actor107600UpdateStandingMountPath` walks, indexed by
- * `_Actor107600MountWork::path`; trailing-blob data. */
-extern _Actor107600Waypoint* D_actor_107600_80135624[];
-
 /* Eight effect offsets `_actor107600UpdateTarget` cycles through from
  * `_Actor107600TargetWork::hitMarkFirst`. */
 extern DVECTOR D_actor_107600_80135730[];
@@ -609,28 +605,33 @@ static _Actor107600Waypoint _gActor107600MountPath30[] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135294[3] = {
+/// Mount path 31: increasing Z at X -1500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath31[] = {
     { -1500, 3000, 40 },
     { -1500, 6000, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801352A8[2] = {
+/// Mount path 32: reach XZ (4600, 5800), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath32[] = {
     { 4600, 5800, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801352B4[2] = {
+/// Mount path 33: reach XZ (1600, 5800), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath33[] = {
     { 1600, 5800, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801352C0[2] = {
+/// Mount path 34: reach XZ (-1400, 5800), at 40 world units per axis per frame.
+static _Actor107600Waypoint _gActor107600MountPath34[] = {
     { -1400, 5800, 40 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801352CC[5] = {
+/// Mount path 35: Z 6000 to 0 via X 1500 then 4500, at 50 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath35[] = {
     { 1500, 6000, 50 },
     { 1500, 3000, 50 },
     { 4500, 3000, 50 },
@@ -638,7 +639,8 @@ _Actor107600Waypoint D_actor_107600_801352CC[5] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801352EC[5] = {
+/// Mount path 36: Z 0 to 6000 via X 1500 then 4500, at 50 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath36[] = {
     { 1500, 0, 50 },
     { 1500, 3000, 50 },
     { 4500, 3000, 50 },
@@ -646,7 +648,9 @@ _Actor107600Waypoint D_actor_107600_801352EC[5] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_8013530C[8] = {
+/// Mount path 37: increasing X through Z 4500/6000 steps, at 30, 40, 50 then
+/// 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath37[] = {
     { 0, 6000, 30 },
     { 0, 4500, 30 },
     { 1500, 4500, 40 },
@@ -657,7 +661,9 @@ _Actor107600Waypoint D_actor_107600_8013530C[8] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_8013533C[8] = {
+/// Mount path 38: increasing X through Z 0/1500 steps, at 30, 40, 50 then
+/// 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath38[] = {
     { 0, 0, 30 },
     { 0, 1500, 30 },
     { 1500, 1500, 40 },
@@ -668,7 +674,9 @@ _Actor107600Waypoint D_actor_107600_8013533C[8] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_8013536C[10] = {
+/// Mount path 39: increasing X with alternating Z 0/6000 crossings, at 40, 50,
+/// 70 then 100 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath39[] = {
     { -1500, 0, 40 },
     { 0, 0, 40 },
     { 0, 6000, 50 },
@@ -681,7 +689,9 @@ _Actor107600Waypoint D_actor_107600_8013536C[10] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801353A8[7] = {
+/// Mount path 40: decreasing X from 9000 to -3000 through Z 4500/6000 steps,
+/// at 40, 50 then 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath40[] = {
     { 9000, 6000, 40 },
     { 9000, 4500, 40 },
     { 6000, 4500, 50 },
@@ -691,7 +701,9 @@ _Actor107600Waypoint D_actor_107600_801353A8[7] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801353D4[7] = {
+/// Mount path 41: decreasing X from 9000 to -3000 through Z 0/1500 steps,
+/// at 40, 50 then 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath41[] = {
     { 9000, 0, 40 },
     { 9000, 1500, 40 },
     { 6000, 1500, 50 },
@@ -701,7 +713,9 @@ _Actor107600Waypoint D_actor_107600_801353D4[7] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135400[6] = {
+/// Mount path 42: decreasing Z at X 9000, then returning to Z 3000 at X 12000,
+/// at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath42[] = {
     { 9000, 6000, 40 },
     { 9000, 3000, 40 },
     { 9000, 0, 40 },
@@ -710,7 +724,9 @@ _Actor107600Waypoint D_actor_107600_80135400[6] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135424[5] = {
+/// Mount path 43: reach XZ (7500, 4500) at 40 world units per frame, then
+/// detour through Z 6000 to (12000, 4500) at 70.
+static _Actor107600Waypoint _gActor107600MountPath43[] = {
     { 7500, 4500, 40 },
     { 7500, 6000, 70 },
     { 12000, 6000, 70 },
@@ -718,7 +734,9 @@ _Actor107600Waypoint D_actor_107600_80135424[5] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135444[5] = {
+/// Mount path 44: reach XZ (7500, 1500) at 40 world units per frame, then
+/// detour through Z 0 to (12000, 1500) at 70.
+static _Actor107600Waypoint _gActor107600MountPath44[] = {
     { 7500, 1500, 40 },
     { 7500, 0, 70 },
     { 12000, 0, 70 },
@@ -726,7 +744,9 @@ _Actor107600Waypoint D_actor_107600_80135444[5] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135464[11] = {
+/// Mount path 45: cross between X -3000/7500 and Z 0/6000, ending at
+/// XZ (7500, 3000), at 140 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath45[] = {
     { 4500, 6000, 140 },
     { 4500, 4500, 140 },
     { 7500, 4500, 140 },
@@ -740,7 +760,9 @@ _Actor107600Waypoint D_actor_107600_80135464[11] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801354A8[7] = {
+/// Mount path 46: increasing X from -3000 to 7500 through Z 1500/4500 steps,
+/// at 50 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath46[] = {
     { -3000, 1500, 50 },
     { 0, 1500, 50 },
     { 0, 4500, 50 },
@@ -750,7 +772,9 @@ _Actor107600Waypoint D_actor_107600_801354A8[7] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801354D4[5] = {
+/// Mount path 47: increasing X from 1500 to 7500 with a Z 6000-to-4500 step
+/// at X 4500, at 40 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath47[] = {
     { 1500, 6000, 40 },
     { 4500, 6000, 40 },
     { 4500, 4500, 40 },
@@ -758,7 +782,11 @@ _Actor107600Waypoint D_actor_107600_801354D4[5] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801354F4[5] = {
+/// Mount path 48: XZ (1500, 0) to (4500, 1500), then (7500, 1500), at 40
+/// world units per axis per frame.
+///
+/// The diagonal stop repeats so that either axis arrival can advance a record.
+static _Actor107600Waypoint _gActor107600MountPath48[] = {
     { 1500, 0, 40 },
     { 4500, 1500, 40 },
     { 4500, 1500, 40 },
@@ -766,7 +794,9 @@ _Actor107600Waypoint D_actor_107600_801354F4[5] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135514[5] = {
+/// Mount path 49: Z stops 0, 6000, 0 then 6000 at X 12000, at 40 world units
+/// per frame.
+static _Actor107600Waypoint _gActor107600MountPath49[] = {
     { 12000, 0, 40 },
     { 12000, 6000, 40 },
     { 12000, 0, 40 },
@@ -774,79 +804,100 @@ _Actor107600Waypoint D_actor_107600_80135514[5] = {
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135534[3] = {
+/// Mount path 50: Z stops 3000 then 0 at X 6000, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath50[] = {
     { 6000, 3000, 70 },
     { 6000, 0, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135548[3] = {
+/// Mount path 51: Z stops 3000 then 0 at X 4500, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath51[] = {
     { 4500, 3000, 70 },
     { 4500, 0, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_8013555C[3] = {
+/// Mount path 52: decreasing Z at X 3000, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath52[] = {
     { 3000, 3000, 70 },
     { 3000, 0, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135570[3] = {
+/// Mount path 53: decreasing Z at X 1500, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath53[] = {
     { 1500, 3000, 70 },
     { 1500, 0, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135584[3] = {
+/// Mount path 54: decreasing Z at X 0, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath54[] = {
     { 0, 3000, 70 },
     { 0, 0, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135598[3] = {
+/// Mount path 55: decreasing Z at X -1500, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath55[] = {
     { -1500, 3000, 70 },
     { -1500, 0, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801355AC[3] = {
+/// Mount path 56: Z stops 3000 then 6000 at X 6000, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath56[] = {
     { 6000, 3000, 70 },
     { 6000, 6000, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801355C0[3] = {
+/// Mount path 57: Z stops 3000 then 6000 at X 4500, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath57[] = {
     { 4500, 3000, 70 },
     { 4500, 6000, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801355D4[3] = {
+/// Mount path 58: increasing Z at X 3000, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath58[] = {
     { 3000, 3000, 70 },
     { 3000, 6000, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801355E8[3] = {
+/// Mount path 59: increasing Z at X 1500, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath59[] = {
     { 1500, 3000, 70 },
     { 1500, 6000, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_801355FC[3] = {
+/// Mount path 60: increasing Z at X 0, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath60[] = {
     { 0, 3000, 70 },
     { 0, 6000, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint D_actor_107600_80135610[3] = {
+/// Mount path 61: increasing Z at X -1500, at 70 world units per frame.
+static _Actor107600Waypoint _gActor107600MountPath61[] = {
     { -1500, 3000, 70 },
     { -1500, 6000, 70 },
     { ACTOR_107600_PATH_END, 0, 0 },
 };
 
-_Actor107600Waypoint* D_actor_107600_80135624[62] = {
+/// Sentinel-terminated routes selected by the gallery mount's spawn path byte.
+///
+/// Bits 16..23 of the mount's spawn argument must be below
+/// `ARRAY_SIZE(_gActor107600MountPaths)` (62); no range check is performed.
+/// Each route ends with `ACTOR_107600_PATH_END` in its final record's X.
+/// Coordinates use the mount root's parent frame; speed is world units per
+/// axis per active frame. A zero-speed first record holds at the spawn position.
+/// Standing and hanging mounts borrow these records without writing or freeing
+/// them; the actor image must remain loaded until the mounts exit.
+static const _Actor107600Waypoint* _gActor107600MountPaths[] = {
     _gActor107600MountPath0,
     _gActor107600MountPath1,
     _gActor107600MountPath2,
@@ -878,37 +929,37 @@ _Actor107600Waypoint* D_actor_107600_80135624[62] = {
     _gActor107600MountPath28,
     _gActor107600MountPath29,
     _gActor107600MountPath30,
-    D_actor_107600_80135294,
-    D_actor_107600_801352A8,
-    D_actor_107600_801352B4,
-    D_actor_107600_801352C0,
-    D_actor_107600_801352CC,
-    D_actor_107600_801352EC,
-    D_actor_107600_8013530C,
-    D_actor_107600_8013533C,
-    D_actor_107600_8013536C,
-    D_actor_107600_801353A8,
-    D_actor_107600_801353D4,
-    D_actor_107600_80135400,
-    D_actor_107600_80135424,
-    D_actor_107600_80135444,
-    D_actor_107600_80135464,
-    D_actor_107600_801354A8,
-    D_actor_107600_801354D4,
-    D_actor_107600_801354F4,
-    D_actor_107600_80135514,
-    D_actor_107600_80135534,
-    D_actor_107600_80135548,
-    D_actor_107600_8013555C,
-    D_actor_107600_80135570,
-    D_actor_107600_80135584,
-    D_actor_107600_80135598,
-    D_actor_107600_801355AC,
-    D_actor_107600_801355C0,
-    D_actor_107600_801355D4,
-    D_actor_107600_801355E8,
-    D_actor_107600_801355FC,
-    D_actor_107600_80135610,
+    _gActor107600MountPath31,
+    _gActor107600MountPath32,
+    _gActor107600MountPath33,
+    _gActor107600MountPath34,
+    _gActor107600MountPath35,
+    _gActor107600MountPath36,
+    _gActor107600MountPath37,
+    _gActor107600MountPath38,
+    _gActor107600MountPath39,
+    _gActor107600MountPath40,
+    _gActor107600MountPath41,
+    _gActor107600MountPath42,
+    _gActor107600MountPath43,
+    _gActor107600MountPath44,
+    _gActor107600MountPath45,
+    _gActor107600MountPath46,
+    _gActor107600MountPath47,
+    _gActor107600MountPath48,
+    _gActor107600MountPath49,
+    _gActor107600MountPath50,
+    _gActor107600MountPath51,
+    _gActor107600MountPath52,
+    _gActor107600MountPath53,
+    _gActor107600MountPath54,
+    _gActor107600MountPath55,
+    _gActor107600MountPath56,
+    _gActor107600MountPath57,
+    _gActor107600MountPath58,
+    _gActor107600MountPath59,
+    _gActor107600MountPath60,
+    _gActor107600MountPath61,
 };
 
 DamageAttack D_actor_107600_8013571C[1] = { 0 };
@@ -1048,11 +1099,11 @@ static inline void _actor107600UpdateMountPath(Task* task, s32 bobY, s32 resting
         ACTOR_107600_MOUNT_SETTLE_FRAMES       = 4,
     };
 
-    _Actor107600MountWork* work      = task->work;
-    Enemy*                 enemy     = task->spawnArg2.pointer;
-    GfxCoord*              rootCoord = task->extra.tmd->coords;
-    _Actor107600Waypoint*  waypoint;
-    s32                    axisDelta;
+    _Actor107600MountWork*      work      = task->work;
+    Enemy*                      enemy     = task->spawnArg2.pointer;
+    GfxCoord*                   rootCoord = task->extra.tmd->coords;
+    const _Actor107600Waypoint* waypoint;
+    s32                         axisDelta;
 
     switch (work->step) {
         case ACTOR_107600_MOUNT_STEP_RISE:
@@ -1078,7 +1129,7 @@ static inline void _actor107600UpdateMountPath(Task* task, s32 bobY, s32 resting
             if (!(enemy->task->firstChild->spawnArg1.value & ACTOR_107600_TARGET_SIGNAL_STANDING)) {
                 return;
             }
-            waypoint  = D_actor_107600_80135624[work->path];
+            waypoint  = _gActor107600MountPaths[work->path];
             waypoint += work->waypoint;
             if (task->spawnArg1.value & ACTOR_107600_MOUNT_SPAWN_ROTATING) {
                 work->rotating = 1;
@@ -1090,7 +1141,7 @@ static inline void _actor107600UpdateMountPath(Task* task, s32 bobY, s32 resting
             }
             work->step++;
         case ACTOR_107600_MOUNT_STEP_TRAVEL:
-            waypoint  = D_actor_107600_80135624[work->path];
+            waypoint  = _gActor107600MountPaths[work->path];
             waypoint += work->waypoint;
             if (waypoint->x == ACTOR_107600_PATH_END) {
             stop:
