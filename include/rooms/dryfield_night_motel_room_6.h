@@ -15,12 +15,21 @@ extern TaskDesc D_dryfield_night_motel_room_6_80182E74[2];
 
 extern AreaVariant D_dryfield_night_motel_room_6_801861B4[11];
 
-// dryfield_night_motel_room_6
-extern WorldCoordRoomLighting D_dryfield_night_motel_room_6_80182F00[];
+/// Lighting for nighttime motel room 6, indexed by the 1-based room ID minus one.
+///
+/// Only room 1 exists. It borrows five mutable point lights in every view and
+/// has no ambient table, so lighting uses the gameplay default ambient minima.
+/// Keep this overlay loaded while its lighting records are borrowed.
+extern WorldCoordRoomLighting gDryfieldNightMotelRoom6RoomLighting[1];
 
 extern WorldCollisionRoomResources D_dryfield_night_motel_room_6_80182F08[];
 
-extern u8* D_dryfield_night_motel_room_6_80182F18[];
+/// Logical-view maps for nighttime motel room 6, indexed by room ID minus one.
+///
+/// Only room 1 exists and borrows `gViewIdentityMap`: logical views 1..12 map
+/// to the same camera, image and sprite indices. The directory has no sentinel;
+/// keep the room and gameplay overlays loaded while it is used.
+extern u8* gDryfieldNightMotelRoom6ViewMaps[1];
 
 extern ViewCount D_dryfield_night_motel_room_6_80182F1C[];
 
@@ -30,7 +39,13 @@ extern ViewCamera D_dryfield_night_motel_room_6_801839A8[];
 
 extern SpriteView D_dryfield_night_motel_room_6_801857C0[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_motel_room_6_80186250[];
+/// Collision policies and footstep cues for nighttime motel room 6's classes 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Classes 1..3 have distinct footstep pairs; classes 0 and 4..7 share a silent
+/// record. There is no sentinel. The map overlay borrows this directory and its
+/// records only while the room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightMotelRoom6SurfacePropertiesByClass[8];
 
 /// Updates nighttime motel room 6's telephone save and statistics menu.
 ///
