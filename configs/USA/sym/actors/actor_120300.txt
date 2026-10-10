@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_120300.
-D_actor_120300_8014095C = 0x8014095C; // size:0x24 defined:True
-D_actor_120300_80140980 = 0x80140980; // size:0x28 defined:True
-D_actor_120300_801409A8 = 0x801409A8; // size:0x18 defined:True
+_gActor120300PlayerFollowOnAnimations = 0x8014095C; // size:0x24 defined:True
+_gActor120300BodyFollowOnAnimations = 0x80140980; // size:0x28 defined:True
+_gActor120300GarageCollisionPatchNormals = 0x801409A8; // size:0x18 defined:True
 _gActor120300GaryDouglasBodySkeleton = 0x80133F98; // size:0x2D0 defined:True
 _gActor120300GaryDouglasBodyPartVerts = 0x80134268; // size:0x50 defined:True
 _gActor120300GaryDouglasBodyVerts = 0x801342B8; // size:0xB60 defined:True
@@ -190,22 +190,22 @@ _gActor120300Animation0EA84Bank4 = 0x80140590; // size:0x114 defined:True
 _gActor120300Animation0EA84Records = 0x801406A4; // size:0x1D8 defined:True
 _gActor120300Animation0EA84Indices = 0x8014087C; // size:0x28 defined:True
 _gActor120300Animation0EA84 = 0x801408A4; // size:0x28 defined:True
-D_actor_120300_801408CC = 0x801408CC; // size:0x44 defined:True
-D_actor_120300_80140910 = 0x80140910; // size:0x4C defined:True
-D_actor_120300_801409C0 = 0x801409C0; // size:0x60 defined:True
-D_actor_120300_80140A20 = 0x80140A20; // size:0x24 defined:True
-D_actor_120300_80140A44 = 0x80140A44; // size:0x10 defined:True
-D_actor_120300_80140A54 = 0x80140A54; // size:0x138 defined:True
-D_actor_120300_80140B8C = 0x80140B8C; // size:0x6 defined:True
-D_actor_120300_80140B94 = 0x80140B94; // size:0x990 defined:True
-D_actor_120300_80141524 = 0x80141524; // size:0x1B0 defined:True
-D_actor_120300_801416D4 = 0x801416D4; // size:0xD8 defined:True
-D_actor_120300_801417AC = 0x801417AC; // size:0xD8 defined:True
-D_actor_120300_80141884 = 0x80141884; // size:0xD8 defined:True
-D_actor_120300_8014195C = 0x8014195C; // size:0xD8 defined:True
-D_actor_120300_80141A34 = 0x80141A34; // size:0x138 defined:True
-D_actor_120300_80141B6C = 0x80141B6C; // size:0x3C defined:True
-D_actor_120300_80141BA8 = 0x80141BA8; // size:0x4 defined:True
+_gActor120300PlayerAnimationSets = 0x801408CC; // size:0x44 defined:True
+_gActor120300BodyAnimationSets = 0x80140910; // size:0x4C defined:True
+_gActor120300GarageCollisionPatchVerts = 0x801409C0; // size:0x60 defined:True
+_gActor120300GarageCollisionPatchFaces = 0x80140A20; // size:0x24 defined:True
+_gActor120300ModelMessages = 0x80140A44; // size:0x10 defined:True
+_gActor120300ScenePlacements = 0x80140A54; // size:0x138 defined:True
+_gActor120300OpeningSceneKey = 0x80140B8C; // size:0x6 defined:True
+_gActor120300OpeningScript = 0x80140B94; // size:0x990 defined:True
+_gActor120300OpeningSkipScript = 0x80141524; // size:0x1B0 defined:True
+_gActor120300FirstTalkScript = 0x801416D4; // size:0xD8 defined:True
+_gActor120300SecondTalkScript = 0x801417AC; // size:0xD8 defined:True
+_gActor120300RepeatTalkScript = 0x80141884; // size:0xD8 defined:True
+_gActor120300JunkYardRefusalScript = 0x8014195C; // size:0xD8 defined:True
+_gActor120300RemarkScript = 0x80141A34; // size:0x138 defined:True
+gActor120300TaskDescriptors = 0x80141B6C; // size:0x3C defined:True
+_gActor120300BodyTask = 0x80141BA8; // size:0x4 defined:True
 
 gDryfieldGarageGarySceneAreaUpdates = 0x80180204; // absolute:True owner=dryfield_garage
 

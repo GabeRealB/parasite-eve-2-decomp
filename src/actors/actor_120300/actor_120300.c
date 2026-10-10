@@ -1,3 +1,5 @@
+#include "actors/actor_120300.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -13,6 +15,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/actor_presentation.h"
+#include "gameplay/captions.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
@@ -49,12 +52,45 @@
 
 static void _screenFadeOutTask(Task* task);
 
-/// Gary Douglas texture placement and indices in the actor task descriptor table.
+/// Gary Douglas's texture resource in the garage area-placement table.
+enum { ACTOR_120300_TEXTURE_RESOURCE_ENTRY_ID = 0x6A };
+
+/// Execution priority shared by all five task recipes.
+enum { ACTOR_120300_TASK_PRIORITY = 192 };
+
+/// Fade-in duration for the current area's music, in gameplay ticks.
+enum { ACTOR_120300_AREA_MUSIC_FADE_TICKS = 10 };
+
+/// Negative follow-on entries retain the settled pose instead of starting a clip.
+enum { ACTOR_120300_ANIMATION_NO_FOLLOW_ON = -1 };
+
+/// CAP command slots in the garage's loaded dialogue bundle.
 enum {
-    ACTOR_120300_TEXTURE_RESOURCE_ENTRY_ID = 0x6A,
-    ACTOR_120300_TASK_HEAD                 = 2,
-    ACTOR_120300_TASK_RIFLE                = 3,
-    ACTOR_120300_TASK_FADE_OUT             = 4,
+    ACTOR_120300_CAP_OPENING           = 1,
+    ACTOR_120300_CAP_FIRST_TALK        = 2,
+    ACTOR_120300_CAP_SECOND_TALK       = 3,
+    ACTOR_120300_CAP_REPEAT_TALK       = 4,
+    ACTOR_120300_CAP_JUNK_YARD_REFUSAL = 5,
+    ACTOR_120300_CAP_OPENING_SKIPPED   = 12,
+    ACTOR_120300_CAP_REMARK            = 14,
+};
+
+/// Indices of the scene's player, body and rifle placement records.
+///
+/// Clip names identify animation-table indices, not unproven visual actions.
+/// Slots 0 and 4 are retained records with no recovered consumer.
+enum {
+    ACTOR_120300_PLACEMENT_PLAYER_APPROACH_END   = 1,
+    ACTOR_120300_PLACEMENT_PLAYER_CLIP3          = 2,
+    ACTOR_120300_PLACEMENT_PLAYER_CLIP11         = 3,
+    ACTOR_120300_PLACEMENT_PLAYER_ROOM_PLAY      = 5,
+    ACTOR_120300_PLACEMENT_PLAYER_APPROACH_START = 6,
+    ACTOR_120300_PLACEMENT_BODY_SLIDE_START      = 7,
+    ACTOR_120300_PLACEMENT_BODY_AFTER_SLIDE      = 8,
+    ACTOR_120300_PLACEMENT_BODY_ROOM_PLAY        = 9,
+    ACTOR_120300_PLACEMENT_BODY_CLIP17           = 10,
+    ACTOR_120300_PLACEMENT_RIFLE_ROOM_PLAY       = 11,
+    ACTOR_120300_PLACEMENT_BODY_DIMMED           = 12,
 };
 
 /// Body requests whose non-animation behavior is established.
@@ -126,36 +162,6 @@ typedef struct {
     u16            scale;                  // scale of the body, head and rifle models on all three axes, 0x1000 for 1.0
 } _Actor120300Work;
 STATIC_ASSERT_SIZEOF(_Actor120300Work, 0x4E4);
-
-extern Task* D_actor_120300_80141BA8;
-
-/// The actor's five-entry task table, spawned from by index. Entries 2 and 3
-/// are the child tasks kept in `_Actor120300Work::headTask` and
-/// `_Actor120300Work::rifleTask`; entry 4 is the fade to black.
-extern TaskDesc D_actor_120300_80141B6C[];
-
-extern AnimationSet* D_actor_120300_801408CC[];
-extern AnimationSet* D_actor_120300_80140910[19];
-extern s16           D_actor_120300_8014095C[];
-
-/// Animation that follows each `_Actor120300Work::anim` once it has settled;
-/// -1 skips the restart.
-extern s16 D_actor_120300_80140980[];
-
-extern SVECTOR                D_actor_120300_801409A8[3];
-extern SVECTOR                D_actor_120300_801409C0[12];
-extern WorldCollisionGridFace D_actor_120300_80140A20[3];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_120300_80140A44[2];
-extern ActorTransform   D_actor_120300_80140A54[13];
-extern EvsCommand       D_actor_120300_80140B94[];
-extern EvsCommand       D_actor_120300_80141524[];
-extern EvsCommand       D_actor_120300_801416D4[];
-extern EvsCommand       D_actor_120300_801417AC[];
-extern EvsCommand       D_actor_120300_80141884[];
-extern EvsCommand       D_actor_120300_8014195C[];
-extern EvsCommand       D_actor_120300_80141A34[];
 
 static TmdSource _gActor120300GaryDouglasBody;
 static TmdSource _gActor120300GaryDouglasHeadHat;
@@ -1020,7 +1026,12 @@ static AnimationSet _gActor120300Animation0EA84 = {
     { NULL, _gActor120300Animation0EA84Bank1, NULL, NULL, _gActor120300Animation0EA84Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_120300_801408CC[17] = {
+/// Player clip bank borrowed by the garage opening scene's scripted playback.
+///
+/// All indices 0..16 contain sets; there is no terminator. The player retains
+/// the table and clip data until its equipped-weapon bank is restored, so this
+/// actor package must remain loaded throughout that playback.
+static AnimationSet* _gActor120300PlayerAnimationSets[17] = {
     &_gActor120300Animation0BED4,
     &_gActor120300Animation0C154,
     &_gActor120300Animation0C4F8,
@@ -1040,7 +1051,12 @@ AnimationSet* D_actor_120300_801408CC[17] = {
     &_gActor120300Animation0DB94,
 };
 
-AnimationSet* D_actor_120300_80140910[19] = {
+/// Gary Douglas body clips borrowed by the twenty-part garage animation rig.
+///
+/// Slots 1 and 4..18 contain sets; 0, 2 and 3 are NULL and must not be played.
+/// Drives parts 1..19, excluding the root. No terminator; the body rig borrows
+/// this table and its sets for the body's lifetime.
+static AnimationSet* _gActor120300BodyAnimationSets[19] = {
     NULL,
     &_gActor120300Animation08A6C,
     NULL,
@@ -1062,10 +1078,15 @@ AnimationSet* D_actor_120300_80140910[19] = {
     &_gActor120300Animation0ACAC,
 };
 
-s16 D_actor_120300_8014095C[18] = {
-    -1,
-    -1,
-    -1,
+/// Follow-on player clip indexed by the last installed garage clip, 0..16.
+///
+/// Negative entries keep the pose; nonnegative entries select the player bank.
+/// Applied only while an event is active. Entry 17 is retained original storage
+/// outside the loaded clip domain, not a terminator or a playable clip.
+static s16 _gActor120300PlayerFollowOnAnimations[18] = {
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
     10,
     10,
     10,
@@ -1073,9 +1094,9 @@ s16 D_actor_120300_8014095C[18] = {
     10,
     0,
     0,
-    -1,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
     12,
-    -1,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
     0,
     0,
     0,
@@ -1083,47 +1104,76 @@ s16 D_actor_120300_8014095C[18] = {
     0,
 };
 
-s16 D_actor_120300_80140980[20] = {
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
+/// Next body clip once all animated body parts settle, indexed by body animation.
+///
+/// Played indices are 1 and 4..18; negative entries keep the settled pose.
+/// Nonnegative entries within that domain select body sets 14 or 17. Entry 19
+/// is retained original storage outside the loaded clip domain; its zero is
+/// not a playable body set or a terminator.
+static const s16 _gActor120300BodyFollowOnAnimations[20] SECTION(".data") = {
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
     17,
-    -1,
-    -1,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
     17,
     17,
-    -1,
+    ACTOR_120300_ANIMATION_NO_FOLLOW_ON,
     14,
     0,
 };
 
-SVECTOR D_actor_120300_801409A8[3] = {
+/// Three room-axis normals for Gary's garage collision patch, in signed Q12.
+///
+/// Replaces only normals 0..2 of the live garage grid during body initialization.
+static const SVECTOR _gActor120300GarageCollisionPatchNormals[3] SECTION(".data") = {
 #include "assets/actor_120300_collision_0EB88.inc"
 };
 
-SVECTOR D_actor_120300_801409C0[12] = {
+/// Twelve signed room-coordinate vertices for Gary's garage collision patch.
+///
+/// Replaces only vertices 0..11 of the live garage grid; the remaining pool stays.
+static const SVECTOR _gActor120300GarageCollisionPatchVerts[12] SECTION(".data") = {
 #include "assets/actor_120300_collision_0EBA0.inc"
 };
 
-WorldCollisionGridFace D_actor_120300_80140A20[3] = {
+/// Three blocking class-0 quads replacing the garage grid's leading faces.
+///
+/// Index vertices 0..11 and normals 0..2 of the accompanying patch. Existing
+/// grid cell lists remain valid; only these three face records are copied.
+static const WorldCollisionGridFace _gActor120300GarageCollisionPatchFaces[3] SECTION(".data") = {
 #include "assets/actor_120300_collision_0EC00.inc"
 };
 
-TaskMessageEntry D_actor_120300_80140A44[2] = {
+/// Placement and active-draw messages shared by Gary's body, head and rifle tasks.
+///
+/// No lookup terminator: send only `ACTOR_MESSAGE_SET_MODEL_DRAW` (integer
+/// visibility: zero hides, nonzero shows) or `ACTOR_MESSAGE_PLACE` (borrowed
+/// `ActorTransform`, position and all three angles). Both callbacks return void;
+/// every sender must discard the dispatch result. The second payload is unused.
+/// Models and this package must remain live through synchronous dispatch.
+static const TaskMessageEntry _gActor120300ModelMessages[2] SECTION(".data") = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor120300HandleModelDrawMessage },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
 };
 
-ActorTransform D_actor_120300_80140A54[13] = {
+/// Player, body and rifle placements for the garage opening and ordinary play.
+///
+/// `ACTOR_120300_PLACEMENT_*` selects a complete position/Euler-angle record:
+/// XYZ uses signed world-coordinate units, angles use 4096 units per turn. Placement and
+/// movement messages read the records synchronously. Slots 0 and 4 have no
+/// recovered consumer; their purpose is unproven. No terminator.
+static const ActorTransform _gActor120300ScenePlacements[13] SECTION(".data") = {
     { { 2414, 0, 2529, 0 }, { 0, 0, 0, 0 } },
     { { 2553, 0, 2396, 0 }, { 0, 1024, 0, 0 } },
     { { 2553, 0, 1700, 0 }, { 0, 1024, 0, 0 } },
@@ -1139,16 +1189,26 @@ ActorTransform D_actor_120300_80140A54[13] = {
     { { 8500, 0, 1531, 0 }, { 0, 3072, 0, 0 } },
 };
 
-EvsSceneKey D_actor_120300_80140B8C = { 2, 3, 11 };
+/// Scene/audio stream key retained while Gary's first garage encounter plays.
+///
+/// Group 2, stream 3, first qualifier 11; the absent second qualifier is zero.
+static const EvsSceneKey _gActor120300OpeningSceneKey SECTION(".data") = { .group = 2, .streamId = 3, .subId = 11 };
 
-EvsCommand D_actor_120300_80140B94[102] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+/// First garage encounter, synchronizing player/Gary choreography with CAP cues.
+///
+/// Starts the scene stream, temporarily removes equipment, then restores it and
+/// releases scripted player control. Each numbered request is interpreted by
+/// the actor's request channel; player request 6 remains unhandled.
+/// Ends at command 101. The actor, player, garage and CAP resources stay loaded
+/// through playback; `_gActor120300OpeningSkipScript` handles accepted skips.
+static EvsCommand _gActor120300OpeningScript[102] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_120300_CAP_OPENING }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_120300_80140B8C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor120300OpeningSceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300PrepareScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300StartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300RemovePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1156,23 +1216,23 @@ EvsCommand D_actor_120300_80140B94[102] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_FULL_LIGHT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_FULL_LIGHT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_SLIDE_LEFT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1190,16 +1250,16 @@ EvsCommand D_actor_120300_80140B94[102] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = ACTOR_MESSAGE_DRAW_HIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACTOR_120300_AREA_MUSIC_FADE_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1242,12 +1302,18 @@ EvsCommand D_actor_120300_80140B94[102] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_120300_80141524[18] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip recovery for the opening scene: restore equipment, room poses and control.
+///
+/// Requires the initialized body/player and child tasks. Fades around view 2 and
+/// scene cleanup, starts the skipped-opening CAP command, clears both requests,
+/// restores ordinary player control and starts area music with a ten-tick fade.
+/// Ends at command 17; keep the actor, garage and CAP resources loaded until then.
+static EvsCommand _gActor120300OpeningSkipScript[18] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300RestorePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1258,65 +1324,88 @@ EvsCommand D_actor_120300_80141524[18] = {
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_120300_CAP_OPENING_SKIPPED }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = ACTOR_120300_AREA_MUSIC_FADE_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_120300_801416D4[9] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
+/// First ordinary garage talk, using CAP command 2 and the player's equipped idle.
+///
+/// Waits for two CAP cues, clears both requests and releases scripted control.
+/// Ends at command 8; requires the body/player and loaded garage/CAP resources.
+static EvsCommand _gActor120300FirstTalkScript[9] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_120300_CAP_FIRST_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_120300_801417AC[9] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
+/// Second ordinary garage talk, using CAP command 3 and the player's equipped idle.
+///
+/// Waits for two CAP cues, clears both requests and releases scripted control.
+/// Ends at command 8; requires the body/player and loaded garage/CAP resources.
+static EvsCommand _gActor120300SecondTalkScript[9] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_120300_CAP_SECOND_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_120300_80141884[9] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+/// Third and subsequent ordinary garage talks, using CAP command 4.
+///
+/// Holds the player's equipped idle through two CAP cues, clears both requests
+/// and releases scripted control. Ends at command 8; requires the body/player
+/// and loaded garage/CAP resources.
+static EvsCommand _gActor120300RepeatTalkScript[9] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_120300_CAP_REPEAT_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_120300_8014195C[9] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
+/// Garage exchange refusing departure through the junk-yard door, using CAP command 5.
+///
+/// Holds the player's equipped idle through two CAP cues, clears both requests
+/// and releases scripted control. Ends at command 8; requires Gary's body/player
+/// and loaded garage/CAP resources even though a separate control task starts it.
+static EvsCommand _gActor120300JunkYardRefusalScript[9] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_120300_CAP_JUNK_YARD_REFUSAL }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_120300_80141A34[13] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 14 }, { .value = 0 } },
+/// Garage remark exchange, turning the player's upper-body aim toward Gary then centering it.
+///
+/// CAP command 14 supplies four cues. Clears both requests and releases scripted
+/// control after centering. Ends at command 12; requires the body/player and
+/// loaded garage/CAP resources.
+static EvsCommand _gActor120300RemarkScript[13] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_120300_CAP_REMARK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1327,19 +1416,24 @@ EvsCommand D_actor_120300_80141A34[13] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_120300_80141B6C[5] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120300BodyTask, { .model = &_gActor120300GaryDouglasBody } },
-    { { { TASK_BODY_NONE, 192 } }, _actor120300JunkYardRefusalTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120300HeadTask, { .model = &_gActor120300GaryDouglasHeadHat } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120300RifleTask, { .model = &_gActor120300Model082F8 } },
-    { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
+TaskDesc gActor120300TaskDescriptors[ACTOR_120300_TASK_COUNT] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120300_TASK_PRIORITY } }, _actor120300BodyTask, { .model = &_gActor120300GaryDouglasBody } },
+    { { { TASK_BODY_NONE, ACTOR_120300_TASK_PRIORITY } }, _actor120300JunkYardRefusalTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120300_TASK_PRIORITY } }, _actor120300HeadTask, { .model = &_gActor120300GaryDouglasHeadHat } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_120300_TASK_PRIORITY } }, _actor120300RifleTask, { .model = &_gActor120300Model082F8 } },
+    { { { TASK_BODY_NONE, ACTOR_120300_TASK_PRIORITY } }, _screenFadeOutTask, { .value = 0 } },
 };
 
-Task* D_actor_120300_80141BA8;
+/// Borrowed live Gary body task used by this package's event-script callbacks.
+///
+/// Published only after body work allocation succeeds. Supports one body;
+/// callbacks require its work and addressed child/player tasks to remain live.
+/// The handle is not cleared at teardown and must not be used afterward.
+static Task* _gActor120300BodyTask;
 
 static s32         _actor120300TickBodyAnimation(Task* task);
 static inline s16  _actor120300InitChild(Task* task, s32 parentPartIndex);
@@ -1393,8 +1487,8 @@ static s32 _actor120300TickBodyAnimation(Task* task)
     }
 checkSettled:
     if (allSettled) {
-        if (D_actor_120300_80140980[work->bodyAnimation] >= 0) {
-            nextAnimationId            = D_actor_120300_80140980[work->bodyAnimation];
+        if (_gActor120300BodyFollowOnAnimations[work->bodyAnimation] >= 0) {
+            nextAnimationId            = _gActor120300BodyFollowOnAnimations[work->bodyAnimation];
             restartWork                = task->work;
             restartWork->bodyAnimation = nextAnimationId;
             goto restartSlots;
@@ -1437,7 +1531,7 @@ static inline s16 _actor120300InitChild(Task* task, s32 parentPartIndex)
     tmdAllocPrimitiveBuffer(model);
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
-    task->msgTable  = D_actor_120300_80140A44;
+    task->msgTable  = _gActor120300ModelMessages;
     return 0;
 }
 
@@ -1558,7 +1652,7 @@ static inline void _actor120300BlendPlayerAnimation(Task* task, u16 animationId)
     AnimationPlayRequest request;
 
     if (work->playerTask != NULL) {
-        request.source.sets          = D_actor_120300_801408CC;
+        request.source.sets          = _gActor120300PlayerAnimationSets;
         work->playerAnimation        = animationId;
         request.animationId          = animationId;
         request.blend                = ANIMATION_BLEND_INTERPOLATE;
@@ -1580,7 +1674,7 @@ static inline void _actor120300ResetPlayerAnimation(Task* task, u16 animationId)
     AnimationPlayRequest request;
 
     if (work->playerTask != NULL) {
-        request.source.sets          = D_actor_120300_801408CC;
+        request.source.sets          = _gActor120300PlayerAnimationSets;
         work->playerAnimation        = animationId;
         request.animationId          = animationId;
         request.blend                = ANIMATION_BLEND_RESET;
@@ -1645,23 +1739,23 @@ static void _actor120300RunPlayerRequest(Task* task)
         PLAYER_ANIMATION_DELAY_TICKS = 16,
         PLAYER_AIM_STEP              = 48, // Angle units per update, 4096 units per turn.
     };
-    _Actor120300Work* work;
-    _Actor120300Work* dispatchWork;
-    GameActor*        player;
-    GfxCoord*         actorCoord;
-    GfxCoord*         playerCoord;
-    s32               yawDistance;
-    s16               targetYaw;
-    s16               currentYaw;
-    ActorTransform*   placement;
-    Task*             playerTask;
+    _Actor120300Work*     work;
+    _Actor120300Work*     dispatchWork;
+    GameActor*            player;
+    GfxCoord*             actorCoord;
+    GfxCoord*             playerCoord;
+    s32                   yawDistance;
+    s16                   targetYaw;
+    s16                   currentYaw;
+    const ActorTransform* placement;
+    Task*                 playerTask;
 
     work = task->work;
     // A pending script request may replace the follow-on clip started here.
     if (gGameSession->eventState != 0) {
         if ((work->playerTask != NULL) && (taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0)) {
-            if (D_actor_120300_8014095C[work->playerAnimation] >= 0) {
-                _actor120300BlendPlayerAnimation(task, D_actor_120300_8014095C[work->playerAnimation]);
+            if (_gActor120300PlayerFollowOnAnimations[work->playerAnimation] >= 0) {
+                _actor120300BlendPlayerAnimation(task, _gActor120300PlayerFollowOnAnimations[work->playerAnimation]);
             }
         }
     }
@@ -1672,16 +1766,16 @@ static void _actor120300RunPlayerRequest(Task* task)
             _actor120300ResetPlayerAnimation(task, 0);
             break;
         case 2:
-            placement    = &D_actor_120300_80140A54[6];
+            placement    = &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_PLAYER_APPROACH_START];
             dispatchWork = task->work;
             TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, placement, 0);
             // Send the movement destination after placing the player at the approach start.
             dispatchWork = task->work;
-            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, placement - 5, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, placement + (ACTOR_120300_PLACEMENT_PLAYER_APPROACH_END - ACTOR_120300_PLACEMENT_PLAYER_APPROACH_START), 0);
             break;
         case 3:
             dispatchWork = task->work;
-            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[1], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_PLAYER_APPROACH_END], 0);
             _actor120300ResetPlayerAnimation(task, 1);
             break;
         case 4:
@@ -1690,7 +1784,7 @@ static void _actor120300RunPlayerRequest(Task* task)
         case 5:
             taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             dispatchWork = task->work;
-            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[2], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_PLAYER_CLIP3], 0);
             _actor120300BlendPlayerAnimation(task, 3);
             break;
         case 7:
@@ -1719,7 +1813,7 @@ static void _actor120300RunPlayerRequest(Task* task)
             break;
         case 11:
             dispatchWork = task->work;
-            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[3], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_PLAYER_CLIP11], 0);
             _actor120300BlendPlayerAnimation(task, 0xB);
             taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
             break;
@@ -1729,7 +1823,7 @@ static void _actor120300RunPlayerRequest(Task* task)
             break;
         case 13:
             dispatchWork = task->work;
-            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[5], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_PLAYER_ROOM_PLAY], 0);
             ACTOR_120300_PLAY_PLAYER_WEAPON_ANIMATION(work->playerTask, ANIMATION_BLEND_RESET, 0);
             break;
         case 14:
@@ -1874,7 +1968,7 @@ static void _actor120300RunBodyRequest(Task* task)
         case ACTOR_120300_BODY_REQUEST_SLIDE_LEFT:
             switch (work->bodyRequestStep) {
                 case ACTOR_120300_BODY_REQUEST_STEP_START:
-                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[7], 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_BODY_SLIDE_START], 0);
                     _actor120300ResetBodyAnimation(task, 1);
                     work->bodyRequestStep++;
                     return;
@@ -1891,7 +1985,7 @@ static void _actor120300RunBodyRequest(Task* task)
             }
             return;
         case 2:
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[8], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_BODY_AFTER_SLIDE], 0);
             break;
         case 3:
             _actor120300BlendBodyAnimation(task, 4);
@@ -1909,9 +2003,9 @@ static void _actor120300RunBodyRequest(Task* task)
             _actor120300BlendBodyAnimation(task, 0xD);
             break;
         case 8:
-            bodyPlacement = &D_actor_120300_80140A54[9];
+            bodyPlacement = &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_BODY_ROOM_PLAY];
             TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, bodyPlacement, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, bodyPlacement + 2, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, bodyPlacement + (ACTOR_120300_PLACEMENT_RIFLE_ROOM_PLAY - ACTOR_120300_PLACEMENT_BODY_ROOM_PLAY), 0);
             _actor120300ResetBodyAnimation(task, 8);
             break;
         case 9:
@@ -1928,7 +2022,7 @@ static void _actor120300RunBodyRequest(Task* task)
             break;
         case 13:
             work->scale = ONE / 4;
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[12], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_BODY_DIMMED], 0);
             _actor120300ResetBodyAnimation(task, 0xE);
             break;
         case ACTOR_120300_BODY_REQUEST_FULL_LIGHT:
@@ -1941,11 +2035,11 @@ static void _actor120300RunBodyRequest(Task* task)
             _actor120300BlendBodyAnimation(task, 0x10);
             break;
         case 17:
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[10], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_BODY_CLIP17], 0);
             _actor120300ResetBodyAnimation(task, 0x11);
             break;
         case 18:
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[9], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_BODY_ROOM_PLAY], 0);
             _actor120300ResetBodyAnimation(task, 8);
             break;
         case 19:
@@ -1971,9 +2065,6 @@ static void _actor120300PrepareRoomPlay(s32 preservePlayer)
 {
     enum {
         ACTOR_120300_ROOM_PLAY_BODY_ANIMATION   = 8,
-        ACTOR_120300_ROOM_PLAY_BODY_PLACEMENT   = 9,
-        ACTOR_120300_ROOM_PLAY_RIFLE_PLACEMENT  = 11,
-        ACTOR_120300_ROOM_PLAY_PLAYER_PLACEMENT = 5,
         ACTOR_120300_PRIMARY_CHARACTER          = 1,
         ACTOR_120300_PRIMARY_WEAPON_BANK_BASE   = 1,
         ACTOR_120300_ALTERNATE_WEAPON_BANK_BASE = 0x22,
@@ -1986,16 +2077,16 @@ static void _actor120300PrepareRoomPlay(s32 preservePlayer)
     s32                  weaponId;
     s32                  weaponBank;
 
-    task                   = D_actor_120300_80141BA8;
+    task                   = _gActor120300BodyTask;
     work                   = task->work;
     task->extra.tmd->flags = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[ACTOR_120300_ROOM_PLAY_BODY_PLACEMENT], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_BODY_ROOM_PLAY], 0);
 
     _actor120300ResetBodyAnimation(task, ACTOR_120300_ROOM_PLAY_BODY_ANIMATION);
 
     taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[ACTOR_120300_ROOM_PLAY_RIFLE_PLACEMENT], 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_RIFLE_ROOM_PLAY], 0);
     if (preservePlayer == 0) {
         weaponId                                    = gPlayerStatus.weapon;
         weaponBank                                  = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_120300_PRIMARY_CHARACTER) ? weaponId + ACTOR_120300_PRIMARY_WEAPON_BANK_BASE : weaponId + ACTOR_120300_ALTERNATE_WEAPON_BANK_BASE;
@@ -2005,7 +2096,7 @@ static void _actor120300PrepareRoomPlay(s32 preservePlayer)
         playerAnimationRequest.blendFrames          = 0;
         playerAnimationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
         TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &playerAnimationRequest, 0);
-        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[ACTOR_120300_ROOM_PLAY_PLAYER_PLACEMENT], 0);
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_PLAYER_ROOM_PLAY], 0);
         work->scale = ONE;
         cdCmdCancelScene();
     }
@@ -2033,15 +2124,15 @@ static s16 _actor120300RunInteraction(Task* task)
                 case ACTOR_120300_INTERACTION_STEP_START:
                     switch (work->talkStage) {
                         case 0:
-                            evsStartScript(D_actor_120300_801416D4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                            evsStartScript(_gActor120300FirstTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                             work->talkStage++;
                             break;
                         case 1:
-                            evsStartScript(D_actor_120300_801417AC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                            evsStartScript(_gActor120300SecondTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                             work->talkStage++;
                             break;
                         default:
-                            evsStartScript(D_actor_120300_80141884, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                            evsStartScript(_gActor120300RepeatTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                             break;
                     }
                     work->interactionStep++;
@@ -2056,7 +2147,7 @@ static s16 _actor120300RunInteraction(Task* task)
         case ACTOR_120300_INTERACTION_REMARK:
             switch (work->interactionStep) {
                 case ACTOR_120300_INTERACTION_STEP_START:
-                    evsStartScript(D_actor_120300_80141A34, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                    evsStartScript(_gActor120300RemarkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                     work->interactionStep++;
                     break;
                 case ACTOR_120300_INTERACTION_STEP_WAIT:
@@ -2099,20 +2190,20 @@ static void _actor120300InitBody(Task* task)
     // The model borrows matrices from work; child tasks share the body lifetime.
     work = allocatedWork;
     memFillBytes(work, 0, sizeof(*work));
-    work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    D_actor_120300_80141BA8 = task;
-    rootCoord->parent       = &gGfxViewCoord;
+    work->playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    _gActor120300BodyTask = task;
+    rootCoord->parent     = &gGfxViewCoord;
     tmdAllocPrimitiveBuffer(model);
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     model->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
     placement       = _actor120300FindTexturePlacement();
     tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
-    animationInitContext(&work->rig.anim, D_actor_120300_80140910, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor120300BodyAnimationSets, model, work->rig.poses, work->rig.slots);
     _actor120300ResetBodyAnimation(task, ACTOR_120300_BODY_INITIAL_ANIMATION);
-    work->headTask  = taskSpawnFromTable(D_actor_120300_80141B6C, ACTOR_120300_TASK_HEAD, 0, task);
-    work->rifleTask = taskSpawnFromTable(D_actor_120300_80141B6C, ACTOR_120300_TASK_RIFLE, 0, task);
-    task->msgTable  = D_actor_120300_80140A44;
+    work->headTask  = taskSpawnFromTable(gActor120300TaskDescriptors, ACTOR_120300_TASK_HEAD, 0, task);
+    work->rifleTask = taskSpawnFromTable(gActor120300TaskDescriptors, ACTOR_120300_TASK_RIFLE, 0, task);
+    task->msgTable  = _gActor120300ModelMessages;
     work->scale     = ONE;
     taskReparent(task, work->headTask);
     taskReparent(task, work->rifleTask);
@@ -2228,14 +2319,14 @@ static void _actor120300BodyTask(Task* task)
                     gameFlagSetNibble(GAME_FLAG_02C, 1);
                     gameFlagSetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN, 1);
                     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xB);
-                    evsStartScriptWithSkip(D_actor_120300_80140B94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_120300_80141524);
+                    evsStartScriptWithSkip(_gActor120300OpeningScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor120300OpeningSkipScript);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
                     task->state                                        += 1;
                 }
                 // Patch the live garage grid from this actor package's collision records.
-                memCopyBytes(&D_actor_120300_801409A8, gDryfieldGarageCollisionGridNormals, sizeof(D_actor_120300_801409A8));
-                memCopyBytes(&D_actor_120300_80140A20, gDryfieldGarageCollisionGridFaces, sizeof(D_actor_120300_80140A20));
-                memCopyBytes(&D_actor_120300_801409C0, gDryfieldGarageCollisionGridVerts, sizeof(D_actor_120300_801409C0));
+                memCopyBytes(_gActor120300GarageCollisionPatchNormals, gDryfieldGarageCollisionGridNormals, sizeof(_gActor120300GarageCollisionPatchNormals));
+                memCopyBytes(_gActor120300GarageCollisionPatchFaces, gDryfieldGarageCollisionGridFaces, sizeof(_gActor120300GarageCollisionPatchFaces));
+                memCopyBytes(_gActor120300GarageCollisionPatchVerts, gDryfieldGarageCollisionGridVerts, sizeof(_gActor120300GarageCollisionPatchVerts));
                 break;
             }
             return;
@@ -2256,7 +2347,7 @@ static void _actor120300BodyTask(Task* task)
             }
             break;
         case ACTOR_120300_BODY_STATE_PLACE_RIFLE:
-            TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[11], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &_gActor120300ScenePlacements[ACTOR_120300_PLACEMENT_RIFLE_ROOM_PLAY], 0);
             task->state = ACTOR_120300_BODY_STATE_ROOM_PLAY;
             break;
     }
@@ -2304,14 +2395,14 @@ static void _actor120300HandleModelDrawMessage(Task* task, s32 unusedMessageId, 
 /// published body task and both initialized child tasks to remain live.
 static void _actor120300SetModelsVisible(s32 visible)
 {
-    _Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = _gActor120300BodyTask->work;
 
     if (visible == 0) {
-        taskMessageDispatch(D_actor_120300_80141BA8, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+        taskMessageDispatch(_gActor120300BodyTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
         taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
         taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
     } else if (visible == 1) {
-        taskMessageDispatch(D_actor_120300_80141BA8, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+        taskMessageDispatch(_gActor120300BodyTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
         taskMessageDispatch(work->headTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
         taskMessageDispatch(work->rifleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
     }
@@ -2352,7 +2443,7 @@ static void _actor120300FinishSceneStream(void)
 /// and cleared by the tick. Requires the published body task and its work live.
 static void _actor120300PostPlayerRequest(s16 requestId)
 {
-    _Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = _gActor120300BodyTask->work;
 
     work->playerRequest     = requestId;
     work->playerRequestStep = 0;
@@ -2365,7 +2456,7 @@ static void _actor120300PostPlayerRequest(s16 requestId)
 /// body task and its work live; child tasks must survive requests addressing them.
 static void _actor120300PostBodyRequest(s16 requestId)
 {
-    _Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = _gActor120300BodyTask->work;
 
     work->bodyRequest     = requestId;
     work->bodyRequestStep = 0;
@@ -2377,7 +2468,7 @@ static void _actor120300PostBodyRequest(s16 requestId)
 /// before removal; subsequent calls do nothing until the scene restores it.
 static void _actor120300RemovePlayerEquipment(void)
 {
-    _Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = _gActor120300BodyTask->work;
 
     if (work->playerEquipmentRemoved == 0) {
         work->playerEquipmentRemoved = 1;
@@ -2393,7 +2484,7 @@ static void _actor120300RemovePlayerEquipment(void)
 /// The event script releases scripted control later.
 static void _actor120300RestorePlayerEquipment(void)
 {
-    _Actor120300Work* work = D_actor_120300_80141BA8->work;
+    _Actor120300Work* work = _gActor120300BodyTask->work;
 
     if (work->playerEquipmentRemoved != 0) {
         playerActorRestoreEquipment();
@@ -2411,7 +2502,7 @@ static void _actor120300StartSceneFadeOut(void)
 {
     enum { ACTOR_120300_SCENE_FADE_INTENSITY_PER_TICK = 9 };
 
-    taskSpawnFromTable(D_actor_120300_80141B6C, ACTOR_120300_TASK_FADE_OUT, ACTOR_120300_SCENE_FADE_INTENSITY_PER_TICK, 0);
+    taskSpawnFromTable(gActor120300TaskDescriptors, ACTOR_120300_TASK_FADE_OUT, ACTOR_120300_SCENE_FADE_INTENSITY_PER_TICK, 0);
 }
 
 /// Runs the garage dialogue that refuses departure through the junk-yard door.
@@ -2428,7 +2519,7 @@ static void _actor120300JunkYardRefusalTask(Task* task)
 
     switch (task->state) {
         case ACTOR_120300_REFUSAL_STATE_START:
-            evsStartScript(D_actor_120300_8014195C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(_gActor120300JunkYardRefusalScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             task->state += 1;
             break;
         case ACTOR_120300_REFUSAL_STATE_WAIT:

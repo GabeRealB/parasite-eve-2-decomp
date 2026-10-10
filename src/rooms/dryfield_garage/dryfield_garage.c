@@ -5,6 +5,7 @@
 
 #include "common.h"
 
+#include "actors/actor_120300.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/area.h"
@@ -45,8 +46,6 @@
 #include "../../shared/garage.h"
 
 extern RoomEventActiveBytes gRoomEventActive;
-
-extern TaskDesc D_actor_120300_80141B6C[];
 
 /// The event request the gate latched for the event task, and the
 /// flag saying one was latched this call.
@@ -671,7 +670,7 @@ static WorldCollisionTrigger _gDryfieldGarageActionTriggers[11] = {
 };
 
 AreaResource D_dryfield_garage_80180060[2] = {
-    { 106, 203, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_120300_80141B6C },
+    { 106, 203, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor120300TaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -948,15 +947,14 @@ static s32 _dryfieldGarageHandleRoomAction(Task* unusedTask, s32 unusedMessageId
 static void _dryfieldGarageJunkYardRefusalTask(Task* task)
 {
     enum {
-        DRYFIELD_GARAGE_REFUSAL_SPAWN                      = 0,
-        DRYFIELD_GARAGE_REFUSAL_EXIT                       = 1,
-        DRYFIELD_GARAGE_ACTOR_JUNK_YARD_REFUSAL_TASK_INDEX = 1,
+        DRYFIELD_GARAGE_REFUSAL_SPAWN = 0,
+        DRYFIELD_GARAGE_REFUSAL_EXIT  = 1,
     };
     Task* sceneTask;
     s32   currentState;
     switch (task->state) {
         case DRYFIELD_GARAGE_REFUSAL_SPAWN:
-            sceneTask                      = taskSpawnFromTable(D_actor_120300_80141B6C, DRYFIELD_GARAGE_ACTOR_JUNK_YARD_REFUSAL_TASK_INDEX, 0, 0);
+            sceneTask                      = taskSpawnFromTable(gActor120300TaskDescriptors, ACTOR_120300_TASK_JUNK_YARD_REFUSAL, 0, 0);
             currentState                   = task->state;
             _gDryfieldGarageDoorScene.task = sceneTask;
             task->state                    = currentState + 1;

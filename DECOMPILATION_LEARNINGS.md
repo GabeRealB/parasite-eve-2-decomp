@@ -93166,8 +93166,9 @@ when naming the object, update C and the symbol map together.
 
 The distinction to hold onto: family-wide imports (`D_8014xxxx`, addresses *below*
 every room's load address) are named in `configs/USA/sym/<family>.imports.txt` and
-declared `extern` at file scope, e.g. `extern TaskDesc D_80141B6C;` - see
-`src/rooms/mist_shooting_gallery/mist_shooting_gallery.c:59`. Overlay-local data
+declared `extern` at file scope, e.g. `gActor120300TaskDescriptors` in
+`include/actors/actor_120300.h`, imported by `dryfield_garage` with
+`owner=actor_120300`. Overlay-local data
 above the load address is `<family>/<overlay>.txt` if named, else splat's
 `D_<overlay>_<vram>`.
 
