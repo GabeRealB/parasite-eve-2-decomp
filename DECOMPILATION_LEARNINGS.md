@@ -29847,7 +29847,7 @@ if (flags & 3) {
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment = TEXT_ALIGNMENT_LEFT;
     req.drawMode = TEXT_DRAW_OUTLINED;
-    func_8002E53C(&req, Gp_StrStrengthen);
+    func_8002E53C(&req, gItemMenuPeStrengthenText);
 } else {
     req.x = ...;
     req.y = ...;
@@ -29856,7 +29856,7 @@ if (flags & 3) {
     req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     req.alignment = TEXT_ALIGNMENT_LEFT;
     req.drawMode = TEXT_DRAW_OUTLINED;
-    func_8002E53C(&req, Gp_StrRevive);
+    func_8002E53C(&req, gItemMenuPeReviveText);
 }
 ```
 

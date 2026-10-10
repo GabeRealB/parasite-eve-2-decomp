@@ -666,7 +666,7 @@ void itemMenuWeaponChoiceListTask(Task* task)
             task->state          = task->state + 1;
             task->killCountdown  = ITEM_MENU_WEAPON_CHOICE_EMPTY_TIMEOUT_TICKS;
             object->panel.style |= USER_INTERFACE_PANEL_TITLE_STYLE;
-            uiSizePanelForTextDefault(&(object)->panel, Gp_StrNoWeaponEq);
+            uiSizePanelForTextDefault(&(object)->panel, gItemMenuNoApplicableWeaponText);
             return;
         }
         if ((s16)object->panel.bounds.unsignedRect.y + (s16)object->panel.bounds.unsignedRect.h < 0x47) {
@@ -710,7 +710,7 @@ void itemMenuWeaponChoiceListTask(Task* task)
     {
         s32 textDrawMode = activeState;
 
-        textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, Gp_StrNoWeaponEq, ITEM_MENU_STATS_NEUTRAL_COLOR_RGB, textDrawMode, TEXT_ALIGNMENT_LEFT);
+        textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, gItemMenuNoApplicableWeaponText, ITEM_MENU_STATS_NEUTRAL_COLOR_RGB, textDrawMode, TEXT_ALIGNMENT_LEFT);
     }
     task->killCountdown--;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {

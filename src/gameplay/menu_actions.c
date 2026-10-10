@@ -2353,7 +2353,7 @@ void itemMenuDrawPeUpgradeRow(UiList* list, UiObject* object)
         request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         request.alignment  = TEXT_ALIGNMENT_LEFT;
         request.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&request, (const u8*)Gp_StrStrengthen);
+        textDrawString(&request, gItemMenuPeStrengthenText);
     } else {
         request.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.unsignedValue;
         request.y          = object->panel.contentOriginY.unsignedValue + list->rowTextY.unsignedValue;
@@ -2362,7 +2362,7 @@ void itemMenuDrawPeUpgradeRow(UiList* list, UiObject* object)
         request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         request.alignment  = TEXT_ALIGNMENT_LEFT;
         request.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&request, (const u8*)Gp_StrRevive);
+        textDrawString(&request, gItemMenuPeReviveText);
     }
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
@@ -2395,7 +2395,7 @@ void itemMenuPeCommandTask(Task* task)
     s32                childResult;
     s32                rowCount;
 
-    list   = &D_8010F5FC;
+    list   = &gItemMenuPeCommandList;
     object = task->spawnArg2.pointer;
     if (task->state == ITEM_MENU_STATE_INITIAL) {
         callbacks                           = list->rowCallbacks;
@@ -2502,7 +2502,7 @@ void itemMenuDiscardTask(Task* task)
         itemMenuNoticeTask(task);
         return;
     }
-    promptText = Gp_PromptTexts[ITEM_MENU_PROMPT_CONFIRM_DISCARD];
+    promptText = gItemMenuNoticeTexts[ITEM_MENU_NOTICE_PROMPT_FIRST + ITEM_MENU_PROMPT_CONFIRM_DISCARD];
     if (task->state == ITEM_MENU_STATE_INITIAL) {
         uiSizePanelForTextWide(&(object)->panel, promptText);
         confirmationMenu = itemMenuSpawnYesNoMenuDefaultNo(object);
@@ -2758,7 +2758,7 @@ void itemMenuDrawAbilityDescription(UiObject* object, s32 abilityId)
         request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
         request.alignment  = TEXT_ALIGNMENT_LEFT;
         request.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&request, Gp_StrCastCost);
+        textDrawString(&request, gItemMenuPeCastingCostLabel);
         _itemMenuDrawAbilityParameterBar(object, abilityId, 0, 0x34, contentTop + 0x1A, ATTACHMENT_LEVEL_CAST_COST);
     }
 }
@@ -2776,10 +2776,10 @@ void itemMenuNoticeTask(Task* task)
 
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(object)->panel, Gp_StrNotice3);
+    uiDrawPanelLabel(&(object)->panel, gItemMenuNoticeTitle);
 
     textColorRgb = 0x606060;
-    text         = Gp_NoticeTexts[(u16)task->spawnArg1.value];
+    text         = gItemMenuNoticeTexts[(u16)task->spawnArg1.value];
 
     if (task->state == ITEM_MENU_NOTICE_STATE_INIT) {
         uiSizePanelForTextDefault(&(object)->panel, text);
@@ -2876,7 +2876,7 @@ void itemMenuPeUpgradeTask(Task* task)
     expLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     expLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
     expLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&expLabelRequest, (const u8*)D_8009720C);
+    textDrawString(&expLabelRequest, gItemMenuPeUpgradeExpLabel);
 
     costLabelRequest.x          = object->panel.contentOriginX.unsignedValue + labelX;
     costLabelRequest.y          = (s16)(object->panel.contentOriginY.unsignedValue - 2) + lineY;
@@ -2885,7 +2885,7 @@ void itemMenuPeUpgradeTask(Task* task)
     costLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     costLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
     costLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&costLabelRequest, (const u8*)Gp_StrCost);
+    textDrawString(&costLabelRequest, gItemMenuPeUpgradeCostLabel);
 
     elementIndex = ((abilityId + 1) & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
     energyIndex  = ((abilityId + 1) & ATTACHMENT_MENU_ENERGY_MASK) >> ATTACHMENT_MENU_ENERGY_SHIFT;
@@ -2903,7 +2903,7 @@ void itemMenuPeUpgradeTask(Task* task)
     bonusLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     bonusLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
     bonusLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&bonusLabelRequest, (const u8*)Gp_StrBonus);
+    textDrawString(&bonusLabelRequest, gItemMenuPeUpgradeBonusLabel);
 
     mpLabelRequest.x          = object->panel.contentOriginX.unsignedValue + labelX;
     mpLabelRequest.y          = (s16)(object->panel.contentOriginY.unsignedValue - 2) + lineY;
@@ -2912,7 +2912,7 @@ void itemMenuPeUpgradeTask(Task* task)
     mpLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
     mpLabelRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
     mpLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&mpLabelRequest, (const u8*)D_80097220);
+    textDrawString(&mpLabelRequest, gItemMenuPeUpgradeMpLabel);
 
     bonusColumn       = ATTACHMENT_LEVEL_MP_BONUS;
     bonusElementIndex = ((abilityId + 1) & ATTACHMENT_MENU_ELEMENT_MASK) >> ATTACHMENT_MENU_ELEMENT_SHIFT;
@@ -3185,7 +3185,7 @@ static void _itemMenuDrawPeSpecifications(UiObject* object, s32 abilityId, s32 n
         itemMenuDrawParasiteEnergyLevel(object, contentX, contentY, level, textColorRgb);
     }
 
-    labelText                   = (const u8*)Gp_StrAreaEffect;
+    labelText                   = gItemMenuPeAreaEffectLabel;
     contentX                    = object->panel.contentLeft.signedValue + 2;
     contentTop                  = object->panel.contentTop.signedValue;
     contentY                    = contentTop + 0x21;
@@ -3205,7 +3205,7 @@ static void _itemMenuDrawPeSpecifications(UiObject* object, s32 abilityId, s32 n
     }
 
     parameterColorRgb           = ITEM_MENU_TEXT_COLOR_RGB;
-    labelText                   = (const u8*)Gp_StrCastCost;
+    labelText                   = gItemMenuPeCastingCostLabel;
     contentX                    = object->panel.contentLeft.signedValue + 0x54;
     parameterTop                = object->panel.contentTop.signedValue;
     costLabelRequest.x          = object->panel.contentOriginX.unsignedValue + 1 + contentX;
@@ -3226,7 +3226,7 @@ static void _itemMenuDrawPeSpecifications(UiObject* object, s32 abilityId, s32 n
     atpLabelRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     atpLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
     atpLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&atpLabelRequest, (const u8*)Gp_StrAtpLoss);
+    textDrawString(&atpLabelRequest, gItemMenuPeAtpLossLabel);
     contentY = parameterTop + 0x58;
     _itemMenuDrawAbilityParameterBar(object, abilityId, nextLevel, contentX, contentY, ATTACHMENT_LEVEL_ATP_LOSS);
 }
@@ -3737,7 +3737,7 @@ void itemMenuDrawPeCancelRow(UiList* list, UiObject* object)
     request.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
     request.alignment  = TEXT_ALIGNMENT_LEFT;
     request.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&request, Gp_StrCancel2);
+    textDrawString(&request, gItemMenuPeCancelText);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, gPadConfirmButtonMask) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
@@ -3836,7 +3836,7 @@ static void _itemMenuUpdateTimedTextDialog(UiObject* object, Task* task, const u
 /// Fits, draws and advances a timed dialog for one item-menu notice.
 ///
 /// Borrows the live dialog object and its task. The low 16 bits of spawnArg1
-/// must index `Gp_NoticeTexts` (0..15); higher bits are ignored. Draws in the
+/// must index `gItemMenuNoticeTexts` (0..32); higher bits are ignored. Draws in the
 /// menu's standard colour and uses the same timing/results as
 /// `_itemMenuUpdateTimedTextDialog`, preserving results when no input completes.
 static void _itemMenuUpdateTimedNoticeDialog(UiObject* object, Task* task)
@@ -3845,7 +3845,7 @@ static void _itemMenuUpdateTimedNoticeDialog(UiObject* object, Task* task)
     s32       colorRgb;
 
     colorRgb = ITEM_MENU_TEXT_COLOR_RGB;
-    text     = Gp_NoticeTexts[(u16)task->spawnArg1.value];
+    text     = gItemMenuNoticeTexts[(u16)task->spawnArg1.value];
 
     if (task->state == ITEM_MENU_STATE_INITIAL) {
         uiSizePanelForTextDefault(&(object)->panel, text);
@@ -3870,7 +3870,7 @@ void itemMenuPeNextLevelTask(Task* task)
     savedPanelControl          = object->panel.control.word;
     object->result             = USER_INTERFACE_RESULT_NONE;
     object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-    uiDrawPanelLabel(&(object)->panel, Gp_StrNextLevel);
+    uiDrawPanelLabel(&(object)->panel, gItemMenuPeNextLevelTitle);
     object->panel.control.word = savedPanelControl;
     _itemMenuDrawPeSpecifications(object, abilityId, ITEM_MENU_PE_DISPLAY_NEXT_LEVEL);
     descriptionBottomY = object->panel.contentBottom.signedValue;

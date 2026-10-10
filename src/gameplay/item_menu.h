@@ -163,27 +163,49 @@ extern char Gp_StrExamine[];
 
 extern char Gp_StrPush[];
 
-extern char Gp_StrRevive[];
+/// Upgrade command text for a P.E. ability whose learned level is zero.
+extern const u8 gItemMenuPeReviveText[];
 
-extern char Gp_StrStrengthen[];
+/// Upgrade command text for a P.E. ability with a nonzero learned level.
+extern const u8 gItemMenuPeStrengthenText[];
 
-extern char Gp_StrCancel2[0xC];
+/// Cancel command text for the P.E. command list.
+///
+/// The twelve-byte storage also retains an unreferenced terminated "Use" string.
+extern const u8 gItemMenuPeCancelText[12];
 
-extern u8 Gp_StrNoWeaponEq[];
+/// Notice text when the weapon-choice list has no applicable carried weapon.
+extern const u8 gItemMenuNoApplicableWeaponText[];
 
-extern char Gp_StrAreaEffect[];
+/// Area-preview label in the P.E. specifications panel.
+extern const u8 gItemMenuPeAreaEffectLabel[];
 
-extern char Gp_StrCastCost[];
+/// Casting-cost label shared by P.E. descriptions and specifications.
+extern const u8 gItemMenuPeCastingCostLabel[];
 
-extern char Gp_StrAtpLoss[];
+/// ATP-loss parameter label in the P.E. specifications panel.
+extern const u8 gItemMenuPeAtpLossLabel[];
 
-extern u8* Gp_NoticeTexts[];
+/// Start of the prompt slice and full extent of the item-menu message catalogue.
+enum {
+    ITEM_MENU_NOTICE_PROMPT_FIRST = 16,
+    ITEM_MENU_NOTICE_TEXT_COUNT   = 33
+};
 
-extern u8* Gp_PromptTexts[];
+/// Complete item-menu message catalogue, indexed by notice id 0..32.
+///
+/// Entries are borrowed terminated byte strings with gameplay-overlay lifetime.
+/// The prompt slice starts at id 16; its first entry asks to discard.
+/// Consumers use the low 16 bits of a task payload and require an in-range id.
+extern const u8* const gItemMenuNoticeTexts[ITEM_MENU_NOTICE_TEXT_COUNT];
 
 extern UiList D_8010F5D0;
 
-extern UiList D_8010F5FC;
+/// Shared writable P.E. Upgrade/Cancel list, with wrapping and ten-pixel rows.
+///
+/// Its task restores the two row callbacks and row counts when opened; generic
+/// list updates retain navigation, selection and drawing state here.
+extern UiList gItemMenuPeCommandList;
 
 extern UiObjectDesc D_8010F670;
 
@@ -209,17 +231,23 @@ extern const char Gp_StrMap[];
 
 extern const char Gp_StrAttention2[];
 
-extern const char Gp_StrNotice3[];
+/// Title of the timed item-menu notice panel.
+extern const char gItemMenuNoticeTitle[];
 
-extern const char Gp_StrNextLevel[];
+/// Title of the panel showing the next P.E. level before purchase.
+extern const char gItemMenuPeNextLevelTitle[];
 
-extern const char D_8009720C[];
+/// Experience-cost heading in the P.E. level purchase panel.
+extern const u8 gItemMenuPeUpgradeExpLabel[];
 
-extern const char Gp_StrCost[];
+/// Cost heading above the EXP charged for a P.E. level purchase.
+extern const u8 gItemMenuPeUpgradeCostLabel[];
 
-extern const char Gp_StrBonus[];
+/// Bonus heading above the MP increase earned by a P.E. level purchase.
+extern const u8 gItemMenuPeUpgradeBonusLabel[];
 
-extern const char D_80097220[];
+/// MP-bonus heading in the P.E. level purchase panel.
+extern const u8 gItemMenuPeUpgradeMpLabel[];
 
 /// "Specifications". The byte after the terminator is not zero: the original
 /// toolchain left it in the alignment gap.

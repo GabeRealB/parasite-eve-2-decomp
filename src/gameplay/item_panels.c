@@ -141,36 +141,6 @@ extern UiObjectDesc D_8010F09C;
 
 static u8 D_8010F194[];
 
-extern u8 Gp_StrWrongAmmo[];
-
-extern u8 Gp_StrCannotDiscard[];
-
-extern u8 Gp_StrCannotDiscardEq[];
-
-extern u8 Gp_StrCannotDiscardAmmo[];
-
-extern u8 Gp_StrCannotMoveHere[];
-
-extern u8 Gp_StrDestFull[];
-
-extern u8 Gp_StrCannotMoveEq[];
-
-extern u8 Gp_StrCannotSwitchAmmo[];
-
-extern u8 Gp_StrCannotSwitchEq[];
-
-extern u8 Gp_StrCannotSwitchEq2[];
-
-extern u8 Gp_StrCannotMoveAmmo[];
-
-extern u8 Gp_StrNeedExp[];
-
-extern u8 Gp_StrMaxLevel[];
-
-extern u8 Gp_StrNeedMp[];
-
-extern u8 Gp_StrSaveCancel[];
-
 extern u8 Gp_StrReallyDiscard[];
 
 extern u8 Gp_StrSaveDone[];
@@ -207,8 +177,6 @@ extern u8 Gp_StrCannotSwitchWith[];
 
 extern UiListRowCallback D_8010F5C8[2];
 
-extern UiListRowCallback Gp_PeCmdFns[2];
-
 extern u8 Gp_StrFire[];
 
 extern u8 Gp_StrWind[];
@@ -219,7 +187,7 @@ extern u8 Gp_StrEarth[];
 
 extern UiObjectDesc D_8010F654[1];
 
-extern const char Gp_StrStatus[];
+static const char _gItemMenuHealingStatusTitle[];
 
 extern const char Gp_StrInvoke[];
 
@@ -422,69 +390,81 @@ UiObjectDesc D_8010F178 = { 3, { -140, -107, 170, 15 }, 24, 0, TASK_BODY_NONE, 1
 
 static u8 D_8010F194[] = { 142, 204, 130, 196, 130, 233, 0, 0 };
 
-char Gp_StrDiscard2[]          = "Discard";
-char Gp_StrItem2[]             = "Item";
-char Gp_StrExamine[]           = "Examine";
-char Gp_StrPush[]              = "Push";
-char Gp_StrRevive[]            = "Revive";
-char Gp_StrStrengthen[]        = "Strengthen";
-char Gp_StrCancel2[0xC]        = "Cancel\000\000Use";
-u8   Gp_StrWrongAmmo[]         = "You do not habe the correct ammo.";
-u8   Gp_StrCannotDiscard[]     = "You cannot discard this item.";
-u8   Gp_StrCannotDiscardEq[]   = "You cannot discard equipped items.";
-u8   Gp_StrCannotDiscardAmmo[] = "You cannot discard loaded ammo.";
-u8   Gp_StrNoWeaponEq[]        = "No applicable weapon equipped.";
-u8   Gp_StrCannotMoveHere[]    = "Cannot move this item here.";
-u8   Gp_StrDestFull[]          = "Destination full.";
-u8   Gp_StrCannotMoveEq[]      = "Cannot move equipped items.";
-u8   Gp_StrCannotSwitchAmmo[]  = "Cannot switch with ammunition.";
-u8   Gp_StrCannotSwitchEq[]    = "Cannot switch equiped items.";
-u8   Gp_StrCannotSwitchEq2[]   = "Cannot switch with equipped items.";
-u8   Gp_StrCannotMoveAmmo[]    = "Cannot move loaded ammunition.";
-u8   Gp_StrNeedExp[]           = "Insufficient EXP.";
-u8   Gp_StrMaxLevel[]          = "Max level.";
-u8   Gp_StrNeedMp[]            = "Insufficient MP.";
-u8   Gp_StrSaveCancel[]        = "Save cancelled.";
-u8   Gp_StrReallyDiscard[]     = "Really discard?";
-u8   Gp_StrSaveDone[]          = "Save complete.";
-u8   Gp_StrNoUseNow2[]         = "No use for this now.";
-u8   Gp_StrDontKnowUse[]       = "I don't no how to use this.";
-u8   Gp_StrNoOtherWpn[]        = "I have no other weapons.";
-u8   Gp_StrNoOtherArmor[]      = "I have no other armor.";
-u8   Gp_StrNeedMp5[]           = "MP5A5 required.";
-u8   Gp_StrNeedM4[]            = "M4A1 required.";
-u8   Gp_StrNeedAs12[]          = "AS12 required.";
-u8   Gp_StrNeedP08[]           = "P08 required.";
-u8   Gp_StrNoMoreMods[]        = "No further modifications.";
-u8   Gp_StrNeedEmptySlot[]     = "Empty slot required.";
-u8   Gp_StrMaxHpUp[]           = "Maximum HP increased.";
-u8   Gp_StrMaxMpUp[]           = "Maximum MP increased.";
-u8   Gp_StrCannotMoveItem[]    = "Cannot move this item.";
-u8   Gp_StrCannotSwitchItem[]  = "Cannot switch this item.";
-u8   Gp_StrCannotSwitchWith[]  = "Cannot switch with this item.";
-char Gp_StrAreaEffect[]        = "Area of Effect";
-char Gp_StrCastCost[]          = "Casting Cost";
-char Gp_StrAtpLoss[]           = "ATP Loss";
-u8*  Gp_NoticeTexts[]          = {
-    Gp_StrWrongAmmo,
-    Gp_StrCannotDiscard,
-    Gp_StrCannotDiscardEq,
-    Gp_StrCannotDiscardAmmo,
-    Gp_StrNoWeaponEq,
-    Gp_StrCannotMoveHere,
-    Gp_StrDestFull,
-    Gp_StrCannotMoveEq,
-    Gp_StrCannotSwitchAmmo,
-    Gp_StrCannotSwitchEq,
-    Gp_StrCannotSwitchEq2,
-    Gp_StrCannotMoveAmmo,
-    Gp_StrNeedExp,
-    Gp_StrMaxLevel,
-    Gp_StrNeedMp,
-    Gp_StrSaveCancel,
-};
-
-u8* Gp_PromptTexts[] = {
+char     Gp_StrDiscard2[]                                              = "Discard";
+char     Gp_StrItem2[]                                                 = "Item";
+char     Gp_StrExamine[]                                               = "Examine";
+char     Gp_StrPush[]                                                  = "Push";
+const u8 gItemMenuPeReviveText[] __attribute__((section(".data")))     = "Revive";
+const u8 gItemMenuPeStrengthenText[] __attribute__((section(".data"))) = "Strengthen";
+const u8 gItemMenuPeCancelText[12] __attribute__((section(".data")))   = "Cancel\000\000Use";
+/// Notice text reporting that the required ammunition is unavailable.
+static const u8 _gItemMenuWrongAmmoText[] __attribute__((section(".data"))) = "You do not habe the correct ammo.";
+/// Notice text for an item whose discard restriction prevents removal.
+static const u8 _gItemMenuCannotDiscardText[] __attribute__((section(".data"))) = "You cannot discard this item.";
+/// Notice text for an equipped item that cannot be discarded.
+static const u8 _gItemMenuCannotDiscardEquippedText[] __attribute__((section(".data"))) = "You cannot discard equipped items.";
+/// Notice text for ammunition that cannot be discarded while loaded.
+static const u8 _gItemMenuCannotDiscardLoadedAmmoText[] __attribute__((section(".data"))) = "You cannot discard loaded ammo.";
+const u8        gItemMenuNoApplicableWeaponText[] __attribute__((section(".data")))       = "No applicable weapon equipped.";
+/// Notice text reporting that an item cannot move to the chosen destination.
+static const u8 _gItemMenuCannotMoveHereText[] __attribute__((section(".data"))) = "Cannot move this item here.";
+/// Notice text for a transfer destination with no available capacity.
+static const u8 _gItemMenuDestinationFullText[] __attribute__((section(".data"))) = "Destination full.";
+/// Notice text reporting that an equipped item cannot be moved.
+static const u8 _gItemMenuCannotMoveEquippedText[] __attribute__((section(".data"))) = "Cannot move equipped items.";
+/// Notice text reporting that ammunition cannot be a swap partner.
+static const u8 _gItemMenuCannotSwitchWithAmmoText[] __attribute__((section(".data"))) = "Cannot switch with ammunition.";
+/// Notice text reporting that an equipped item cannot be swapped.
+static const u8 _gItemMenuCannotSwitchEquippedText[] __attribute__((section(".data"))) = "Cannot switch equiped items.";
+/// Notice text reporting that an equipped item cannot be a swap partner.
+static const u8 _gItemMenuCannotSwitchWithEquippedText[] __attribute__((section(".data"))) = "Cannot switch with equipped items.";
+/// Notice text reporting that loaded ammunition cannot be moved.
+static const u8 _gItemMenuCannotMoveLoadedAmmoText[] __attribute__((section(".data"))) = "Cannot move loaded ammunition.";
+/// Notice text for a P.E. level purchase with insufficient experience.
+static const u8 _gItemMenuInsufficientExpText[] __attribute__((section(".data"))) = "Insufficient EXP.";
+/// Notice text for a P.E. ability that is already at its maximum level.
+static const u8 _gItemMenuMaxPeLevelText[] __attribute__((section(".data"))) = "Max level.";
+/// Notice text reporting insufficient MP.
+static const u8 _gItemMenuInsufficientMpText[] __attribute__((section(".data"))) = "Insufficient MP.";
+/// Notice text for a cancelled save operation.
+static const u8 _gItemMenuSaveCancelledText[] __attribute__((section(".data")))                     = "Save cancelled.";
+u8              Gp_StrReallyDiscard[]                                                               = "Really discard?";
+u8              Gp_StrSaveDone[]                                                                    = "Save complete.";
+u8              Gp_StrNoUseNow2[]                                                                   = "No use for this now.";
+u8              Gp_StrDontKnowUse[]                                                                 = "I don't no how to use this.";
+u8              Gp_StrNoOtherWpn[]                                                                  = "I have no other weapons.";
+u8              Gp_StrNoOtherArmor[]                                                                = "I have no other armor.";
+u8              Gp_StrNeedMp5[]                                                                     = "MP5A5 required.";
+u8              Gp_StrNeedM4[]                                                                      = "M4A1 required.";
+u8              Gp_StrNeedAs12[]                                                                    = "AS12 required.";
+u8              Gp_StrNeedP08[]                                                                     = "P08 required.";
+u8              Gp_StrNoMoreMods[]                                                                  = "No further modifications.";
+u8              Gp_StrNeedEmptySlot[]                                                               = "Empty slot required.";
+u8              Gp_StrMaxHpUp[]                                                                     = "Maximum HP increased.";
+u8              Gp_StrMaxMpUp[]                                                                     = "Maximum MP increased.";
+u8              Gp_StrCannotMoveItem[]                                                              = "Cannot move this item.";
+u8              Gp_StrCannotSwitchItem[]                                                            = "Cannot switch this item.";
+u8              Gp_StrCannotSwitchWith[]                                                            = "Cannot switch with this item.";
+const u8        gItemMenuPeAreaEffectLabel[] __attribute__((section(".data")))                      = "Area of Effect";
+const u8        gItemMenuPeCastingCostLabel[] __attribute__((section(".data")))                     = "Casting Cost";
+const u8        gItemMenuPeAtpLossLabel[] __attribute__((section(".data")))                         = "ATP Loss";
+const u8* const gItemMenuNoticeTexts[ITEM_MENU_NOTICE_TEXT_COUNT] __attribute__((section(".data"))) = {
+    _gItemMenuWrongAmmoText,
+    _gItemMenuCannotDiscardText,
+    _gItemMenuCannotDiscardEquippedText,
+    _gItemMenuCannotDiscardLoadedAmmoText,
+    gItemMenuNoApplicableWeaponText,
+    _gItemMenuCannotMoveHereText,
+    _gItemMenuDestinationFullText,
+    _gItemMenuCannotMoveEquippedText,
+    _gItemMenuCannotSwitchWithAmmoText,
+    _gItemMenuCannotSwitchEquippedText,
+    _gItemMenuCannotSwitchWithEquippedText,
+    _gItemMenuCannotMoveLoadedAmmoText,
+    _gItemMenuInsufficientExpText,
+    _gItemMenuMaxPeLevelText,
+    _gItemMenuInsufficientMpText,
+    _gItemMenuSaveCancelledText,
     Gp_StrReallyDiscard,
     Gp_StrSaveDone,
     Gp_StrNoUseNow2,
@@ -508,9 +488,18 @@ UiListRowCallback D_8010F5C8[2] = { itemMenuDrawUseAttachCommandRow, itemMenuDra
 
 UiList D_8010F5D0 = { D_8010F5C8, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListRowCallback Gp_PeCmdFns[2] = { itemMenuDrawPeUpgradeRow, itemMenuDrawPeCancelRow };
+/// Writable Upgrade/Cancel row dispatch for the P.E. command list.
+///
+/// The command task restores these callbacks on entry through the shared list.
+static UiListRowCallback _gItemMenuPeCommandRowCallbacks[] = { itemMenuDrawPeUpgradeRow, itemMenuDrawPeCancelRow };
 
-UiList D_8010F5FC = { Gp_PeCmdFns, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
+UiList gItemMenuPeCommandList = {
+    .rowCallbacks    = _gItemMenuPeCommandRowCallbacks,
+    .itemCount       = ARRAY_SIZE(_gItemMenuPeCommandRowCallbacks),
+    .visibleRowCount = { .unsignedValue = ARRAY_SIZE(_gItemMenuPeCommandRowCallbacks) },
+    .wrapNavigation  = 1,
+    .rowHeight       = 10,
+};
 
 UiListRowCallback D_8010F620[1] = {
     itemMenuDrawPeAbilityRow,
@@ -535,10 +524,6 @@ UiObjectDesc D_8010F654[1] = { { 3, { -136, -50, 60, 80 }, 24, 0, TASK_BODY_NONE
 
 UiObjectDesc D_8010F670 = { 3, { -136, -50, 70, 80 }, 20, 0, TASK_BODY_NONE, 192, itemMenuPeCommandTask, 0 };
 
-// "EXP"
-// "MP"
-
-const char Gp_StrStatus[];
 const char Gp_StrInvoke[];
 const char Gp_StrPeList[];
 const u8   D_800971A4;
@@ -550,12 +535,6 @@ const char Gp_StrUse2[];
 const char Gp_StrKeyItem2[];
 const char Gp_StrMap[];
 const char Gp_StrAttention2[];
-const char Gp_StrNotice3[];
-const char Gp_StrNextLevel[];
-const char D_8009720C[];
-const char Gp_StrCost[];
-const char Gp_StrBonus[];
-const char D_80097220[];
 const char Gp_StrSpecs2[];
 
 const _ItemMenuM4a1VariantTable D_80097184;
@@ -665,7 +644,7 @@ void itemMenuApplyHealingPanel(UiObject* object, Task* task, s32 healingId)
 
     player         = &gPlayerStatus;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, Gp_StrStatus);
+    uiDrawPanelLabel(&object->panel, _gItemMenuHealingStatusTitle);
     // Apply the effect once, retaining the old values for the rising stat display.
     if (task->state == ITEM_MENU_HEALING_STATE_INIT) {
         uiSetPanelContentSize(&object->panel, 0xB0, 0x2F);
@@ -2013,8 +1992,9 @@ void itemPickupExitTask(Task* task)
     }
 }
 
-const char                      Gp_StrStatus[]  = "Status";
-const _ItemMenuM4a1VariantTable D_80097184      = { {
+/// Title of the item-use panel showing HP and MP recovery.
+static const char               _gItemMenuHealingStatusTitle[] = "Status";
+const _ItemMenuM4a1VariantTable D_80097184                     = { {
     { 0x8F, 0x00 },
     { 0x93, 0x0A },
     { 0x94, 0x0A },
@@ -2024,12 +2004,12 @@ const _ItemMenuM4a1VariantTable D_80097184      = { {
     { 0x9B, 0x43 },
     { 0x9C, 0x44 },
 } };
-const char                      Gp_StrInvoke[]  = "Invoke";
-const char                      Gp_StrPeList[]  = "PE LIST";
-const u8                        D_800971A4      = 0;
-const char                      Gp_StrTotal2[]  = "TOTAL";
-const char                      Gp_StrMessage[] = "Message";
-const char                      Gp_StrWarning[] = "Warning";
+const char                      Gp_StrInvoke[]                 = "Invoke";
+const char                      Gp_StrPeList[]                 = "PE LIST";
+const u8                        D_800971A4                     = 0;
+const char                      Gp_StrTotal2[]                 = "TOTAL";
+const char                      Gp_StrMessage[]                = "Message";
+const char                      Gp_StrWarning[]                = "Warning";
 
 const TaskFuncTable4 Gp_MapTaskStates = { {
     menuMapOpenTask,
@@ -2040,17 +2020,17 @@ const TaskFuncTable4 Gp_MapTaskStates = { {
 
 /// "Help". The three bytes after the terminator are not zero: the original
 /// toolchain left them in the alignment gap.
-const char Gp_StrHelp[8]      = "Help\0a~\xC6";
-const char Gp_StrUse2[]       = "Use";
-const char Gp_StrKeyItem2[]   = "Key Item";
-const char Gp_StrMap[]        = "Map";
-const char Gp_StrAttention2[] = "Attention";
-const char Gp_StrNotice3[]    = "Notice";
-const char Gp_StrNextLevel[]  = "Next Level";
-const char D_8009720C[]       = "EXP";
-const char Gp_StrCost[]       = "COST";
-const char Gp_StrBonus[]      = "BONUS";
-const char D_80097220[]       = "MP";
+const char Gp_StrHelp[8]                  = "Help\0a~\xC6";
+const char Gp_StrUse2[]                   = "Use";
+const char Gp_StrKeyItem2[]               = "Key Item";
+const char Gp_StrMap[]                    = "Map";
+const char Gp_StrAttention2[]             = "Attention";
+const char gItemMenuNoticeTitle[]         = "Notice";
+const char gItemMenuPeNextLevelTitle[]    = "Next Level";
+const u8   gItemMenuPeUpgradeExpLabel[]   = "EXP";
+const u8   gItemMenuPeUpgradeCostLabel[]  = "COST";
+const u8   gItemMenuPeUpgradeBonusLabel[] = "BONUS";
+const u8   gItemMenuPeUpgradeMpLabel[]    = "MP";
 /// "Specifications". The byte after the terminator is not zero: the original
 /// toolchain left it in the alignment gap.
 const char Gp_StrSpecs2[16] = "Specifications\0\"";
