@@ -821,136 +821,247 @@ static AnimationSet _gM4a1PykeParasiteEnergyChargeFamily0Animation = {
     .poseBanks         = { NULL, _gM4a1PykeParasiteEnergyChargeFamily0AnimationBank1, NULL, NULL, _gM4a1PykeParasiteEnergyChargeFamily0AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation05E80Bank1[6] = {
+/// Translation and rotation keyframes for family-0 Parasite Energy casting.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeParasiteEnergyCastFamily0AnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05E80_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation05E80Bank4[57] = {
+/// Packed rotation keyframes for family-0 Parasite Energy casting.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeParasiteEnergyCastFamily0AnimationBank4[57] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05E80_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation05E80Records[87] = {
+/// Keyframe durations and stop controls for family-0 Parasite Energy casting.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeParasiteEnergyCastFamily0AnimationRecords[87] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05E80_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation05E80Indices[20] = {
+/// Absolute track-start record indices for family-0 Parasite Energy casting.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeParasiteEnergyCastFamily0AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05E80_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation05E80 = {
-    _gM4a1PykeAnimation05E80Records,
-    _gM4a1PykeAnimation05E80Indices,
-    { NULL, _gM4a1PykeAnimation05E80Bank1, NULL, NULL, _gM4a1PykeAnimation05E80Bank4, NULL, NULL, NULL },
+/// Player cast motion for family-0 Parasite Energy actions in the Pyke bank.
+///
+/// Native-bank set 28 starts when the attachment countdown reaches zero;
+/// its stop controls finish the cast phase. Borrows nineteen part tracks and
+/// their pose banks; keep this package loaded throughout playback.
+static AnimationSet _gM4a1PykeParasiteEnergyCastFamily0Animation = {
+    .records           = _gM4a1PykeParasiteEnergyCastFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1PykeParasiteEnergyCastFamily0AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeParasiteEnergyCastFamily0AnimationBank1, NULL, NULL, _gM4a1PykeParasiteEnergyCastFamily0AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation06124Bank1[4] = {
+/// Translation and rotation keyframes for family-1 Parasite Energy release.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeParasiteEnergyReleaseFamily1AnimationBank1[4] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06124_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation06124Bank4[55] = {
+/// Packed rotation keyframes for family-1 Parasite Energy release.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeParasiteEnergyReleaseFamily1AnimationBank4[55] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06124_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation06124Records[82] = {
+/// Keyframe durations and stop controls for family-1 Parasite Energy release.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeParasiteEnergyReleaseFamily1AnimationRecords[82] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06124_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation06124Indices[20] = {
+/// Absolute track-start record indices for family-1 Parasite Energy release.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeParasiteEnergyReleaseFamily1AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06124_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation06124 = {
-    _gM4a1PykeAnimation06124Records,
-    _gM4a1PykeAnimation06124Indices,
-    { NULL, _gM4a1PykeAnimation06124Bank1, NULL, NULL, _gM4a1PykeAnimation06124Bank4, NULL, NULL, NULL },
+/// Player release motion for family-1 Parasite Energy actions in the Pyke bank.
+///
+/// Native-bank set 29 starts the attachment countdown; its stop controls
+/// hand playback to the charge phase. Borrows nineteen part tracks and their
+/// pose banks; keep this package loaded throughout playback.
+static AnimationSet _gM4a1PykeParasiteEnergyReleaseFamily1Animation = {
+    .records           = _gM4a1PykeParasiteEnergyReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1PykeParasiteEnergyReleaseFamily1AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeParasiteEnergyReleaseFamily1AnimationBank1, NULL, NULL, _gM4a1PykeParasiteEnergyReleaseFamily1AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation06324Bank1[3] = {
+/// Translation and rotation keyframes for family-1 Parasite Energy charging.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeParasiteEnergyChargeFamily1AnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06324_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation06324Bank4[23] = {
+/// Packed rotation keyframes for family-1 Parasite Energy charging.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeParasiteEnergyChargeFamily1AnimationBank4[23] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06324_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation06324Records[76] = {
+/// Keyframe durations and loop controls for family-1 Parasite Energy charging.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+/// Each track loops through two keyframes via an absolute record index;
+/// the trailing stop record remains stored after that jump.
+static const AnimationRecord _gM4a1PykeParasiteEnergyChargeFamily1AnimationRecords[76] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06324_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation06324Indices[20] = {
+/// Absolute track-start record indices for family-1 Parasite Energy charging.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeParasiteEnergyChargeFamily1AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06324_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation06324 = {
-    _gM4a1PykeAnimation06324Records,
-    _gM4a1PykeAnimation06324Indices,
-    { NULL, _gM4a1PykeAnimation06324Bank1, NULL, NULL, _gM4a1PykeAnimation06324Bank4, NULL, NULL, NULL },
+/// Player charge motion for family-1 Parasite Energy actions in the Pyke bank.
+///
+/// Native-bank set 30 loops while the attachment countdown runs, then the
+/// cast motion replaces it. Borrows nineteen part tracks and their pose banks;
+/// keep this package loaded throughout playback.
+static AnimationSet _gM4a1PykeParasiteEnergyChargeFamily1Animation = {
+    .records           = _gM4a1PykeParasiteEnergyChargeFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1PykeParasiteEnergyChargeFamily1AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeParasiteEnergyChargeFamily1AnimationBank1, NULL, NULL, _gM4a1PykeParasiteEnergyChargeFamily1AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation06678Bank1[8] = {
+/// Translation and rotation keyframes for family-1 Parasite Energy casting.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeParasiteEnergyCastFamily1AnimationBank1[8] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06678_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation06678Bank4[68] = {
+/// Packed rotation keyframes for family-1 Parasite Energy casting.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeParasiteEnergyCastFamily1AnimationBank4[68] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06678_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation06678Records[101] = {
+/// Keyframe durations and stop controls for family-1 Parasite Energy casting.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeParasiteEnergyCastFamily1AnimationRecords[101] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06678_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation06678Indices[20] = {
+/// Absolute track-start record indices for family-1 Parasite Energy casting.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeParasiteEnergyCastFamily1AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06678_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation06678 = {
-    _gM4a1PykeAnimation06678Records,
-    _gM4a1PykeAnimation06678Indices,
-    { NULL, _gM4a1PykeAnimation06678Bank1, NULL, NULL, _gM4a1PykeAnimation06678Bank4, NULL, NULL, NULL },
+/// Player cast motion for family-1 Parasite Energy actions in the Pyke bank.
+///
+/// Native-bank set 31 starts when the attachment countdown reaches zero;
+/// its stop controls finish the cast phase. Borrows nineteen part tracks and
+/// their pose banks; keep this package loaded throughout playback.
+static AnimationSet _gM4a1PykeParasiteEnergyCastFamily1Animation = {
+    .records           = _gM4a1PykeParasiteEnergyCastFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1PykeParasiteEnergyCastFamily1AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeParasiteEnergyCastFamily1AnimationBank1, NULL, NULL, _gM4a1PykeParasiteEnergyCastFamily1AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation0692CBank1[5] = {
+/// Translation and rotation keyframes for a hit to player model part 4.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeHitPart4AnimationBank1[5] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0692C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation0692CBank4[55] = {
+/// Packed rotation keyframes for a hit to player model part 4.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeHitPart4AnimationBank4[55] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0692C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation0692CRecords[83] = {
+/// Keyframe durations and stop controls for a hit to player model part 4.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeHitPart4AnimationRecords[83] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0692C_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation0692CIndices[20] = {
+/// Absolute track-start record indices for a hit to player model part 4.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeHitPart4AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_0692C_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation0692C = {
-    _gM4a1PykeAnimation0692CRecords,
-    _gM4a1PykeAnimation0692CIndices,
-    { NULL, _gM4a1PykeAnimation0692CBank1, NULL, NULL, _gM4a1PykeAnimation0692CBank4, NULL, NULL, NULL },
+/// Player hit reaction for contact with model part 4 in the Pyke bank.
+///
+/// Native-bank set 16 is selected for collision-body index 1, the sphere
+/// attached to model part 4. Playback blends child tracks over three frames.
+/// Borrows nineteen part tracks and their pose banks; keep this package loaded
+/// throughout playback.
+static AnimationSet _gM4a1PykeHitPart4Animation = {
+    .records           = _gM4a1PykeHitPart4AnimationRecords,
+    .trackStartIndices = _gM4a1PykeHitPart4AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeHitPart4AnimationBank1, NULL, NULL, _gM4a1PykeHitPart4AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation06C4CBank1[6] = {
+/// Translation and rotation keyframes for a hit to another player body region.
+///
+/// Tracks 0 and 1 use signed halfwords: translation in model units and Euler
+/// angles in 4096 units per turn.
+static const AnimationPackedPose _gM4a1PykeHitOtherBodyAnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06C4C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation06C4CBank4[66] = {
+/// Packed rotation keyframes for a hit to another player body region.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeHitOtherBodyAnimationBank4[66] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06C4C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation06C4CRecords[96] = {
+/// Keyframe durations and stop controls for a hit to another player body region.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeHitOtherBodyAnimationRecords[96] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06C4C_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation06C4CIndices[20] = {
+/// Absolute track-start record indices for a hit to another player body region.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeHitOtherBodyAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_06C4C_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation06C4C = {
-    _gM4a1PykeAnimation06C4CRecords,
-    _gM4a1PykeAnimation06C4CIndices,
-    { NULL, _gM4a1PykeAnimation06C4CBank1, NULL, NULL, _gM4a1PykeAnimation06C4CBank4, NULL, NULL, NULL },
+/// Player hit reaction for other body contacts in the Pyke bank.
+///
+/// Native-bank set 17 is selected for hits outside the model-part-4 sphere.
+/// Playback blends child tracks over three frames. Borrows nineteen part
+/// tracks and their pose banks; keep this package loaded throughout playback.
+static AnimationSet _gM4a1PykeHitOtherBodyAnimation = {
+    .records           = _gM4a1PykeHitOtherBodyAnimationRecords,
+    .trackStartIndices = _gM4a1PykeHitOtherBodyAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeHitOtherBodyAnimationBank1, NULL, NULL, _gM4a1PykeHitOtherBodyAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1PykeAnimation07410Bank1[18] = {
@@ -1432,8 +1543,8 @@ AnimationBank D_m4a1_pyke_8012D500 = { { {
     &_gM4a1PykeAnimation0B584,
     &_gM4a1PykeAnimation0CEC8,
     &_gM4a1PykeAnimation0DC68,
-    &_gM4a1PykeAnimation0692C,
-    &_gM4a1PykeAnimation06C4C,
+    &_gM4a1PykeHitPart4Animation,
+    &_gM4a1PykeHitOtherBodyAnimation,
     &_gM4a1PykeAnimation07410,
     &_gM4a1PykeUnarmedWalkAnimation,
     &_gM4a1PykeAnimation0CEC8,
@@ -1444,10 +1555,10 @@ AnimationBank D_m4a1_pyke_8012D500 = { { {
     &_gM4a1PykeAnimation09220,
     &_gM4a1PykeParasiteEnergyReleaseFamily0Animation,
     &_gM4a1PykeParasiteEnergyChargeFamily0Animation,
-    &_gM4a1PykeAnimation05E80,
-    &_gM4a1PykeAnimation06124,
-    &_gM4a1PykeAnimation06324,
-    &_gM4a1PykeAnimation06678,
+    &_gM4a1PykeParasiteEnergyCastFamily0Animation,
+    &_gM4a1PykeParasiteEnergyReleaseFamily1Animation,
+    &_gM4a1PykeParasiteEnergyChargeFamily1Animation,
+    &_gM4a1PykeParasiteEnergyCastFamily1Animation,
     &_gM4a1PykeAnimation09DBC,
     &_gM4a1PykeAnimation09F94,
     &_gM4a1PykeAnimation09DBC,
