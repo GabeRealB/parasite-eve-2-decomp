@@ -28,8 +28,6 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/reversing_walker.h"
 
-extern AnimationSet** gActorMotionAnimBanks19[1];
-
 enum {
     ACTOR_350500_REVERSE_WALK_TASK_SPAWN  = 0,
     ACTOR_350500_REVERSE_WALK_TASK_UPDATE = 1,
@@ -204,7 +202,11 @@ static AnimationSet* _gActor350500BodyAnimSets[5] = {
     &_gActor350500Animation07044,
 };
 
-AnimationSet** gActorMotionAnimBanks19[1] = {
+/// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..4.
+///
+/// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
+/// an entry of its clip table. Playback borrows that table and loaded clip data.
+static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor350500BodyAnimSets,
 };
 

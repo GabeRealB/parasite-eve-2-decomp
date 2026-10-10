@@ -17,7 +17,7 @@
  *
  * Include this header in the prologue and each fragment at its function's
  * position. The package defines the animation bank tables the handlers index:
- * _gActorMotionAnimBanks for the twenty-part handlers, gActorMotionAnimBanks19
+ * _gActorMotionAnimBanks for the twenty-part handlers, _gActorMotionAnimBanks19
  * for the nineteen-part ones. _actorMotionArrive19 plays its next clip through
  * the nineteen-part play handler. A package with different restart semantics
  * binds ACTOR_MOTION_PLAY19_HANDLER to its own handler before including this
@@ -129,7 +129,7 @@ static void _actorMotionArrive19(Task* task);
 /// Requires a live TMD task whose work opens as `ActorMotion19PlayWork` does,
 /// with `model.bank` initially `ACTOR_MODEL_STATE_NONE`. Request is borrowed
 /// through the call and must not overlap playback state. Bank and clip must
-/// index loaded entries of `gActorMotionAnimBanks19`; stored IDs narrow to
+/// index loaded entries of `_gActorMotionAnimBanks19`; stored IDs narrow to
 /// signed bytes before indexing. A bank change binds the rig and clears its
 /// previous clip; an unchanged clip in the same bank leaves playback alone.
 /// Slots 1..18 blend for `blendFrames` whole frames (normally 0..2047) when

@@ -912,7 +912,11 @@ static SVECTOR _gDryfieldDilapidatedHouseDebugCurveControlPoints[] = {
     { -81, -162, -82, 0 },
 };
 
-s8 gGlowRingBeamQuads[16][4] = {
+/// Capped-beam topology: six lit-core quads followed by ten fading halo quads.
+///
+/// Each signed-byte row selects four screen points and colours in 0..23.
+/// Points 12 and 18 are unused halo centres. Order also selects the blend mode.
+static const s8 _gGlowCappedBeamQuadIndices[16][4] SECTION(".data") = {
     { 0, 6, 1, 11 },
     { 0, 6, 5, 7 },
     { 0, 3, 1, 2 },
@@ -931,7 +935,11 @@ s8 gGlowRingBeamQuads[16][4] = {
     { 1, 11, 13, 23 },
 };
 
-u8 gGlowRingBeamColors[24][4] = {
+/// White and yellow capped-beam RGB colours for four six-point screen contours.
+///
+/// Points 0..11 light the core; 12..23 are black halo edges. The drawer scales
+/// RGB by signed Q12 brightness. The fourth byte is zero and unused.
+static CVECTOR _gGlowCappedBeamColors[24] = {
     { 255, 255, 255, 0 },
     { 255, 255, 255, 0 },
     { 255, 255, 120, 0 },

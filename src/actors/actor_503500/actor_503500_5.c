@@ -270,15 +270,14 @@ static void    _actor503500OrangeFlashAttackExit(Task* task);
 static void    _actor503500CollapseTentacle(Task* task);
 static void    _actor503500TentacleIdle(Task* unusedTask);
 
-extern AnimationSet** gActorMotionAnimBanks19[1];
-static void           _actor503500PinkFlashAttackInit(Task* task);
-static void           _actor503500PinkFlashAttackUpdate(Task* task);
-static void           _actor503500YellowFlashAttackInit(Task* task);
-static void           _actor503500YellowFlashAttackUpdate(Task* task);
-static void           _actor503500OrangeFlashAttackInit(Task* task);
-static void           _actor503500OrangeFlashAttackUpdate(Task* task);
-static void           _actor503500InitTentacle(Task* task);
-static void           _actor503500TickTentacle(Task* task);
+static void _actor503500PinkFlashAttackInit(Task* task);
+static void _actor503500PinkFlashAttackUpdate(Task* task);
+static void _actor503500YellowFlashAttackInit(Task* task);
+static void _actor503500YellowFlashAttackUpdate(Task* task);
+static void _actor503500OrangeFlashAttackInit(Task* task);
+static void _actor503500OrangeFlashAttackUpdate(Task* task);
+static void _actor503500InitTentacle(Task* task);
+static void _actor503500TickTentacle(Task* task);
 
 /// `Task::state` handlers `actor503500PinkFlashAttackTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_801321F4 = {
@@ -1220,7 +1219,11 @@ static AnimationSet* _gActor503500TentacleAnimationSets[ACTOR_503500_TENTACLE_SE
     &_gActor503500Animation446CC,
 };
 
-AnimationSet** gActorMotionAnimBanks19[1] = {
+/// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..2.
+///
+/// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
+/// an entry of its clip table. Playback borrows that table and loaded clip data.
+static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor503500TentacleAnimationSets,
 };
 

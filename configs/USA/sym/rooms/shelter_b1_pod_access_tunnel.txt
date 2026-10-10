@@ -131,7 +131,7 @@ gShelterB1PodAccessTunnelSurfacePropertiesByClass = 0x80184CDC; // size:0x20 def
 gRoomEventFade = 0x80184CFC; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
-D_actor_141000_8013D77C = 0x8013D77C; // absolute:True owner=actor_141000
+gActor141000AyaBreaWalkerTaskDesc = 0x8013D77C; // absolute:True owner=actor_141000
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
 gActor102300RookGolemTasks = 0x80147AB8; // absolute:True owner=actor_102300
 gActor202300RookGolemTasks = 0x8015FAB8; // absolute:True owner=actor_202300

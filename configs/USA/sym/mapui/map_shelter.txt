@@ -365,7 +365,7 @@ D_shelter_b2_septic_tank_80183570 = 0x80183570; // absolute:True owner=shelter_b
 D_shelter_b2_septic_tank_80183574 = 0x80183574; // absolute:True owner=shelter_b2_septic_tank
 gShelterB2SepticTankCollisionGrid = 0x80183E0C; // absolute:True owner=shelter_b2_septic_tank shared=rooms
 gShelterB2SepticTankViewCameras = 0x80183E30; // absolute:True owner=shelter_b2_septic_tank shared=rooms
-gShelterB2SepticTankSpriteViews = 0x801866F4; // absolute:True owner=shelter_b2_septic_tank shared=rooms
+gShelterB2SepticTankSpriteViews = 0x801866F4; // absolute:True owner=shelter_b2_septic_tank
 gShelterB2SepticTankRoomLights = 0x80186A3C; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_80186A54 = 0x80186A54; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_80186C1C = 0x80186C1C; // absolute:True owner=shelter_b2_septic_tank

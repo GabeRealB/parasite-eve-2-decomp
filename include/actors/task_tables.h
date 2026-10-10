@@ -331,7 +331,22 @@ extern TaskDesc D_actor_121300_8013D390[];
 /// The actor overlay and the body's borrowed model data must remain loaded.
 extern TaskDesc gActor105300GeneratorTasks[GENERATOR_TASK_DESC_COUNT];
 
-extern TaskDesc D_actor_141000_8013D77C;
+/// Entry-scene flight recipes: 0 TMD controller, 1 coordinate beam, 2 smoke emitter.
+///
+/// All run at priority 192. Spawn entry 0 with unused arguments to unfold and fly
+/// the model. Entry 1 borrows the controller task through spawn argument 2 and
+/// joins its teardown tree; entry 2 takes a copied parent-frame translation and
+/// emits smoke independently. No terminator. Keep actor_141000 and its resources
+/// loaded until every task using these callbacks and model data has ended.
+extern TaskDesc gActor141000FlightTasks[3];
+
+/// Scripted nineteen-part Aya Brea walker with manual model-buffer recovery.
+///
+/// Creates a TMD body at priority 192, initially skipping automatic primitive
+/// buffer allocation. Area placement supplies the task-owned `Enemy` in spawn
+/// argument 2. Initialization installs animation, placement, visibility, walk,
+/// pace and facial-texture messages. Keep actor_141000 loaded until teardown.
+extern TaskDesc gActor141000AyaBreaWalkerTaskDesc;
 
 extern TaskDesc D_actor_535700_8013DADC;
 

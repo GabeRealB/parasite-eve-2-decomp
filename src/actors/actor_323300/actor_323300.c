@@ -122,8 +122,6 @@ STATIC_ASSERT_SIZEOF(_Actor323300StrangerWork, 0x6B0);
 
 extern TaskMessageEntry D_actor_323300_80172574[];
 
-extern AnimationSet** gActorMotionAnimBanks19[1];
-
 /// Placement `_actor323300WomanSpawn` hands `actorMsgPlaceEuler`.
 extern ActorTransform D_actor_323300_8017259C;
 
@@ -320,7 +318,11 @@ static AnimationSet* _gActor323300WomanAnimSets[4] = {
     &_gActor323300Animation102C8,
 };
 
-AnimationSet** gActorMotionAnimBanks19[1] = {
+/// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..3.
+///
+/// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
+/// an entry of its clip table. Playback borrows that table and loaded clip data.
+static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor323300WomanAnimSets,
 };
 
@@ -707,7 +709,7 @@ static inline void _actor323300WomanApplyAnimationRequest(Task* task, const Anim
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], model,
+        animationInitContext(&work->rig.anim, _gActorMotionAnimBanks19[work->model.bank], model,
                              work->rig.poses, work->rig.slots);
     }
     if (request->animationId != work->model.animId) {

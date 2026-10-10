@@ -45,8 +45,6 @@ typedef struct {
 } _Actor213100JodieBouquetWork;
 STATIC_ASSERT_SIZEOF(_Actor213100JodieBouquetWork, 0x488);
 
-extern AnimationSet** gActorMotionAnimBanks19[1];
-
 /// Message table the spawn state installs at `Task::msgTable`: 0x7D3 is the
 /// animation handler `_actorMotionPlayAnim19`, 0x7D4 the placement
 /// handler `actorMsgPlaceEuler` and 0x7D5 the display handler
@@ -348,7 +346,11 @@ static AnimationSet* _gActor213100BodyAnimSets[10] = {
     &_gActor213100Animation08334,
 };
 
-AnimationSet** gActorMotionAnimBanks19[1] = {
+/// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..9.
+///
+/// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
+/// an entry of its clip table. Playback borrows that table and loaded clip data.
+static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor213100BodyAnimSets,
 };
 

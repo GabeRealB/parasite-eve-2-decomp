@@ -145,9 +145,6 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
 
 static void _glowDrawRayStar(GfxCoord* coord, const SVECTOR* localPoint, s16 pulseRate, s16 radiusScale);
 
-/* _glowDrawCappedBeam's tables, the package's data at its own positions */
-extern s8 gGlowRingBeamQuads[16][4];
-extern u8 gGlowRingBeamColors[24][4];
 /// Draws a flickering textured flare around a depth-clipped world point.
 ///
 /// `textureIndex` uses its signed low halfword to select a 40-texel column and

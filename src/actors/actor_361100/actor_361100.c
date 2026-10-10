@@ -114,8 +114,6 @@ static Task* _gActor361100HeadAimTask;
 extern PadScriptCmd              D_actor_361100_80166AD0[2];
 extern PadScriptVibrationSegment D_actor_361100_80166AD8;
 
-extern AnimationSet** gActorMotionAnimBanks19[1];
-
 static void _actor361100DrawStreamRefraction(Task* task);
 
 /// Draw modes with deferred primitive-buffer release or manual buffer recovery.
@@ -973,7 +971,11 @@ static AnimationSet* _gActor361100TentacleAnimationBank[] = {
     &_gActor361100Animation09C88,
 };
 
-AnimationSet** gActorMotionAnimBanks19[1] = {
+/// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..3.
+///
+/// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
+/// an entry of its clip table. Playback borrows that table and loaded clip data.
+static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor361100TentacleAnimationBank,
 };
 

@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -39,12 +41,6 @@
 #include "../../shared/actor_motion.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/glow_draw.h"
-
-extern GpuImageUpload D_actor_141000_8013D72C[2];
-
-extern GpuImageUpload D_actor_141000_8013D4DC[2];
-
-extern GpuImageUpload D_actor_141000_8013D28C[2];
 
 /// `_Actor141000AyaBreaWork::blinkStep`: the eye image the blink posts next.
 ///
@@ -120,46 +116,6 @@ typedef struct {
 } Actor141000CtrlWork;
 STATIC_ASSERT_SIZEOF(Actor141000CtrlWork, 0x10);
 
-/// The rotation table `_actor141000ApplyFlightPathFrame` feeds to `RotMatrix`: 0x5A
-/// `SVECTOR` axis triples, one per frame of the ramp the controller's state 2
-/// climbs, ending at the entry index 0x59 the function clamps to.
-extern SVECTOR D_actor_141000_80134228[];
-
-/// The world positions matching `D_actor_141000_80134228`, same 0x5A entries
-/// and same index; the function copies the chosen triple into the root
-/// coordinate's translation and then drops X by 40.
-extern SVECTOR D_actor_141000_801344F8[];
-
-/// Quad index table: sixteen quads, four point/colour indices each.
-
-/// Base vertex colours, scaled by the controller's `beamLevel` each frame.
-
-extern SVECTOR D_actor_141000_80134868[2];
-extern SVECTOR D_actor_141000_80134878[];
-extern SVECTOR D_actor_141000_801348A8[];
-
-/// The descriptor table the controller spawns from: index 1 is its attached
-/// ring beam and index 2 the coordinate-body smoke emitter that
-/// `_actor141000AdvanceFlightPath` leaves every eighth path frame.
-extern TaskDesc D_actor_141000_801348D8[];
-
-/// The texture uploads `_actor141000TickAyaBreaBlink` walks, one per value of
-/// `_Actor141000AyaBreaWork::blinkStep`, and `_actor141000SetAyaBreaTextureMode` picks from:
-/// each a terminated `GpuImageUpload` list whose `destination` carries the VRAM
-/// rectangle and whose `pixels` points at the packed texture words.
-
-/// Animation-set tables bound to the context by `animationInitContext`, indexed by
-/// the preset's bank index.
-extern AnimationSet*  D_actor_141000_8013D74C[11];
-extern AnimationSet** gActorMotionAnimBanks19[1];
-
-/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `_actor141000SpawnAyaBreaWalker`; terminator id `TASK_MESSAGE_TABLE_END`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_141000_8013D788[];
-
 static void _actor141000SpawnFlightController(Task* task);
 static void _actor141000UpdateFlightController(Task* task);
 static void _actor141000ExitFlightController(Task* task);
@@ -182,54 +138,57 @@ static void _actor141000FaceAyaBreaWalkTarget(Task* task);
 static void _actor141000BeginAyaBreaWalk(Task* task);
 static void _actor141000TurnAyaBreaToYaw(Task* task);
 
-/// The model actor's attach states: chain under the spawner, then draw the
-/// sixteen quads every frame, then `taskKill`. Dispatched by
-/// `_actor141000CappedBeamTask`.
-static const TaskFuncTable3 D_actor_141000_80131E24 = { {
-    _actor141000AttachRingBeam,
-    _actor141000DrawCappedBeam,
-    taskKill,
-} };
+/// Coordinate-body capped-beam lifecycle: 0 attach, 1 draw, 2 teardown.
+///
+/// Copied by value and indexed by `Task::state`, without a terminator or bounds
+/// check. Attachment borrows the controller and joins its teardown tree.
+static const TaskFuncTable3 _gActor141000CappedBeamTaskStates = {
+    .funcs = { _actor141000AttachRingBeam, _actor141000DrawCappedBeam, taskKill },
+};
 
-/// The controller's three states - spawn, per-frame tick and `taskKill` -
-/// dispatched by `_actor141000FlightControllerTask`.
-static const TaskFuncTable3 D_actor_141000_80131E30 = { {
-    _actor141000SpawnFlightController,
-    _actor141000UpdateFlightController,
-    taskKill,
-} };
+/// Flying TMD controller lifecycle: 0 initialize, 1 update, 2 teardown.
+///
+/// Copied by value and indexed by `Task::state` in 0..2, with no terminator or
+/// bounds check. Initialization owns the work and attaches the beam child.
+static const TaskFuncTable3 _gActor141000FlightControllerTaskStates = {
+    .funcs = { _actor141000SpawnFlightController, _actor141000UpdateFlightController, taskKill },
+};
 
-/// The controller's four animation states, dispatched by
-/// `_actor141000UpdateFlightController` through the controller work block's `state`
-/// halfword.
-static const TaskFuncTable4 D_actor_141000_80131E3C = { {
-    _actor141000UnfoldFlightModel,
-    _actor141000HoldFlightModel,
-    _actor141000AdvanceFlightPath,
-    _actor141000IdleFlightModel,
-} };
+/// Flight phases: 0 unfold along Z, 1 hold, 2 follow the path, 3 remain at its end.
+///
+/// Copied by value and indexed by the signed low halfword of controller `state`
+/// in 0..3. Each callback advances its own phase; there is no bounds check.
+static const TaskFuncTable4 _gActor141000FlightPhases = {
+    .funcs = { _actor141000UnfoldFlightModel, _actor141000HoldFlightModel,
+               _actor141000AdvanceFlightPath, _actor141000IdleFlightModel },
+};
 
-/// The model actor's three states - spawn, per-frame tick and exit -
-/// dispatched by `_actor141000AyaBreaWalkerTask`.
-static const TaskFuncTable3 D_actor_141000_80131E4C = { {
-    _actor141000SpawnAyaBreaWalker,
-    _actor141000UpdateAyaBreaWalker,
-    _actor141000ExitAyaBreaWalker,
-} };
+/// Scripted Aya walker lifecycle: 0 initialize, 1 update, 2 release and teardown.
+///
+/// Copied by value and indexed by `Task::state` in 0..2 only while actors run.
+/// Initialization owns the work; exit releases the task's `Enemy` and body.
+static const TaskFuncTable3 _gActor141000AyaBreaWalkerTaskStates = {
+    .funcs = { _actor141000SpawnAyaBreaWalker, _actor141000UpdateAyaBreaWalker,
+               _actor141000ExitAyaBreaWalker },
+};
 
-/// The model actor's four main-body states, dispatched by
-/// `_actor141000RunAyaBreaWalkStep` through `_Actor141000AyaBreaWork::walk.motionStep`.
-static const TaskFuncTable4 D_actor_141000_80131E58 = { {
-    _actor141000FaceAyaBreaWalkTarget,
-    _actor141000BeginAyaBreaWalk,
-    _actorMotionArrive19,
-    _actor141000TurnAyaBreaToYaw,
-} };
+/// Aya walk steps: 0 face the target, 1 set velocity, 2 test arrival, 3 finish yaw.
+///
+/// Copied by value and indexed by `walk.motionStep` in 0..3, without a bounds
+/// check. Arrival clears velocity; finishing yaw returns motion to idle.
+static const TaskFuncTable4 _gActor141000AyaBreaWalkSteps = {
+    .funcs = { _actor141000FaceAyaBreaWalkTarget, _actor141000BeginAyaBreaWalk,
+               _actorMotionArrive19, _actor141000TurnAyaBreaToYaw },
+};
 
-/// The local-space offset the main body's state 1 (`_actor141000BeginAyaBreaWalk`)
-/// rotates into `_Actor141000AyaBreaWork::walk.velocity`: straight ahead along the
-/// part's own axis, halved first while `fastPace` is clear.
-static const VECTOR D_actor_141000_80131E68 = { 0, 0, 0x300000 };
+/// One parent-coordinate unit in the walk velocity's signed 16.16 format.
+enum { ACTOR_141000_WALK_VELOCITY_ONE = 0x10000 };
+
+/// Aya's fast walk velocity: local +Z at 48 parent-coordinate units per tick.
+///
+/// XYZ uses signed 16.16 displacement. Slow pace halves it before root rotation
+/// converts it into parent-frame velocity; the fourth word is unused and zero.
+static const VECTOR _gActor141000AyaBreaFastWalkVelocity = { 0, 0, 48 * ACTOR_141000_WALK_VELOCITY_ONE };
 
 static u32     _gActor141000Model0230CPartVerts[1];
 static SVECTOR _gActor141000Model0230CVerts[9];
@@ -286,15 +245,27 @@ static TmdSource _gActor141000Model0230C = {
     _gActor141000Model0230CStream,
 };
 
-SVECTOR D_actor_141000_80134228[90] = {
+/// Recorded flight Euler angles for frames 0..89, in 4096 units per turn.
+///
+/// Paired by index with `_gActor141000FlightPositions`; completed flight holds
+/// frame 89. Kept writable for the SDK's non-const `RotMatrix` interface.
+static SVECTOR _gActor141000FlightRotations[90] = {
 #include "assets/actor_141000_motion_02408.inc"
 };
 
-SVECTOR D_actor_141000_801344F8[90] = {
+/// Recorded flight XYZ for frames 0..89, in integer root-parent coordinates.
+///
+/// Paired with `_gActor141000FlightRotations`; applying a frame subtracts 40
+/// from its X. The fourth halfword is unused.
+static const SVECTOR _gActor141000FlightPositions[ARRAY_SIZE(_gActor141000FlightRotations)] SECTION(".data") = {
 #include "assets/actor_141000_motion_026D8.inc"
 };
 
-s8 gGlowRingBeamQuads[16][4] = {
+/// Capped-beam topology: six lit-core quads followed by ten fading halo quads.
+///
+/// Each signed-byte row selects four screen points and colours in 0..23.
+/// Points 12 and 18 are unused halo centres. Order also selects the blend mode.
+static const s8 _gGlowCappedBeamQuadIndices[16][4] SECTION(".data") = {
     { 0, 6, 1, 11 },
     { 0, 6, 5, 7 },
     { 0, 3, 1, 2 },
@@ -313,7 +284,11 @@ s8 gGlowRingBeamQuads[16][4] = {
     { 1, 11, 13, 23 },
 };
 
-u8 gGlowRingBeamColors[24][4] = {
+/// Warm capped-beam RGB colours for the four six-point screen contours.
+///
+/// Points 0..11 light the core; 12..23 are black halo edges. The drawer scales
+/// RGB by signed Q12 brightness. The fourth byte is zero and unused.
+static CVECTOR _gGlowCappedBeamColors[24] = {
     { 200, 176, 160, 0 },
     { 200, 176, 160, 0 },
     { 112, 88, 64, 0 },
@@ -340,12 +315,20 @@ u8 gGlowRingBeamColors[24][4] = {
     { 0, 0, 0, 0 },
 };
 
-SVECTOR D_actor_141000_80134868[2] = {
+/// Start and full-length end of the capped beam in controller-local game units.
+///
+/// The segment lies along +Z, 960 units long. Controller rotation transforms it;
+/// signed Q12 beam level shortens the end toward the start before translation.
+static SVECTOR _gActor141000CappedBeamEndpoints[2] = {
     { 0, 0, 0, 0 },
     { 0, 0, 960, 0 },
 };
 
-SVECTOR D_actor_141000_80134878[6] = {
+/// Start-cap contour used by the beam's core and its enlarged halo.
+///
+/// Entry 0 is the centre, followed by five rim offsets. XY is sized by projection
+/// distance / start depth, then rotated in screen space. Stored Z is unused.
+static SVECTOR _gActor141000CappedBeamStartCapOffsets[6] = {
     { 0, 0, 0, 0 },
     { 10, 0, 0, 0 },
     { 6, 3, 0, 0 },
@@ -354,7 +337,11 @@ SVECTOR D_actor_141000_80134878[6] = {
     { -10, 0, 0, 0 },
 };
 
-SVECTOR D_actor_141000_801348A8[6] = {
+/// End-cap contour opposite `_gActor141000CappedBeamStartCapOffsets`.
+///
+/// Centre plus five rim offsets, sized by projection distance / end depth and
+/// rotated in screen space for core and halo. Stored Z is unused.
+static SVECTOR _gActor141000CappedBeamEndCapOffsets[ARRAY_SIZE(_gActor141000CappedBeamStartCapOffsets)] = {
     { 0, 0, 0, 0 },
     { -10, 0, 0, 0 },
     { -6, -3, 0, 0 },
@@ -363,10 +350,24 @@ SVECTOR D_actor_141000_801348A8[6] = {
     { 10, 0, 0, 0 },
 };
 
-TaskDesc D_actor_141000_801348D8[3] = {
-    { { { TASK_BODY_TMD, 192 } }, _actor141000FlightControllerTask, { .model = &_gActor141000Model0230C } },
-    { { { TASK_BODY_COORD, 192 } }, _actor141000CappedBeamTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, _actor141000SmokeTrailTask, { .value = 0 } },
+enum { ACTOR_141000_TASK_PRIORITY = 192 };
+
+TaskDesc gActor141000FlightTasks[3] = {
+    {
+        .header   = { .fields = { .flags = TASK_BODY_TMD, .priority = ACTOR_141000_TASK_PRIORITY } },
+        .callback = _actor141000FlightControllerTask,
+        .data     = { .model = &_gActor141000Model0230C },
+    },
+    {
+        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = ACTOR_141000_TASK_PRIORITY } },
+        .callback = _actor141000CappedBeamTask,
+        .data     = { .value = 0 },
+    },
+    {
+        .header   = { .fields = { .flags = TASK_BODY_COORD, .priority = ACTOR_141000_TASK_PRIORITY } },
+        .callback = _actor141000SmokeTrailTask,
+        .data     = { .value = 0 },
+    },
 };
 
 static TmdBone _gActor141000AyaBreaBodySkeleton[19] = {
@@ -621,52 +622,107 @@ static AnimationSet _gActor141000Animation0A84C = {
     { NULL, _gActor141000Animation0A84CBank1, NULL, NULL, _gActor141000Animation0A84CBank4, NULL, NULL, NULL },
 };
 
-u_long D_actor_141000_8013C694[250] = {
+/// Open-eye 8bpp pixels: 50 texels by 20 rows, packed four texels per word.
+///
+/// Borrowed by the corresponding upload list until GPU transfer completes.
+static u_long _gActor141000AyaBreaEyesOpenPixels[ACTOR_141000_EYES_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
 #include "assets/actor_121300_image_09DC8.inc"
 };
 
-GpuImageUpload D_actor_141000_8013CA7C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, D_actor_141000_8013C694 },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+/// Terminated open-eye upload, used by static-eye requests and blink completion.
+///
+/// The actor uploader rewrites the first destination to the eye rectangle.
+/// Width counts 16-bit VRAM words, height rows; pixels stay live through transfer.
+static GpuImageUpload _gActor141000AyaBreaEyesOpenUploads[2] = {
+    { .operation   = GPU_IMAGE_UPLOAD_COPY,
+      .destination = { 0, 0, ACTOR_141000_EYES_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
+      .pixels      = _gActor141000AyaBreaEyesOpenPixels },
+    { .operation = GP_IMG_REC_END },
 };
 
-u_long D_actor_141000_8013CA9C[250] = {
+/// Half-open-eye 8bpp pixels: 50 texels by 20 rows, four texels per word.
+///
+/// Borrowed through GPU completion during the middle step of a blink.
+static u_long _gActor141000AyaBreaEyesHalfOpenPixels[ACTOR_141000_EYES_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
 #include "assets/actor_121300_image_0A1B0.inc"
 };
 
-GpuImageUpload D_actor_141000_8013CE84[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, D_actor_141000_8013CA9C },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+/// Terminated half-open-eye upload for the middle step of a blink.
+///
+/// The actor uploader rewrites the first destination to the eye rectangle.
+/// Width counts 16-bit VRAM words, height rows; pixels stay live through transfer.
+static GpuImageUpload _gActor141000AyaBreaEyesHalfOpenUploads[2] = {
+    { .operation   = GPU_IMAGE_UPLOAD_COPY,
+      .destination = { 0, 0, ACTOR_141000_EYES_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
+      .pixels      = _gActor141000AyaBreaEyesHalfOpenPixels },
+    { .operation = GP_IMG_REC_END },
 };
 
-u_long D_actor_141000_8013CEA4[250] = {
+/// Closed-eye 8bpp pixels: 50 texels by 20 rows, four texels per word.
+///
+/// Borrowed through GPU completion for static closed eyes and blink onset.
+static u_long _gActor141000AyaBreaEyesClosedPixels[ACTOR_141000_EYES_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
 #include "assets/actor_121300_image_0A598.inc"
 };
 
-GpuImageUpload D_actor_141000_8013D28C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, D_actor_141000_8013CEA4 },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+/// Terminated closed-eye upload for static closed eyes and the first blink step.
+///
+/// The actor uploader rewrites the first destination to the eye rectangle.
+/// Width counts 16-bit VRAM words, height rows; pixels stay live through transfer.
+static GpuImageUpload _gActor141000AyaBreaEyesClosedUploads[2] = {
+    { .operation   = GPU_IMAGE_UPLOAD_COPY,
+      .destination = { 0, 0, ACTOR_141000_EYES_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
+      .pixels      = _gActor141000AyaBreaEyesClosedPixels },
+    { .operation = GP_IMG_REC_END },
 };
 
-u_long D_actor_141000_8013D2AC[140] = {
+/// Closed-mouth 8bpp pixels: 28 texels by 20 rows, four texels per word.
+///
+/// The 140 words cover the normal mouth upload. Retained texture mode 2 requests
+/// 250 words from this base, reading 440 bytes beyond the payload into later data.
+static u_long _gActor141000AyaBreaMouthClosedPixels[ACTOR_141000_MOUTH_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
 #include "assets/actor_121300_image_0A980.inc"
 };
 
-GpuImageUpload D_actor_141000_8013D4DC[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, D_actor_141000_8013D2AC },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+/// Terminated closed-mouth upload, normally placed in the 14-word-wide mouth rect.
+///
+/// The actor uploader rewrites the destination. Mode 5 uses 14 by 20 words/rows;
+/// retained mode 2 uses the 25 by 20 eye rectangle and overreads pixels by 440
+/// bytes. Its intended visual meaning is unproven. Pixels stay live through transfer.
+static GpuImageUpload _gActor141000AyaBreaMouthClosedUploads[2] = {
+    { .operation   = GPU_IMAGE_UPLOAD_COPY,
+      .destination = { 0, 0, ACTOR_141000_MOUTH_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
+      .pixels      = _gActor141000AyaBreaMouthClosedPixels },
+    { .operation = GP_IMG_REC_END },
 };
 
-u_long D_actor_141000_8013D4FC[140] = {
+/// Open-mouth 8bpp pixels: 28 texels by 20 rows, four texels per word.
+///
+/// The 140 words cover the normal mouth upload. Retained texture mode 3 requests
+/// 250 words: 440 bytes beyond the payload, including 292 beyond this loaded image.
+static u_long _gActor141000AyaBreaMouthOpenPixels[ACTOR_141000_MOUTH_WIDTH_WORDS * ACTOR_141000_FACE_HEIGHT_ROWS / 2] = {
 #include "assets/actor_121300_image_0ABB0.inc"
 };
 
-GpuImageUpload D_actor_141000_8013D72C[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 14, 20 }, D_actor_141000_8013D4FC },
-    { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
+/// Terminated open-mouth upload, normally placed in the 14-word-wide mouth rect.
+///
+/// The actor uploader rewrites the destination. Mode 4 uses 14 by 20 words/rows;
+/// retained mode 3 uses the 25 by 20 eye rectangle, overreads pixels by 440 bytes,
+/// then starts a blink. Its intended visual meaning is unproven. Keep pixels live
+/// through GPU completion; the last 292 requested bytes lie beyond this image.
+static GpuImageUpload _gActor141000AyaBreaMouthOpenUploads[2] = {
+    { .operation   = GPU_IMAGE_UPLOAD_COPY,
+      .destination = { 0, 0, ACTOR_141000_MOUTH_WIDTH_WORDS, ACTOR_141000_FACE_HEIGHT_ROWS },
+      .pixels      = _gActor141000AyaBreaMouthOpenPixels },
+    { .operation = GP_IMG_REC_END },
 };
 
-AnimationSet* D_actor_141000_8013D74C[11] = {
+/// Aya's bank-0 clip table: absent clip 0, loaded clips 1..10.
+///
+/// `AnimationPlayRequest::animationId` selects an inner entry after bank
+/// selection. Walk defaults use 1 on arrival, 2 at fast pace and 10 at slow pace.
+/// Playback borrows this table and its sets while the actor overlay is loaded.
+static AnimationSet* _gActor141000AyaBreaAnimationSets[11] = {
     NULL,
     &_gActor141000Animation084A0,
     &_gActor141000Animation0947C,
@@ -680,13 +736,28 @@ AnimationSet* D_actor_141000_8013D74C[11] = {
     &_gActor141000Animation08898,
 };
 
-AnimationSet** gActorMotionAnimBanks19[1] = {
-    D_actor_141000_8013D74C,
+/// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..10.
+///
+/// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
+/// an entry of its clip table. Playback borrows that table and loaded clip data.
+static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
+    _gActor141000AyaBreaAnimationSets,
 };
 
-TaskDesc D_actor_141000_8013D77C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor141000AyaBreaWalkerTask, { .model = &_gActor141000AyaBreaBody } };
+TaskDesc gActor141000AyaBreaWalkerTaskDesc = {
+    .header   = { .fields = { .flags    = TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER,
+                              .priority = ACTOR_141000_TASK_PRIORITY } },
+    .callback = _actor141000AyaBreaWalkerTask,
+    .data     = { .model = &_gActor141000AyaBreaBody },
+};
 
-TaskMessageEntry D_actor_141000_8013D788[7] = {
+/// Terminated message routes borrowed by the initialized Aya walker.
+///
+/// Animation and placement borrow requests; walk copies a destination and
+/// optional clip pair. Drawing and facial texture take integer modes; pace
+/// borrows an `ActorCommand`. Payloads are consumed synchronously. Unknown IDs
+/// return zero at `TASK_MESSAGE_TABLE_END`; callbacks retain both argument words.
+static TaskMessageEntry _gActor141000AyaBreaMessages[7] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor141000SetAyaBreaDrawMode },
@@ -746,10 +817,10 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
     parentMatrix   = &parentTask->extra.tmd->coords->coord;
     controllerWork = parentTask->work;
     beamLevel      = controllerWork->beamLevel;
-    offset.vx      = D_actor_141000_80134868[0].vx;
-    offset.vy      = D_actor_141000_80134868[0].vy;
-    offset.vz      = D_actor_141000_80134868[0].vz;
-    endPoint       = &D_actor_141000_80134868[1];
+    offset.vx      = _gActor141000CappedBeamEndpoints[0].vx;
+    offset.vy      = _gActor141000CappedBeamEndpoints[0].vy;
+    offset.vz      = _gActor141000CappedBeamEndpoints[0].vz;
+    endPoint       = &_gActor141000CappedBeamEndpoints[1];
     rotated.vx     = endPoint->vx;
     rotated.vy     = endPoint->vy;
     rotated.vz     = endPoint->vz;
@@ -789,43 +860,43 @@ static void _actor141000BuildRingBeamPoints(Task* task, SVECTOR screenPoints[ACT
     gfxSetRotIdentity(&screenRotation);
     RotMatrixZ(screenAngle, &screenRotation);
     gte_SetRotMatrix(&screenRotation);
-    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(D_actor_141000_80134878); pointIndex++) {
-        offset.vx = D_actor_141000_80134878[pointIndex].vx * screenDistance / *startDepth;
-        offset.vy = D_actor_141000_80134878[pointIndex].vy * screenDistance / *startDepth;
+    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(_gActor141000CappedBeamStartCapOffsets); pointIndex++) {
+        offset.vx = _gActor141000CappedBeamStartCapOffsets[pointIndex].vx * screenDistance / *startDepth;
+        offset.vy = _gActor141000CappedBeamStartCapOffsets[pointIndex].vy * screenDistance / *startDepth;
         gte_ldv0(&offset);
         gte_rtv0();
         gte_stsv(&rotated);
         screenPoints[pointIndex].vx = rotated.vx + startX;
         screenPoints[pointIndex].vy = rotated.vy + startY;
     }
-    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(D_actor_141000_801348A8); pointIndex++) {
-        offset.vx = D_actor_141000_801348A8[pointIndex].vx * screenDistance / endDepth;
-        offset.vy = D_actor_141000_801348A8[pointIndex].vy * screenDistance / endDepth;
+    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(_gActor141000CappedBeamEndCapOffsets); pointIndex++) {
+        offset.vx = _gActor141000CappedBeamEndCapOffsets[pointIndex].vx * screenDistance / endDepth;
+        offset.vy = _gActor141000CappedBeamEndCapOffsets[pointIndex].vy * screenDistance / endDepth;
         gte_ldv0(&offset);
         gte_rtv0();
         gte_stsv(&rotated);
-        screenPoints[pointIndex + (s32)ARRAY_SIZE(D_actor_141000_80134878)].vx = rotated.vx + endX;
-        screenPoints[pointIndex + (s32)ARRAY_SIZE(D_actor_141000_80134878)].vy = rotated.vy + endY;
+        screenPoints[pointIndex + (s32)ARRAY_SIZE(_gActor141000CappedBeamStartCapOffsets)].vx = rotated.vx + endX;
+        screenPoints[pointIndex + (s32)ARRAY_SIZE(_gActor141000CappedBeamStartCapOffsets)].vy = rotated.vy + endY;
     }
     // Scale the outer rings independently of the fixed core rings.
     haloScale = 2 * ONE - rsin(task->killCountdown);
-    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(D_actor_141000_80134878); pointIndex++) {
-        offset.vx = ((D_actor_141000_80134878[pointIndex].vx * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / *startDepth;
-        offset.vy = ((D_actor_141000_80134878[pointIndex].vy * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / *startDepth;
+    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(_gActor141000CappedBeamStartCapOffsets); pointIndex++) {
+        offset.vx = ((_gActor141000CappedBeamStartCapOffsets[pointIndex].vx * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / *startDepth;
+        offset.vy = ((_gActor141000CappedBeamStartCapOffsets[pointIndex].vy * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / *startDepth;
         gte_ldv0(&offset);
         gte_rtv0();
         gte_stsv(&rotated);
-        screenPoints[pointIndex + 2 * (s32)ARRAY_SIZE(D_actor_141000_80134878)].vx = rotated.vx + startX;
-        screenPoints[pointIndex + 2 * (s32)ARRAY_SIZE(D_actor_141000_80134878)].vy = rotated.vy + startY;
+        screenPoints[pointIndex + 2 * (s32)ARRAY_SIZE(_gActor141000CappedBeamStartCapOffsets)].vx = rotated.vx + startX;
+        screenPoints[pointIndex + 2 * (s32)ARRAY_SIZE(_gActor141000CappedBeamStartCapOffsets)].vy = rotated.vy + startY;
     }
-    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(D_actor_141000_801348A8); pointIndex++) {
-        offset.vx = ((D_actor_141000_801348A8[pointIndex].vx * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / endDepth;
-        offset.vy = ((D_actor_141000_801348A8[pointIndex].vy * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / endDepth;
+    for (pointIndex = 0; pointIndex < (s32)ARRAY_SIZE(_gActor141000CappedBeamEndCapOffsets); pointIndex++) {
+        offset.vx = ((_gActor141000CappedBeamEndCapOffsets[pointIndex].vx * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / endDepth;
+        offset.vy = ((_gActor141000CappedBeamEndCapOffsets[pointIndex].vy * haloScale) >> ACTOR_141000_BEAM_SCALE_FRACTION_BITS) * screenDistance / endDepth;
         gte_ldv0(&offset);
         gte_rtv0();
         gte_stsv(&rotated);
-        screenPoints[pointIndex + 3 * (s32)ARRAY_SIZE(D_actor_141000_80134878)].vx = rotated.vx + endX;
-        screenPoints[pointIndex + 3 * (s32)ARRAY_SIZE(D_actor_141000_80134878)].vy = rotated.vy + endY;
+        screenPoints[pointIndex + 3 * (s32)ARRAY_SIZE(_gActor141000CappedBeamStartCapOffsets)].vx = rotated.vx + endX;
+        screenPoints[pointIndex + 3 * (s32)ARRAY_SIZE(_gActor141000CappedBeamStartCapOffsets)].vy = rotated.vy + endY;
     }
 }
 
@@ -838,7 +909,7 @@ static void _actor141000FlightControllerTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_141000_80131E30;
+    handlers = _gActor141000FlightControllerTaskStates;
     handlers.funcs[task->state](task);
 }
 
@@ -871,7 +942,7 @@ static void _actor141000SpawnFlightController(Task* task)
     model->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     _actor141000ApplyFlightPathFrame(rootCoord, 0);
     _actor141000ScaleFlightModelZ(rootCoord, 0);
-    taskSpawnFromTable(D_actor_141000_801348D8, ACTOR_141000_RING_BEAM_TASK_INDEX, 0, task);
+    taskSpawnFromTable(gActor141000FlightTasks, ACTOR_141000_RING_BEAM_TASK_INDEX, 0, task);
     task->exitCallback = _actor141000ExitFlightController;
     task->state       += 1;
 }
@@ -890,7 +961,7 @@ static void _actor141000UpdateFlightController(Task* task)
     TaskFuncTable4       handlers;
 
     work     = task->work;
-    handlers = D_actor_141000_80131E3C;
+    handlers = _gActor141000FlightPhases;
     handlers.funcs[(s16)work->state](task);
     if (gDisplayState.animFrame & 1) {
         effectSpawn(EFFECT_SMOKE_PUFF, task->extra.tmd->coords, ACTOR_141000_FLIGHT_SMOKE_ARGUMENT, NULL);
@@ -984,7 +1055,7 @@ static void _actor141000AdvanceFlightPath(Task* task)
     }
 
     if (!(work->frames & (ACTOR_141000_TRAIL_EMITTER_INTERVAL - 1))) {
-        emitterTask = taskSpawnFromTable(D_actor_141000_801348D8, ACTOR_141000_TRAIL_EMITTER_TASK_INDEX, 0, 0);
+        emitterTask = taskSpawnFromTable(gActor141000FlightTasks, ACTOR_141000_TRAIL_EMITTER_TASK_INDEX, 0, 0);
         if (emitterTask != NULL) {
             // Snapshot local translation; the emitter initializes its own rotation.
             sourceCoord              = task->extra.tmd->coords;
@@ -1018,16 +1089,16 @@ static s32 _actor141000ApplyFlightPathFrame(GfxCoord* rootCoord, s32 pathFrame)
     s32            pathIndex;
     s32            pathFinished;
 
-    if (pathFrame < (s32)ARRAY_SIZE(D_actor_141000_80134228)) {
+    if (pathFrame < (s32)ARRAY_SIZE(_gActor141000FlightRotations)) {
         pathIndex    = pathFrame;
         pathFinished = false;
     } else {
-        pathIndex    = (s32)ARRAY_SIZE(D_actor_141000_80134228) - 1;
+        pathIndex    = (s32)ARRAY_SIZE(_gActor141000FlightRotations) - 1;
         pathFinished = true;
     }
     gfxSetRotIdentity(&rootCoord->coord);
-    RotMatrix(&D_actor_141000_80134228[pathIndex], &rootCoord->coord);
-    position                = &D_actor_141000_801344F8[pathIndex];
+    RotMatrix(&_gActor141000FlightRotations[pathIndex], &rootCoord->coord);
+    position                = &_gActor141000FlightPositions[pathIndex];
     rootCoord->coord.t[0]   = position->vx;
     rootCoord->coord.t[1]   = position->vy;
     rootCoord->coord.t[2]   = position->vz;
@@ -1097,7 +1168,7 @@ static void _actor141000CappedBeamTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_141000_80131E24;
+    states = _gActor141000CappedBeamTaskStates;
     states.funcs[task->state](task);
 }
 
@@ -1238,19 +1309,19 @@ static void _actor141000TickAyaBreaBlink(Task* task)
         case ACTOR_141000_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                _actor141000AdvanceAyaBreaBlinkImage(task, work, &D_actor_141000_8013D28C[0], &eyeRect);
+                _actor141000AdvanceAyaBreaBlinkImage(task, work, &_gActor141000AyaBreaEyesClosedUploads[0], &eyeRect);
             }
             break;
         case ACTOR_141000_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                _actor141000AdvanceAyaBreaBlinkImage(task, work, &D_actor_141000_8013CE84[0], &eyeRect);
+                _actor141000AdvanceAyaBreaBlinkImage(task, work, &_gActor141000AyaBreaEyesHalfOpenUploads[0], &eyeRect);
             }
             break;
         case ACTOR_141000_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(task, &D_actor_141000_8013CA7C[0], &eyeRect);
+                actorRenderUploadTexture(task, &_gActor141000AyaBreaEyesOpenUploads[0], &eyeRect);
                 work->blinkStep = ACTOR_141000_BLINK_NONE;
             }
             break;
@@ -1277,7 +1348,7 @@ static inline void _actor141000ApplyAyaBreaWalkAnimation(Task* task, const Anima
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses,
                              work->rig.slots);
     }
     if (request->animationId != work->model.animId) {
@@ -1357,7 +1428,7 @@ static void _actor141000AyaBreaWalkerTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_141000_80131E4C;
+    handlers = _gActor141000AyaBreaWalkerTaskStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         handlers.funcs[task->state](task);
     }
@@ -1390,7 +1461,7 @@ static void _actor141000SpawnAyaBreaWalker(Task* task)
 
     _actor141000BindAyaBreaLighting(task);
 
-    task->msgTable     = D_actor_141000_8013D788;
+    task->msgTable     = _gActor141000AyaBreaMessages;
     task->exitCallback = _actor141000ExitAyaBreaWalker;
     task->state++;
 }
@@ -1439,7 +1510,7 @@ static void _actor141000RunAyaBreaWalkStep(Task* task)
     _Actor141000AyaBreaWork* work;
 
     work     = task->work;
-    handlers = D_actor_141000_80131E58;
+    handlers = _gActor141000AyaBreaWalkSteps;
     handlers.funcs[work->walk.motionStep](task);
 }
 
@@ -1490,7 +1561,7 @@ static void _actor141000BeginAyaBreaWalk(Task* task)
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
 
-    localVelocity = D_actor_141000_80131E68;
+    localVelocity = _gActor141000AyaBreaFastWalkVelocity;
     if (work->fastPace == 0) {
         localVelocity.vx >>= 1;
         localVelocity.vy >>= 1;
@@ -1665,14 +1736,14 @@ static s32 _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 text
     result = 0;
     switch (textureMode) {
         case ACTOR_141000_TEXTURE_EYES_OPEN:
-            uploadList    = &D_actor_141000_8013CA7C[0];
+            uploadList    = &_gActor141000AyaBreaEyesOpenUploads[0];
             textureRect.y = ACTOR_141000_EYES_Y_ROWS;
             textureRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
             textureRect.x = ACTOR_141000_EYES_X_WORDS;
             textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
         case ACTOR_141000_TEXTURE_EYES_CLOSED:
-            uploadList    = &D_actor_141000_8013D28C[0];
+            uploadList    = &_gActor141000AyaBreaEyesClosedUploads[0];
             textureRect.y = ACTOR_141000_EYES_Y_ROWS;
             textureRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
             textureRect.x = ACTOR_141000_EYES_X_WORDS;
@@ -1680,7 +1751,7 @@ static s32 _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 text
             break;
         // Retained request: this reads 1000 bytes from a 560-byte mouth array.
         case ACTOR_141000_TEXTURE_CLOSED_MOUTH_IN_EYES:
-            uploadList    = &D_actor_141000_8013D4DC[0];
+            uploadList    = &_gActor141000AyaBreaMouthClosedUploads[0];
             textureRect.y = ACTOR_141000_EYES_Y_ROWS;
             textureRect.w = ACTOR_141000_EYES_WIDTH_WORDS;
             textureRect.x = ACTOR_141000_EYES_X_WORDS;
@@ -1689,7 +1760,7 @@ static s32 _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 text
         case ACTOR_141000_TEXTURE_OPEN_MOUTH_IN_EYES_AND_BLINK: {
             _Actor141000AyaBreaWork* stepWork;
             _Actor141000AyaBreaWork* delayWork;
-            uploadList                 = &D_actor_141000_8013D72C[0];
+            uploadList                 = &_gActor141000AyaBreaMouthOpenUploads[0];
             textureRect.y              = ACTOR_141000_EYES_Y_ROWS;
             textureRect.w              = ACTOR_141000_EYES_WIDTH_WORDS;
             textureRect.x              = ACTOR_141000_EYES_X_WORDS;
@@ -1701,14 +1772,14 @@ static s32 _actor141000SetAyaBreaTextureMode(Task* task, s32 messageId, s32 text
             break;
         }
         case ACTOR_141000_TEXTURE_MOUTH_OPEN:
-            uploadList    = &D_actor_141000_8013D72C[0];
+            uploadList    = &_gActor141000AyaBreaMouthOpenUploads[0];
             textureRect.x = ACTOR_141000_MOUTH_X_WORDS;
             textureRect.y = ACTOR_141000_MOUTH_Y_ROWS;
             textureRect.w = ACTOR_141000_MOUTH_WIDTH_WORDS;
             textureRect.h = ACTOR_141000_FACE_HEIGHT_ROWS;
             break;
         case ACTOR_141000_TEXTURE_MOUTH_CLOSED:
-            uploadList    = &D_actor_141000_8013D4DC[0];
+            uploadList    = &_gActor141000AyaBreaMouthClosedUploads[0];
             textureRect.x = ACTOR_141000_MOUTH_X_WORDS;
             textureRect.y = ACTOR_141000_MOUTH_Y_ROWS;
             textureRect.w = ACTOR_141000_MOUTH_WIDTH_WORDS;

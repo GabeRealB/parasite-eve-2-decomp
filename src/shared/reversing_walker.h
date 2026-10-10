@@ -6,7 +6,7 @@
  * counts down to freeing its model buffers. The rest is its spawn-walk
  * message, spawn state and a four-mode visibility message. It builds on
  * actor_motion (_actorMotionArrive19, _actorMotionPlayAnim19,
- * gActorMotionAnimBanks19).
+ * _gActorMotionAnimBanks19).
  *
  * Include this header in the prologue and each fragment at its function's
  * position.

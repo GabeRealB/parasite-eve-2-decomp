@@ -34,8 +34,6 @@
 #include "../../shared/actor_messages.h"
 #include "../../shared/reversing_walker.h"
 
-extern AnimationSet** gActorMotionAnimBanks19[1];
-
 /// `taskMessageDispatch` handler table installed at `Task::msgTable` by
 /// `_reverseWalkSpawn`; terminator id `TASK_MESSAGE_TABLE_END`.
 // Handler views preserve the signatures used by this TU. The dispatcher
@@ -268,7 +266,11 @@ static AnimationSet* _gActor350700BodyAnimSets[5] = {
     &_gActor350700Animation07EB0,
 };
 
-AnimationSet** gActorMotionAnimBanks19[1] = {
+/// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..4.
+///
+/// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
+/// an entry of its clip table. Playback borrows that table and loaded clip data.
+static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor350700BodyAnimSets,
 };
 

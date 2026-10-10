@@ -67441,11 +67441,11 @@ symbol has nowhere to go: splat writes it only to the unlinked
 `nonmatchings/<unit>/`. The link then fails on the table, not on the function:
 
 ```
-undefined reference to `D_actor_141000_80131E58'
+undefined reference to `_gActor141000AyaBreaWalkSteps'
 ```
 
 Adding an `INCLUDE_RODATA` for it does not help on its own - there is no file to
-include, and the assembler says so (`can't open .../D_actor_141000_80131E58.s`).
+include, and the assembler says so (`can't open .../_gActor141000AyaBreaWalkSteps.s`).
 Two ways out:
 
 - `force_not_migration: True` on the symbol, which makes splat give it its own
@@ -67457,7 +67457,7 @@ Two ways out:
   structure rather than game data, and `TaskFuncTable4` reproduces the bytes:
 
 ```c
-const TaskFuncTable4 D_actor_141000_80131E58 = { {
+const TaskFuncTable4 _gActor141000AyaBreaWalkSteps = { {
     _actor141000FaceAyaBreaWalkTarget, _actor141000BeginAyaBreaWalk,
     func_actor_141000_80133490, _actor141000TurnAyaBreaToYaw,
 } };
@@ -82032,11 +82032,11 @@ Two things in the target give the real type, and neither is a guess:
 Which task owns the block is the part that takes work, because `task->state` is
 shared by every task in the overlay: **two state tables keyed on `task->state`
 are two tasks**, so the nearest matched sibling is not evidence of ownership.
-Follow the dispatch chain: `D_actor_141000_80131E30` is
+Follow the dispatch chain: `_gActor141000FlightControllerTaskStates` is
 `{80132C7C, 80132D3C, taskKill}` - the controller - and `80132D3C` dispatches
-`work + 0xC` through a *second* table, `D_actor_141000_80131E3C`, while the
+`work + 0xC` through a *second* table, `_gActor141000FlightPhases`, while the
 0x4CC `_Actor141000AyaBreaWork` belongs to a third task whose table
-`D_actor_141000_80131E4C` = `{8013392C, …}` is entered from `801338C0` by
+`_gActor141000AyaBreaWalkerTaskStates` = `{8013392C, …}` is entered from `801338C0` by
 `task->state` as well. The controller's 0x10 block is therefore a type of its
 own.
 
@@ -82112,7 +82112,7 @@ work->field_4C2 = work->field_4C2 + 1;
 ```
 
 `_Actor141000AyaBreaWork::walk.motionStep` is the worked example: `_actor141000RunAyaBreaWalkStep`
-indexes `D_actor_141000_80131E58` with it while `_actor141000BeginAyaBreaWalk`
+indexes `_gActor141000AyaBreaWalkSteps` with it while `_actor141000BeginAyaBreaWalk`
 bumps it. Changing the field to `u16` and adding the cast in the dispatcher
 keeps both matching; `actor_341700` 0x422 and `actor_403100` 0x5FA are the same
 pair already in the tree. A scratch env that only ever compiles one of the two
@@ -137834,7 +137834,7 @@ Selected observations and source/input fingerprints are retained in
 ## A rematerialized table pointer can change a different load's register and sched2 hazards (_actor141000BuildRingBeamPoints, 2026-09-20)
 
 A controlled normal-header port of a permuter discovery (`base_2`) improved
-345 -> 90 distance. It only assigned D_actor_141000_80134878 to an SVECTOR
+345 -> 90 distance. It only assigned _gActor141000CappedBeamStartCapOffsets to an SVECTOR
 pointer between the identity stores and used that pointer in its two loops.
 The paired normalized baseline was object-identical to the seed. The pointer
 never gets a permanent register: its two-instruction materialization survives

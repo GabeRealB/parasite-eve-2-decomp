@@ -33,7 +33,7 @@ static inline void _reverseWalkApplyAnimationRequest(const Task* task, const Ani
     if (request->source.index != work->model.bank) {
         work->model.bank   = request->source.index;
         work->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses, work->rig.slots);
+        animationInitContext(&work->rig.anim, _gActorMotionAnimBanks19[work->model.bank], model, work->rig.poses, work->rig.slots);
     }
     if (request->animationId != work->model.animId) {
         work->model.animId = request->animationId;

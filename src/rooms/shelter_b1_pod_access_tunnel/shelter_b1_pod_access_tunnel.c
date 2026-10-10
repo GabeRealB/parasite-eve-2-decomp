@@ -143,8 +143,6 @@ typedef struct {
 } _ShelterB1PodAccessTunnelImageScrollWork;
 STATIC_ASSERT_SIZEOF(_ShelterB1PodAccessTunnelImageScrollWork, 0xC);
 
-extern TaskDesc D_actor_141000_801348D8[];
-
 /// The room's message table.
 // Message-table callbacks use the argument views required by this TU.
 
@@ -1015,7 +1013,7 @@ WorldCollisionTrigger gShelterB1PodAccessTunnelActionTriggers[3] = {
 };
 
 AreaResource D_shelter_b1_pod_access_tunnel_8018499C[2] = {
-    { 132, 410, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &D_actor_141000_8013D77C },
+    { 132, 410, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor141000AyaBreaWalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -1951,7 +1949,7 @@ static void _shelterB1PodAccessTunnelStartFlightController(void)
 {
     enum { FLIGHT_CONTROLLER_TASK_INDEX = 0 };
 
-    taskSpawnFromTable(D_actor_141000_801348D8, FLIGHT_CONTROLLER_TASK_INDEX, 0, 0);
+    taskSpawnFromTable(gActor141000FlightTasks, FLIGHT_CONTROLLER_TASK_INDEX, 0, 0);
 }
 
 /// Queues a gray captured-frame display task lasting `frameCount + 1` ticks.

@@ -515,7 +515,7 @@ D_actor_461800_80133F90 = 0x80133F90; // absolute:True owner=actor_461800
 D_actor_535700_801341E0 = 0x801341E0; // absolute:True owner=actor_535700
 D_actor_461800_80134470 = 0x80134470; // absolute:True owner=actor_461800
 D_actor_143000_80134564 = 0x80134564; // absolute:True owner=actor_143000
-D_actor_141000_801348D8 = 0x801348D8; // absolute:True owner=actor_141000
+gActor141000FlightTasks = 0x801348D8; // absolute:True owner=actor_141000
 D_actor_107600_80134F94 = 0x80134F94; // absolute:True owner=actor_107600
 gActor143400CompanionEntryScript = 0x801350BC; // absolute:True owner=actor_143400
 gActor146000WaterHoleSceneTasks = 0x801351FC; // absolute:True owner=actor_146000

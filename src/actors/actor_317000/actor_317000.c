@@ -71,8 +71,6 @@ enum {
     ACTOR_317000_DRAW_SHOW_MANUAL   = 3,
 };
 
-extern AnimationSet** gActorMotionAnimBanks19[1];
-
 static void _actor317000Update(Task* task);
 static void _actor317000FacePlayerAfterLeap(Task* task);
 static void _actor317000TurnHeadToTarget(Task* task, Task* targetTask, s32 maxYaw, s32 maxPitch, s32 blendWeight);
@@ -353,7 +351,11 @@ static AnimationSet* _gActor317000BodyAnimSets[9] = {
     &_gActor317000Animation0B0D4,
 };
 
-AnimationSet** gActorMotionAnimBanks19[1] = {
+/// Carrier-local banks for nineteen-part playback: only bank 0, clips 1..8.
+///
+/// `AnimationPlayRequest::source.index` selects the bank; `animationId` selects
+/// an entry of its clip table. Playback borrows that table and loaded clip data.
+static AnimationSet** const _gActorMotionAnimBanks19[1] SECTION(".data") = {
     _gActor317000BodyAnimSets,
 };
 
@@ -610,7 +612,7 @@ static inline void _actor317000ApplyLeapStartAnimation(Task* task, const Animati
     if (request->source.index != playbackWork->model.bank) {
         playbackWork->model.bank   = request->source.index;
         playbackWork->model.animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&playbackWork->rig.anim, gActorMotionAnimBanks19[playbackWork->model.bank], bodyModel, playbackWork->rig.poses,
+        animationInitContext(&playbackWork->rig.anim, _gActorMotionAnimBanks19[playbackWork->model.bank], bodyModel, playbackWork->rig.poses,
                              playbackWork->rig.slots);
     }
     if (request->animationId != playbackWork->model.animId) {

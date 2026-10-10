@@ -30,7 +30,7 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
         GLOW_CAPPED_BEAM_CORE_DRAW_MODE  = 0xE1000425, // Draw-to-display enabled, dithering off, additive blend
     };
 
-    CVECTOR scaledColors[ARRAY_SIZE(gGlowRingBeamColors)];
+    CVECTOR scaledColors[ARRAY_SIZE(_gGlowCappedBeamColors)];
     const s8(*quadIndices)[4];
     const CVECTOR* colors;
     POLY_G4*       quad;
@@ -81,7 +81,7 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
     }
 
     // Snapshot the parent brightness before advancing the next geometry phase.
-    quadIndices   = gGlowRingBeamQuads;
+    quadIndices   = _gGlowCappedBeamQuadIndices;
     brightnessQ12 = GLOW_DRAW_RING_BEAM_BRIGHTNESS(task);
 #ifdef GLOW_DRAW_RING_BEAM_PHASE_STEP
     task->killCountdown += GLOW_DRAW_RING_BEAM_PHASE_STEP;
@@ -92,9 +92,9 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
     // The binary also calls sine here and discards its result.
     rsin(task->killCountdown);
     for (index = 0; index < (s32)ARRAY_SIZE(scaledColors); index++) {
-        scaledColors[index].r = (gGlowRingBeamColors[index][0] * (s16)brightnessQ12) >> GLOW_TRIG_SHIFT;
-        scaledColors[index].g = (gGlowRingBeamColors[index][1] * (s16)brightnessQ12) >> GLOW_TRIG_SHIFT;
-        scaledColors[index].b = (gGlowRingBeamColors[index][2] * (s16)brightnessQ12) >> GLOW_TRIG_SHIFT;
+        scaledColors[index].r = (_gGlowCappedBeamColors[index].r * (s16)brightnessQ12) >> GLOW_TRIG_SHIFT;
+        scaledColors[index].g = (_gGlowCappedBeamColors[index].g * (s16)brightnessQ12) >> GLOW_TRIG_SHIFT;
+        scaledColors[index].b = (_gGlowCappedBeamColors[index].b * (s16)brightnessQ12) >> GLOW_TRIG_SHIFT;
     }
     // Queue the lit core first, then the ten quads fading to the outer contour.
     colors = scaledColors;
@@ -108,7 +108,7 @@ static void _glowDrawCappedBeam(Task* task, const SVECTOR screenPoints[24], s32 
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, drawMode);
         quadIndices++;
     }
-    for (index = GLOW_CAPPED_BEAM_CORE_QUAD_COUNT; index < (s32)ARRAY_SIZE(gGlowRingBeamQuads); index++) {
+    for (index = GLOW_CAPPED_BEAM_CORE_QUAD_COUNT; index < (s32)ARRAY_SIZE(_gGlowCappedBeamQuadIndices); index++) {
         GLOW_CAPPED_BEAM_ALLOC_QUAD(quad, *quadIndices, colors, screenPoints);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(sortingDepth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + GLOW_DRAW_RING_BEAM_OT_OFFSET, quad);
         drawMode       = gGpuPrimCursor;
