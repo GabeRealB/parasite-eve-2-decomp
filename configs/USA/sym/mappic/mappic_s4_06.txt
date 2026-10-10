@@ -1,1 +1,5 @@
 // Overlay-local symbols for mappic_s4_06 (file 30406).
+gMappicS406ReservoirShape = 0x8012eff0;
+gMappicS406UpperSewerShape = 0x8012f0b8;
+gMappicS406WaterSupplyShape = 0x8012f198;
+gMappicS406LowerSewerShape = 0x8012f260;

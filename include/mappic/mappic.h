@@ -647,12 +647,34 @@ extern TmdSource gMappicS405IncineratorControlRoomShape;
 extern TmdSource gMappicS405ElevatorHallShape;
 
 // mappic_s4_06
-extern TmdSource D_mappic_s4_06_8012EFF0;
+/// Reservoir's area-fill mesh on page 6 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane form two triangles and two quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s4_06 loaded during use.
+extern TmdSource gMappicS406ReservoirShape;
 
-extern TmdSource D_mappic_s4_06_8012F0B8;
+/// Upper sewer's three-quad area fill on page 6 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_06 loaded during use.
+extern TmdSource gMappicS406UpperSewerShape;
 
-extern TmdSource D_mappic_s4_06_8012F198;
+/// Water supply's area-fill mesh on page 6 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane form two triangles and two quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s4_06 loaded during use.
+extern TmdSource gMappicS406WaterSupplyShape;
 
-extern TmdSource D_mappic_s4_06_8012F260;
+/// Lower sewer's three-quad area fill on page 6 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s4_06 loaded during use.
+extern TmdSource gMappicS406LowerSewerShape;
 
 #endif // INCLUDE_MAPPIC_MAPPIC_H
