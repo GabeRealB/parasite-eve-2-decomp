@@ -284,17 +284,17 @@ D_shelter_b2_elevator_hall_8018492C = 0x8018492C; // absolute:True owner=shelter
 D_shelter_b2_elevator_hall_80184968 = 0x80184968; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
 gShelterB2ElevatorHallSurfacePropertiesByClass = 0x80184D5C; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
 shelterB2SouthMaintenanceWalkwayRoomTask = 0x8017DC6C; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
-D_shelter_b2_south_maintenance_walkway_8018263C = 0x8018263C; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
+gShelterB2SouthMaintenanceWalkwayRoomViewMaps = 0x8018263C; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
 D_shelter_b2_south_maintenance_walkway_80182640 = 0x80182640; // absolute:True owner=shelter_b2_south_maintenance_walkway
 D_shelter_b2_south_maintenance_walkway_80182644 = 0x80182644; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
-D_shelter_b2_south_maintenance_walkway_801829E8 = 0x801829E8; // absolute:True owner=shelter_b2_south_maintenance_walkway
-D_shelter_b2_south_maintenance_walkway_80182A0C = 0x80182A0C; // absolute:True owner=shelter_b2_south_maintenance_walkway
-D_shelter_b2_south_maintenance_walkway_80183018 = 0x80183018; // absolute:True owner=shelter_b2_south_maintenance_walkway
-D_shelter_b2_south_maintenance_walkway_80183294 = 0x80183294; // absolute:True owner=shelter_b2_south_maintenance_walkway
+gShelterB2SouthMaintenanceWalkwayCollisionGrid = 0x801829E8; // absolute:True owner=shelter_b2_south_maintenance_walkway
+gShelterB2SouthMaintenanceWalkwayViewCameras = 0x80182A0C; // absolute:True owner=shelter_b2_south_maintenance_walkway
+gShelterB2SouthMaintenanceWalkwaySpriteViews = 0x80183018; // absolute:True owner=shelter_b2_south_maintenance_walkway
+gShelterB2SouthMaintenanceWalkwayRoomLights = 0x80183294; // absolute:True owner=shelter_b2_south_maintenance_walkway
 D_shelter_b2_south_maintenance_walkway_801832AC = 0x801832AC; // absolute:True owner=shelter_b2_south_maintenance_walkway
 D_shelter_b2_south_maintenance_walkway_80183474 = 0x80183474; // absolute:True owner=shelter_b2_south_maintenance_walkway
 D_shelter_b2_south_maintenance_walkway_8018385C = 0x8018385C; // absolute:True owner=shelter_b2_south_maintenance_walkway
-D_shelter_b2_south_maintenance_walkway_801838B4 = 0x801838B4; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
+gShelterB2SouthMaintenanceWalkwaySurfacePropertiesByClass = 0x801838B4; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
 shelterB2OperatingRoomTask = 0x8017DD60; // type:func absolute:True owner=shelter_b2_operating_room shared=rooms
 gShelterB2OperatingRoomRoomViewMaps = 0x80180BC8; // absolute:True owner=shelter_b2_operating_room
 D_shelter_b2_operating_room_80180BCC = 0x80180BCC; // absolute:True owner=shelter_b2_operating_room

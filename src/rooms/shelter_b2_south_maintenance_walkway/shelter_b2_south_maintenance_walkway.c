@@ -79,11 +79,6 @@ extern TaskDesc D_shelter_b2_south_maintenance_walkway_80182544;
 /// The walkway's message table, installed as the room task's `msgTable`.
 extern TaskMessageEntry D_shelter_b2_south_maintenance_walkway_80182550[];
 
-/// Anchor points of the glows the room's draw task picks by camera view: ten
-/// point pairs, one per glow, followed by the single point of the red disc.
-/// Views share pairs, so each view draws its own run of the table.
-extern SVECTOR D_shelter_b2_south_maintenance_walkway_80182578[];
-
 /// Spawn payload of the task 0x31 the handler's event task may start.
 extern RoomFadeStorage gRoomEventFade;
 
@@ -118,7 +113,11 @@ TaskMessageEntry D_shelter_b2_south_maintenance_walkway_80182550[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_b2_south_maintenance_walkway_80182578[21] = {
+/// World-space endpoints of ten grey capsule glows and the red-disc centre.
+///
+/// Entries 0..19 are consecutive endpoint pairs, shared by mapped views 2..5;
+/// entry 20 is the disc drawn in view 4. Coordinates use signed game units.
+static SVECTOR _gShelterB2SouthMaintenanceWalkwayGlowAnchors[21] = {
     { 894, -196, 3102, 0 },
     { 894, -196, 2264, 0 },
     { 894, -196, 404, 0 },
@@ -146,7 +145,7 @@ SVECTOR D_shelter_b2_south_maintenance_walkway_80182578[21] = {
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-u8* D_shelter_b2_south_maintenance_walkway_8018263C[1] = {
+u8* gShelterB2SouthMaintenanceWalkwayRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -157,149 +156,191 @@ DirectionWarpEntry D_shelter_b2_south_maintenance_walkway_80182644[2] = {
     { { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 2048, 0, 4600 }, { 0, 0, 0, 0 }, 0x541C0002, 0x541C0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 456 },
 };
 
-static SVECTOR _gShelterB2SouthMaintenanceWalkwayCollision05428Normals[14] = {
+/// Room-space unit normals for the collision grid's quad faces, with scale ONE.
+static SVECTOR _gShelterB2SouthMaintenanceWalkwayCollisionGridNormals[14] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_normals.inc"
 };
 
-static SVECTOR _gShelterB2SouthMaintenanceWalkwayCollision05428Verts[38] = {
+/// Room-space vertices indexed by the collision grid's faces, in signed game units.
+static SVECTOR _gShelterB2SouthMaintenanceWalkwayCollisionGridVerts[38] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB2SouthMaintenanceWalkwayCollision05428Faces[18] = {
+/// Eighteen collision quads referencing the grid's vertex/normal pools and classes 0 or 1.
+static WorldCollisionGridFace _gShelterB2SouthMaintenanceWalkwayCollisionGridFaces[18] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_faces.inc"
 };
 
-static s16 _gShelterB2SouthMaintenanceWalkwayCollision05428Cells[82] = {
+/// Serialized signed face-index runs for the six cells, each ending with -1.
+///
+/// Retains all 82 halfwords from the asset, including bytes between live runs.
+static s16 _gShelterB2SouthMaintenanceWalkwayCollisionGridCells[82] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2SouthMaintenanceWalkwayCollision05428Cells[i])
-static s16* _gShelterB2SouthMaintenanceWalkwayCollision05428Table[6] = {
+#define GRID_CELL(i) (&_gShelterB2SouthMaintenanceWalkwayCollisionGridCells[i])
+/// X-major cell pointers, indexed as x * 3 + z for x in 0..1 and z in 0..2.
+static s16* _gShelterB2SouthMaintenanceWalkwayCollisionGridTable[6] = {
 #include "assets/shelter_b2_south_maintenance_walkway_collision_05428_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_south_maintenance_walkway_801829E8 = { NULL, _gShelterB2SouthMaintenanceWalkwayCollision05428Normals, _gShelterB2SouthMaintenanceWalkwayCollision05428Verts, _gShelterB2SouthMaintenanceWalkwayCollision05428Faces, _gShelterB2SouthMaintenanceWalkwayCollision05428Table, 2872, 5300, 2, 3, 4000, 18 };
+WorldCollisionGrid gShelterB2SouthMaintenanceWalkwayCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB2SouthMaintenanceWalkwayCollisionGridNormals,
+    .vertices    = _gShelterB2SouthMaintenanceWalkwayCollisionGridVerts,
+    .faces       = _gShelterB2SouthMaintenanceWalkwayCollisionGridFaces,
+    .cellFaceIds = _gShelterB2SouthMaintenanceWalkwayCollisionGridTable,
+    .xBias       = 2872,
+    .zBias       = 5300,
+    .cellCountX  = 2,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB2SouthMaintenanceWalkwayCollisionGridFaces),
+};
 
-ViewCamera D_shelter_b2_south_maintenance_walkway_80182A0C[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x35D2, 0 } }, 235 },
+ViewCamera gShelterB2SouthMaintenanceWalkwayViewCameras[5] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 0x35D2, 0 } }, 235 },
     { { { { 813, 0, 4014 }, { 1626, 3744, -329 }, { -3670, 1659, 743 } }, { -2032, 2295, 4776 } }, 235 },
     { { { { 950, 0, -3984 }, { -1563, 3767, -372 }, { 3664, 1607, 874 } }, { 2128, 2217, 4776 } }, 246 },
     { { { { 3928, 0, 1158 }, { 443, 3784, -1503 }, { -1070, 1567, 3629 } }, { -2962, 2210, 4830 } }, 235 },
     { { { { 3846, 0, 1407 }, { 529, 3795, -1446 }, { -1304, 1539, 3564 } }, { -2962, 2210, 182 } }, 235 },
 };
 
-SpriteBatch D_shelter_b2_south_maintenance_walkway_80182AC0[2] = {
+/// View 1's empty sprite list, retaining decoded background-image strips.
+static SpriteBatch _gShelterB2SouthMaintenanceWalkwayView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_south_maintenance_walkway_80182AD0[2] = {
+/// View 2's empty sprite list, retaining decoded background-image strips.
+static SpriteBatch _gShelterB2SouthMaintenanceWalkwayView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_south_maintenance_walkway_80182AE0[64] = {
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -72, 72, 0, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, 80, 0, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 88, 0, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 64, 0, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 48, 0, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, -80, 0, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -72, -56, 0, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -72, -16, 0, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, -80, 0, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -64, -48, 0, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, -8, 0, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -120, 0, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -80, 0, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, -40, 0, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -8, 0, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -80, -16, 0, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, -80, 0, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -80, -56, 0, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, -80, 0, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -88, -56, 0, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, -8, 0, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, -64, 0, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, -32, 0, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, -48, 0, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 32, 1019, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 24, 974, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 24, 977, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 40, 968, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 48, 1010, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 56, 992, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -120, 48, 937, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -160, 48, 766, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 64, 750, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -120, 64, 966, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -120, 72, 928, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 72, 750, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 80, 750, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -120, 80, 839, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 88, 850, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 88, 750, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -120, 40, 934, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 40, 750, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 24, 944, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 16, 914, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 0, 896, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, 24, 966, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 24, 750, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -160, -40, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -160, -96, 750, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, -120, 750, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -128, -120, 631, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -88, -120, 794, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -88, -96, 749, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, -96, 805, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -128, -80, 737, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -64, 753, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, -48, 805, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, -24, 842, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, -8, 863, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 8, 836, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, 8, 769, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -128, -8, 788, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -128, -24, 765, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, -48, 747, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+/// Neutral RGB modulation for the view's colour-modulated source sprites.
+enum { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR = 128 };
+
+/// View 3's 64 screen-space texture rectangles and their scene-sorting depths.
+///
+/// Uses the 8-bit texture page at VRAM (960, 0) and palette row 255 at X 0.
+/// The view's sole populated batch covers this complete array; it has no sentinel.
+static SpriteSource _gShelterB2SouthMaintenanceWalkwayView3SpriteSources[64] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -72, 72, 0, { .fields = { 80, 120 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -80, 80, 0, { .fields = { 88, 176 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -88, 88, 0, { .fields = { 72, 80 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -64, 64, 0, { .fields = { 32, 192 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -56, 48, 0, { .fields = { 72, 120 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -72, -80, 0, { .fields = { 88, 152 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -72, -56, 0, { .fields = { 112, 160 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -72, -16, 0, { .fields = { 112, 120 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -64, -80, 0, { .fields = { 96, 152 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -64, -48, 0, { .fields = { 104, 120 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -64, -8, 0, { .fields = { 96, 184 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -56, -120, 0, { .fields = { 120, 208 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -56, -80, 0, { .fields = { 104, 160 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -56, -40, 0, { .fields = { 88, 32 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -56, -8, 0, { .fields = { 104, 200 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -80, -16, 0, { .fields = { 112, 200 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -80, -80, 0, { .fields = { 88, 224 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -80, -56, 0, { .fields = { 120, 168 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -88, -80, 0, { .fields = { 88, 64 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -88, -56, 0, { .fields = { 120, 120 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -88, -8, 0, { .fields = { 88, 88 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -96, -64, 0, { .fields = { 88, 0 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -96, -32, 0, { .fields = { 96, 216 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -104, -48, 0, { .fields = { 80, 0 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -56, 32, 1019, { .fields = { 72, 64 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -64, 24, 974, { .fields = { 72, 16 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -72, 24, 977, { .fields = { 112, 240 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -72, 40, 968, { .fields = { 88, 248 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -80, 48, 1010, { .fields = { 24, 32 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -80, 56, 992, { .fields = { 32, 168 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -120, 48, 937, { .fields = { 48, 224 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -160, 48, 766, { .fields = { 48, 240 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 64, 750, { .fields = { 8, 184 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -120, 64, 966, { .fields = { 0, 152 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -120, 72, 928, { .fields = { 8, 144 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 72, 750, { .fields = { 40, 216 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 80, 750, { .fields = { 16, 160 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -120, 80, 839, { .fields = { 8, 176 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -128, 88, 850, { .fields = { 40, 48 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -160, 88, 750, { .fields = { 48, 32 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -120, 40, 934, { .fields = { 0, 224 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 40, 750, { .fields = { 8, 40 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -80, 24, 944, { .fields = { 104, 240 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -88, 16, 914, { .fields = { 80, 48 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -96, 0, 896, { .fields = { 80, 24 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -128, 24, 966, { .fields = { 32, 64 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -160, 24, 750, { .fields = { 40, 80 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, -160, -40, 750, { .fields = { 96, 0 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 56 } }, -160, -96, 750, { .fields = { 96, 64 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -160, -120, 750, { .fields = { 56, 152 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, -128, -120, 631, { .fields = { 48, 176 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -88, -120, 794, { .fields = { 56, 96 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -88, -96, 749, { .fields = { 40, 200 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -128, -96, 805, { .fields = { 16, 96 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, -128, -80, 737, { .fields = { 40, 0 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -128, -64, 753, { .fields = { 24, 16 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -112, -48, 805, { .fields = { 80, 72 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -112, -24, 842, { .fields = { 56, 120 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -104, -8, 863, { .fields = { 72, 200 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -112, 8, 836, { .fields = { 40, 128 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -128, 8, 769, { .fields = { 40, 112 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, -128, -8, 788, { .fields = { 56, 136 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -128, -24, 765, { .fields = { 56, 16 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -128, -48, 747, { .fields = { 80, 200 } }, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b2_south_maintenance_walkway_80182FE0[3] = {
+/// View 3's background-preserving header, full sprite range and end marker.
+static SpriteBatch _gShelterB2SouthMaintenanceWalkwayView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 64, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2SouthMaintenanceWalkwayView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_south_maintenance_walkway_80182FF8[2] = {
+/// View 4's empty sprite list, retaining decoded background-image strips.
+static SpriteBatch _gShelterB2SouthMaintenanceWalkwayView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_south_maintenance_walkway_80183008[2] = {
+/// View 5's empty sprite list, retaining decoded background-image strips.
+static SpriteBatch _gShelterB2SouthMaintenanceWalkwayView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b2_south_maintenance_walkway_80183018[5] = {
-    { { .empty = D_shelter_b2_south_maintenance_walkway_80182AC0 }, D_shelter_b2_south_maintenance_walkway_80182AC0, NULL },
-    { { .empty = D_shelter_b2_south_maintenance_walkway_80182AD0 }, D_shelter_b2_south_maintenance_walkway_80182AD0, NULL },
-    { { .elements = D_shelter_b2_south_maintenance_walkway_80182AE0 }, D_shelter_b2_south_maintenance_walkway_80182FE0, NULL },
-    { { .empty = D_shelter_b2_south_maintenance_walkway_80182FF8 }, D_shelter_b2_south_maintenance_walkway_80182FF8, NULL },
-    { { .empty = D_shelter_b2_south_maintenance_walkway_80183008 }, D_shelter_b2_south_maintenance_walkway_80183008, NULL },
+SpriteView gShelterB2SouthMaintenanceWalkwaySpriteViews[5] = {
+    { { .empty = _gShelterB2SouthMaintenanceWalkwayView1SpriteBatches }, _gShelterB2SouthMaintenanceWalkwayView1SpriteBatches, NULL },
+    { { .empty = _gShelterB2SouthMaintenanceWalkwayView2SpriteBatches }, _gShelterB2SouthMaintenanceWalkwayView2SpriteBatches, NULL },
+    { { .elements = _gShelterB2SouthMaintenanceWalkwayView3SpriteSources }, _gShelterB2SouthMaintenanceWalkwayView3SpriteBatches, NULL },
+    { { .empty = _gShelterB2SouthMaintenanceWalkwayView4SpriteBatches }, _gShelterB2SouthMaintenanceWalkwayView4SpriteBatches, NULL },
+    { { .empty = _gShelterB2SouthMaintenanceWalkwayView5SpriteBatches }, _gShelterB2SouthMaintenanceWalkwayView5SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b2_south_maintenance_walkway_80183054[6] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2022, -223, -3929 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2348, 2757, 2798 }, { 0, 0 } }, 1852, 2632 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 367, -223, -4032 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2570, 3039, 3058 }, { 0, 0 } }, 1540, 3660 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2187, -303, -4148 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1365, 1697, 1877 }, { 0, 0 } }, 1821, 2131 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1972, -223, 2426 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2007, 2638, 2897 }, { 0, 0 } }, 1742, 2801 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1986, -223, -1184 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2509, 3039, 3079 }, { 0, 0 } }, 2121, 3602 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2025, -223, -2356 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1847, 2297, 2416 }, { 0, 0 } }, 1500, 1800 },
+/// Six all-view room point lights, with world positions and distance falloff.
+///
+/// The lighting runtime binds their parents, composes transforms and overwrites
+/// attenuation; their storage remains writable for the loaded room's lifetime.
+static WorldCoordPointLight _gShelterB2SouthMaintenanceWalkwayPointLights[6] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2022, -223, -3929 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2348, 2757, 2798 }, { 0, 0 } }, 1852, 2632 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 367, -223, -4032 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2570, 3039, 3058 }, { 0, 0 } }, 1540, 3660 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2187, -303, -4148 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1365, 1697, 1877 }, { 0, 0 } }, 1821, 2131 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1972, -223, 2426 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2007, 2638, 2897 }, { 0, 0 } }, 1742, 2801 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1986, -223, -1184 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2509, 3039, 3079 }, { 0, 0 } }, 2121, 3602 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2025, -223, -2356 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1847, 2297, 2416 }, { 0, 0 } }, 1500, 1800 },
 };
 
-WorldCoordRoomLights D_shelter_b2_south_maintenance_walkway_80183294 = { 0, NULL, ARRAY_SIZE(D_shelter_b2_south_maintenance_walkway_80183054), D_shelter_b2_south_maintenance_walkway_80183054, 0, NULL };
+WorldCoordRoomLights gShelterB2SouthMaintenanceWalkwayRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB2SouthMaintenanceWalkwayPointLights),
+    .pointLights           = _gShelterB2SouthMaintenanceWalkwayPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b2_south_maintenance_walkway_801832AC[6] = {
     { NULL, NULL, NULL, { 2000, -1361, 1664, 0 }, { { -1321, -1936, -474, 0 }, { 1306, -1936, 456, 0 }, { -1321, 1937, -474, 0 }, { 1306, 1937, 456, 0 } }, { 1372, 0, -3878, 0 }, { 0, 0, 4096, 0 }, 2374, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -315,87 +356,141 @@ WorldCollisionTrigger D_shelter_b2_south_maintenance_walkway_80183474[2] = {
     { NULL, NULL, NULL, { 1952, -48, 4448, 0 }, { { 1024, 0, -544, 0 }, { 1024, 0, 544, 0 }, { -1024, 0, -544, 0 }, { -1024, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 1159, WORLD_COLLISION_TRIGGER_ACTION_WARP, 29, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b2_south_maintenance_walkway_8018350C[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 24, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202400Tasks },
+/// Placement/resource keys used by the walkway's encounter variants.
+///
+/// Each key selects a recipe in that variant's resource list; file numbers
+/// remain independent catalogue selections even where they equal the key.
+enum {
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER            = 21,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_ROOK_GOLEM         = 23,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA             = 24,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_MAD_CHASER         = 44,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_BRUTE_MOSSBACK     = 49,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_MAGGOT_CATERPILLAR = 55,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_CREEPING_STRANGER  = 72,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_SKULL_STALKER      = 73
+};
+
+/// Actor-specific placement options selected by the walkway's encounter records.
+///
+/// Watcher variants select weapon rows with no patrol-distance tens digit.
+/// Amoeba, Caterpillar, Skull Stalker and Rook options occupy the mode field.
+enum {
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_BLUE_BEAM           = 2,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_YELLOW_BEAM         = 3,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_AMOEBA_STANDARD             = 0,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_AMOEBA_STRONG               = 1,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_CATERPILLAR_AMBUSH_FOLLOWER = 3,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SKULL_STALKER_ALTERNATE     = 1,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ROOK_GOLEM_PATROL           = 1
+};
+
+/// Resource recipes for variant 1's Watchers and Amoebas, ending with `AREA_PLACEMENT_END`.
+static AreaResource _gShelterB2SouthMaintenanceWalkwayVariant1Resources[3] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 24, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_south_maintenance_walkway_80183530[3] = {
-    { 49, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
-    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
+/// Resource recipes for variant 2's Brute Mossbacks and Creeping Stranger.
+static AreaResource _gShelterB2SouthMaintenanceWalkwayVariant2Resources[3] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_BRUTE_MOSSBACK, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_CREEPING_STRANGER, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_south_maintenance_walkway_80183554[4] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
-    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
-    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200SkullStalkerTaskDesc },
+/// Resource recipes for variant 3's Mad Chaser, Creeping Strangers and Skull Stalker.
+static AreaResource _gShelterB2SouthMaintenanceWalkwayVariant3Resources[4] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_MAD_CHASER, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_CREEPING_STRANGER, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_SKULL_STALKER, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200SkullStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_south_maintenance_walkway_80183584[3] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
-    { 55, 55, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205500MaggotCaterpillarTasks },
+/// Resource recipes for variant 11's Amoeba and Maggot Caterpillars.
+static AreaResource _gShelterB2SouthMaintenanceWalkwayVariant11Resources[3] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_MAGGOT_CATERPILLAR, 55, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205500MaggotCaterpillarTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_south_maintenance_walkway_801835A8[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
+/// Resource recipes for variant 21's Watchers and Beam Sword Rook GOLEM.
+static AreaResource _gShelterB2SouthMaintenanceWalkwayVariant21Resources[3] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_ROOK_GOLEM, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b2_south_maintenance_walkway_801835CC[9] = {
-    { 21, 3, 0, 950, -2000, 2500, 1024, 0, 0, 2, 1 },
-    { 21, 3, 0, 950, -2000, -500, 1024, 0, 0, 2, 7 },
-    { 21, 2, 0, 1400, -2000, 5000, 2048, 0, 0, 2, 5 },
-    { 21, 2, 0, 2600, -2000, 5000, 2048, 0, 0, 2, 5 },
-    { 24, 0, 0, 2000, 0, -4000, 3700, 0, 2, 4, 0 },
-    { 24, 0, 0, 2400, 0, -2900, 3200, 0, 2, 4, 0 },
-    { 24, 0, 0, 2400, 0, -850, 3600, 0, 2, 4, 0 },
-    { 24, 0, 0, 1450, 0, -2500, 1700, 0, 2, 4, 0 },
+/// Four Watcher and four Amoeba placements for encounter variant 1.
+///
+/// Positions use world game units and yaw uses 4096 units per turn.
+/// The final record is `AREA_PLACEMENT_END`; actors borrow live records while spawned.
+static AreaPlacement _gShelterB2SouthMaintenanceWalkwayVariant1Placements[9] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_YELLOW_BEAM, 0, 950, -2000, 2500, 1024, 0, 0, 2, 1 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_YELLOW_BEAM, 0, 950, -2000, -500, 1024, 0, 0, 2, 7 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_BLUE_BEAM, 0, 1400, -2000, 5000, 2048, 0, 0, 2, 5 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_BLUE_BEAM, 0, 2600, -2000, 5000, 2048, 0, 0, 2, 5 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_AMOEBA_STANDARD, 2000, 0, -4000, 3700, 0, 2, 4, 0 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_AMOEBA_STANDARD, 2400, 0, -2900, 3200, 0, 2, 4, 0 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_AMOEBA_STANDARD, 2400, 0, -850, 3600, 0, 2, 4, 0 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_AMOEBA_STANDARD, 1450, 0, -2500, 1700, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_south_maintenance_walkway_8018365C[4] = {
-    { 72, 0, 0, 2150, 0, 2050, 3700, 0, 0, 2, 0 },
-    { 49, 0, 0, 1600, 0, -3600, 3500, 0, 2, 4, 0 },
-    { 49, 0, 0, 1650, 0, 0, 1000, 0, 2, 4, 0 },
+/// One Creeping Stranger and two Brute Mossback placements for encounter variant 2.
+///
+/// Positions use world game units, yaw uses 4096 units per turn, and the last
+/// record ends the list. Actors borrow the records while spawned.
+static AreaPlacement _gShelterB2SouthMaintenanceWalkwayVariant2Placements[4] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_CREEPING_STRANGER, 0, 0, 2150, 0, 2050, 3700, 0, 0, 2, 0 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_BRUTE_MOSSBACK, 0, 0, 1600, 0, -3600, 3500, 0, 2, 4, 0 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_BRUTE_MOSSBACK, 0, 0, 1650, 0, 0, 1000, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_south_maintenance_walkway_8018369C[5] = {
-    { 44, 0, 0, 2050, 0, 720, 3584, 0, 0, 2, 0 },
-    { 72, 0, 0, 2000, 0, -1400, 2048, 0, 2, 4, 0 },
-    { 72, 0, 0, 850, 0, -4200, 3072, 0, 2, 4, 0 },
-    { 73, 0, 1, 1500, 0, -230, 1000, 0, 2, 4, 0 },
+/// Mad Chaser, two Creeping Stranger and Skull Stalker placements for variant 3.
+///
+/// Positions use world game units, yaw uses 4096 units per turn, and the last
+/// record ends the list. Actors borrow the records while spawned.
+static AreaPlacement _gShelterB2SouthMaintenanceWalkwayVariant3Placements[5] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_MAD_CHASER, 0, 0, 2050, 0, 720, 3584, 0, 0, 2, 0 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_CREEPING_STRANGER, 0, 0, 2000, 0, -1400, 2048, 0, 2, 4, 0 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_CREEPING_STRANGER, 0, 0, 850, 0, -4200, 3072, 0, 2, 4, 0 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_SKULL_STALKER, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_SKULL_STALKER_ALTERNATE, 1500, 0, -230, 1000, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_south_maintenance_walkway_801836EC[6] = {
-    { 24, 0, 1, 2150, 0, 1750, 2000, 0, 0, 2, 0 },
-    { 55, 0, 3, 2550, -2700, 550, 3360, 0, 2, 4, 5 },
-    { 55, 0, 3, 2050, -2700, -1050, 3900, 0, 2, 4, 3 },
-    { 55, 0, 3, 1600, -2700, -2200, 200, 0, 2, 4, 4 },
-    { 55, 0, 3, 1000, -2700, -4100, 200, 0, 2, 4, 5 },
+/// One Amoeba and four Maggot Caterpillar placements for encounter variant 11.
+///
+/// Positions use world game units, yaw uses 4096 units per turn, and the last
+/// record ends the list. Actors borrow the records while spawned.
+static AreaPlacement _gShelterB2SouthMaintenanceWalkwayVariant11Placements[6] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_AMOEBA, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_AMOEBA_STRONG, 2150, 0, 1750, 2000, 0, 0, 2, 0 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_CATERPILLAR_AMBUSH_FOLLOWER, 2550, -2700, 550, 3360, 0, 2, 4, 5 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_CATERPILLAR_AMBUSH_FOLLOWER, 2050, -2700, -1050, 3900, 0, 2, 4, 3 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_CATERPILLAR_AMBUSH_FOLLOWER, 1600, -2700, -2200, 200, 0, 2, 4, 4 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_CATERPILLAR_AMBUSH_FOLLOWER, 1000, -2700, -4100, 200, 0, 2, 4, 5 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_south_maintenance_walkway_8018374C[6] = {
-    { 21, 3, 0, 800, -2200, 2500, 1024, 0, 0, 2, 1 },
-    { 21, 3, 0, 800, -2200, 0, 1024, 0, 0, 2, 5 },
-    { 21, 2, 0, 1400, -2000, 5000, 2048, 0, 0, 2, 5 },
-    { 21, 2, 0, 2600, -2000, 5000, 2048, 0, 0, 2, 5 },
-    { 23, 7, 1, 2000, 0, -3000, 0, 0, 2, 4, 0 },
+/// Four Watchers and one Beam Sword Rook GOLEM placement for encounter variant 21.
+///
+/// Positions use world game units, yaw uses 4096 units per turn, and the last
+/// record ends the list. Actors borrow the records while spawned.
+static AreaPlacement _gShelterB2SouthMaintenanceWalkwayVariant21Placements[6] = {
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_YELLOW_BEAM, 0, 800, -2200, 2500, 1024, 0, 0, 2, 1 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_YELLOW_BEAM, 0, 800, -2200, 0, 1024, 0, 0, 2, 5 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_BLUE_BEAM, 0, 1400, -2000, 5000, 2048, 0, 0, 2, 5 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_WATCHER, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_WATCHER_BLUE_BEAM, 0, 2600, -2000, 5000, 2048, 0, 0, 2, 5 },
+    { SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ENTRY_ROOK_GOLEM, 7, SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_ROOK_GOLEM_PATROL, 2000, 0, -3000, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaVariant D_shelter_b2_south_maintenance_walkway_801837AC[22] = {
     { NULL, NULL },
-    { D_shelter_b2_south_maintenance_walkway_801835CC, D_shelter_b2_south_maintenance_walkway_8018350C },
-    { D_shelter_b2_south_maintenance_walkway_8018365C, D_shelter_b2_south_maintenance_walkway_80183530 },
-    { D_shelter_b2_south_maintenance_walkway_8018369C, D_shelter_b2_south_maintenance_walkway_80183554 },
+    { _gShelterB2SouthMaintenanceWalkwayVariant1Placements, _gShelterB2SouthMaintenanceWalkwayVariant1Resources },
+    { _gShelterB2SouthMaintenanceWalkwayVariant2Placements, _gShelterB2SouthMaintenanceWalkwayVariant2Resources },
+    { _gShelterB2SouthMaintenanceWalkwayVariant3Placements, _gShelterB2SouthMaintenanceWalkwayVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -403,7 +498,7 @@ AreaVariant D_shelter_b2_south_maintenance_walkway_801837AC[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b2_south_maintenance_walkway_801836EC, D_shelter_b2_south_maintenance_walkway_80183584 },
+    { _gShelterB2SouthMaintenanceWalkwayVariant11Placements, _gShelterB2SouthMaintenanceWalkwayVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -413,36 +508,55 @@ AreaVariant D_shelter_b2_south_maintenance_walkway_801837AC[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b2_south_maintenance_walkway_8018374C, D_shelter_b2_south_maintenance_walkway_801835A8 },
+    { _gShelterB2SouthMaintenanceWalkwayVariant21Placements, _gShelterB2SouthMaintenanceWalkwayVariant21Resources },
 };
 
 WorldCollisionOccluder D_shelter_b2_south_maintenance_walkway_8018385C[1] = {
     { NULL, NULL, { -1616, -1280, -544, 0 }, { { -2384, 2304, 2240, 0 }, { 2384, 2304, -2240, 0 }, { -2384, -2304, 2240, 0 }, { 2384, -2304, -2240, 0 } }, { 2809, 0, 2989, 0 }, 3998, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_south_maintenance_walkway_80183898 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+enum {
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FOOTSTEP_WALK_CUE_2 = 0x5D,
+    SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FOOTSTEP_RUN_CUE_2  = 0x5F
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_south_maintenance_walkway_801838A4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 1's paired walking/running cues in the loaded type-1 sound bank.
+///
+/// Scripted jumps use the walking pair. Cue 1 adds one to the stored cue-2 base;
+/// companion playback adds 100 after selecting the pair.
+static WorldCollisionFootstepSounds _gShelterB2SouthMaintenanceWalkwaySurfaceClass1FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FOOTSTEP_WALK_CUE_2,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FOOTSTEP_RUN_CUE_2,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY_FOOTSTEP_WALK_CUE_2,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_south_maintenance_walkway_801838AC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_south_maintenance_walkway_80183898 },
+/// Blocking, impact-enabled, pushback surface without footstep cues, for classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gShelterB2SouthMaintenanceWalkwayDefaultSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b2_south_maintenance_walkway_801838B4[8] = {
-    D_shelter_b2_south_maintenance_walkway_801838A4,
-    D_shelter_b2_south_maintenance_walkway_801838AC,
-    D_shelter_b2_south_maintenance_walkway_801838A4,
-    D_shelter_b2_south_maintenance_walkway_801838A4,
-    D_shelter_b2_south_maintenance_walkway_801838A4,
-    D_shelter_b2_south_maintenance_walkway_801838A4,
-    D_shelter_b2_south_maintenance_walkway_801838A4,
-    D_shelter_b2_south_maintenance_walkway_801838A4,
+/// Class 1's blocking, impact-enabled, pushback surface with walking/running footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB2SouthMaintenanceWalkwaySurfaceClass1Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gShelterB2SouthMaintenanceWalkwaySurfaceClass1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB2SouthMaintenanceWalkwaySurfacePropertiesByClass[8] = {
+    &_gShelterB2SouthMaintenanceWalkwayDefaultSurfaceProperties,
+    &_gShelterB2SouthMaintenanceWalkwaySurfaceClass1Properties,
+    &_gShelterB2SouthMaintenanceWalkwayDefaultSurfaceProperties,
+    &_gShelterB2SouthMaintenanceWalkwayDefaultSurfaceProperties,
+    &_gShelterB2SouthMaintenanceWalkwayDefaultSurfaceProperties,
+    &_gShelterB2SouthMaintenanceWalkwayDefaultSurfaceProperties,
+    &_gShelterB2SouthMaintenanceWalkwayDefaultSurfaceProperties,
+    &_gShelterB2SouthMaintenanceWalkwayDefaultSurfaceProperties,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
@@ -637,29 +751,29 @@ void shelterB2SouthMaintenanceWalkwayDrawGlowsTask(Task* task)
     viewIndex = viewGetMappedIndex();
     switch (viewIndex) {
         case 2:
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[12], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[14], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[16], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[18], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[12], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[14], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[16], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[18], GLOW_RADIUS_SCALE, -GLOW_QUARTER_TURN);
             break;
         case 3:
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[10], GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[12], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[14], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[10], GLOW_RADIUS_SCALE, GLOW_HALF_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[12], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[14], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
             break;
         case 4:
-            glowDrawRedDisc(&D_shelter_b2_south_maintenance_walkway_80182578[GLOW_DISC_ANCHOR], GLOW_RADIUS_SCALE);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[0], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[2], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[4], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[6], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[8], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[10], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[12], GLOW_RADIUS_SCALE, 0);
+            glowDrawRedDisc(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[GLOW_DISC_ANCHOR], GLOW_RADIUS_SCALE);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[2], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[4], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[6], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[8], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[10], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[12], GLOW_RADIUS_SCALE, 0);
             break;
         case 5:
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[0], GLOW_RADIUS_SCALE, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b2_south_maintenance_walkway_80182578[6], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[0], GLOW_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&_gShelterB2SouthMaintenanceWalkwayGlowAnchors[6], GLOW_RADIUS_SCALE, GLOW_QUARTER_TURN);
             break;
     }
 }

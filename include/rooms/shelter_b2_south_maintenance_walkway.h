@@ -16,20 +16,41 @@
 
 extern AreaVariant D_shelter_b2_south_maintenance_walkway_801837AC[22];
 
-// shelter_b2_south_maintenance_walkway
-extern u8* D_shelter_b2_south_maintenance_walkway_8018263C[];
+/// The walkway's one-room directory of logical-view to camera/image indices.
+///
+/// Room 1 borrows `gViewIdentityMap`; its five views map to indices 1..5.
+/// The directory remains valid while the walkway overlay is loaded.
+extern u8* gShelterB2SouthMaintenanceWalkwayRoomViewMaps[1];
 
 extern ViewCount D_shelter_b2_south_maintenance_walkway_80182640[];
 
 extern DirectionWarpEntry D_shelter_b2_south_maintenance_walkway_80182644[];
 
-extern WorldCollisionGrid D_shelter_b2_south_maintenance_walkway_801829E8;
+/// The walkway's room-space collision mesh and two-by-three XZ cell index.
+///
+/// Contains 18 quad faces, 38 vertices and 14 normals; cells are 4000 game units
+/// wide, with origin (-2872, -5300). Activation binds the view coordinate.
+/// The descriptor and its mutable pools remain live while the room is loaded.
+extern WorldCollisionGrid gShelterB2SouthMaintenanceWalkwayCollisionGrid;
 
-extern ViewCamera D_shelter_b2_south_maintenance_walkway_80182A0C[];
+/// Cameras for the walkway's mapped views 1..5, stored at index minus one.
+///
+/// Rotations use 4096 per unit, translations negate the world-space origin,
+/// and projection distances are pixels. The room overlay owns their storage.
+extern ViewCamera gShelterB2SouthMaintenanceWalkwayViewCameras[5];
 
-extern SpriteView D_shelter_b2_south_maintenance_walkway_80183018[];
+/// Sprite lists for the walkway's mapped views 1..5, stored at index minus one.
+///
+/// Every view retains background-image strips; view 3 additionally draws 64
+/// source rectangles. Other views retain empty batch addresses in their source
+/// slots. All clipping lists are NULL. Referenced lists belong to the loaded room.
+extern SpriteView gShelterB2SouthMaintenanceWalkwaySpriteViews[5];
 
-extern WorldCoordRoomLights D_shelter_b2_south_maintenance_walkway_80183294;
+/// The walkway's six point lights, with no directional or cone lights.
+///
+/// All lights contribute in every view and remain writable for coordinate
+/// composition and attenuation queries while the room overlay is loaded.
+extern WorldCoordRoomLights gShelterB2SouthMaintenanceWalkwayRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b2_south_maintenance_walkway_801832AC[];
 
@@ -37,7 +58,12 @@ extern WorldCollisionTrigger D_shelter_b2_south_maintenance_walkway_80183474[];
 
 extern WorldCollisionOccluder D_shelter_b2_south_maintenance_walkway_8018385C[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b2_south_maintenance_walkway_801838B4[];
+/// Collision and footstep policies indexed by room-local surface class 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Only class 1 supplies footstep cues; other classes share the silent record.
+/// The directory and its records belong to the loaded walkway overlay.
+extern WorldCollisionSurfaceProperties* gShelterB2SouthMaintenanceWalkwaySurfacePropertiesByClass[8];
 
 /// Receives room messages and dispatches the walkway's room-task state.
 ///
