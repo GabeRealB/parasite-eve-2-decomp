@@ -570,7 +570,7 @@ AreaRecord D_8010CF14[50] = {
     { gShelterB4WaterSupplyPlacementVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[45].state },
     { D_shelter_r47_80187CB8, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[46].state },
     { D_shelter_r48_8018BC10, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[47].state },
-    { D_shelter_r49_8017DD74, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
+    { gShelterR49AreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[5].state },
 };
 /// End marker following the stage 4 room table.
 u32        D_8010D0A4[2]  = { 0xFFFF, 0 };

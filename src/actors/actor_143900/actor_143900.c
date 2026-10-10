@@ -1119,14 +1119,13 @@ static Task* _gActor143900SecondScriptedWalkerTask;
 static void _actor143900StartObservatoryTransition(void)
 {
     enum {
-        ACTOR_143900_DEMO_SCENE                        = 9,
-        ACTOR_143900_OBSERVATORY_SCENE_EVENT           = 20,
-        ACTOR_143900_OBSERVATORY_TRANSITION_TASK_INDEX = 0,
+        ACTOR_143900_DEMO_SCENE              = 9,
+        ACTOR_143900_OBSERVATORY_SCENE_EVENT = 20,
     };
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_143900_DEMO_SCENE) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_143900_OBSERVATORY_SCENE_EVENT;
-        taskSpawnFromTable(D_shelter_r49_8017DA00, ACTOR_143900_OBSERVATORY_TRANSITION_TASK_INDEX, 0, 0);
+        taskSpawnFromTable(gShelterR49ObservatoryTransitionTasks, SHELTER_R49_OBSERVATORY_TRANSITION_TASK_INDEX, 0, 0);
     }
 }
 

@@ -29,167 +29,225 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
-extern WorldCollisionGrid   D_shelter_r49_8017DAAC[1];
-extern WorldCoordRoomLights D_shelter_r49_8017DD24[1];
+enum {
+    SHELTER_R49_OBSERVATORY_TASK_PRIORITY   = 192,
+    SHELTER_R49_ARRIVAL_VIEW                = 2,
+    SHELTER_R49_ARRIVAL_YAW                 = 1024, // Quarter turn; 4096 units per turn
+    SHELTER_R49_GRID_CELL_COUNT_X           = 1,
+    SHELTER_R49_GRID_CELL_COUNT_Z           = 1,
+    SHELTER_R49_GRID_CELL_SIZE              = 30000,                  // Whole world-coordinate units
+    SHELTER_R49_SCENE_ACTOR_ENTRY_ID        = 111,
+    SHELTER_R49_SCENE_ACTOR_FILE_NUMBER     = 439,                    // Base-10 file family yields actor file 143900
+    SHELTER_R49_SCENE_ACTOR_CLUT_ROW_OFFSET = 2,
+    SHELTER_R49_VIEW2_TEXTURE_PAGE          = getTPage(1, 0, 960, 0), // 8-bit texture, blend mode 0
+    SHELTER_R49_VIEW2_CLUT                  = getClut(0, 255),
+    SHELTER_R49_SPRITE_COLOR_NEUTRAL        = 128,
+    SHELTER_R49_FOOTSTEP_WALK_SCRIPT        = 45,
+    SHELTER_R49_FOOTSTEP_RUN_SCRIPT         = 47,
+};
+
+static WorldCollisionGrid   _gShelterR49CollisionGrid;
+static WorldCoordRoomLights _gShelterR49RoomLights;
 static void                 _shelterR49PlayMovieTask(Task* movieTask);
 static void                 _shelterR49EnterObservatoryTask(Task* transitionTask);
 
-TaskDesc D_shelter_r49_8017DA00[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _shelterR49EnterObservatoryTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _shelterR49PlayMovieTask, { .value = 0 } },
+TaskDesc gShelterR49ObservatoryTransitionTasks[SHELTER_R49_OBSERVATORY_TASK_COUNT] = {
+    [SHELTER_R49_OBSERVATORY_TRANSITION_TASK_INDEX] = { { { TASK_BODY_NONE, SHELTER_R49_OBSERVATORY_TASK_PRIORITY } }, _shelterR49EnterObservatoryTask, { .value = 0 } },
+    [SHELTER_R49_OBSERVATORY_MOVIE_TASK_INDEX]      = { { { TASK_BODY_NONE, SHELTER_R49_OBSERVATORY_TASK_PRIORITY } }, _shelterR49PlayMovieTask, { .value = 0 } },
 };
 
-WorldCollisionRoomResources D_shelter_r49_8017DA18[1] = {
-    { D_shelter_r49_8017DAAC, NULL, NULL, NULL },
+WorldCollisionRoomResources gShelterR49RoomCollisionResources[SHELTER_R49_ROOM_COUNT] = {
+    { &_gShelterR49CollisionGrid, NULL, NULL, NULL },
 };
 
-u8* D_shelter_r49_8017DA28[1] = {
+u8* gShelterR49RoomViewMaps[SHELTER_R49_ROOM_COUNT] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_r49_8017DA2C[1] = { 3 };
+ViewCount gShelterR49RoomViewCounts[SHELTER_R49_ROOM_COUNT] = { ARRAY_SIZE(gShelterR49ViewCameras) };
 
-WorldCoordRoomLighting D_shelter_r49_8017DA30[1] = {
-    { D_shelter_r49_8017DD24, NULL },
+WorldCoordRoomLighting gShelterR49RoomLighting[SHELTER_R49_ROOM_COUNT] = {
+    { &_gShelterR49RoomLights, NULL },
 };
 
-DirectionWarpEntry D_shelter_r49_8017DA38[1] = {
-    { { { .word = 1024 }, 0, -0x2710, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterR49WarpEntries[1] = {
+    { { { .word = SHELTER_R49_ARRIVAL_YAW }, 0, -10000, 0 }, { 0, 0, 0, 0 }, { { .word = SHELTER_R49_ARRIVAL_YAW }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, SHELTER_R49_ARRIVAL_VIEW, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelterR49Collision004ECNormals[1] = {
+static SVECTOR _gShelterR49CollisionGridNormals[1] = {
 #include "assets/shelter_r49_collision_004EC_normals.inc"
 };
 
-static SVECTOR _gShelterR49Collision004ECVerts[4] = {
+static SVECTOR _gShelterR49CollisionGridVerts[4] = {
 #include "assets/shelter_r49_collision_004EC_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterR49Collision004ECFaces[1] = {
+static WorldCollisionGridFace _gShelterR49CollisionGridFaces[1] = {
 #include "assets/shelter_r49_collision_004EC_faces.inc"
 };
 
-static s16 _gShelterR49Collision004ECCells[2] = {
+static s16 _gShelterR49CollisionGridCells[2] = {
 #include "assets/shelter_r49_collision_004EC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterR49Collision004ECCells[i])
-static s16* _gShelterR49Collision004ECTable[1] = {
+#define GRID_CELL(i) (&_gShelterR49CollisionGridCells[i])
+static s16* _gShelterR49CollisionGridTable[SHELTER_R49_GRID_CELL_COUNT_X * SHELTER_R49_GRID_CELL_COUNT_Z] = {
 #include "assets/shelter_r49_collision_004EC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_r49_8017DAAC[1] = {
-    { NULL, _gShelterR49Collision004ECNormals, _gShelterR49Collision004ECVerts, _gShelterR49Collision004ECFaces, _gShelterR49Collision004ECTable, 4000, 4000, 1, 1, 0x7530, 1 },
+/// Floor quad at Y=0 spanning X/Z -4000..4000, with surface class 1.
+///
+/// One XZ cell selects face 0 through a signed list ending in -1. The pools
+/// and this descriptor remain writable; activation binds the view coordinate.
+static WorldCollisionGrid _gShelterR49CollisionGrid = {
+    NULL,
+    _gShelterR49CollisionGridNormals,
+    _gShelterR49CollisionGridVerts,
+    _gShelterR49CollisionGridFaces,
+    _gShelterR49CollisionGridTable,
+    4000,
+    4000,
+    SHELTER_R49_GRID_CELL_COUNT_X,
+    SHELTER_R49_GRID_CELL_COUNT_Z,
+    SHELTER_R49_GRID_CELL_SIZE,
+    ARRAY_SIZE(_gShelterR49CollisionGridFaces),
 };
 
-ViewCamera D_shelter_r49_8017DAD0[3] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x32C8, 0 } }, 257 },
+ViewCamera gShelterR49ViewCameras[SHELTER_R49_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 0, 13000, 0 } }, 257 },
     { { { { 3982, 0, -955 }, { 108, 4069, 451 }, { 949, -463, 3957 } }, { 1470, 1070, 2380 } }, 257 },
     { { { { 4057, 0, -561 }, { 28, 4090, 208 }, { 560, -210, 4051 } }, { 770, 1400, -190 } }, 541 },
 };
 
-SpriteBatch D_shelter_r49_8017DB3C[2] = {
+/// View 1's empty sprite list, keeping decoded-image strips as the background.
+static SpriteBatch _gShelterR49View1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_r49_8017DB4C[15] = {
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 24, 0, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 32, 0, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 32, 0, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, 8, 24, 0, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 48, 32, 0, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 40, 0, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 80, 96, 0, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -16, 24, 500, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -32, 32, 961, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -40, 48, 1131, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 8, 32, 1050, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 16, 40, 1150, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 40, 32, 1375, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 48, 40, 1375, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 80, 48, 1250, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+/// View 2's fifteen textured rectangles, positioned in pixels and sorted by source depth.
+///
+/// Uses the 8-bit page at (960, 0) and CLUT at (0, 255). The first seven
+/// rectangles have depth 0; the other eight sort with scene models at 500..1375.
+static SpriteSource _gShelterR49View2SpriteSources[15] = {
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 24, 8 } }, -40, 24, 0, { .fields = { 80, 72 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 8, 16 } }, -40, 32, 0, { .fields = { 120, 224 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 24, 8 } }, 16, 32, 0, { .fields = { 72, 0 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 88, 8 } }, 8, 24, 0, { .fields = { 16, 64 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 48, 8 } }, 48, 32, 0, { .fields = { 56, 56 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 16, 8 } }, 80, 40, 0, { .fields = { 112, 240 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 16, 8 } }, 80, 96, 0, { .fields = { 112, 248 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 24, 80 } }, -16, 24, 500, { .fields = { 104, 0 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 16, 72 } }, -32, 32, 961, { .fields = { 112, 80 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 8, 56 } }, -40, 48, 1131, { .fields = { 96, 0 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 8, 72 } }, 8, 32, 1050, { .fields = { 120, 152 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 24, 64 } }, 16, 40, 1150, { .fields = { 88, 80 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 8, 72 } }, 40, 32, 1375, { .fields = { 112, 152 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 32, 64 } }, 48, 40, 1375, { .fields = { 80, 144 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
+    { SHELTER_R49_VIEW2_TEXTURE_PAGE, SHELTER_R49_VIEW2_CLUT, { .fields = { 16, 48 } }, 80, 48, 1250, { .fields = { 96, 208 } }, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, SHELTER_R49_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_shelter_r49_8017DC78[3] = {
+/// View 2's decoded-image background followed by the complete source-sprite range.
+static SpriteBatch _gShelterR49View2SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 15, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterR49View2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_r49_8017DC90[2] = {
+/// View 3's empty sprite list, keeping decoded-image strips as the background.
+static SpriteBatch _gShelterR49View3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_r49_8017DCA0[3] = {
-    { { .empty = D_shelter_r49_8017DB3C }, D_shelter_r49_8017DB3C, NULL },
-    { { .elements = D_shelter_r49_8017DB4C }, D_shelter_r49_8017DC78, NULL },
-    { { .empty = D_shelter_r49_8017DC90 }, D_shelter_r49_8017DC90, NULL },
+SpriteView gShelterR49SpriteViews[SHELTER_R49_VIEW_COUNT] = {
+    { { .empty = _gShelterR49View1SpriteBatches }, _gShelterR49View1SpriteBatches, NULL },
+    { { .elements = _gShelterR49View2SpriteSources }, _gShelterR49View2SpriteBatches, NULL },
+    { { .empty = _gShelterR49View3SpriteBatches }, _gShelterR49View3SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_r49_8017DCC4[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2500, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 6000, 7000 },
+/// One white point light at (0, -2500, 3000), contributing in every room view.
+///
+/// RGB is Q12 (2867 per channel); full strength extends to 6000 world units
+/// and fades to zero at 7000. Room-light setup and queries update its transform and attenuation.
+static WorldCoordPointLight _gShelterR49PointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2500, 3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 6000, 7000 },
 };
 
-WorldCoordRoomLights D_shelter_r49_8017DD24[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_r49_8017DCC4), D_shelter_r49_8017DCC4, 0, NULL },
+/// The single room's mutable point-light collection, with no directional or cone lights.
+static WorldCoordRoomLights _gShelterR49RoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gShelterR49PointLights),
+    _gShelterR49PointLights,
+    0,
+    NULL,
 };
 
-AreaResource D_shelter_r49_8017DD3C[2] = {
-    { 111, 439, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor143900ScriptedWalkerTaskDesc },
+/// Default-layout resource 111: actor file 143900 and its first scripted-walker descriptor.
+///
+/// The entry ID joins the placement table; `AREA_PLACEMENT_END` terminates the list.
+static AreaResource _gShelterR49DefaultAreaResources[2] = {
+    { SHELTER_R49_SCENE_ACTOR_ENTRY_ID, SHELTER_R49_SCENE_ACTOR_FILE_NUMBER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor143900ScriptedWalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_r49_8017DD54[2] = {
-    { 111, 0, 0, 0, 0, 3210, 0, 0, 0, 2, 0 },
+/// Default-layout walker at world (0, 0, 3210), facing yaw 0, with CLUT row offset +2.
+///
+/// Borrows the base actor file with no additional-file selector or texture-page
+/// offset. The spawned actor may retain the placement; `AREA_PLACEMENT_END` ends the list.
+static AreaPlacement _gShelterR49DefaultAreaPlacements[2] = {
+    { SHELTER_R49_SCENE_ACTOR_ENTRY_ID, 0, 0, 0, 0, 3210, 0, 0, 0, SHELTER_R49_SCENE_ACTOR_CLUT_ROW_OFFSET, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_r49_8017DD74[13] = {
-    { NULL, NULL },
-    { D_shelter_r49_8017DD54, D_shelter_r49_8017DD3C },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterR49AreaVariants[SHELTER_R49_AREA_VARIANT_COUNT] = {
+    [AREA_DEFAULT_VARIANT] = { _gShelterR49DefaultAreaPlacements, _gShelterR49DefaultAreaResources },
 };
 
-WorldCollisionFootstepSounds D_shelter_r49_8017DDDC = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Floor's type-1 cue-2 script requests: walk/jump entry 45 and run entry 47.
+///
+/// Cue 1 adds one; companion playback adds 100. Playback requires a loaded
+/// type-1 bank; these requests do not load one. Surface records borrow this storage.
+static WorldCollisionFootstepSounds _gShelterR49FootstepSounds = {
+    SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_R49_FOOTSTEP_WALK_SCRIPT,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_R49_FOOTSTEP_RUN_SCRIPT,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | SHELTER_R49_FOOTSTEP_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_shelter_r49_8017DDE8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking solid-surface policies without footstep cues, shared by classes other than 1.
+static WorldCollisionSurfaceProperties _gShelterR49SilentSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_r49_8017DDF0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_r49_8017DDDC },
+/// Floor class 1's blocking solid-surface policies and borrowed footstep cues.
+static WorldCollisionSurfaceProperties _gShelterR49FloorSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gShelterR49FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_r49_8017DDF8[8] = {
-    D_shelter_r49_8017DDE8,
-    D_shelter_r49_8017DDF0,
-    D_shelter_r49_8017DDE8,
-    D_shelter_r49_8017DDE8,
-    D_shelter_r49_8017DDE8,
-    D_shelter_r49_8017DDE8,
-    D_shelter_r49_8017DDE8,
-    D_shelter_r49_8017DDE8,
+WorldCollisionSurfaceProperties* gShelterR49SurfacePropertiesByClass[8] = {
+    &_gShelterR49SilentSurfaceProperties,
+    &_gShelterR49FloorSurfaceProperties,
+    &_gShelterR49SilentSurfaceProperties,
+    &_gShelterR49SilentSurfaceProperties,
+    &_gShelterR49SilentSurfaceProperties,
+    &_gShelterR49SilentSurfaceProperties,
+    &_gShelterR49SilentSurfaceProperties,
+    &_gShelterR49SilentSurfaceProperties,
 };
 
 /// Queues movie 100 for the current room, borrowing the loaded stream descriptors.
@@ -298,9 +356,7 @@ static void _shelterR49PlayMovieTask(Task* movieTask)
 /// Spawn failures are ignored; the movie task returns presentation after playback.
 static inline void _shelterR49StartObservatoryMovie(void)
 {
-    enum { SHELTER_R49_OBSERVATORY_MOVIE_TASK_INDEX = 1 };
-
-    displaySpawnTaskFromTable(D_shelter_r49_8017DA00, SHELTER_R49_OBSERVATORY_MOVIE_TASK_INDEX, 0, 0);
+    displaySpawnTaskFromTable(gShelterR49ObservatoryTransitionTasks, SHELTER_R49_OBSERVATORY_MOVIE_TASK_INDEX, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
 }

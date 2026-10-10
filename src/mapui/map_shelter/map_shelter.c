@@ -790,7 +790,7 @@ WorldCoordRoomLighting* gMapShelterRoomLightingTables[49] = {
     [GAME_AREA_SHELTER_B4_WATER_SUPPLY - 1]               = D_map_shelter_8017AEB4,
     [GAME_AREA_SHELTER_R47 - 1]                           = D_map_shelter_8017AEBC,
     [GAME_AREA_SHELTER_R48 - 1]                           = gShelterR48RoomLighting,
-    [GAME_AREA_SHELTER_R49 - 1]                           = D_shelter_r49_8017DA30,
+    [GAME_AREA_SHELTER_R49 - 1]                           = gShelterR49RoomLighting,
 };
 
 DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
@@ -842,7 +842,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     gShelterB4WaterSupplyWarpEntries,
     D_shelter_r47_8018767C,
     D_shelter_r48_80183034,
-    D_shelter_r49_8017DA38,
+    gShelterR49WarpEntries,
 };
 
 static ViewCount* D_map_shelter_8017B04C[49] = {
@@ -894,7 +894,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     gShelterB4WaterSupplyViewCounts,
     D_shelter_r47_80187678,
     D_shelter_r48_80183030,
-    D_shelter_r49_8017DA2C,
+    gShelterR49RoomViewCounts,
 };
 
 ViewCountTable D_map_shelter_8017B110 = { D_map_shelter_8017B04C };
@@ -1065,7 +1065,7 @@ static WorldCollisionRoomResources* D_map_shelter_8017B2F4[49] = {
     D_map_shelter_8017B2D4,
     D_map_shelter_8017B2E4,
     D_shelter_r48_8018301C,
-    D_shelter_r49_8017DA18,
+    gShelterR49RoomCollisionResources,
 };
 
 WorldCollisionStageResources D_map_shelter_8017B3B8 = { D_map_shelter_8017B2F4 };
@@ -1119,7 +1119,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     gShelterB4WaterSupplyViewCameras,
     D_shelter_r47_801882B0,
     D_shelter_r48_80183F10,
-    D_shelter_r49_8017DAD0,
+    gShelterR49ViewCameras,
 };
 
 ViewCameraTable D_map_shelter_8017B480 = { D_map_shelter_8017B3BC };
@@ -1177,7 +1177,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB4WaterSupplyViewMaps,
     gShelterR47ViewMaps,
     gShelterR48ViewMaps,
-    D_shelter_r49_8017DA28,
+    gShelterR49RoomViewMaps,
 };
 
 ViewIndexTable gMapShelterViewIndexTable = { _gMapShelterAreaViewMaps };
@@ -1235,7 +1235,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB4WaterSupplySpriteViews,
     D_shelter_r47_80189C68,
     D_shelter_r48_80189FB4,
-    D_shelter_r49_8017DCA0,
+    gShelterR49SpriteViews,
 };
 
 SpriteAreaTable gMapShelterSpriteAreaTable = { _gMapShelterAreaSpriteViews };
@@ -1289,7 +1289,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB4WaterSupplySurfacePropertiesByClass,
     gShelterR47SurfaceProperties,
     gShelterR48SurfacePropertiesByClass,
-    D_shelter_r49_8017DDF8,
+    gShelterR49SurfacePropertiesByClass,
 };
 
 static AreaObjectPlace D_map_shelter_8017B6D8[2] = {

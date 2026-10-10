@@ -1683,7 +1683,7 @@ D_shelter_r47_80187CB8 = 0x80187CB8; // absolute:True owner=shelter_r47
 
 D_shelter_r48_8018BC10 = 0x8018BC10; // absolute:True owner=shelter_r48
 
-D_shelter_r49_8017DD74 = 0x8017DD74; // absolute:True owner=shelter_r49
+gShelterR49AreaVariants = 0x8017DD74; // absolute:True owner=shelter_r49
 
 D_mist_shooting_gallery_80185000 = 0x80185000; // absolute:True owner=mist_shooting_gallery shared=rooms
 

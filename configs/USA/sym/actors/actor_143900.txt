@@ -196,7 +196,7 @@ _gActor143900EntryWalkerAnimation4 = 0x8013354C; // size:0x14 defined:True
 gActor143900ObservatoryEntryScript = 0x80133560; // size:0x300 defined:True
 _gScriptedWalkSecondMode = 0x801496CC; // size:0x2 defined:True
 
-D_shelter_r49_8017DA00 = 0x8017DA00; // absolute:True owner=shelter_r49
+gShelterR49ObservatoryTransitionTasks = 0x8017DA00; // absolute:True owner=shelter_r49
 _scriptedWalkUpdate = 0x80131FD4; // type:func
 _scriptedWalkTickAnim = 0x801324C8; // type:func
 _scriptedWalkResetAnim = 0x80132514; // type:func
