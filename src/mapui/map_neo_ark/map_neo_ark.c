@@ -552,7 +552,7 @@ static WorldCoordRoomLighting D_map_neo_ark_8017A9D4[1] = {
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9DC[1] = {
-    { &D_shelter_1f_tent_80183A7C, NULL },
+    { &gShelter1fTentRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9E4[1] = {
@@ -698,7 +698,7 @@ static WorldCollisionRoomResources D_map_neo_ark_8017ABCC[1] = {
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABDC[1] = {
-    { &D_shelter_1f_tent_801822F0, D_shelter_1f_tent_80183A94, D_shelter_1f_tent_80183CF4, NULL },
+    { &gShelter1fTentCollisionGrid, D_shelter_1f_tent_80183A94, D_shelter_1f_tent_80183CF4, NULL },
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABEC[1] = {
@@ -817,7 +817,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
     D_shelter_b6_training_room_80184418,
     gNeoArkR26ViewMaps,
     gNeoArkBridgeViewMaps,
-    D_shelter_1f_tent_80181D44,
+    gShelter1fTentViewMaps,
     gNeoArkWoodlandPathViewMaps,
     gNeoArkSubmarineGalleryViewMaps,
     gNeoArkR31ViewMaps,
@@ -855,7 +855,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     D_shelter_b6_training_room_80184D78,
     gNeoArkR26SpriteViews,
     gNeoArkBridgeSpriteViews,
-    D_shelter_1f_tent_801838E4,
+    gShelter1fTentSpriteViews,
     D_neo_ark_woodland_path_80183C6C,
     gNeoArkSubmarineGallerySpriteViews,
     D_neo_ark_r31_8017DAF8,
@@ -893,7 +893,7 @@ WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     D_shelter_b6_training_room_80185C38,
     gNeoArkR26SurfaceProperties,
     gNeoArkBridgeSurfaceProperties,
-    D_shelter_1f_tent_801842B4,
+    gShelter1fTentSurfacePropertiesByClass,
     gNeoArkWoodlandPathSurfaceProperties,
     gNeoArkSubmarineGallerySurfacePropertiesByClass,
     gNeoArkR31SurfacePropertiesByClass,

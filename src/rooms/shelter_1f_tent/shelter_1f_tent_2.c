@@ -29,6 +29,7 @@
 #include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_neo_ark.h"
@@ -41,23 +42,26 @@
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_cutscene.h"
 
-/// Glow positions `shelter1fTentDrawViewGlowsTask` draws per view.
-extern SVECTOR D_shelter_1f_tent_80181D04[];
-extern SVECTOR D_shelter_1f_tent_80181D0C[];
-extern SVECTOR D_shelter_1f_tent_80181D1C[];
 extern SVECTOR D_shelter_1f_tent_80181D2C[];
 extern SVECTOR D_shelter_1f_tent_80181D3C[];
 
-SVECTOR D_shelter_1f_tent_80181D04[1] = {
-    { -4475, -1050, 8880, 0 },
-};
+/// World-space centre of the green flickering disc visible in mapped views 2, 3 and 7.
+static SVECTOR _gShelter1fTentGreenDiscCentre = { -4475, -1050, 8880, 0 };
 
-SVECTOR D_shelter_1f_tent_80181D0C[2] = {
+/// World-space grey/cyan disc centres, in that order, for mapped views 2, 3 and 7.
+///
+/// View 5 draws only the grey centre. The drawers borrow these positions for
+/// the current frame and retain no pointer; coordinates are signed world units.
+static SVECTOR _gShelter1fTentDiscPair1Centres[2] = {
     { -4015, -1050, 8880, 0 },
     { -2830, -960, 5685, 0 },
 };
 
-SVECTOR D_shelter_1f_tent_80181D1C[2] = {
+/// World-space grey/cyan disc centres, in that order, for mapped views 2, 4 and 6.
+///
+/// The drawers borrow these signed world-coordinate positions for the current
+/// frame and retain no pointer.
+static SVECTOR _gShelter1fTentDiscPair2Centres[2] = {
     { -3125, -1110, 2950, 0 },
     { -2840, -965, 2485, 0 },
 };
@@ -71,7 +75,7 @@ SVECTOR D_shelter_1f_tent_80181D3C[1] = {
     { -3230, -1130, 8780, 0 },
 };
 
-u8* D_shelter_1f_tent_80181D44[1] = {
+u8* gShelter1fTentViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -81,29 +85,46 @@ DirectionWarpEntry D_shelter_1f_tent_80181D4C[1] = {
     { { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -638, 0, 4300 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelter1fTentCollision04D30Normals[17] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gShelter1fTentCollisionGridNormals[17] = {
 #include "assets/shelter_1f_tent_collision_04D30_normals.inc"
 };
 
-static SVECTOR _gShelter1fTentCollision04D30Verts[66] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gShelter1fTentCollisionGridVerts[66] = {
 #include "assets/shelter_1f_tent_collision_04D30_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelter1fTentCollision04D30Faces[37] = {
+/// Indexed collision faces referencing the grid's vertex and normal pools.
+static WorldCollisionGridFace _gShelter1fTentCollisionGridFaces[37] = {
 #include "assets/shelter_1f_tent_collision_04D30_faces.inc"
 };
 
-static s16 _gShelter1fTentCollision04D30Cells[128] = {
+/// Face-index lists for six cells, each ending with `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gShelter1fTentCollisionGridCells[128] = {
 #include "assets/shelter_1f_tent_collision_04D30_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelter1fTentCollision04D30Cells[i])
-static s16* _gShelter1fTentCollision04D30Table[6] = {
+#define GRID_CELL(i) (&_gShelter1fTentCollisionGridCells[i])
+/// X-major 2-by-3 directory of the grid's face-index lists.
+static s16* _gShelter1fTentCollisionGridTable[6] = {
 #include "assets/shelter_1f_tent_collision_04D30_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_1f_tent_801822F0 = { NULL, _gShelter1fTentCollision04D30Normals, _gShelter1fTentCollision04D30Verts, _gShelter1fTentCollision04D30Faces, _gShelter1fTentCollision04D30Table, 4800, 200, 2, 3, 4000, 37 };
+WorldCollisionGrid gShelter1fTentCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelter1fTentCollisionGridNormals,
+    .vertices    = _gShelter1fTentCollisionGridVerts,
+    .faces       = _gShelter1fTentCollisionGridFaces,
+    .cellFaceIds = _gShelter1fTentCollisionGridTable,
+    .xBias       = 4800,
+    .zBias       = 200,
+    .cellCountX  = 2,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelter1fTentCollisionGridFaces),
+};
 
 ViewCamera D_shelter_1f_tent_80182314[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 2575, 0x31E7, -4545 } }, 235 },
@@ -118,93 +139,111 @@ ViewCamera D_shelter_1f_tent_80182314[10] = {
     { { { { -1937, 0, -3608 }, { -1759, 3576, 944 }, { 3150, 1997, -1691 } }, { 2010, 1390, -6535 } }, 234 },
 };
 
-SpriteBatch D_shelter_1f_tent_8018247C[2] = {
+/// Texture bindings shared by the tent's opaque, modulated sprite rectangles.
+///
+/// An 8-bit page at VRAM (960, 0), with the 256-colour CLUT at (0, 255).
+enum {
+    SHELTER_1F_TENT_SPRITE_TPAGE = getTPage(1, 0, 960, 0),
+    SHELTER_1F_TENT_SPRITE_CLUT  = getClut(0, 255),
+};
+
+/// Empty sprite list for mapped view 1, retaining decoded background strips.
+static SpriteBatch _gShelter1fTentView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_tent_8018248C[78] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, 0, 636, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 8, 1525, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, 0, 703, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, 0, 634, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 8, 1340, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -8, 8, 628, { .fields = { 56, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -24, 16, 728, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -24, 32, 751, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -24, 48, 719, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -24, 64, 933, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, 8, 636, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 8, 668, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 16, 635, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 16, 671, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 32, 637, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 32, 616, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 32, 625, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 48, 712, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 24, 48, 700, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 48, 600, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 64, 712, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 24, 64, 602, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 64, 604, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 64, 56, 561, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 64, 64, 544, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -8, 80, 522, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -8, 96, 522, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -8, 112, 524, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, 80, 577, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, 96, 591, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, 112, 591, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 80, 561, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 80, 550, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 96, 563, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 112, 564, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 96, 554, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, 112, 608, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 16, 1668, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 16, 1115, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 32, 1673, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 32, 1077, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 48, 662, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 48, 917, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 64, 747, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 64, 1033, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 80, 678, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 112, 735, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, 112, 654, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 40, 725, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 56, 662, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 72, 713, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 88, 700, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 104, 700, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, 64, 744, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, 80, 660, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, 96, 625, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, 72, 517, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, 88, 519, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, 104, 522, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, 80, 661, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 16, 1250, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -72, 56, 1246, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 16, 1346, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 32, 1245, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, 48, 1246, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 24, 1349, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 40, 1258, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 56, 1266, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 8, 1875, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 8, 1875, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 24, 1850, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 24, 1850, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 8, 1611, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 24, 1681, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, 40, 1632, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 8, 1573, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 24, 1481, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 40, 1475, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+/// Mapped view 2's 78 depth-sorted texture rectangles.
+///
+/// XY and dimensions are pixels relative to the view centre; UV is in texels.
+/// Depth is the unscaled ordering value quantized by the sprite renderer.
+/// The renderer borrows writable sources while this room overlay is loaded.
+static SpriteSource _gShelter1fTentView2SpriteSources[78] = {
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, 16, 0, 636, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -40, 8, 1525, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -16, 0, 703, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 0, 0, 634, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -24, 8, 1340, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -8, 8, 628, { .fields = { 56, 8 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 16, 728, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 32, 751, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 48, 719, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 64, 933, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 8, 8, 636, { .fields = { 56, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 24, 8, 668, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 16, 635, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 16, 671, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 32, 637, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 32, 616, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 40, 32, 625, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 48, 712, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 24, 48, 700, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, 48, 600, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 64, 712, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 24, 64, 602, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, 64, 604, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 64, 56, 561, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 64, 64, 544, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -8, 80, 522, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -8, 96, 522, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 8 } }, -8, 112, 524, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 16, 80, 577, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 16, 96, 591, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 8 } }, 16, 112, 591, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 40, 80, 561, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 56, 80, 550, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 40, 96, 563, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 40, 112, 564, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 56, 96, 554, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 56, 112, 608, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 16, 1668, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, 16, 1115, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 32, 1673, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, 32, 1077, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 48, 662, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, 48, 917, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -32, 64, 747, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 64, 1033, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -40, 80, 678, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -48, 112, 735, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, 8, 112, 654, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, 40, 725, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -40, 56, 662, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -40, 72, 713, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -40, 88, 700, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -40, 104, 700, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -24, 64, 744, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -24, 80, 660, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -24, 96, 625, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -8, 72, 517, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -8, 88, 519, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -8, 104, 522, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, 8, 80, 661, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, 16, 1250, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -72, 56, 1246, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 16, 1346, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 32, 1245, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, 48, 1246, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -56, 24, 1349, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -56, 40, 1258, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -48, 56, 1266, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, 8, 1875, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 8, 1875, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, 24, 1850, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 24, 1850, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 56, 8, 1611, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 56, 24, 1681, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 56, 40, 1632, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 8, 1573, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 24, 1481, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 40, 1475, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_1f_tent_80182AA4[7] = {
+/// Sentinel-ended ranges of mapped view 2's 78 source sprites.
+///
+/// The zero-count first record retains decoded background strips. Ranges are
+/// in source elements; visibility and cached-packet controls remain writable.
+static SpriteBatch _gShelter1fTentView2SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 46, 0, 0, { 0, 0 } },
     { 46, 14, 0, 0, { 3, 0 } },
@@ -214,77 +253,86 @@ SpriteBatch D_shelter_1f_tent_80182AA4[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_tent_80182ADC[67] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, -24, 850, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, -8, 850, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 24, 950, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, 24, 737, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 32, 950, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, 32, 713, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 32, 709, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 64, 575, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 80, 550, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 104, 548, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, 88, 585, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, 88, 576, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, 72, 608, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, 72, 640, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 56, 648, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 56, 650, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 40, 681, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 40, 681, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 104, 544, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, 104, 548, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 104, 547, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 88, 576, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 88, 550, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 88, 550, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, 72, 640, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 72, 550, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 24, 56, 650, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 56, 650, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 24, 40, 650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 48, 40, 650, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, 24, 725, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 8, 24, 722, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 24, 725, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -8, 8, 753, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, 8, 769, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 8, 775, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -8, 832, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, -8, 829, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, -8, 830, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -8, 832, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -32, -16, 825, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, -16, 825, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, -16, 850, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 16, -16, 850, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, -24, 850, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 8, 825, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 16, 825, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 64, 631, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -32, 96, 650, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 104, 646, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 104, 577, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -32, 80, 692, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 88, 678, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 88, 600, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 72, 643, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 72, 675, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 104, 549, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 88, 567, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -72, 72, 598, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -16, 1124, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, -16, 1168, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, -16, 1130, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, -32, 1118, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, -48, 1080, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, -48, 1047, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, -48, 1024, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, -32, 1100, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
+/// Mapped view 3's 67 depth-sorted texture rectangles.
+///
+/// XY and dimensions are pixels relative to the view centre; UV is in texels.
+/// Depth is the unscaled ordering value quantized by the sprite renderer.
+/// The renderer borrows writable sources while this room overlay is loaded.
+static SpriteSource _gShelter1fTentView3SpriteSources[67] = {
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, 16, -24, 850, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -32, -8, 850, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, 24, 950, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -16, 24, 737, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, 32, 950, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -16, 32, 713, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, 32, 709, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, 64, 64, 575, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, 72, 80, 550, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 104, 548, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -8, 88, 585, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, 88, 576, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -8, 72, 608, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, 72, 640, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 56, 648, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 56, 650, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 40, 681, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 40, 681, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, 104, 544, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 56, 104, 548, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, 104, 547, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, 88, 576, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 56, 88, 550, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 72, 88, 550, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 16 } }, 24, 72, 640, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 56, 72, 550, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 24, 56, 650, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, 56, 650, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 24, 40, 650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 48, 40, 650, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -8, 24, 725, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 8, 24, 722, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 24, 725, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -8, 8, 753, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 16, 8, 769, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 8, 775, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -24, -8, 832, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -8, -8, 829, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, -8, 830, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, -8, 832, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -32, -16, 825, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -16, -16, 825, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 0, -16, 850, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 16, -16, 850, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 0, -24, 850, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -24, 8, 825, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -24, 16, 825, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -64, 64, 631, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 24 } }, -32, 96, 650, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, 104, 646, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -64, 104, 577, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -32, 80, 692, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, 88, 678, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -64, 88, 600, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -64, 72, 643, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, 72, 675, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 104, 549, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 88, 567, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -72, 72, 598, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -112, -16, 1124, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, -16, 1168, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, -16, 1130, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, -32, 1118, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, -48, 1080, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, -48, 1047, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -120, -48, 1024, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -112, -32, 1100, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_1f_tent_80183018[5] = {
+/// Sentinel-ended ranges of mapped view 3's 67 source sprites.
+///
+/// The zero-count first record retains decoded background strips. Ranges are
+/// in source elements; visibility and cached-packet controls remain writable.
+static SpriteBatch _gShelter1fTentView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 47, 0, 0, { 1, 0 } },
     { 47, 12, 0, 0, { 2, 0 } },
@@ -292,178 +340,221 @@ SpriteBatch D_shelter_1f_tent_80183018[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_tent_80183040[47] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 40, -24, 1106, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 32, 813, { .fields = { 80, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 88, 881, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, -32, 954, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 16, -32, 923, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, -24, 951, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, -24, 953, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -24, 1068, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -8, -8, 950, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, -8, 946, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 0, 989, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 8, 900, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, 8, 962, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, 8, 954, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 8, 958, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -24, 24, 842, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 24, 814, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 24, 840, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -32, 40, 700, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -8, 40, 780, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, 40, 783, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 32, 48, 761, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 56, 650, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -24, 56, 726, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, 56, 726, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 56, 780, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 56, 729, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 72, 600, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -32, 72, 684, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -8, 72, 684, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, 72, 687, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 72, 684, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 88, 600, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -32, 88, 646, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -8, 88, 648, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, 88, 756, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 104, 575, { .fields = { 80, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -40, 104, 609, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, 104, 610, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, 104, 612, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, 104, 751, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 40, 48, 1000, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 32, 980, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 16, 1021, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 8, 917, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -8, 980, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 0, 1039, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+/// Mapped view 4's 47 depth-sorted texture rectangles.
+///
+/// XY and dimensions are pixels relative to the view centre; UV is in texels.
+/// Depth is the unscaled ordering value quantized by the sprite renderer.
+/// The renderer borrows writable sources while this room overlay is loaded.
+static SpriteSource _gShelter1fTentView4SpriteSources[47] = {
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, 40, -24, 1106, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -32, 32, 813, { .fields = { 80, 8 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, 32, 88, 881, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 0, -32, 954, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 16, -32, 923, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -8, -24, 951, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, -24, 953, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, -24, 1068, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -8, -8, 950, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 16, -8, 946, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -24, 0, 989, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, 8, 900, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -16, 8, 962, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, 8, 954, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 8, 958, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 24, 842, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 24, 814, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 24, 840, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -32, 40, 700, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -8, 40, 780, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 16, 40, 783, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 32, 48, 761, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -40, 56, 650, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -24, 56, 726, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, 0, 56, 726, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 56, 780, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, 40, 56, 729, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, 72, 600, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -32, 72, 684, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -8, 72, 684, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 16, 72, 687, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 72, 684, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, 88, 600, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -32, 88, 646, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -8, 88, 648, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 16, 88, 756, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -56, 104, 575, { .fields = { 80, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -40, 104, 609, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 24, 16 } }, -16, 104, 610, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, 104, 612, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, 24, 104, 751, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, 40, 48, 1000, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 32, 980, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 16, 1021, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, 48, 8, 917, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, 48, -8, 980, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, 32, 0, 1039, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_1f_tent_801833EC[4] = {
+/// Sentinel-ended ranges of mapped view 4's 47 source sprites.
+///
+/// The zero-count first record retains decoded background strips. Ranges are
+/// in source elements; visibility and cached-packet controls remain writable.
+static SpriteBatch _gShelter1fTentView4SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 41, 0, 0, { 1, 0 } },
     { 41, 6, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_tent_8018340C[2] = {
+/// Empty sprite list for mapped view 5, retaining decoded background strips.
+static SpriteBatch _gShelter1fTentView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_tent_8018341C[2] = {
+/// Empty sprite list for mapped view 6, retaining decoded background strips.
+static SpriteBatch _gShelter1fTentView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_tent_8018342C[2] = {
+/// Empty sprite list for mapped view 7, retaining decoded background strips.
+static SpriteBatch _gShelter1fTentView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_tent_8018343C[40] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -8, 704, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 32, 700, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, 80, 683, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -112, -8, 785, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 0, 718, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 8, 702, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 24, 706, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 32, 701, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 48, 750, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 64, 675, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 40, 725, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 40, 700, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 56, 700, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 64, 700, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 32, 733, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 56, 980, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 80, 688, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, -120, 710, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, -80, 686, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, -40, 686, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, 0, 683, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, 40, 735, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -120, 834, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -80, 797, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, -40, 780, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -128, 0, 786, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -128, 40, 850, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -96, -120, 919, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -96, -80, 889, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -96, -40, 883, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -96, 0, 917, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -96, 40, 919, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -80, -120, 994, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -80, -80, 971, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -80, -40, 968, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -80, 0, 978, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -80, 40, 969, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -120, 1069, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, -88, 1130, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -64, -64, 1060, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+/// Mapped view 8's 40 depth-sorted texture rectangles.
+///
+/// XY and dimensions are pixels relative to the view centre; UV is in texels.
+/// Depth is the unscaled ordering value quantized by the sprite renderer.
+/// The renderer borrows writable sources while this room overlay is loaded.
+static SpriteSource _gShelter1fTentView8SpriteSources[40] = {
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -104, -8, 704, { .fields = { 40, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -56, 32, 700, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -104, 80, 683, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -112, -8, 785, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 0, 718, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 8, 702, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, 24, 706, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 32, 701, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 48, 750, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -104, 64, 675, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -88, 40, 725, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -72, 40, 700, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -72, 56, 700, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -56, 64, 700, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, -72, 32, 733, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -64, 56, 980, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -160, 80, 688, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 40 } }, -160, -120, 710, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 40 } }, -160, -80, 686, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 40 } }, -160, -40, 686, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 40 } }, -160, 0, 683, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 40 } }, -160, 40, 735, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, -120, 834, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, -80, 797, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, -40, 780, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 40 } }, -128, 0, 786, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 32, 32 } }, -128, 40, 850, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 40 } }, -96, -120, 919, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 40 } }, -96, -80, 889, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 40 } }, -96, -40, 883, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 40 } }, -96, 0, 917, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 32 } }, -96, 40, 919, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 40 } }, -80, -120, 994, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 40 } }, -80, -80, 971, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 40 } }, -80, -40, 968, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 40 } }, -80, 0, 978, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 24 } }, -80, 40, 969, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 32 } }, -64, -120, 1069, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 24 } }, -64, -88, 1130, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, -64, -64, 1060, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_1f_tent_8018375C[4] = {
+/// Sentinel-ended ranges of mapped view 8's 40 source sprites.
+///
+/// The zero-count first record retains decoded background strips. Ranges are
+/// in source elements; visibility and cached-packet controls remain writable.
+static SpriteBatch _gShelter1fTentView8SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 1, 0 } },
     { 15, 25, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_1f_tent_8018377C[16] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 0, 363, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 8, 375, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 24, 379, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 48, 394, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 72, 441, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, -24, 353, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, -8, 350, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 8, 370, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 24, 375, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 32, 375, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 48, 399, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -16, 64, 409, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 64, 413, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 0, 80, 420, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 40, 405, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, 56, 426, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
+/// Mapped view 9's 16 depth-sorted texture rectangles.
+///
+/// XY and dimensions are pixels relative to the view centre; UV is in texels.
+/// Depth is the unscaled ordering value quantized by the sprite renderer.
+/// The renderer borrows writable sources while this room overlay is loaded.
+static SpriteSource _gShelter1fTentView9SpriteSources[16] = {
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -48, 0, 363, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -56, 8, 375, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -32, 24, 379, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -24, 48, 394, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 8 } }, -56, 72, 441, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -72, -24, 353, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -64, -8, 350, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, 8, 370, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, 24, 375, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -32, 32, 375, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 48, 399, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -16, 64, 409, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 8, 16 } }, 0, 64, 413, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 8 } }, 0, 80, 420, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -56, 40, 405, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
+    { SHELTER_1F_TENT_SPRITE_TPAGE, SHELTER_1F_TENT_SPRITE_CLUT, { .fields = { 16, 16 } }, -56, 56, 426, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_1f_tent_801838BC[3] = {
+/// Sentinel-ended ranges of mapped view 9's 16 source sprites.
+///
+/// The zero-count first record retains decoded background strips. Ranges are
+/// in source elements; visibility and cached-packet controls remain writable.
+static SpriteBatch _gShelter1fTentView9SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_1f_tent_801838D4[2] = {
+/// Empty sprite list for mapped view 10, retaining decoded background strips.
+static SpriteBatch _gShelter1fTentView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_1f_tent_801838E4[10] = {
-    { { .empty = D_shelter_1f_tent_8018247C }, D_shelter_1f_tent_8018247C, NULL },
-    { { .elements = D_shelter_1f_tent_8018248C }, D_shelter_1f_tent_80182AA4, NULL },
-    { { .elements = D_shelter_1f_tent_80182ADC }, D_shelter_1f_tent_80183018, NULL },
-    { { .elements = D_shelter_1f_tent_80183040 }, D_shelter_1f_tent_801833EC, NULL },
-    { { .empty = D_shelter_1f_tent_8018340C }, D_shelter_1f_tent_8018340C, NULL },
-    { { .empty = D_shelter_1f_tent_8018341C }, D_shelter_1f_tent_8018341C, NULL },
-    { { .empty = D_shelter_1f_tent_8018342C }, D_shelter_1f_tent_8018342C, NULL },
-    { { .elements = D_shelter_1f_tent_8018343C }, D_shelter_1f_tent_8018375C, NULL },
-    { { .elements = D_shelter_1f_tent_8018377C }, D_shelter_1f_tent_801838BC, NULL },
-    { { .empty = D_shelter_1f_tent_801838D4 }, D_shelter_1f_tent_801838D4, NULL },
+SpriteView gShelter1fTentSpriteViews[SHELTER_1F_TENT_VIEW_RESOURCE_COUNT] = {
+    { { .empty = _gShelter1fTentView1SpriteBatches }, _gShelter1fTentView1SpriteBatches, NULL },
+    { { .elements = _gShelter1fTentView2SpriteSources }, _gShelter1fTentView2SpriteBatches, NULL },
+    { { .elements = _gShelter1fTentView3SpriteSources }, _gShelter1fTentView3SpriteBatches, NULL },
+    { { .elements = _gShelter1fTentView4SpriteSources }, _gShelter1fTentView4SpriteBatches, NULL },
+    { { .empty = _gShelter1fTentView5SpriteBatches }, _gShelter1fTentView5SpriteBatches, NULL },
+    { { .empty = _gShelter1fTentView6SpriteBatches }, _gShelter1fTentView6SpriteBatches, NULL },
+    { { .empty = _gShelter1fTentView7SpriteBatches }, _gShelter1fTentView7SpriteBatches, NULL },
+    { { .elements = _gShelter1fTentView8SpriteSources }, _gShelter1fTentView8SpriteBatches, NULL },
+    { { .elements = _gShelter1fTentView9SpriteSources }, _gShelter1fTentView9SpriteBatches, NULL },
+    { { .empty = _gShelter1fTentView10SpriteBatches }, _gShelter1fTentView10SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_1f_tent_8018395C[3] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2600, -3002, 4500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3500, 5000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2600, -3002, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3500, 5000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2600, -3002, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3500, 5000 },
+/// Neutral point lights at world X/Y (-2600, -3002) and Z 4500, 2000 and 7000.
+///
+/// RGB intensity is 2867/4096; full strength extends to 3500 world units and
+/// fades to zero at 5000. Every view admits them. Coordinate composition and
+/// light queries update the transforms and attenuation in place.
+static WorldCoordPointLight _gShelter1fTentPointLights[3] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2600, -3002, 4500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3500, 5000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2600, -3002, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3500, 5000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2600, -3002, 7000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3500, 5000 },
 };
 
-WorldCoordRoomLights D_shelter_1f_tent_80183A7C = { 0, NULL, ARRAY_SIZE(D_shelter_1f_tent_8018395C), D_shelter_1f_tent_8018395C, 0, NULL };
+WorldCoordRoomLights gShelter1fTentRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelter1fTentPointLights),
+    .pointLights           = _gShelter1fTentPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_1f_tent_80183A94[8] = {
     { NULL, NULL, NULL, { -4254, -3248, 3741, 0 }, { { -1414, -3712, 0, 0 }, { 1414, -3712, 1, 0 }, { -1414, 3712, 0, 0 }, { 1414, 3712, 1, 0 } }, { 0, 0, -4100, 0 }, { 0, 0, 4096, 0 }, 3965, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -519,29 +610,49 @@ AreaVariant D_shelter_1f_tent_80184230[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_shelter_1f_tent_80184298 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Cue-2 footstep bases in the loaded type-1 bank; cue 1 uses the next entry.
+enum {
+    SHELTER_1F_TENT_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    SHELTER_1F_TENT_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_tent_801842A4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Floor footstep bases; scripted jumps share the walking pair.
+///
+/// Surface class 1 borrows these requests while the overlay is loaded.
+/// Cue 1 adds one to the base; companion playback adds another 100.
+static WorldCollisionFootstepSounds _gShelter1fTentFloorFootstepSounds = {
+    .walk         = SHELTER_1F_TENT_FOOTSTEP_WALK,
+    .run          = SHELTER_1F_TENT_FOOTSTEP_RUN,
+    .scriptedJump = SHELTER_1F_TENT_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_shelter_1f_tent_801842AC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_1f_tent_80184298 },
+/// Solid collision policy without footstep cues, shared by classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gShelter1fTentSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_1f_tent_801842B4[8] = {
-    D_shelter_1f_tent_801842A4,
-    D_shelter_1f_tent_801842AC,
-    D_shelter_1f_tent_801842A4,
-    D_shelter_1f_tent_801842A4,
-    D_shelter_1f_tent_801842A4,
-    D_shelter_1f_tent_801842A4,
-    D_shelter_1f_tent_801842A4,
-    D_shelter_1f_tent_801842A4,
+/// Class 1 floor policy: solid contacts with walking, running and scripted-jump cues.
+static WorldCollisionSurfaceProperties _gShelter1fTentFloorSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelter1fTentFloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelter1fTentSurfacePropertiesByClass[SHELTER_1F_TENT_SURFACE_CLASS_COUNT] = {
+    &_gShelter1fTentSilentSurfaceProperties,
+    &_gShelter1fTentFloorSurfaceProperties,
+    &_gShelter1fTentSilentSurfaceProperties,
+    &_gShelter1fTentSilentSurfaceProperties,
+    &_gShelter1fTentSilentSurfaceProperties,
+    &_gShelter1fTentSilentSurfaceProperties,
+    &_gShelter1fTentSilentSurfaceProperties,
+    &_gShelter1fTentSilentSurfaceProperties,
 };
 
 AreaApplyRec D_shelter_1f_tent_801842D4[53] = {
@@ -667,26 +778,26 @@ void shelter1fTentDrawViewGlowsTask(Task* unusedTask)
             break;
         }
         case 3: {
-            const SVECTOR* greenPoint = D_shelter_1f_tent_80181D04;
+            const SVECTOR* greenPoint = &_gShelter1fTentGreenDiscCentre;
             glowDrawDisc(&greenPoint[0], SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_GREEN_RGB444);
             _shelter1fTentDrawDiscPair(&greenPoint[1]);
             _glowDrawWideDiamond(&greenPoint[7], SHELTER_1F_TENT_GLOW_PULSE_RATE, SHELTER_1F_TENT_GLOW_HIGHLIGHT_RADIUS_SCALE);
             break;
         }
         case 5: {
-            const SVECTOR* discPoints = D_shelter_1f_tent_80181D0C;
+            const SVECTOR* discPoints = _gShelter1fTentDiscPair1Centres;
             glowDrawDisc(&discPoints[0], SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_GREY_RGB444);
             _glowDrawPulsingDisc(&discPoints[6], SHELTER_1F_TENT_GLOW_PULSE_RATE, SHELTER_1F_TENT_GLOW_HIGHLIGHT_RADIUS_SCALE);
             break;
         }
         case 4:
         case 6: {
-            const SVECTOR* discPair = D_shelter_1f_tent_80181D1C;
+            const SVECTOR* discPair = _gShelter1fTentDiscPair2Centres;
             _shelter1fTentDrawDiscPair(&discPair[0]);
             break;
         }
         case 7: {
-            const SVECTOR* greenPoint = D_shelter_1f_tent_80181D04;
+            const SVECTOR* greenPoint = &_gShelter1fTentGreenDiscCentre;
             glowDrawDisc(&greenPoint[0], SHELTER_1F_TENT_GLOW_DISC_RADIUS_SCALE, SHELTER_1F_TENT_GLOW_GREEN_RGB444);
             _shelter1fTentDrawDiscPair(&greenPoint[1]);
             _glowDrawWideDiamond(&D_shelter_1f_tent_80181D3C[0], SHELTER_1F_TENT_GLOW_PULSE_RATE, SHELTER_1F_TENT_GLOW_HIGHLIGHT_RADIUS_SCALE);

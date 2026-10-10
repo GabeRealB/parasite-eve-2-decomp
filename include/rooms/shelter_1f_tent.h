@@ -14,26 +14,61 @@
 
 extern AreaVariant D_shelter_1f_tent_80184230[13];
 
-// shelter_1f_tent
-extern u8* D_shelter_1f_tent_80181D44[];
+/// Extents of the tent's mapped sprite-view and collision surface directories.
+enum {
+    SHELTER_1F_TENT_VIEW_RESOURCE_COUNT = 10,
+    SHELTER_1F_TENT_SURFACE_CLASS_COUNT = 8,
+};
+
+/// The tent's single-room directory of logical-view byte maps.
+///
+/// Room 1 borrows gameplay's `gViewIdentityMap`: logical views 1..10 select
+/// the same 1-based camera, image and sprite indices. The directory lives in
+/// this room overlay; the mapping remains owned by gameplay.
+extern u8* gShelter1fTentViewMaps[1];
 
 extern ViewCount D_shelter_1f_tent_80181D48[];
 
 extern DirectionWarpEntry D_shelter_1f_tent_80181D4C[];
 
-extern WorldCollisionGrid D_shelter_1f_tent_801822F0;
+/// The tent's collision mesh and 2-by-3 XZ cell index.
+///
+/// References 17 normals, 66 vertices and 37 faces owned by this overlay.
+/// Square cells span 4000 world units from X/Z origin (-4800, -200);
+/// X-major cell lists end with `WORLD_COLLISION_GRID_CELL_END`. Activation
+/// binds the writable grid to the view. Keep the overlay loaded while used.
+extern WorldCollisionGrid gShelter1fTentCollisionGrid;
 
 extern ViewCamera D_shelter_1f_tent_80182314[];
 
-extern SpriteView D_shelter_1f_tent_801838E4[];
+/// The tent's ten sprite views, indexed by mapped view minus one.
+///
+/// Views 2, 3, 4, 8 and 9 select 78, 67, 47, 40 and 16 depth-sorted
+/// rectangles; the other views have empty lists. All retain decoded background
+/// strips and supply no clipping areas. Lists end with `SPRITE_BATCH_END`.
+/// The writable sources and batches are borrowed while this overlay is loaded;
+/// mapped indices must be in 1..10 when caching or drawing sprites.
+extern SpriteView gShelter1fTentSpriteViews[SHELTER_1F_TENT_VIEW_RESOURCE_COUNT];
 
-extern WorldCoordRoomLights D_shelter_1f_tent_80183A7C;
+/// Three neutral point lights shared by every tent view, with no directional or cone lights.
+///
+/// Positions are in world units, intensity has 12 fractional bits, and falloff
+/// spans 3500..5000 world units. The collection borrows this overlay's writable
+/// light array: coordinate setup and lighting queries update it. Keep the
+/// overlay loaded while the collection is in use.
+extern WorldCoordRoomLights gShelter1fTentRoomLights;
 
 extern WorldCollisionTrigger D_shelter_1f_tent_80183A94[];
 
 extern WorldCollisionTrigger D_shelter_1f_tent_80183CF4[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_1f_tent_801842B4[];
+/// Collision policies and footstep cues indexed by surface class (0..7).
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Class 1 is the floor and supplies walk/run footstep pairs; scripted jumps
+/// use its walking pair. Classes 0 and 2..7 share the record without footstep
+/// cues. Records and sound bases are borrowed only while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelter1fTentSurfacePropertiesByClass[SHELTER_1F_TENT_SURFACE_CLASS_COUNT];
 
 /// Runs the tent's room controller for one tick.
 ///
