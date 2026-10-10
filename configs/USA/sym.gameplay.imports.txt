@@ -1747,7 +1747,7 @@ D_dryfield_night_r08_801818D8 = 0x801818D8; // absolute:True owner=dryfield_nigh
 
 D_shelter_1f_parking_garage_801818D8 = 0x801818D8; // absolute:True owner=shelter_1f_parking_garage shared=rooms
 
-D_shelter_b1_underground_parking_801871F0 = 0x801871F0; // absolute:True owner=shelter_b1_underground_parking shared=rooms
+D_shelter_b1_underground_parking_801871F0 = 0x801871F0; // absolute:True owner=shelter_b1_underground_parking
 
 acropolisWestElevatorHallViewEffectsTask = 0x8017F7D4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 

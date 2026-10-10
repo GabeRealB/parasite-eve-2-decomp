@@ -730,7 +730,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AEA4[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AEAC[1] = {
-    { &D_shelter_b4_upper_sewer_80188184, NULL },
+    { &gShelterB4UpperSewerRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AEB4[1] = {
@@ -1005,7 +1005,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B2B4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2C4[1] = {
-    { &D_shelter_b4_upper_sewer_80186EF8, D_shelter_b4_upper_sewer_8018819C, D_shelter_b4_upper_sewer_801886F4, D_shelter_b4_upper_sewer_80188BFC },
+    { &gShelterB4UpperSewerCollisionGrid, D_shelter_b4_upper_sewer_8018819C, D_shelter_b4_upper_sewer_801886F4, D_shelter_b4_upper_sewer_80188BFC },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2D4[1] = {
@@ -1172,7 +1172,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB3IncineratorControlRoomViewMaps,
     gShelterB3ElevatorHallViewMaps,
     gShelterB4LowerSewerViewMaps,
-    D_shelter_b4_upper_sewer_80186590,
+    gShelterB4UpperSewerViewMaps,
     gShelterB4ReservoirViewMaps,
     gShelterB4WaterSupplyViewMaps,
     gShelterR47ViewMaps,
@@ -1284,7 +1284,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB3IncineratorControlRoomSurfacePropertiesByClass,
     gShelterB3ElevatorHallSurfacePropertiesByClass,
     gShelterB4LowerSewerSurfacePropertiesByClass,
-    D_shelter_b4_upper_sewer_80188CFC,
+    gShelterB4UpperSewerSurfacePropertiesByClass,
     gShelterB4ReservoirSurfacePropertiesByClass,
     gShelterB4WaterSupplySurfacePropertiesByClass,
     gShelterR47SurfaceProperties,

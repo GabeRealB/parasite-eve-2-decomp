@@ -252,7 +252,7 @@ static inline const RoomFxShade* _roomVisualEffectsGetHaloShades(void)
 #undef ROOM_FX_HALO_STORAGE_TYPE
 #undef ROOM_FX_HALO_STORAGE_BOUND
 
-u8* D_shelter_b4_upper_sewer_80186590[1] = {
+u8* gShelterB4UpperSewerViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -310,29 +310,60 @@ SVECTOR D_shelter_b4_upper_sewer_80186708[9] = {
     { 0, 0, 0, -1 },
 };
 
-static SVECTOR _gShelterB4UpperSewerCollision09938Normals[7] = {
+/// Room-space collision normals, with ONE (4096) representing unit length.
+static SVECTOR _gShelterB4UpperSewerCollisionGridNormals[] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_normals.inc"
 };
 
-static SVECTOR _gShelterB4UpperSewerCollision09938Verts[87] = {
+/// Collision vertex pool in signed world-coordinate units.
+static SVECTOR _gShelterB4UpperSewerCollisionGridVerts[] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB4UpperSewerCollision09938Faces[42] = {
+/// Indexed collision quads carrying normals and room-local surface classes.
+static WorldCollisionGridFace _gShelterB4UpperSewerCollisionGridFaces[] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_faces.inc"
 };
 
-static s16 _gShelterB4UpperSewerCollision09938Cells[292] = {
+/// Packed cell face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+///
+/// The cell table selects list starts; stored words after a list's end are
+/// retained asset data and are outside that list.
+static s16 _gShelterB4UpperSewerCollisionGridCells[] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB4UpperSewerCollision09938Cells[i])
-static s16* _gShelterB4UpperSewerCollision09938Table[30] = {
+enum {
+    SHELTER_B4_UPPER_SEWER_COLLISION_CELL_COUNT_X = 6,
+    SHELTER_B4_UPPER_SEWER_COLLISION_CELL_COUNT_Z = 5
+};
+
+/// Asset-table binding: i is an in-bounds halfword index into the cell-list pool.
+///
+/// Evaluates i once and produces a writable s16*; defined only for this include.
+#define GRID_CELL(i) (&_gShelterB4UpperSewerCollisionGridCells[(i)])
+/// X-major cell table, indexed by x * cellCountZ + z.
+static s16* _gShelterB4UpperSewerCollisionGridTable[] = {
 #include "assets/shelter_b4_upper_sewer_collision_09938_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b4_upper_sewer_80186EF8 = { NULL, _gShelterB4UpperSewerCollision09938Normals, _gShelterB4UpperSewerCollision09938Verts, _gShelterB4UpperSewerCollision09938Faces, _gShelterB4UpperSewerCollision09938Table, 0x271A, 6000, 6, 5, 4000, 42 };
+STATIC_ASSERT_SIZEOF(_gShelterB4UpperSewerCollisionGridTable,
+                     sizeof(s16*) * SHELTER_B4_UPPER_SEWER_COLLISION_CELL_COUNT_X * SHELTER_B4_UPPER_SEWER_COLLISION_CELL_COUNT_Z);
+
+WorldCollisionGrid gShelterB4UpperSewerCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB4UpperSewerCollisionGridNormals,
+    .vertices    = _gShelterB4UpperSewerCollisionGridVerts,
+    .faces       = _gShelterB4UpperSewerCollisionGridFaces,
+    .cellFaceIds = _gShelterB4UpperSewerCollisionGridTable,
+    .xBias       = 10010,
+    .zBias       = 6000,
+    .cellCountX  = SHELTER_B4_UPPER_SEWER_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = SHELTER_B4_UPPER_SEWER_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB4UpperSewerCollisionGridFaces),
+};
 
 ViewCamera D_shelter_b4_upper_sewer_80186F1C[14] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, -1010 } }, 230 },
@@ -351,133 +382,204 @@ ViewCamera D_shelter_b4_upper_sewer_80186F1C[14] = {
     { { { { -1049, 0, -3959 }, { 841, 4002, -223 }, { 3868, -870, -1025 } }, { -0x2E41, 3890, 333 } }, 230 },
 };
 
-SpriteBatch D_shelter_b4_upper_sewer_80187114[2] = {
+/// Empty batch list for mapped view 1, retaining the decoded background.
+///
+/// The zero-count first record precedes SPRITE_BATCH_END. Its retained address
+/// in the source slot supplies no source sprites and is never dereferenced as one.
+static SpriteBatch _gShelterB4UpperSewerView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_upper_sewer_80187124[4] = {
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, 72, 750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 40 } }, -136, 80, 750, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, -72, 88, 750, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -16, 96, 750, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+/// Texture format and colour/code defaults for the foreground sprite sources.
+enum {
+    SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT     = 1,
+    SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR    = 128,
+    SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED = 0
 };
 
-SpriteBatch D_shelter_b4_upper_sewer_80187174[3] = {
+/// Foreground sprite rectangles for mapped view 2.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels and
+/// depths are unscaled sorting values. Texture pages and CLUT encode VRAM addresses.
+/// The room owns the mutable sources borrowed by its view's batch list.
+static SpriteSource _gShelterB4UpperSewerView2SpriteSources[] = {
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, -160, 72, 750, { .fields = { 104, 0 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 40 } }, -136, 80, 750, { .fields = { 64, 48 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 32 } }, -72, 88, 750, { .fields = { 72, 88 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 24 } }, -16, 96, 750, { .fields = { 72, 120 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+};
+
+/// Foreground batch list for mapped view 2, retaining the decoded background.
+///
+/// The zero-count first record selects image strips; the next draws the complete
+/// source array. SPRITE_BATCH_END terminates the list, independently of counts.
+static SpriteBatch _gShelterB4UpperSewerView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4UpperSewerView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_upper_sewer_8018718C[5] = {
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -8, -48, 1250, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -24, -56, 1250, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -24, 56, 1094, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 128 } }, -104, -56, 1250, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 136 } }, -160, -64, 1250, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+/// Foreground sprite rectangles for mapped view 3.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels and
+/// depths are unscaled sorting values. Texture pages and CLUT encode VRAM addresses.
+/// The room owns the mutable sources borrowed by its view's batch list.
+static SpriteSource _gShelterB4UpperSewerView3SpriteSources[] = {
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -8, -48, 1250, { .fields = { 112, 184 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -24, -56, 1250, { .fields = { 112, 136 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -24, 56, 1094, { .fields = { 120, 208 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 80, 128 } }, -104, -56, 1250, { .fields = { 120, 0 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 136 } }, -160, -64, 1250, { .fields = { 72, 0 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_shelter_b4_upper_sewer_801871F0[3] = {
+/// Foreground batch list for mapped view 3, retaining the decoded background.
+///
+/// The zero-count first record selects image strips; the next draws the complete
+/// source array. SPRITE_BATCH_END terminates the list, independently of counts.
+static SpriteBatch _gShelterB4UpperSewerView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4UpperSewerView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_upper_sewer_80187208[6] = {
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -56, 2200, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -56, 2125, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -8, 2125, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -16, -56, 2125, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 88 } }, -56, -64, 2125, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 80 } }, -160, -56, 2125, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+/// Foreground sprite rectangles for mapped view 4.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels and
+/// depths are unscaled sorting values. Texture pages and CLUT encode VRAM addresses.
+/// The room owns the mutable sources borrowed by its view's batch list.
+static SpriteSource _gShelterB4UpperSewerView4SpriteSources[] = {
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 16, -56, 2200, { .fields = { 96, 136 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 8, -56, 2125, { .fields = { 96, 88 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 8, -8, 2125, { .fields = { 96, 112 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 80 } }, -16, -56, 2125, { .fields = { 104, 88 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 88 } }, -56, -64, 2125, { .fields = { 88, 0 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 104, 80 } }, -160, -56, 2125, { .fields = { 24, 168 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_shelter_b4_upper_sewer_80187280[3] = {
+/// Foreground batch list for mapped view 4, retaining the decoded background.
+///
+/// The zero-count first record selects image strips; the next draws the complete
+/// source array. SPRITE_BATCH_END terminates the list, independently of counts.
+static SpriteBatch _gShelterB4UpperSewerView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4UpperSewerView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_upper_sewer_80187298[11] = {
-    { 143, 0x3FC0, { .fields = { 64, 40 } }, -160, 80, 726, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, -96, 80, 726, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -40, 88, 722, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 8, 88, 722, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 56, 88, 722, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 24 } }, 96, 96, 718, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 32 } }, 96, 64, 746, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 48 } }, 88, 16, 791, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 48 } }, 88, -32, 852, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 48 } }, 80, -80, 925, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 40 } }, 80, -120, 1000, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+/// Foreground sprite rectangles for mapped view 5.
+///
+/// Positions are pixels relative to the view centre; dimensions are pixels and
+/// depths are unscaled sorting values. Texture pages and CLUT encode VRAM addresses.
+/// The room owns the mutable sources borrowed by its view's batch list.
+static SpriteSource _gShelterB4UpperSewerView5SpriteSources[] = {
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 40 } }, -160, 80, 726, { .fields = { 64, 184 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 40 } }, -96, 80, 726, { .fields = { 8, 184 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 32 } }, -40, 88, 722, { .fields = { 16, 224 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 32 } }, 8, 88, 722, { .fields = { 8, 0 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 32 } }, 56, 88, 722, { .fields = { 16, 32 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 64, 24 } }, 96, 96, 718, { .fields = { 120, 64 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 32 } }, 96, 64, 746, { .fields = { 64, 224 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 48 } }, 88, 16, 791, { .fields = { 56, 48 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 48 } }, 88, -32, 852, { .fields = { 56, 0 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 48 } }, 80, -80, 925, { .fields = { 48, 96 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 80, 40 } }, 80, -120, 1000, { .fields = { 48, 144 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_shelter_b4_upper_sewer_80187374[3] = {
+/// Foreground batch list for mapped view 5, retaining the decoded background.
+///
+/// The zero-count first record selects image strips; the next draws the complete
+/// source array. SPRITE_BATCH_END terminates the list, independently of counts.
+static SpriteBatch _gShelterB4UpperSewerView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4UpperSewerView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b4_upper_sewer_8018738C[2] = {
+/// Empty batch list for mapped view 6, retaining the decoded background.
+///
+/// The zero-count first record precedes SPRITE_BATCH_END. Its retained address
+/// in the source slot supplies no source sprites and is never dereferenced as one.
+static SpriteBatch _gShelterB4UpperSewerView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b4_upper_sewer_8018739C[2] = {
+/// Empty batch list for mapped view 7, retaining the decoded background.
+///
+/// The zero-count first record precedes SPRITE_BATCH_END. Its retained address
+/// in the source slot supplies no source sprites and is never dereferenced as one.
+static SpriteBatch _gShelterB4UpperSewerView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_upper_sewer_801873AC[32] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, 32, 2555, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 40, 2250, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 48, 2150, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 56, 2000, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -40, 40, 2555, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 8, 40, 2450, { .fields = { 72, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -56, 48, 2128, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 0, 48, 2175, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -80, 56, 1900, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -8, 56, 2044, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -96, 64, 1825, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -48, 64, 1825, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 8, 64, 1825, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -112, 72, 1750, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, 72, 1750, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 8, 72, 1750, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -136, 80, 1700, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -96, 80, 1700, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -48, 80, 1700, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 8, 80, 1700, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -152, 88, 1625, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -96, 88, 1625, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -40, 88, 1625, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 16, 88, 1391, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 8, 96, 1275, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 8, 104, 1225, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -16, 112, 1200, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, 104, 1225, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, 96, 1275, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -80, 112, 892, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 104, 1225, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 96, 1275, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
+/// Foreground sprite rectangles for mapped view 8.
+///
+/// Eight-texel-high strips carry individual depths to follow the foreground.
+/// Positions are pixels relative to the view centre; dimensions are pixels and
+/// depths are unscaled sorting values. Texture pages and CLUT encode VRAM addresses.
+/// The room owns the mutable sources borrowed by its view's batch list.
+static SpriteSource _gShelterB4UpperSewerView8SpriteSources[] = {
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -16, 32, 2555, { .fields = { 120, 224 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 40, 2250, { .fields = { 120, 232 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 48, 2150, { .fields = { 120, 240 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 64, 56, 2000, { .fields = { 120, 248 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -40, 40, 2555, { .fields = { 80, 0 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, 8, 40, 2450, { .fields = { 72, 8 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -56, 48, 2128, { .fields = { 72, 16 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 0, 48, 2175, { .fields = { 64, 24 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 8 } }, -80, 56, 1900, { .fields = { 56, 32 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 72, 8 } }, -8, 56, 2044, { .fields = { 56, 40 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -96, 64, 1825, { .fields = { 80, 48 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -48, 64, 1825, { .fields = { 72, 56 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, 8, 64, 1825, { .fields = { 72, 64 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -112, 72, 1750, { .fields = { 72, 72 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, -56, 72, 1750, { .fields = { 64, 80 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 8, 72, 1750, { .fields = { 64, 88 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -136, 80, 1700, { .fields = { 88, 96 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -96, 80, 1700, { .fields = { 80, 104 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -48, 80, 1700, { .fields = { 72, 112 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 8, 80, 1700, { .fields = { 64, 120 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -152, 88, 1625, { .fields = { 72, 128 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -96, 88, 1625, { .fields = { 72, 136 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -40, 88, 1625, { .fields = { 72, 144 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, 16, 88, 1391, { .fields = { 88, 152 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, 8, 96, 1275, { .fields = { 80, 160 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, 8, 104, 1225, { .fields = { 80, 168 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, -16, 112, 1200, { .fields = { 64, 176 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, -56, 104, 1225, { .fields = { 64, 184 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, -56, 96, 1275, { .fields = { 64, 192 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, -80, 112, 892, { .fields = { 64, 200 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -80, 104, 1225, { .fields = { 104, 208 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -80, 96, 1275, { .fields = { 104, 216 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
 };
 
-SpriteBatch D_shelter_b4_upper_sewer_8018762C[3] = {
+/// Foreground batch list for mapped view 8, retaining the decoded background.
+///
+/// The zero-count first record selects image strips; the next draws the complete
+/// source array. SPRITE_BATCH_END terminates the list, independently of counts.
+static SpriteBatch _gShelterB4UpperSewerView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 32, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4UpperSewerView8SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_upper_sewer_80187644[8] = {
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -8, -8, 2450, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 32, -8, 2450, { .fields = { 80, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -24, 0, 2375, { .fields = { 80, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 24, 0, 2375, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -40, 8, 2250, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 16, 8, 2250, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 16, 16, 2000, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 16, 24, 1692, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+/// Foreground sprite rectangles for mapped view 9.
+///
+/// Eight-texel-high strips carry individual depths to follow the foreground.
+/// Positions are pixels relative to the view centre; dimensions are pixels and
+/// depths are unscaled sorting values. Texture pages and CLUT encode VRAM addresses.
+/// The room owns the mutable sources borrowed by its view's batch list.
+static SpriteSource _gShelterB4UpperSewerView9SpriteSources[] = {
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -8, -8, 2450, { .fields = { 88, 0 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, 32, -8, 2450, { .fields = { 80, 8 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -24, 0, 2375, { .fields = { 80, 16 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, 24, 0, 2375, { .fields = { 72, 24 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -40, 8, 2250, { .fields = { 72, 32 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 16, 8, 2250, { .fields = { 64, 40 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 16, 16, 2000, { .fields = { 64, 48 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
+    { getTPage(SHELTER_B4_UPPER_SEWER_SPRITE_TEXTURE_8BIT, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, 16, 24, 1692, { .fields = { 64, 56 } }, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_UPPER_SEWER_SPRITE_OPAQUE_MODULATED },
 };
 
 SpriteBatch D_shelter_b4_upper_sewer_801876E4[3] = {
@@ -554,15 +656,15 @@ SpriteBatch D_shelter_b4_upper_sewer_801879AC[2] = {
 };
 
 SpriteView D_shelter_b4_upper_sewer_801879BC[14] = {
-    { { .empty = D_shelter_b4_upper_sewer_80187114 }, D_shelter_b4_upper_sewer_80187114, NULL },
-    { { .elements = D_shelter_b4_upper_sewer_80187124 }, D_shelter_b4_upper_sewer_80187174, NULL },
-    { { .elements = D_shelter_b4_upper_sewer_8018718C }, D_shelter_b4_upper_sewer_801871F0, NULL },
-    { { .elements = D_shelter_b4_upper_sewer_80187208 }, D_shelter_b4_upper_sewer_80187280, NULL },
-    { { .elements = D_shelter_b4_upper_sewer_80187298 }, D_shelter_b4_upper_sewer_80187374, NULL },
-    { { .empty = D_shelter_b4_upper_sewer_8018738C }, D_shelter_b4_upper_sewer_8018738C, NULL },
-    { { .empty = D_shelter_b4_upper_sewer_8018739C }, D_shelter_b4_upper_sewer_8018739C, NULL },
-    { { .elements = D_shelter_b4_upper_sewer_801873AC }, D_shelter_b4_upper_sewer_8018762C, NULL },
-    { { .elements = D_shelter_b4_upper_sewer_80187644 }, D_shelter_b4_upper_sewer_801876E4, NULL },
+    { { .empty = _gShelterB4UpperSewerView1SpriteBatches }, _gShelterB4UpperSewerView1SpriteBatches, NULL },
+    { { .elements = _gShelterB4UpperSewerView2SpriteSources }, _gShelterB4UpperSewerView2SpriteBatches, NULL },
+    { { .elements = _gShelterB4UpperSewerView3SpriteSources }, _gShelterB4UpperSewerView3SpriteBatches, NULL },
+    { { .elements = _gShelterB4UpperSewerView4SpriteSources }, _gShelterB4UpperSewerView4SpriteBatches, NULL },
+    { { .elements = _gShelterB4UpperSewerView5SpriteSources }, _gShelterB4UpperSewerView5SpriteBatches, NULL },
+    { { .empty = _gShelterB4UpperSewerView6SpriteBatches }, _gShelterB4UpperSewerView6SpriteBatches, NULL },
+    { { .empty = _gShelterB4UpperSewerView7SpriteBatches }, _gShelterB4UpperSewerView7SpriteBatches, NULL },
+    { { .elements = _gShelterB4UpperSewerView8SpriteSources }, _gShelterB4UpperSewerView8SpriteBatches, NULL },
+    { { .elements = _gShelterB4UpperSewerView9SpriteSources }, D_shelter_b4_upper_sewer_801876E4, NULL },
     { { .empty = D_shelter_b4_upper_sewer_801876FC }, D_shelter_b4_upper_sewer_801876FC, NULL },
     { { .elements = D_shelter_b4_upper_sewer_8018770C }, D_shelter_b4_upper_sewer_80187748, NULL },
     { { .elements = D_shelter_b4_upper_sewer_80187760 }, D_shelter_b4_upper_sewer_80187968, NULL },
@@ -570,29 +672,41 @@ SpriteView D_shelter_b4_upper_sewer_801879BC[14] = {
     { { .empty = D_shelter_b4_upper_sewer_801879AC }, D_shelter_b4_upper_sewer_801879AC, NULL },
 };
 
-WorldCoordPointLight D_shelter_b4_upper_sewer_80187A64[19] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -3000, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3161, 4401 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -3000, 3995 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3241, 5061 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -7000, 0x2C24 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 5000, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2710, -7000, 0x2C24 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 5000, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -7000, 0x4650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 5000, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2710, -7000, 0x4650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 5000, 6000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3500, -4000, 0x2C24 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 1228, 1228 }, { 0, 0 } }, 6000, 7000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -3000, -5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3621, 6283 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7000, -3000, 6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3825, -3703, -500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 4096, 4096 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3805, -2489, 8145 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9000, -4570, 5430 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 4096, 3276 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -3000, 6000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3364, 5642 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -5500, 9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -5500, 9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -5500, 6505 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -5500, 2500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -5500, -1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7000, -5500, 9000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
+/// Point-light placements and falloff for the upper sewer's model lighting.
+///
+/// All 19 lights admit every room view. Positions and falloff radii use world
+/// units; RGB intensities use 12 fractional bits. View parenting, composition
+/// caches and attenuation are mutable while this room overlay remains loaded.
+static WorldCoordPointLight _gShelterB4UpperSewerPointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -3000, 500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3161, 4401 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -3000, 3995 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3241, 5061 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -7000, 0x2C24 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 5000, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2710, -7000, 0x2C24 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 5000, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -7000, 0x4650 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 5000, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2710, -7000, 0x4650 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 5000, 6000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3500, -4000, 0x2C24 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1228, 1228, 1228 }, { 0, 0 } }, 6000, 7000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1500, -3000, -5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3621, 6283 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7000, -3000, 6000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3825, -3703, -500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, ONE, ONE }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3805, -2489, 8145 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9000, -4570, 5430 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, ONE, 3276 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -3000, 6000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3364, 5642 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -5500, 9000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -5500, 9000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -5500, 6505 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -5500, 2500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -5500, -1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7000, -5500, 9000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 3000, 4000 },
 };
 
-WorldCoordRoomLights D_shelter_b4_upper_sewer_80188184 = { 0, NULL, ARRAY_SIZE(D_shelter_b4_upper_sewer_80187A64), D_shelter_b4_upper_sewer_80187A64, 0, NULL };
+WorldCoordRoomLights gShelterB4UpperSewerRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB4UpperSewerPointLights),
+    .pointLights           = _gShelterB4UpperSewerPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b4_upper_sewer_8018819C[18] = {
     { NULL, NULL, NULL, { -1938, -1921, -3234, 0 }, { { -3109, -4304, -1110, 0 }, { 2989, -4304, 1073, 0 }, { -3109, 4304, -1110, 0 }, { 2989, 4304, 1073, 0 } }, { 1382, 0, -3863, 0 }, { 0, 0, 4096, 0 }, 5369, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -730,53 +844,110 @@ WorldCollisionOccluder D_shelter_b4_upper_sewer_80188BFC[3] = {
     { NULL, NULL, { -9041, -1824, 6399, 0 }, { { -1056, 8, -992, 0 }, { -1056, -7, 993, 0 }, { 1056, 8, -992, 0 }, { 1056, -7, 993, 0 } }, { 0, -4096, -32, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_shelter_b4_upper_sewer_80188CB0 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Cue-2 bases in the loaded type-1 sound bank; cue 1 uses the following entry.
+enum {
+    SHELTER_B4_UPPER_SEWER_CLASS5_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    SHELTER_B4_UPPER_SEWER_CLASS5_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
+    SHELTER_B4_UPPER_SEWER_CLASS2_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3D,
+    SHELTER_B4_UPPER_SEWER_CLASS2_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3F,
+    SHELTER_B4_UPPER_SEWER_CLASS3_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    SHELTER_B4_UPPER_SEWER_CLASS3_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
 };
 
-WorldCollisionFootstepSounds D_shelter_b4_upper_sewer_80188CBC = {
-    0x1000003D,
-    0x1000003F,
-    0x1000003D,
+/// Class-5 footstep cue pairs; scripted jumps reuse the walking pair.
+///
+/// These type-1 requests borrow the loaded sound bank. Cue 1 adds one to each
+/// base; companion playback adds 100. The room owns the record until unloading.
+static WorldCollisionFootstepSounds _gShelterB4UpperSewerClass5FootstepSounds = {
+    .walk         = SHELTER_B4_UPPER_SEWER_CLASS5_WALK_CUE_BASE,
+    .run          = SHELTER_B4_UPPER_SEWER_CLASS5_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B4_UPPER_SEWER_CLASS5_WALK_CUE_BASE,
 };
 
-WorldCollisionFootstepSounds D_shelter_b4_upper_sewer_80188CC8 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+/// Class-2 footstep cue pairs; scripted jumps reuse the walking pair.
+///
+/// These type-1 requests borrow the loaded sound bank. Cue 1 adds one to each
+/// base; companion playback adds 100. The room owns the record until unloading.
+static WorldCollisionFootstepSounds _gShelterB4UpperSewerClass2FootstepSounds = {
+    .walk         = SHELTER_B4_UPPER_SEWER_CLASS2_WALK_CUE_BASE,
+    .run          = SHELTER_B4_UPPER_SEWER_CLASS2_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B4_UPPER_SEWER_CLASS2_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_upper_sewer_80188CD4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class-3 footstep cue pairs; scripted jumps reuse the walking pair.
+///
+/// These type-1 requests borrow the loaded sound bank. Cue 1 adds one to each
+/// base; companion playback adds 100. The room owns the record until unloading.
+static WorldCollisionFootstepSounds _gShelterB4UpperSewerClass3FootstepSounds = {
+    .walk         = SHELTER_B4_UPPER_SEWER_CLASS3_WALK_CUE_BASE,
+    .run          = SHELTER_B4_UPPER_SEWER_CLASS3_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B4_UPPER_SEWER_CLASS3_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_upper_sewer_80188CDC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent blocking policy shared by surface classes 0, 4, 6 and 7.
+///
+/// Allows weapon impacts and pushback. The first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gShelterB4UpperSewerBlockingSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_upper_sewer_80188CE4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_upper_sewer_80188CBC },
+/// Class 1's silent policy: pass probes, ignore weapon impacts and apply pushback.
+///
+/// The first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gShelterB4UpperSewerProbePassThroughSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_upper_sewer_80188CEC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_upper_sewer_80188CC8 },
+/// Class 2's blocking policy, with footstep cues, weapon impacts and pushback.
+///
+/// The first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gShelterB4UpperSewerClass2SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB4UpperSewerClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_upper_sewer_80188CF4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_upper_sewer_80188CB0 },
+/// Class 3's blocking policy, with footstep cues, weapon impacts and pushback.
+///
+/// The first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gShelterB4UpperSewerClass3SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB4UpperSewerClass3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b4_upper_sewer_80188CFC[8] = {
-    D_shelter_b4_upper_sewer_80188CD4,
-    D_shelter_b4_upper_sewer_80188CDC,
-    D_shelter_b4_upper_sewer_80188CE4,
-    D_shelter_b4_upper_sewer_80188CEC,
-    D_shelter_b4_upper_sewer_80188CD4,
-    D_shelter_b4_upper_sewer_80188CF4,
-    D_shelter_b4_upper_sewer_80188CD4,
-    D_shelter_b4_upper_sewer_80188CD4,
+/// Class 5's blocking policy, with footstep cues, weapon impacts and pushback.
+///
+/// The first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gShelterB4UpperSewerClass5SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB4UpperSewerClass5FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB4UpperSewerSurfacePropertiesByClass[8] = {
+    &_gShelterB4UpperSewerBlockingSilentSurface,
+    &_gShelterB4UpperSewerProbePassThroughSurface,
+    &_gShelterB4UpperSewerClass2SurfaceProperties,
+    &_gShelterB4UpperSewerClass3SurfaceProperties,
+    &_gShelterB4UpperSewerBlockingSilentSurface,
+    &_gShelterB4UpperSewerClass5SurfaceProperties,
+    &_gShelterB4UpperSewerBlockingSilentSurface,
+    &_gShelterB4UpperSewerBlockingSilentSurface,
 };
 
 RoomFadeStorage D_shelter_b4_upper_sewer_80188D1C = { 0 };

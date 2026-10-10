@@ -27,19 +27,35 @@ extern s16 D_shelter_b4_upper_sewer_80186438;
 extern AreaVariant D_shelter_b4_upper_sewer_80188B9C[12];
 
 // shelter_b4_upper_sewer
-extern u8* D_shelter_b4_upper_sewer_80186590[];
+/// The upper sewer's single-room directory of logical-view mappings.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..14 select the same
+/// 1-based camera, image and sprite indices. The directory has no terminator
+/// and remains valid while this room overlay is loaded.
+extern u8* gShelterB4UpperSewerViewMaps[1];
 
 extern ViewCount D_shelter_b4_upper_sewer_80186594[];
 
 extern DirectionWarpEntry D_shelter_b4_upper_sewer_80186598[];
 
-extern WorldCollisionGrid D_shelter_b4_upper_sewer_80186EF8;
+/// The upper sewer's collision mesh and 6-by-5 XZ cell index.
+///
+/// Cells have 4000-world-unit sides and origin (-10010, -6000). The grid
+/// borrows 7 normals, 87 vertices and 42 faces; face surface classes select
+/// `gShelterB4UpperSewerSurfacePropertiesByClass`. Activation binds its view
+/// coordinate. The mutable record and pools require this overlay to stay loaded.
+extern WorldCollisionGrid gShelterB4UpperSewerCollisionGrid;
 
 extern ViewCamera D_shelter_b4_upper_sewer_80186F1C[];
 
 extern SpriteView D_shelter_b4_upper_sewer_801879BC[];
 
-extern WorldCoordRoomLights D_shelter_b4_upper_sewer_80188184;
+/// The upper sewer's collection of 19 point lights, admitted in every view.
+///
+/// There are no directional or cone lights. The room owns the mutable point
+/// array; coordinate updates parent it to the view and shading overwrites its
+/// attenuation. The collection and array remain valid while this overlay is loaded.
+extern WorldCoordRoomLights gShelterB4UpperSewerRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b4_upper_sewer_8018819C[];
 
@@ -47,7 +63,13 @@ extern WorldCollisionTrigger D_shelter_b4_upper_sewer_801886F4[];
 
 extern WorldCollisionOccluder D_shelter_b4_upper_sewer_80188BFC[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b4_upper_sewer_80188CFC[];
+/// Collision policies and footstep cues indexed by the upper sewer's surface class.
+///
+/// All eight slots apply pushback. Class 1 passes probes and ignores weapon
+/// impacts; the others block probes and allow impacts. Classes 2, 3 and 5
+/// have footstep cues; 0, 1, 4, 6 and 7 are silent. There is no terminator.
+/// Records and cue bases are borrowed only while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gShelterB4UpperSewerSurfacePropertiesByClass[8];
 
 /// Dispatches the upper sewer's room setup, message-only idle state and teardown.
 ///
