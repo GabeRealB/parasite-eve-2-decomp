@@ -578,136 +578,247 @@ static AnimationSet _gM4a1PykeItemUseAnimation = {
     .poseBanks         = { NULL, _gM4a1PykeItemUseAnimationBank1, NULL, NULL, _gM4a1PykeItemUseAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation04738Bank1[14] = {
+/// Translation-and-rotation poses for the player's stair ascent in the Pyke bank.
+///
+/// Tracks 0 and 1 use local integer translations and 4096 angle units per turn.
+/// Immutable clip payload retains its overlay position in .data.
+static const AnimationPackedPose _gM4a1PykeStairAscentAnimationBank1[14] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_04738_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation04738Bank4[156] = {
+/// Packed part rotations for the player's stair ascent in the Pyke bank.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeStairAscentAnimationBank4[156] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_04738_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation04738Records[253] = {
+/// Keyframes, footstep cues and loop controls for the player's stair ascent.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words,
+/// while control jumps use absolute record indices.
+static const AnimationRecord _gM4a1PykeStairAscentAnimationRecords[253] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_04738_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation04738Indices[20] = {
+/// Absolute track-start record indices for the player's stair ascent.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeStairAscentAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_04738_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation04738 = {
-    _gM4a1PykeAnimation04738Records,
-    _gM4a1PykeAnimation04738Indices,
-    { NULL, _gM4a1PykeAnimation04738Bank1, NULL, NULL, _gM4a1PykeAnimation04738Bank4, NULL, NULL, NULL },
+/// Player stair-ascent motion supplied by the M4A1 Pyke animation bank.
+///
+/// Native-bank set 36 loops through a scripted stair flight; track 1 carries
+/// the footstep cues that pace its strides. Borrows nineteen part tracks and
+/// their pose banks; keep this package loaded throughout playback.
+static AnimationSet _gM4a1PykeStairAscentAnimation = {
+    .records           = _gM4a1PykeStairAscentAnimationRecords,
+    .trackStartIndices = _gM4a1PykeStairAscentAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeStairAscentAnimationBank1, NULL, NULL, _gM4a1PykeStairAscentAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation04EC0Bank1[16] = {
+/// Translation-and-rotation poses for the player's stair descent in the Pyke bank.
+///
+/// Tracks 0 and 1 use local integer translations and 4096 angle units per turn.
+/// Immutable clip payload retains its overlay position in .data.
+static const AnimationPackedPose _gM4a1PykeStairDescentAnimationBank1[16] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_04EC0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation04EC0Bank4[167] = {
+/// Packed part rotations for the player's stair descent in the Pyke bank.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeStairDescentAnimationBank4[167] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_04EC0_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation04EC0Records[247] = {
+/// Keyframes, footstep cues and loop controls for the player's stair descent.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words,
+/// while control jumps use absolute record indices.
+static const AnimationRecord _gM4a1PykeStairDescentAnimationRecords[247] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_04EC0_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation04EC0Indices[20] = {
+/// Absolute track-start record indices for the player's stair descent.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeStairDescentAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_04EC0_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation04EC0 = {
-    _gM4a1PykeAnimation04EC0Records,
-    _gM4a1PykeAnimation04EC0Indices,
-    { NULL, _gM4a1PykeAnimation04EC0Bank1, NULL, NULL, _gM4a1PykeAnimation04EC0Bank4, NULL, NULL, NULL },
+/// Player stair-descent motion supplied by the M4A1 Pyke animation bank.
+///
+/// Native-bank set 37 loops through a scripted stair flight; track 1 carries
+/// the footstep cues that pace its strides. Borrows nineteen part tracks and
+/// their pose banks; keep this package loaded throughout playback.
+static AnimationSet _gM4a1PykeStairDescentAnimation = {
+    .records           = _gM4a1PykeStairDescentAnimationRecords,
+    .trackStartIndices = _gM4a1PykeStairDescentAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeStairDescentAnimationBank1, NULL, NULL, _gM4a1PykeStairDescentAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation05194Bank1[6] = {
+/// Translation-and-rotation poses for finishing an odd-step stair ascent.
+///
+/// Tracks 0 and 1 use local integer translations and 4096 angle units per turn.
+/// Immutable clip payload retains its overlay position in .data.
+static const AnimationPackedPose _gM4a1PykeStairAscentFinishOddAnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05194_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation05194Bank4[52] = {
+/// Packed part rotations for finishing an odd-step stair ascent.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeStairAscentFinishOddAnimationBank4[52] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05194_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation05194Records[91] = {
+/// Keyframes, footstep cues and stop controls for the odd-step stair-ascent finish.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeStairAscentFinishOddAnimationRecords[91] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05194_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation05194Indices[20] = {
+/// Absolute track-start record indices for the odd-step stair-ascent finish.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeStairAscentFinishOddAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05194_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation05194 = {
-    _gM4a1PykeAnimation05194Records,
-    _gM4a1PykeAnimation05194Indices,
-    { NULL, _gM4a1PykeAnimation05194Bank1, NULL, NULL, _gM4a1PykeAnimation05194Bank4, NULL, NULL, NULL },
+/// Player finish motion for a scripted stair ascent with an odd initial step count.
+///
+/// Native-bank set 39 plays once, with a three-frame entry blend, before idle
+/// resumes. Borrows nineteen part tracks and their pose banks from the Pyke
+/// package; keep it loaded throughout playback.
+static AnimationSet _gM4a1PykeStairAscentFinishOddAnimation = {
+    .records           = _gM4a1PykeStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gM4a1PykeStairAscentFinishOddAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeStairAscentFinishOddAnimationBank1, NULL, NULL, _gM4a1PykeStairAscentFinishOddAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation05524Bank1[7] = {
+/// Translation-and-rotation poses for finishing an even-step stair ascent.
+///
+/// Tracks 0 and 1 use local integer translations and 4096 angle units per turn.
+/// Immutable clip payload retains its overlay position in .data.
+static const AnimationPackedPose _gM4a1PykeStairAscentFinishEvenAnimationBank1[7] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05524_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation05524Bank4[73] = {
+/// Packed part rotations for finishing an even-step stair ascent.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeStairAscentFinishEvenAnimationBank4[73] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05524_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation05524Records[114] = {
+/// Keyframes, footstep cues and stop controls for the even-step stair-ascent finish.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeStairAscentFinishEvenAnimationRecords[114] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05524_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation05524Indices[20] = {
+/// Absolute track-start record indices for the even-step stair-ascent finish.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeStairAscentFinishEvenAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05524_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation05524 = {
-    _gM4a1PykeAnimation05524Records,
-    _gM4a1PykeAnimation05524Indices,
-    { NULL, _gM4a1PykeAnimation05524Bank1, NULL, NULL, _gM4a1PykeAnimation05524Bank4, NULL, NULL, NULL },
+/// Player finish motion for a scripted stair ascent with an even initial step count.
+///
+/// Native-bank set 38 plays once, with a three-frame entry blend, before idle
+/// resumes. Borrows nineteen part tracks and their pose banks from the Pyke
+/// package; keep it loaded throughout playback.
+static AnimationSet _gM4a1PykeStairAscentFinishEvenAnimation = {
+    .records           = _gM4a1PykeStairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gM4a1PykeStairAscentFinishEvenAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeStairAscentFinishEvenAnimationBank1, NULL, NULL, _gM4a1PykeStairAscentFinishEvenAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation059ACBank1[9] = {
+/// Translation-and-rotation poses for family-0 Parasite Energy release.
+///
+/// Tracks 0 and 1 use local integer translations and 4096 angle units per turn.
+/// Immutable clip payload retains its overlay position in .data.
+static const AnimationPackedPose _gM4a1PykeParasiteEnergyReleaseFamily0AnimationBank1[9] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_059AC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation059ACBank4[104] = {
+/// Packed part rotations for family-0 Parasite Energy release.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeParasiteEnergyReleaseFamily0AnimationBank4[104] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_059AC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation059ACRecords[139] = {
+/// Keyframe durations and stop controls for family-0 Parasite Energy release.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1PykeParasiteEnergyReleaseFamily0AnimationRecords[139] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_059AC_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation059ACIndices[20] = {
+/// Absolute track-start record indices for family-0 Parasite Energy release.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeParasiteEnergyReleaseFamily0AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_059AC_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation059AC = {
-    _gM4a1PykeAnimation059ACRecords,
-    _gM4a1PykeAnimation059ACIndices,
-    { NULL, _gM4a1PykeAnimation059ACBank1, NULL, NULL, _gM4a1PykeAnimation059ACBank4, NULL, NULL, NULL },
+/// Player release motion that starts family-0 Parasite Energy charging.
+///
+/// Native-bank set 26 plays once with a six-frame entry blend when the
+/// attachment selects clip family 0. Borrows nineteen part tracks and their
+/// pose banks from the Pyke package; keep it loaded throughout playback.
+static AnimationSet _gM4a1PykeParasiteEnergyReleaseFamily0Animation = {
+    .records           = _gM4a1PykeParasiteEnergyReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1PykeParasiteEnergyReleaseFamily0AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeParasiteEnergyReleaseFamily0AnimationBank1, NULL, NULL, _gM4a1PykeParasiteEnergyReleaseFamily0AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1PykeAnimation05BA8Bank1[3] = {
+/// Translation-and-rotation poses for family-0 Parasite Energy charging.
+///
+/// Tracks 0 and 1 use local integer translations and 4096 angle units per turn.
+/// Immutable clip payload retains its overlay position in .data.
+static const AnimationPackedPose _gM4a1PykeParasiteEnergyChargeFamily0AnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05BA8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1PykeAnimation05BA8Bank4[22] = {
+/// Packed part rotations for family-0 Parasite Energy charging.
+///
+/// Tracks 2..18 use signed 11/10/11-bit components in eight-angle-unit steps.
+static const AnimationPackedRotation _gM4a1PykeParasiteEnergyChargeFamily0AnimationBank4[22] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05BA8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1PykeAnimation05BA8Records[76] = {
+/// Keyframe durations and loop controls for family-0 Parasite Energy charging.
+///
+/// Durations count normal-rate frames; pose offsets count four-byte words,
+/// while control jumps use absolute record indices.
+static const AnimationRecord _gM4a1PykeParasiteEnergyChargeFamily0AnimationRecords[76] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05BA8_records.inc"
 };
 
-static u16 _gM4a1PykeAnimation05BA8Indices[20] = {
+/// Absolute track-start record indices for family-0 Parasite Energy charging.
+///
+/// Tracks 0..18 are followed by an unused stored zero halfword.
+static const u16 _gM4a1PykeParasiteEnergyChargeFamily0AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_pyke_animation_05BA8_indices.inc"
 };
 
-static AnimationSet _gM4a1PykeAnimation05BA8 = {
-    _gM4a1PykeAnimation05BA8Records,
-    _gM4a1PykeAnimation05BA8Indices,
-    { NULL, _gM4a1PykeAnimation05BA8Bank1, NULL, NULL, _gM4a1PykeAnimation05BA8Bank4, NULL, NULL, NULL },
+/// Player charge motion for family-0 Parasite Energy actions in the Pyke bank.
+///
+/// Native-bank set 27 loops while the attachment countdown runs, then the
+/// cast motion replaces it. Borrows nineteen part tracks and their pose banks;
+/// keep this package loaded throughout playback.
+static AnimationSet _gM4a1PykeParasiteEnergyChargeFamily0Animation = {
+    .records           = _gM4a1PykeParasiteEnergyChargeFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1PykeParasiteEnergyChargeFamily0AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PykeParasiteEnergyChargeFamily0AnimationBank1, NULL, NULL, _gM4a1PykeParasiteEnergyChargeFamily0AnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1PykeAnimation05E80Bank1[6] = {
@@ -1331,8 +1442,8 @@ AnimationBank D_m4a1_pyke_8012D500 = { { {
     &_gM4a1PykeAnimation086A8,
     &_gM4a1PykeAnimation0993C,
     &_gM4a1PykeAnimation09220,
-    &_gM4a1PykeAnimation059AC,
-    &_gM4a1PykeAnimation05BA8,
+    &_gM4a1PykeParasiteEnergyReleaseFamily0Animation,
+    &_gM4a1PykeParasiteEnergyChargeFamily0Animation,
     &_gM4a1PykeAnimation05E80,
     &_gM4a1PykeAnimation06124,
     &_gM4a1PykeAnimation06324,
@@ -1341,10 +1452,10 @@ AnimationBank D_m4a1_pyke_8012D500 = { { {
     &_gM4a1PykeAnimation09F94,
     &_gM4a1PykeAnimation09DBC,
     &_gM4a1PykeAnimation09F94,
-    &_gM4a1PykeAnimation04738,
-    &_gM4a1PykeAnimation04EC0,
-    &_gM4a1PykeAnimation05524,
-    &_gM4a1PykeAnimation05194,
+    &_gM4a1PykeStairAscentAnimation,
+    &_gM4a1PykeStairDescentAnimation,
+    &_gM4a1PykeStairAscentFinishEvenAnimation,
+    &_gM4a1PykeStairAscentFinishOddAnimation,
     &_gM4a1PykeItemUseAnimation,
     &_gM4a1PykeIdleAnimation,
     &_gM4a1PykeAnimation0A4F8,
