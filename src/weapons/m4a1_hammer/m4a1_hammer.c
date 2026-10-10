@@ -1230,136 +1230,248 @@ static AnimationSet _gM4a1HammerEventEntryAnimation = {
     },
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation0A1A0Bank1[3] = {
+/// Local translations and Euler angles for `_gM4a1HammerEventExitAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1HammerEventExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_hammer_animation_0A1A0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation0A1A0Bank4[32] = {
+/// Packed Euler angles for `_gM4a1HammerEventExitAnimation`, in eight-unit steps of a 4096-unit turn.
+static const AnimationPackedRotation _gM4a1HammerEventExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0A1A0_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation0A1A0Records[57] = {
+/// Keyframes and stop controls for `_gM4a1HammerEventExitAnimation`.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1HammerEventExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0A1A0_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation0A1A0Indices[20] = {
+/// Absolute record indices for `_gM4a1HammerEventExitAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained but is not a twentieth track.
+static const u16 _gM4a1HammerEventExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0A1A0_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation0A1A0 = {
-    _gM4a1HammerAnimation0A1A0Records,
-    _gM4a1HammerAnimation0A1A0Indices,
-    { NULL, _gM4a1HammerAnimation0A1A0Bank1, NULL, NULL, _gM4a1HammerAnimation0A1A0Bank4, NULL, NULL, NULL },
+/// Player event-exit presentation clip for the equipped M4A1 Hammer bank.
+///
+/// Native-bank slots 33 and 35 share this clip. A nonzero presentation selector
+/// starts slot 33 on child slots 1..18 after an event command; the event waits
+/// for playback to finish. Slot 0 is unchanged; stop controls hold the last pose.
+/// Tracks 0..18 borrow read-only records, indices and word-aligned pose banks.
+/// Keep the overlay and all clip data loaded throughout playback.
+static AnimationSet _gM4a1HammerEventExitAnimation = {
+    .records           = _gM4a1HammerEventExitAnimationRecords,
+    .trackStartIndices = _gM4a1HammerEventExitAnimationIndices,
+    .poseBanks         = {
+        [M4A1_HAMMER_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1HammerEventExitAnimationBank1,
+        [M4A1_HAMMER_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1HammerEventExitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation0A704Bank1[11] = {
+/// Local translations and Euler angles for `_gM4a1HammerPeReleaseFamily2Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1HammerPeReleaseFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_hammer_animation_0A704_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation0A704Bank4[125] = {
+/// Packed Euler angles for `_gM4a1HammerPeReleaseFamily2Animation`, in eight-unit steps of a 4096-unit turn.
+static const AnimationPackedRotation _gM4a1HammerPeReleaseFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0A704_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation0A704Records[167] = {
+/// Keyframes and stop controls for `_gM4a1HammerPeReleaseFamily2Animation`.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1HammerPeReleaseFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0A704_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation0A704Indices[20] = {
+/// Absolute record indices for `_gM4a1HammerPeReleaseFamily2Animation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained but is not a twentieth track.
+static const u16 _gM4a1HammerPeReleaseFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0A704_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation0A704 = {
-    _gM4a1HammerAnimation0A704Records,
-    _gM4a1HammerAnimation0A704Indices,
-    { NULL, _gM4a1HammerAnimation0A704Bank1, NULL, NULL, _gM4a1HammerAnimation0A704Bank4, NULL, NULL, NULL },
+/// Family-2 Parasite Energy release clip for the equipped M4A1 Hammer bank.
+///
+/// Native-bank slot 42, entered with a six-frame blend before the family-2
+/// charge and cast clips. Non-item attachment IDs with decimal tens digit 3
+/// select this family. Stop controls hold the final pose.
+/// Tracks 0..18 borrow read-only records, indices and word-aligned pose banks.
+/// Keep the overlay and all clip data loaded throughout playback.
+static AnimationSet _gM4a1HammerPeReleaseFamily2Animation = {
+    .records           = _gM4a1HammerPeReleaseFamily2AnimationRecords,
+    .trackStartIndices = _gM4a1HammerPeReleaseFamily2AnimationIndices,
+    .poseBanks         = {
+        [M4A1_HAMMER_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1HammerPeReleaseFamily2AnimationBank1,
+        [M4A1_HAMMER_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1HammerPeReleaseFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation0A8F8Bank1[3] = {
+/// Local translations and Euler angles for `_gM4a1HammerPeChargeFamily2Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1HammerPeChargeFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_hammer_animation_0A8F8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation0A8F8Bank4[20] = {
+/// Packed Euler angles for `_gM4a1HammerPeChargeFamily2Animation`, in eight-unit steps of a 4096-unit turn.
+static const AnimationPackedRotation _gM4a1HammerPeChargeFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0A8F8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation0A8F8Records[76] = {
+/// Keyframes and loop/stop controls for `_gM4a1HammerPeChargeFamily2Animation`.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte words.
+/// Loop targets are absolute indices in this record array.
+static const AnimationRecord _gM4a1HammerPeChargeFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0A8F8_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation0A8F8Indices[20] = {
+/// Absolute record indices for `_gM4a1HammerPeChargeFamily2Animation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained but is not a twentieth track.
+static const u16 _gM4a1HammerPeChargeFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0A8F8_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation0A8F8 = {
-    _gM4a1HammerAnimation0A8F8Records,
-    _gM4a1HammerAnimation0A8F8Indices,
-    { NULL, _gM4a1HammerAnimation0A8F8Bank1, NULL, NULL, _gM4a1HammerAnimation0A8F8Bank4, NULL, NULL, NULL },
+/// Family-2 Parasite Energy charge hold loop for the equipped M4A1 Hammer bank.
+///
+/// Native-bank slot 43, restarted while the attachment countdown runs and
+/// replaced by the family-2 cast clip when the countdown reaches zero.
+/// Non-item attachment IDs with decimal tens digit 3 select this family.
+/// Each track loops back to its start to retain the charge pose.
+/// Tracks 0..18 borrow read-only records, indices and word-aligned pose banks.
+/// Keep the overlay and all clip data loaded throughout playback.
+static AnimationSet _gM4a1HammerPeChargeFamily2Animation = {
+    .records           = _gM4a1HammerPeChargeFamily2AnimationRecords,
+    .trackStartIndices = _gM4a1HammerPeChargeFamily2AnimationIndices,
+    .poseBanks         = {
+        [M4A1_HAMMER_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1HammerPeChargeFamily2AnimationBank1,
+        [M4A1_HAMMER_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1HammerPeChargeFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation0AD78Bank1[8] = {
+/// Local translations and Euler angles for `_gM4a1HammerPeCastFamily2Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1HammerPeCastFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_hammer_animation_0AD78_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation0AD78Bank4[105] = {
+/// Packed Euler angles for `_gM4a1HammerPeCastFamily2Animation`, in eight-unit steps of a 4096-unit turn.
+static const AnimationPackedRotation _gM4a1HammerPeCastFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0AD78_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation0AD78Records[139] = {
+/// Keyframes and stop controls for `_gM4a1HammerPeCastFamily2Animation`.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gM4a1HammerPeCastFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0AD78_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation0AD78Indices[20] = {
+/// Absolute record indices for `_gM4a1HammerPeCastFamily2Animation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained but is not a twentieth track.
+static const u16 _gM4a1HammerPeCastFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0AD78_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation0AD78 = {
-    _gM4a1HammerAnimation0AD78Records,
-    _gM4a1HammerAnimation0AD78Indices,
-    { NULL, _gM4a1HammerAnimation0AD78Bank1, NULL, NULL, _gM4a1HammerAnimation0AD78Bank4, NULL, NULL, NULL },
+/// Family-2 Parasite Energy cast clip for the equipped M4A1 Hammer bank.
+///
+/// Native-bank slot 44, restarted after the charge countdown reaches zero.
+/// Non-item attachment IDs with decimal tens digit 3 select this family.
+/// Playback completion resumes the previous player state; stop controls
+/// hold the final pose. Tracks 0..18 borrow read-only records, indices and
+/// word-aligned pose banks. Keep all clip data loaded throughout playback.
+static AnimationSet _gM4a1HammerPeCastFamily2Animation = {
+    .records           = _gM4a1HammerPeCastFamily2AnimationRecords,
+    .trackStartIndices = _gM4a1HammerPeCastFamily2AnimationIndices,
+    .poseBanks         = {
+        [M4A1_HAMMER_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1HammerPeCastFamily2AnimationBank1,
+        [M4A1_HAMMER_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1HammerPeCastFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation0AF50Bank1[2] = {
+/// Local translations and Euler angles for `_gM4a1HammerAimIdleAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1HammerAimIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_hammer_animation_0AF50_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation0AF50Bank4[16] = {
+/// Packed Euler angles for `_gM4a1HammerAimIdleAnimation`, in eight-unit steps of a 4096-unit turn.
+static const AnimationPackedRotation _gM4a1HammerAimIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0AF50_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation0AF50Records[76] = {
+/// Keyframes and loop/stop controls for `_gM4a1HammerAimIdleAnimation`.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte words.
+/// Loop targets are absolute indices in this record array.
+static const AnimationRecord _gM4a1HammerAimIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0AF50_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation0AF50Indices[20] = {
+/// Absolute record indices for `_gM4a1HammerAimIdleAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained but is not a twentieth track.
+static const u16 _gM4a1HammerAimIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0AF50_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation0AF50 = {
-    _gM4a1HammerAnimation0AF50Records,
-    _gM4a1HammerAnimation0AF50Indices,
-    { NULL, _gM4a1HammerAnimation0AF50Bank1, NULL, NULL, _gM4a1HammerAnimation0AF50Bank4, NULL, NULL, NULL },
+/// Player aim-idle hold loop for the equipped M4A1 Hammer bank.
+///
+/// Native-bank slot 9, selected while aiming without movement or turning.
+/// Also supplies the ready pose before either weapon attack. Child slots
+/// 1..18 retain their poses through track-start loops; slot 0 is unchanged.
+/// Tracks 0..18 borrow read-only records, indices and word-aligned pose banks.
+/// Keep the overlay and all clip data loaded while playback or another
+/// animation table retains this clip.
+static AnimationSet _gM4a1HammerAimIdleAnimation = {
+    .records           = _gM4a1HammerAimIdleAnimationRecords,
+    .trackStartIndices = _gM4a1HammerAimIdleAnimationIndices,
+    .poseBanks         = {
+        [M4A1_HAMMER_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1HammerAimIdleAnimationBank1,
+        [M4A1_HAMMER_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1HammerAimIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1HammerAnimation0B790Bank1[14] = {
+/// Local translations and Euler angles for `_gM4a1HammerAimBackwardOrTurnAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1HammerAimBackwardOrTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/m4a1_hammer_animation_0B790_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1HammerAnimation0B790Bank4[194] = {
+/// Packed Euler angles for `_gM4a1HammerAimBackwardOrTurnAnimation`, in eight-unit steps of a 4096-unit turn.
+static const AnimationPackedRotation _gM4a1HammerAimBackwardOrTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0B790_bank4.inc"
 };
 
-static AnimationRecord _gM4a1HammerAnimation0B790Records[272] = {
+/// Keyframes and loop/stop controls for `_gM4a1HammerAimBackwardOrTurnAnimation`.
+///
+/// Keyframe durations count normal-rate frames; pose offsets count four-byte words.
+/// Loop targets are absolute indices in this record array.
+static const AnimationRecord _gM4a1HammerAimBackwardOrTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0B790_records.inc"
 };
 
-static u16 _gM4a1HammerAnimation0B790Indices[20] = {
+/// Absolute record indices for `_gM4a1HammerAimBackwardOrTurnAnimation`'s model-part tracks 0..18.
+///
+/// The final serialized halfword is retained but is not a twentieth track.
+static const u16 _gM4a1HammerAimBackwardOrTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_hammer_animation_0B790_indices.inc"
 };
 
-static AnimationSet _gM4a1HammerAnimation0B790 = {
-    _gM4a1HammerAnimation0B790Records,
-    _gM4a1HammerAnimation0B790Indices,
-    { NULL, _gM4a1HammerAnimation0B790Bank1, NULL, NULL, _gM4a1HammerAnimation0B790Bank4, NULL, NULL, NULL },
+/// Player aim-backward and stationary-turn loop for the equipped M4A1 Hammer bank.
+///
+/// Native-bank slot 13, selected for backward movement or a stationary turn
+/// while aiming. Child slots 1..18 loop through their tracks; slot 0 is unchanged.
+/// Tracks 0..18 borrow read-only records, indices and word-aligned pose banks.
+/// Keep the overlay and all clip data loaded throughout playback.
+static AnimationSet _gM4a1HammerAimBackwardOrTurnAnimation = {
+    .records           = _gM4a1HammerAimBackwardOrTurnAnimationRecords,
+    .trackStartIndices = _gM4a1HammerAimBackwardOrTurnAnimationIndices,
+    .poseBanks         = {
+        [M4A1_HAMMER_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1HammerAimBackwardOrTurnAnimationBank1,
+        [M4A1_HAMMER_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1HammerAimBackwardOrTurnAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1HammerAnimation0C238Bank1[19] = {
@@ -1570,11 +1682,11 @@ AnimationBank D_m4a1_hammer_8012D4F4 = { { {
     &_gM4a1HammerTurnRightAnimation,
     &_gM4a1HammerAnimation0E368,
     &_gM4a1HammerAnimation0E8E0,
-    &_gM4a1HammerAnimation0AF50,
+    &_gM4a1HammerAimIdleAnimation,
     &_gM4a1HammerAnimation0D578,
     &_gM4a1HammerAnimation0DC5C,
     &_gM4a1HammerAnimation0C238,
-    &_gM4a1HammerAnimation0B790,
+    &_gM4a1HammerAimBackwardOrTurnAnimation,
     &_gM4a1HammerAnimation0D0D4,
     &_gM4a1HammerAnimation0D0D4,
     &_gM4a1HammerPart4HitReactionAnimation,
@@ -1594,18 +1706,18 @@ AnimationBank D_m4a1_hammer_8012D4F4 = { { {
     &_gM4a1HammerPeChargeFamily1Animation,
     &_gM4a1HammerPeCastFamily1Animation,
     &_gM4a1HammerEventEntryAnimation,
-    &_gM4a1HammerAnimation0A1A0,
+    &_gM4a1HammerEventExitAnimation,
     &_gM4a1HammerEventEntryAnimation,
-    &_gM4a1HammerAnimation0A1A0,
+    &_gM4a1HammerEventExitAnimation,
     &_gM4a1HammerStairAscentAnimation,
     &_gM4a1HammerStairDescentAnimation,
     &_gM4a1HammerStairAscentFinishEvenAnimation,
     &_gM4a1HammerStairAscentFinishOddAnimation,
     &_gM4a1HammerItemUseAnimation,
     &_gM4a1HammerIdleAnimation,
-    &_gM4a1HammerAnimation0A704,
-    &_gM4a1HammerAnimation0A8F8,
-    &_gM4a1HammerAnimation0AD78,
+    &_gM4a1HammerPeReleaseFamily2Animation,
+    &_gM4a1HammerPeChargeFamily2Animation,
+    &_gM4a1HammerPeCastFamily2Animation,
     NULL,
     NULL,
     NULL,
