@@ -692,8 +692,6 @@ extern TaskDesc gActor302000PawnGolemTasks[2];
 /// Slot-3 export of `gActor01900GrinningStrangerTaskDesc` from actor_301900.
 extern TaskDesc gActor301900GrinningStrangerTaskDesc;
 
-extern TaskDesc D_actor_310600_801796A4[];
-
 /// Launcher Rook GOLEM spawn descriptors: 0 body, 1 launcher, 2 grenade, 3 shield.
 ///
 /// All four recipes create TMD bodies at priority 96 with automatic model

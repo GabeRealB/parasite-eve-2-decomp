@@ -20,6 +20,7 @@
 #include "gameplay/world_collision.h"
 #include "gameplay/world_coords.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/gfx.h"
 #include "main/mem.h"
@@ -99,30 +100,6 @@ typedef struct {
 } _Actor310600RupertBroderickWork;
 STATIC_ASSERT_SIZEOF(_Actor310600RupertBroderickWork, 0x538);
 
-/// Spawn table entry 1 is this actor's `Task::state` dispatcher; the type-1
-/// setup entry it is spawned from is `_actor310600InitBody`.
-extern TaskDesc D_actor_310600_801796A4[];
-
-/// The overlay's `TaskMessageEntry` table, parked in `Task::msgTable`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_310600_801796BC[];
-
-/// Per-animation cue lists: the entry `_Actor310600RupertBroderickWork::animId`
-/// selects is a zero-terminated list of the frames at which that animation
-/// fires its effect.
-extern s16*    D_actor_310600_80179660[];
-extern SVECTOR D_actor_310600_80179694;
-extern s32     D_actor_310600_8017969C;
-extern s32     D_actor_310600_801796A0;
-
-extern AnimationSet*  D_actor_310600_8017962C[5];
-extern AnimationSet** D_actor_310600_80179640[1]; // animation bank table `_Actor310600RupertBroderickWork::bank` indexes
-extern s8             D_actor_310600_80179644[];  // extra ticks owed to the animation id in `_Actor310600RupertBroderickWork::animId`
-
-/// Spawn table of the follow-up task queued once the cue has fired five times.
-
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void _actor310600InitBody(Task* task);
@@ -138,42 +115,51 @@ static void _actor310600TickWalk(Task* task);
 static void _actor310600FaceWalkTarget(Task* task);
 static void _actor310600StartWalkVelocity(Task* task);
 
-/// State handlers of the child part task, which `_actor310600MongooseTask`
-/// runs by `Task::state`: setup, tick and exit.
-static const TaskFuncTable3 D_actor_310600_80161E24 = { {
+/// Mongoose task states: 0 attach and inherit draw policy, 1 mirror it, 2 kill.
+///
+/// The attached child borrows its parent's selected coordinate and lighting;
+/// the parent's teardown tree keeps them alive through the child's use.
+static const TaskFuncTable3 _gActor310600MongooseTaskStates = { {
     _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
     taskKill,
 } };
 
-/// A second child handler triple - attach to the parent's part, an empty tick,
-/// exit. No dispatcher in this package reads it.
-static const TaskFuncTable3 D_actor_310600_80161E30 = { {
+/// Retained part-attachment states: 0 attach, 1 idle, 2 kill.
+///
+/// Attachment retains the child's draw policy. No dispatcher selects this table.
+static const TaskFuncTable3 _gActor310600RetainedPartTaskStates = { {
     _modelPlacementAttachPartTask,
     _actor310600IdleAttachedPart,
     taskKill,
 } };
 
-/// The actor's own state handlers, which `_actor310600BodyTask` runs by
-/// `Task::state`: spawn/setup, per-frame tick and teardown.
-static const TaskFuncTable3 D_actor_310600_80161E3C = { {
+/// Rupert body task states: 0 initialize, 1 update, 2 unlink and tear down.
+///
+/// States 1 and 2 require the work and collision storage established by state 0.
+static const TaskFuncTable3 _gActor310600BodyTaskStates = { {
     _actor310600InitBody,
     _actor310600UpdateBody,
     _actor310600ExitBody,
 } };
 
-/// The actor's movement steps, which `_actor310600TickWalk` runs by
-/// `_Actor310600RupertBroderickWork::walkStep`: turn to face the target point,
-/// start moving, stop on arrival.
-static const TaskFuncTable3 D_actor_310600_80161E48 = { {
+/// Retained walk steps: 0 face the target, 1 seed velocity, 2 check arrival.
+///
+/// `walkStep` must be in 0..2. The loaded cafeteria scripts do not start a walk;
+/// the retained walk request selects clips absent from this package's bank.
+static const TaskFuncTable3 _gActor310600WalkStepHandlers = { {
     _actor310600FaceWalkTarget,
     _actor310600StartWalkVelocity,
     _actor310600CheckWalkArrival,
 } };
 
-/// The constant local-space offset `_actor310600StartWalkVelocity` rotates,
-/// `{ 0, 0, 0x200000, 0 }` -- straight ahead along the part's own +Z.
-static const VECTOR D_actor_310600_80161E54 = { 0, 0, 0x200000, 0 };
+/// One parent-coordinate unit in the walk's signed 16.16 velocity.
+enum { ACTOR_310600_WALK_VELOCITY_ONE = 0x10000 };
+
+/// Local +Z walk velocity: 32 parent-coordinate units per tick in signed 16.16.
+///
+/// Rotate through the root's rotation before integrating into its translation.
+static const VECTOR _gActor310600WalkLocalVelocity = { 0, 0, 32 * ACTOR_310600_WALK_VELOCITY_ONE, 0 };
 
 static TmdSource _gActor310600RupertBroderickBody1;
 static TmdSource _gActor310600RupertBroderickMongoose;
@@ -356,7 +342,11 @@ static AnimationSet _gActor310600Animation177E4 = {
     { NULL, _gActor310600Animation177E4Bank1, NULL, NULL, _gActor310600Animation177E4Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_310600_8017962C[5] = {
+/// Rupert's bank-0 clips: 1 shooting, 2 uncued, 3 reload, 4 uncued; 0 is NULL.
+///
+/// Playback borrows this table and the loaded set data. Only clips 1..4 are
+/// usable; the retained walk's clips 12/13 are absent and must not be selected.
+static AnimationSet* _gActor310600BodyAnimationSets[5] = {
     NULL,
     &_gActor310600Animation0E6B0,
     &_gActor310600Animation0EB84,
@@ -364,13 +354,18 @@ AnimationSet* D_actor_310600_8017962C[5] = {
     &_gActor310600Animation177E4,
 };
 
-AnimationSet** D_actor_310600_80179640[1] = {
-    D_actor_310600_8017962C,
+/// Rupert's sole body animation bank, selected by bank index 0.
+///
+/// Context binding borrows the selected clip table for the body's playback life.
+static AnimationSet** _gActor310600AnimationBanks[1] = {
+    _gActor310600BodyAnimationSets,
 };
 
-// Cafeteria's scripts select bank 0 animations 1..4. The retained movement
-// handler requests 12/13, but has no caller in those scripts or companion actors.
-s8 D_actor_310600_80179644[8] = {
+/// Extra initial pose ticks by clip id, in addition to the first playback tick.
+///
+/// Clip 1 advances three ticks on selection; the other entries advance once.
+/// This eight-byte table covers loaded clips 1..4, not retained walk clips 12/13.
+static s8 _gActor310600AnimationPreRollTicks[8] = {
     0,
     2,
     0,
@@ -381,26 +376,39 @@ s8 D_actor_310600_80179644[8] = {
     0,
 };
 
-s16 D_actor_310600_8017964C[7] = {
+/// End marker for a clip's list of whole-tick effect cue times.
+enum { ACTOR_310600_ANIMATION_CUE_END = 0 };
+
+/// Shooting cues: five Mongoose shots, then the Stranger's scene handoff.
+///
+/// Times are ticks since clip selection, after its initial pose ticks. The
+/// final zero halfword terminates the list rather than firing another cue.
+static s16 _gActor310600ShootingCueFrames[7] = {
     74,
     95,
     117,
     137,
     159,
     223,
-    0,
+    ACTOR_310600_ANIMATION_CUE_END,
 };
 
-s16 D_actor_310600_8017965C[2] = {
+/// Reload casing-drop cue at tick 20 since clip selection, followed by the end marker.
+static s16 _gActor310600ReloadCueFrames[2] = {
     20,
-    0,
+    ACTOR_310600_ANIMATION_CUE_END,
 };
 
-s16* D_actor_310600_80179660[11] = {
+/// Clip-indexed cue lists: 1 shooting, 3 reload; NULL entries have no cue clock.
+///
+/// Lists end at `ACTOR_310600_ANIMATION_CUE_END`. Clip 2's retained shooting
+/// branch has no list here. Loaded clips 1..4 fit this eleven-pointer table;
+/// the retained walk's absent clips 12/13 must not index it.
+static s16* _gActor310600AnimationCueFrames[11] = {
     NULL,
-    D_actor_310600_8017964C,
+    _gActor310600ShootingCueFrames,
     NULL,
-    D_actor_310600_8017965C,
+    _gActor310600ReloadCueFrames,
     NULL,
     NULL,
     NULL,
@@ -410,20 +418,52 @@ s16* D_actor_310600_80179660[11] = {
     NULL,
 };
 
-SVECTOR D_actor_310600_8017968C = { -30, 450, 140, 0 };
+/// Unreferenced vector storage; its role and coordinate units are unproven.
+static SVECTOR D_actor_310600_8017968C = { -30, 450, 140, 0 };
 
-SVECTOR D_actor_310600_80179694 = { -78, 80, 83, 0 };
+/// Reload casing-drop position relative to the Mongoose's body part, in model units.
+///
+/// Effect placement reads XYZ and retains a borrowed pointer to this offset;
+/// keep the actor package loaded through the spawned effect's lifetime.
+static SVECTOR _gActor310600ReloadCasingsOffset = { -78, 80, 83, 0 };
 
-s32 D_actor_310600_8017969C = 0x60401;
-
-s32 D_actor_310600_801796A0 = 0x70401;
-
-TaskDesc D_actor_310600_801796A4[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310600BodyTask, { .model = &_gActor310600RupertBroderickBody1 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor310600MongooseTask, { .model = &_gActor310600RupertBroderickMongoose } },
+/// Boss Stranger command ids in the cafeteria namespace, sent by Rupert's cues.
+enum {
+    ACTOR_310600_STRANGER_COMMAND_SHOT_RECOIL     = 6,
+    ACTOR_310600_STRANGER_COMMAND_FOLLOWUP_RECOIL = 7,
 };
 
-TaskMessageEntry D_actor_310600_801796BC[5] = {
+/// Selects the Stranger's shot recoil and random hit effect on each Mongoose shot.
+///
+/// Borrowed through synchronous actor-command dispatch in the cafeteria context.
+static ActorCommand _gActor310600StrangerShotCommand __attribute__((aligned(4))) = {
+    { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA } },
+    ACTOR_310600_STRANGER_COMMAND_SHOT_RECOIL,
+};
+
+/// Selects the Stranger's follow-up recoil after Rupert's fifth shot.
+///
+/// Borrowed through synchronous actor-command dispatch before the room's settling task.
+static ActorCommand _gActor310600StrangerFollowupCommand __attribute__((aligned(4))) = {
+    { .loc = { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA } },
+    ACTOR_310600_STRANGER_COMMAND_FOLLOWUP_RECOIL,
+};
+
+/// Execution priority shared by Rupert's body and attached Mongoose.
+enum { ACTOR_310600_TASK_PRIORITY = 192 };
+
+TaskDesc gActor310600RupertBroderickTasks[2] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_310600_TASK_PRIORITY } }, _actor310600BodyTask, { .model = &_gActor310600RupertBroderickBody1 } },
+    { { { TASK_BODY_TMD, ACTOR_310600_TASK_PRIORITY } }, _actor310600MongooseTask, { .model = &_gActor310600RupertBroderickMongoose } },
+};
+
+/// Rupert body messages: animation request, Euler placement, draw mode and retained walk.
+///
+/// Animation borrows `AnimationPlayRequest`; place and walk borrow `ActorTransform`;
+/// draw takes an integer mode. The second payload is ignored. Walk selects absent
+/// clip 12 and is unsupported by the loaded bank. The final record ends lookup.
+/// Keep this table and its callbacks loaded while the body can receive messages.
+static TaskMessageEntry _gActor310600BodyMessageHandlers[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor310600PlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor310600SetModelDraw },
@@ -464,7 +504,7 @@ static void _actor310600InitBody(Task* task)
     work->walkCarry[1].word = 0;
     work->walkCarry[2].word = 0;
     // The one-part gun follows body coordinate 8 and joins its teardown tree.
-    taskSpawnFromTable(D_actor_310600_801796A4, ACTOR_310600_MONGOOSE_TASK_INDEX, ACTOR_310600_MONGOOSE_PARENT_PART, task);
+    taskSpawnFromTable(gActor310600RupertBroderickTasks, ACTOR_310600_MONGOOSE_TASK_INDEX, ACTOR_310600_MONGOOSE_PARENT_PART, task);
     _actor310600BindLighting(task);
     // Link the body sphere before the initial hidden draw policy disables pairs.
     body                   = &work->body;
@@ -479,7 +519,7 @@ static void _actor310600InitBody(Task* task)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->contacts), 0);
-    task->msgTable = D_actor_310600_801796BC;
+    task->msgTable = _gActor310600BodyMessageHandlers;
     _actor310600SetModelDraw(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_310600_DRAW_HIDE, 0);
     task->exitCallback = _actor310600ExitBody;
     task->state++;
@@ -550,9 +590,9 @@ static void _actor310600UpdateBody(Task* task)
     }
     // Cue time advances only for clips with a non-NULL, zero-terminated frame list.
     if (work->animId > 0) {
-        cueFrames = D_actor_310600_80179660[work->animId];
+        cueFrames = _gActor310600AnimationCueFrames[work->animId];
         if (cueFrames != NULL) {
-            if (*cueFrames != 0) {
+            if (*cueFrames != ACTOR_310600_ANIMATION_CUE_END) {
                 cueCursor = cueFrames;
                 do {
                     if (*cueCursor == work->cueFrame) {
@@ -562,20 +602,20 @@ static void _actor310600UpdateBody(Task* task)
                             case ACTOR_310600_ALTERNATE_SHOOTING_CLIP:
                                 if (work->shotCueCount++ < ACTOR_310600_SHOT_CUE_COUNT) {
                                     effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, activeCoord, ACTOR_310600_MONGOOSE_FLASH_PROFILE, NULL);
-                                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_8017969C, 0);
+                                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gActor310600StrangerShotCommand, 0);
                                 } else {
-                                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_801796A0, 0);
+                                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &_gActor310600StrangerFollowupCommand, 0);
                                     taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, ACTOR_310600_ROOM_FOLLOWUP_TASK, 0, NULL);
                                 }
                                 break;
                             case ACTOR_310600_RELOAD_CLIP:
-                                effectSpawn(EFFECT_RELOAD_CASINGS_DROP, activeCoord, ACTOR_310600_RETAINED_RELOAD_ARG, &D_actor_310600_80179694);
+                                effectSpawn(EFFECT_RELOAD_CASINGS_DROP, activeCoord, ACTOR_310600_RETAINED_RELOAD_ARG, &_gActor310600ReloadCasingsOffset);
                                 break;
                         }
                         break;
                     }
                     cueCursor++;
-                } while (*cueCursor != 0);
+                } while (*cueCursor != ACTOR_310600_ANIMATION_CUE_END);
             }
             work->cueFrame++;
         }
@@ -670,7 +710,7 @@ static s32 _actor310600PlayAnimation(Task* task, s32 messageId, const AnimationP
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_310600_80179640[work->bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor310600AnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }
     if (request->animationId != work->animId) {
@@ -685,7 +725,7 @@ static s32 _actor310600PlayAnimation(Task* task, s32 messageId, const AnimationP
             }
         }
         // Include the first pose tick plus the clip-specific pre-roll.
-        for (preRollTick = 0; preRollTick <= D_actor_310600_80179644[work->animId]; preRollTick++) {
+        for (preRollTick = 0; preRollTick <= _gActor310600AnimationPreRollTicks[work->animId]; preRollTick++) {
             for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
                 animationTickSlot(&work->rig.anim, slotIndex);
             }
@@ -780,7 +820,7 @@ static void _actor310600MongooseTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_310600_80161E24;
+    states = _gActor310600MongooseTaskStates;
     states.funcs[task->state](task);
 }
 
@@ -806,7 +846,7 @@ static void _actor310600BodyTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_310600_80161E3C;
+    states = _gActor310600BodyTaskStates;
     states.funcs[task->state](task);
 }
 
@@ -856,7 +896,7 @@ static void _actor310600TickWalk(Task* task)
     TaskFuncTable3                   steps;
 
     work  = task->work;
-    steps = D_actor_310600_80161E48;
+    steps = _gActor310600WalkStepHandlers;
     steps.funcs[work->walkStep](task);
 }
 
@@ -920,7 +960,7 @@ static void _actor310600StartWalkVelocity(Task* task)
     rootCoord = task->extra.tmd->coords;
     work      = task->work;
 
-    localVelocity = D_actor_310600_80161E54;
+    localVelocity = _gActor310600WalkLocalVelocity;
     ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walkVelocity);
     work->walkLastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walkLastDistance.vy = ACTOR_WALK_DISTANCE_NONE;

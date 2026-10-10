@@ -1,9 +1,9 @@
 // Overlay-local symbols for actor_310600.
-D_actor_310600_80179694 = 0x80179694; // size:0x8 defined:True
-D_actor_310600_8017969C = 0x8017969C; // size:0x4 defined:True
-D_actor_310600_801796A0 = 0x801796A0; // size:0x4 defined:True
-D_actor_310600_801796A4 = 0x801796A4; // size:0x18 defined:True
-D_actor_310600_801796BC = 0x801796BC; // size:0x28 defined:True
+_gActor310600ReloadCasingsOffset = 0x80179694; // size:0x8 defined:True
+_gActor310600StrangerShotCommand = 0x8017969C; // size:0x4 defined:True
+_gActor310600StrangerFollowupCommand = 0x801796A0; // size:0x4 defined:True
+gActor310600RupertBroderickTasks = 0x801796A4; // size:0x18 defined:True
+_gActor310600BodyMessageHandlers = 0x801796BC; // size:0x28 defined:True
 _gActor310600Animation04ADCBank1 = 0x80162CF8; // size:0x4C8 defined:True
 _gActor310600Animation04ADCBank4 = 0x801631C0; // size:0x184C defined:True
 _gActor310600Animation04ADCRecords = 0x80164A0C; // size:0x1EC8 defined:True
@@ -41,12 +41,12 @@ _gActor310600Animation177E4Bank4 = 0x801777E0; // size:0xC34 defined:True
 _gActor310600Animation177E4Records = 0x80178414; // size:0x11C8 defined:True
 _gActor310600Animation177E4Indices = 0x801795DC; // size:0x28 defined:True
 _gActor310600Animation177E4 = 0x80179604; // size:0x28 defined:True
-D_actor_310600_8017962C = 0x8017962C; // size:0x14 defined:True
-D_actor_310600_80179640 = 0x80179640; // size:0x4 defined:True
-D_actor_310600_80179644 = 0x80179644; // size:0x8 defined:True
-D_actor_310600_8017964C = 0x8017964C; // size:0xE defined:True
-D_actor_310600_8017965C = 0x8017965C; // size:0x4 defined:True
-D_actor_310600_80179660 = 0x80179660; // size:0x2C defined:True
+_gActor310600BodyAnimationSets = 0x8017962C; // size:0x14 defined:True
+_gActor310600AnimationBanks = 0x80179640; // size:0x4 defined:True
+_gActor310600AnimationPreRollTicks = 0x80179644; // size:0x8 defined:True
+_gActor310600ShootingCueFrames = 0x8017964C; // size:0xE defined:True
+_gActor310600ReloadCueFrames = 0x8017965C; // size:0x4 defined:True
+_gActor310600AnimationCueFrames = 0x80179660; // size:0x2C defined:True
 D_actor_310600_8017968C = 0x8017968C; // size:0x8 defined:True
 
 D_acropolis_cafeteria_80182AD8 = 0x80182AD8; // absolute:True owner=acropolis_cafeteria shared=rooms
@@ -69,3 +69,8 @@ _actor310600StartWalkVelocity = 0x80162b98; // type:func
 _actor310600TickWalk = 0x80162a7c; // type:func
 _actor310600WalkTo = 0x80162c94; // type:func
 _actor310600UpdateBody = 0x80161fa0; // type:func
+_gActor310600MongooseTaskStates = 0x80161e24;
+_gActor310600RetainedPartTaskStates = 0x80161e30;
+_gActor310600BodyTaskStates = 0x80161e3c;
+_gActor310600WalkStepHandlers = 0x80161e48;
+_gActor310600WalkLocalVelocity = 0x80161e54;

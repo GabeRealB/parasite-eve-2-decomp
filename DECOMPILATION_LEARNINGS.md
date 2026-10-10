@@ -49460,7 +49460,7 @@ is the only route:
 
 ```c
 work  = task->work;
-steps = D_actor_310600_80161E48;              /* TaskFuncTable3 steps; */
+steps = _gActor310600WalkStepHandlers;              /* TaskFuncTable3 steps; */
 steps.funcs[work->walkStep](task);
 ```
 
@@ -85315,7 +85315,7 @@ is worth recognising before spending attempts on the seed.
     rootCoord = task->extra.coordBody->coord;
     work      = task->work;
 
-    localVelocity = D_actor_310600_80161E54;
+    localVelocity = _gActor310600WalkLocalVelocity;
     ApplyMatrixLV(&rootCoord->coord, &localVelocity, &work->walkVelocity);
     work->walkLastDistance.vx = ACTOR_WALK_DISTANCE_NONE;
     work->walkLastDistance.vy = ACTOR_WALK_DISTANCE_NONE;
