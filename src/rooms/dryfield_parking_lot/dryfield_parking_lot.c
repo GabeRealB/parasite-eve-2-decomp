@@ -56,20 +56,13 @@ extern RoomEventActiveBytes gRoomEventActive;
 /// Descriptor of the event task the event gate spawns.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// The room's message table, published in `Task::msgTable` by the entry task
-/// (ids 0x13EE-0x13F2).
-extern TaskMessageEntry D_dryfield_parking_lot_8017DC04[];
-
 /// The request the event gate latched for its event task.
 extern RoomEventReq gRoomEventReq;
 
-/// Set by the event gate when its last call latched a request and spawned the
-/// event task; every call clears it first.
-
-extern WorldCollisionGrid     D_dryfield_parking_lot_8017E8DC[1];
-extern WorldCollisionOccluder D_dryfield_parking_lot_8017F6E4[2];
-extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F0A8[10];
-extern WorldCollisionTrigger  D_dryfield_parking_lot_8017F3A0[11];
+static WorldCollisionGrid     _gDryfieldParkingLotCollisionGrid;
+static WorldCollisionOccluder _gDryfieldParkingLotSightOccluders[2];
+static WorldCollisionTrigger  _gDryfieldParkingLotViewBoundaryTriggers[10];
+static WorldCollisionTrigger  _gDryfieldParkingLotActionTriggers[11];
 static WorldCoordRoomLights   _gDryfieldParkingLotRoomLights;
 static s32                    _dryfieldParkingLotRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32                    _dryfieldParkingLotIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
@@ -78,7 +71,12 @@ static void                   _dryfieldParkingLotIdle(Task* task);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_parking_lot_8017DC04[6] = {
+/// Synchronous room handlers for transitions, item use, actions, commands and sounds.
+///
+/// The live room task borrows this table. Item use, actions and commands return
+/// zero; transition and sound requests use the parking-lot handlers. The last
+/// record makes unsupported message IDs return zero. Keep this overlay loaded.
+static TaskMessageEntry _gDryfieldParkingLotRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, parkingLotResolveMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldParkingLotRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldParkingLotIgnoreActionMessage },
@@ -103,52 +101,147 @@ static u16 _gDryfieldParkingLotViewEffectGates[8] = {
     0xE5E6,
 };
 
-WorldCollisionRoomResources D_dryfield_parking_lot_8017DC44[1] = {
-    { D_dryfield_parking_lot_8017E8DC, D_dryfield_parking_lot_8017F0A8, D_dryfield_parking_lot_8017F3A0, D_dryfield_parking_lot_8017F6E4 },
+WorldCollisionRoomResources gDryfieldParkingLotRoomCollisionResources[1] = {
+    {
+        .grid                 = &_gDryfieldParkingLotCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldParkingLotViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldParkingLotActionTriggers,
+        .occluders            = _gDryfieldParkingLotSightOccluders,
+    },
 };
 
 u8* gDryfieldParkingLotRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_parking_lot_8017DC58[1] = { 7 };
+ViewCount gDryfieldParkingLotRoomViewCounts[1] = { DRYFIELD_PARKING_LOT_VIEW_COUNT };
 
 WorldCoordRoomLighting gDryfieldParkingLotRoomLighting[1] = {
     { &_gDryfieldParkingLotRoomLights, NULL },
 };
 
-DirectionWarpEntry D_dryfield_parking_lot_8017DC64[5] = {
-    { { { .word = 3072 }, 0x2995, 0, 3077 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x2995, 0, 3077 }, { 0, 0, 0, 0 }, 0x520F0002, 0x520F0001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, 486 },
-    { { { .word = 2048 }, 3200, 0, 3472 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 3200, 0, 3472 }, { 0, 0, 0, 0 }, 0x520F0008, 0x520F0007, 0x520F000A, 5, DIRECTION_WARP_FLAG_NONE, 481 },
-    { { { .word = 0 }, -285, 0, 351 }, { 0, 0, 0, 0 }, { { .word = 0 }, -285, 0, 351 }, { 0, 0, 0, 0 }, 0x520F0006, 0x520F0005, 0x520F000A, 4, DIRECTION_WARP_FLAG_NONE, 480 },
-    { { { .word = 2048 }, -6840, 0, -450 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6840, 0, -450 }, { 0, 0, 0, 0 }, 0x520F0008, 0x520F0007, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 479 },
-    { { { .word = 0 }, 4771, -450, 1414 }, { 0, 0, 0, 0 }, { { .word = 0 }, 4491, 0, 2215 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Fixed daytime sound requests and map-marker nibble IDs for warp endpoints.
+enum {
+    DRYFIELD_PARKING_LOT_MAIN_STREET_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, 2),
+    DRYFIELD_PARKING_LOT_MAIN_STREET_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, 1),
+    DRYFIELD_PARKING_LOT_DOOR_ARRIVAL_SOUND          = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, 8),
+    DRYFIELD_PARKING_LOT_DOOR_BLOCKED_SOUND          = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, 0xA),
+    DRYFIELD_PARKING_LOT_TOILET_ARRIVAL_SOUND        = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, 6),
+    DRYFIELD_PARKING_LOT_TOILET_DEPARTURE_SOUND      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_PARKING_LOT, 5),
+    DRYFIELD_PARKING_LOT_MAIN_STREET_MAP_FLAG        = 486,
+    DRYFIELD_PARKING_LOT_MOTEL_LOBBY_MAP_FLAG        = 481,
+    DRYFIELD_PARKING_LOT_TOILET_MAP_FLAG             = 480,
+    DRYFIELD_PARKING_LOT_SALOON_G_R_MAP_FLAG         = 479,
 };
 
-static SVECTOR _gDryfieldParkingLotCollision0131CNormals[18] = {
+DirectionWarpEntry gDryfieldParkingLotWarpEntries[DRYFIELD_PARKING_LOT_WARP_COUNT] = {
+    [DRYFIELD_PARKING_LOT_WARP_MAIN_STREET - 1] = {
+        .player         = { { .word = 3072 }, 0x2995, 0, 3077 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 0x2995, 0, 3077 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_PARKING_LOT_MAIN_STREET_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_PARKING_LOT_MAIN_STREET_DEPARTURE_SOUND,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 7,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_PARKING_LOT_MAIN_STREET_MAP_FLAG,
+    },
+    [DRYFIELD_PARKING_LOT_WARP_MOTEL_LOBBY - 1] = {
+        .player         = { { .word = 2048 }, 3200, 0, 3472 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 2048 }, 3200, 0, 3472 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_PARKING_LOT_DOOR_ARRIVAL_SOUND,
+        .departureSound = SOUND_PARKING_LOT_DOOR_OPEN,
+        .blockedSound   = DRYFIELD_PARKING_LOT_DOOR_BLOCKED_SOUND,
+        .initialView    = 5,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_PARKING_LOT_MOTEL_LOBBY_MAP_FLAG,
+    },
+    [DRYFIELD_PARKING_LOT_WARP_TOILET - 1] = {
+        .player         = { { .word = 0 }, -285, 0, 351 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, -285, 0, 351 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_PARKING_LOT_TOILET_ARRIVAL_SOUND,
+        .departureSound = DRYFIELD_PARKING_LOT_TOILET_DEPARTURE_SOUND,
+        .blockedSound   = DRYFIELD_PARKING_LOT_DOOR_BLOCKED_SOUND,
+        .initialView    = 4,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_PARKING_LOT_TOILET_MAP_FLAG,
+    },
+    [DRYFIELD_PARKING_LOT_WARP_SALOON_G_R - 1] = {
+        .player         = { { .word = 2048 }, -6840, 0, -450 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 2048 }, -6840, 0, -450 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DRYFIELD_PARKING_LOT_DOOR_ARRIVAL_SOUND,
+        .departureSound = SOUND_PARKING_LOT_DOOR_OPEN,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_PARKING_LOT_SALOON_G_R_MAP_FLAG,
+    },
+    [DRYFIELD_PARKING_LOT_WARP_MOTEL_BALCONY - 1] = {
+        .player         = { { .word = 0 }, 4771, -450, 1414 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 4491, 0, 2215 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 6,
+        .flags          = DIRECTION_WARP_FLAG_SCRIPTED_PLAYER,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+};
+
+/// Collision-mesh normals in room axes, with 4096 representing unit length.
+static SVECTOR _gDryfieldParkingLotCollisionGridNormals[18] = {
 #include "assets/dryfield_parking_lot_collision_0131C_normals.inc"
 };
 
-static SVECTOR _gDryfieldParkingLotCollision0131CVerts[132] = {
+/// Collision-mesh vertices in signed grid-local world units.
+static SVECTOR _gDryfieldParkingLotCollisionGridVerts[132] = {
 #include "assets/dryfield_parking_lot_collision_0131C_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldParkingLotCollision0131CFaces[55] = {
+/// Indexed collision faces, carrying the room's surface classes 0..7.
+static WorldCollisionGridFace _gDryfieldParkingLotCollisionGridFaces[55] = {
 #include "assets/dryfield_parking_lot_collision_0131C_faces.inc"
 };
 
-static s16 _gDryfieldParkingLotCollision0131CCells[436] = {
+/// Packed signed face-index lists for all 45 cells; each ends with -1.
+static s16 _gDryfieldParkingLotCollisionGridCells[436] = {
 #include "assets/dryfield_parking_lot_collision_0131C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldParkingLotCollision0131CCells[i])
-static s16* _gDryfieldParkingLotCollision0131CTable[45] = {
+// The generated table requires GRID_CELL to address an element of its list pool.
+#define GRID_CELL(i) (&_gDryfieldParkingLotCollisionGridCells[i])
+/// X-major directory of the grid's 9 by 5 face-index lists.
+static s16* _gDryfieldParkingLotCollisionGridTable[45] = {
 #include "assets/dryfield_parking_lot_collision_0131C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_parking_lot_8017E8DC[1] = {
-    { NULL, _gDryfieldParkingLotCollision0131CNormals, _gDryfieldParkingLotCollision0131CVerts, _gDryfieldParkingLotCollision0131CFaces, _gDryfieldParkingLotCollision0131CTable, 0x4588, 8900, 9, 5, 4000, 55 },
+/// The daytime parking lot's 55-face mesh and 9 by 5 broad-phase grid.
+///
+/// The XZ origin is (-17800, -8900) world units; cells have side length 4000.
+/// Room activation binds the view transform. This record and its mutable pools
+/// remain borrowed until the active grid is replaced or cleared.
+static WorldCollisionGrid _gDryfieldParkingLotCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldParkingLotCollisionGridNormals,
+    .vertices    = _gDryfieldParkingLotCollisionGridVerts,
+    .faces       = _gDryfieldParkingLotCollisionGridFaces,
+    .cellFaceIds = _gDryfieldParkingLotCollisionGridTable,
+    .xBias       = 17800,
+    .zBias       = 8900,
+    .cellCountX  = 9,
+    .cellCountZ  = 5,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldParkingLotCollisionGridFaces),
 };
 
 ViewCamera gDryfieldParkingLotViewCameras[DRYFIELD_PARKING_LOT_VIEW_COUNT] = {
@@ -339,34 +432,62 @@ SpriteView gDryfieldParkingLotSpriteViews[DRYFIELD_PARKING_LOT_VIEW_COUNT] = {
     { { .empty = _gDryfieldParkingLotView7SpriteBatches }, _gDryfieldParkingLotView7SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_parking_lot_8017F0A8[10] = {
-    { NULL, NULL, NULL, { -2698, -2736, -1594, 0 }, { { -2084, -3856, 2134, 0 }, { 2085, -3856, -2134, 0 }, { -2084, 3856, 2134, 0 }, { 2085, 3856, -2134, 0 } }, { -2935, 0, -2867, 0 }, { 0, 0, 4096, 0 }, 4857, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2816, -2592, -1600, 0 }, { { 2078, -3616, -2142, 0 }, { -2092, -3616, 2127, 0 }, { 2078, 3616, -2142, 0 }, { -2092, 3616, 2127, 0 } }, { 2941, 0, 2873, 0 }, { 0, 0, 4096, 0 }, 4664, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2560, -2656, 1664, 0 }, { { 1854, -3680, -2342, 0 }, { -1877, -3680, 2312, 0 }, { 1854, 3680, -2342, 0 }, { -1877, 3680, 2312, 0 } }, { 3203, 0, 2568, 0 }, { 0, 0, 4096, 0 }, 4720, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2528, -2720, 1760, 0 }, { { -1873, -3744, 2314, 0 }, { 1857, -3744, -2338, 0 }, { -1873, 3744, 2314, 0 }, { 1857, 3744, -2338, 0 } }, { -3200, 0, -2566, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 831, -2528, 2015, 0 }, { { -694, -3552, 2899, 0 }, { 690, -3552, -2903, 0 }, { -694, 3552, 2899, 0 }, { 690, 3552, -2903, 0 } }, { -3985, 0, -951, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 798, -2416, 2046, 0 }, { { 690, -3440, -2903, 0 }, { -694, -3440, 2899, 0 }, { 690, 3440, -2903, 0 }, { -694, 3440, 2899, 0 } }, { 3998, 0, 953, 0 }, { 0, 0, 4096, 0 }, 4550, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8191, -2320, 2527, 0 }, { { -34, -3344, -2982, 0 }, { 35, -3344, 2983, 0 }, { -34, 3344, -2982, 0 }, { 35, 3344, 2983, 0 } }, { 4106, 0, -48, 0 }, { 0, 0, 4096, 0 }, 4463, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8223, -2256, 2399, 0 }, { { 35, -3280, 2983, 0 }, { -34, -3280, -2982, 0 }, { 35, 3280, 2983, 0 }, { -34, 3280, -2982, 0 } }, { -4098, 0, 47, 0 }, { 0, 0, 4096, 0 }, 4404, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4048, -2912, 3200, 0 }, { { -500, -3856, 3222, 0 }, { 501, -3856, -3222, 0 }, { -500, 3856, 3222, 0 }, { 501, 3856, -3222, 0 } }, { -4059, 0, -631, 0 }, { 0, 0, 4096, 0 }, 5042, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3968, -2848, 2864, 0 }, { { 396, -3856, -2554, 0 }, { -395, -3856, 2554, 0 }, { 396, 3856, -2554, 0 }, { -395, 3856, 2554, 0 } }, { 4054, 0, 627, 0 }, { 0, 0, 4096, 0 }, 4636, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed boundaries for 2 <-> 3 <-> 4 <-> 5 <-> 6 <-> 7 camera changes.
+///
+/// Each source/destination pair is one-based. Room setup binds and enables all
+/// ten writable records, including the LAST-marked final boundary. Origins and
+/// corners use room units; normals use 4096 per unit. Storage lives until unlinked.
+static WorldCollisionTrigger _gDryfieldParkingLotViewBoundaryTriggers[10] = {
+    { NULL, NULL, NULL, { -2698, -2736, -1594, 0 }, { { -2084, -3856, 2134, 0 }, { 2085, -3856, -2134, 0 }, { -2084, 3856, 2134, 0 }, { 2085, 3856, -2134, 0 } }, { -2935, 0, -2867, 0 }, { 0, 0, ONE, 0 }, 4857, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2816, -2592, -1600, 0 }, { { 2078, -3616, -2142, 0 }, { -2092, -3616, 2127, 0 }, { 2078, 3616, -2142, 0 }, { -2092, 3616, 2127, 0 } }, { 2941, 0, 2873, 0 }, { 0, 0, ONE, 0 }, 4664, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2560, -2656, 1664, 0 }, { { 1854, -3680, -2342, 0 }, { -1877, -3680, 2312, 0 }, { 1854, 3680, -2342, 0 }, { -1877, 3680, 2312, 0 } }, { 3203, 0, 2568, 0 }, { 0, 0, ONE, 0 }, 4720, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2528, -2720, 1760, 0 }, { { -1873, -3744, 2314, 0 }, { 1857, -3744, -2338, 0 }, { -1873, 3744, 2314, 0 }, { 1857, 3744, -2338, 0 } }, { -3200, 0, -2566, 0 }, { 0, 0, ONE, 0 }, 4775, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 831, -2528, 2015, 0 }, { { -694, -3552, 2899, 0 }, { 690, -3552, -2903, 0 }, { -694, 3552, 2899, 0 }, { 690, 3552, -2903, 0 } }, { -3985, 0, -951, 0 }, { 0, 0, ONE, 0 }, 4636, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 798, -2416, 2046, 0 }, { { 690, -3440, -2903, 0 }, { -694, -3440, 2899, 0 }, { 690, 3440, -2903, 0 }, { -694, 3440, 2899, 0 } }, { 3998, 0, 953, 0 }, { 0, 0, ONE, 0 }, 4550, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8191, -2320, 2527, 0 }, { { -34, -3344, -2982, 0 }, { 35, -3344, 2983, 0 }, { -34, 3344, -2982, 0 }, { 35, 3344, 2983, 0 } }, { 4106, 0, -48, 0 }, { 0, 0, ONE, 0 }, 4463, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8223, -2256, 2399, 0 }, { { 35, -3280, 2983, 0 }, { -34, -3280, -2982, 0 }, { 35, 3280, 2983, 0 }, { -34, 3280, -2982, 0 } }, { -4098, 0, 47, 0 }, { 0, 0, ONE, 0 }, 4404, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4048, -2912, 3200, 0 }, { { -500, -3856, 3222, 0 }, { 501, -3856, -3222, 0 }, { -500, 3856, 3222, 0 }, { 501, 3856, -3222, 0 } }, { -4059, 0, -631, 0 }, { 0, 0, ONE, 0 }, 5042, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3968, -2848, 2864, 0 }, { { 396, -3856, -2554, 0 }, { -395, -3856, 2554, 0 }, { 396, 3856, -2554, 0 }, { -395, 3856, 2554, 0 } }, { 4054, 0, 627, 0 }, { 0, 0, ONE, 0 }, 4636, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_parking_lot_8017F3A0[11] = {
-    { NULL, NULL, NULL, { 0x2870, -48, 2976, 0 }, { { -560, 0, -1024, 0 }, { 560, 0, -1024, 0 }, { -560, 0, 1024, 0 }, { 560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 2, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3088, -48, 3744, 0 }, { { 848, 0, -560, 0 }, { 848, 0, 560, 0 }, { -848, 0, -560, 0 }, { -848, 0, 560, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -4096, 0 }, 1015, WORLD_COLLISION_TRIGGER_ACTION_WARP, 17, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -560, -48, 192, 0 }, { { 720, 0, -560, 0 }, { 720, 0, 560, 0 }, { -720, 0, -560, 0 }, { -720, 0, 560, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, 4096, 0 }, 911, WORLD_COLLISION_TRIGGER_ACTION_WARP, 16, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6736, -48, -640, 0 }, { { 656, 0, -560, 0 }, { 656, 0, 560, 0 }, { -656, 0, -560, 0 }, { -656, 0, 560, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 861, WORLD_COLLISION_TRIGGER_ACTION_WARP, 18, 65, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4752, -48, 2032, 0 }, { { 368, 0, -224, 0 }, { 368, 0, 224, 0 }, { -368, 0, -224, 0 }, { -368, 0, 224, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 430, WORLD_COLLISION_TRIGGER_ACTION_FACING, 52, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4640, -992, 1632, 0 }, { { -560, 1024, 0, 0 }, { 560, 1024, 0, 0 }, { -560, -1024, 0, 0 }, { 560, -1024, 0, 0 } }, { 0, 0, 4110, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 29, 81, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -1104, -64, 3024, 0 }, { { 432, 0, -1024, 0 }, { 432, 0, 1024, 0 }, { -432, 0, -1024, 0 }, { -432, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4091, 0, 201, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4672, -512, 1408, 0 }, { { 512, 0, -112, 0 }, { 512, 0, 112, 0 }, { -512, 0, -112, 0 }, { -512, 0, 112, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 50, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2048, -64, 2448, 0 }, { { 1232, 0, -432, 0 }, { 1232, 0, 432, 0 }, { -1232, 0, -432, 0 }, { -1232, 0, 432, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, -4096, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7128, -64, -1968, 0 }, { { 1704, 0, -320, 0 }, { 1480, 0, 736, 0 }, { -1592, 0, -768, 0 }, { -1592, 0, 352, 0 } }, { 0, 4100, 0, 0 }, { 401, 0, 4076, 0 }, 1764, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5520, -64, -3104, 0 }, { { 960, 0, -1680, 0 }, { 224, 0, 1680, 0 }, { -224, 0, -1680, 0 }, { -960, 0, 1680, 0 } }, { 0, 4096, 0, 0 }, { 4017, 0, 799, 0 }, 1932, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed stair settings and CAP command slots used by this room's interactions.
+///
+/// A stair parameter stores its surface class in bits 4..6 and steps in bits 0..3;
+/// control bit 8 selects descent. CAP slots address the loaded dialogue bundle.
+enum {
+    DRYFIELD_PARKING_LOT_STAIR_DESCEND_CONTROL   = 0x100,
+    DRYFIELD_PARKING_LOT_STAIR_ASCENT_PARAMETER  = (3 << 4) | 4,
+    DRYFIELD_PARKING_LOT_STAIR_DESCENT_PARAMETER = (3 << 4) | 2,
+    DRYFIELD_PARKING_LOT_CAP_INTERACTION_4       = 4,
+    DRYFIELD_PARKING_LOT_CAP_INTERACTION_5       = 5,
 };
 
-WorldCollisionOccluder D_dryfield_parking_lot_8017F6E4[2] = {
+/// Five warp quads, two stair actions and four CAP interaction quads.
+///
+/// Room setup binds, links and enables these writable records through LAST.
+/// Warp parameters pack this area's endpoint in the high nibble and the
+/// destination's arrival endpoint in the low nibble. CAP commands 4 and 5
+/// each have two regions. Positions use room units and normals use Q12.
+static WorldCollisionTrigger _gDryfieldParkingLotActionTriggers[11] = {
+    { NULL, NULL, NULL, { 0x2870, -48, 2976, 0 }, { { -560, 0, -1024, 0 }, { 560, 0, -1024, 0 }, { -560, 0, 1024, 0 }, { 560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -ONE, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MAIN_STREET, (DRYFIELD_PARKING_LOT_WARP_MAIN_STREET << 4) | 3, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3088, -48, 3744, 0 }, { { 848, 0, -560, 0 }, { 848, 0, 560, 0 }, { -848, 0, -560, 0 }, { -848, 0, 560, 0 } }, { 0, 4098, 0, 0 }, { 0, 0, -ONE, 0 }, 1015, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_LOBBY, (DRYFIELD_PARKING_LOT_WARP_MOTEL_LOBBY << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -560, -48, 192, 0 }, { { 720, 0, -560, 0 }, { 720, 0, 560, 0 }, { -720, 0, -560, 0 }, { -720, 0, 560, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, ONE, 0 }, 911, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_TOILET, (DRYFIELD_PARKING_LOT_WARP_TOILET << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6736, -48, -640, 0 }, { { 656, 0, -560, 0 }, { 656, 0, 560, 0 }, { -656, 0, -560, 0 }, { -656, 0, 560, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -ONE, 0 }, 861, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_SALOON_G_R, (DRYFIELD_PARKING_LOT_WARP_SALOON_G_R << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4752, -48, 2032, 0 }, { { 368, 0, -224, 0 }, { 368, 0, 224, 0 }, { -368, 0, -224, 0 }, { -368, 0, 224, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 430, WORLD_COLLISION_TRIGGER_ACTION_FACING, DRYFIELD_PARKING_LOT_STAIR_ASCENT_PARAMETER, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4640, -992, 1632, 0 }, { { -560, 1024, 0, 0 }, { 560, 1024, 0, 0 }, { -560, -1024, 0, 0 }, { 560, -1024, 0, 0 } }, { 0, 0, 4110, 0 }, { 0, 0, ONE, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_DRYFIELD_MOTEL_BALCONY, (DRYFIELD_PARKING_LOT_WARP_MOTEL_BALCONY << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -1104, -64, 3024, 0 }, { { 432, 0, -1024, 0 }, { 432, 0, 1024, 0 }, { -432, 0, -1024, 0 }, { -432, 0, 1024, 0 } }, { 0, 4097, 0, 0 }, { 4091, 0, 201, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_PARKING_LOT_CAP_INTERACTION_4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4672, -512, 1408, 0 }, { { 512, 0, -112, 0 }, { 512, 0, 112, 0 }, { -512, 0, -112, 0 }, { -512, 0, 112, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ONE, 0 }, 523, WORLD_COLLISION_TRIGGER_ACTION_FACING | DRYFIELD_PARKING_LOT_STAIR_DESCEND_CONTROL | WORLD_COLLISION_TRIGGER_AUTOMATIC, DRYFIELD_PARKING_LOT_STAIR_DESCENT_PARAMETER, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2048, -64, 2448, 0 }, { { 1232, 0, -432, 0 }, { 1232, 0, 432, 0 }, { -1232, 0, -432, 0 }, { -1232, 0, 432, 0 } }, { 0, 4119, 0, 0 }, { 0, 0, -ONE, 0 }, 1305, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_PARKING_LOT_CAP_INTERACTION_4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7128, -64, -1968, 0 }, { { 1704, 0, -320, 0 }, { 1480, 0, 736, 0 }, { -1592, 0, -768, 0 }, { -1592, 0, 352, 0 } }, { 0, 4100, 0, 0 }, { 401, 0, 4076, 0 }, 1764, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_PARKING_LOT_CAP_INTERACTION_5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5520, -64, -3104, 0 }, { { 960, 0, -1680, 0 }, { 224, 0, 1680, 0 }, { -224, 0, -1680, 0 }, { -960, 0, 1680, 0 } }, { 0, ONE, 0, 0 }, { 4017, 0, 799, 0 }, 1932, WORLD_COLLISION_TRIGGER_ACTION_CAP, DRYFIELD_PARKING_LOT_CAP_INTERACTION_5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Two room-space quads blocking actor line-of-sight queries.
+///
+/// Room setup links and enables both writable records, including the final
+/// LAST-marked quad. Positions use room units and normals use Q12. The authored
+/// low flag bit and final zero byte have no established meaning and are retained.
+static WorldCollisionOccluder _gDryfieldParkingLotSightOccluders[2] = {
     { NULL, NULL, { -416, -1872, -3328, 0 }, { { 1078, 2896, -3014, 0 }, { 1078, -2896, -3014, 0 }, { -1079, 2896, 3013, 0 }, { -1079, -2896, 3013, 0 } }, { 3859, 0, 1381, 0 }, 4314, 1, 0 },
     { NULL, NULL, { -6544, -1728, 2800, 0 }, { { 2064, 2896, -2704, 0 }, { 2064, -2896, -2704, 0 }, { -2064, 2896, 2704, 0 }, { -2064, -2896, 2704, 0 } }, { 3260, 0, 2488, 0 }, 4463, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -424,26 +545,64 @@ static AreaResource _gDryfieldParkingLotVariant2Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_parking_lot_8017FA38[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor02500Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-resource keys and decimal file numbers for the other actor variants.
+enum {
+    DRYFIELD_PARKING_LOT_SCORPION_ENTRY_ID        = 25,
+    DRYFIELD_PARKING_LOT_SCORPION_FILE_NUMBER     = 25,
+    DRYFIELD_PARKING_LOT_GOLEM_KNIGHT_ENTRY_ID    = 22,
+    DRYFIELD_PARKING_LOT_GOLEM_KNIGHT_FILE_NUMBER = 22,
 };
 
-AreaResource D_dryfield_parking_lot_8017FA5C[2] = {
-    { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 3's Desert Chaser and Scorpion load/spawn recipes, then the terminator.
+///
+/// Placement keys 1 and 25 select files 400100 and 302500. Both spawn descriptor
+/// index 0; six Scorpion placements share their recipe and one uses the Chaser.
+/// Loading and spawning borrow this table and the corresponding actor overlays.
+static AreaResource _gDryfieldParkingLotVariant3Resources[3] = {
+    {
+        .entryId        = DRYFIELD_PARKING_LOT_DESERT_CHASER_ENTRY_ID,
+        .fileNumber     = DRYFIELD_PARKING_LOT_DESERT_CHASER_FILE_NUMBER,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = &gActor00100DesertChaserTaskDesc,
+    },
+    {
+        .entryId        = DRYFIELD_PARKING_LOT_SCORPION_ENTRY_ID,
+        .fileNumber     = DRYFIELD_PARKING_LOT_SCORPION_FILE_NUMBER,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = gActor02500Tasks,
+    },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 7's GOLEM Knight load/spawn recipe for placement key 22, then the end.
+///
+/// File 402200 supplies descriptor index 0 for the sole placement. The room
+/// table and actor overlay remain borrowed during loading, spawning and use.
+static AreaResource _gDryfieldParkingLotVariant7Resources[2] = {
+    {
+        .entryId        = DRYFIELD_PARKING_LOT_GOLEM_KNIGHT_ENTRY_ID,
+        .fileNumber     = DRYFIELD_PARKING_LOT_GOLEM_KNIGHT_FILE_NUMBER,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = &gActor402200GolemTaskDesc,
+    },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_parking_lot_8017FA74[13] = {
     { NULL, NULL },
     { D_map_dryfield_8017B1C4, _gDryfieldParkingLotVariant1Resources },
     { D_map_dryfield_8017B1D4, _gDryfieldParkingLotVariant2Resources },
-    { D_map_dryfield_8017B204, D_dryfield_parking_lot_8017FA38 },
+    { D_map_dryfield_8017B204, _gDryfieldParkingLotVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017B284, D_dryfield_parking_lot_8017FA5C },
+    { D_map_dryfield_8017B284, _gDryfieldParkingLotVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -624,7 +783,7 @@ static s32 _dryfieldParkingLotIgnoreActionMessage(Task* task, s32 messageId, con
 /// borrow the loaded overlay and task for subsequent synchronous dispatch.
 static void _dryfieldParkingLotInitializeRoom(Task* task)
 {
-    task->msgTable = D_dryfield_parking_lot_8017DC04;
+    task->msgTable = _gDryfieldParkingLotRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -636,8 +795,11 @@ static void _dryfieldParkingLotIdle(Task* task)
 {
 }
 
-/// The room entry task's states: set up, idle, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_parking_lot_8017D5DC = {
+/// Room-task states 0..2: initialize the message receiver, wait, then teardown.
+///
+/// Copied as a complete 12-byte value before dispatch. Entries take a live task;
+/// the final handler may release it. The room overlay must remain loaded.
+static const TaskFuncTable3 _gDryfieldParkingLotRoomStateHandlers = {
     { _dryfieldParkingLotInitializeRoom, _dryfieldParkingLotIdle, taskKill },
 };
 
@@ -645,7 +807,7 @@ void dryfieldParkingLotRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_parking_lot_8017D5DC;
+    stateHandlers = _gDryfieldParkingLotRoomStateHandlers;
     stateHandlers.funcs[task->state](task);
 }
 

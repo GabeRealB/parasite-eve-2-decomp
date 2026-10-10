@@ -13,8 +13,12 @@
 
 extern AreaVariant D_dryfield_parking_lot_8017FA74[13];
 
-// dryfield_parking_lot
-extern WorldCollisionRoomResources D_dryfield_parking_lot_8017DC44[];
+/// Room 1's collision mesh, view boundaries, interactions and sight blockers.
+///
+/// Dryfield's area directory selects this sole entry with room minus one.
+/// Its mutable resources are borrowed while the daytime parking lot is loaded;
+/// clear the active collision lists before unloading their storage.
+extern WorldCollisionRoomResources gDryfieldParkingLotRoomCollisionResources[1];
 
 /// Number of mapped camera and sprite views in the daytime parking lot.
 enum { DRYFIELD_PARKING_LOT_VIEW_COUNT = 7 };
@@ -28,7 +32,12 @@ enum { DRYFIELD_PARKING_LOT_SURFACE_CLASS_COUNT = 8 };
 /// directory has one entry; both this overlay and gameplay must remain loaded.
 extern u8* gDryfieldParkingLotRoomViewMaps[1];
 
-extern ViewCount D_dryfield_parking_lot_8017DC58[];
+/// Room 1's seven logical views, each mapped to the same camera/image index.
+///
+/// Indexed by room minus one with no terminator; only room 1 is present.
+/// The signed halfword bounds reverse searches of the borrowed identity map.
+/// Requires the daytime parking lot and gameplay overlays to remain loaded.
+extern ViewCount gDryfieldParkingLotRoomViewCounts[1];
 
 /// Room 1's authored point-light collection, with default ambient minima.
 ///
@@ -36,7 +45,23 @@ extern ViewCount D_dryfield_parking_lot_8017DC58[];
 /// light storage is borrowed only while the daytime parking lot overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldParkingLotRoomLighting[1];
 
-extern DirectionWarpEntry D_dryfield_parking_lot_8017DC64[];
+/// One-based endpoint IDs in the daytime parking lot's warp table.
+enum {
+    DRYFIELD_PARKING_LOT_WARP_MAIN_STREET   = 1,
+    DRYFIELD_PARKING_LOT_WARP_MOTEL_LOBBY   = 2,
+    DRYFIELD_PARKING_LOT_WARP_TOILET        = 3,
+    DRYFIELD_PARKING_LOT_WARP_SALOON_G_R    = 4,
+    DRYFIELD_PARKING_LOT_WARP_MOTEL_BALCONY = 5,
+    DRYFIELD_PARKING_LOT_WARP_COUNT         = 5,
+};
+
+/// Arrival placements, departure sounds and map markers for the five endpoints.
+///
+/// Indexed by endpoint ID minus one, with no terminator. Placements use whole
+/// world units and yaw uses 4096 units per turn. The balcony endpoint starts
+/// scripted player control and places the companion separately; other endpoints
+/// share their player/companion placements. Keep this overlay loaded for lookups.
+extern DirectionWarpEntry gDryfieldParkingLotWarpEntries[DRYFIELD_PARKING_LOT_WARP_COUNT];
 
 /// Cameras for mapped daytime parking-lot views 1..7, indexed by view minus one.
 ///

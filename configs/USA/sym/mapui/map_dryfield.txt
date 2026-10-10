@@ -118,11 +118,11 @@ gDryfieldMotelRoom4ViewCameras = 0x8017DE14; // absolute:True owner=dryfield_mot
 gDryfieldMotelRoom4SpriteViews = 0x8017DF4C; // absolute:True owner=dryfield_motel_room_4
 gDryfieldMotelRoom4SurfacePropertiesByClass = 0x8017E470; // absolute:True owner=dryfield_motel_room_4
 dryfieldParkingLotRoomTask = 0x8017DB54; // type:func absolute:True owner=dryfield_parking_lot shared=rooms
-D_dryfield_parking_lot_8017DC44 = 0x8017DC44; // absolute:True owner=dryfield_parking_lot
+gDryfieldParkingLotRoomCollisionResources = 0x8017DC44; // absolute:True owner=dryfield_parking_lot
 gDryfieldParkingLotRoomViewMaps = 0x8017DC54; // absolute:True owner=dryfield_parking_lot shared=rooms
-D_dryfield_parking_lot_8017DC58 = 0x8017DC58; // absolute:True owner=dryfield_parking_lot
+gDryfieldParkingLotRoomViewCounts = 0x8017DC58; // absolute:True owner=dryfield_parking_lot
 gDryfieldParkingLotRoomLighting = 0x8017DC5C; // absolute:True owner=dryfield_parking_lot
-D_dryfield_parking_lot_8017DC64 = 0x8017DC64; // absolute:True owner=dryfield_parking_lot
+gDryfieldParkingLotWarpEntries = 0x8017DC64; // absolute:True owner=dryfield_parking_lot
 gDryfieldParkingLotViewCameras = 0x8017E900; // absolute:True owner=dryfield_parking_lot shared=rooms
 gDryfieldParkingLotSpriteViews = 0x8017F054; // absolute:True owner=dryfield_parking_lot
 gDryfieldParkingLotSurfacePropertiesByClass = 0x8017FB30; // absolute:True owner=dryfield_parking_lot
@@ -284,7 +284,7 @@ D_dryfield_water_hole_80181634 = 0x80181634; // absolute:True owner=dryfield_wat
 D_dryfield_water_hole_801828AC = 0x801828AC; // absolute:True owner=dryfield_water_hole
 dryfieldCellarRoomTask = 0x8017D784; // type:func absolute:True owner=dryfield_cellar shared=rooms
 D_dryfield_cellar_8017DBDC = 0x8017DBDC; // absolute:True owner=dryfield_cellar
-gDryfieldCellarRoomViewMaps = 0x8017DC04; // absolute:True owner=dryfield_cellar shared=rooms
+gDryfieldCellarRoomViewMaps = 0x8017DC04; // absolute:True owner=dryfield_cellar
 D_dryfield_cellar_8017DC0C = 0x8017DC0C; // absolute:True owner=dryfield_cellar
 gDryfieldCellarRoomLighting = 0x8017DC10; // absolute:True owner=dryfield_cellar shared=rooms
 D_dryfield_cellar_8017DC20 = 0x8017DC20; // absolute:True owner=dryfield_cellar shared=rooms
