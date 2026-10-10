@@ -32,13 +32,35 @@ extern WorldCollisionTrigger gNeoArkEveAccessTunnelActionTriggers[6];
 /// Keep it loaded until room teardown unlinks it.
 extern WorldCollisionOccluder gNeoArkEveAccessTunnelSightOccluders[1];
 
-extern TaskDesc D_neo_ark_eve_access_tunnel_8017EA88;
+/// Bodyless priority-32 task that consumes the staged departure to Mine/Shelter.
+///
+/// Spawn entry 0 with zero payload words after staging `gRoomDeparture`. The
+/// descriptor is read synchronously; its callback and staged record require
+/// the tunnel overlay to stay loaded until departure has committed the reload.
+extern TaskDesc gNeoArkEveAccessTunnelDepartureTaskDesc;
 
-extern TaskMessageEntry D_neo_ark_eve_access_tunnel_8017EA94[6];
+/// Room-message dispatch for transitions, key items, actions, commands and sound.
+///
+/// Five handlers followed by `TASK_MESSAGE_TABLE_END`; unsupported IDs return
+/// zero. The room task borrows the table while it receives messages, so the
+/// tunnel overlay must remain loaded through dispatch.
+extern TaskMessageEntry gNeoArkEveAccessTunnelRoomMessages[6];
 
-extern TaskDesc D_neo_ark_eve_access_tunnel_8017EAC4[3];
+/// Bodyless priority-32 tasks for Shelter departure, elevator departure and CAP completion.
+///
+/// Slots 0, 1 and 2 respectively; no terminator. Slot 0 takes a destination
+/// area byte in `spawnArg1.value`, slot 1 uses the staged elevator selectors,
+/// and slot 2 takes a game-flag nibble ID in `spawnArg1.value`. All ignore
+/// `spawnArg2`. Descriptors are read at spawn; callbacks require the overlay
+/// loaded until their tasks finish.
+extern TaskDesc gNeoArkEveAccessTunnelEventTasks[3];
 
-extern SpriteBatch D_neo_ark_eve_access_tunnel_8017F17C[2];
+/// Decoded-backdrop marker and batch terminator for mapped view 1, with no sprites.
+///
+/// The first zero-count record requests image strips; the second ends the list
+/// at `SPRITE_BATCH_END`. The view retains this address in its empty source
+/// slot as well as its batch slot. Both borrow this overlay's mutable storage.
+extern SpriteBatch gNeoArkEveAccessTunnelView1SpriteBatches[2];
 
 // Callbacks referenced by the overlay's shared data tables.
 

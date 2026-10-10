@@ -13,18 +13,57 @@
 
 extern AreaVariant D_neo_ark_eve_access_tunnel_801806B8[13];
 
-// neo_ark_eve_access_tunnel
-extern WorldCollisionRoomResources D_neo_ark_eve_access_tunnel_8017EB78[];
+/// Counts of mapped view resources and warp endpoints in the tunnel.
+enum {
+    NEO_ARK_EVE_ACCESS_TUNNEL_VIEW_COUNT = 7,
+    NEO_ARK_EVE_ACCESS_TUNNEL_WARP_COUNT = 2,
+};
 
-extern WorldCoordRoomLighting D_neo_ark_eve_access_tunnel_8017EB88[];
+/// Room 1's collision grid, view boundaries, action triggers and sight occluder.
+///
+/// The stage map borrows this one-entry room array at area 8. Setup binds the
+/// grid to the view and links the mutable trigger/occluder pools; keep the
+/// tunnel overlay loaded until those resources have been unlinked.
+extern WorldCollisionRoomResources gNeoArkEveAccessTunnelCollisionRooms[1];
 
-extern u8* D_neo_ark_eve_access_tunnel_8017EB90[];
+/// Room 1's five point lights and default minimum ambient levels.
+///
+/// The stage map borrows this one-entry room array at area 8. A NULL ambient
+/// table selects gameplay's default minima. The record and its mutable light
+/// collection stay live only while the tunnel overlay is loaded.
+extern WorldCoordRoomLighting gNeoArkEveAccessTunnelRoomLighting[1];
 
-extern ViewCount D_neo_ark_eve_access_tunnel_8017EB94[];
+/// Room 1's logical-view map, sharing gameplay's identity mapping.
+///
+/// Logical views 1..7 map to the same 1-based camera/image/sprite indices.
+/// This one-entry room directory belongs to the tunnel overlay; the borrowed
+/// map belongs to gameplay and only its first seven entries serve this room.
+extern u8* gNeoArkEveAccessTunnelViewMaps[1];
 
-extern DirectionWarpEntry D_neo_ark_eve_access_tunnel_8017EB98[];
+/// Room 1's seven logical views, used as the reverse-mapping search length.
+///
+/// The stage map borrows this one-entry signed-halfword count array at area 8.
+/// It counts logical views independently of the shared identity map's capacity.
+/// Keep the tunnel overlay loaded while looking up the count.
+extern ViewCount gNeoArkEveAccessTunnelViewCounts[1];
 
-extern ViewCamera D_neo_ark_eve_access_tunnel_8017F080[];
+/// The tunnel's Shelter-side and EVE-elevator-side warp endpoints, in that order.
+///
+/// The stage map indexes these with warp - 1 for warp IDs 1 and 2. Each endpoint
+/// places the player and companion at the same position and yaw, using world
+/// units and 4096 angle units per turn.
+/// Shelter arrival selects view 2 with no sound; elevator arrival selects view
+/// 5 and area-bank cue 4, while departure uses cue 3. Neither endpoint requests
+/// scripted-player mode or departure fading. Later arrivals mark the stored
+/// map-flag nibble. Keep the overlay loaded while selecting or copying an entry.
+extern DirectionWarpEntry gNeoArkEveAccessTunnelWarpEntries[NEO_ARK_EVE_ACCESS_TUNNEL_WARP_COUNT];
+
+/// The tunnel's seven cameras, indexed by mapped view - 1 for mapped views 1..7.
+///
+/// Rotations use `ONE` (4096) for 1.0, translations are negated world-space
+/// camera origins, and projection distances are pixels. The stage map borrows
+/// this array at area 8; keep the overlay loaded through queued application.
+extern ViewCamera gNeoArkEveAccessTunnelViewCameras[NEO_ARK_EVE_ACCESS_TUNNEL_VIEW_COUNT];
 
 extern SpriteView D_neo_ark_eve_access_tunnel_801800A0[];
 

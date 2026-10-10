@@ -333,7 +333,7 @@ static SpriteBatch _gNeoArkEveAccessTunnelView7SpriteBatches[2] = {
 };
 
 SpriteView D_neo_ark_eve_access_tunnel_801800A0[7] = {
-    { { .empty = D_neo_ark_eve_access_tunnel_8017F17C }, D_neo_ark_eve_access_tunnel_8017F17C, NULL },
+    { { .empty = gNeoArkEveAccessTunnelView1SpriteBatches }, gNeoArkEveAccessTunnelView1SpriteBatches, NULL },
     { { .elements = _gNeoArkEveAccessTunnelView2SpriteSources }, _gNeoArkEveAccessTunnelView2SpriteBatches, NULL },
     { { .elements = _gNeoArkEveAccessTunnelView3SpriteSources }, _gNeoArkEveAccessTunnelView3SpriteBatches, NULL },
     { { .elements = _gNeoArkEveAccessTunnelView4SpriteSources }, _gNeoArkEveAccessTunnelView4SpriteBatches, NULL },
@@ -560,7 +560,7 @@ void neoArkEveAccessTunnelShelterDepartureTask(Task* task)
             // Commit the resolved selectors before the departure task borrows them.
             _roomVariantResolveDeparture(&departure, resolve);
             gRoomDeparture = departure;
-            taskSpawnFromTable(&D_neo_ark_eve_access_tunnel_8017EA88, 0, 0, 0);
+            taskSpawnFromTable(&gNeoArkEveAccessTunnelDepartureTaskDesc, 0, 0, 0);
             taskKill(task);
             break;
         }
@@ -643,7 +643,7 @@ s32 neoArkEveAccessTunnelResolveTransition(Task* unusedTask, s32 unusedMessageId
                         _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.warp = reply->warp;
                         _gNeoArkEveAccessTunnelPendingElevatorDestination.loc.room = reply->room;
                         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                        taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_TASK, 0, 0);
+                        taskSpawnFromTable(gNeoArkEveAccessTunnelEventTasks, NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_TASK, 0, 0);
                     }
                     break;
             }
@@ -696,11 +696,11 @@ s32 neoArkEveAccessTunnelHandleAction(Task* unusedTask, s32 unusedMessageId, con
     if (request->actionId == NEO_ARK_EVE_ACCESS_TUNNEL_ACTION_SHELTER_DEPARTURE) {
         if (gameFlagGetNibble(GAME_FLAG_0F8) != 0) {
             capRunCommandWithTransition(NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DEPARTURE_BLOCKED);
-            taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, NEO_ARK_EVE_ACCESS_TUNNEL_CAP_COMPLETION_TASK, NEO_ARK_EVE_ACCESS_TUNNEL_BLOCKED_DEPARTURE_FLAG, 0);
+            taskSpawnFromTable(gNeoArkEveAccessTunnelEventTasks, NEO_ARK_EVE_ACCESS_TUNNEL_CAP_COMPLETION_TASK, NEO_ARK_EVE_ACCESS_TUNNEL_BLOCKED_DEPARTURE_FLAG, 0);
         } else {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             // Widen the action byte to the task argument's ABI word.
-            taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_TASK, (s32)request->argument, 0);
+            taskSpawnFromTable(gNeoArkEveAccessTunnelEventTasks, NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_TASK, (s32)request->argument, 0);
         }
         return 0;
     }
@@ -758,7 +758,7 @@ static __inline__ void _neoArkEveAccessTunnelMaskBackdrop(void)
 /// suppression. The session slot borrows the task; teardown does not clear it.
 static void _neoArkEveAccessTunnelInitializeRoom(Task* task)
 {
-    task->msgTable = D_neo_ark_eve_access_tunnel_8017EA94;
+    task->msgTable = gNeoArkEveAccessTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
         // Preserve the mask on the loaded backdrop before subsequent view decodes.

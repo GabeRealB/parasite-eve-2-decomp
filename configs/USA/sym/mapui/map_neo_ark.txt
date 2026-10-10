@@ -69,12 +69,12 @@ D_neo_ark_observatory_80181FC8 = 0x80181FC8; // absolute:True owner=neo_ark_obse
 D_neo_ark_observatory_801860E8 = 0x801860E8; // absolute:True owner=neo_ark_observatory
 gNeoArkObservatorySurfaceProperties = 0x80187A08; // absolute:True owner=neo_ark_observatory
 neoArkEveAccessTunnelRoomTask = 0x8017E038; // type:func absolute:True owner=neo_ark_eve_access_tunnel
-D_neo_ark_eve_access_tunnel_8017EB78 = 0x8017EB78; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
-D_neo_ark_eve_access_tunnel_8017EB88 = 0x8017EB88; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
-D_neo_ark_eve_access_tunnel_8017EB90 = 0x8017EB90; // absolute:True owner=neo_ark_eve_access_tunnel
-D_neo_ark_eve_access_tunnel_8017EB94 = 0x8017EB94; // absolute:True owner=neo_ark_eve_access_tunnel
-D_neo_ark_eve_access_tunnel_8017EB98 = 0x8017EB98; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
-D_neo_ark_eve_access_tunnel_8017F080 = 0x8017F080; // absolute:True owner=neo_ark_eve_access_tunnel
+gNeoArkEveAccessTunnelCollisionRooms = 0x8017EB78; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
+gNeoArkEveAccessTunnelRoomLighting = 0x8017EB88; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
+gNeoArkEveAccessTunnelViewMaps = 0x8017EB90; // absolute:True owner=neo_ark_eve_access_tunnel
+gNeoArkEveAccessTunnelViewCounts = 0x8017EB94; // absolute:True owner=neo_ark_eve_access_tunnel
+gNeoArkEveAccessTunnelWarpEntries = 0x8017EB98; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
+gNeoArkEveAccessTunnelViewCameras = 0x8017F080; // absolute:True owner=neo_ark_eve_access_tunnel
 D_neo_ark_eve_access_tunnel_801800A0 = 0x801800A0; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 gNeoArkEveAccessTunnelSurfaceProperties = 0x80180780; // absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 neoArkEveElevatorRoomTask = 0x8017D6C4; // type:func absolute:True owner=neo_ark_eve_elevator shared=rooms

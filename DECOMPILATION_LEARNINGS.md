@@ -4956,7 +4956,7 @@ dump is the first one that shows a merge; a shared label present in `.jump2` and
 ## A view dispatcher's cases share their call tails; the shared label lands *inside* the case's block
 
 `neoArkEveAccessTunnelDrawViewGlowsTask` is a `switch (viewGetMappedIndex())` with
-cases 2..6, each drawing two adjacent emitters per call out of one of four
+cases 2..6, each drawing two adjacent endpoint pairs per call out of one of four
 `SVECTOR` runs. The target reads like a hand-written goto graph — one shared
 `Room_Draw01(p); Room_Draw01(p + 0x10)` pair that cases 3, 4, 5 and 6 all jump
 into with their run's address in `$s0`, and case 2 entering the *second* call
@@ -4968,13 +4968,13 @@ out its own calls, no shared local, no `goto`:
 
 ```c
 case 2:
-    Room_Draw01(&D_8017EB48[0], 0x180, 0x444);
-    Room_Draw01(&D_8017EB48[2], 0x180, 0x444);
-    Room_Draw01(&D_8017EB48[4], 0x180, 0x444);
+    Room_Draw01(&_gNeoArkEveAccessTunnelViews2And6GlowEndpoints[0], 0x180, 0x444);
+    Room_Draw01(&_gNeoArkEveAccessTunnelViews2And6GlowEndpoints[2], 0x180, 0x444);
+    Room_Draw01(&_gNeoArkEveAccessTunnelViews2And6GlowEndpoints[4], 0x180, 0x444);
     break;
 case 3:
-    Room_Draw01(&D_8017EAE8[0], 0x180, 0x444);
-    Room_Draw01(&D_8017EAE8[2], 0x180, 0x444);
+    Room_Draw01(&_gNeoArkEveAccessTunnelView3GlowEndpoints[0], 0x180, 0x444);
+    Room_Draw01(&_gNeoArkEveAccessTunnelView3GlowEndpoints[2], 0x180, 0x444);
     break;
 /* ... case 4 falls through into case 5 ... */
 ```
@@ -4988,7 +4988,7 @@ the case's `lui`/`addiu $s0` in `.jump2`, so each case keeps its own address
 materialisation as a block prefix and falls into the shared call run:
 
 ```
-(insn 132 ... (set (reg:SI 16 s0) (lo_sum:SI (reg:SI 16 s0) (symbol_ref "D_..._8017EB48"))))
+(insn 132 ... (set (reg:SI 16 s0) (lo_sum:SI (reg:SI 16 s0) (symbol_ref "_gNeoArkEveAccessTunnelViews2And6GlowEndpoints"))))
 (code_label 203 132 134 11 "")          ; <- inserted by do_cross_jump
 (insn 134 ... (set (reg:SI 4 a0) (reg:SI 16 s0)))
 (insn 136 ... (set (reg:SI 5 a1) (const_int 384)))

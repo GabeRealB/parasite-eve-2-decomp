@@ -1,9 +1,9 @@
 // Overlay-local symbols for neo_ark_eve_access_tunnel.
 _gNeoArkEveAccessTunnelPendingElevatorDestination = 0x801807A0; // size:0x8 defined:True
-D_neo_ark_eve_access_tunnel_8017EAE8 = 0x8017EAE8; // size:0x20 defined:True
-D_neo_ark_eve_access_tunnel_8017EB08 = 0x8017EB08; // size:0x20 defined:True
-D_neo_ark_eve_access_tunnel_8017EB28 = 0x8017EB28; // size:0x20 defined:True
-D_neo_ark_eve_access_tunnel_8017EB48 = 0x8017EB48; // size:0x30 defined:True
+_gNeoArkEveAccessTunnelView3GlowEndpoints = 0x8017EAE8; // size:0x20 defined:True
+_gNeoArkEveAccessTunnelView4GlowEndpoints = 0x8017EB08; // size:0x20 defined:True
+_gNeoArkEveAccessTunnelView5GlowEndpoints = 0x8017EB28; // size:0x20 defined:True
+_gNeoArkEveAccessTunnelViews2And6GlowEndpoints = 0x8017EB48; // size:0x30 defined:True
 D_neo_ark_eve_access_tunnel_801806B8 = 0x801806B8; // size:0x68 defined:True
 gNeoArkEveAccessTunnelSightOccluders = 0x80180720; // size:0x3C defined:True
 _gNeoArkEveAccessTunnelFootstepSounds = 0x8018075C; // size:0xC defined:True
@@ -14,19 +14,19 @@ gNeoArkEveAccessTunnelSurfaceProperties = 0x80180780; // size:0x20 defined:True
 gRoomDeparture = 0x801807A8; // size:0xC defined:True
 D_map_neo_ark_8017B030 = 0x8017B030; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017B080 = 0x8017B080; // absolute:True owner=map_neo_ark
-D_neo_ark_eve_access_tunnel_8017EB78 = 0x8017EB78; // size:0x10 defined:True
-D_neo_ark_eve_access_tunnel_8017EB88 = 0x8017EB88; // size:0x8 defined:True
-D_neo_ark_eve_access_tunnel_8017EB90 = 0x8017EB90; // size:0x4 defined:True
-D_neo_ark_eve_access_tunnel_8017EB94 = 0x8017EB94; // size:0x2 defined:True
-D_neo_ark_eve_access_tunnel_8017EB98 = 0x8017EB98; // size:0x70 defined:True
-_gNeoArkEveAccessTunnelCollision01A9CNormals = 0x8017EC08; // size:0x98 defined:True
-_gNeoArkEveAccessTunnelCollision01A9CVerts = 0x8017ECA0; // size:0x1B8 defined:True
-_gNeoArkEveAccessTunnelCollision01A9CFaces = 0x8017EE58; // size:0x150 defined:True
-_gNeoArkEveAccessTunnelCollision01A9CCells = 0x8017EFA8; // size:0x38 defined:True
-_gNeoArkEveAccessTunnelCollision01A9CTable = 0x8017F04C; // size:0x10 defined:True
-D_neo_ark_eve_access_tunnel_8017F05C = 0x8017F05C; // size:0x24 defined:True
-D_neo_ark_eve_access_tunnel_8017F080 = 0x8017F080; // size:0xFC defined:True
-D_neo_ark_eve_access_tunnel_8017F17C = 0x8017F17C; // size:0x10 defined:True
+gNeoArkEveAccessTunnelCollisionRooms = 0x8017EB78; // size:0x10 defined:True
+gNeoArkEveAccessTunnelRoomLighting = 0x8017EB88; // size:0x8 defined:True
+gNeoArkEveAccessTunnelViewMaps = 0x8017EB90; // size:0x4 defined:True
+gNeoArkEveAccessTunnelViewCounts = 0x8017EB94; // size:0x2 defined:True
+gNeoArkEveAccessTunnelWarpEntries = 0x8017EB98; // size:0x70 defined:True
+_gNeoArkEveAccessTunnelCollisionGridNormals = 0x8017EC08; // size:0x98 defined:True
+_gNeoArkEveAccessTunnelCollisionGridVerts = 0x8017ECA0; // size:0x1B8 defined:True
+_gNeoArkEveAccessTunnelCollisionGridFaces = 0x8017EE58; // size:0x150 defined:True
+_gNeoArkEveAccessTunnelCollisionGridCells = 0x8017EFA8; // size:0xA4 defined:True
+_gNeoArkEveAccessTunnelCollisionGridTable = 0x8017F04C; // size:0x10 defined:True
+_gNeoArkEveAccessTunnelCollisionGrid = 0x8017F05C; // size:0x24 defined:True
+gNeoArkEveAccessTunnelViewCameras = 0x8017F080; // size:0xFC defined:True
+gNeoArkEveAccessTunnelView1SpriteBatches = 0x8017F17C; // size:0x10 defined:True
 _gNeoArkEveAccessTunnelView2SpriteBatches = 0x8017F6F0; // size:0x30 defined:True
 _gNeoArkEveAccessTunnelView3SpriteSources = 0x8017F720; // size:0x3C0 defined:True
 _gNeoArkEveAccessTunnelView3SpriteBatches = 0x8017FAE0; // size:0x30 defined:True
@@ -46,9 +46,9 @@ _gNeoArkEveAccessTunnelEncounterActorResources = 0x80180694; // size:0x24 define
 gActor102100WatcherTaskDesc = 0x80135C30; // absolute:True owner=actor_102100
 gActor205200ControllerPartTasks = 0x8014CA60; // absolute:True owner=actor_205200
 _gNeoArkEveAccessTunnelView2SpriteSources = 0x8017F18C; // size:0x564 defined:True
-D_neo_ark_eve_access_tunnel_8017EA88 = 0x8017EA88; // size:0xC defined:True
-D_neo_ark_eve_access_tunnel_8017EA94 = 0x8017EA94; // size:0x30 defined:True
-D_neo_ark_eve_access_tunnel_8017EAC4 = 0x8017EAC4; // size:0x24 defined:True
+gNeoArkEveAccessTunnelDepartureTaskDesc = 0x8017EA88; // size:0xC defined:True
+gNeoArkEveAccessTunnelRoomMessages = 0x8017EA94; // size:0x30 defined:True
+gNeoArkEveAccessTunnelEventTasks = 0x8017EAC4; // size:0x24 defined:True
 
 neoArkEveAccessTunnelDrawViewGlowsTask = 0x8017E15C; // type:func
 _glowDrawCapsule = 0x8017E244; // type:func
