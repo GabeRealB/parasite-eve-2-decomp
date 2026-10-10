@@ -27,7 +27,13 @@ extern AreaVariant D_dryfield_night_saloon_g_r_80188EE4[13];
 /// directory borrows this array only while the saloon overlay is loaded.
 extern WorldCoordRoomLighting gDryfieldNightSaloonGRRoomLighting[2];
 
-extern WorldCollisionRoomResources D_dryfield_night_saloon_g_r_80185190[];
+/// Collision resources for night-saloon rooms 1 and 2.
+///
+/// Indexed by room - 1, without a terminator. Both entries borrow the same
+/// grid, view boundaries, action triggers and two sight-blocking quads. The
+/// map directory borrows this array while the saloon overlay is loaded; its
+/// mutable trigger and occluder records must remain live until unlinked.
+extern WorldCollisionRoomResources gDryfieldNightSaloonGRRoomCollisionResources[DRYFIELD_NIGHT_SALOON_G_R_ROOM_COUNT];
 
 /// Logical-view maps for night-saloon rooms 1 and 2.
 ///
@@ -43,7 +49,18 @@ extern u8* gDryfieldNightSaloonGRViewMaps[2];
 /// array while the saloon overlay is loaded; counts are elements, not bytes.
 extern ViewCount gDryfieldNightSaloonGRViewCounts[DRYFIELD_NIGHT_SALOON_G_R_ROOM_COUNT];
 
-extern DirectionWarpEntry D_dryfield_night_saloon_g_r_801851BC[];
+/// Number of warp endpoints in the night saloon.
+enum { DRYFIELD_NIGHT_SALOON_G_R_WARP_COUNT = 2 };
+
+/// Arrival placements and door policies for night-saloon warp IDs 1 and 2.
+///
+/// Indexed by warp - 1, without a terminator. Each endpoint places player and
+/// companion together in world units, with yaw in 4096 units per turn. Warp 1
+/// selects view 2 and marker 479; warp 2 selects view 7 and marker 478. Arrival
+/// and departure use distinct room sound cues; neither endpoint has a blocked
+/// sound or spawn/departure flags. The map directory borrows the array while
+/// this overlay is loaded; transition and room-start code copy complete entries.
+extern DirectionWarpEntry gDryfieldNightSaloonGRWarpEntries[DRYFIELD_NIGHT_SALOON_G_R_WARP_COUNT];
 
 /// Cameras shared by night-saloon rooms 1 and 2 for mapped views 1..13.
 ///

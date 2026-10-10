@@ -192,10 +192,6 @@ static const char D_mist_shooting_gallery_8017DB04[];
 /// `_jukeboxDrawRow`.
 extern UiList D_mist_shooting_gallery_80185338;
 
-/// The jukebox panel's descriptor; its update routine is the menu task
-/// `_mistShootingGalleryJukeboxPanelTask`.
-extern UiObjectDesc gJukeboxPanelDesc;
-
 extern TaskDesc D_mist_shooting_gallery_80185378;
 
 static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered);
@@ -836,7 +832,22 @@ UiListRowCallback D_mist_shooting_gallery_80185334[1] = {
 
 UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .unsignedValue = 1 }, 0, 17, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, _mistShootingGalleryJukeboxPanelTask, 0 };
+/// Recipe for this overlay's SELECT jukebox panel and track-picker task.
+///
+/// Bounds are pixels relative to screen centre; the 224-by-128 panel uses
+/// ordering-table base 48 and a bodyless priority-192 task. Spawning reads the
+/// recipe synchronously and retains its content callback for the panel's
+/// lifetime, so this overlay must remain loaded until the panel closes.
+static UiObjectDesc _gJukeboxPanelDesc = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -112, -64, 224, 128 },
+    .otIndexSeed     = 48,
+    .field_E         = 0,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _mistShootingGalleryJukeboxPanelTask,
+    .taskDataValue   = 0,
+};
 
 TaskDesc D_mist_shooting_gallery_80185378 = { { { TASK_BODY_NONE, 192 } }, _jukeboxHostTask, { .value = 0 } };
 

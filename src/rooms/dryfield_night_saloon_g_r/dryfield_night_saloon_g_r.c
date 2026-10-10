@@ -96,10 +96,6 @@ extern EvsCommand D_dryfield_night_saloon_g_r_80184D2C[];
 extern EvsCommand D_dryfield_night_saloon_g_r_80183C94[];
 extern EvsCommand D_dryfield_night_saloon_g_r_801847A4[];
 
-/// Descriptor of the jukebox menu panel, whose task is
-/// `_dryfieldNightSaloonGRJukeboxMenuTask`.
-extern UiObjectDesc gJukeboxPanelDesc;
-
 /// Descriptor of the jukebox task `_jukeboxHostTask`.
 extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 
@@ -113,60 +109,43 @@ static void _dryfieldNightSaloonGRJukeboxMenuTask(Task* task);
 static WorldCoordRoomLights _gDryfieldNightSaloonGRRoomLights;
 
 static WorldCollisionGrid     _gDryfieldNightSaloonGRCollisionGrid;
-extern WorldCollisionOccluder D_dryfield_night_saloon_g_r_80188E18[2];
+static WorldCollisionOccluder _gDryfieldNightSaloonGRSightOccluders[2];
 static WorldCollisionTrigger  _gDryfieldNightSaloonGRViewBoundaryTriggers[16];
 static WorldCollisionTrigger  _gDryfieldNightSaloonGRActionTriggers[21];
 
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_8018397C;
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183990;
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_801839B8;
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_801839CC;
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_801839F4;
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A08;
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A1C;
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A6C;
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183A94;
-extern AnimationPlayRequest     D_dryfield_night_saloon_g_r_80183AA8;
-extern AnimationBankCopyRequest D_dryfield_night_saloon_g_r_8018394C;
-extern GameActorMoveAnim        D_dryfield_night_saloon_g_r_80183B34;
-extern ActorTransform           D_dryfield_night_saloon_g_r_80183ABC;
-extern ActorTransform           D_dryfield_night_saloon_g_r_80183AD4;
-extern ActorTransform           D_dryfield_night_saloon_g_r_80183AEC;
-extern ActorTransform           D_dryfield_night_saloon_g_r_80183B04;
-extern ActorTransform           D_dryfield_night_saloon_g_r_80183B1C;
-static const char               _gDryfieldNightSaloonGRJukeboxRow3HeavenSentKillerLabel[22];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2EagerForBloodLabel[19];
-static const char               _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel[14];
-static const char               _gDryfieldNightSaloonGRJukeboxRow3CrawlingWasteEmperorLabel[26];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2PickUpTheGauntletLabel[24];
-static const char               _gDryfieldNightSaloonGRJukeboxRow3HuntersMoonLabel[17];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2QuadrumanousLeaderLabel[23];
-static const char               _gDryfieldNightSaloonGRJukeboxRow3GenicReactorLabel[17];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2RebelForcesLabel[16];
-static const char               _gDryfieldNightSaloonGRJukeboxRow1YellowRainLabel[15];
-static const char               _gDryfieldNightSaloonGRJukeboxRow3PickUpTheGauntletLabel[24];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2AmbushLabel[11];
-static const char               _gDryfieldNightSaloonGRJukeboxRow4DarkVoiceOfTheHeartLabel[27];
-static const char               _gDryfieldNightSaloonGRJukeboxRow3RequiemLabel[11];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2RockAndFireLabel[17];
-static const char               _gDryfieldNightSaloonGRJukeboxRow1GhostTownLabel[14];
-static const char               _gDryfieldNightSaloonGRJukeboxRow4SnooperLabel[11];
-static const char               _gDryfieldNightSaloonGRJukeboxRow3WildHuntLabel[13];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2LightningOperationLabel[23];
-static const char               _gDryfieldNightSaloonGRJukeboxRow1LaMazeLabel[13];
-static const char               _gDryfieldNightSaloonGRJukeboxRow4GenicReactorLabel[17];
-static const char               _gDryfieldNightSaloonGRJukeboxRow3MentalAgonyLabel[16];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2WishwashLabel[12];
-static const char               _gDryfieldNightSaloonGRJukeboxRow1CurseYourFateLabel[20];
-static const char               _gDryfieldNightSaloonGRJukeboxRow4KillingFieldLabel[17];
-static const char               _gDryfieldNightSaloonGRJukeboxRow3FoolsParadiseLabel[19];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2GazingIntoTheVoidLabel[24];
-static const char               _gDryfieldNightSaloonGRJukeboxRow1ManMadeNatureLabel[19];
-static const char               _gDryfieldNightSaloonGRJukeboxRow4LazingAwayTheMorningLabel[27];
-static const char               _gDryfieldNightSaloonGRJukeboxRow3OutOfPhase2Label[18];
-static const char               _gDryfieldNightSaloonGRJukeboxRow2TheVagrantsLabel[16];
-static const char               _gDryfieldNightSaloonGRJukeboxRow1TowerRendezvousLabel[20];
-static void                     _dryfieldNightSaloonGRSetRoom(u8 roomId);
+static const char _gDryfieldNightSaloonGRJukeboxRow3HeavenSentKillerLabel[22];
+static const char _gDryfieldNightSaloonGRJukeboxRow2EagerForBloodLabel[19];
+static const char _gDryfieldNightSaloonGRJukeboxRow1CrazyKingLabel[14];
+static const char _gDryfieldNightSaloonGRJukeboxRow3CrawlingWasteEmperorLabel[26];
+static const char _gDryfieldNightSaloonGRJukeboxRow2PickUpTheGauntletLabel[24];
+static const char _gDryfieldNightSaloonGRJukeboxRow3HuntersMoonLabel[17];
+static const char _gDryfieldNightSaloonGRJukeboxRow2QuadrumanousLeaderLabel[23];
+static const char _gDryfieldNightSaloonGRJukeboxRow3GenicReactorLabel[17];
+static const char _gDryfieldNightSaloonGRJukeboxRow2RebelForcesLabel[16];
+static const char _gDryfieldNightSaloonGRJukeboxRow1YellowRainLabel[15];
+static const char _gDryfieldNightSaloonGRJukeboxRow3PickUpTheGauntletLabel[24];
+static const char _gDryfieldNightSaloonGRJukeboxRow2AmbushLabel[11];
+static const char _gDryfieldNightSaloonGRJukeboxRow4DarkVoiceOfTheHeartLabel[27];
+static const char _gDryfieldNightSaloonGRJukeboxRow3RequiemLabel[11];
+static const char _gDryfieldNightSaloonGRJukeboxRow2RockAndFireLabel[17];
+static const char _gDryfieldNightSaloonGRJukeboxRow1GhostTownLabel[14];
+static const char _gDryfieldNightSaloonGRJukeboxRow4SnooperLabel[11];
+static const char _gDryfieldNightSaloonGRJukeboxRow3WildHuntLabel[13];
+static const char _gDryfieldNightSaloonGRJukeboxRow2LightningOperationLabel[23];
+static const char _gDryfieldNightSaloonGRJukeboxRow1LaMazeLabel[13];
+static const char _gDryfieldNightSaloonGRJukeboxRow4GenicReactorLabel[17];
+static const char _gDryfieldNightSaloonGRJukeboxRow3MentalAgonyLabel[16];
+static const char _gDryfieldNightSaloonGRJukeboxRow2WishwashLabel[12];
+static const char _gDryfieldNightSaloonGRJukeboxRow1CurseYourFateLabel[20];
+static const char _gDryfieldNightSaloonGRJukeboxRow4KillingFieldLabel[17];
+static const char _gDryfieldNightSaloonGRJukeboxRow3FoolsParadiseLabel[19];
+static const char _gDryfieldNightSaloonGRJukeboxRow2GazingIntoTheVoidLabel[24];
+static const char _gDryfieldNightSaloonGRJukeboxRow1ManMadeNatureLabel[19];
+static const char _gDryfieldNightSaloonGRJukeboxRow4LazingAwayTheMorningLabel[27];
+static const char _gDryfieldNightSaloonGRJukeboxRow3OutOfPhase2Label[18];
+static const char _gDryfieldNightSaloonGRJukeboxRow2TheVagrantsLabel[16];
+static const char _gDryfieldNightSaloonGRJukeboxRow1TowerRendezvousLabel[20];
+static void       _dryfieldNightSaloonGRSetRoom(u8 roomId);
 
 static s32  _dryfieldNightSaloonGRRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
 static s32  _dryfieldNightSaloonGRCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedSecondArg);
@@ -566,7 +545,13 @@ static AnimationSet _gDryfieldNightSaloonGRAnimation0631C = {
     { NULL, _gDryfieldNightSaloonGRAnimation0631CBank1, NULL, NULL, _gDryfieldNightSaloonGRAnimation0631CBank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_dryfield_night_saloon_g_r_80183904[18] = {
+/// Player animation-bank extension for the night-saloon dialogue scenes.
+///
+/// Entries 0..17 become clip IDs 47..64 in the equipped weapon's loaded bank;
+/// entry 0 is NULL and entries 1..17 borrow the room's animation sets. There is
+/// no terminator. Keep these sets and their pose/track data loaded through
+/// playback, even after the synchronous bank copy has returned.
+static AnimationSet* _gDryfieldNightSaloonGRPlayerDialogueAnimationSets[] = {
     NULL,
     &_gDryfieldNightSaloonGRAnimation02668,
     &_gDryfieldNightSaloonGRAnimation04C24,
@@ -587,7 +572,15 @@ AnimationSet* D_dryfield_night_saloon_g_r_80183904[18] = {
     &_gDryfieldNightSaloonGRAnimation04238,
 };
 
-AnimationBankCopyRequest D_dryfield_night_saloon_g_r_8018394C = { { .sets = D_dryfield_night_saloon_g_r_80183904 }, ARRAY_SIZE(D_dryfield_night_saloon_g_r_80183904) };
+/// Installs all 18 night-saloon dialogue entries in the player's bank extension.
+///
+/// Copies only set-pointer words, including the leading NULL. The request and
+/// source table are borrowed through dispatch; the copied sets stay borrowed
+/// throughout playback. The bank's later extension words are left unchanged.
+static AnimationBankCopyRequest _gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest = {
+    .source    = { .sets = _gDryfieldNightSaloonGRPlayerDialogueAnimationSets },
+    .wordCount = ARRAY_SIZE(_gDryfieldNightSaloonGRPlayerDialogueAnimationSets),
+};
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183954 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -610,23 +603,100 @@ static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip48Request =
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_8018397C = { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 49, entry 2 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip49Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183990 = { { .index = 1 }, 50, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 50, entry 3 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip50Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_801839A4 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_801839B8 = { { .index = 1 }, 52, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 52, entry 5 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip52Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_801839CC = { { .index = 1 }, 53, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 53, entry 6 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip53Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 6,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_801839E0 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_801839F4 = { { .index = 1 }, 55, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 55, entry 8 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip55Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 8,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A08 = { { .index = 1 }, 56, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 56, entry 9 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip56Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 9,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A1C = { { .index = 1 }, 57, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 57, entry 10 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip57Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 10,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A30[3] = {
     { { .index = 1 }, 58, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -634,25 +704,106 @@ AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A30[3] = {
     { { .index = 1 }, 60, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A6C = { { .index = 1 }, 61, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 61, entry 14 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip61Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 14,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A80 = { { .index = 1 }, 62, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A94 = { { .index = 1 }, 63, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 63, entry 16 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip63Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 16,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183AA8 = { { .index = 1 }, 64, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays player dialogue clip 64, entry 17 of the room's bank extension.
+///
+/// Interpolates over 15 normal-rate frames and disables world collision.
+/// The event dispatcher copies this request and substitutes the equipped
+/// weapon's bank for the stored source index 1. Clip data stays room-owned.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip64Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 17,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_dryfield_night_saloon_g_r_80183ABC = { { 950, 0, -180, 0 }, { 0, 530, 0, 0 } };
+/// Player placement at the start of the entry scene and in its skip path.
+///
+/// Both paths copy position and Euler angles into the live player model.
+/// Position uses room/world game units; yaw uses 4096 units per turn.
+/// Borrowed through synchronous dispatch; the receiver retains values only.
+static ActorTransform _gDryfieldNightSaloonGRPlayerEntrySceneStartTransform = {
+    .pos = { 950, 0, -180, 0 },
+    .rot = { 0, 530, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_saloon_g_r_80183AD4 = { { 1640, 0, 510, 0 }, { 0, 530, 0, 0 } };
+/// Player destination for the entry scene's scripted walk.
+///
+/// The move handler copies XYZ only; the stored Euler angles are unread.
+/// Position uses room/world game units; yaw uses 4096 units per turn.
+/// Borrowed through synchronous dispatch; the receiver retains values only.
+static ActorTransform _gDryfieldNightSaloonGRPlayerEntrySceneWalkTarget = {
+    .pos = { 1640, 0, 510, 0 },
+    .rot = { 0, 530, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_saloon_g_r_80183AEC = { { 2150, 0, 545, 0 }, { 0, 470, 0, 0 } };
+/// Player placement for the first optional conversation with Kyle.
+///
+/// The placement handler copies position and all three Euler angles.
+/// Position uses room/world game units; yaw uses 4096 units per turn.
+/// Borrowed through synchronous dispatch; the receiver retains values only.
+static ActorTransform _gDryfieldNightSaloonGRPlayerFirstTalkTransform = {
+    .pos = { 2150, 0, 545, 0 },
+    .rot = { 0, 470, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_saloon_g_r_80183B04 = { { 2150, 0, 545, 0 }, { 0, 470, 0, 0 } };
+/// Player placement for the repeat optional conversation with Kyle.
+///
+/// Retained as a separate recipe from the first talk, with the same values.
+/// Position uses room/world game units; yaw uses 4096 units per turn.
+/// Borrowed through synchronous dispatch; the receiver retains values only.
+static ActorTransform _gDryfieldNightSaloonGRPlayerRepeatTalkTransform = {
+    .pos = { 2150, 0, 545, 0 },
+    .rot = { 0, 470, 0, 0 },
+};
 
-ActorTransform D_dryfield_night_saloon_g_r_80183B1C = { { 4110, 0, 1730, 0 }, { 0, -1024, 0, 0 } };
+/// Player placement for the follow-up conversation with Kyle.
+///
+/// The placement handler copies position and all three Euler angles.
+/// Position uses room/world game units; yaw uses 4096 units per turn.
+/// Borrowed through synchronous dispatch; the receiver retains values only.
+static ActorTransform _gDryfieldNightSaloonGRPlayerFollowUpTalkTransform = {
+    .pos = { 4110, 0, 1730, 0 },
+    .rot = { 0, -(ACTOR_TRANSFORM_ANGLE_TURN / 4), 0, 0 },
+};
 
-GameActorMoveAnim D_dryfield_night_saloon_g_r_80183B34 = { 62, 48 };
+/// Approach and arrival clips for the player's entry-scene walk.
+///
+/// Clip 62 (extension entry 15) drives the approach; clip 48 (entry 1) plays
+/// on arrival. The move handler copies their low halfwords during dispatch.
+/// Both clips require the room extension installed in the current weapon bank.
+static GameActorMoveAnim _gDryfieldNightSaloonGRPlayerEntrySceneMoveClips = {
+    .approachAnimId = ANIMATION_BANK_BASE_SET_COUNT + 15,
+    .arrivalAnimId  = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_SET,
+};
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183B3C[2] = {
     { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -677,24 +828,118 @@ static AnimationPlayRequest _gDryfieldNightSaloonGRKyleInitialPoseRequest = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183B78 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES = 15,
+    DRYFIELD_NIGHT_SALOON_G_R_KYLE_SHORT_BLEND_FRAMES    = 10,
+    DRYFIELD_NIGHT_SALOON_G_R_KYLE_LONG_BLEND_FRAMES     = 25,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183B8C = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 3 with a 15-frame blend.
+///
+/// Placed actor 0 borrows the request through synchronous dispatch. A ticking
+/// rig interpolates slots 1..19; an unticked rig resets them. The collision
+/// word is ignored by this actor. Kyle's bank and clip data must stay loaded.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip3Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 3,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BA0 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 4 with a 10-frame blend.
+///
+/// Placed actor 0 borrows the request through synchronous dispatch. A ticking
+/// rig interpolates slots 1..19; an unticked rig resets them. The collision
+/// word is ignored by this actor. Kyle's bank and clip data must stay loaded.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip4Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 4,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_SHORT_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BB4 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 5 with a 10-frame blend.
+///
+/// Placed actor 0 borrows the request through synchronous dispatch. A ticking
+/// rig interpolates slots 1..19; an unticked rig resets them. The collision
+/// word is ignored by this actor. Kyle's bank and clip data must stay loaded.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip5Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 5,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_SHORT_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BC8 = { { .index = 0 }, 7, ANIMATION_BLEND_INTERPOLATE, 25, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 6 with a 15-frame blend.
+///
+/// Placed actor 0 borrows the request through synchronous dispatch. A ticking
+/// rig interpolates slots 1..19; an unticked rig resets them. The collision
+/// word is ignored by this actor. Kyle's bank and clip data must stay loaded.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip6Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 6,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BDC = { { .index = 0 }, 8, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 7 with a 25-frame blend.
+///
+/// Placed actor 0 borrows the request through synchronous dispatch. A ticking
+/// rig interpolates slots 1..19; an unticked rig resets them. The collision
+/// word is ignored by this actor. Kyle's bank and clip data must stay loaded.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip7Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 7,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_LONG_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Plays Kyle Madigan's bank-0 dialogue clip 8 with a 15-frame blend.
+///
+/// Placed actor 0 borrows the request through synchronous dispatch. A ticking
+/// rig interpolates slots 1..19; an unticked rig resets them. The collision
+/// word is ignored by this actor. Kyle's bank and clip data must stay loaded.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip8Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 8,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 // Retained parameter record; layout follows the adjacent script arguments.
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BF0 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C04 = { { .index = 0 }, 10, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 10 with a 15-frame blend.
+///
+/// Placed actor 0 borrows the request through synchronous dispatch. A ticking
+/// rig interpolates slots 1..19; an unticked rig resets them. The collision
+/// word is ignored by this actor. Kyle's bank and clip data must stay loaded.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip10Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 10,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C18 = { { .index = 0 }, 11, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 11 with a 15-frame blend.
+///
+/// Placed actor 0 borrows the request through synchronous dispatch. A ticking
+/// rig interpolates slots 1..19; an unticked rig resets them. The collision
+/// word is ignored by this actor. Kyle's bank and clip data must stay loaded.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip11Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 11,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C2C = { { .index = 0 }, 12, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -702,20 +947,39 @@ AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C40 = { { .index = 0 }, 13
 
 AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C54 = { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C68 = { { .index = 0 }, 15, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 15 with a 15-frame blend.
+///
+/// Placed actor 0 borrows the request through synchronous dispatch. A ticking
+/// rig interpolates slots 1..19; an unticked rig resets them. The collision
+/// word is ignored by this actor. Kyle's bank and clip data must stay loaded.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip15Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 15,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-ActorTransform D_dryfield_night_saloon_g_r_80183C7C = { { 2670, 0, 1520, 0 }, { 0, 1024, 0, 0 } };
+/// Kyle Madigan's placement for the entry and optional dialogue scenes.
+///
+/// Placed actor 0 receives position and Euler rotation before playback.
+/// Position uses room/world game units; yaw uses 4096 units per turn.
+/// Borrowed through synchronous dispatch; the receiver retains values only.
+static ActorTransform _gDryfieldNightSaloonGRKyleDialogueTransform = {
+    .pos = { 2670, 0, 1520, 0 },
+    .rot = { 0, (ACTOR_TRANSFORM_ANGLE_TURN / 4), 0, 0 },
+};
 
 EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183ABC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerEntrySceneStartTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRKyleDialogueTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1010 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183AD4 } }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B34 } } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerEntrySceneWalkTarget } }, { .message = { .moveAnimation = &_gDryfieldNightSaloonGRPlayerEntrySceneMoveClips } } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -724,93 +988,93 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C68 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip15Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B78 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183AA8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip64Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C40 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x53120007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183AA8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip64Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B8C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BA0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_8018397C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C54 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183990 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BB4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip50Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x53120008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 45 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_801839B8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_801839CC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BC8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip53Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C18 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BDC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BC8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C18 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BDC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183A08 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BC8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C18 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183A1C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip57Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183AA8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip64Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BC8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C18 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_801839B8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x53120009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_801839F4 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip55Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C04 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_801839B8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BC8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip52Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C18 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183BDC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183A94 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip63Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -830,7 +1094,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
 EvsCommand D_dryfield_night_saloon_g_r_801847A4[13] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183ABC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerEntrySceneStartTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
@@ -845,10 +1109,10 @@ EvsCommand D_dryfield_night_saloon_g_r_801847A4[13] = {
 
 EvsCommand D_dryfield_night_saloon_g_r_801848DC[25] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183AEC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerFirstTalkTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRKyleDialogueTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
@@ -857,11 +1121,11 @@ EvsCommand D_dryfield_night_saloon_g_r_801848DC[25] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C68 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip15Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B78 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183A6C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -873,19 +1137,19 @@ EvsCommand D_dryfield_night_saloon_g_r_801848DC[25] = {
 
 EvsCommand D_dryfield_night_saloon_g_r_80184B34[21] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B04 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerRepeatTalkTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRKyleDialogueTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C68 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip15Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_saloon_g_r_80183AA8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip64Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -897,10 +1161,10 @@ EvsCommand D_dryfield_night_saloon_g_r_80184B34[21] = {
 
 EvsCommand D_dryfield_night_saloon_g_r_80184D2C[20] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_8018394C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183B1C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerFollowUpTalkTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C7C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRKyleDialogueTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
@@ -1082,7 +1346,22 @@ static UiList _gDryfieldNightSaloonGRJukeboxList = {
     .rowHeight       = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_ROW_HEIGHT_PIXELS,
 };
 
-UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, _dryfieldNightSaloonGRJukeboxMenuTask, 0 };
+/// Recipe for this overlay's SELECT jukebox panel and track-picker task.
+///
+/// Bounds are pixels relative to screen centre; the 224-by-128 panel uses
+/// ordering-table base 48 and a bodyless priority-192 task. Spawning reads the
+/// recipe synchronously and retains its content callback for the panel's
+/// lifetime, so this overlay must remain loaded until the panel closes.
+static UiObjectDesc _gJukeboxPanelDesc = {
+    .style           = USER_INTERFACE_PANEL_TITLE_STYLE,
+    .bounds          = { -112, -64, 224, 128 },
+    .otIndexSeed     = 48,
+    .field_E         = 0,
+    .taskFlags       = TASK_BODY_NONE,
+    .taskPriority    = 192,
+    .contentCallback = _dryfieldNightSaloonGRJukeboxMenuTask,
+    .taskDataValue   = 0,
+};
 
 TaskDesc D_dryfield_night_saloon_g_r_80185068 = { { { TASK_BODY_NONE, 192 } }, _jukeboxHostTask, { .value = 0 } };
 
@@ -1161,9 +1440,19 @@ WorldCoordRoomLighting gDryfieldNightSaloonGRRoomLighting[2] = {
     { .lights = &_gDryfieldNightSaloonGRRoomLights, .ambientTable = NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_saloon_g_r_80185190[2] = {
-    { &_gDryfieldNightSaloonGRCollisionGrid, _gDryfieldNightSaloonGRViewBoundaryTriggers, _gDryfieldNightSaloonGRActionTriggers, D_dryfield_night_saloon_g_r_80188E18 },
-    { &_gDryfieldNightSaloonGRCollisionGrid, _gDryfieldNightSaloonGRViewBoundaryTriggers, _gDryfieldNightSaloonGRActionTriggers, D_dryfield_night_saloon_g_r_80188E18 },
+WorldCollisionRoomResources gDryfieldNightSaloonGRRoomCollisionResources[DRYFIELD_NIGHT_SALOON_G_R_ROOM_COUNT] = {
+    {
+        .grid                 = &_gDryfieldNightSaloonGRCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightSaloonGRViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightSaloonGRActionTriggers,
+        .occluders            = _gDryfieldNightSaloonGRSightOccluders,
+    },
+    {
+        .grid                 = &_gDryfieldNightSaloonGRCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightSaloonGRViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightSaloonGRActionTriggers,
+        .occluders            = _gDryfieldNightSaloonGRSightOccluders,
+    },
 };
 
 u8* gDryfieldNightSaloonGRViewMaps[2] = {
@@ -1176,9 +1465,36 @@ ViewCount gDryfieldNightSaloonGRViewCounts[DRYFIELD_NIGHT_SALOON_G_R_ROOM_COUNT]
     DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT,
 };
 
-DirectionWarpEntry D_dryfield_night_saloon_g_r_801851BC[2] = {
-    { { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, { { .word = 0 }, 2386, 0, -4661 }, { 0, 0, 0, 0 }, 0x53120002, 0x53120001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 479 },
-    { { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4665, 0, 4567 }, { 0, 0, 0, 0 }, 0x53120004, 0x53120003, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, 478 },
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_WARP1_MAP_FLAG = 479,
+    DRYFIELD_NIGHT_SALOON_G_R_WARP2_MAP_FLAG = 478,
+};
+
+DirectionWarpEntry gDryfieldNightSaloonGRWarpEntries[DRYFIELD_NIGHT_SALOON_G_R_WARP_COUNT] = {
+    {
+        .player         = { { .word = 0 }, 2386, 0, -4661 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, 2386, 0, -4661 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_SALOON_G_R_WARP1_MAP_FLAG,
+    },
+    {
+        .player         = { { .word = 3 * (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, 4665, 0, 4567 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3 * (ACTOR_TRANSFORM_ANGLE_TURN / 4) }, 4665, 0, 4567 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 3),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 7,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_SALOON_G_R_WARP2_MAP_FLAG,
+    },
 };
 
 enum {
@@ -1988,9 +2304,34 @@ static WorldCollisionTrigger _gDryfieldNightSaloonGRActionTriggers[21] = {
     { NULL, NULL, NULL, { 3904, -64, 1664, 0 }, { { 704, 0, -1983, 0 }, { 704, 0, 1984, 0 }, { -704, 0, -1983, 0 }, { -704, 0, 1984, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, -201, 0 }, 2095, WORLD_COLLISION_TRIGGER_ACTION_CAP, 14, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_dryfield_night_saloon_g_r_80188E18[2] = {
-    { NULL, NULL, { -1056, -1392, 5216, 0 }, { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } }, { 0, 0, -4109, 0 }, 2442, 1, 0 },
-    { NULL, NULL, { 2048, -1376, 5215, 0 }, { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } }, { 0, 0, -4109, 0 }, 2442, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
+/// Two room-space sight-blocking quads shared by both night-saloon rooms.
+///
+/// Origins and corner offsets use signed game units; normals use Q12.
+/// Setup links and enables both quads, including the second marked LAST.
+/// Runtime next/prevLink fields and flags are mutable; keep storage loaded
+/// until unlinked. The retained low flag bit and final byte have no proven
+/// interpretation. The radius is retained but unused by segment sight tests.
+static WorldCollisionOccluder _gDryfieldNightSaloonGRSightOccluders[2] = {
+    {
+        .next       = NULL,
+        .prevLink   = NULL,
+        .origin     = { -1056, -1392, 5216, 0 },
+        .vertices   = { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } },
+        .normal     = { 0, 0, -4109, 0 },
+        .radius     = 2442,
+        .flags      = 1,
+        .unknown_3B = 0,
+    },
+    {
+        .next       = NULL,
+        .prevLink   = NULL,
+        .origin     = { 2048, -1376, 5215, 0 },
+        .vertices   = { { -1024, -2224, 0, 0 }, { 1024, -2224, 0, 0 }, { -1024, 2224, 0, 0 }, { 1024, 2224, 0, 0 } },
+        .normal     = { 0, 0, -4109, 0 },
+        .radius     = 2442,
+        .flags      = 1 | WORLD_COLLISION_OCCLUDER_LAST,
+        .unknown_3B = 0,
+    },
 };
 
 AreaResource D_dryfield_night_saloon_g_r_80188E90[2] = {

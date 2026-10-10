@@ -22,7 +22,7 @@ static void _jukeboxHostTask(Task* task)
 
     if (task->state == JUKEBOX_HOST_OPEN) {
         stageEnsureHeapTaskPrimitiveBuffer();
-        panel = uiSpawnObject(&gJukeboxPanelDesc, task->spawnArg1, JUKEBOX_HOST_CONTROL_MODE, JUKEBOX_HOST_OPEN_DELAY, NULL);
+        panel = uiSpawnObject(&_gJukeboxPanelDesc, task->spawnArg1, JUKEBOX_HOST_CONTROL_MODE, JUKEBOX_HOST_OPEN_DELAY, NULL);
         if (panel == NULL) {
             return;
         }
