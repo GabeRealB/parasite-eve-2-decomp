@@ -46,9 +46,9 @@ gActor101200BoneSucklerTaskDesc = 0x80138E98; // absolute:True owner=actor_10120
 gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_104000
 gActor01500MindSucklerTaskDesc = 0x80153E28; // absolute:True owner=actor_201500
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
-D_map_dryfield_8017B0B4 = 0x8017B0B4; // absolute:True owner=map_dryfield
-D_map_dryfield_8017B0E4 = 0x8017B0E4; // absolute:True owner=map_dryfield
-D_map_dryfield_8017B154 = 0x8017B154; // absolute:True owner=map_dryfield
+gMapDryfieldMotelRoom2Variant1Placements = 0x8017B0B4; // absolute:True owner=map_dryfield
+gMapDryfieldMotelRoom2Variant2Placements = 0x8017B0E4; // absolute:True owner=map_dryfield
+gMapDryfieldMotelRoom2Variant7Placements = 0x8017B154; // absolute:True owner=map_dryfield
 
 dryfieldMotelRoom2EffectNoopTaskCA = 0x8017D6B4; // type:func
 _dryfieldMotelRoom2RejectKeyItemUse = 0x8017d5d0; // type:func

@@ -648,7 +648,7 @@ AreaResource D_dryfield_r08_80180B70[2] = {
 
 AreaVariant D_dryfield_r08_80180B88[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017AF44, D_dryfield_r08_80180B70 },
+    { gMapDryfieldR08Variant1Placements, D_dryfield_r08_80180B70 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

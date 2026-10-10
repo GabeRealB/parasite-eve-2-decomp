@@ -2649,7 +2649,7 @@ AreaResource D_dryfield_dilapidated_house_80189914[3] = {
 
 AreaVariant D_dryfield_dilapidated_house_80189938[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017AF64, D_dryfield_dilapidated_house_80189914 },
+    { gMapDryfieldDilapidatedHouseVariant1Placements, D_dryfield_dilapidated_house_80189914 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

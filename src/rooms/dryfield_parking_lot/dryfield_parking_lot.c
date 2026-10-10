@@ -596,13 +596,13 @@ static AreaResource _gDryfieldParkingLotVariant7Resources[2] = {
 
 AreaVariant D_dryfield_parking_lot_8017FA74[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B1C4, _gDryfieldParkingLotVariant1Resources },
-    { D_map_dryfield_8017B1D4, _gDryfieldParkingLotVariant2Resources },
-    { D_map_dryfield_8017B204, _gDryfieldParkingLotVariant3Resources },
+    { gMapDryfieldParkingLotVariant1Placements, _gDryfieldParkingLotVariant1Resources },
+    { gMapDryfieldParkingLotVariant2Placements, _gDryfieldParkingLotVariant2Resources },
+    { gMapDryfieldParkingLotVariant3Placements, _gDryfieldParkingLotVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017B284, _gDryfieldParkingLotVariant7Resources },
+    { gMapDryfieldParkingLotVariant7Placements, _gDryfieldParkingLotVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

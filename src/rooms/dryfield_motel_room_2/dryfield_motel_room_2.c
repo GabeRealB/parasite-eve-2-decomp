@@ -1053,13 +1053,13 @@ static AreaResource _gDryfieldMotelRoom2Variant7Resources[3] = {
 
 AreaVariant D_dryfield_motel_room_2_80180410[12] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B0B4, _gDryfieldMotelRoom2Variant1Resources },
-    { D_map_dryfield_8017B0E4, _gDryfieldMotelRoom2Variant2Resources },
+    { gMapDryfieldMotelRoom2Variant1Placements, _gDryfieldMotelRoom2Variant1Resources },
+    { gMapDryfieldMotelRoom2Variant2Placements, _gDryfieldMotelRoom2Variant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017B154, _gDryfieldMotelRoom2Variant7Resources },
+    { gMapDryfieldMotelRoom2Variant7Placements, _gDryfieldMotelRoom2Variant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

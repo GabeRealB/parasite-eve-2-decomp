@@ -675,8 +675,8 @@ static AreaResource _gDryfieldToiletAmoebaResources[2] = {
 
 AreaVariant D_dryfield_toilet_80182918[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B2A4, _gDryfieldToiletEncounterResources },
-    { D_map_dryfield_8017B2D4, _gDryfieldToiletBoneSucklerResources },
+    { gMapDryfieldToiletEncounterPlacements, _gDryfieldToiletEncounterResources },
+    { gMapDryfieldToiletBoneSucklerPlacements, _gDryfieldToiletBoneSucklerResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

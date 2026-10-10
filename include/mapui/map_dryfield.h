@@ -12,14 +12,30 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/gfx_types.h"
 #include "main/session_types.h"
 #include "main/stage_types.h"
 #include "main/task_types.h"
 
-extern GfxImageSlot D_map_dryfield_80179A14[];
+/// Captured-frame and auxiliary-heap RAM regions for daytime Dryfield.
+///
+/// Indexed directly by area ID (0..38), without a terminator. Areas 10, 33
+/// and 35..37 are empty and cannot be selected for frame transfer. Nonempty
+/// extents end at the resident image workspace; they are not frame lengths.
+/// Slot 0 retains the MIST-parking region also stored by other stage maps;
+/// its purpose is unproven. Keep this map loaded while selecting a slot;
+/// the selected RAM arena is separate borrowed storage.
+extern GfxImageSlot gMapDryfieldImageSlots[GAME_AREA_DRYFIELD_UNDERPASS + 1];
 
-extern s32 D_map_dryfield_80179B4C[];
+/// Movie-workspace reservation sizes in bytes for daytime Dryfield.
+///
+/// Indexed directly by the live save's area ID (0..31); Gas Station requests
+/// 0x2A00 bytes and every other entry requests no allocation. Areas 32..38
+/// have no entries. The CD subsystem reads this row only after finding a movie
+/// slot; a lookup still requires an area within this row's extent. These are
+/// total workspace sizes, not frame sizes. Keep this map loaded for lookup.
+extern s32 gMapDryfieldMovieWorkspaceBytesByArea[32];
 
 extern StageMusicEntry D_map_dryfield_8017BDE0[];
 
@@ -43,8 +59,15 @@ extern MenuMapIcon D_map_dryfield_80179FEC[];
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
 extern MenuMapAreaName D_map_dryfield_8017A044[];
 
-/// This stage's `Gp_Bit2Banks` room table, ended by `AREA_OBJECT_ROOM_END`.
-extern AreaObjectRoom D_map_dryfield_8017A564[];
+/// Placed-object lists and spawn recipes for daytime Dryfield.
+///
+/// Indexed directly by area ID (0..38); areas without objects have two NULL
+/// pointers. Entry 39 stores `AREA_OBJECT_ROOM_END` for flag-seeding walks.
+/// Place lists borrow gameplay storage; spawn recipes belong to this map.
+/// Only Junk Yard's Wire Rope and Trailer Coach's M950 container lid have
+/// model-backed recipes. Keep the map and selected room geometry loaded while
+/// their spawned tasks use them.
+extern AreaObjectRoom gMapDryfieldObjectRooms[GAME_AREA_DRYFIELD_UNDERPASS + 2];
 
 /// This stage's `D_8010FABC` entry: the task each room starts, keyed by
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
@@ -81,57 +104,268 @@ extern ViewIndexTable gMapDryfieldViewIndexTable;
 /// separate extents. Room-owned mutable sprite resources must remain loaded.
 extern SpriteAreaTable gMapDryfieldSpriteAreaTable;
 
-extern WorldCollisionSurfaceProperties** D_map_dryfield_8017AC9C[];
+/// Per-area collision surface-class directories for daytime Dryfield.
+///
+/// Indexed by area ID minus one (0..37), then by surface class (0..7),
+/// independently of room variant. Areas 10, 33 and 35..37 have NULL entries;
+/// no level has a terminator. Lookups require a populated area slot. Each
+/// nonempty entry borrows eight property pointers from its room overlay;
+/// keep both this map and the selected room overlay loaded during use.
+extern WorldCollisionSurfaceProperties** gMapDryfieldSurfacePropertiesByArea[GAME_AREA_DRYFIELD_UNDERPASS];
 
-/// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
-/// records point at them, one list per location.
-extern AreaPlacement D_map_dryfield_8017AD34[];
+/// Empty actor-placement list for daytime Gas Station variant 1.
+///
+/// Contains only `AREA_PLACEMENT_END`; it spawns no actors.
+/// This map-owned record must remain loaded while its room variant uses it.
+extern AreaPlacement gMapDryfieldGasStationVariant1Placements[1];
 
-extern AreaPlacement D_map_dryfield_8017AD44[];
+/// Cutscene and regular Desert Chasers for daytime Main Street variant 1.
+///
+/// The regular actor starts approaching with its second tuning; the cutscene
+/// actor starts at the origin.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMainStreetVariant1Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017AD74[];
+/// Six buried ambush Scorpions for daytime Main Street variant 2.
+///
+/// The first two lead the ambush; four followers wait for its signal.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMainStreetVariant2Placements[7];
 
-extern AreaPlacement D_map_dryfield_8017ADE4[];
+/// Two steering Desert Chasers for daytime Main Street variant 3.
+///
+/// Both use the second tuning row.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMainStreetVariant3Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017AE14[];
+/// Beam Sword Pawn and Rook GOLEMs for daytime Main Street variant 7.
+///
+/// The Pawn patrols 6000 world units and the Rook patrols 4000.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMainStreetVariant7Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017AE44[];
+/// Five Blood Sucklers for daytime General Store variant 1.
+///
+/// All five start patrolling.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldGeneralStoreVariant1Placements[6];
 
-extern AreaPlacement D_map_dryfield_8017AEA4[];
+/// Two steering Desert Chasers for daytime Back Street variant 1.
+///
+/// Both use the second tuning row and texture-page/CLUT-row shifts of +2/+4.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldBackStreetDesertChaserPlacements[3];
 
-extern AreaPlacement D_map_dryfield_8017AED4[];
+/// Beam Sword and grenade-launcher Pawn GOLEMs for daytime Back Street variant 7.
+///
+/// The sword Pawn patrols 6000 world units; the launcher Pawn starts idle.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldBackStreetPawnGolemPlacements[3];
 
-extern AreaPlacement D_map_dryfield_8017AF04[];
+/// One Mind Suckler and two Blood Sucklers for daytime Souvenir Shop variant 1.
+///
+/// The Mind Suckler starts on a wall with later wall settling disabled. Both
+/// Blood Sucklers start idle.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldSouvenirShopDefaultPlacements[4];
 
-extern AreaPlacement D_map_dryfield_8017AF44[];
+/// Aya double scene actor for daytime area R08 variant 1.
+///
+/// Entry 132 selects the room resource recipe for the Aya double scene task.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldR08Variant1Placements[2];
 
-extern AreaPlacement D_map_dryfield_8017AF64[];
+/// No. 9 GOLEM and the ANMC woman for daytime Dilapidated House variant 1.
+///
+/// Entries 34 and 29 select the room-owned No. 9 and ANMC-woman recipes.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldDilapidatedHouseVariant1Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017AF94[];
+/// Empty actor-placement list for daytime Motel Room 1 variant 1.
+///
+/// Contains only `AREA_PLACEMENT_END`; it spawns no actors.
+/// This map-owned record must remain loaded while its room variant uses it.
+extern AreaPlacement gMapDryfieldMotelRoom1Variant1Placements[1];
 
-extern AreaPlacement D_map_dryfield_8017AFA4[];
+/// Four Bone Sucklers and an Odd Stranger for daytime Motel Room 1 variant 2.
+///
+/// Three Bone Sucklers start idle and one patrols; the Odd Stranger selects
+/// stalking with the second tuning.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMotelRoom1Variant2Placements[6];
 
-extern AreaPlacement D_map_dryfield_8017B004[];
+/// Two cutscene and two regular Bone Sucklers for daytime Motel Room 1 variant 3.
+///
+/// The first two records deliberately share the same transform; all four remain
+/// separate placement keys.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMotelRoom1Variant3Placements[5];
 
-extern AreaPlacement D_map_dryfield_8017B054[];
+/// Four Blood Sucklers and an Odd Stranger for daytime Motel Room 1 variant 7.
+///
+/// Three Blood Sucklers start idle and one patrols; the Odd Stranger selects
+/// stalking with the third tuning.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMotelRoom1Variant7Placements[6];
 
-extern AreaPlacement D_map_dryfield_8017B0B4[];
+/// Two Odd Strangers for daytime Motel Room 2 variant 1.
+///
+/// Both select stalking with the second tuning.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMotelRoom2Variant1Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017B0E4[];
+/// Two Mind Sucklers and four Bone Sucklers for daytime Motel Room 2 variant 2.
+///
+/// The Mind Sucklers use ceiling and wall perches with later wall settling
+/// disabled; all Bone Sucklers start idle.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMotelRoom2Variant2Placements[7];
 
-extern AreaPlacement D_map_dryfield_8017B154[];
+/// Two Mind Sucklers and four Blood Sucklers for daytime Motel Room 2 variant 7.
+///
+/// The Mind Sucklers use ceiling and wall perches with later wall settling
+/// disabled; all Blood Sucklers start idle.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldMotelRoom2Variant7Placements[7];
 
-extern AreaPlacement D_map_dryfield_8017B1C4[];
+/// Empty actor-placement list for daytime Parking Lot variant 1.
+///
+/// Contains only `AREA_PLACEMENT_END`; it spawns no actors.
+/// This map-owned record must remain loaded while its room variant uses it.
+extern AreaPlacement gMapDryfieldParkingLotVariant1Placements[1];
 
-extern AreaPlacement D_map_dryfield_8017B1D4[];
+/// Two steering Desert Chasers for daytime Parking Lot variant 2.
+///
+/// Both use the first tuning row.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldParkingLotVariant2Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017B204[];
+/// Six buried ambush Scorpions and a Desert Chaser for daytime Parking Lot variant 3.
+///
+/// All six Scorpions wait for the ambush signal; the Chaser starts approaching
+/// with its second tuning.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldParkingLotVariant3Placements[8];
 
-extern AreaPlacement D_map_dryfield_8017B284[];
+/// One GOLEM Knight for daytime Parking Lot variant 7.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldParkingLotVariant7Placements[2];
 
-extern AreaPlacement D_map_dryfield_8017B2A4[];
+/// Woman Stranger and Odd Stranger encounter placements for daytime Toilet variant 1.
+///
+/// The Odd Stranger selects stalking with its second tuning; the Woman Stranger
+/// starts at the origin.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldToiletEncounterPlacements[3];
 
-extern AreaPlacement D_map_dryfield_8017B2D4[];
+/// Seven idle Bone Sucklers for daytime Toilet variant 2.
+///
+/// World-coordinate XYZ and yaw (4096 units per turn), followed by
+/// `AREA_PLACEMENT_END`. Entry keys select this variant's room resource recipes;
+/// texture offsets count 64-word VRAM columns and CLUT rows. Base files and
+/// parameter row zero are used. Actors borrow the records, so this map must
+/// remain loaded for their lives; saved poses may replace initial transforms.
+extern AreaPlacement gMapDryfieldToiletBoneSucklerPlacements[8];
 
 extern AreaPlacement D_map_dryfield_8017B354[];
 

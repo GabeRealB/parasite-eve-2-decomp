@@ -375,7 +375,7 @@ static AreaResource _gDryfieldSouvenirShopDefaultActorResources[3] = {
 
 AreaVariant D_dryfield_souvenir_shop_8017F598[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017AF04, _gDryfieldSouvenirShopDefaultActorResources },
+    { gMapDryfieldSouvenirShopDefaultPlacements, _gDryfieldSouvenirShopDefaultActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

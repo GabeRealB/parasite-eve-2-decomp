@@ -188,7 +188,7 @@ _gDryfieldDilapidatedHouseNegativeCaptureArgs = 0x80189B80; // size:0x4 defined:
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor521100No9GolemTaskDescs = 0x8015F6E4; // absolute:True owner=actor_521100
 D_actor_521100_8016A388 = 0x8016A388; // absolute:True owner=actor_521100
-D_map_dryfield_8017AF64 = 0x8017AF64; // absolute:True owner=map_dryfield
+gMapDryfieldDilapidatedHouseVariant1Placements = 0x8017AF64; // absolute:True owner=map_dryfield
 _gDryfieldDilapidatedHouseTwinTrailEndpointOffsets = 0x80186944; // size:0x10 defined:True
 
 dryfieldDilapidatedHouseLightPrismTask = 0x80183BF8; // type:func

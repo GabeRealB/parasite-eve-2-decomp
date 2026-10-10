@@ -1176,13 +1176,13 @@ static AreaPlacement _gDryfieldMainStreetVariant10Placements[3] = {
 
 AreaVariant D_dryfield_main_street_80184F20[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017AD44, _gDryfieldMainStreetVariant1Resources },
-    { D_map_dryfield_8017AD74, _gDryfieldMainStreetVariant2Resources },
-    { D_map_dryfield_8017ADE4, _gDryfieldMainStreetVariant3Resources },
+    { gMapDryfieldMainStreetVariant1Placements, _gDryfieldMainStreetVariant1Resources },
+    { gMapDryfieldMainStreetVariant2Placements, _gDryfieldMainStreetVariant2Resources },
+    { gMapDryfieldMainStreetVariant3Placements, _gDryfieldMainStreetVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017AE14, _gDryfieldMainStreetVariant7Resources },
+    { gMapDryfieldMainStreetVariant7Placements, _gDryfieldMainStreetVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { _gDryfieldMainStreetVariant10Placements, _gDryfieldMainStreetVariant10Resources },

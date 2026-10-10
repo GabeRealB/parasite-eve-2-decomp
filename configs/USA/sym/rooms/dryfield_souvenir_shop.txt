@@ -35,7 +35,7 @@ _gDryfieldSouvenirShopSurfaceClass2Properties = 0x8017F638; // size:0x8 defined:
 gDryfieldSouvenirShopSurfacePropertiesByClass = 0x8017F640; // size:0x20 defined:True
 gActor04000BloodSucklerTaskDesc = 0x8013E500; // absolute:True owner=actor_104000
 gActor01500MindSucklerTaskDesc = 0x80153E28; // absolute:True owner=actor_201500
-D_map_dryfield_8017AF04 = 0x8017AF04; // absolute:True owner=map_dryfield
+gMapDryfieldSouvenirShopDefaultPlacements = 0x8017AF04; // absolute:True owner=map_dryfield
 
 dryfieldSouvenirShopLightPrismsTask = 0x8017DFD4; // type:func
 _glowDrawGreyPrism = 0x8017D6B4; // type:func

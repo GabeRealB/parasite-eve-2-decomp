@@ -1063,13 +1063,13 @@ AreaPlacement D_dryfield_motel_room_1_8018148C[5] = {
 
 AreaVariant D_dryfield_motel_room_1_801814DC[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017AF94, D_dryfield_motel_room_1_801813F0 },
-    { D_map_dryfield_8017AFA4, D_dryfield_motel_room_1_801813FC },
-    { D_map_dryfield_8017B004, D_dryfield_motel_room_1_80181420 },
+    { gMapDryfieldMotelRoom1Variant1Placements, D_dryfield_motel_room_1_801813F0 },
+    { gMapDryfieldMotelRoom1Variant2Placements, D_dryfield_motel_room_1_801813FC },
+    { gMapDryfieldMotelRoom1Variant3Placements, D_dryfield_motel_room_1_80181420 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017B054, D_dryfield_motel_room_1_80181444 },
+    { gMapDryfieldMotelRoom1Variant7Placements, D_dryfield_motel_room_1_80181444 },
     { NULL, NULL },
     { NULL, NULL },
     { D_dryfield_motel_room_1_8018148C, D_dryfield_motel_room_1_80181468 },

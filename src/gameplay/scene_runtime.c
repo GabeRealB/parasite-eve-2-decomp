@@ -4633,7 +4633,7 @@ static TaskMessageEntry _gSceneManagerMessages[5] = {
     { SCENE_MESSAGE_BROADCAST_TO_ACTORS, _sceneBroadcastToPlacedActors },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
-AreaObjectStage Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { D_map_dryfield_8017A564, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { gMapDryfieldFullObjectRooms, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { D_map_shelter_8017A998, gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { gMapNeoArkObjectRooms, gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates } };
+AreaObjectStage Gp_Bit2Banks[6] = { { NULL, NULL }, { D_map_akropolis_8017A7FC, gGameFlagAcropolisBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { gMapDryfieldObjectRooms, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { gMapDryfieldFullObjectRooms, gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { D_map_shelter_8017A998, gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates }, { gMapNeoArkObjectRooms, gGameFlagNeoArkBanks[GAME_FLAG_STAGE_BANK_LIVE].header.objectStates } };
 
 /// Registers the scene manager and its actor-message routes, then enters running state.
 ///

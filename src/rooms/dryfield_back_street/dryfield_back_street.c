@@ -375,13 +375,13 @@ static AreaPlacement _gDryfieldBackStreetMindSucklerPlacements[3] = {
 
 AreaVariant D_dryfield_back_street_80180A50[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017AEA4, _gDryfieldBackStreetDesertChaserResources },
+    { gMapDryfieldBackStreetDesertChaserPlacements, _gDryfieldBackStreetDesertChaserResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017AED4, _gDryfieldBackStreetPawnGolemResources },
+    { gMapDryfieldBackStreetPawnGolemPlacements, _gDryfieldBackStreetPawnGolemResources },
     { NULL, NULL },
     { NULL, NULL },
     { _gDryfieldBackStreetMindSucklerPlacements, _gDryfieldBackStreetMindSucklerResources },
