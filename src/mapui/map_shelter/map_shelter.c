@@ -987,7 +987,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     gShelterB1PodAccessTunnelRoomViewCounts,
     D_shelter_b1_control_room_80181C74,
     gShelterB1AccessTunnelRoomViewCounts,
-    D_shelter_b1_underground_parking_8018793C,
+    gShelterB1UndergroundParkingRoomViewCounts,
     gShelterB1GolemFreezer1ViewCounts,
     gShelterB2PodBottomRoomViewCounts,
     D_shelter_b1_pod_service_gantry_8017FB20,

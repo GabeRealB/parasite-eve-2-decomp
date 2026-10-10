@@ -28,15 +28,23 @@ typedef struct {
 } ShelterB1UndergroundParkingShopSessionTaskDescStorage;
 STATIC_ASSERT_SIZEOF(ShelterB1UndergroundParkingShopSessionTaskDescStorage, 16);
 
-extern AreaVariant D_shelter_b1_underground_parking_8018B5C4[22];
-
 extern ShelterB1UndergroundParkingShopSessionTaskDescStorage D_shelter_b1_underground_parking_801871F0;
 
 /// Extents of the underground parking room directories and logical-view maps.
 enum {
-    SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT = 8,
-    SHELTER_B1_UNDERGROUND_PARKING_VIEW_COUNT = 24,
+    SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT         = 8,
+    SHELTER_B1_UNDERGROUND_PARKING_VIEW_COUNT         = 24,
+    SHELTER_B1_UNDERGROUND_PARKING_AREA_VARIANT_COUNT = 22,
 };
+
+/// Placement layouts for underground parking's saved variants 0..21.
+///
+/// Variants 1 and 5 publish empty terminated lists; variant 21 loads and places
+/// Soldier B. All other slots contain two NULL pointers. Gameplay's area-20
+/// directory indexes this array by placement variant, independently of room
+/// number. The array, its lists and the selected actor's task table must remain
+/// loaded while loading, spawning or accessing placed actors.
+extern AreaVariant gShelterB1UndergroundParkingAreaVariants[SHELTER_B1_UNDERGROUND_PARKING_AREA_VARIANT_COUNT];
 
 /// Lighting resources for underground parking rooms 1 through 8.
 ///
@@ -55,7 +63,12 @@ extern WorldCollisionRoomResources D_shelter_b1_underground_parking_801877F4[];
 /// overlay. Keep both overlays loaded while their maps are used.
 extern u8* gShelterB1UndergroundParkingRoomViewMaps[SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT];
 
-extern ViewCount D_shelter_b1_underground_parking_8018793C[];
+/// Logical-view counts for underground parking rooms 1 through 8.
+///
+/// Indexed by room - 1 through the Shelter area's view-count directory. Every
+/// signed halfword counts all 24 logical slots in that room's view map; there
+/// is no terminator. The map directory borrows this overlay's storage.
+extern ViewCount gShelterB1UndergroundParkingRoomViewCounts[SHELTER_B1_UNDERGROUND_PARKING_ROOM_COUNT];
 
 extern DirectionWarpEntry D_shelter_b1_underground_parking_8018794C[];
 

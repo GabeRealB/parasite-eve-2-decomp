@@ -141085,7 +141085,7 @@ duplicated `li v0,2; sw` tail after reload, so the block layout does not change:
 
 ```c
 } else {
-    D_8018D789 ^= work->field_C;
+    _gShelterB1UndergroundParkingPanelPendingPattern ^= work->choice;
     sndEvtRequestScriptStart(0x54140004, 0, 0);
     task->state = 2;   /* duplicate of the tail store: 4th qty, merged later */
     return;

@@ -1631,7 +1631,7 @@ D_shelter_b1_storeroom_80186C9C = 0x80186C9C; // absolute:True owner=shelter_b1_
 
 gShelterB1TransferTunnelAreaVariants = 0x801830B8; // absolute:True owner=shelter_b1_transfer_tunnel
 
-D_shelter_b1_underground_parking_8018B5C4 = 0x8018B5C4; // absolute:True owner=shelter_b1_underground_parking
+gShelterB1UndergroundParkingAreaVariants = 0x8018B5C4; // absolute:True owner=shelter_b1_underground_parking
 
 D_shelter_b2_elevator_8017E964 = 0x8017E964; // absolute:True owner=shelter_b2_elevator
 
