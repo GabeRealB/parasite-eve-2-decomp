@@ -32,7 +32,7 @@ gAcropolisPatioRoomLightingTable = 0x80182ED4; // absolute:True owner=acropolis_
 gAcropolisPatioWarpEntries = 0x80182EEC; // absolute:True owner=acropolis_patio shared=rooms
 gAcropolisPatioSpriteViews = 0x80186360; // absolute:True owner=acropolis_patio shared=rooms
 gAcropolisPatioViewCameras = 0x80186D5C; // absolute:True owner=acropolis_patio
-gAcropolisPatioSurfacePropertiesByClass = 0x8018703C; // absolute:True owner=acropolis_patio shared=rooms
+gAcropolisPatioSurfacePropertiesByClass = 0x8018703C; // absolute:True owner=acropolis_patio
 acropolisCafeteriaRoomTask = 0x8017E424; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
 acropolisCafeteriaMendelPickupTask = 0x801827C4; // type:func absolute:True owner=acropolis_cafeteria
 acropolisCafeteriaStimPickupTask = 0x8018286C; // type:func absolute:True owner=acropolis_cafeteria

@@ -91544,8 +91544,9 @@ each carrier's address is a statement the promotion already makes.
 It does not carry over to the carrier's content, passed in as arguments.
 `func_dryfield_night_driveway_8017DAF4` (night) and
 `func_dryfield_driveway_8017DAD0` (day) are the same 38 instructions apart
-from two addresses - `D_dryfield_night_driveway_8017F54C` / `...F6CC` against
-`D_dryfield_driveway_8017E4FC` / `...E67C`, the event and skip scripts the
+from two addresses - `_gDryfieldNightDrivewayBlackoutScript` /
+`_gDryfieldNightDrivewayBlackoutSkipScript` against
+`_gDryfieldDrivewayBlackoutScript` / `_gDryfieldDrivewayBlackoutSkipScript`, the event and skip scripts the
 body hands to `evsStartScriptWithSkip`. `find` reports `~` (same body, different link
 offset) and `promote` refuses:
 

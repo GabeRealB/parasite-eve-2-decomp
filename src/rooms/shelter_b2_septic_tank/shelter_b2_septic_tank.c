@@ -99,7 +99,7 @@ static void _shelterB2SepticTankInitializeWater(Task* task);
 static void _shelterB2SepticTankDrawWater(Task* task);
 
 extern RoomFadeStorage  gRoomEventFade;
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern u8               D_shelter_b2_septic_tank_80187044;
 extern RoomLatchedEvent gRoomEventLatched;
 
@@ -1328,7 +1328,12 @@ WorldCollisionSurfaceProperties* gShelterB2SepticTankSurfacePropertiesByClass[8]
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b2_septic_tank_80187044 = 0;
 
@@ -1360,8 +1365,8 @@ static __inline__ s32 _shelterB2SepticTankStartEvent(const RoomEventMsg* destina
     if (gameFlagGetNibble(event->flagId) == SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_CLEAR || event->flagId == SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_NONE) {
         if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
             // Own copies before starting the task that consumes them later.
-            gRoomEventStagedMsg = *destination;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *destination;
+            gRoomEventLatched    = *event;
             if (event->flagId != SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, SHELTER_B2_SEPTIC_TANK_EVENT_FLAG_LATCHED);
             }

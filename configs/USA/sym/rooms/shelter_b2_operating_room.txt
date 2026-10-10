@@ -56,7 +56,7 @@ gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_
 gActor207000SlouchTaskDescs = 0x801575F0; // absolute:True owner=actor_207000
 _gRoomEventMsg = 0x8018421C; // size:0x8 defined:True
 gRoomEventActive = 0x80184224; // size:0x8 defined:True
-gRoomEventStagedMsg = 0x8018422C; // size:0x8 defined:True
+_gRoomEventStagedMsg = 0x8018422C; // size:0x8 defined:True
 _gShelterB2OperatingRoomStagedEventStart = 0x80184234; // size:0x4 defined:True
 gRoomEventReq = 0x80184238; // size:0x20 defined:True
 gRoomEventTaskDesc = 0x80180904; // size:0xC defined:True

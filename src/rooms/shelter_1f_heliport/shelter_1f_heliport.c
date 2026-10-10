@@ -106,7 +106,7 @@ static const EquipmentWeaponSupply* _gShopRefillSupply;
 /// argument of its helper task 0x31, the message, the flag saying one was
 /// latched, and the event's parameters.
 extern RoomFadeStorage  gRoomEventFade;
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void _shelter1fHeliportInitializeRoomTask(Task* task);
@@ -636,7 +636,12 @@ static const EquipmentWeaponSupply* _gShopRefillSupply = NULL;
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 s8 D_shelter_1f_heliport_80182CB0 = 0;
 
@@ -688,8 +693,8 @@ static __inline__ s32 _shelter1fHeliportStartEvent(const RoomEventMsg* message, 
     D_shelter_1f_heliport_80182CB0 = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *message;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *message;
+            gRoomEventLatched    = *event;
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }

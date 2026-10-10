@@ -29,7 +29,7 @@ static void _drivewayCutsceneTask(Task* task)
             task->state = DRIVEWAY_CUTSCENE_RUN_SCRIPT;
             return;
         case DRIVEWAY_CUTSCENE_RUN_SCRIPT:
-            evsStartScript(gDrivewayCutsceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+            evsStartScript(DRIVEWAY_ENCOUNTER_SCRIPT, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             task->state += 1;
             /* fallthrough */
         case DRIVEWAY_CUTSCENE_WAIT_EVENT:

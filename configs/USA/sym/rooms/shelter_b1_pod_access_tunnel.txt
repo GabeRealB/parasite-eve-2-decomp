@@ -135,7 +135,7 @@ gActor141000AyaBreaWalkerTaskDesc = 0x8013D77C; // absolute:True owner=actor_141
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
 gActor102300RookGolemTasks = 0x80147AB8; // absolute:True owner=actor_102300
 gActor202300RookGolemTasks = 0x8015FAB8; // absolute:True owner=actor_202300
-gRoomEventStagedMsg = 0x80184D04; // size:0x8 defined:True
+_gRoomEventStagedMsg = 0x80184D04; // size:0x8 defined:True
 _gShelterB1PodAccessTunnelEventStartAttempted = 0x80184D0C; // size:0x1 defined:True
 D_shelter_b1_pod_access_tunnel_80184D0D = 0x80184D0D; // size:0x1 defined:True
 D_shelter_b1_pod_access_tunnel_80184D0E = 0x80184D0E; // size:0x1 defined:True

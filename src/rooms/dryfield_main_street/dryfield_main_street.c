@@ -119,7 +119,7 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and event the message handler latched for the room's event
 /// task.
-extern RoomEventMsg            gRoomEventStagedMsg;
+static RoomEventMsg            _gRoomEventStagedMsg;
 extern RoomLatchedEventStorage gRoomEventLatched;
 
 /// Set by the message handler when its last 0xB/0xC message latched an event
@@ -1339,7 +1339,12 @@ WorldCollisionSurfaceProperties* gDryfieldMainStreetSurfacePropertiesByClass[8] 
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 RoomEventStartStorage gMainStreetEventSpawned = { 0 };
 

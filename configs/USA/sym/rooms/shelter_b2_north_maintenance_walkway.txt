@@ -60,7 +60,7 @@ gActor202000PawnGolemTasks = 0x8015FDF0; // absolute:True owner=actor_202000
 gActor341300ScriptTaskDescriptors = 0x80165208; // absolute:True owner=actor_341300
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80183C4C; // size:0x10 defined:True
 _gRoomVisualEffectsHaloShades = 0x80183C38; // size:0x14 defined:True
-gRoomEventStagedMsg = 0x801863A8; // size:0x8 defined:True
+_gRoomEventStagedMsg = 0x801863A8; // size:0x8 defined:True
 D_shelter_b2_north_maintenance_walkway_801863B0 = 0x801863B0; // size:0x8 defined:True
 _gRoomEventMsg = 0x801863B8; // size:0x8 defined:True
 gRoomEventActive = 0x801863C0; // size:0x1 defined:True

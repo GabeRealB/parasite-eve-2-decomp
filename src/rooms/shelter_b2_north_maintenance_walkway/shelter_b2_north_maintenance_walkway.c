@@ -61,7 +61,7 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and the event the walkway's handler latched for its event task,
 /// and the flag saying its last call did so.
-extern RoomEventMsg            gRoomEventStagedMsg;
+static RoomEventMsg            _gRoomEventStagedMsg;
 extern RoomEventStartStorage   D_shelter_b2_north_maintenance_walkway_801863B0;
 extern RoomLatchedEventStorage gRoomEventLatched;
 
@@ -826,7 +826,12 @@ AreaApplyRec D_shelter_b2_north_maintenance_walkway_80186380[8] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 RoomEventStartStorage D_shelter_b2_north_maintenance_walkway_801863B0 = { 0 };
 
@@ -862,7 +867,7 @@ static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* ev
     D_shelter_b2_north_maintenance_walkway_801863B0.eventStarted = 0;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg     = *dst;
+            _gRoomEventStagedMsg    = *dst;
             gRoomEventLatched.event = *event;
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, 1);

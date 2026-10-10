@@ -67,7 +67,7 @@ gMapNeoArkPavilionVariant3Placements = 0x8017B470; // absolute:True owner=map_ne
 gMapNeoArkPavilionVariant4Placements = 0x8017B4B0; // absolute:True owner=map_neo_ark
 gMapNeoArkPavilionVariant5Placements = 0x8017B4E0; // absolute:True owner=map_neo_ark
 gMapNeoArkPavilionVariant11Placements = 0x8017B530; // absolute:True owner=map_neo_ark
-gRoomEventStagedMsg = 0x80187A14; // size:0x8 defined:True
+_gRoomEventStagedMsg = 0x80187A14; // size:0x8 defined:True
 D_neo_ark_pavilion_80187A1C = 0x80187A1C; // size:0x1 defined:True
 D_neo_ark_pavilion_80187A1D = 0x80187A1D; // size:0x1 defined:True
 D_neo_ark_pavilion_80187A1E = 0x80187A1E; // size:0x1 defined:True

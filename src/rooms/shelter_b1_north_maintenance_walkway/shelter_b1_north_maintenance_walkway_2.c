@@ -460,7 +460,7 @@ WorldCollisionSurfaceProperties* gShelterB1NorthMaintenanceWalkwaySurfacePropert
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+RoomEventMsg gRoomEventStagedDestination = { 0 };
 
 s8 D_shelter_b1_north_maintenance_walkway_80185B7C = 0;
 

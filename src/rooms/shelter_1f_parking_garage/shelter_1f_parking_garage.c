@@ -68,7 +68,7 @@ extern TaskDesc         D_shelter_1f_parking_garage_80180BE0;
 
 extern ScreenFade       gRoomEventFade;
 extern ScreenFade       D_shelter_1f_parking_garage_80181978;
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomDeparture    gRoomDeparture;
 extern RoomLatchedEvent gRoomEventLatched;
 
@@ -437,7 +437,12 @@ ScreenFade gRoomEventFade = { 0 };
 
 ScreenFade D_shelter_1f_parking_garage_80181978 = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_1f_parking_garage_80181984 = 0;
 
@@ -474,8 +479,8 @@ static __inline__ s32 _shelter1fParkingGarageStartEvent(const RoomEventMsg* mess
     D_shelter_1f_parking_garage_80181984 = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *message;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *message;
+            gRoomEventLatched    = *event;
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }

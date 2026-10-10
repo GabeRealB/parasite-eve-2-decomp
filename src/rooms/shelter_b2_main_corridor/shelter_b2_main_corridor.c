@@ -119,7 +119,7 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The outgoing message of the exit being taken; the exit task copies its
 /// destination into the save location.
-extern RoomEventMsg gRoomEventStagedMsg;
+static RoomEventMsg _gRoomEventStagedMsg;
 
 /// Cleared whenever the handler considers an exit, set once the exit task has
 /// been spawned. Nothing else in the room reads it.
@@ -1723,7 +1723,12 @@ AreaApplyRec D_shelter_b2_main_corridor_80189644[2] = {
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b2_main_corridor_8018965C = 0;
 
@@ -1771,7 +1776,7 @@ static inline s32 _shelterB2MainCorridorStartEvent(RoomEventMsg* reply, const Ro
         if (reply->queryOnly != ROOM_EVENT_EXECUTE) {
             return ROOM_VARIANT_TRANSITION_HANDLED;
         }
-        gRoomEventStagedMsg     = *reply;
+        _gRoomEventStagedMsg    = *reply;
         gRoomEventLatched.event = *eventPtr;
         if (eventPtr->flagId != SHELTER_B2_MAIN_CORRIDOR_NO_EVENT_FLAG) {
             gameFlagSetNibble(eventPtr->flagId, SHELTER_B2_MAIN_CORRIDOR_EVENT_STARTED);

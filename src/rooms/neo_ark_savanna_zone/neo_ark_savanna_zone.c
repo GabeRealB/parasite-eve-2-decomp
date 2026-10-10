@@ -56,7 +56,7 @@
 #include "../../shared/room_events.h"
 
 extern TaskDesc         D_neo_ark_savanna_zone_8017F9A0;
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern s8               D_neo_ark_savanna_zone_80180998;
 extern RoomLatchedEvent gRoomEventLatched;
 
@@ -492,7 +492,12 @@ WorldCollisionSurfaceProperties* gNeoArkSavannaZoneSurfaceProperties[NEO_ARK_SAV
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 s8 D_neo_ark_savanna_zone_80180998 = 0;
 
@@ -524,8 +529,8 @@ static __inline__ s32 _neoArkSavannaZoneStartEvent(const RoomEventMsg* transitio
     D_neo_ark_savanna_zone_80180998 = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *transition;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *transition;
+            gRoomEventLatched    = *event;
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }

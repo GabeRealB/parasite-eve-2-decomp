@@ -54,7 +54,7 @@ static s32 _roomVariantResolveDriveway(Task* task, s32 messageId, const RoomEven
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     if (gGameSession->location.loc.variant == 1) {
                         if (gameFlagGetNibble(GAME_FLAG_050) == 0) {
-                            taskSpawnFromTable(gDrivewayCutsceneTasks, ROOM_VARIANT_DRIVEWAY_CUTSCENE_INDEX, 0, 0);
+                            taskSpawnFromTable(DRIVEWAY_SCENE_TASKS, ROOM_VARIANT_DRIVEWAY_CUTSCENE_INDEX, 0, 0);
                             return ROOM_VARIANT_DRIVEWAY_STAY;
                         }
                     }
@@ -87,16 +87,16 @@ static s32 _roomVariantResolveDriveway(Task* task, s32 messageId, const RoomEven
         event.fade     = 0;
         eventRequest   = &event;
         // The factory gate clears this indicator for queries as well as execution.
-        gDrivewayEventSpawned = 0;
+        _gRoomVariantDrivewayFactoryEventRequested = ROOM_VARIANT_DRIVEWAY_FACTORY_EVENT_NONE;
         if (gameFlagGetNibble(eventRequest->flagId) == 0 || eventRequest->flagId == 0) {
             if (reply->queryOnly == ROOM_EVENT_EXECUTE) {
-                gRoomEventStagedMsg = *reply;
-                gRoomEventLatched   = event;
+                _gRoomEventStagedMsg = *reply;
+                gRoomEventLatched    = event;
                 if (eventRequest->flagId != 0) {
                     gameFlagSetNibble(eventRequest->flagId, 1);
                 }
-                taskSpawnFromTable(&gRoomEventStagedTaskDesc, 0, 0, 0);
-                gDrivewayEventSpawned = 1;
+                taskSpawnFromTable(&_gRoomEventStagedTaskDesc, 0, 0, 0);
+                _gRoomVariantDrivewayFactoryEventRequested = ROOM_VARIANT_DRIVEWAY_FACTORY_EVENT_REQUESTED;
                 return ROOM_VARIANT_DRIVEWAY_ACTION;
             }
             return ROOM_VARIANT_DRIVEWAY_ACTION;

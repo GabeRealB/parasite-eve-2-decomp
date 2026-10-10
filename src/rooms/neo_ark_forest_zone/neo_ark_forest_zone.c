@@ -59,7 +59,7 @@
 
 extern s8 D_neo_ark_forest_zone_80182E40;
 
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 /// Payload handed to the helper task 0x31 the event may start.
@@ -70,7 +70,12 @@ static void _neoArkForestZonePauseRoamersState(Task* task);
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 s8 D_neo_ark_forest_zone_80182E40 = 0;
 
@@ -123,8 +128,8 @@ static __inline__ s32 _neoArkForestZoneStartEvent(const RoomEventMsg* transition
     D_neo_ark_forest_zone_80182E40 = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *transition;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *transition;
+            gRoomEventLatched    = *event;
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }

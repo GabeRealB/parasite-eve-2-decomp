@@ -14,7 +14,15 @@
 
 extern RoomFadeStorage gRoomEventFade;
 
-extern RoomEventMsg gRoomEventStagedMsg;
+/// Destination snapshot shared by this overlay's staged-event writer and task.
+///
+/// Acceptance copies all eight bytes; keep them stable and loaded through
+/// CAP/sound playback until the staged task commits area, warp and room to
+/// the live save and requests reload. A later accepted event replaces the snapshot.
+extern RoomEventMsg gRoomEventStagedDestination;
+
+/// Selects this overlay's cross-TU `RoomEventMsg` lvalue for staged playback.
+#define ROOM_EVENT_STAGED_MSG gRoomEventStagedDestination
 
 extern RoomLatchedEvent gRoomEventLatched;
 

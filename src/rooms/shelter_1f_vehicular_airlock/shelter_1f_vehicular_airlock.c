@@ -65,7 +65,7 @@ extern RoomFadeStorage gRoomEventFade;
 
 /// The message and event the message handler latched for the room's event
 /// task.
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void _shelter1fVehicularAirlockDrawPulsingLight(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale, s32 packedColor);
@@ -386,7 +386,12 @@ WorldCollisionSurfaceProperties* gShelter1fVehicularAirlockSurfaceProperties[8] 
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 /// Whether the latest departure-event gate call spawned its staged task (0 no, 1 yes).
 ///
@@ -442,8 +447,8 @@ static __inline__ s32 _shelter1fVehicularAirlockStartEvent(const RoomEventMsg* m
     _gShelter1fVehicularAirlockEventStarted = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *message;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *message;
+            gRoomEventLatched    = *event;
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }

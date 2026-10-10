@@ -32,7 +32,7 @@ _gShelter1fParkingGarageFloorSurface = 0x8018194C; // size:0x8 defined:True
 gShelter1fParkingGarageSurfaceProperties = 0x80181954; // size:0x20 defined:True
 gRoomEventFade = 0x80181974; // size:0x4 defined:True
 D_shelter_1f_parking_garage_80181978 = 0x80181978; // size:0x4 defined:True
-gRoomEventStagedMsg = 0x8018197C; // size:0x8 defined:True
+_gRoomEventStagedMsg = 0x8018197C; // size:0x8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gMapNeoArkParkingGarageDefaultPlacements = 0x8017AEC0; // absolute:True owner=map_neo_ark
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x80180C54; // size:0x10 defined:True

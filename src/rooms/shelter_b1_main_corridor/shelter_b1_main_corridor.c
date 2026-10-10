@@ -82,7 +82,7 @@ extern TaskDesc gRoomEventTaskDesc;
 /// the flag saying one was latched and its task spawned, and the event record.
 /// `_gShelterB1MainCorridorStagedEventTaskDesc` spawns that event's task,
 /// `roomEventStagedTask`.
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 /// Spawn argument the event task hands to task 0x31.
 extern RoomFadeStorage gRoomEventFade;
@@ -860,7 +860,12 @@ static RoomEventMsg _gRoomEventMsg = { 0 };
 
 RoomEventStartStorage gRoomEventActive = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 /// Whether the latest staged-departure check attempted to spawn its controller.
 ///
@@ -903,8 +908,8 @@ static __inline__ s32 _shelterB1MainCorridorStartEvent(const RoomEventMsg* trans
     _gShelterB1MainCorridorStagedEventStart.eventStarted = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *transition;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *transition;
+            gRoomEventLatched    = *event;
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }

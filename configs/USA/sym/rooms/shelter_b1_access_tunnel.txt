@@ -47,7 +47,7 @@ gActor403900GolemTaskDesc = 0x801540E0; // absolute:True owner=actor_403900
 gActor402200GolemTaskDesc = 0x80154188; // absolute:True owner=actor_402200
 _gRoomEventMsg = 0x8017FF54; // size:0x8 defined:True
 gRoomEventActive = 0x8017FF5C; // size:0x8 defined:True
-gRoomEventStagedMsg = 0x8017FF64; // size:0x8 defined:True
+_gRoomEventStagedMsg = 0x8017FF64; // size:0x8 defined:True
 _gShelterB1AccessTunnelStagedEventStart = 0x8017FF6C; // size:0x4 defined:True
 gRoomEventReq = 0x8017FF70; // size:0x20 defined:True
 gRoomEventLatched = 0x8017FF90; // size:0xC defined:True

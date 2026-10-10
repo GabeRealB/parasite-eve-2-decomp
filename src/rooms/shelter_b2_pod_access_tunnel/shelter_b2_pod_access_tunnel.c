@@ -37,7 +37,7 @@
 extern u8 D_shelter_b2_pod_access_tunnel_80185708;
 
 extern RoomFadeStorage  gRoomEventFade;
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 s32 D_shelter_b2_pod_access_tunnel_801856A0[3] = {
@@ -120,7 +120,12 @@ WorldCollisionSurfaceProperties* gShelterB2PodAccessTunnelSurfacePropertiesByCla
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 u8 D_shelter_b2_pod_access_tunnel_80185708 = 0;
 
@@ -159,8 +164,8 @@ static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(const RoomEventMsg* me
     D_shelter_b2_pod_access_tunnel_80185708 = false;
     if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
         if (message->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *message;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *message;
+            gRoomEventLatched    = *event;
             if (event->flagId != ROOM_EVENT_FLAG_NONE) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }

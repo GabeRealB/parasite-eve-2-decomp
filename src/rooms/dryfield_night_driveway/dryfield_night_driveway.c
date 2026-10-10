@@ -57,32 +57,25 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
+// Bind this overlay's private scripts and spawn recipes to the shared controllers.
+/// Selects this room's END-terminated encounter stream for the shared controller.
+#define DRIVEWAY_ENCOUNTER_SCRIPT _gDryfieldNightDrivewayEncounterScript
+/// Selects this room's END-terminated wire-rope stream for the shared controller.
+#define DRIVEWAY_BLACKOUT_SCRIPT _gDryfieldNightDrivewayBlackoutScript
+/// Selects this room's END-terminated wire-rope skip continuation.
+#define DRIVEWAY_BLACKOUT_SKIP_SCRIPT _gDryfieldNightDrivewayBlackoutSkipScript
+/// Selects this room's blackout/encounter/end task recipes for the shared resolver.
+#define DRIVEWAY_SCENE_TASKS _gDryfieldNightDrivewaySceneTasks
 #include "../../shared/dryfield_driveway.h"
 
 static void _drivewaySetViewDirty(s16 viewDirty);
 
-/// Set once the driveway event has been spawned.
-extern u8 gDrivewayEventSpawned;
-
-/// Descriptor of the room's event task, which the event gate spawns.
-extern TaskDesc gRoomEventStagedTaskDesc;
-
-/// Descriptor table of two tasks (`_drivewayBlackoutTask`,
-/// `_drivewayCutsceneTask`), ended by a 0xFFFF entry; the
-/// event gate spawns entry 1.
-extern TaskDesc gDrivewayCutsceneTasks[];
-
-/// Blocks the room's tasks hand to `evsStartScript` / `evsStartScriptWithSkip`.
-extern EvsCommand gDrivewayCutsceneScript[];
-extern EvsCommand gDrivewayBlackoutScript[];
-extern EvsCommand gDrivewayBlackoutTail[];
+static u8 _gRoomVariantDrivewayFactoryEventRequested;
 
 /// Spawn argument of the helper task 0x31 the event task starts.
 extern RoomFadeStorage gRoomEventFade;
 
-/// The message and the event the event gate latched for the event task, and
-/// the flag it sets when it latches one.
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void _dryfieldNightDrivewayInitializeRoom(Task* task);
@@ -110,7 +103,11 @@ static s32          _dryfieldNightDrivewayIgnoreDirectionAction(Task* task, s32 
 static void         _dryfieldNightDrivewaySetEncounterWave(s32 waveStage);
 static void         _dryfieldNightDrivewaySetPlayerStateHold(u8 hold);
 
-TaskDesc gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Bodyless priority-32 recipe for the staged factory-transition scene.
+///
+/// Spawns state 0 with unused arguments. The room-owned destination and event
+/// snapshots must remain stable until the callback requests session reload.
+static TaskDesc _gRoomEventStagedTaskDesc = { { { TASK_BODY_NONE, DRIVEWAY_SCENE_TASK_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
 
 static AnimationPackedPose _gDryfieldNightDrivewayAnimation0150CBank1[10] = {
 #include "assets/dryfield_night_driveway_animation_0150C_bank1.inc"
@@ -200,9 +197,13 @@ static AnimationSet _gDryfieldNightDrivewayAnimation01D64 = {
     { NULL, _gDryfieldNightDrivewayAnimation01D64Bank1, NULL, NULL, _gDryfieldNightDrivewayAnimation01D64Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc gDrivewayCutsceneTasks[3] = {
-    { { { TASK_BODY_NONE, 32 } }, _drivewayBlackoutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _drivewayCutsceneTask, { .value = 0 } },
+/// Driveway scene recipes: slot 0 wire-rope blackout, slot 1 bat encounter, slot 2 end.
+///
+/// Both live recipes are bodyless priority-32 tasks with unused spawn arguments.
+/// The controllers borrow this overlay's scripts and resources through completion.
+static TaskDesc _gDryfieldNightDrivewaySceneTasks[3] = {
+    { { { TASK_BODY_NONE, DRIVEWAY_SCENE_TASK_PRIORITY } }, _drivewayBlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, DRIVEWAY_SCENE_TASK_PRIORITY } }, _drivewayCutsceneTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -264,19 +265,26 @@ static ActorTransform D_dryfield_night_driveway_8017F3BC = {
     .rot = { 0, 0, 0, 0 },
 };
 
-EvsCommand gDrivewayCutsceneScript[14] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
+/// Bat-encounter sequence synchronized to the three cues of CAP command 4.
+///
+/// Installs player clips 47/48, plays clip 32, releases the bat waves at the
+/// first cue, plays clip 47 at the second and engages combat at the third.
+/// The final message returns player control after an update boundary. Keep
+/// the script and borrowed animation data loaded through playback.
+/// Retained daytime sequence: the resolver only spawns it in stage 2.
+static EvsCommand _gDryfieldNightDrivewayEncounterScript[14] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRIVEWAY_CAP_ENCOUNTER }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightDrivewayEncounterAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayEncounterPlayerAnimation32 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5219000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_DRIVEWAY, 0x0C) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightDrivewaySetEncounterWave }, { .value = DRYFIELD_NIGHT_DRIVEWAY_ENCOUNTER_WAVE_BEGIN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayEncounterPlayerAnimation47 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRIVEWAY_SCRIPT_WAIT_NEXT_UPDATE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -306,34 +314,48 @@ static AnimationPlayRequest _gDryfieldNightDrivewayBlackoutPlayerAnimation24 = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-EvsCommand gDrivewayBlackoutScript[16] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Wire-rope sequence synchronized to the three cues of CAP command 3.
+///
+/// Starts a one-frame subtractive fade, resumes player updates and display,
+/// plays clip 1, requests saved-view reload at the second cue, then returns
+/// the fade over thirty frames and plays clip 24 before restoring control.
+/// The script and requests stay borrowed after the controller task has ended.
+/// Retained daytime sequence: this room's key-item receiver refuses all items.
+static EvsCommand _gDryfieldNightDrivewayBlackoutScript[16] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRIVEWAY_CAP_BLACKOUT }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _dryfieldNightDrivewaySetPlayerStateHold }, { .value = DRYFIELD_NIGHT_DRIVEWAY_PLAYER_STATE_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = DRIVEWAY_DISPLAY_ENABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayPlayerAnimation1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x52190009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _drivewaySetViewDirty }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_DRIVEWAY, 9) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _drivewaySetViewDirty }, { .value = DRIVEWAY_SAVED_VIEW_RELOAD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = DRIVEWAY_BLACKOUT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = DRIVEWAY_BLACKOUT_FADE_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightDrivewayBlackoutPlayerAnimation24 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand gDrivewayBlackoutTail[9] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Wire-rope skip continuation that reloads the view and restores player control.
+///
+/// Waits eight frames plus one update boundary behind a primary fade, marks
+/// the saved view for reload and cleans up CAP/scene state. After the fade
+/// returns and another eight frames pass, the player leaves scripted control.
+/// Borrowed by event playback until END; timing and cleanup order are retained.
+/// The night room has no path that starts its blackout controller.
+static EvsCommand _gDryfieldNightDrivewayBlackoutSkipScript[9] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = DRIVEWAY_FADE_USE_DEFAULT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _drivewaySetViewDirty }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _drivewaySetViewDirty }, { .value = DRIVEWAY_SAVED_VIEW_RELOAD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1368,9 +1390,18 @@ WorldCollisionSurfaceProperties* gDryfieldNightDrivewaySurfacePropertyTable[8] =
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
-u8 gDrivewayEventSpawned = 0;
+/// Last factory-gate evaluation's staged spawn indication (0 none, 1 requested).
+///
+/// Queries also clear it. Execution raises it after the spawn call even if
+/// allocation fails; there is no reader or completion reset in either carrier.
+static u8 _gRoomVariantDrivewayFactoryEventRequested = 0;
 
 /// Unreferenced stored byte 2 after the event flag; its role is unproven.
 static u8 D_dryfield_night_driveway_80182121 = 2;
@@ -1399,6 +1430,10 @@ static const TaskFuncTable3 _gDryfieldNightDrivewayRoomStates = {
 #include "../../shared/dryfield_driveway_blackout.inc.c"
 
 #include "../../shared/dryfield_driveway_cutscene.inc.c"
+#undef DRIVEWAY_ENCOUNTER_SCRIPT
+#undef DRIVEWAY_BLACKOUT_SCRIPT
+#undef DRIVEWAY_BLACKOUT_SKIP_SCRIPT
+#undef DRIVEWAY_SCENE_TASKS
 
 static void _glowDrawShaft(const SVECTOR worldPoints[2], s32 radiusScale);
 

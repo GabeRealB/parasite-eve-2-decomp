@@ -17,7 +17,7 @@ static void _drivewayBlackoutTask(Task* task)
         D_80115768            = 1;
         SetDispMask(0);
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRIVEWAY_BLACKOUT_OBJECTIVE_BYTE);
-        evsStartScriptWithSkip(gDrivewayBlackoutScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gDrivewayBlackoutTail);
+        evsStartScriptWithSkip(DRIVEWAY_BLACKOUT_SCRIPT, EVENT_SCRIPT_HUD_HIDE_RESTORE, DRIVEWAY_BLACKOUT_SKIP_SCRIPT);
     } else {
         taskKill(task);
         inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_WIRE_ROPE);

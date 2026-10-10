@@ -106,7 +106,7 @@ static WorldCollisionGrid _gMineMesaSceneCollisionTemplate;
 
 static WorldCollisionGrid _gMineMesaCollisionGrid;
 
-extern RoomEventMsg gRoomEventStagedMsg;
+static RoomEventMsg _gRoomEventStagedMsg;
 
 extern s8 D_mine_mesa_80189B48;
 
@@ -2916,7 +2916,12 @@ TaskDesc D_mine_mesa_80189B2C = { { { TASK_BODY_NONE, 32 } }, _mineMesaEnemyWave
 
 RoomFadeStorage gRoomEventFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 s8 D_mine_mesa_80189B48 = 0;
 
@@ -3052,8 +3057,8 @@ static __inline__ s32 _mineMesaLatchStagedEvent(const RoomEventMsg* destination,
     D_mine_mesa_80189B48 = EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == EVENT_UNSEEN || event->flagId == EVENT_NO_FLAG) {
         if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *destination;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *destination;
+            gRoomEventLatched    = *event;
             if (event->flagId != EVENT_NO_FLAG) {
                 gameFlagSetNibble(event->flagId, EVENT_SEEN);
             }

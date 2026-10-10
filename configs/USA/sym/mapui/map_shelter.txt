@@ -498,7 +498,7 @@ gShelterB4WaterSupplySpriteViews = 0x80183F90; // absolute:True owner=shelter_b4
 gShelterB4WaterSupplyRoomLights = 0x801843D4; // absolute:True owner=shelter_b4_water_supply
 gShelterB4WaterSupplyViewBoundaryTriggers = 0x801843EC; // absolute:True owner=shelter_b4_water_supply
 gShelterB4WaterSupplyActionTriggers = 0x80184944; // absolute:True owner=shelter_b4_water_supply
-gShelterB4WaterSupplyOccluders = 0x80184D04; // absolute:True owner=shelter_b4_water_supply shared=rooms
+gShelterB4WaterSupplyOccluders = 0x80184D04; // absolute:True owner=shelter_b4_water_supply
 gShelterB4WaterSupplyRoomAmbient = 0x80184D7C; // absolute:True owner=shelter_b4_water_supply
 gShelterB4WaterSupplySurfacePropertiesByClass = 0x80184E14; // absolute:True owner=shelter_b4_water_supply
 shelterR47RoomTask = 0x801807B4; // type:func absolute:True owner=shelter_r47

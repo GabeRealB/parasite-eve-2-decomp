@@ -111,7 +111,7 @@ gActor300700MothTaskDesc = 0x80165B88; // absolute:True owner=actor_300700
 gMapDryfieldFullMainStreetVariant1Placements = 0x8017ADF8; // absolute:True owner=map_dryfield_full
 gMapDryfieldFullMainStreetVariant2Placements = 0x8017AE78; // absolute:True owner=map_dryfield_full
 gMapDryfieldFullMainStreetVariant7Placements = 0x8017AE98; // absolute:True owner=map_dryfield_full
-gRoomEventStagedMsg = 0x80188BAC; // size:0x8 defined:True
+_gRoomEventStagedMsg = 0x80188BAC; // size:0x8 defined:True
 gMainStreetEventSpawned = 0x80188BB4; // size:0x8 defined:True
 _gRoomEventMsg = 0x80188BBC; // size:0x8 defined:True
 gRoomEventActive = 0x80188BC4; // size:0x1 defined:True

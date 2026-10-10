@@ -20,7 +20,8 @@
  *   RoomEventReq      gRoomEventReq       the latched request (gate and task)
  *   u8                gRoomEventActive    raised while an event runs
  *   TaskDesc          gRoomEventTaskDesc  the event task the gate spawns
- *   RoomEventMsg      gRoomEventStagedMsg the staged task's latched message
+ *   RoomEventMsg      _gRoomEventStagedMsg the TU-local staged destination
+ *                     gRoomEventStagedDestination the cross-TU staged destination
  *   RoomLatchedEvent  gRoomEventLatched   the latched event (staged task)
  *   RoomFadeStorage   gRoomEventFade      the staged task's fade record (`fade`)
  *   RoomDeparture     gRoomDeparture      the departure the handler staged
@@ -40,6 +41,9 @@
  *                       Cross-TU storage binds `gRoomEventMsg`; the gate copies
  *                       the entire eight-byte record and the task reads it
  *                       through reload.
+ *   ROOM_EVENT_STAGED_MSG lvalue `RoomEventMsg`. Default `_gRoomEventStagedMsg`.
+ *                       Cross-TU storage binds `gRoomEventStagedDestination`.
+ *                       The complete snapshot stays live through staged reload.
  *   ROOM_EVENT_ACTIVE   lvalue `u8`. Default `gRoomEventActive`, the byte
  *                       itself. `RoomEventActiveBytes` rooms bind
  *                       `.eventStarted`; `RoomEventStartStorage` rooms
@@ -79,6 +83,16 @@
 /// per copy or field access and allocates no storage.
 #define ROOM_EVENT_MSG _gRoomEventMsg
 #endif
+#ifndef ROOM_EVENT_STAGED_MSG
+/// Complete room-owned destination snapshot for staged scene playback and reload.
+///
+/// Requires a writable `RoomEventMsg` lvalue declared by the carrier. Local
+/// instances use `_gRoomEventStagedMsg`; an overlay-private header can bind
+/// shared storage instead. Writers copy all eight bytes before spawning the
+/// staged task; keep them unchanged and loaded through its reload state.
+/// Each copy or field access evaluates the bound lvalue once.
+#define ROOM_EVENT_STAGED_MSG _gRoomEventStagedMsg
+#endif
 #ifndef ROOM_EVENT_ACTIVE
 /// Raised while the gate's event runs. The room's `gRoomEventActive` when that symbol is the byte.
 #define ROOM_EVENT_ACTIVE gRoomEventActive
@@ -112,7 +126,7 @@ static s32 _roomEventGate(const RoomEventReq* request, const RoomEventMsg* messa
 void roomEventTask(Task* task);
 /// Plays a latched room scene, optional blackout and sound before reloading.
 ///
-/// Requires stable room-owned `ROOM_EVENT_LATCHED` and `gRoomEventStagedMsg`
+/// Requires stable room-owned `ROOM_EVENT_LATCHED` and `ROOM_EVENT_STAGED_MSG`
 /// through state 4; spawn arguments are unused and states are 0..4. Waits for
 /// CAP completion before starting a requested 30-frame subtractive fade, then
 /// plays the optional stage-relative sound and waits for its resolved voice.

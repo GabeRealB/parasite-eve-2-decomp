@@ -208,11 +208,11 @@ gDryfieldGarageViewCameras = 0x8017E670; // absolute:True owner=dryfield_garage 
 gDryfieldGarageSpriteViews = 0x8017F5E8; // absolute:True owner=dryfield_garage
 gDryfieldGarageSurfacePropertiesByClass = 0x801801E4; // absolute:True owner=dryfield_garage
 dryfieldDrivewayRoomTask = 0x8017DE14; // type:func absolute:True owner=dryfield_driveway shared=rooms
-D_dryfield_driveway_8017E784 = 0x8017E784; // absolute:True owner=dryfield_driveway
+gDryfieldDrivewayRoomCollisionResources = 0x8017E784; // absolute:True owner=dryfield_driveway
 gDryfieldDrivewayRoomViewMaps = 0x8017E7AC; // absolute:True owner=dryfield_driveway
 gDryfieldDrivewayRoomLighting = 0x8017E7B4; // absolute:True owner=dryfield_driveway
-D_dryfield_driveway_8017E7C4 = 0x8017E7C4; // absolute:True owner=dryfield_driveway
-D_dryfield_driveway_8017E7C8 = 0x8017E7C8; // absolute:True owner=dryfield_driveway
+gDryfieldDrivewayRoomViewCounts = 0x8017E7C4; // absolute:True owner=dryfield_driveway
+gDryfieldDrivewayWarpEntries = 0x8017E7C8; // absolute:True owner=dryfield_driveway
 gDryfieldDrivewayViewCameras = 0x8017EE2C; // absolute:True owner=dryfield_driveway
 gDryfieldDrivewaySpriteViews = 0x8017FC44; // absolute:True owner=dryfield_driveway
 gDryfieldDrivewaySurfacePropertiesByClass = 0x80180660; // absolute:True owner=dryfield_driveway shared=rooms

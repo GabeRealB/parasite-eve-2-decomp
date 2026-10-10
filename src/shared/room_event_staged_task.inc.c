@@ -64,9 +64,9 @@ void roomEventStagedTask(Task* task)
         case ROOM_EVENT_STAGED_STATE_RELOAD:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gDisplayState.spriteVariant                                = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = gRoomEventStagedMsg.areaId;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = gRoomEventStagedMsg.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gRoomEventStagedMsg.room;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = ROOM_EVENT_STAGED_MSG.areaId;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ROOM_EVENT_STAGED_MSG.warp;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ROOM_EVENT_STAGED_MSG.room;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;

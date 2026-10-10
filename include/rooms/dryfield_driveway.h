@@ -11,10 +11,19 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_driveway_8017EDD4[11];
+/// Driveway placement/resource choices indexed by placement variant 0..10.
+///
+/// Variant 1 places bats, 2 is empty and 3 supplies a Desert Chaser. Slots 0
+/// and 4..10 are absent pairs. The directory borrows map-owned placements and
+/// room-owned resource recipes; keep both overlays loaded during their use.
+extern AreaVariant gDryfieldDrivewayAreaVariants[11];
 
-// dryfield_driveway
-extern WorldCollisionRoomResources D_dryfield_driveway_8017E784[];
+/// Collision resources for driveway room selectors 1 and 2.
+///
+/// Indexed by room minus one. Both borrow the same grid, six view boundaries
+/// and eleven action triggers; neither supplies sight occluders. Setup mutates
+/// resource links and coordinates. Keep their storage loaded until unlinked.
+extern WorldCollisionRoomResources gDryfieldDrivewayRoomCollisionResources[2];
 
 /// Logical-view maps for driveway room selectors 1 and 2.
 ///
@@ -30,9 +39,20 @@ extern u8* gDryfieldDrivewayRoomViewMaps[2];
 /// use the default ambient minima. Records and lights stay live with this overlay.
 extern WorldCoordRoomLighting gDryfieldDrivewayRoomLighting[2];
 
-extern ViewCount D_dryfield_driveway_8017E7C4[];
+/// Seven logical views for each driveway room selector, indexed by room minus one.
+///
+/// Counts limit reverse searches of the corresponding view map; there is no
+/// terminator. Borrow the two signed-halfword counts while this overlay is loaded.
+extern ViewCount gDryfieldDrivewayRoomViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_driveway_8017E7C8[];
+/// Three driveway arrival/departure endpoints, indexed by warp ID minus one.
+///
+/// Slots 1, 2 and 3 serve the factory, water hole and main street respectively.
+/// Positions use room game coordinates and yaw uses 4096 units per turn.
+/// Slot 2 faces the transition point; the other player placements face yaw 1024.
+/// The water-hole endpoint has no sounds or map marker. There is no terminator;
+/// borrow these records while this overlay is loaded.
+extern DirectionWarpEntry gDryfieldDrivewayWarpEntries[3];
 
 /// Seven driveway cameras, indexed by mapped view minus one.
 ///

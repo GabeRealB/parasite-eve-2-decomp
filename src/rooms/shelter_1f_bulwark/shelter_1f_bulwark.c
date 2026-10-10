@@ -71,7 +71,7 @@ extern s8 D_shelter_1f_bulwark_80180ECC;
 extern TaskMessageEntry D_shelter_1f_bulwark_8018032C[];
 extern TaskDesc         D_shelter_1f_bulwark_80180354;
 extern ScreenFade       gRoomEventFade;
-extern RoomEventMsg     gRoomEventStagedMsg;
+static RoomEventMsg     _gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
 static void _shelter1fBulwarkInitializeRoom(Task* task);
@@ -406,7 +406,12 @@ ScreenFade gRoomEventFade = { 0 };
 /// loaded and the record intact until session reload discards the old task list.
 static ScreenFade _gShelter1fBulwarkHeliportFade = { 0 };
 
-RoomEventMsg gRoomEventStagedMsg = { 0 };
+/// Destination snapshot retained from event acceptance through staged scene reload.
+///
+/// The start handler copies all eight bytes; playback commits area, warp and
+/// room to the live save. Keep the snapshot unchanged until reload tears down
+/// the room. A later accepted start replaces it; no separate queue is stored.
+static RoomEventMsg _gRoomEventStagedMsg = { 0 };
 
 s8 D_shelter_1f_bulwark_80180ECC = 0;
 
@@ -442,8 +447,8 @@ static __inline__ s32 _shelter1fBulwarkStartEvent(const RoomEventMsg* transition
     D_shelter_1f_bulwark_80180ECC = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *transition;
-            gRoomEventLatched   = *event;
+            _gRoomEventStagedMsg = *transition;
+            gRoomEventLatched    = *event;
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
