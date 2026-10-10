@@ -23,6 +23,7 @@ looked for under this tree's local/ and assets/.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -568,11 +569,17 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
     except Exception as exc:  # noqa: BLE001
         print(f"no animation tables: {exc}", file=sys.stderr)
         banks = {}
-    sounds = {}
+    sounds, sample_ids, sample_homes = {}, {}, {}
     if (extracted / "spk").is_dir():
         for folder in (extracted / "spk").iterdir():
             if folder.is_dir():
-                sounds[folder.name] = sum(1 for f in folder.iterdir() if f.suffix == ".wav")
+                waves = sorted(f for f in folder.iterdir() if f.suffix == ".wav")
+                sounds[folder.name] = len(waves)
+                # A sample is known by its content: the same sound sits in many banks, and a name given to it is given once.
+                for n, wave in enumerate(waves):
+                    digest = hashlib.sha1(wave.read_bytes()).hexdigest()[:12]
+                    sample_ids.setdefault(folder.name, []).append(digest)
+                    sample_homes.setdefault(digest, []).append([folder.name, n])
     catalogue = {}
     for key, rec in assets.items():
         catalogue[key] = [rec["type"], {k: rec[k] for k in SHOWN if k in rec}]
@@ -696,7 +703,7 @@ def build_data(db: sqlite3.Connection, out: Path, pixels: str) -> dict:
         "holds": side["holds"], "viewpal": viewpal, "scripts": scripts, "scenes": scenes, "names": names, "usage": usage, "swept": by_overlay, "remarks": remarks, "notes": notes, "dialogue": dialogue,
         "mesh": side["mesh"], "track": side["track"], "banks": banks, "streams": streams, "saves": saves, "side": out.stem + "_data" if pixels else "",
         "files": files, "chunks": chunks, "fp": footprint, "loads": loads, "overlays": overlays, "requests": requests,
-        "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds,
+        "consts": constants, "findings": findings, "assets": catalogue, "sounds": sounds, "sampleIds": sample_ids, "sampleHomes": sample_homes,
         "pairs": {image: [[bpp, clut, row, pal, column, sorted(users)[:8]] for (bpp, clut, row, pal, column), users in sorted(found.items(), key=str)] for image, found in pairs.items()},
         "regions": [[r["kind"][0], r["name"], r["x"], r["y"], r["w"], r["h"], r["note"]] for r in table], "layers": residency.LAYERS,
         "stagemap": {r["id"] - 900000: index[r["path"]] for r in db.execute("SELECT path, id FROM file WHERE stage = 0 AND id BETWEEN 900001 AND 900005")},
