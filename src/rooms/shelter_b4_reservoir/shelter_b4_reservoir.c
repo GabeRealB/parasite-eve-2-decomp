@@ -83,10 +83,6 @@ static void _waterDrawTile(const GfxCoord* coord, s16 frameIndex, s16 radiusScal
 
 extern SVECTOR D_shelter_b4_reservoir_80185024[14];
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern s16 D_shelter_b4_reservoir_80185020[2];
-
 enum {
     SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE     = 100,
     SHELTER_B4_RESERVOIR_BURST_BASE_HALF_EXTENT = 320,
@@ -160,7 +156,6 @@ extern ScreenWaveOscillator gScreenWaveRows[32];
 extern TaskMessageEntry D_shelter_b4_reservoir_801848BC[];
 extern TaskDesc         D_shelter_b4_reservoir_801848EC[];
 extern TaskDesc         D_shelter_b4_reservoir_80184920[];
-extern Task*            D_shelter_b4_reservoir_8018492C;
 extern Task*            D_shelter_b4_reservoir_80184930;
 extern EvsCommand       D_shelter_b4_reservoir_80184948[];
 extern EvsCommand       D_shelter_b4_reservoir_80184DC8[];
@@ -184,21 +179,14 @@ STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirWaterDriftHalfExtent, 4);
 
 extern _ShelterB4ReservoirWaterDriftHalfExtent D_shelter_b4_reservoir_80184F7C;
 
-extern s16                            D_shelter_b4_reservoir_80184F82;
-extern TaskDesc                       D_shelter_b4_reservoir_80184F84[];
-extern RoomWaterSurface               D_shelter_b4_reservoir_80184F90[];
-extern RoomWaterSurface               D_shelter_b4_reservoir_80184FA8[];
-extern RoomWaterSurface               D_shelter_b4_reservoir_80184FCC[];
-extern RoomWaterSurface               D_shelter_b4_reservoir_80184FE4[];
-extern SVECTOR                        D_shelter_b4_reservoir_80185094;
-extern SVECTOR                        D_shelter_b4_reservoir_8018509C[];
-extern SVECTOR                        D_shelter_b4_reservoir_801850AC[];
-extern AreaApplyRec                   D_shelter_b4_reservoir_801874A0[];
-extern ScreenFade                     D_shelter_b4_reservoir_80187500;
-extern RoomEventMsg                   D_shelter_b4_reservoir_80187508;
-extern s32                            D_shelter_b4_reservoir_80187510;
-extern SVECTOR                        D_shelter_b4_reservoir_80187634[];
-extern _ShelterB4ReservoirBurstConfig D_shelter_b4_reservoir_80187684;
+extern TaskDesc     D_shelter_b4_reservoir_80184F84[];
+extern SVECTOR      D_shelter_b4_reservoir_80185094;
+extern SVECTOR      D_shelter_b4_reservoir_8018509C[];
+extern SVECTOR      D_shelter_b4_reservoir_801850AC[];
+extern AreaApplyRec D_shelter_b4_reservoir_801874A0[];
+extern ScreenFade   D_shelter_b4_reservoir_80187500;
+extern RoomEventMsg D_shelter_b4_reservoir_80187508;
+extern s32          D_shelter_b4_reservoir_80187510;
 
 static void _shelterB4ReservoirInitializeRoomTask(Task* task);
 static void _shelterB4ReservoirUpdateRoomTask(Task* task);
@@ -229,11 +217,11 @@ static const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
 
 static void _shelterB4ReservoirWaterTask(Task* task);
 
-extern WorldCollisionGrid     D_shelter_b4_reservoir_80185AB8[1];
-extern WorldCollisionOccluder D_shelter_b4_reservoir_801873B0[2];
-extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186AC0[8];
-extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186D20[7];
-extern WorldCollisionTrigger  D_shelter_b4_reservoir_80186F34[9];
+static WorldCollisionGrid     _gShelterB4ReservoirRoomCollisionGrid;
+static WorldCollisionOccluder _gShelterB4ReservoirRoomOccluders[2];
+static WorldCollisionTrigger  _gShelterB4ReservoirViewBoundaryTriggers[8];
+static WorldCollisionTrigger  _gShelterB4ReservoirRoom1ActionTriggers[7];
+static WorldCollisionTrigger  _gShelterB4ReservoirRoom2ActionTriggers[9];
 static WorldCoordRoomLights   _gShelterB4ReservoirRoomLights;
 static s32                    _shelterB4ReservoirRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 static s32                    _shelterB4ReservoirResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
@@ -307,7 +295,12 @@ TaskDesc D_shelter_b4_reservoir_80184920[1] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 32 } }, _shelterB4ReservoirView8ModelTask, { .model = &_gShelterB4ReservoirModel07220 } },
 };
 
-Task* D_shelter_b4_reservoir_8018492C = 0;
+/// Retained handle of the most recently started main or view-10 water ramp.
+///
+/// NULL means no retained ramp. A start overwrites this handle without killing
+/// its previous task; either ramp's completion clears it, as does cancellation.
+/// The event must sequence ramps to keep the handle live and unambiguous.
+static Task* _gShelterB4ReservoirWaterRampTask = NULL;
 
 Task* D_shelter_b4_reservoir_80184930 = NULL;
 
@@ -393,31 +386,52 @@ u8 D_shelter_b4_reservoir_80184F7A = 3;
 
 _ShelterB4ReservoirWaterDriftHalfExtent D_shelter_b4_reservoir_80184F7C = { 640, { 0, 0 } };
 
-s16 D_shelter_b4_reservoir_80184F80 = -2000;
+s16 gShelterB4ReservoirMainWaterY = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y;
 
-s16 D_shelter_b4_reservoir_80184F82 = 0;
+/// World-unit Y of the separate water plane drawn in view 10.
+///
+/// The event ramps from 0 to -1800 or resets to 0. Drawing clamps to that
+/// range; spray and ripple placement also sample this plane's height.
+static s16 _gShelterB4ReservoirView10WaterY = SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y;
 
 TaskDesc D_shelter_b4_reservoir_80184F84[1] = {
     { { { TASK_BODY_NONE, 96 } }, _shelterB4ReservoirWaterTask, { .value = 0 } },
 };
 
-RoomWaterSurface D_shelter_b4_reservoir_80184F90[2] = {
+/// Main water rectangle and its `WATER_SURFACE_LIST_END` terminator.
+///
+/// World-unit X/Z extents; its depth is rewritten from the main water height.
+/// Drawing applies the separate X offset and subdivides along Z into 32 quads,
+/// ignoring the live record's zero segment count.
+static RoomWaterSurface _gShelterB4ReservoirMainWaterSurfaces[2] = {
     { -980, -5900, 2023, 9900, 0 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-RoomWaterSurface D_shelter_b4_reservoir_80184FA8[3] = {
+/// Two fixed water rectangles subdivided along Z at the main water height.
+///
+/// Extents use world units; each live record draws 64 strips. The third record
+/// ends the list with `WATER_SURFACE_LIST_END` and is never drawn.
+static RoomWaterSurface _gShelterB4ReservoirZWaterSurfaces[3] = {
     { 1037, -5900, 950, 0x2E18, 64 },
     { 1987, -5900, 950, 0x2E18, 64 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-RoomWaterSurface D_shelter_b4_reservoir_80184FCC[2] = {
+/// Crosswise water rectangle subdivided along X at the main water height.
+///
+/// Extents use world units; the live record draws 16 strips. The second record
+/// ends the list with `WATER_SURFACE_LIST_END` and is never drawn.
+static RoomWaterSurface _gShelterB4ReservoirXWaterSurfaces[2] = {
     { 2940, -3900, 2900, 1800, 16 },
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-RoomWaterSurface D_shelter_b4_reservoir_80184FE4[5] = {
+/// Four water rectangles drawn at the separate view-10 water height.
+///
+/// Extents use world units; Z subdivisions are 64, 64, 1 and 1. The fifth
+/// record ends the list with `WATER_SURFACE_LIST_END` and is never drawn.
+static RoomWaterSurface _gShelterB4ReservoirView10WaterSurfaces[5] = {
     { 1400, 3100, 1000, 4800, 64 },
     { -1028, 3100, 2428, 4800, 64 },
     { -1028, -5900, 2428, 9000, 1 },
@@ -425,10 +439,15 @@ RoomWaterSurface D_shelter_b4_reservoir_80184FE4[5] = {
     { 0, 0, 0, 0, WATER_SURFACE_LIST_END },
 };
 
-s16 D_shelter_b4_reservoir_80185020[2] = {
-    0,
-    -0x693D,
-};
+/// X displacement of the main water rectangle, with retained uninterpreted bytes.
+///
+/// Only the signed halfword offset is read. The following nonzero bytes have
+/// no established role or independent accesses; their meaning remains unproven.
+static struct {
+    s16  xOffset;      // Added to the rectangle's world X, in world units
+    byte unknown_2[2]; // Retained bytes with no observed accesses; role unproven
+} _gShelterB4ReservoirMainWaterPlacement = { 0, { 0xC3, 0x96 } };
+STATIC_ASSERT_SIZEOF(_gShelterB4ReservoirMainWaterPlacement, 4);
 
 // Lighting task uses entries 0,6,8,12; two-point capsule renderer also consumes the second point of each pair.
 SVECTOR D_shelter_b4_reservoir_80185024[14] = {
@@ -504,9 +523,19 @@ WorldCoordRoomLighting gShelterB4ReservoirRoomLighting[2] = {
     { &_gShelterB4ReservoirRoomLights, NULL },
 };
 
-WorldCollisionRoomResources D_shelter_b4_reservoir_801850F8[2] = {
-    { D_shelter_b4_reservoir_80185AB8, D_shelter_b4_reservoir_80186AC0, D_shelter_b4_reservoir_80186D20, D_shelter_b4_reservoir_801873B0 },
-    { D_shelter_b4_reservoir_80185AB8, D_shelter_b4_reservoir_80186AC0, D_shelter_b4_reservoir_80186F34, D_shelter_b4_reservoir_801873B0 },
+WorldCollisionRoomResources gShelterB4ReservoirRoomCollisionResources[2] = {
+    {
+        .grid                 = &_gShelterB4ReservoirRoomCollisionGrid,
+        .viewBoundaryTriggers = _gShelterB4ReservoirViewBoundaryTriggers,
+        .actionTriggers       = _gShelterB4ReservoirRoom1ActionTriggers,
+        .occluders            = _gShelterB4ReservoirRoomOccluders,
+    },
+    {
+        .grid                 = &_gShelterB4ReservoirRoomCollisionGrid,
+        .viewBoundaryTriggers = _gShelterB4ReservoirViewBoundaryTriggers,
+        .actionTriggers       = _gShelterB4ReservoirRoom2ActionTriggers,
+        .occluders            = _gShelterB4ReservoirRoomOccluders,
+    },
 };
 
 u8* gShelterB4ReservoirViewMaps[2] = {
@@ -514,10 +543,10 @@ u8* gShelterB4ReservoirViewMaps[2] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b4_reservoir_80185120[2] = { 10, 10 };
+ViewCount gShelterB4ReservoirRoomViewCounts[2] = { ARRAY_SIZE(gShelterB4ReservoirViewCameras), ARRAY_SIZE(gShelterB4ReservoirViewCameras) };
 
-DirectionWarpEntry D_shelter_b4_reservoir_80185124[2] = {
-    { { { .word = 3072 }, 5500, 0, -3000 }, { 0, 0, 0, 0 }, { { .word = 3584 }, 5000, 0, -3650 }, { 0, 0, 0, 0 }, 0x542D0004, 0x542D0003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gShelterB4ReservoirWarpEntries[2] = {
+    { { { .word = 3072 }, 5500, 0, -3000 }, { 0, 0, 0, 0 }, { { .word = 3584 }, 5000, 0, -3650 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, 4), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_RESERVOIR, 3), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 1024 }, -2527, -2000, -2825 }, { 0, 0, 0, 0 }, { { .word = 512 }, -2700, -2000, -2000 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_FADE_DEPARTURE, GAME_FLAG_MAP_MARK_RESERVOIR_1BE },
 };
 
@@ -547,30 +576,52 @@ SVECTOR D_shelter_b4_reservoir_801851E4[5] = {
     { 0, 0, 0, -1 },
 };
 
-static SVECTOR _gShelterB4ReservoirCollision084F8Normals[22] = {
+static SVECTOR _gShelterB4ReservoirRoomCollisionGridNormals[22] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_normals.inc"
 };
 
-static SVECTOR _gShelterB4ReservoirCollision084F8Verts[98] = {
+static SVECTOR _gShelterB4ReservoirRoomCollisionGridVerts[98] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB4ReservoirCollision084F8Faces[45] = {
+static WorldCollisionGridFace _gShelterB4ReservoirRoomCollisionGridFaces[45] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_faces.inc"
 };
 
-static s16 _gShelterB4ReservoirCollision084F8Cells[310] = {
+static s16 _gShelterB4ReservoirRoomCollisionGridCells[310] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB4ReservoirCollision084F8Cells[i])
-static s16* _gShelterB4ReservoirCollision084F8Table[25] = {
+enum {
+    SHELTER_B4_RESERVOIR_GRID_X_CELLS   = 5,
+    SHELTER_B4_RESERVOIR_GRID_Z_CELLS   = 5,
+    SHELTER_B4_RESERVOIR_GRID_CELL_SIZE = 4000,
+};
+
+#define GRID_CELL(i) (&_gShelterB4ReservoirRoomCollisionGridCells[i])
+static s16* _gShelterB4ReservoirRoomCollisionGridTable[SHELTER_B4_RESERVOIR_GRID_X_CELLS * SHELTER_B4_RESERVOIR_GRID_Z_CELLS] = {
 #include "assets/shelter_b4_reservoir_collision_084F8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b4_reservoir_80185AB8[1] = {
-    { NULL, _gShelterB4ReservoirCollision084F8Normals, _gShelterB4ReservoirCollision084F8Verts, _gShelterB4ReservoirCollision084F8Faces, _gShelterB4ReservoirCollision084F8Table, 0x2AC6, 6000, 5, 5, 4000, 45 },
+/// Collision mesh and X-major cell index shared by reservoir room IDs 1 and 2.
+///
+/// Activation binds the view coordinate. The 45 faces use vertices 0..97 and
+/// normals 0..21; the 5 by 5 cell table borrows terminated face-index lists.
+/// Positions and 4000-unit cells use room coordinates, normals use Q12.
+/// The descriptor and all five pools remain live while the room is loaded.
+static WorldCollisionGrid _gShelterB4ReservoirRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB4ReservoirRoomCollisionGridNormals,
+    .vertices    = _gShelterB4ReservoirRoomCollisionGridVerts,
+    .faces       = _gShelterB4ReservoirRoomCollisionGridFaces,
+    .cellFaceIds = _gShelterB4ReservoirRoomCollisionGridTable,
+    .xBias       = 10950,
+    .zBias       = 6000,
+    .cellCountX  = SHELTER_B4_RESERVOIR_GRID_X_CELLS,
+    .cellCountZ  = SHELTER_B4_RESERVOIR_GRID_Z_CELLS,
+    .cellSize    = SHELTER_B4_RESERVOIR_GRID_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gShelterB4ReservoirRoomCollisionGridFaces),
 };
 
 ViewCamera gShelterB4ReservoirViewCameras[10] = {
@@ -848,7 +899,12 @@ static WorldCoordRoomLights _gShelterB4ReservoirRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b4_reservoir_80186AC0[8] = {
+/// Eight directed view boundaries shared by both reservoir room IDs.
+///
+/// Pairs connect views 7/5, 5/4, 4/3 and 3/2. Setup binds the current view,
+/// links and enables every record including the eighth, marked LAST.
+/// Positions use room units and normals Q12; storage stays live while linked.
+static WorldCollisionTrigger _gShelterB4ReservoirViewBoundaryTriggers[8] = {
     { NULL, NULL, NULL, { -3072, -1856, -1137, 0 }, { { -2192, -4304, 0, 0 }, { 2192, -4304, 0, 0 }, { -2192, 4304, 0, 0 }, { 2192, 4304, 0, 0 } }, { 0, 0, -4120, 0 }, { 0, 0, 4096, 0 }, 4802, 0, 7, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -3008, -1729, -1264, 0 }, { { 2128, -4304, 0, 0 }, { -2128, -4304, 0, 0 }, { 2128, 4304, 0, 0 }, { -2128, 4304, 0, 0 } }, { 0, 0, 4102, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 5, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -32, -1856, 3200, 0 }, { { 1008, -4304, 0, 0 }, { -1008, -4304, 0, 0 }, { 1008, 4304, 0, 0 }, { -1008, 4304, 0, 0 } }, { 0, 0, 4108, 0 }, { 0, 0, 4096, 0 }, 4404, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -859,20 +915,41 @@ WorldCollisionTrigger D_shelter_b4_reservoir_80186AC0[8] = {
     { NULL, NULL, NULL, { 3136, -1984, -2976, 0 }, { { 0, -4304, 1264, 0 }, { 0, -4304, -1264, 0 }, { 0, 4304, 1264, 0 }, { 0, 4304, -1264, 0 } }, { -4108, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4463, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b4_reservoir_80186D20[7] = {
-    { NULL, NULL, NULL, { 0, -48, 864, 0 }, { { -1024, 0, -160, 0 }, { 1024, 0, -160, 0 }, { -1024, 0, 160, 0 }, { 1024, 0, 160, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1031, WORLD_COLLISION_TRIGGER_ACTION_FACING, 202, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+enum {
+    // Indexed stair-surface row 4, with ten steps; control bit 8 selects descent.
+    SHELTER_B4_RESERVOIR_STAIR_SURFACES = 0x80 | (4 << 4) | 10,
+    SHELTER_B4_RESERVOIR_STAIR_DESCEND  = 0x100,
+    // High nibble: this area's departure warp. Low nibble: destination warp.
+    SHELTER_B4_RESERVOIR_WATER_SUPPLY_WARP_PAIR = (1 << 4) | 2,
+    SHELTER_B4_RESERVOIR_UPPER_SEWER_WARP_PAIR  = (2 << 4) | 2,
+};
+
+/// Seven action quads selected by reservoir room ID 1.
+///
+/// Includes stair ascent, four CAP/room interactions and the water-supply and
+/// upper-sewer exits. Setup binds the view and links/enables all records through
+/// the seventh's LAST marker; positions use room units and normals Q12.
+/// These mutable records must remain live until unlinked.
+static WorldCollisionTrigger _gShelterB4ReservoirRoom1ActionTriggers[7] = {
+    { NULL, NULL, NULL, { 0, -48, 864, 0 }, { { -1024, 0, -160, 0 }, { 1024, 0, -160, 0 }, { -1024, 0, 160, 0 }, { 1024, 0, 160, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1031, WORLD_COLLISION_TRIGGER_ACTION_FACING, SHELTER_B4_RESERVOIR_STAIR_SURFACES, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { 224, -1888, 3888, 0 }, { { -1024, 0, -320, 0 }, { 1024, 0, -320, 0 }, { -1024, 0, 320, 0 }, { 1024, 0, 320, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5661, -48, -3072, 0 }, { { 448, 0, -1024, 0 }, { 448, 0, 1024, 0 }, { -448, 0, -1024, 0 }, { -448, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_WARP, 46, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2736, -2096, -3552, 0 }, { { 240, 0, -1024, 0 }, { 240, 0, 1024, 0 }, { -240, 0, -1024, 0 }, { -240, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_WARP, 44, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5661, -48, -3072, 0 }, { { 448, 0, -1024, 0 }, { 448, 0, 1024, 0 }, { -448, 0, -1024, 0 }, { -448, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_WATER_SUPPLY, SHELTER_B4_RESERVOIR_WATER_SUPPLY_WARP_PAIR, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2736, -2096, -3552, 0 }, { { 240, 0, -1024, 0 }, { 240, 0, 1024, 0 }, { -240, 0, -1024, 0 }, { -240, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_UPPER_SEWER, SHELTER_B4_RESERVOIR_UPPER_SEWER_WARP_PAIR, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -1968, -1888, 5152, 0 }, { { 576, 0, -1024, 0 }, { 576, 0, 1024, 0 }, { -576, 0, -1024, 0 }, { -576, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -2817, -2080, -5648, 0 }, { { -1024, 0, -432, 0 }, { 1024, 0, -432, 0 }, { -1024, 0, 432, 0 }, { 1024, 0, 432, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -2720, -2080, -816, 0 }, { { -448, 0, -1216, 0 }, { 448, 0, -1216, 0 }, { -448, 0, 1216, 0 }, { 448, 0, 1216, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 1292, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b4_reservoir_80186F34[9] = {
-    { NULL, NULL, NULL, { -512, -48, 864, 0 }, { { -1024, 0, -160, 0 }, { 1024, 0, -160, 0 }, { -1024, 0, 160, 0 }, { 1024, 0, 160, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1031, WORLD_COLLISION_TRIGGER_ACTION_FACING, 202, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 384, -1888, 3776, 0 }, { { -1024, 0, -208, 0 }, { 1024, 0, -208, 0 }, { -1024, 0, 208, 0 }, { 1024, 0, 208, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 202, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5872, -48, -3072, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 46, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+/// Nine action quads selected by reservoir room ID 2.
+///
+/// Includes stair ascent/descent, six CAP interactions and the
+/// water-supply exit. The upper-sewer-side quad runs CAP command 2 instead of
+/// warping. Setup binds the view and links/enables all records through the ninth's
+/// LAST marker; positions use room units and normals Q12. Storage lives until unlink.
+static WorldCollisionTrigger _gShelterB4ReservoirRoom2ActionTriggers[9] = {
+    { NULL, NULL, NULL, { -512, -48, 864, 0 }, { { -1024, 0, -160, 0 }, { 1024, 0, -160, 0 }, { -1024, 0, 160, 0 }, { 1024, 0, 160, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1031, WORLD_COLLISION_TRIGGER_ACTION_FACING, SHELTER_B4_RESERVOIR_STAIR_SURFACES, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 384, -1888, 3776, 0 }, { { -1024, 0, -208, 0 }, { 1024, 0, -208, 0 }, { -1024, 0, 208, 0 }, { 1024, 0, 208, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | SHELTER_B4_RESERVOIR_STAIR_DESCEND, SHELTER_B4_RESERVOIR_STAIR_SURFACES, 128, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5872, -48, -3072, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B4_WATER_SUPPLY, SHELTER_B4_RESERVOIR_WATER_SUPPLY_WARP_PAIR, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -2736, -2096, -3552, 0 }, { { 240, 0, -1024, 0 }, { 240, 0, 1024, 0 }, { -240, 0, -1024, 0 }, { -240, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -2144, -2080, 5232, 0 }, { { 848, 0, -816, 0 }, { 848, 0, 816, 0 }, { -848, 0, -816, 0 }, { -848, 0, 816, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -1056, -64, -5728, 0 }, { { 848, 0, -816, 0 }, { 848, 0, 816, 0 }, { -848, 0, -816, 0 }, { -848, 0, 816, 0 } }, { 0, 4100, 0, 0 }, { 4096, 0, 0, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -881,36 +958,70 @@ WorldCollisionTrigger D_shelter_b4_reservoir_80186F34[9] = {
     { NULL, NULL, NULL, { -2768, -2080, -944, 0 }, { { -496, 0, -1200, 0 }, { 496, 0, -1200, 0 }, { -496, 0, 1200, 0 }, { 496, 0, 1200, 0 } }, { 0, 4105, 0, 0 }, { 4096, 0, 0, 0 }, 1292, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b4_reservoir_801871E0[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Variant-1 resource list: one slot-1 Bog Diver recipe and an end record.
+///
+/// Entry ID 4 matches its placement; the loaded actor package and room table
+/// must remain live through loading, spawning and actor teardown.
+static AreaResource _gShelterB4ReservoirAreaVariant1Resources[2] = {
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b4_reservoir_801871F8[4] = {
+/// Variant-2 resources: Mad Chaser, Creeping Stranger and Skull Stalker recipes.
+///
+/// Entry IDs 44, 72 and 73 select these recipes; the placements use only 44/72,
+/// and the retained ID-73 file request has no catalogued file. The fourth record ends the list.
+/// The room and referenced actor packages must remain live through their consumers.
+static AreaResource _gShelterB4ReservoirAreaVariant2Resources[4] = {
     { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
     { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200SkullStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b4_reservoir_80187228[4] = {
+/// Variant-3 resource list: Amoeba, Slouch and Sucklerceph recipes, then an end record.
+///
+/// Entry IDs 24, 70 and 71 match the three placements. File 207100 requested by
+/// ID 71 is absent; that actor uses the Sucklerceph recipe loaded with ID 70.
+/// The room and actor packages must remain live through loading, spawning and teardown.
+static AreaResource _gShelterB4ReservoirAreaVariant3Resources[4] = {
     { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
     { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SlouchTaskDescs },
     { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SucklercephTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b4_reservoir_80187258[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Variant-11 resource list: one Bog Diver recipe shared by two placements.
+///
+/// Entry ID 4 selects the slot-1 body descriptor; the second record ends the list.
+/// The room and actor package must remain live through loading, spawning and teardown.
+static AreaResource _gShelterB4ReservoirAreaVariant11Resources[2] = {
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b4_reservoir_80187270[2] = {
-    { 4, 0, 1, 900, 1000, -2400, 3072, 0, 0, 2, 4 },
+enum {
+    SHELTER_B4_RESERVOIR_DIVER_STRANDED              = 0,
+    SHELTER_B4_RESERVOIR_DIVER_WATER_OR_GROUND       = 1,
+    SHELTER_B4_RESERVOIR_SUCKLERCEPH_TEXTURE_VARIANT = 1,
+};
+
+/// Variant-1 placement list: one Bog Diver at (900, 1000, -2400), then an end record.
+///
+/// Mode 1 selects its water/reservoir-ground behavior; row 4 selects actor tuning.
+/// XYZ use world units and yaw uses 4096 per turn. The actor may retain its
+/// placement pointer, so room storage must stay loaded through teardown.
+static AreaPlacement _gShelterB4ReservoirAreaVariant1Placements[2] = {
+    { 4, 0, SHELTER_B4_RESERVOIR_DIVER_WATER_OR_GROUND, 900, 1000, -2400, 3072, 0, 0, 2, 4 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b4_reservoir_80187290[5] = {
+/// Variant-2 placement list: two Mad Chasers and two Creeping Strangers.
+///
+/// Four world-unit transforms with 4096-unit yaw precede `AREA_PLACEMENT_END`.
+/// IDs 44/72 select the resource recipes; there is no placement for ID 73.
+/// Actors may retain pointers into this loaded-room storage until teardown.
+static AreaPlacement _gShelterB4ReservoirAreaVariant2Placements[5] = {
     { 44, 0, 0, 2950, 0, -2800, 1200, 0, 0, 2, 0 },
     { 44, 0, 0, 1650, 0, -400, 2100, 0, 0, 2, 0 },
     { 72, 0, 0, -1800, -2000, -2150, 200, 0, 2, 4, 0 },
@@ -918,35 +1029,42 @@ AreaPlacement D_shelter_b4_reservoir_80187290[5] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b4_reservoir_801872E0[4] = {
+/// Variant-3 placement list: one Amoeba, one Slouch and one Sucklerceph.
+///
+/// IDs 24/70/71 select their resource recipes. Three world-unit transforms with
+/// 4096-unit yaw precede `AREA_PLACEMENT_END`; the Sucklerceph's mode 1 shifts
+/// its texture page and CLUT row by one beyond the placement offsets.
+/// Actors may retain pointers into this loaded-room storage until teardown.
+static AreaPlacement _gShelterB4ReservoirAreaVariant3Placements[4] = {
     { 24, 0, 0, -2100, -2000, 780, 2048, 0, 0, 2, 0 },
     { 70, 0, 0, 780, 0, -4300, 3584, 0, 2, 4, 0 },
-    { 71, 0, 1, 1750, 0, 3450, 2048, 0, 2, 4, 0 },
+    { 71, 0, SHELTER_B4_RESERVOIR_SUCKLERCEPH_TEXTURE_VARIANT, 1750, 0, 3450, 2048, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b4_reservoir_80187320[3] = {
-    { 4, 0, 0, 850, 0, -1000, 3200, 0, 0, 2, 0 },
-    { 4, 0, 0, 350, 0, -4600, 300, 0, 0, 2, 0 },
+/// Variant-11 placement list: two stranded Bog Divers, then an end record.
+///
+/// Both use resource ID 4 and spawn mode 0. XYZ use world units and yaw uses
+/// 4096 per turn. Actors may retain their records until teardown; keep the room loaded.
+static AreaPlacement _gShelterB4ReservoirAreaVariant11Placements[3] = {
+    { 4, 0, SHELTER_B4_RESERVOIR_DIVER_STRANDED, 850, 0, -1000, 3200, 0, 0, 2, 0 },
+    { 4, 0, SHELTER_B4_RESERVOIR_DIVER_STRANDED, 350, 0, -4600, 300, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b4_reservoir_80187350[12] = {
-    { NULL, NULL },
-    { D_shelter_b4_reservoir_80187270, D_shelter_b4_reservoir_801871E0 },
-    { D_shelter_b4_reservoir_80187290, D_shelter_b4_reservoir_801871F8 },
-    { D_shelter_b4_reservoir_801872E0, D_shelter_b4_reservoir_80187228 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b4_reservoir_80187320, D_shelter_b4_reservoir_80187258 },
+AreaVariant gShelterB4ReservoirAreaVariants[12] = {
+    [1]  = { _gShelterB4ReservoirAreaVariant1Placements, _gShelterB4ReservoirAreaVariant1Resources },
+    [2]  = { _gShelterB4ReservoirAreaVariant2Placements, _gShelterB4ReservoirAreaVariant2Resources },
+    [3]  = { _gShelterB4ReservoirAreaVariant3Placements, _gShelterB4ReservoirAreaVariant3Resources },
+    [11] = { _gShelterB4ReservoirAreaVariant11Placements, _gShelterB4ReservoirAreaVariant11Resources },
 };
 
-WorldCollisionOccluder D_shelter_b4_reservoir_801873B0[2] = {
+/// Two line-of-sight blocking quads shared by reservoir room IDs 1 and 2.
+///
+/// Setup links/enables both records; the second carries LAST. Room-unit geometry
+/// and Q12 normals stay writable and live until the runtime list is unlinked.
+/// The retained low flag bit has no established interpretation.
+static WorldCollisionOccluder _gShelterB4ReservoirRoomOccluders[2] = {
     { NULL, NULL, { 4544, -2432, -1024, 0 }, { { -1408, 4896, -768, 0 }, { 1408, 4896, 768, 0 }, { -1408, -4896, -768, 0 }, { 1408, -4896, 768, 0 } }, { -1963, 0, 3597, 0 }, 5145, 1, 0 },
     { NULL, NULL, { 4447, 0, -4993, 0 }, { { -1455, 4896, 834, 0 }, { 1456, 4896, -833, 0 }, { -1455, -4896, 834, 0 }, { 1456, -4896, -833, 0 } }, { 2036, 0, 3555, 0 }, 5170, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
@@ -1103,9 +1221,21 @@ ScreenWaveCtx gScreenWaveSpawnCtx = { 0 };
 /// packet storage must remain intact through GPU DMA before actor loading or reuse.
 static u8* _gShelterB4ReservoirWaterPrimCursor = NULL;
 
-SVECTOR D_shelter_b4_reservoir_80187634[10] = { 0 };
+/// Ten mutable world-unit emission points for the reservoir's event burst sprites.
+///
+/// The effect task scatters all points, then uses the configuration's active
+/// prefix (0..10), occasionally rerandomizing selected points before spawning.
+/// XYZ narrow to signed halfwords; pad is unused. Spawn placement is copied,
+/// but effects retain the borrowed offset pointer, so storage lives through teardown.
+static SVECTOR _gShelterB4ReservoirBurstPoints[10] = { 0 };
 
-_ShelterB4ReservoirBurstConfig D_shelter_b4_reservoir_80187684 = { 0, 0, 0 };
+/// Retained active-point count, spawn chance and base size of the burst emitter.
+///
+/// Initialization clears all three halfwords. Event commands enable ten points
+/// with a 320-world-unit base half-extent; zero chance disables emission.
+/// Chance is a threshold out of 100 and is not clamped. This room-owned state
+/// stays live while the ambient effect task and event callbacks can access it.
+static _ShelterB4ReservoirBurstConfig _gShelterB4ReservoirBurstConfig = { 0, 0, 0 };
 
 static void _shelterB4ReservoirUpdateWaterDriftSpawnArgs(void);
 static void _shelterB4ReservoirDrawWaterTask(Task* task);
@@ -1413,13 +1543,13 @@ static void _shelterB4ReservoirRampMainWaterHeightTask(Task* task)
     s32 heightDelta;
 
     // Sample the old elapsed frame, then advance the signed halfword counter.
-    heightDelta                     = (task->killCountdown * SHELTER_B4_RESERVOIR_MAIN_WATER_Y_TRAVEL) / task->spawnArg1.value;
-    nextElapsedFrame                = (u16)task->killCountdown + 1;
-    task->killCountdown             = nextElapsedFrame;
-    D_shelter_b4_reservoir_80184F80 = heightDelta + SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y;
+    heightDelta                   = (task->killCountdown * SHELTER_B4_RESERVOIR_MAIN_WATER_Y_TRAVEL) / task->spawnArg1.value;
+    nextElapsedFrame              = (u16)task->killCountdown + 1;
+    task->killCountdown           = nextElapsedFrame;
+    gShelterB4ReservoirMainWaterY = heightDelta + SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y;
     if (task->spawnArg1.value < nextElapsedFrame) {
         taskKill(task);
-        D_shelter_b4_reservoir_8018492C = 0;
+        _gShelterB4ReservoirWaterRampTask = 0;
     }
 }
 
@@ -1436,13 +1566,13 @@ static void _shelterB4ReservoirRampView10WaterHeightTask(Task* task)
     s32 heightDelta;
 
     // Sample the old elapsed frame, then advance the signed halfword counter.
-    heightDelta                     = -(task->killCountdown * (-SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y)) / task->spawnArg1.value;
-    nextElapsedFrame                = (u16)task->killCountdown + 1;
-    task->killCountdown             = nextElapsedFrame;
-    D_shelter_b4_reservoir_80184F82 = heightDelta;
+    heightDelta                      = -(task->killCountdown * (-SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y)) / task->spawnArg1.value;
+    nextElapsedFrame                 = (u16)task->killCountdown + 1;
+    task->killCountdown              = nextElapsedFrame;
+    _gShelterB4ReservoirView10WaterY = heightDelta;
     if (task->spawnArg1.value < nextElapsedFrame) {
         taskKill(task);
-        D_shelter_b4_reservoir_8018492C = 0;
+        _gShelterB4ReservoirWaterRampTask = 0;
     }
 }
 
@@ -1508,9 +1638,9 @@ static void _shelterB4ReservoirView8ModelTask(Task* task)
 /// the finishing command sets the appropriate endpoint after this returns.
 static inline void _shelterB4ReservoirStopWaterRamp(void)
 {
-    if (D_shelter_b4_reservoir_8018492C != NULL) {
-        taskKill(D_shelter_b4_reservoir_8018492C);
-        D_shelter_b4_reservoir_8018492C = NULL;
+    if (_gShelterB4ReservoirWaterRampTask != NULL) {
+        taskKill(_gShelterB4ReservoirWaterRampTask);
+        _gShelterB4ReservoirWaterRampTask = NULL;
     }
 }
 
@@ -1531,18 +1661,18 @@ static void _shelterB4ReservoirWaterCommand(s32 waterCommand)
 
     switch (waterCommand) {
         case SHELTER_B4_RESERVOIR_WATER_START_MAIN_RAMP:
-            D_shelter_b4_reservoir_8018492C = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, SHELTER_B4_RESERVOIR_TASK_MAIN_WATER_RAMP, SHELTER_B4_RESERVOIR_WATER_RAMP_UPDATES, 0);
+            _gShelterB4ReservoirWaterRampTask = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, SHELTER_B4_RESERVOIR_TASK_MAIN_WATER_RAMP, SHELTER_B4_RESERVOIR_WATER_RAMP_UPDATES, 0);
             break;
         case SHELTER_B4_RESERVOIR_WATER_FINISH_MAIN_RAMP:
             _shelterB4ReservoirStopWaterRamp();
-            D_shelter_b4_reservoir_80184F80 = SHELTER_B4_RESERVOIR_MAIN_WATER_FINAL_Y;
+            gShelterB4ReservoirMainWaterY = SHELTER_B4_RESERVOIR_MAIN_WATER_FINAL_Y;
             break;
         case SHELTER_B4_RESERVOIR_WATER_START_VIEW10_RAMP:
-            D_shelter_b4_reservoir_8018492C = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, SHELTER_B4_RESERVOIR_TASK_VIEW10_WATER_RAMP, SHELTER_B4_RESERVOIR_WATER_RAMP_UPDATES, 0);
+            _gShelterB4ReservoirWaterRampTask = taskSpawnFromTable(D_shelter_b4_reservoir_801848EC, SHELTER_B4_RESERVOIR_TASK_VIEW10_WATER_RAMP, SHELTER_B4_RESERVOIR_WATER_RAMP_UPDATES, 0);
             break;
         case SHELTER_B4_RESERVOIR_WATER_RESET_VIEW10:
             _shelterB4ReservoirStopWaterRamp();
-            D_shelter_b4_reservoir_80184F82 = SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y;
+            _gShelterB4ReservoirView10WaterY = SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y;
             break;
     }
 }
@@ -1566,7 +1696,7 @@ static void _shelterB4ReservoirSetEventModelState(s32 modelState)
 /// Uses a 320-world-unit base half-extent before random size variation.
 static void _shelterB4ReservoirSetBurstChance(s32 spawnChancePercent)
 {
-    _shelterB4ReservoirSetBurstConfig(ARRAY_SIZE(D_shelter_b4_reservoir_80187634), spawnChancePercent,
+    _shelterB4ReservoirSetBurstConfig(ARRAY_SIZE(_gShelterB4ReservoirBurstPoints), spawnChancePercent,
                                       SHELTER_B4_RESERVOIR_BURST_BASE_HALF_EXTENT);
 }
 
@@ -1591,9 +1721,9 @@ static void _shelterB4ReservoirInitializeRoomTask(Task* task)
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_shelter_b4_reservoir_80184F84, 0, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
-        D_shelter_b4_reservoir_80184F80 = SHELTER_B4_RESERVOIR_MAIN_WATER_FINAL_Y;
+        gShelterB4ReservoirMainWaterY = SHELTER_B4_RESERVOIR_MAIN_WATER_FINAL_Y;
     } else {
-        D_shelter_b4_reservoir_80184F80 = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y;
+        gShelterB4ReservoirMainWaterY = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y;
     }
     D_shelter_b4_reservoir_80184930 = taskSpawnFromTable(D_shelter_b4_reservoir_80184920, 0, 0, 0);
     task->state++;
@@ -1636,7 +1766,7 @@ static void _shelterB4ReservoirDrawWaterTask(Task* task)
         SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES  = 0xC000,
         SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_DEPTH = 9000,
     };
-    RoomWaterSurface* surface = D_shelter_b4_reservoir_80184F90;
+    RoomWaterSurface* surface = _gShelterB4ReservoirMainWaterSurfaces;
 
     // Borrow one half of the actor arena unused by the current companion setup.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
@@ -1645,16 +1775,16 @@ static void _shelterB4ReservoirDrawWaterTask(Task* task)
         _gShelterB4ReservoirWaterPrimCursor = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
     }
     if (gGameSession->location.loc.view != SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW) {
-        surface->depth = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_DEPTH - (((D_shelter_b4_reservoir_80184F80 - SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y) * 0x31) >> 5);
+        surface->depth = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_DEPTH - (((gShelterB4ReservoirMainWaterY - SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y) * 0x31) >> 5);
         _shelterB4ReservoirDrawMainWaterStrip(task);
         _shelterB4ReservoirDrawZWaterStrips(task);
         _shelterB4ReservoirDrawXWaterStrips(task);
         return;
     }
-    if (D_shelter_b4_reservoir_80184F82 < SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y) {
-        D_shelter_b4_reservoir_80184F82 = SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y;
-    } else if (D_shelter_b4_reservoir_80184F82 > SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y) {
-        D_shelter_b4_reservoir_80184F82 = SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y;
+    if (_gShelterB4ReservoirView10WaterY < SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y) {
+        _gShelterB4ReservoirView10WaterY = SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y;
+    } else if (_gShelterB4ReservoirView10WaterY > SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y) {
+        _gShelterB4ReservoirView10WaterY = SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y;
     }
     _shelterB4ReservoirDrawView10WaterStrips(task);
 }
@@ -1711,7 +1841,7 @@ static void _shelterB4ReservoirDrawMainWaterStrip(Task* task)
     s32                     orderingDepth;
     s32                     segmentIndex;
 
-    surface                    = D_shelter_b4_reservoir_80184F90;
+    surface                    = _gShelterB4ReservoirMainWaterSurfaces;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     // One scratch reservation holds the values reused across the surface list.
@@ -1720,11 +1850,11 @@ static void _shelterB4ReservoirDrawMainWaterStrip(Task* task)
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F80;
+    (scratchEnd - 1)->y = gShelterB4ReservoirMainWaterY;
     for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
         scratch->dx = surface->width;
         scratch->dz = surface->depth / SHELTER_B4_RESERVOIR_MAIN_WATER_SEGMENTS;
-        scratch->x  = surface->x + D_shelter_b4_reservoir_80185020[0];
+        scratch->x  = surface->x + _gShelterB4ReservoirMainWaterPlacement.xOffset;
         scratch->z  = surface->z;
         for (segmentIndex = 0; segmentIndex < SHELTER_B4_RESERVOIR_MAIN_WATER_SEGMENTS; segmentIndex++) {
             corner0.vx       = scratch->x;
@@ -1803,7 +1933,7 @@ static void _shelterB4ReservoirDrawZWaterStrips(Task* task)
     s32                     orderingDepth;
     s32                     segmentIndex;
 
-    surface                    = D_shelter_b4_reservoir_80184FA8;
+    surface                    = _gShelterB4ReservoirZWaterSurfaces;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     // One scratch reservation holds the values reused across the surface list.
@@ -1812,7 +1942,7 @@ static void _shelterB4ReservoirDrawZWaterStrips(Task* task)
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F80;
+    (scratchEnd - 1)->y = gShelterB4ReservoirMainWaterY;
     for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
         scratch->dx = surface->width;
         scratch->dz = surface->depth / surface->segmentCount;
@@ -1895,7 +2025,7 @@ static void _shelterB4ReservoirDrawXWaterStrips(Task* task)
     s32                     orderingDepth;
     s32                     segmentIndex;
 
-    surface                    = D_shelter_b4_reservoir_80184FCC;
+    surface                    = _gShelterB4ReservoirXWaterSurfaces;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     // One scratch reservation holds the values reused across the surface list.
@@ -1904,7 +2034,7 @@ static void _shelterB4ReservoirDrawXWaterStrips(Task* task)
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F80;
+    (scratchEnd - 1)->y = gShelterB4ReservoirMainWaterY;
     for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
         scratch->dx = surface->width / surface->segmentCount;
         scratch->dz = surface->depth;
@@ -1987,7 +2117,7 @@ static void _shelterB4ReservoirDrawView10WaterStrips(Task* task)
     s32                     segmentIndex;
     u8                      blueIntensity;
 
-    surface                    = D_shelter_b4_reservoir_80184FE4;
+    surface                    = _gShelterB4ReservoirView10WaterSurfaces;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     // One scratch reservation holds the values reused across the surface list.
@@ -1996,8 +2126,8 @@ static void _shelterB4ReservoirDrawView10WaterStrips(Task* task)
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F82;
-    blueIntensity       = -(D_shelter_b4_reservoir_80184F82 * 16) / 225;
+    (scratchEnd - 1)->y = _gShelterB4ReservoirView10WaterY;
+    blueIntensity       = -(_gShelterB4ReservoirView10WaterY * 16) / 225;
     for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
         scratch->dx = surface->width;
         scratch->dz = surface->depth / surface->segmentCount;
@@ -2039,7 +2169,7 @@ static void _shelterB4ReservoirWaterTask(Task* task)
     TaskFunc states[2] = { _shelterB4ReservoirInitializeWaterTask, _shelterB4ReservoirDrawWaterTask };
 
     states[task->state](task);
-    gGameSession->waterY = D_shelter_b4_reservoir_80184F80;
+    gGameSession->waterY = gShelterB4ReservoirMainWaterY;
 }
 
 /// Prepares the actor buffer reused by the reservoir's water renderer.
@@ -2079,10 +2209,10 @@ static inline void _shelterB4ReservoirScatterBurstPoint(EffectWork* work, s32 po
 
     work->scale                                    = RAND() & SHELTER_B4_RESERVOIR_BURST_RADIUS_MASK;
     work->angle                                    = (RAND() & SHELTER_B4_RESERVOIR_BURST_ANGLE_MASK) + (pointIndex << SHELTER_B4_RESERVOIR_BURST_SECTOR_SHIFT);
-    D_shelter_b4_reservoir_80187634[pointIndex].vx = D_shelter_b4_reservoir_80185094.vx + SHELTER_B4_RESERVOIR_BURST_X_OFFSET;
-    D_shelter_b4_reservoir_80187634[pointIndex].vy =
+    _gShelterB4ReservoirBurstPoints[pointIndex].vx = D_shelter_b4_reservoir_80185094.vx + SHELTER_B4_RESERVOIR_BURST_X_OFFSET;
+    _gShelterB4ReservoirBurstPoints[pointIndex].vy =
         D_shelter_b4_reservoir_80185094.vy + ((work->scale * rsin(work->angle)) >> SHELTER_B4_RESERVOIR_BURST_Q12_SHIFT);
-    D_shelter_b4_reservoir_80187634[pointIndex].vz =
+    _gShelterB4ReservoirBurstPoints[pointIndex].vz =
         D_shelter_b4_reservoir_80185094.vz + ((work->scale * rcos(work->angle)) >> SHELTER_B4_RESERVOIR_BURST_Q12_SHIFT);
 }
 
@@ -2139,12 +2269,12 @@ void shelterB4ReservoirAmbientEffectsTask(Task* task)
         task->state               = SHELTER_B4_RESERVOIR_AMBIENT_RUNNING;
         // Scatter the burst points around the anchor. The work's `scale` and
         // `angle` hold the polar radius and angle of the point being placed.
-        for (loopIndex = 0; loopIndex < (s32)ARRAY_SIZE(D_shelter_b4_reservoir_80187634); loopIndex++) {
+        for (loopIndex = 0; loopIndex < (s32)ARRAY_SIZE(_gShelterB4ReservoirBurstPoints); loopIndex++) {
             _shelterB4ReservoirScatterBurstPoint(work, loopIndex);
         }
-        D_shelter_b4_reservoir_80187684.pointCount         = 0;
-        D_shelter_b4_reservoir_80187684.spawnChancePercent = 0;
-        D_shelter_b4_reservoir_80187684.baseHalfExtent     = 0;
+        _gShelterB4ReservoirBurstConfig.pointCount         = 0;
+        _gShelterB4ReservoirBurstConfig.spawnChancePercent = 0;
+        _gShelterB4ReservoirBurstConfig.baseHalfExtent     = 0;
         for (loopIndex = 0; loopIndex < (s32)ARRAY_SIZE(D_shelter_b4_reservoir_801850AC); loopIndex++) {
             sampledPlayerCoord                            = &player->extra.tmd->coords[loopIndex * SHELTER_B4_RESERVOIR_PLAYER_SAMPLE_COORD_STRIDE + SHELTER_B4_RESERVOIR_PLAYER_SAMPLE_FIRST_COORD];
             D_shelter_b4_reservoir_801850AC[loopIndex].vx = sampledPlayerCoord->workm.t[0];
@@ -2185,23 +2315,23 @@ void shelterB4ReservoirAmbientEffectsTask(Task* task)
             work->age++;
         }
         // Emit independently at each active point, occasionally moving its position.
-        if (D_shelter_b4_reservoir_80187684.pointCount != 0 && D_shelter_b4_reservoir_80187684.spawnChancePercent != 0) {
-            for (loopIndex = 0; loopIndex < D_shelter_b4_reservoir_80187684.pointCount; loopIndex++) {
+        if (_gShelterB4ReservoirBurstConfig.pointCount != 0 && _gShelterB4ReservoirBurstConfig.spawnChancePercent != 0) {
+            for (loopIndex = 0; loopIndex < _gShelterB4ReservoirBurstConfig.pointCount; loopIndex++) {
                 if ((RAND() & SHELTER_B4_RESERVOIR_BURST_REPOSITION_MASK) == 0) {
                     _shelterB4ReservoirScatterBurstPoint(work, loopIndex);
                 }
-                if ((u16)(RAND() % SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE) < D_shelter_b4_reservoir_80187684.spawnChancePercent) {
-                    baseHalfExtent      = D_shelter_b4_reservoir_80187684.baseHalfExtent;
+                if ((u16)(RAND() % SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE) < _gShelterB4ReservoirBurstConfig.spawnChancePercent) {
+                    baseHalfExtent      = _gShelterB4ReservoirBurstConfig.baseHalfExtent;
                     randomizedSpawnArgs = (RAND() & SHELTER_B4_RESERVOIR_BURST_VARIATION_MASK) + SHELTER_B4_RESERVOIR_BURST_MOTION_ARGS;
                     effectSpawn(EFFECT_SHELTER_B4_RESERVOIR_BURST_SPRITE, NULL, baseHalfExtent + randomizedSpawnArgs,
-                                &D_shelter_b4_reservoir_80187634[loopIndex]);
+                                &_gShelterB4ReservoirBurstPoints[loopIndex]);
                 }
             }
         }
     }
     // View spray and glow drawing continue independently of effect-control pause.
     if ((u8)viewGetMappedIndex() == SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW) {
-        D_shelter_b4_reservoir_8018509C[1].vy = D_shelter_b4_reservoir_80184F82;
+        D_shelter_b4_reservoir_8018509C[1].vy = _gShelterB4ReservoirView10WaterY;
         if ((RAND() & SHELTER_B4_RESERVOIR_SPRAY_CHANCE_MASK) == 0) {
             effectSpawn(gRoomEffectWaterSprayId, NULL, (RAND() & SHELTER_B4_RESERVOIR_SPRAY_PERIOD_VARIATION) + SHELTER_B4_RESERVOIR_VIEW10_ROTATED_SPRAY_ARGS, &D_shelter_b4_reservoir_8018509C[0]);
         }
@@ -2471,9 +2601,9 @@ static void _shelterB4ReservoirDrawBurstSprite(const GfxCoord* spriteCoord, u16 
 /// their low 16 bits when stored; negative values violate the emitter bounds.
 static void _shelterB4ReservoirSetBurstConfig(s16 pointCount, u16 spawnChancePercent, s16 baseHalfExtent)
 {
-    D_shelter_b4_reservoir_80187684.pointCount         = pointCount;
-    D_shelter_b4_reservoir_80187684.spawnChancePercent = spawnChancePercent;
-    D_shelter_b4_reservoir_80187684.baseHalfExtent     = baseHalfExtent;
+    _gShelterB4ReservoirBurstConfig.pointCount         = pointCount;
+    _gShelterB4ReservoirBurstConfig.spawnChancePercent = spawnChancePercent;
+    _gShelterB4ReservoirBurstConfig.baseHalfExtent     = baseHalfExtent;
 }
 
 #include "../../shared/room_visual_effects.inc.c"

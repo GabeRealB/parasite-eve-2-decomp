@@ -19,9 +19,21 @@ extern SVECTOR* D_shelter_b4_reservoir_801851D4[4];
 
 extern SVECTOR D_shelter_b4_reservoir_801851E4[5];
 
-extern s16 D_shelter_b4_reservoir_80184F80;
+/// Main reservoir water-plane Y in world units, shared with the Bog Diver.
+///
+/// Room initialization selects -2000 before the event or -500 afterward;
+/// the event ramp moves between them. The water task publishes this height to
+/// the live session. Diver spawning snapshots its signed halfword value.
+/// Storage is valid while the reservoir overlay is loaded.
+extern s16 gShelterB4ReservoirMainWaterY;
 
-extern AreaVariant D_shelter_b4_reservoir_80187350[12];
+/// Reservoir area layouts indexed directly by placement variant 0..11.
+///
+/// Variants 1, 2, 3 and 11 contain paired placement/resource lists; other
+/// slots are absent. Each list ends with `AREA_PLACEMENT_END`. Gameplay's
+/// stage-4 area-45 record borrows these tables while the room is loaded;
+/// actors may retain their placement records until teardown.
+extern AreaVariant gShelterB4ReservoirAreaVariants[12];
 
 extern u8 D_shelter_b4_reservoir_801850C8[16];
 
@@ -33,7 +45,13 @@ extern u8 D_shelter_b4_reservoir_801850D8[16];
 /// default ambient minima. Records and lights stay live while the room is loaded.
 extern WorldCoordRoomLighting gShelterB4ReservoirRoomLighting[2];
 
-extern WorldCollisionRoomResources D_shelter_b4_reservoir_801850F8[];
+/// Collision selections for reservoir room IDs 1 and 2, indexed by room minus one.
+///
+/// Both share one grid, eight view boundaries and two sight occluders; each
+/// selects its own action-trigger list. Setup mutates and links those resources.
+/// The directory and all borrowed storage must remain live while active, and
+/// the linked triggers/occluders must be unlinked before the room is unloaded.
+extern WorldCollisionRoomResources gShelterB4ReservoirRoomCollisionResources[2];
 
 /// Logical-view maps for reservoir room IDs 1 and 2, indexed by room minus one.
 ///
@@ -42,9 +60,20 @@ extern WorldCollisionRoomResources D_shelter_b4_reservoir_801850F8[];
 /// requires the reservoir overlay to stay loaded and the maps require gameplay.
 extern u8* gShelterB4ReservoirViewMaps[2];
 
-extern ViewCount D_shelter_b4_reservoir_80185120[];
+/// Logical-view counts for reservoir room IDs 1 and 2, indexed by room minus one.
+///
+/// Both search ten entries of the identity view map. There is no terminator;
+/// the stage directory borrows the counts while the reservoir overlay is loaded.
+extern ViewCount gShelterB4ReservoirRoomViewCounts[2];
 
-extern DirectionWarpEntry D_shelter_b4_reservoir_80185124[];
+/// Reservoir warp endpoints 1 and 2, indexed by warp ID minus one.
+///
+/// Endpoint 1 places arrivals in view 2 by the water-supply passage and plays
+/// room-bank sounds 4 on arrival and 3 on departure. Endpoint 2 places arrivals
+/// in view 7 by the upper-sewer passage, fades on departure and marks the map.
+/// World positions and 4096-unit yaw are copied for player/companion placement.
+/// There is no terminator; the stage directory borrows the loaded room's entries.
+extern DirectionWarpEntry gShelterB4ReservoirWarpEntries[2];
 
 /// Cameras for mapped reservoir views 1..10, indexed by mapped view minus one.
 ///

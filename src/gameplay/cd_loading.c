@@ -566,7 +566,7 @@ AreaRecord D_8010CF14[50] = {
     { gShelterB3ElevatorHallAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[41].state },
     { D_shelter_b4_lower_sewer_80183D48, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[42].state },
     { D_shelter_b4_upper_sewer_80188B9C, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[43].state },
-    { D_shelter_b4_reservoir_80187350, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[44].state },
+    { gShelterB4ReservoirAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[44].state },
     { D_shelter_b4_water_supply_80184CA4, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[45].state },
     { D_shelter_r47_80187CB8, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[46].state },
     { D_shelter_r48_8018BC10, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[47].state },

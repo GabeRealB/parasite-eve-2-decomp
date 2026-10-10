@@ -280,7 +280,7 @@ D_shelter_b2_elevator_hall_80183DD8 = 0x80183DD8; // absolute:True owner=shelter
 gShelterB2ElevatorHallSpriteViews = 0x80184120; // absolute:True owner=shelter_b2_elevator_hall
 gShelterB2ElevatorHallRoomLights = 0x801846B4; // absolute:True owner=shelter_b2_elevator_hall
 D_shelter_b2_elevator_hall_801846CC = 0x801846CC; // absolute:True owner=shelter_b2_elevator_hall
-D_shelter_b2_elevator_hall_8018492C = 0x8018492C; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
+D_shelter_b2_elevator_hall_8018492C = 0x8018492C; // absolute:True owner=shelter_b2_elevator_hall
 D_shelter_b2_elevator_hall_80184968 = 0x80184968; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
 gShelterB2ElevatorHallSurfacePropertiesByClass = 0x80184D5C; // absolute:True owner=shelter_b2_elevator_hall shared=rooms
 shelterB2SouthMaintenanceWalkwayRoomTask = 0x8017DC6C; // type:func absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
@@ -481,10 +481,10 @@ D_shelter_b4_upper_sewer_80188BFC = 0x80188BFC; // absolute:True owner=shelter_b
 D_shelter_b4_upper_sewer_80188CFC = 0x80188CFC; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
 shelterB4ReservoirRoomTask = 0x8017E88C; // type:func absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirRoomLighting = 0x801850E8; // absolute:True owner=shelter_b4_reservoir shared=rooms
-D_shelter_b4_reservoir_801850F8 = 0x801850F8; // absolute:True owner=shelter_b4_reservoir
+gShelterB4ReservoirRoomCollisionResources = 0x801850F8; // absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirViewMaps = 0x80185118; // absolute:True owner=shelter_b4_reservoir shared=rooms
-D_shelter_b4_reservoir_80185120 = 0x80185120; // absolute:True owner=shelter_b4_reservoir
-D_shelter_b4_reservoir_80185124 = 0x80185124; // absolute:True owner=shelter_b4_reservoir
+gShelterB4ReservoirRoomViewCounts = 0x80185120; // absolute:True owner=shelter_b4_reservoir
+gShelterB4ReservoirWarpEntries = 0x80185124; // absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirViewCameras = 0x80185ADC; // absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirSpriteViews = 0x80186730; // absolute:True owner=shelter_b4_reservoir shared=rooms
 gShelterB4ReservoirSurfacePropertiesByClass = 0x80187480; // absolute:True owner=shelter_b4_reservoir
