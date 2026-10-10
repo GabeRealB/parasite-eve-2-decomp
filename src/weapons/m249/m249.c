@@ -791,136 +791,216 @@ static AnimationSet _gM249OtherBodyHitReactionAnimation = {
     },
 };
 
-static AnimationPackedPose _gM249Animation05D18Bank1[18] = {
+/// Local translations and 1/4096-turn Euler poses for M249 death (encoding 1).
+///
+/// Read-only clip payloads retain their serialized .data positions.
+static const AnimationPackedPose _gM249DeathAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_05D18_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation05D18Bank4[184] = {
+/// Packed Euler rotations for M249 death (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249DeathAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_05D18_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation05D18Records[239] = {
+/// Keyframes and final-pose stop controls for M249 death.
+static const AnimationRecord _gM249DeathAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_05D18_records.inc"
 };
 
-static u16 _gM249Animation05D18Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249DeathAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_05D18_indices.inc"
 };
 
-static AnimationSet _gM249Animation05D18 = {
-    _gM249Animation05D18Records,
-    _gM249Animation05D18Indices,
-    { NULL, _gM249Animation05D18Bank1, NULL, NULL, _gM249Animation05D18Bank4, NULL, NULL, NULL },
+/// Player death motion and final held pose for the M249 bank, native set 18.
+///
+/// Zero HP enters stopped damage control and selects this clip, with a
+/// four-frame blend from normal or scripted control. All nineteen rig tracks
+/// stop at their final poses; ordinary child playback uses tracks 1..18.
+/// Keep the clip loaded while any slot or cached record refers to it.
+static AnimationSet _gM249DeathAnimation = {
+    .records           = _gM249DeathAnimationRecords,
+    .trackStartIndices = _gM249DeathAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249DeathAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249DeathAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation06FB0Bank1[29] = {
+/// Local translations and 1/4096-turn Euler poses for M249 high-health idle (encoding 1).
+static const AnimationPackedPose _gM249HighHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_06FB0_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation06FB0Bank4[450] = {
+/// Packed Euler rotations for M249 high-health idle (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249HighHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_06FB0_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation06FB0Records[633] = {
+/// Keyframes and loop/stop controls for M249 high-health idle.
+static const AnimationRecord _gM249HighHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_06FB0_records.inc"
 };
 
-static u16 _gM249Animation06FB0Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249HighHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_06FB0_indices.inc"
 };
 
-static AnimationSet _gM249Animation06FB0 = {
-    _gM249Animation06FB0Records,
-    _gM249Animation06FB0Indices,
-    { NULL, _gM249Animation06FB0Bank1, NULL, NULL, _gM249Animation06FB0Bank4, NULL, NULL, NULL },
+/// Long-idle motion for an M249 player above half maximum HP, native-bank set 23.
+///
+/// Normal locomotion selects it after 300 direction-free ticks with a
+/// five-frame blend. All nineteen rig tracks loop; child playback uses
+/// tracks 1..18. Keep the clip loaded while any slot or cached record refers to it.
+static AnimationSet _gM249HighHealthIdleAnimation = {
+    .records           = _gM249HighHealthIdleAnimationRecords,
+    .trackStartIndices = _gM249HighHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249HighHealthIdleAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249HighHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation07B28Bank1[12] = {
+/// Local translations and 1/4096-turn Euler poses for M249 low-health idle and paralysis (encoding 1).
+static const AnimationPackedPose _gM249LowHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_07B28_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation07B28Bank4[266] = {
+/// Packed Euler rotations for M249 low-health idle and paralysis (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249LowHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_07B28_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation07B28Records[412] = {
+/// Keyframes and loop/stop controls for M249 low-health idle and paralysis.
+static const AnimationRecord _gM249LowHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_07B28_records.inc"
 };
 
-static u16 _gM249Animation07B28Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249LowHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_07B28_indices.inc"
 };
 
-static AnimationSet _gM249Animation07B28 = {
-    _gM249Animation07B28Records,
-    _gM249Animation07B28Indices,
-    { NULL, _gM249Animation07B28Bank1, NULL, NULL, _gM249Animation07B28Bank4, NULL, NULL, NULL },
+/// Long-idle motion at or below quarter maximum HP, also M249 paralysis, native set 25.
+///
+/// Normal locomotion selects it after 300 direction-free ticks with a
+/// five-frame blend. Paralysis selects the same clip with a six-frame blend,
+/// regardless of HP. All nineteen rig tracks loop; both paths play child
+/// tracks 1..18. Keep the clip loaded while any slot or cached record refers to it.
+static AnimationSet _gM249LowHealthIdleAnimation = {
+    .records           = _gM249LowHealthIdleAnimationRecords,
+    .trackStartIndices = _gM249LowHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249LowHealthIdleAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249LowHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation08244Bank1[9] = {
+/// Local translations and 1/4096-turn Euler poses for M249 medium-health idle (encoding 1).
+static const AnimationPackedPose _gM249MediumHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_08244_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation08244Bank4[144] = {
+/// Packed Euler rotations for M249 medium-health idle (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249MediumHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_08244_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation08244Records[264] = {
+/// Keyframes and loop/stop controls for M249 medium-health idle.
+static const AnimationRecord _gM249MediumHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_08244_records.inc"
 };
 
-static u16 _gM249Animation08244Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249MediumHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_08244_indices.inc"
 };
 
-static AnimationSet _gM249Animation08244 = {
-    _gM249Animation08244Records,
-    _gM249Animation08244Indices,
-    { NULL, _gM249Animation08244Bank1, NULL, NULL, _gM249Animation08244Bank4, NULL, NULL, NULL },
+/// Long-idle motion above quarter and at or below half maximum HP, M249 native set 24.
+///
+/// Normal locomotion selects it after 300 direction-free ticks with a
+/// five-frame blend. All nineteen rig tracks loop; child playback uses
+/// tracks 1..18. Keep the clip loaded while any slot or cached record refers to it.
+static AnimationSet _gM249MediumHealthIdleAnimation = {
+    .records           = _gM249MediumHealthIdleAnimationRecords,
+    .trackStartIndices = _gM249MediumHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249MediumHealthIdleAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249MediumHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation086C4Bank1[6] = {
+/// Local translations and 1/4096-turn Euler poses for M249 scripted-event entry (encoding 1).
+static const AnimationPackedPose _gM249ScriptedPresentationEnterAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_086C4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation086C4Bank4[107] = {
+/// Packed Euler rotations for M249 scripted-event entry (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249ScriptedPresentationEnterAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_086C4_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation086C4Records[143] = {
+/// Keyframes and final-pose stop controls for M249 scripted-event entry.
+static const AnimationRecord _gM249ScriptedPresentationEnterAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_086C4_records.inc"
 };
 
-static u16 _gM249Animation086C4Indices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249ScriptedPresentationEnterAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_086C4_indices.inc"
 };
 
-static AnimationSet _gM249Animation086C4 = {
-    _gM249Animation086C4Records,
-    _gM249Animation086C4Indices,
-    { NULL, _gM249Animation086C4Bank1, NULL, NULL, _gM249Animation086C4Bank4, NULL, NULL, NULL },
+/// Entry motion before a scripted event for the M249 bank, native sets 32 and 34.
+///
+/// Scripted presentation selects set 32 when its saved variant halfword is zero.
+/// CAP weapon events and room presentations wait for this clip before their
+/// command. Child tracks 1..18 play without a timed entry blend; all nineteen
+/// rig tracks stop at their final poses. Keep the clip loaded through playback
+/// and while any slot or cached record refers to it.
+static AnimationSet _gM249ScriptedPresentationEnterAnimation = {
+    .records           = _gM249ScriptedPresentationEnterAnimationRecords,
+    .trackStartIndices = _gM249ScriptedPresentationEnterAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249ScriptedPresentationEnterAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249ScriptedPresentationEnterAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM249Animation0889CBank1[3] = {
+/// Local translations and 1/4096-turn Euler poses for M249 scripted-event exit (encoding 1).
+static const AnimationPackedPose _gM249ScriptedPresentationLeaveAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0889C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM249Animation0889CBank4[32] = {
+/// Packed Euler rotations for M249 scripted-event exit (encoding 4, eight angle units per step).
+static const AnimationPackedRotation _gM249ScriptedPresentationLeaveAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0889C_bank4.inc"
 };
 
-static AnimationRecord _gM249Animation0889CRecords[57] = {
+/// Keyframes and final-pose stop controls for M249 scripted-event exit.
+static const AnimationRecord _gM249ScriptedPresentationLeaveAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0889C_records.inc"
 };
 
-static u16 _gM249Animation0889CIndices[20] = {
+/// Nineteen absolute track-start record indices and the serialized trailing zero halfword.
+static const u16 _gM249ScriptedPresentationLeaveAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m249_animation_0889C_indices.inc"
 };
 
-static AnimationSet _gM249Animation0889C = {
-    _gM249Animation0889CRecords,
-    _gM249Animation0889CIndices,
-    { NULL, _gM249Animation0889CBank1, NULL, NULL, _gM249Animation0889CBank4, NULL, NULL, NULL },
+/// Exit motion after a scripted event for the M249 bank, native sets 33 and 35.
+///
+/// Scripted presentation selects set 33 when its saved variant halfword is nonzero.
+/// CAP weapon events and room presentations wait for this clip before resuming
+/// player control. Child tracks 1..18 play without a timed entry blend; all
+/// nineteen rig tracks stop at their final poses. Keep the clip loaded through
+/// playback and while any slot or cached record refers to it.
+static AnimationSet _gM249ScriptedPresentationLeaveAnimation = {
+    .records           = _gM249ScriptedPresentationLeaveAnimationRecords,
+    .trackStartIndices = _gM249ScriptedPresentationLeaveAnimationIndices,
+    .poseBanks         = {
+        [M249_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM249ScriptedPresentationLeaveAnimationBank1,
+        [M249_ANIMATION_PACKED_ROTATION_BANK]      = _gM249ScriptedPresentationLeaveAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM249Animation08E00Bank1[11] = {
@@ -1228,24 +1308,24 @@ AnimationBank D_m249_8012CF58 = { { {
     &_gM249Animation0CC20,
     &_gM249Part4HitReactionAnimation,
     &_gM249OtherBodyHitReactionAnimation,
-    &_gM249Animation05D18,
+    &_gM249DeathAnimation,
     &_gM249UnarmedWalkAnimation,
     &_gM249Animation0CC20,
     &_gM249IdleAnimation,
     &_gM249IdleAnimation,
-    &_gM249Animation06FB0,
-    &_gM249Animation08244,
-    &_gM249Animation07B28,
+    &_gM249HighHealthIdleAnimation,
+    &_gM249MediumHealthIdleAnimation,
+    &_gM249LowHealthIdleAnimation,
     &_gM249ParasiteEnergyFamily0ReleaseAnimation,
     &_gM249ParasiteEnergyFamily0ChargeAnimation,
     &_gM249ParasiteEnergyFamily0CastAnimation,
     &_gM249ParasiteEnergyFamily1ReleaseAnimation,
     &_gM249ParasiteEnergyFamily1ChargeAnimation,
     &_gM249ParasiteEnergyFamily1CastAnimation,
-    &_gM249Animation086C4,
-    &_gM249Animation0889C,
-    &_gM249Animation086C4,
-    &_gM249Animation0889C,
+    &_gM249ScriptedPresentationEnterAnimation,
+    &_gM249ScriptedPresentationLeaveAnimation,
+    &_gM249ScriptedPresentationEnterAnimation,
+    &_gM249ScriptedPresentationLeaveAnimation,
     &_gM249StairAscentAnimation,
     &_gM249StairDescentAnimation,
     &_gM249StairAscentFinishEvenAnimation,
