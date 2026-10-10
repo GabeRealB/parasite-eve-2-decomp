@@ -13,22 +13,53 @@
 
 extern AreaVariant D_mine_refuge_80182A00[11];
 
-// mine_refuge
-extern WorldCoordRoomLighting D_mine_refuge_801818F0[];
+/// Number of logical and mapped camera/sprite views in the refuge's identity map.
+enum { MINE_REFUGE_VIEW_COUNT = 7 };
+
+/// Lighting descriptor for Mine Refuge room 1.
+///
+/// Indexed by room minus one. Borrows two mutable point lights and ambient
+/// minima for logical views 1..7; all storage stays live with the refuge overlay.
+extern WorldCoordRoomLighting gMineRefugeRoomLighting[1];
 
 extern WorldCollisionRoomResources D_mine_refuge_801818F8[];
 
-extern u8* D_mine_refuge_80181908[];
+/// Logical-view map directory for Mine Refuge room 1.
+///
+/// Indexed by room minus one, then logical view minus one. Borrows gameplay's
+/// `gViewIdentityMap`; views 1..7 use the same camera, image and sprite indices.
+/// The directory stays live with the refuge overlay; the map stays live with gameplay.
+extern u8* gMineRefugeRoomViewMaps[1];
 
-extern ViewCount D_mine_refuge_8018190C[];
+/// Reverse-lookup limit for room 1's seven logical views.
+///
+/// Indexed by room minus one. Counts readable view-map bytes independently of
+/// the shared identity map's capacity; the array stays live with the refuge overlay.
+extern ViewCount gMineRefugeRoomViewCounts[1];
 
 extern DirectionWarpEntry D_mine_refuge_80181910[];
 
-extern ViewCamera D_mine_refuge_80181BC8[];
+/// Camera transforms and pixel projection distances for refuge mapped views 1..7.
+///
+/// Indexed by mapped view minus one. Views 4 and 5 have equal camera records;
+/// pointers borrowed by camera tasks require the refuge overlay until applied.
+extern ViewCamera gMineRefugeViewCameras[MINE_REFUGE_VIEW_COUNT];
 
-extern SpriteView D_mine_refuge_8018264C[];
+/// Sprite descriptors for refuge mapped views 1..7.
+///
+/// Indexed by mapped view minus one. View 2 has 79 source sprites and view 3
+/// has 33; the other views retain empty batch lists. Every view keeps decoded
+/// background strips and has no clipping areas. Descriptors and mutable sources
+/// and batches stay live with the refuge overlay.
+extern SpriteView gMineRefugeSpriteViews[MINE_REFUGE_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_mine_refuge_80182AB4[];
+/// Collision and footstep properties for the refuge's eight surface classes.
+///
+/// Indexed directly by class 0..7, with no terminator. All classes block probes,
+/// permit weapon impacts and apply pushback. Only class 1 has footstep cues;
+/// classes 0 and 2..7 share silent properties. The grid uses classes 0 and 1.
+/// The directory and its borrowed records stay live with the refuge overlay.
+extern WorldCollisionSurfaceProperties* gMineRefugeSurfacePropertiesByClass[8];
 
 /// Runs the refuge telephone's save menu and unlocked statistics panels.
 ///

@@ -84,13 +84,6 @@ extern TaskMessageEntry D_mine_refuge_80181884[];
 /// `_mineRefugeCircuitPanelTask` and `_mineRefugeCutscenePromptTask`.
 extern TaskDesc D_mine_refuge_801818B4[];
 
-/// World-space anchors of the room's per-view glows: `D8` and `E0` are the two
-/// drawn in view 2, `E0` again in view 6, and `E8` the one of views 3-5. `E0`
-/// is reached both as `D8[1]` (view 2) and by its own name (view 6), and the
-/// two forms are different code - indexing emits `D8+8`, naming emits its own
-/// `lui` - so it keeps its own declaration.
-extern SVECTOR D_mine_refuge_801818E8;
-
 /// The cutscene's sound task, killed when the scene is skipped.
 extern Task* gRoomCutsceneSoundTask;
 
@@ -114,11 +107,26 @@ static void _mineRefugeIdleRoomTask(Task* task);
 /// Camera view used by the refuge cutscene and its confirmation prompt.
 enum { MINE_REFUGE_CUTSCENE_VIEW = 6 };
 
-extern WorldCollisionGrid         D_mine_refuge_80181BA4[1];
-extern WorldCollisionTrigger      D_mine_refuge_80182778[2];
-extern WorldCollisionTrigger      D_mine_refuge_80182810[6];
-extern WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8];
-extern WorldCoordRoomLights       D_mine_refuge_80182760[1];
+enum {
+    MINE_REFUGE_COLLISION_GRID_CELL_COUNT_X  = 1,
+    MINE_REFUGE_COLLISION_GRID_CELL_COUNT_Z  = 2,
+    MINE_REFUGE_COLLISION_GRID_CELL_SIZE     = 4000,
+    MINE_REFUGE_EXIT_WARP_SLOT               = 1,
+    MINE_REFUGE_GORGE_ARRIVAL_SLOT           = 2,
+    MINE_REFUGE_TRIGGER_CIRCUIT_PANEL_ACTION = 1,
+    MINE_REFUGE_TRIGGER_CUTSCENE_COMMAND     = 1,
+    MINE_REFUGE_TRIGGER_CAP_3                = 3,
+    MINE_REFUGE_TRIGGER_CAP_2                = 2,
+    MINE_REFUGE_TRIGGER_CAP_11               = 11,
+    MINE_REFUGE_FOOTSTEP_WALK_SCRIPT         = 65,
+    MINE_REFUGE_FOOTSTEP_RUN_SCRIPT          = 67,
+};
+
+static WorldCollisionGrid         _gMineRefugeCollisionGrid;
+static WorldCollisionTrigger      _gMineRefugeViewBoundaryTriggers[2];
+static WorldCollisionTrigger      _gMineRefugeActionTriggers[6];
+static WorldCoordRoomAmbientEntry _gMineRefugeAmbientByView[MINE_REFUGE_VIEW_COUNT + 1];
+static WorldCoordRoomLights       _gMineRefugeRoomLights;
 static s32                        _mineRefugeUseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 static s32                        _mineRefugeResolveRoomEventMsg(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32                        _mineRefugeRoomCommandMsg(Task* task, s32 messageId, s32 commandIndex, s32 secondArg);
@@ -156,73 +164,101 @@ TaskDesc D_mine_refuge_801818B4[3] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-SVECTOR D_mine_refuge_801818D8[2] = {
+/// World-space positions of the view-2 flare and the cyan glow in views 2 and 6.
+static struct {
+    SVECTOR flare; // Textured flare in mapped view 2, in world-coordinate units.
+    SVECTOR cyan;  // Pulsing star in view 2 and burst in view 6, in world-coordinate units.
+} _gMineRefugeGlowAnchors = {
     { 1910, -1850, 990, 0 },
     { 769, -798, 2640, 0 },
 };
 
-SVECTOR D_mine_refuge_801818E8 = { 2731, -1261, 4325, 0 };
+/// World-space position of the powered circuit-panel glow in mapped views 3..5.
+static SVECTOR _gMineRefugePoweredPanelGlowPosition = { 2731, -1261, 4325, 0 };
 
-WorldCoordRoomLighting D_mine_refuge_801818F0[1] = {
-    { D_mine_refuge_80182760, D_mine_refuge_80182A58 },
+WorldCoordRoomLighting gMineRefugeRoomLighting[1] = {
+    { &_gMineRefugeRoomLights, _gMineRefugeAmbientByView },
 };
 
 WorldCollisionRoomResources D_mine_refuge_801818F8[1] = {
-    { D_mine_refuge_80181BA4, D_mine_refuge_80182778, D_mine_refuge_80182810, NULL },
+    { &_gMineRefugeCollisionGrid, _gMineRefugeViewBoundaryTriggers, _gMineRefugeActionTriggers, NULL },
 };
 
-u8* D_mine_refuge_80181908[1] = {
+u8* gMineRefugeRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_mine_refuge_8018190C[1] = { 7 };
+ViewCount gMineRefugeRoomViewCounts[1] = { MINE_REFUGE_VIEW_COUNT };
 
 DirectionWarpEntry D_mine_refuge_80181910[1] = {
     { { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1472, 0, 288 }, { 0, 0, 0, 0 }, 0x54060002, 0x54060001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gMineRefugeCollision045E4Normals[12] = {
+/// Room-space face normals of the refuge collision grid, with ONE per unit.
+static SVECTOR _gMineRefugeCollisionGridNormals[12] = {
 #include "assets/mine_refuge_collision_045E4_normals.inc"
 };
 
-static SVECTOR _gMineRefugeCollision045E4Verts[34] = {
+/// Vertices of the refuge collision grid, in signed room-coordinate units.
+static SVECTOR _gMineRefugeCollisionGridVerts[34] = {
 #include "assets/mine_refuge_collision_045E4_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineRefugeCollision045E4Faces[15] = {
+/// Indexed collision quads: one class-1 floor and fourteen class-0 wall faces.
+static WorldCollisionGridFace _gMineRefugeCollisionGridFaces[15] = {
 #include "assets/mine_refuge_collision_045E4_faces.inc"
 };
 
-static s16 _gMineRefugeCollision045E4Cells[24] = {
+/// Storage for the grid's two face-index lists, each ending at -1.
+///
+/// The lists start at elements 0 and 16; unused stored words are retained.
+static s16 _gMineRefugeCollisionGridCells[24] = {
 #include "assets/mine_refuge_collision_045E4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineRefugeCollision045E4Cells[i])
-static s16* _gMineRefugeCollision045E4Table[2] = {
+#define GRID_CELL(i) (&_gMineRefugeCollisionGridCells[i])
+/// X-major cell directory borrowing the two terminated face-index lists.
+static s16* _gMineRefugeCollisionGridTable[MINE_REFUGE_COLLISION_GRID_CELL_COUNT_X * MINE_REFUGE_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/mine_refuge_collision_045E4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_refuge_80181BA4[1] = {
-    { NULL, _gMineRefugeCollision045E4Normals, _gMineRefugeCollision045E4Verts, _gMineRefugeCollision045E4Faces, _gMineRefugeCollision045E4Table, 200, 200, 1, 2, 4000, 15 },
+/// Room collision mesh indexed by a 1-by-2 XZ grid with origin (-200, -200).
+///
+/// Room setup borrows this descriptor and its writable asset pools, binding its
+/// transform to the current view. They stay live while the refuge is loaded.
+static WorldCollisionGrid _gMineRefugeCollisionGrid = {
+    NULL,
+    _gMineRefugeCollisionGridNormals,
+    _gMineRefugeCollisionGridVerts,
+    _gMineRefugeCollisionGridFaces,
+    _gMineRefugeCollisionGridTable,
+    200,
+    200,
+    MINE_REFUGE_COLLISION_GRID_CELL_COUNT_X,
+    MINE_REFUGE_COLLISION_GRID_CELL_COUNT_Z,
+    MINE_REFUGE_COLLISION_GRID_CELL_SIZE,
+    ARRAY_SIZE(_gMineRefugeCollisionGridFaces),
 };
 
-ViewCamera D_mine_refuge_80181BC8[7] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -1500, 8300, -2500 } }, 289 },
+ViewCamera gMineRefugeViewCameras[MINE_REFUGE_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -1500, 8300, -2500 } }, 289 },
     { { { { -3873, 0, -1331 }, { -400, 3906, 1165 }, { 1269, 1232, -3693 } }, { -550, 1610, -4900 } }, 269 },
     { { { { 3915, 0, -1201 }, { -777, 3121, -2535 }, { 915, 2651, 2984 } }, { -1005, 2661, -1831 } }, 246 },
-    { { { { 0, 0, -4096 }, { -891, 3997, 0 }, { 3997, 891, 0 } }, { -725, 1640, -3952 } }, 680 },
-    { { { { 0, 0, -4096 }, { -891, 3997, 0 }, { 3997, 891, 0 } }, { -725, 1640, -3952 } }, 680 },
+    { { { { 0, 0, -ONE }, { -891, 3997, 0 }, { 3997, 891, 0 } }, { -725, 1640, -3952 } }, 680 },
+    { { { { 0, 0, -ONE }, { -891, 3997, 0 }, { 3997, 891, 0 } }, { -725, 1640, -3952 } }, 680 },
     { { { { -1156, 0, 3929 }, { 2912, 2750, 856 }, { -2638, 3035, -776 } }, { -1291, 1474, -2830 } }, 629 },
     { { { { 2270, 0, 3408 }, { 2132, 3195, -1420 }, { -2659, 2562, 1771 } }, { -2075, 1908, -3789 } }, 598 },
 };
 
-SpriteBatch D_mine_refuge_80181CC4[2] = {
+/// Empty mapped-view-1 sprite list retaining decoded background strips.
+static SpriteBatch _gMineRefugeView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_refuge_80181CD4[79] = {
+/// Texture rectangles and sorting depths for mapped view 2's 79 source sprites.
+static SpriteSource _gMineRefugeView2SpriteSources[79] = {
     { 142, 0x3FC0, { .fields = { 64, 16 } }, 40, 32, 487, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, 40, 48, 524, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, 72, 48, 503, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
@@ -304,18 +340,23 @@ SpriteSource D_mine_refuge_80181CD4[79] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 8, 861, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_mine_refuge_80182300[8] = {
+/// Six source ranges covering mapped view 2's sprites, followed by END.
+///
+/// The initial zero-count batch retains decoded background strips. The ranges
+/// partition the source array, and the final range reaches its full extent.
+static SpriteBatch _gMineRefugeView2SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 9, 0, 0, { 0, 0 } },
     { 28, 3, 0, 0, { 5, 0 } },
     { 31, 8, 0, 0, { 1, 0 } },
     { 39, 4, 0, 0, { 4, 0 } },
-    { 43, 36, 0, 0, { 2, 0 } },
+    { 43, ARRAY_SIZE(_gMineRefugeView2SpriteSources) - 43, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_refuge_80182340[33] = {
+/// Texture rectangles and sorting depths for mapped view 3's 33 source sprites.
+static SpriteSource _gMineRefugeView3SpriteSources[33] = {
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, 104, 482, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, -72, 80, 513, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, 88, 495, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
@@ -351,67 +392,95 @@ SpriteSource D_mine_refuge_80182340[33] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 0, 807, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_mine_refuge_801825D4[7] = {
+/// Four source ranges covering mapped view 3's sprites, then an empty range and END.
+///
+/// The initial zero-count batch retains decoded background strips. The empty
+/// range starts one past the sources and consumes no sprites or cached packets.
+static SpriteBatch _gMineRefugeView3SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 0, 0 } },
     { 5, 1, 0, 0, { 3, 0 } },
     { 6, 15, 0, 0, { 2, 0 } },
-    { 21, 12, 0, 0, { 4, 0 } },
-    { 33, 0, 0, 0, { 1, 0 } },
+    { 21, ARRAY_SIZE(_gMineRefugeView3SpriteSources) - 21, 0, 0, { 4, 0 } },
+    { ARRAY_SIZE(_gMineRefugeView3SpriteSources), 0, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_refuge_8018260C[2] = {
+/// Empty mapped-view-4 sprite list retaining decoded background strips.
+static SpriteBatch _gMineRefugeView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_refuge_8018261C[2] = {
+/// Empty mapped-view-5 sprite list retaining decoded background strips.
+static SpriteBatch _gMineRefugeView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_refuge_8018262C[2] = {
+/// Empty mapped-view-6 sprite list retaining decoded background strips.
+static SpriteBatch _gMineRefugeView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mine_refuge_8018263C[2] = {
+/// Empty mapped-view-7 sprite list retaining decoded background strips.
+static SpriteBatch _gMineRefugeView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mine_refuge_8018264C[7] = {
-    { { .empty = D_mine_refuge_80181CC4 }, D_mine_refuge_80181CC4, NULL },
-    { { .elements = D_mine_refuge_80181CD4 }, D_mine_refuge_80182300, NULL },
-    { { .elements = D_mine_refuge_80182340 }, D_mine_refuge_801825D4, NULL },
-    { { .empty = D_mine_refuge_8018260C }, D_mine_refuge_8018260C, NULL },
-    { { .empty = D_mine_refuge_8018261C }, D_mine_refuge_8018261C, NULL },
-    { { .empty = D_mine_refuge_8018262C }, D_mine_refuge_8018262C, NULL },
-    { { .empty = D_mine_refuge_8018263C }, D_mine_refuge_8018263C, NULL },
+SpriteView gMineRefugeSpriteViews[MINE_REFUGE_VIEW_COUNT] = {
+    { { .empty = _gMineRefugeView1SpriteBatches }, _gMineRefugeView1SpriteBatches, NULL },
+    { { .elements = _gMineRefugeView2SpriteSources }, _gMineRefugeView2SpriteBatches, NULL },
+    { { .elements = _gMineRefugeView3SpriteSources }, _gMineRefugeView3SpriteBatches, NULL },
+    { { .empty = _gMineRefugeView4SpriteBatches }, _gMineRefugeView4SpriteBatches, NULL },
+    { { .empty = _gMineRefugeView5SpriteBatches }, _gMineRefugeView5SpriteBatches, NULL },
+    { { .empty = _gMineRefugeView6SpriteBatches }, _gMineRefugeView6SpriteBatches, NULL },
+    { { .empty = _gMineRefugeView7SpriteBatches }, _gMineRefugeView7SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_mine_refuge_801826A0[2] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2128, -1869, 1212 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3342, 2588 }, { 0, 0 } }, 0, 2200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1562, -2170, 3664 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 0, 3000 },
+/// Two mutable point lights contributing in every refuge view.
+///
+/// The first has warm Q12 RGB intensity and a 2200-unit falloff radius; the
+/// second is white with a 3000-unit radius. Both begin falloff at their origins.
+/// Room setup parents their transforms to the view and shading updates attenuation.
+static WorldCoordPointLight _gMineRefugePointLights[2] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2128, -1869, 1212 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3342, 2588 }, { 0, 0 } }, 0, 2200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1562, -2170, 3664 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 0, 3000 },
 };
 
-WorldCoordRoomLights D_mine_refuge_80182760[1] = {
-    { 0, NULL, ARRAY_SIZE(D_mine_refuge_801826A0), D_mine_refuge_801826A0, 0, NULL },
+/// Refuge light collection borrowing two point lights and no directional or cone lights.
+static WorldCoordRoomLights _gMineRefugeRoomLights = {
+    0,
+    NULL,
+    ARRAY_SIZE(_gMineRefugePointLights),
+    _gMineRefugePointLights,
+    0,
+    NULL,
 };
 
-WorldCollisionTrigger D_mine_refuge_80182778[2] = {
-    { NULL, NULL, NULL, { 2048, -1600, 2790, 0 }, { { -1888, -1904, 176, 0 }, { 1888, -1904, -176, 0 }, { -1888, 1904, 176, 0 }, { 1888, 1904, -176, 0 } }, { -382, 0, -4086, 0 }, { 0, 0, 4096, 0 }, 2684, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2017, -1568, 2734, 0 }, { { 1792, -1904, -176, 0 }, { -1792, -1904, 176, 0 }, { 1792, 1904, -176, 0 }, { -1792, 1904, 176, 0 } }, { 399, 0, 4075, 0 }, { 0, 0, 4096, 0 }, 2610, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Opposite-facing boundaries switching logical views 2 and 3.
+///
+/// Room setup binds and links both mutable records, including the LAST-marked
+/// second boundary. Their geometry uses room units and ONE-scaled normals.
+static WorldCollisionTrigger _gMineRefugeViewBoundaryTriggers[2] = {
+    { NULL, NULL, NULL, { 2048, -1600, 2790, 0 }, { { -1888, -1904, 176, 0 }, { 1888, -1904, -176, 0 }, { -1888, 1904, 176, 0 }, { 1888, 1904, -176, 0 } }, { -382, 0, -4086, 0 }, { 0, 0, ONE, 0 }, 2684, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2017, -1568, 2734, 0 }, { { 1792, -1904, -176, 0 }, { -1792, -1904, 176, 0 }, { 1792, 1904, -176, 0 }, { -1792, 1904, 176, 0 } }, { 399, 0, 4075, 0 }, { 0, 0, ONE, 0 }, 2610, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mine_refuge_80182810[6] = {
-    { NULL, NULL, NULL, { 1504, -48, 208, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, 4096, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_WARP, 5, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2368, -64, 4257, 0 }, { { -448, 0, -880, 0 }, { 448, 0, -880, 0 }, { -448, 0, 880, 0 }, { 448, 0, 880, 0 } }, { 0, 4105, 0, 0 }, { -4091, 0, -201, 0 }, 987, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1024, -64, 4544, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, -201, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1024, -64, 2416, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4095, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2592, -64, 1808, 0 }, { { -576, 0, -704, 0 }, { 576, 0, -704, 0 }, { -576, 0, 704, 0 }, { 576, 0, 704, 0 } }, { 0, 4097, 0, 0 }, { -4095, 0, 0, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2464, -64, 2944, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Refuge interactions: gorge exit, circuit panel, CAP 3, cutscene prompt, CAP 2 and CAP 11.
+///
+/// The exit uses departure slot 1 and gorge arrival slot 2. Every record requires
+/// the player's facing test; the LAST-marked CAP-11 record is also live.
+/// Room setup binds their coordinates and links them until room resources are cleared.
+static WorldCollisionTrigger _gMineRefugeActionTriggers[6] = {
+    { NULL, NULL, NULL, { 1504, -48, 208, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, ONE, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MINE_GORGE, (MINE_REFUGE_EXIT_WARP_SLOT << 4) | MINE_REFUGE_GORGE_ARRIVAL_SLOT, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2368, -64, 4257, 0 }, { { -448, 0, -880, 0 }, { 448, 0, -880, 0 }, { -448, 0, 880, 0 }, { 448, 0, 880, 0 } }, { 0, 4105, 0, 0 }, { -4091, 0, -201, 0 }, 987, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MINE_REFUGE_TRIGGER_CIRCUIT_PANEL_ACTION, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1024, -64, 4544, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { 4091, 0, -201, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_REFUGE_TRIGGER_CAP_3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1024, -64, 2416, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4095, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_REFUGE_TRIGGER_CUTSCENE_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2592, -64, 1808, 0 }, { { -576, 0, -704, 0 }, { 576, 0, -704, 0 }, { -576, 0, 704, 0 }, { 576, 0, 704, 0 } }, { 0, 4097, 0, 0 }, { -4095, 0, 0, 0 }, 909, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_REFUGE_TRIGGER_CAP_2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2464, -64, 2944, 0 }, { { -576, 0, -400, 0 }, { 576, 0, -400, 0 }, { -576, 0, 400, 0 }, { 576, 0, 400, 0 } }, { 0, 4102, 0, 0 }, { -ONE, 0, 0, 0 }, 701, WORLD_COLLISION_TRIGGER_ACTION_CAP, MINE_REFUGE_TRIGGER_CAP_11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 AreaResource D_mine_refuge_801829D8[2] = {
@@ -419,13 +488,16 @@ AreaResource D_mine_refuge_801829D8[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_mine_refuge_801829F0[1] = {
+/// Terminator-only default layout: no actors are spawned from placement records.
+///
+/// The separate resource table still loads the circuit-panel task's overlay.
+static AreaPlacement _gMineRefugeDefaultPlacements[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
 AreaVariant D_mine_refuge_80182A00[11] = {
     { NULL, NULL },
-    { D_mine_refuge_801829F0, D_mine_refuge_801829D8 },
+    { _gMineRefugeDefaultPlacements, D_mine_refuge_801829D8 },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -437,8 +509,12 @@ AreaVariant D_mine_refuge_80182A00[11] = {
     { NULL, NULL },
 };
 
-WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8] = {
-    { .viewCount = ARRAY_SIZE(D_mine_refuge_80182A58) - 1 },
+/// Logical-view ambient minima: 520 in view 3 and 16 in the other six views.
+///
+/// Levels have four fractional bits. Entry zero counts the following views;
+/// each stored luma equals its equal RGB components.
+static WorldCoordRoomAmbientEntry _gMineRefugeAmbientByView[MINE_REFUGE_VIEW_COUNT + 1] = {
+    { .viewCount = ARRAY_SIZE(_gMineRefugeAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 520, 520, 520, 520 } },
@@ -448,29 +524,43 @@ WorldCoordRoomAmbientEntry D_mine_refuge_80182A58[8] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_mine_refuge_80182A98 = {
-    0x10000041,
-    0x10000043,
-    0x10000041,
+/// Paired loaded-bank footstep requests for the class-1 floor.
+///
+/// Walk and scripted jump use entry 65, running uses 67; cue 1 adds one and
+/// companion playback adds 100. The surface record borrows this room storage.
+static WorldCollisionFootstepSounds _gMineRefugeFootstepSounds = {
+    SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_REFUGE_FOOTSTEP_WALK_SCRIPT,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_REFUGE_FOOTSTEP_RUN_SCRIPT,
+    SOUND_SCRIPT_REQUEST_TYPE_1 | MINE_REFUGE_FOOTSTEP_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_mine_refuge_80182AA4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, weapon-impact and pushback properties without footsteps for classes 0 and 2..7.
+static WorldCollisionSurfaceProperties _gMineRefugeSilentSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_mine_refuge_80182AAC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_refuge_80182A98 },
+/// Class-1 floor properties: blocks probes, permits weapon impacts, applies pushback and footsteps.
+static WorldCollisionSurfaceProperties _gMineRefugeSurfaceClass1Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gMineRefugeFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_mine_refuge_80182AB4[8] = {
-    D_mine_refuge_80182AA4,
-    D_mine_refuge_80182AAC,
-    D_mine_refuge_80182AA4,
-    D_mine_refuge_80182AA4,
-    D_mine_refuge_80182AA4,
-    D_mine_refuge_80182AA4,
-    D_mine_refuge_80182AA4,
-    D_mine_refuge_80182AA4,
+WorldCollisionSurfaceProperties* gMineRefugeSurfacePropertiesByClass[8] = {
+    &_gMineRefugeSilentSurfaceProperties,
+    &_gMineRefugeSurfaceClass1Properties,
+    &_gMineRefugeSilentSurfaceProperties,
+    &_gMineRefugeSilentSurfaceProperties,
+    &_gMineRefugeSilentSurfaceProperties,
+    &_gMineRefugeSilentSurfaceProperties,
+    &_gMineRefugeSilentSurfaceProperties,
+    &_gMineRefugeSilentSurfaceProperties,
 };
 
 Task* gRoomCutsceneSoundTask = NULL;
@@ -1145,22 +1235,22 @@ void mineRefugeDrawGlowsTask(Task* task)
     viewIndex = viewGetMappedIndex();
     switch (viewIndex) {
         case 2:
-            _glowDrawFlare(&D_mine_refuge_801818D8[0], 1, 0x300);
-            _mineRefugeDrawPulsingCyanStar(&D_mine_refuge_801818D8[1], MINE_REFUGE_CYAN_PULSE_RATE, 0x40);
+            _glowDrawFlare(&_gMineRefugeGlowAnchors.flare, 1, 0x300);
+            _mineRefugeDrawPulsingCyanStar(&_gMineRefugeGlowAnchors.cyan, MINE_REFUGE_CYAN_PULSE_RATE, 0x40);
             break;
         case 3:
             if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == MINE_REFUGE_POWER_PANEL_ON) {
-                _mineRefugeDrawLayeredGlow(&D_mine_refuge_801818E8, 0x30, 0xF0);
+                _mineRefugeDrawLayeredGlow(&_gMineRefugePoweredPanelGlowPosition, 0x30, 0xF0);
             }
             break;
         case 4:
         case 5:
             if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) == MINE_REFUGE_POWER_PANEL_ON) {
-                _mineRefugeDrawLayeredGlow(&D_mine_refuge_801818E8, 0x60, 0xD0);
+                _mineRefugeDrawLayeredGlow(&_gMineRefugePoweredPanelGlowPosition, 0x60, 0xD0);
             }
             break;
         case 6:
-            _mineRefugeDrawPulsingCyanBurst(&D_mine_refuge_801818D8[1], MINE_REFUGE_CYAN_PULSE_RATE, 0x80);
+            _mineRefugeDrawPulsingCyanBurst(&_gMineRefugeGlowAnchors.cyan, MINE_REFUGE_CYAN_PULSE_RATE, 0x80);
             break;
     }
 }
