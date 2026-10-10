@@ -1595,7 +1595,7 @@ D_shelter_1f_airlock_8017F758 = 0x8017F758; // absolute:True owner=shelter_1f_ai
 
 D_shelter_1f_bulwark_80180DA8 = 0x80180DA8; // absolute:True owner=shelter_1f_bulwark
 
-D_shelter_1f_heliport_80182BF4 = 0x80182BF4; // absolute:True owner=shelter_1f_heliport shared=rooms
+D_shelter_1f_heliport_80182BF4 = 0x80182BF4; // absolute:True owner=shelter_1f_heliport
 
 D_shelter_1f_tent_80184230 = 0x80184230; // absolute:True owner=shelter_1f_tent
 

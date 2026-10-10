@@ -14,9 +14,20 @@ extern TaskDesc gRoomEventTaskDesc;
 
 extern TaskMessageEntry D_dryfield_night_motel_balcony_80182804[6];
 
-extern SVECTOR D_dryfield_night_motel_balcony_80182C60[2];
+/// World-space base points for the balcony's light shafts and flares.
+///
+/// XYZ uses signed game-coordinate units and is borrowed during drawing.
+/// The declared pair supplies the first shaft. The ambient task also indexes
+/// slots 10..17 through this base, beyond the declared extent; the containing
+/// table across the neighboring point objects remains unresolved.
+extern const SVECTOR gDryfieldNightMotelBalconyGlowPoints[2];
 
-extern SVECTOR D_dryfield_night_motel_balcony_80182C70;
+/// World-space lamp position and first point of the balcony's second light shaft.
+///
+/// XYZ uses signed game-coordinate units. The lamp-break burst borrows this
+/// room-owned position while the overlay is loaded. The shaft drawer reads
+/// a second point from the following storage; its aggregate remains unresolved.
+extern SVECTOR gDryfieldNightMotelBalconyLampShaftStart;
 
 extern SVECTOR D_dryfield_night_motel_balcony_80182C80;
 

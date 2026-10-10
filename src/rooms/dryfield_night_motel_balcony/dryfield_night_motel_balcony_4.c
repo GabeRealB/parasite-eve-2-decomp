@@ -4338,10 +4338,10 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
         viewMaskWord = 1;
     }
     if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][0]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C60[0], DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(&gDryfieldNightMotelBalconyGlowPoints[0], DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
     if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][2]) {
-        _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C70, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
+        _glowDrawShaft(&gDryfieldNightMotelBalconyLampShaftStart, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
     }
     if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][4]) {
         _glowDrawShaft(&D_dryfield_night_motel_balcony_80182C80, DRYFIELD_NIGHT_MOTEL_BALCONY_SHAFT_RADIUS_SCALE);
@@ -4354,7 +4354,7 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
     }
     for (effectIndex = DRYFIELD_NIGHT_MOTEL_BALCONY_FIRST_FLARE_POINT; effectIndex < DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_POINT_END; effectIndex++) {
         if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][effectIndex]) {
-            _glowDrawFlare(&D_dryfield_night_motel_balcony_80182C60[effectIndex], 1, DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&gDryfieldNightMotelBalconyGlowPoints[effectIndex], 1, DRYFIELD_NIGHT_MOTEL_BALCONY_FLARE_RADIUS_SCALE);
         }
     }
     if (viewBit & _gDryfieldNightMotelBalconyGlowViewMasks[viewMaskWord][18]) {
@@ -4363,7 +4363,7 @@ void dryfieldNightMotelBalconyAmbientEffectsTask(Task* task)
     // Keep a broken lamp dark across subsequent visits.
     if (gameFlagGetNibble(GAME_FLAG_07F) == DRYFIELD_NIGHT_MOTEL_BALCONY_LAMP_BREAK_PENDING) {
         _dryfieldNightMotelBalconyDisableBrokenLamp();
-        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_LAMP_BURST, coord, 0, &D_dryfield_night_motel_balcony_80182C70);
+        effectSpawn(EFFECT_NIGHT_MOTEL_BALCONY_LAMP_BURST, coord, 0, &gDryfieldNightMotelBalconyLampShaftStart);
         gameFlagSetNibble(GAME_FLAG_07F, DRYFIELD_NIGHT_MOTEL_BALCONY_LAMP_BREAK_DONE);
     } else if (gameFlagGetNibble(GAME_FLAG_07F) == DRYFIELD_NIGHT_MOTEL_BALCONY_LAMP_BREAK_DONE) {
         _dryfieldNightMotelBalconyDisableBrokenLamp();
