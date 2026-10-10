@@ -32,6 +32,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -44,12 +45,6 @@ s32     rcos(s32);
 s32     rsin(s32);
 MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 
-/// The room's message table, parked in the entry task by
-/// `_neoArkWoodlandPathInitRoomTask`.
-extern TaskMessageEntry D_neo_ark_woodland_path_80181650[];
-
-extern Task* D_neo_ark_woodland_path_80181680;
-
 static s32 _neoArkWoodlandPathRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32 _neoArkWoodlandPathResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _neoArkWoodlandPathIgnoreRoomCommand(Task* task, s32 messageId, s32 commandIndex, s32 unused);
@@ -58,11 +53,23 @@ static s32 _neoArkWoodlandPathForwardActorEvent(Task* task, s32 messageId, s32 h
 
 enum { NEO_ARK_WOODLAND_PATH_ROAMER_ABSENT = -1 };
 
-TaskDesc D_neo_ark_woodland_path_80181638 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
+enum { NEO_ARK_WOODLAND_PATH_WATER_TASK_PRIORITY = 192 };
 
-TaskDesc D_neo_ark_woodland_path_80181644 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
+TaskDesc gNeoArkWoodlandPathWaterRefractionTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_WOODLAND_PATH_WATER_TASK_PRIORITY } }, waterRefractionTask, { .value = 0 } };
 
-TaskMessageEntry D_neo_ark_woodland_path_80181650[6] = {
+/// Retained no-body, priority-192 recipe for the framebuffer distortion task.
+///
+/// No spawn site selects this recipe; it is distinct from the active refraction
+/// descriptor. The callback's room/view clipping determines whether it draws.
+static TaskDesc _gNeoArkWoodlandPathWaterDistortBandTaskDesc = { { { TASK_BODY_NONE, NEO_ARK_WOODLAND_PATH_WATER_TASK_PRIORITY } }, waterDistortBandTask, { .value = 0 } };
+
+/// Synchronous message handlers installed on the woodland room receiver.
+///
+/// Resolves transitions, refuses key items, ignores CAP room commands, and
+/// forwards room actions and enemy HP reports to pool A. The final END entry
+/// makes unsupported IDs return zero. The table and callbacks live in the room
+/// overlay and must outlive every dispatch to the receiver.
+static TaskMessageEntry _gNeoArkWoodlandPathRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkWoodlandPathResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkWoodlandPathRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkWoodlandPathForwardRoomAction },
@@ -71,19 +78,31 @@ TaskMessageEntry D_neo_ark_woodland_path_80181650[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-Task* D_neo_ark_woodland_path_80181680 = NULL;
+/// Borrowed pool-A controller receiving the room's spawn requests and HP reports.
+///
+/// NULL on overlay load or a failed spawn; room setup replaces it. Retirement
+/// does not clear this handle, so forwarding requires the controller to remain
+/// live. The task system owns and releases the task allocation.
+static Task* _gNeoArkWoodlandPathRoamerPoolATask = NULL;
 
-SVECTOR D_neo_ark_woodland_path_80181684[2] = { 0 };
+SVECTOR gNeoArkWoodlandPathPlayerWaterPartHistory[2] = { 0 };
 
 u8* gNeoArkWoodlandPathViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_woodland_path_80181698[1] = { 10 };
+ViewCount gNeoArkWoodlandPathViewCounts[1] = { ARRAY_SIZE(gNeoArkWoodlandPathViewCameras) };
 
-DirectionWarpEntry D_neo_ark_woodland_path_8018169C[2] = {
-    { { { .word = 2048 }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, 0x551D0002, 0x551D0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, 0x551D0004, 0x551D0003, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+enum {
+    NEO_ARK_WOODLAND_PATH_WARP1_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 2),
+    NEO_ARK_WOODLAND_PATH_WARP1_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 1),
+    NEO_ARK_WOODLAND_PATH_WARP2_ARRIVAL_SOUND   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 4),
+    NEO_ARK_WOODLAND_PATH_WARP2_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 3),
+};
+
+DirectionWarpEntry gNeoArkWoodlandPathWarpEntries[2] = {
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -3895, 0, 9510 }, { 0, 0, 0, 0 }, NEO_ARK_WOODLAND_PATH_WARP1_ARRIVAL_SOUND, NEO_ARK_WOODLAND_PATH_WARP1_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5000, 0, -6680 }, { 0, 0, 0, 0 }, NEO_ARK_WOODLAND_PATH_WARP2_ARRIVAL_SOUND, NEO_ARK_WOODLAND_PATH_WARP2_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 /// Room-space face normals, with ONE representing unit length.
@@ -127,7 +146,7 @@ WorldCollisionGrid gNeoArkWoodlandPathCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gNeoArkWoodlandPathCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_woodland_path_80181D80[10] = {
+ViewCamera gNeoArkWoodlandPathViewCameras[10] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 1610, 0x7530, -1510 } }, 329 },
     { { { { 4020, 0, 782 }, { -251, 3878, 1292 }, { -740, -1316, 3807 } }, { 3562, 291, -6263 } }, 230 },
     { { { { 3934, 0, 1140 }, { -229, 4012, 790 }, { -1116, -823, 3853 } }, { 3377, 524, -3609 } }, 230 },
@@ -518,114 +537,136 @@ static SpriteBatch _gNeoArkWoodlandPathView7SpriteBatches[] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_woodland_path_80183644[32] = {
-    { 142, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 250, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -128, 96, 250, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 112 } }, 64, -120, 1749, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, 40, -104, 1664, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 16 } }, 80, -8, 1741, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 40 } }, 72, 8, 1539, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, -32, 1125, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 0, 1514, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 0, 1182, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 112, 56, 1125, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 72, 1125, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 40 } }, 72, -120, 1125, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -120, 1125, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -80, 1125, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 120, -80, 1125, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 80, 16, 1265, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 48 } }, 104, 8, 1265, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 16, -104, 2750, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, -64, 2750, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, -48, 2750, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 160 } }, -40, -120, 1975, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 160 } }, -104, -120, 1925, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 160 } }, -72, -120, 1950, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 160 } }, -8, -120, 2000, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 160 } }, 0, -120, 2250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 144 } }, 8, -112, 2750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 16, -80, 2750, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 24, -80, 2750, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, 0, 2750, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 160 } }, -136, -120, 1900, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, -160, -120, 1875, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, -160, -32, 1875, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+/// View 8 texture rectangles in centred pixels, with unscaled sorting depths.
+///
+/// Four batch ranges cover all 32 elements; there is no source terminator.
+static SpriteSource _gNeoArkWoodlandPathView8SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 48 } }, -160, 72, 250, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -128, 96, 250, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 96, 112 } }, 64, -120, 1749, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 64 } }, 40, -104, 1664, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 80, 16 } }, 80, -8, 1741, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 88, 40 } }, 72, 8, 1539, { .fields = { 16, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 128, -32, 1125, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 104, 0, 1514, { .fields = { 72, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 152, 0, 1182, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 16 } }, 112, 56, 1125, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 128, 72, 1125, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 40 } }, 72, -120, 1125, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 120, -120, 1125, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, 80, -80, 1125, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, 120, -80, 1125, { .fields = { 0, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, 80, 16, 1265, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 56, 48 } }, 104, 8, 1265, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 16, -104, 2750, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 32, -64, 2750, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 32, -48, 2750, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 32, 160 } }, -40, -120, 1975, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 160 } }, -104, -120, 1925, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 160 } }, -72, -120, 1950, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 160 } }, -8, -120, 2000, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 160 } }, 0, -120, 2250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 144 } }, 8, -112, 2750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 16, -80, 2750, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 24, -80, 2750, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 16, 0, 2750, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 160 } }, -136, -120, 1900, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 88 } }, -160, -120, 1875, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 72 } }, -160, -32, 1875, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_801838C4[6] = {
+/// View 8 retains its decoded background and draws four contiguous source ranges.
+///
+/// Ranges [0,2), [2,6), [6,17) and [17,32) are visible and included in cached
+/// packets. END terminates the list; the two serialized trailing bytes are
+/// retained without assigning an unproven meaning.
+static SpriteBatch _gNeoArkWoodlandPathView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 4, 0, 0, { 0, 0 } },
     { 6, 11, 0, 0, { 2, 0 } },
-    { 17, 15, 0, 0, { 1, 0 } },
+    { 17, ARRAY_SIZE(_gNeoArkWoodlandPathView8SpriteSources) - 17, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_woodland_path_801838F4[26] = {
-    { 142, 0x3FC0, { .fields = { 48, 40 } }, 112, 80, 250, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 48, 1425, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 192 } }, -160, -120, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 192 } }, -112, -120, 1125, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 184 } }, -64, -120, 1250, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 104 } }, -32, -120, 1425, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -8, -120, 1425, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, -32, 8, 1438, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, -96, 1500, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 40, 694, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, -160, 56, 692, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 120 } }, -88, -120, 1125, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 128 } }, -96, -120, 1000, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 48 } }, -88, 0, 1004, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -88, 48, 1005, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -56, 0, 1125, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 32, 1125, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -56, 48, 1125, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -80, 64, 1009, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 112 } }, -40, -120, 1250, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -24, -96, 1385, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -8, -88, 1500, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -24, -56, 1375, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, -160, -120, 560, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 64 } }, -128, -120, 658, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, -120, 941, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+/// View 9 texture rectangles in centred pixels, with unscaled sorting depths.
+///
+/// Four batch ranges cover all 26 elements; there is no source terminator.
+static SpriteSource _gNeoArkWoodlandPathView9SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 40 } }, 112, 80, 250, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -32, 48, 1425, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 192 } }, -160, -120, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 192 } }, -112, -120, 1125, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 184 } }, -64, -120, 1250, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 104 } }, -32, -120, 1425, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 64 } }, -8, -120, 1425, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 40 } }, -32, 8, 1438, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 0, -96, 1500, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 40, 694, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 40, 40 } }, -160, 56, 692, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 48, 120 } }, -88, -120, 1125, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 8, 128 } }, -96, -120, 1000, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 48 } }, -88, 0, 1004, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, -88, 48, 1005, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 32 } }, -56, 0, 1125, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -48, 32, 1125, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, -56, 48, 1125, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -80, 64, 1009, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 112 } }, -40, -120, 1250, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 16 } }, -24, -96, 1385, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -8, -88, 1500, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 24 } }, -24, -56, 1375, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 72 } }, -160, -120, 560, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 64 } }, -128, -120, 658, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -64, -120, 941, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_80183AFC[6] = {
+/// View 9 retains its decoded background and draws four contiguous source ranges.
+///
+/// Ranges [0,1), [1,8), [8,23) and [23,26) are visible and included in cached
+/// packets. END terminates the list; serialized trailing bytes are retained.
+static SpriteBatch _gNeoArkWoodlandPathView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 3, 0 } },
     { 1, 7, 0, 0, { 0, 0 } },
     { 8, 15, 0, 0, { 2, 0 } },
-    { 23, 3, 0, 0, { 1, 0 } },
+    { 23, ARRAY_SIZE(_gNeoArkWoodlandPathView9SpriteSources) - 23, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_woodland_path_80183B2C[14] = {
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 104, 100, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, 96, 125, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 120, 88, 150, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, -16, 150, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 104, 8, 150, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 32, 150, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 112, 48, 150, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 72, 150, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 96, 150, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, -88, 1425, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 128, 40 } }, -160, -120, 1008, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 56 } }, -160, -80, 1125, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 48 } }, -160, -24, 1125, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 112, 40 } }, -160, 24, 1113, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+/// View 10 texture rectangles in centred pixels, with unscaled sorting depths.
+///
+/// Three batch ranges cover all 14 elements; there is no source terminator.
+static SpriteSource _gNeoArkWoodlandPathView10SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 80, 104, 100, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 104, 96, 125, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 32 } }, 120, 88, 150, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, 136, -16, 150, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, 104, 8, 150, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 128, 32, 150, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 24 } }, 112, 48, 150, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, 120, 72, 150, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 128, 96, 150, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -32, -88, 1425, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 128, 40 } }, -160, -120, 1008, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 104, 56 } }, -160, -80, 1125, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 88, 48 } }, -160, -24, 1125, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 112, 40 } }, -160, 24, 1113, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_woodland_path_80183C44[5] = {
+/// View 10 retains its decoded background and draws three contiguous source ranges.
+///
+/// Ranges [0,3), [3,9) and [9,14) are visible and included in cached packets.
+/// END terminates the list; serialized trailing bytes are retained.
+static SpriteBatch _gNeoArkWoodlandPathView10SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 6, 0, 0, { 2, 0 } },
-    { 9, 5, 0, 0, { 0, 0 } },
+    { 9, ARRAY_SIZE(_gNeoArkWoodlandPathView10SpriteSources) - 9, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_woodland_path_80183C6C[10] = {
+SpriteView gNeoArkWoodlandPathSpriteViews[10] = {
     { { .empty = _gNeoArkWoodlandPathView1SpriteBatches }, _gNeoArkWoodlandPathView1SpriteBatches, NULL },
     { { .elements = _gNeoArkWoodlandPathView2SpriteSources }, _gNeoArkWoodlandPathView2SpriteBatches, NULL },
     { { .elements = _gNeoArkWoodlandPathView3SpriteSources }, _gNeoArkWoodlandPathView3SpriteBatches, NULL },
@@ -633,9 +674,9 @@ SpriteView D_neo_ark_woodland_path_80183C6C[10] = {
     { { .elements = _gNeoArkWoodlandPathView5SpriteSources }, _gNeoArkWoodlandPathView5SpriteBatches, NULL },
     { { .elements = _gNeoArkWoodlandPathView6SpriteSources }, _gNeoArkWoodlandPathView6SpriteBatches, NULL },
     { { .elements = _gNeoArkWoodlandPathView7SpriteSources }, _gNeoArkWoodlandPathView7SpriteBatches, NULL },
-    { { .elements = D_neo_ark_woodland_path_80183644 }, D_neo_ark_woodland_path_801838C4, NULL },
-    { { .elements = D_neo_ark_woodland_path_801838F4 }, D_neo_ark_woodland_path_80183AFC, NULL },
-    { { .elements = D_neo_ark_woodland_path_80183B2C }, D_neo_ark_woodland_path_80183C44, NULL },
+    { { .elements = _gNeoArkWoodlandPathView8SpriteSources }, _gNeoArkWoodlandPathView8SpriteBatches, NULL },
+    { { .elements = _gNeoArkWoodlandPathView9SpriteSources }, _gNeoArkWoodlandPathView9SpriteBatches, NULL },
+    { { .elements = _gNeoArkWoodlandPathView10SpriteSources }, _gNeoArkWoodlandPathView10SpriteBatches, NULL },
 };
 
 /// Six local point lights and one broad full-strength point light for the path.
@@ -658,7 +699,7 @@ WorldCoordRoomLights gNeoArkWoodlandPathRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_neo_ark_woodland_path_80183F9C[16] = {
+WorldCollisionTrigger gNeoArkWoodlandPathViewBoundaryTriggers[16] = {
     { NULL, NULL, NULL, { -3969, -2048, 7647, 0 }, { { 3476, -3712, -1, 0 }, { -3475, -3712, 2, 0 }, { 3476, 3712, -1, 0 }, { -3475, 3712, 2, 0 } }, { 1, 0, 4099, 0 }, { 0, 0, 4096, 0 }, 5068, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -4001, -1952, 7871, 0 }, { { -3475, -3712, 2, 0 }, { 3476, -3712, -1, 0 }, { -3475, 3712, 2, 0 }, { 3476, 3712, -1, 0 } }, { -2, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 5068, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -4387, -1952, 5758, 0 }, { { -3326, -3712, -1007, 0 }, { 3327, -3712, 1007, 0 }, { -3326, 3712, -1007, 0 }, { 3327, 3712, 1007, 0 } }, { 1187, 0, -3925, 0 }, { 0, 0, 4096, 0 }, 5068, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -677,43 +718,76 @@ WorldCollisionTrigger D_neo_ark_woodland_path_80183F9C[16] = {
     { NULL, NULL, NULL, { -4994, -2368, -4546, 0 }, { { 2886, -3712, -1938, 0 }, { -2885, -3712, 1939, 0 }, { 2886, 3712, -1938, 0 }, { -2885, 3712, 1939, 0 } }, { 2286, 0, 3403, 0 }, { 0, 0, 4096, 0 }, 5068, 0, 9, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_woodland_path_8018445C[8] = {
-    { NULL, NULL, NULL, { -4000, -48, 9600, 0 }, { { -1024, 0, -384, 0 }, { 1024, 0, -384, 0 }, { -1024, 0, 384, 0 }, { 1024, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 19, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4997, -48, -6720, 0 }, { { -1024, 0, -384, 0 }, { 1024, 0, -384, 0 }, { -1024, 0, 384, 0 }, { 1024, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, 32, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3968, -64, 8056, 0 }, { { -1024, 0, -168, 0 }, { 1024, 0, -168, 0 }, { -1024, 0, 168, 0 }, { 1024, 0, 168, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1031, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -3438, -64, 4768, 0 }, { { -2000, 0, -1152, 0 }, { 2032, 0, -1152, 0 }, { -2064, 0, 480, 0 }, { 2032, 0, 1824, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 2721, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 1696, -64, 4992, 0 }, { { -1184, 0, -1664, 0 }, { 1184, 0, -1664, 0 }, { -1184, 0, 1664, 0 }, { 1184, 0, 1664, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 2039, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 3, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 1392, -64, -4064, 0 }, { { -1232, 0, -2016, 0 }, { 1520, 0, -2016, 0 }, { -1808, 0, 2016, 0 }, { 1520, 0, 2016, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 2697, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 4, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -3864, -64, -4080, 0 }, { { 984, 0, -1712, 0 }, { 1560, 0, -1712, 0 }, { -4104, 0, 1712, 0 }, { 1560, 0, 1712, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 4434, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 5, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { -5592, -64, -4720, 0 }, { { -808, 0, -816, 0 }, { 2072, 0, -816, 0 }, { -808, 0, 752, 0 }, { -456, 0, 880, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 2217, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 6, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+// Warp selector bytes pack the departure slot high and the arrival slot low.
+enum {
+    NEO_ARK_WOODLAND_PATH_FOREST_WARP_SLOTS  = (1 << 4) | 3,
+    NEO_ARK_WOODLAND_PATH_PYRAMID_WARP_SLOTS = (2 << 4) | 1,
+    NEO_ARK_WOODLAND_PATH_ROAMER_POINT_1     = 1,
+    NEO_ARK_WOODLAND_PATH_ROAMER_POINT_2     = 2,
+    NEO_ARK_WOODLAND_PATH_ROAMER_POINT_3     = 3,
+    NEO_ARK_WOODLAND_PATH_ROAMER_POINT_4     = 4,
+    NEO_ARK_WOODLAND_PATH_ROAMER_POINT_5     = 5,
+    NEO_ARK_WOODLAND_PATH_ROAMER_POINT_6     = 6,
 };
 
-AreaResource D_neo_ark_woodland_path_801846BC[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
+WorldCollisionTrigger gNeoArkWoodlandPathActionTriggers[8] = {
+    { NULL, NULL, NULL, { -4000, -48, 9600, 0 }, { { -1024, 0, -384, 0 }, { 1024, 0, -384, 0 }, { -1024, 0, 384, 0 }, { 1024, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_FOREST_ZONE, NEO_ARK_WOODLAND_PATH_FOREST_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4997, -48, -6720, 0 }, { { -1024, 0, -384, 0 }, { 1024, 0, -384, 0 }, { -1024, 0, 384, 0 }, { 1024, 0, 384, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_PYRAMID, NEO_ARK_WOODLAND_PATH_PYRAMID_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3968, -64, 8056, 0 }, { { -1024, 0, -168, 0 }, { 1024, 0, -168, 0 }, { -1024, 0, 168, 0 }, { 1024, 0, 168, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, -4096, 0 }, 1031, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_WOODLAND_PATH_ROAMER_POINT_1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -3438, -64, 4768, 0 }, { { -2000, 0, -1152, 0 }, { 2032, 0, -1152, 0 }, { -2064, 0, 480, 0 }, { 2032, 0, 1824, 0 } }, { 0, 4101, 0, 0 }, { -4096, 0, 0, 0 }, 2721, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_WOODLAND_PATH_ROAMER_POINT_2, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 1696, -64, 4992, 0 }, { { -1184, 0, -1664, 0 }, { 1184, 0, -1664, 0 }, { -1184, 0, 1664, 0 }, { 1184, 0, 1664, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 2039, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_WOODLAND_PATH_ROAMER_POINT_3, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { 1392, -64, -4064, 0 }, { { -1232, 0, -2016, 0 }, { 1520, 0, -2016, 0 }, { -1808, 0, 2016, 0 }, { 1520, 0, 2016, 0 } }, { 0, 4113, 0, 0 }, { -4096, 0, 0, 0 }, 2697, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_WOODLAND_PATH_ROAMER_POINT_4, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -3864, -64, -4080, 0 }, { { 984, 0, -1712, 0 }, { 1560, 0, -1712, 0 }, { -4104, 0, 1712, 0 }, { 1560, 0, 1712, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 4434, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_WOODLAND_PATH_ROAMER_POINT_5, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+    { NULL, NULL, NULL, { -5592, -64, -4720, 0 }, { { -808, 0, -816, 0 }, { 2072, 0, -816, 0 }, { -808, 0, 752, 0 }, { -456, 0, 880, 0 } }, { 0, 4099, 0, 0 }, { -4096, 0, 0, 0 }, 2217, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, NEO_ARK_WOODLAND_PATH_ROAMER_POINT_6, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+enum {
+    NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_ENTRY_ID    = 13,
+    NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_FILE_NUMBER = 13,
+};
+
+/// Variant 1's entry-13 Horned Stranger resource, followed by the list terminator.
+///
+/// Two placements share file 401300 and descriptor 0; loading and spawning
+/// borrow the list through the room's area-variant directory while loaded.
+static AreaResource _gNeoArkWoodlandPathVariant1ActorResources[] = {
+    { NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_ENTRY_ID, NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_FILE_NUMBER, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_woodland_path_801846D4[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
+/// Variant 2's entry-13 Horned Stranger resource, followed by the list terminator.
+///
+/// Two placements share file 401300 and descriptor 0; storage stays room-owned
+/// and is borrowed through the area-variant directory while loaded.
+static AreaResource _gNeoArkWoodlandPathVariant2ActorResources[] = {
+    { NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_ENTRY_ID, NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_FILE_NUMBER, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_woodland_path_801846EC[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
+/// Variant 3's entry-13 Horned Stranger resource, followed by the list terminator.
+///
+/// Two placements share file 401300 and descriptor 0; storage stays room-owned
+/// and is borrowed through the area-variant directory while loaded.
+static AreaResource _gNeoArkWoodlandPathVariant3ActorResources[] = {
+    { NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_ENTRY_ID, NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_FILE_NUMBER, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_neo_ark_woodland_path_80184704[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
+/// Variant 4's entry-13 Horned Stranger resource, followed by the list terminator.
+///
+/// Four placements share file 401300 and descriptor 0; storage stays room-owned
+/// and is borrowed through the area-variant directory while loaded.
+static AreaResource _gNeoArkWoodlandPathVariant4ActorResources[] = {
+    { NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_ENTRY_ID, NEO_ARK_WOODLAND_PATH_HORNED_STRANGER_FILE_NUMBER, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_neo_ark_woodland_path_8018471C[12] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C3C0, D_neo_ark_woodland_path_801846BC },
-    { D_map_neo_ark_8017C3F0, D_neo_ark_woodland_path_801846D4 },
-    { D_map_neo_ark_8017C420, D_neo_ark_woodland_path_801846EC },
-    { D_map_neo_ark_8017C450, D_neo_ark_woodland_path_80184704 },
+    { D_map_neo_ark_8017C3C0, _gNeoArkWoodlandPathVariant1ActorResources },
+    { D_map_neo_ark_8017C3F0, _gNeoArkWoodlandPathVariant2ActorResources },
+    { D_map_neo_ark_8017C420, _gNeoArkWoodlandPathVariant3ActorResources },
+    { D_map_neo_ark_8017C450, _gNeoArkWoodlandPathVariant4ActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -737,7 +811,7 @@ WorldCoordRoomAmbientEntry gNeoArkWoodlandPathRoomAmbientByView[11] = {
     { .color = { 410, 410, 410, 410 } },
 };
 
-WorldCollisionOccluder D_neo_ark_woodland_path_801847D4[4] = {
+WorldCollisionOccluder gNeoArkWoodlandPathSightOccluders[4] = {
     { NULL, NULL, { -2896, -1440, 1968, 0 }, { { -6800, 3616, -1968, 0 }, { 6800, 3616, 1968, 0 }, { -6800, -3616, -1968, 0 }, { 6800, -3616, 1968, 0 } }, { -1143, 0, 3946, 0 }, 7948, 1, 0 },
     { NULL, NULL, { -2768, -1504, -176, 0 }, { { -6656, 3616, 2240, 0 }, { 6656, 3616, -2240, 0 }, { -6656, -3616, 2240, 0 }, { 6656, -3616, -2240, 0 } }, { 1308, 0, 3889, 0 }, 7898, 1, 0 },
     { NULL, NULL, { 3696, -1632, 7328, 0 }, { { -6672, 3616, -672, 0 }, { 6672, 3616, 672, 0 }, { -6672, -3616, -672, 0 }, { 6672, -3616, 672, 0 } }, { -412, 0, 4085, 0 }, 7611, 1, 0 },
@@ -881,10 +955,10 @@ static s32 _neoArkWoodlandPathForwardRoomAction(Task* task, s32 messageId, const
 {
     s32 result;
 
-    if (D_neo_ark_woodland_path_80181680 == NULL) {
+    if (_gNeoArkWoodlandPathRoamerPoolATask == NULL) {
         result = NEO_ARK_WOODLAND_PATH_ROAMER_ABSENT;
     } else {
-        result = TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_woodland_path_80181680, messageId, request, unused);
+        result = TASK_MESSAGE_DISPATCH_POINTER(_gNeoArkWoodlandPathRoamerPoolATask, messageId, request, unused);
     }
     return result;
 }
@@ -900,10 +974,10 @@ static s32 _neoArkWoodlandPathForwardActorEvent(Task* task, s32 messageId, s32 h
 {
     s32 result;
 
-    if (D_neo_ark_woodland_path_80181680 == NULL) {
+    if (_gNeoArkWoodlandPathRoamerPoolATask == NULL) {
         result = NEO_ARK_WOODLAND_PATH_ROAMER_ABSENT;
     } else {
-        result = taskMessageDispatch(D_neo_ark_woodland_path_80181680, messageId, hp, unused);
+        result = taskMessageDispatch(_gNeoArkWoodlandPathRoamerPoolATask, messageId, hp, unused);
     }
     return result;
 }
@@ -917,10 +991,10 @@ static void _neoArkWoodlandPathInitRoomTask(Task* task)
 {
     enum { NEO_ARK_WOODLAND_PATH_POOL_A_CONTROLLER_TASK = 1 };
 
-    task->msgTable = D_neo_ark_woodland_path_80181650;
+    task->msgTable = _gNeoArkWoodlandPathRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    D_neo_ark_woodland_path_80181680 = taskSpawnFromTable(D_neo_ark_woodland_path_80184A44, NEO_ARK_WOODLAND_PATH_POOL_A_CONTROLLER_TASK, 0, 0);
-    task->state                      = task->state + 1;
+    _gNeoArkWoodlandPathRoamerPoolATask = taskSpawnFromTable(D_neo_ark_woodland_path_80184A44, NEO_ARK_WOODLAND_PATH_POOL_A_CONTROLLER_TASK, 0, 0);
+    task->state                         = task->state + 1;
 }
 
 /// Keeps the woodland path room task available for messages in state 1.
@@ -930,8 +1004,11 @@ static void _neoArkWoodlandPathRoomIdleState(Task* task)
 {
 }
 
-/// State handlers of the room's entry task: set-up, idle, then kill.
-static const TaskFuncTable3 D_neo_ark_woodland_path_8017D614 = {
+/// Room task states 0..2: install messages and spawn pool A, idle, then retire.
+///
+/// Dispatch copies all three handlers before indexing by the task's state;
+/// the state must remain in range and the room overlay must remain loaded.
+static const TaskFuncTable3 _gNeoArkWoodlandPathRoomTaskStates = {
     { _neoArkWoodlandPathInitRoomTask, _neoArkWoodlandPathRoomIdleState, taskKill }
 };
 
@@ -939,6 +1016,6 @@ void neoArkWoodlandPathRoomTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_neo_ark_woodland_path_8017D614;
+    handlers = _gNeoArkWoodlandPathRoomTaskStates;
     handlers.funcs[task->state](task);
 }

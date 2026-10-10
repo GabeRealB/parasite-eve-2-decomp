@@ -87519,10 +87519,10 @@ an `s16` field under an `& 1` already does, and a `lh` there would mean the
 m2c seeded `_neoArkWoodlandPathForwardRoomAction` with the early-return guard
 
 ```c
-if (D_neo_ark_woodland_path_80181680 == NULL) {
+if (_gNeoArkWoodlandPathRoamerPoolATask == NULL) {
     return -1;
 }
-return taskMessageDispatch(D_neo_ark_woodland_path_80181680);
+return taskMessageDispatch(_gNeoArkWoodlandPathRoamerPoolATask);
 ```
 
 which scored 60% with `reorder=1 insert=3 delete=2` and inverted the predicate
@@ -87559,10 +87559,10 @@ an extra `j`/`nop` around the out-of-line `addu v0,zero,zero`:
 ```c
 s32 ret;
 
-if (D_neo_ark_woodland_path_80181680 == NULL) {
+if (_gNeoArkWoodlandPathRoamerPoolATask == NULL) {
     ret = -1;
 } else {
-    ret = taskMessageDispatch(D_neo_ark_woodland_path_80181680);
+    ret = taskMessageDispatch(_gNeoArkWoodlandPathRoamerPoolATask);
 if (D_dryfield_breezeway_801843A8 == NULL) {
     ret = 0;
 } else {
@@ -87604,7 +87604,7 @@ m2c emits `li $a0, 7` there instead, clobbering the `$a0` the callee reads as
 its first argument. The other two differences were downstream of this one:
 `$a0` staying live across the `jal` reorders the local-alloc quantities, which
 is why the tail's address pseudo (the `lui` feeding the
-`D_neo_ark_woodland_path_80181680` store) comes out in `$a0` in the target and
+`_gNeoArkWoodlandPathRoamerPoolATask` store) comes out in `$a0` in the target and
 `$v1` in the seed. Restoring the argument fixed all three, 100% on the first
 build.
 

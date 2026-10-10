@@ -12,7 +12,12 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_neo_ark_woodland_path_80181638;
+/// Spawn recipe for the woodland path's water-plane refraction task.
+///
+/// Creates a no-body task at priority 192 with zero descriptor metadata.
+/// Gameplay starts it on room entry; it draws water in logical views 6 and 7
+/// at world Y=140. The room overlay must stay loaded while the task runs.
+extern TaskDesc gNeoArkWoodlandPathWaterRefractionTaskDesc;
 
 extern AreaVariant D_neo_ark_woodland_path_8018471C[12];
 
@@ -23,9 +28,20 @@ extern AreaVariant D_neo_ark_woodland_path_8018471C[12];
 /// and remains valid while this overlay is loaded.
 extern u8* gNeoArkWoodlandPathViewMaps[1];
 
-extern ViewCount D_neo_ark_woodland_path_80181698[];
+/// Logical-view reverse-search count for the woodland path's single room.
+///
+/// Room 1 searches ten entries of its identity map, independently of that
+/// shared map's 50-byte capacity. The count array has no terminator and is
+/// borrowed by the stage directory while this room overlay is loaded.
+extern ViewCount gNeoArkWoodlandPathViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_woodland_path_8018169C[];
+/// Player and companion placements and sound cues for the path's two warps.
+///
+/// Indexed by warp ID minus one, with no terminator. Slots 1 and 2 arrive in
+/// logical views 2 and 10 respectively; yaw uses 4096 units per turn and XYZ
+/// uses room-coordinate units. Neither endpoint sets a map marker or special
+/// departure option. The stage directory borrows this loaded room's storage.
+extern DirectionWarpEntry gNeoArkWoodlandPathWarpEntries[2];
 
 /// Woodland path collision mesh and its 4-by-5 XZ cell index.
 ///
@@ -34,9 +50,21 @@ extern DirectionWarpEntry D_neo_ark_woodland_path_8018169C[];
 /// Activation binds the view transform; all mesh storage must remain loaded.
 extern WorldCollisionGrid gNeoArkWoodlandPathCollisionGrid;
 
-extern ViewCamera D_neo_ark_woodland_path_80181D80[];
+/// Camera transforms and projection distances for woodland logical views 1..10.
+///
+/// The identity map selects entry view minus one, without a terminator.
+/// Rotation uses Q12 coefficients and translation is the negated world origin;
+/// projection distances are 329 pixels for view 1 and 230 for views 2..10.
+/// Camera application borrows the selected record from this loaded overlay.
+extern ViewCamera gNeoArkWoodlandPathViewCameras[10];
 
-extern SpriteView D_neo_ark_woodland_path_80183C6C[];
+/// Background-sprite resources for woodland logical views 1..10.
+///
+/// The identity map selects entry view minus one. Every view retains decoded
+/// background strips and has no draw-area override; view 1 selects no sprites.
+/// Source and batch lists are room-owned and must remain loaded during packet
+/// allocation and drawing. The directory has no terminator.
+extern SpriteView gNeoArkWoodlandPathSpriteViews[10];
 
 /// Woodland path model lighting from seven point sources in every view.
 ///
@@ -46,9 +74,22 @@ extern SpriteView D_neo_ark_woodland_path_80183C6C[];
 /// and live with the room overlay.
 extern WorldCoordRoomLights gNeoArkWoodlandPathRoomLights;
 
-extern WorldCollisionTrigger D_neo_ark_woodland_path_80183F9C[];
+/// Directed collision boundaries between adjacent woodland views 2..10.
+///
+/// Eight boundary pairs carry source/destination view IDs in parameter0/1;
+/// the final record includes WORLD_COLLISION_TRIGGER_LAST. Activation binds
+/// and enables all sixteen records in the current view. Geometry uses room
+/// units and Q12 normals; mutable links and hit latches live with the overlay.
+extern WorldCollisionTrigger gNeoArkWoodlandPathViewBoundaryTriggers[16];
 
-extern WorldCollisionTrigger D_neo_ark_woodland_path_8018445C[];
+/// Two exit warps and six automatic roamer-spawn requests along the path.
+///
+/// The facing-gated warps lead to the forest zone and pyramid, using departure
+/// slots 1 and 2 and arrival slots 3 and 1 respectively. Automatic quads send
+/// room-action IDs 1..6 with argument zero to select pool-A spawn points.
+/// Activation binds and enables the mutable records; LAST marks the included
+/// eighth record. The overlay must remain loaded until the list is cleared.
+extern WorldCollisionTrigger gNeoArkWoodlandPathActionTriggers[8];
 
 /// Minimum ambient RGB levels for woodland path logical views 1..10.
 ///
@@ -57,7 +98,13 @@ extern WorldCollisionTrigger D_neo_ark_woodland_path_8018445C[];
 /// the table only while the room overlay is loaded.
 extern WorldCoordRoomAmbientEntry gNeoArkWoodlandPathRoomAmbientByView[11];
 
-extern WorldCollisionOccluder D_neo_ark_woodland_path_801847D4[];
+/// Four woodland quads that obstruct enemy line-of-sight queries.
+///
+/// Activation links and enables all records through the fourth one's LAST
+/// marker. Origins and corner offsets are in room units, transformed through
+/// the current view for sight tests; normals use Q12. Mutable list links remain
+/// borrowed from this overlay until the active occluder list is cleared.
+extern WorldCollisionOccluder gNeoArkWoodlandPathSightOccluders[4];
 
 /// Woodland path collision and footstep policies indexed by surface class 0..7.
 ///
