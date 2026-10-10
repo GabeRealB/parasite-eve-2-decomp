@@ -70,7 +70,7 @@ D_dryfield_r08_8017F704 = 0x8017F704; // absolute:True owner=dryfield_r08 shared
 D_dryfield_r08_8017F708 = 0x8017F708; // absolute:True owner=dryfield_r08 shared=rooms
 D_dryfield_r08_8017F718 = 0x8017F718; // absolute:True owner=dryfield_r08
 D_dryfield_r08_8017FBBC = 0x8017FBBC; // absolute:True owner=dryfield_r08 shared=rooms
-D_dryfield_r08_80180918 = 0x80180918; // absolute:True owner=dryfield_r08 shared=rooms
+D_dryfield_r08_80180918 = 0x80180918; // absolute:True owner=dryfield_r08
 D_dryfield_r08_80180C04 = 0x80180C04; // absolute:True owner=dryfield_r08
 dryfieldDilapidatedHouseRoomTask = 0x8017EB60; // type:func absolute:True owner=dryfield_dilapidated_house
 D_dryfield_dilapidated_house_80186954 = 0x80186954; // absolute:True owner=dryfield_dilapidated_house

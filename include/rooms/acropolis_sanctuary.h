@@ -18,8 +18,11 @@ extern TmdSource gAcropolisSanctuaryModel090F0;
 
 extern TmdSource gAcropolisSanctuaryModel09584;
 
-// acropolis_sanctuary
-extern WorldCollisionRoomResources D_acropolis_sanctuary_801827EC[];
+/// Collision resources for the sanctuary's single room.
+///
+/// Room 1 borrows the live grid, 18 view boundaries and 17 action triggers;
+/// it has no sight occluders. Keep this overlay loaded until they are unlinked.
+extern WorldCollisionRoomResources gAcropolisSanctuaryRoomCollisionResources[1];
 
 /// Logical-view maps for the sanctuary's single room.
 ///
@@ -27,7 +30,11 @@ extern WorldCollisionRoomResources D_acropolis_sanctuary_801827EC[];
 /// camera, image and sprite indices. Keep both room and gameplay overlays loaded.
 extern u8* gAcropolisSanctuaryViewMaps[1];
 
-extern ViewCount D_acropolis_sanctuary_80182800[];
+/// Logical-view counts for the sanctuary's single room.
+///
+/// Room 1 has 16 identity-mapped views, matching its sprite and camera arrays.
+/// The map overlay borrows this table while the sanctuary overlay is loaded.
+extern ViewCount gAcropolisSanctuaryViewCounts[1];
 
 /// Lighting for the sanctuary's single room, with default ambient minima.
 ///
@@ -35,11 +42,27 @@ extern ViewCount D_acropolis_sanctuary_80182800[];
 /// lights. The descriptor and light storage are live only while the room is loaded.
 extern WorldCoordRoomLighting gAcropolisSanctuaryRoomLightingTable[1];
 
-extern DirectionWarpEntry D_acropolis_sanctuary_8018280C[];
+/// Sanctuary warp endpoints, indexed by the 1-based warp ID minus one.
+///
+/// Slots 1 and 3 use the promenade doorway and view 2; slot 2 uses the roof-garden
+/// doorway and view 7. Slots 1 and 3 intentionally retain identical records.
+/// Player and companion placements use room coordinates and 4096 units/turn.
+/// The map overlay borrows all three entries while this room is loaded.
+extern DirectionWarpEntry gAcropolisSanctuaryWarpEntries[3];
 
-extern SpriteView D_acropolis_sanctuary_801860C8[];
+/// Sprite resources for sanctuary views 1..16, indexed by mapped view minus one.
+///
+/// Every view retains decoded background strips and has no clip list. Views
+/// 1, 10 and 15 have no source sprites. Scripts change batch visibility in
+/// views 12 and 16; keep the overlay loaded while sources or batches are used.
+extern SpriteView gAcropolisSanctuarySpriteViews[16];
 
-extern ViewCamera D_acropolis_sanctuary_80186188[];
+/// Cameras for sanctuary views 1..16, indexed by mapped view minus one.
+///
+/// Rotations use 4096 for 1.0, translations are negated camera origins in room
+/// units, and projection distances are pixels. The map overlay borrows these
+/// records; keep this room loaded until queued camera application completes.
+extern ViewCamera gAcropolisSanctuaryViewCameras[16];
 
 /// Sanctuary collision policies indexed by surface class 0..7.
 ///

@@ -53533,7 +53533,7 @@ a pseudo with two uses (the load and the store), which combine cannot fold into
 both. Write one pointer local per element:
 
 ```c
-trigger9 = &(D_acropolis_sanctuary_80183AE4 + 6)[3];
+trigger9 = &(_gAcropolisSanctuaryActionTriggers + 6)[3];
 trigger9->flags &= disabledTriggerMask;
 ```
 
@@ -53666,19 +53666,19 @@ direct global references, make GCC 2.8.1 materialise the `lui`/`addiu` pair
 crosses the call:
 
 ```c
-for (i = 0; i < 4; i++) { D_acropolis_sanctuary_80183568.vertices[i].vx = D_acropolis_sanctuary_801822EC.vertices[i].vx; ... }
+for (i = 0; i < 4; i++) { _gAcropolisSanctuaryCollisionGrid.vertices[i].vx = D_acropolis_sanctuary_801822EC.vertices[i].vx; ... }
 if (gameFlagGetNibble(6) == 0) { ... }
-for (i = 0; i < 8; i++) { D_acropolis_sanctuary_80183568.vertices[i].vx += placementOffset.vx; }   /* second lui/addiu */
+for (i = 0; i < 8; i++) { _gAcropolisSanctuaryCollisionGrid.vertices[i].vx += placementOffset.vx; }   /* second lui/addiu */
 ```
 
-The target had one `addiu s0, v0, %lo(D_acropolis_sanctuary_80183568)` in the prologue, `sw s0` /
+The target had one `addiu s0, v0, %lo(_gAcropolisSanctuaryCollisionGrid)` in the prologue, `sw s0` /
 `lw s0` around it, and no re-materialisation after the call. Binding the global
 to a named local pointer at the top of the function is what produces that: the
 address becomes a single pseudo live across the `jal`, so the allocator is
 forced to give it a callee-saved register.
 
 ```c
-WorldCollisionGrid* roomGrid = &D_acropolis_sanctuary_80183568;
+WorldCollisionGrid* roomGrid = &_gAcropolisSanctuaryCollisionGrid;
 WorldCollisionGrid* blockerTemplate = &D_acropolis_sanctuary_801822EC;
 ```
 

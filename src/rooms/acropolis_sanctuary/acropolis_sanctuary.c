@@ -69,9 +69,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/actor_contacts.h"
 
-extern AnimationSet* D_acropolis_sanctuary_80180918[9];
-
-extern WorldCollisionTrigger D_acropolis_sanctuary_80183AE4[17];
+static WorldCollisionTrigger _gAcropolisSanctuaryActionTriggers[17];
 
 /// Views selected by player placement and the mosaic's retained cleanup latch.
 enum {
@@ -209,7 +207,6 @@ STATIC_ASSERT_SIZEOF(_AcropolisSanctuaryFlameGrey, 3);
 /// and helicopter-pad rooms set it.
 
 extern TaskMessageEntry              D_acropolis_sanctuary_8018081C[];
-extern ActorTransform                D_acropolis_sanctuary_801808BC;
 extern AnimationPlayRequest          D_acropolis_sanctuary_801809F8;
 extern AnimationPlayRequest          D_acropolis_sanctuary_80180A0C;
 extern AnimationPlayRequest          D_acropolis_sanctuary_80180AE8;
@@ -220,12 +217,10 @@ extern TaskDesc                      D_acropolis_sanctuary_80182240;
 extern WorldCollisionGrid            D_acropolis_sanctuary_801822EC;
 extern TaskMessageEntry              D_acropolis_sanctuary_80182310[];
 extern _AcropolisSanctuaryMosaicTile D_acropolis_sanctuary_80182320[];
-extern SVECTOR                       D_acropolis_sanctuary_80182710[][4];
 extern s16                           D_acropolis_sanctuary_80182750[];
 extern s32                           D_acropolis_sanctuary_80182770;
 extern SVECTOR                       D_acropolis_sanctuary_80182774[];
-extern u16                           D_acropolis_sanctuary_801827D4[];
-extern WorldCollisionGrid            D_acropolis_sanctuary_80183568;
+static WorldCollisionGrid            _gAcropolisSanctuaryCollisionGrid;
 extern AreaApplyRec                  D_acropolis_sanctuary_80186418[];
 extern Task*                         D_acropolis_sanctuary_80186C90;
 
@@ -302,11 +297,14 @@ static const TaskFuncTable3 D_acropolis_sanctuary_8017D5C4 = {
 /// Offset the room task's model-coordinate effect is spawned with.
 static const SVECTOR D_acropolis_sanctuary_8017D5D0 = { -0x27F6, -0x17CA, -0x1C3E, 0 };
 
-/// Resting grey of the sanctuary flame, one byte per variant. The next
-/// constant is word-aligned, so a zero byte follows these three.
-static const _AcropolisSanctuaryFlameGrey D_acropolis_sanctuary_8017D5D8 = { { 0x60, 0x60, 0x10 } };
-/// Grey added to the resting level on odd frames, one byte per variant.
-static const _AcropolisSanctuaryFlameGrey D_acropolis_sanctuary_8017D5DC = { { 0x10, 0x10, 0x08 } };
+/// Resting flame grey for texture/palette variants 0..2.
+///
+/// The drawer copies exactly three bytes and applies the selected level to RGB.
+static const _AcropolisSanctuaryFlameGrey _gAcropolisSanctuaryFlameBaseGrey = { { 0x60, 0x60, 0x10 } };
+/// Flame grey added on odd display frames for texture/palette variants 0..2.
+///
+/// The drawer copies exactly three bytes; variant 3 has no table entry.
+static const _AcropolisSanctuaryFlameGrey _gAcropolisSanctuaryFlameFlickerGrey = { { 0x10, 0x10, 0x08 } };
 /// A non-zero padding byte the original toolchain left. Nothing refers to it.
 static const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
@@ -316,8 +314,7 @@ static void _acropolisSanctuaryCutsceneTask(Task* task);
 
 static void _acropolisSanctuaryRequestCutsceneCue(s32 cue);
 
-extern WorldCollisionGrid    D_acropolis_sanctuary_80183568;
-extern WorldCollisionTrigger D_acropolis_sanctuary_8018358C[18];
+static WorldCollisionTrigger _gAcropolisSanctuaryViewBoundaryTriggers[18];
 static WorldCoordRoomLights  _gAcropolisSanctuaryRoomLights;
 
 extern AnimationPlayRequest     D_acropolis_sanctuary_80180944;
@@ -335,10 +332,7 @@ extern AnimationPlayRequest     D_acropolis_sanctuary_80180A48;
 extern AnimationPlayRequest     D_acropolis_sanctuary_80180A5C;
 extern AnimationPlayRequest     D_acropolis_sanctuary_80180A70;
 extern AnimationPlayRequest     D_acropolis_sanctuary_80180A84;
-extern AnimationPlayRequest     D_acropolis_sanctuary_80180A98;
 extern AnimationPlayRequest     D_acropolis_sanctuary_80180AAC;
-extern AnimationPlayRequest     D_acropolis_sanctuary_80180AC0;
-extern AnimationPlayRequest     D_acropolis_sanctuary_80180AD4;
 extern AnimationBankCopyRequest D_acropolis_sanctuary_8018093C;
 extern EvsSceneKey              D_acropolis_sanctuary_80180AFC;
 extern ActorTransform           D_acropolis_sanctuary_80180844;
@@ -346,7 +340,6 @@ extern ActorTransform           D_acropolis_sanctuary_8018085C;
 extern ActorTransform           D_acropolis_sanctuary_8018088C;
 extern ActorTransform           D_acropolis_sanctuary_801808A4;
 extern ActorTransform           D_acropolis_sanctuary_801808D4;
-extern ActorTransform           D_acropolis_sanctuary_801808EC;
 static void                     _acropolisSanctuaryApplyScriptSpriteSelection(u32 packedSelection);
 static void                     _acropolisSanctuaryRestorePlayerWeaponAnimation(void);
 
@@ -395,11 +388,25 @@ ActorTransform D_acropolis_sanctuary_8018088C = { { -100, 0, -400, 0 }, { 0, 0, 
 
 ActorTransform D_acropolis_sanctuary_801808A4 = { { -100, 0, -400, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_sanctuary_801808BC = { { 0, 0, 480, 0 }, { 0, 0, 0, 0 } };
+/// Rupert's placement restored after the sanctuary scene or on a later room entry.
+///
+/// Position (0, 0, 480) is in the model root parent's coordinate frame; all
+/// Euler angles are zero. Placement messages borrow this record synchronously.
+static ActorTransform _gAcropolisSanctuaryRupertRestoredPlacement = {
+    .pos = { 0, 0, 480, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
 ActorTransform D_acropolis_sanctuary_801808D4 = { { 0, 0, -900, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_sanctuary_801808EC = { { -5724, 0, -8276, 0 }, { 0, -1024, 0, 0 } };
+/// Player placement after the sanctuary scene, including its skip path.
+///
+/// Position (-5724, 0, -8276) uses room units and yaw -1024 is a quarter turn.
+/// The player placement message borrows this record synchronously.
+static ActorTransform _gAcropolisSanctuaryPlayerSceneEndPlacement = {
+    .pos = { -5724, 0, -8276, 0 },
+    .rot = { 0, -ONE / 4, 0, 0 },
+};
 
 /// Resets the player's equipped-weapon clip 1 and disables world collision.
 ///
@@ -414,7 +421,12 @@ static AnimationPlayRequest _gAcropolisSanctuaryPlayerWeaponClip1Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationSet* D_acropolis_sanctuary_80180918[9] = {
+/// Nine animation sets copied into the player's sanctuary scene bank extension.
+///
+/// Entries replace bank slots 47..55: eight borrowed Rupert animation sets,
+/// followed by the room's weapon-restoration set. This table supplies nine
+/// pointer words; the room and Rupert resources must outlive playback.
+static AnimationSet* _gAcropolisSanctuaryPlayerSceneAnimationSets[9] = {
     &gActor210700Animation01E2C,
     &gActor210700Animation027F8,
     &gActor210700Animation02B54,
@@ -426,7 +438,7 @@ AnimationSet* D_acropolis_sanctuary_80180918[9] = {
     &_gAcropolisSanctuaryAnimation03234,
 };
 
-AnimationBankCopyRequest D_acropolis_sanctuary_8018093C = { { .sets = D_acropolis_sanctuary_80180918 }, ARRAY_SIZE(D_acropolis_sanctuary_80180918) };
+AnimationBankCopyRequest D_acropolis_sanctuary_8018093C = { { .sets = _gAcropolisSanctuaryPlayerSceneAnimationSets }, ARRAY_SIZE(_gAcropolisSanctuaryPlayerSceneAnimationSets) };
 
 AnimationPlayRequest D_acropolis_sanctuary_80180944 = { { .index = 1 }, 47, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -462,13 +474,46 @@ AnimationPlayRequest D_acropolis_sanctuary_80180A70 = { { .index = 0 }, 1, ANIMA
 
 AnimationPlayRequest D_acropolis_sanctuary_80180A84 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_acropolis_sanctuary_80180A98 = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Requests Rupert's bank-0 clip 3 with interpolation.
+///
+/// Scene scripts borrow this record synchronously. Rupert blends changed clips
+/// over six frames and does not restart the same clip. The stored one-frame
+/// duration and collision-disable option are retained but ignored by him.
+static AnimationPlayRequest _gAcropolisSanctuaryRupertClip3Request = {
+    .source               = { .index = 0 },
+    .animationId          = 3,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_acropolis_sanctuary_80180AAC = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_acropolis_sanctuary_80180AC0 = { { .index = 0 }, 5, ANIMATION_BLEND_INTERPOLATE, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Requests Rupert's bank-0 clip 5 with interpolation.
+///
+/// Scene scripts borrow this record synchronously. Rupert blends changed clips
+/// over six frames and does not restart the same clip. The stored one-frame
+/// duration and collision-disable option are retained but ignored by him.
+static AnimationPlayRequest _gAcropolisSanctuaryRupertClip5Request = {
+    .source               = { .index = 0 },
+    .animationId          = 5,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_acropolis_sanctuary_80180AD4 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Requests Rupert's bank-0 clip 6 with interpolation.
+///
+/// Scene scripts borrow this record synchronously. Rupert blends changed clips
+/// over six frames and does not restart the same clip. The stored one-frame
+/// duration and collision-disable option are retained but ignored by him.
+static AnimationPlayRequest _gAcropolisSanctuaryRupertClip6Request = {
+    .source               = { .index = 0 },
+    .animationId          = 6,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_acropolis_sanctuary_80180AE8 = { { .index = 0 }, 3, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -532,10 +577,10 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_sanctuary_8018088C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180958 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_sanctuary_801808BC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisSanctuaryRupertRestoredPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AAC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 73 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A98 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -546,11 +591,11 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AC0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AD4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A98 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_8018096C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -558,11 +603,11 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AC0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AD4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A98 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_8018096C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -570,11 +615,11 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 27 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AC0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AD4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A98 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180994 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 71 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -586,16 +631,16 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_sanctuary_801808D4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 56 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_801809E4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AD4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A98 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_sanctuary_801808EC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisSanctuaryPlayerSceneEndPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -606,8 +651,8 @@ EvsCommand D_acropolis_sanctuary_80181664[18] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_sanctuary_801808EC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_sanctuary_801808BC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisSanctuaryPlayerSceneEndPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .pointer = &_gAcropolisSanctuaryRupertRestoredPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AE8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -625,12 +670,12 @@ EvsCommand D_acropolis_sanctuary_80181814[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AC0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AD4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180A98 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gAcropolisSanctuaryRupertClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -811,19 +856,22 @@ _AcropolisSanctuaryMosaicTile D_acropolis_sanctuary_80182320[72] = {
     { 14, 15, 105, 240, 0, 8, 0 },
 };
 
-/// Corner offsets of the sanctuary mosaic's two tile sizes, measured from the
-/// tile's centre.
+/// Row selectors shared with each mosaic tile's sizeClass.
+enum {
+    ACROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL = 0,
+    ACROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE = 1,
+};
+
+/// Centre-relative corners of the mosaic's two tile sizes, in local room units.
 ///
-/// The first index is `_AcropolisSanctuaryMosaicTile::sizeClass`: 0 spans a 15 x 16
-/// texel cell of the mosaic sheet and 1 a 30 x 32 one, twice as large each way.
-/// The second is the corner, in `POLY_FT4` vertex order. The quad lies in the
-/// tile's local YZ plane, with the sheet's u running towards -z and its v
-/// towards +y, so corner 0 is the one at the tile's texel origin; subtracting
-/// it turns that origin's place on the wall into the centre a tile is spawned at. A shard is the
-/// triangle of the first three corners of class 0, scaled by the shard's size.
-SVECTOR D_acropolis_sanctuary_80182710[2][4] = {
-    { { 0, -72, 63, 0 }, { 0, -72, -62, 0 }, { 0, 71, 63, 0 }, { 0, 71, -62, 0 } },
-    { { 0, -143, 126, 0 }, { 0, -143, -125, 0 }, { 0, 143, 126, 0 }, { 0, 143, -125, 0 } },
+/// Indexed by size class (0 a 15 x 16 texel cell, 1 a 30 x 32 block), then
+/// POLY_FT4 corner 0..3. The local YZ plane maps increasing texture U towards
+/// -Z and V towards +Y. Subtracting corner 0 places that texture origin at the
+/// wall position while spawning the tile at its centre. Shards use the first
+/// three small-tile corners and scale them by their 4.12 size factor.
+static SVECTOR _gAcropolisSanctuaryMosaicTileCorners[2][4] = {
+    [ACROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL] = { { 0, -72, 63, 0 }, { 0, -72, -62, 0 }, { 0, 71, 63, 0 }, { 0, 71, -62, 0 } },
+    [ACROPOLIS_SANCTUARY_MOSAIC_TILE_LARGE] = { { 0, -143, 126, 0 }, { 0, -143, -125, 0 }, { 0, 143, 126, 0 }, { 0, 143, -125, 0 } },
 };
 
 s16 D_acropolis_sanctuary_80182750[16] = {
@@ -862,66 +910,104 @@ SVECTOR D_acropolis_sanctuary_80182774[12] = {
     { -2420, -1630, -8730, 0 },
 };
 
-u16 D_acropolis_sanctuary_801827D4[12] = {
-    2626,
-    2130,
-    5420,
-    300,
-    0x3460,
-    0x3440,
-    4524,
-    4524,
-    4524,
-    428,
-    428,
-    428,
+/// Visible logical views for each of the twelve sanctuary flame placements.
+///
+/// Placement indices 0..11 match the room's flame-position table. Bit 0 selects
+/// view 1 and bit 15 view 16; the drawer requires a current view in 1..16.
+static u16 _gAcropolisSanctuaryFlameViewMasks[12] = {
+    0x0A42, // Views 2, 7, 10, 12
+    0x0852, // Views 2, 5, 7, 12
+    0x152C, // Views 3, 4, 6, 9, 11, 13
+    0x012C, // Views 3, 4, 6, 9
+    0x3460, // Views 6, 7, 11, 13, 14
+    0x3440, // Views 7, 11, 13, 14
+    0x11AC, // Views 3, 4, 6, 8, 9, 13
+    0x11AC, // Views 3, 4, 6, 8, 9, 13
+    0x11AC, // Views 3, 4, 6, 8, 9, 13
+    0x01AC, // Views 3, 4, 6, 8, 9
+    0x01AC, // Views 3, 4, 6, 8, 9
+    0x01AC, // Views 3, 4, 6, 8, 9
 };
 
-WorldCollisionRoomResources D_acropolis_sanctuary_801827EC[1] = {
-    { &D_acropolis_sanctuary_80183568, D_acropolis_sanctuary_8018358C, D_acropolis_sanctuary_80183AE4, NULL },
+WorldCollisionRoomResources gAcropolisSanctuaryRoomCollisionResources[1] = {
+    { .grid = &_gAcropolisSanctuaryCollisionGrid, .viewBoundaryTriggers = _gAcropolisSanctuaryViewBoundaryTriggers, .actionTriggers = _gAcropolisSanctuaryActionTriggers, .occluders = NULL },
 };
 
 u8* gAcropolisSanctuaryViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_acropolis_sanctuary_80182800[1] = { 16 };
+ViewCount gAcropolisSanctuaryViewCounts[1] = { ARRAY_SIZE(gAcropolisSanctuarySpriteViews) };
 
 WorldCoordRoomLighting gAcropolisSanctuaryRoomLightingTable[1] = {
     { &_gAcropolisSanctuaryRoomLights, NULL },
 };
 
-DirectionWarpEntry D_acropolis_sanctuary_8018280C[3] = {
-    { { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, 0x510C0002, 0x510C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 493 },
-    { { { .word = 2048 }, -7465, 2, -4239 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -7465, 2, -4239 }, { 0, 0, 0, 0 }, 0x510C0004, 0x510C0003, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, 492 },
-    { { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, 0x510C0002, 0x510C0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 493 },
+/// Map-marker nibbles updated when arriving through the sanctuary's doorways.
+enum {
+    ACROPOLIS_SANCTUARY_ROOF_GARDEN_MAP_FLAG = 492,
+    ACROPOLIS_SANCTUARY_PROMENADE_MAP_FLAG   = 493,
 };
 
-static SVECTOR _gAcropolisSanctuaryCollision05FA8Normals[42] = {
+DirectionWarpEntry gAcropolisSanctuaryWarpEntries[3] = {
+    { { { .word = ONE / 4 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, { { .word = ONE / 4 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 2), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 1), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_SANCTUARY_PROMENADE_MAP_FLAG },
+    { { { .word = ONE / 2 }, -7465, 2, -4239 }, { 0, 0, 0, 0 }, { { .word = ONE / 2 }, -7465, 2, -4239 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 4), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 3), DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_SANCTUARY_ROOF_GARDEN_MAP_FLAG },
+    { { { .word = ONE / 4 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, { { .word = ONE / 4 }, -9757, 2, -8070 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 2), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 1), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_SANCTUARY_PROMENADE_MAP_FLAG },
+};
+
+/// Sanctuary collision normals, including four rebuilt blocker normals.
+static SVECTOR _gAcropolisSanctuaryCollisionGridNormals[42] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_normals.inc"
 };
 
-static SVECTOR _gAcropolisSanctuaryCollision05FA8Verts[136] = {
+/// Sanctuary collision vertices, including eight rebuilt blocker vertices.
+static SVECTOR _gAcropolisSanctuaryCollisionGridVerts[136] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisSanctuaryCollision05FA8Faces[85] = {
+/// Sanctuary collision faces, including four rebuilt blocker faces.
+static WorldCollisionGridFace _gAcropolisSanctuaryCollisionGridFaces[85] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_faces.inc"
 };
 
-static s16 _gAcropolisSanctuaryCollision05FA8Cells[386] = {
+/// Signed face-index pool for the nine cells, with -1 ending each live list.
+static s16 _gAcropolisSanctuaryCollisionGridCells[386] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisSanctuaryCollision05FA8Cells[i])
-static s16* _gAcropolisSanctuaryCollision05FA8Table[9] = {
+#define GRID_CELL(i) (&_gAcropolisSanctuaryCollisionGridCells[i])
+/// Cell-list starts indexed by x * 3 + z, for cell coordinates 0..2.
+static s16* _gAcropolisSanctuaryCollisionGridTable[9] = {
 #include "assets/acropolis_sanctuary_collision_05FA8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_sanctuary_80183568 = { NULL, _gAcropolisSanctuaryCollision05FA8Normals, _gAcropolisSanctuaryCollision05FA8Verts, _gAcropolisSanctuaryCollision05FA8Faces, _gAcropolisSanctuaryCollision05FA8Table, 0x2A44, 0x332D, 3, 3, 4000, 85 };
+/// Live sanctuary collision mesh and its nine X-major cell lists.
+///
+/// Coordinates use room units and normals use 4096 for unit length. The grid
+/// spans three 4000-unit cells on each axis from origin (-10820, -13101).
+/// Room setup binds its view coordinate. The first four normals and faces and
+/// first eight vertices are rebuilt from the movable-blocker template.
+static WorldCollisionGrid _gAcropolisSanctuaryCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisSanctuaryCollisionGridNormals,
+    .vertices    = _gAcropolisSanctuaryCollisionGridVerts,
+    .faces       = _gAcropolisSanctuaryCollisionGridFaces,
+    .cellFaceIds = _gAcropolisSanctuaryCollisionGridTable,
+    .xBias       = 10820,
+    .zBias       = 13101,
+    .cellCountX  = 3,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisSanctuaryCollisionGridFaces),
+};
 
-WorldCollisionTrigger D_acropolis_sanctuary_8018358C[18] = {
+/// Eighteen directed view boundaries for sanctuary room 1.
+///
+/// Source/destination bytes select logical views 2..8. Room setup binds, links
+/// and enables every record through the last; the live links and hit latches
+/// require writable overlay storage until teardown unlinks them.
+static WorldCollisionTrigger _gAcropolisSanctuaryViewBoundaryTriggers[18] = {
     { NULL, NULL, NULL, { -7168, -1376, -8000, 0 }, { { 0, -2048, -1504, 0 }, { 0, 2048, -1504, 0 }, { 0, -2048, 1504, 0 }, { 0, 2048, 1504, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 0, 0 }, 2534, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -9729, -1344, -5953, 0 }, { { 1242, -2048, -514, 0 }, { 1242, 2048, -514, 0 }, { -1241, -2048, 515, 0 }, { -1241, 2048, 515, 0 } }, { -1570, 0, -3788, 0 }, { 0, 0, 0, 0 }, 2442, 0, 2, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -9665, -1376, -0x2721, 0 }, { { -1241, -2048, -514, 0 }, { -1241, 2048, -514, 0 }, { 1242, -2048, 514, 0 }, { 1242, 2048, 514, 0 } }, { -1569, 0, 3787, 0 }, { 0, 0, 0, 0 }, 2442, 0, 2, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -942,7 +1028,13 @@ WorldCollisionTrigger D_acropolis_sanctuary_8018358C[18] = {
     { NULL, NULL, NULL, { -3201, -1344, -9089, 0 }, { { -1013, -2048, 690, 0 }, { -1013, 2048, 690, 0 }, { 1013, -2048, -690, 0 }, { 1013, 2048, -690, 0 } }, { 2314, 0, 3398, 0 }, { 0, 0, 0, 0 }, 2374, 0, 8, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_sanctuary_80183AE4[17] = {
+/// Seventeen sanctuary interaction triggers, including doors and weapon CAPs.
+///
+/// Rows 0/1 request promenade/roof-garden warps; rows 2..4 and 7/8 request
+/// CAPs, and row 5 automatically sends room action 1. Rows 6 and 9..16 request
+/// weapon CAP 7 and lose only their enabled bit when object 28 reaches state 2.
+/// Room setup binds and links all rows through the final LAST marker.
+static WorldCollisionTrigger _gAcropolisSanctuaryActionTriggers[17] = {
     { NULL, NULL, NULL, { -9920, -42, -7968, 0 }, { { -287, 0, -1024, 0 }, { 288, 0, -1024, 0 }, { -287, 0, 1024, 0 }, { 288, 0, 1024, 0 } }, { 0, 4106, 0, 0 }, { 4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -7728, -24, -4448, 0 }, { { -735, 0, -256, 0 }, { 736, 0, -256, 0 }, { -735, 0, 256, 0 }, { 736, 0, 256, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, -4096, 0 }, 778, WORLD_COLLISION_TRIGGER_ACTION_WARP, 13, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -3648, -64, -8016, 0 }, { { -319, 0, -432, 0 }, { 320, 0, -432, 0 }, { -319, 0, 432, 0 }, { 320, 0, 432, 0 } }, { 0, 4099, 0, 0 }, { 4096, 0, 0, 0 }, 535, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -962,21 +1054,35 @@ WorldCollisionTrigger D_acropolis_sanctuary_80183AE4[17] = {
     { NULL, NULL, NULL, { -6912, -64, -8073, 0 }, { { -276, 0, 0, 0 }, { -4, 0, -155, 0 }, { 10, 0, 146, 0 }, { 270, 0, 9, 0 } }, { 0, 4095, 0, 0 }, { -4093, 0, 0, 0 }, 275, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_acropolis_sanctuary_80183FF0[3] = {
-    { 27, 107, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor110700No9GolemTaskDesc },
-    { 102, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor210700RupertBroderickTaskDesc },
+/// Resource keys shared with the map overlay's sanctuary placement records.
+enum {
+    ACROPOLIS_SANCTUARY_RESOURCE_NO9    = 27,
+    ACROPOLIS_SANCTUARY_RESOURCE_RUPERT = 102,
+};
+
+/// Actor resources for sanctuary layout variant 1: No. 9 GOLEM and Rupert.
+///
+/// Placement IDs 27 and 102 select global-library files 110700 and 210700
+/// and their actor task descriptors. The final record ends the resource walk.
+static AreaResource _gAcropolisSanctuaryNo9AndRupertResources[3] = {
+    { ACROPOLIS_SANCTUARY_RESOURCE_NO9, 107, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor110700No9GolemTaskDesc },
+    { ACROPOLIS_SANCTUARY_RESOURCE_RUPERT, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor210700RupertBroderickTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_sanctuary_80184014[2] = {
-    { 102, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor210700RupertBroderickTaskDesc },
+/// Actor resources for sanctuary layout variant 2: Rupert alone.
+///
+/// Placement ID 102 selects global-library file 210700 and Rupert's task
+/// descriptor. The final record ends the resource walk.
+static AreaResource _gAcropolisSanctuaryRupertResources[2] = {
+    { ACROPOLIS_SANCTUARY_RESOURCE_RUPERT, 107, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor210700RupertBroderickTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_acropolis_sanctuary_8018402C[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BA5C, D_acropolis_sanctuary_80183FF0 },
-    { D_map_akropolis_8017BA8C, D_acropolis_sanctuary_80184014 },
+    { D_map_akropolis_8017BA5C, _gAcropolisSanctuaryNo9AndRupertResources },
+    { D_map_akropolis_8017BA8C, _gAcropolisSanctuaryRupertResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -1663,92 +1769,124 @@ static SpriteBatch _gAcropolisSanctuaryView12SpriteBatches[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_80185C64[5] = {
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, -160, 32, 488, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, -120, 32, 499, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 104 } }, -80, -8, 410, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 80 } }, -24, 40, 497, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -64, 96, 305, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
+/// Five opaque texture rectangles sorted in front of view 13's background.
+///
+/// Positions and dimensions are pixels about the view origin; UVs are texels
+/// and depth is the unscaled sprite sorting value. Cached packets borrow these
+/// sources for the loaded room's lifetime.
+static SpriteSource _gAcropolisSanctuaryView13SpriteSources[5] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 80 } }, -160, 32, 488, { .fields = { 32, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 56 } }, -120, 32, 499, { .fields = { 88, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 56, 104 } }, -80, -8, 410, { .fields = { 72, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 56, 80 } }, -24, 40, 497, { .fields = { 72, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 24 } }, -64, 96, 305, { .fields = { 48, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_80185CC8[3] = {
+/// View 13's complete sprite range after the decoded-background selector.
+///
+/// The zero-count first record keeps the background strips; the last ends
+/// the list without selecting any sprites.
+static SpriteBatch _gAcropolisSanctuaryView13SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisSanctuaryView13SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_80185CE0[8] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 338, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -8, 88, 325, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, 80, 325, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 48, 72, 325, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 72, 48, 325, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, 104, 64, 350, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -112, 96, 325, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -64, 96, 325, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+/// Eight opaque texture rectangles sorted in front of view 14's background.
+///
+/// Positions and dimensions are pixels about the view origin; UVs are texels
+/// and depth is the unscaled sprite sorting value. Cached packets borrow these
+/// sources for the loaded room's lifetime.
+static SpriteSource _gAcropolisSanctuaryView14SpriteSources[8] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 48 } }, -160, 72, 338, { .fields = { 80, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 16 } }, -8, 88, 325, { .fields = { 72, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, 32, 80, 325, { .fields = { 112, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 24 } }, 48, 72, 325, { .fields = { 104, 176 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 72 } }, 72, 48, 325, { .fields = { 96, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 56, 56 } }, 104, 64, 350, { .fields = { 72, 72 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 16 } }, -112, 96, 325, { .fields = { 80, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 56, 16 } }, -64, 96, 325, { .fields = { 72, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_80185D80[3] = {
+/// View 14's complete sprite range after the decoded-background selector.
+///
+/// The zero-count first record keeps the background strips; the last ends
+/// the list without selecting any sprites.
+static SpriteBatch _gAcropolisSanctuaryView14SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisSanctuaryView14SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_sanctuary_80185D98[2] = {
+/// View 15's background-strip selector and terminal record, with no sprites.
+///
+/// Its address is also retained in the view's empty source slot; that slot
+/// supplies no SpriteSource elements and is never dereferenced as sprites.
+static SpriteBatch _gAcropolisSanctuaryView15SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_80185DA8[38] = {
-    { 143, 0x3FC0, { .fields = { 64, 112 } }, -48, -104, 674, { .fields = { 64, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 64, 88 } }, 16, -112, 618, { .fields = { 0, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 72, 80 } }, -56, 8, 622, { .fields = { 112, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 72, 112 } }, 16, -24, 566, { .fields = { 56, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, 16, -112, 659, { .fields = { 112, 56 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 32, -104, 637, { .fields = { 40, 8 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, -96, 616, { .fields = { 40, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -88, 581, { .fields = { 88, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, -56, 554, { .fields = { 104, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 72, -24, 544, { .fields = { 72, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 64, -8, 559, { .fields = { 72, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 16, 546, { .fields = { 8, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 8, 48 } }, 80, 40, 506, { .fields = { 112, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -16, -104, 690, { .fields = { 40, 16 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -96, 705, { .fields = { 24, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -48, -88, 716, { .fields = { 64, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 16, 32 } }, -48, -56, 697, { .fields = { 120, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, -24, 675, { .fields = { 56, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -56, 8, 651, { .fields = { 24, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -40, 64, 606, { .fields = { 56, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -8, 80, 578, { .fields = { 64, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 24, 40 } }, 24, 48, 562, { .fields = { 88, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 48, 80, 534, { .fields = { 40, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 48, 16 } }, 0, -120, 647, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 24 } }, 48, -120, 599, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 32 } }, 64, -96, 568, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 56 } }, 72, -64, 554, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 24, 24 } }, 72, -8, 534, { .fields = { 72, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 64 } }, 80, 16, 513, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -32, -112, 688, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -48, -96, 699, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 56 } }, -64, -80, 685, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, -56, -24, 672, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 80 } }, -64, -8, 644, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, -72, 72, 604, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 48, 48 } }, -56, 72, 508, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 96, 40 } }, -8, 80, 475, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 88, 80, 481, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
+/// View 16's 38 source sprites: two translucent alternatives and an opaque tail.
+///
+/// Sprites 0..3 and 4..22 are script-selected alternatives; sprites 23..37
+/// stay visible. Positions and dimensions are pixels about the view origin,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+static SpriteSource _gAcropolisSanctuaryView16SpriteSources[38] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 64, 112 } }, -48, -104, 674, { .fields = { 64, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 64, 88 } }, 16, -112, 618, { .fields = { 0, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 72, 80 } }, -56, 8, 622, { .fields = { 112, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 72, 112 } }, 16, -24, 566, { .fields = { 56, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 32 } }, 16, -112, 659, { .fields = { 112, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 8 } }, 32, -104, 637, { .fields = { 40, 8 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 8 } }, 56, -96, 616, { .fields = { 40, 248 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 32 } }, 64, -88, 581, { .fields = { 88, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 72, -56, 554, { .fields = { 104, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, 72, -24, 544, { .fields = { 72, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 24 } }, 64, -8, 559, { .fields = { 72, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 24 } }, 72, 16, 546, { .fields = { 8, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, 80, 40, 506, { .fields = { 112, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 8 } }, -16, -104, 690, { .fields = { 40, 16 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, -24, -96, 705, { .fields = { 24, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 32 } }, -48, -88, 716, { .fields = { 64, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 32 } }, -48, -56, 697, { .fields = { 120, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, -48, -24, 675, { .fields = { 56, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 72 } }, -56, 8, 651, { .fields = { 24, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 24 } }, -40, 64, 606, { .fields = { 56, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 8 } }, -8, 80, 578, { .fields = { 64, 48 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 40 } }, 24, 48, 562, { .fields = { 88, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 8 } }, 48, 80, 534, { .fields = { 40, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 48, 16 } }, 0, -120, 647, { .fields = { 64, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 32, 24 } }, 48, -120, 599, { .fields = { 64, 176 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 32 } }, 64, -96, 568, { .fields = { 88, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 16, 56 } }, 72, -64, 554, { .fields = { 120, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 24 } }, 72, -8, 534, { .fields = { 72, 24 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 16, 64 } }, 80, 16, 513, { .fields = { 8, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 32, 16 } }, -32, -112, 688, { .fields = { 56, 160 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 32, 16 } }, -48, -96, 699, { .fields = { 56, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 32, 56 } }, -64, -80, 685, { .fields = { 96, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 8, 16 } }, -56, -24, 672, { .fields = { 56, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 16, 80 } }, -64, -8, 644, { .fields = { 40, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 16, 24 } }, -72, 72, 604, { .fields = { 96, 176 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 48, 48 } }, -56, 72, 508, { .fields = { 64, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 96, 40 } }, -8, 80, 475, { .fields = { 24, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 16, 32 } }, 88, 80, 481, { .fields = { 112, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_801860A0[5] = {
+/// View 16's background selector, alternative ranges and persistent sprite tail.
+///
+/// Scripts toggle hidden on batches 1 and 2; batch 3 remains visible. Counts
+/// cover all 38 sources and the final record ends the list. Retain writable
+/// storage because visibility changes through the public view directory.
+static SpriteBatch _gAcropolisSanctuaryView16SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 19, 0, 0, { 2, 0 } },
-    { 23, 15, 0, 0, { 0, 0 } },
+    { 23, ARRAY_SIZE(_gAcropolisSanctuaryView16SpriteSources) - 23, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_sanctuary_801860C8[16] = {
+SpriteView gAcropolisSanctuarySpriteViews[16] = {
     { { .empty = _gAcropolisSanctuaryView1SpriteBatches }, _gAcropolisSanctuaryView1SpriteBatches, NULL },
     { { .elements = _gAcropolisSanctuaryView2SpriteSources }, _gAcropolisSanctuaryView2SpriteBatches, NULL },
     { { .elements = _gAcropolisSanctuaryView3SpriteSources }, _gAcropolisSanctuaryView3SpriteBatches, NULL },
@@ -1761,13 +1899,13 @@ SpriteView D_acropolis_sanctuary_801860C8[16] = {
     { { .empty = _gAcropolisSanctuaryView10SpriteBatches }, _gAcropolisSanctuaryView10SpriteBatches, NULL },
     { { .elements = _gAcropolisSanctuaryView11SpriteSources }, _gAcropolisSanctuaryView11SpriteBatches, NULL },
     { { .elements = _gAcropolisSanctuaryView12SpriteSources }, _gAcropolisSanctuaryView12SpriteBatches, NULL },
-    { { .elements = D_acropolis_sanctuary_80185C64 }, D_acropolis_sanctuary_80185CC8, NULL },
-    { { .elements = D_acropolis_sanctuary_80185CE0 }, D_acropolis_sanctuary_80185D80, NULL },
-    { { .empty = D_acropolis_sanctuary_80185D98 }, D_acropolis_sanctuary_80185D98, NULL },
-    { { .elements = D_acropolis_sanctuary_80185DA8 }, D_acropolis_sanctuary_801860A0, NULL },
+    { { .elements = _gAcropolisSanctuaryView13SpriteSources }, _gAcropolisSanctuaryView13SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView14SpriteSources }, _gAcropolisSanctuaryView14SpriteBatches, NULL },
+    { { .empty = _gAcropolisSanctuaryView15SpriteBatches }, _gAcropolisSanctuaryView15SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView16SpriteSources }, _gAcropolisSanctuaryView16SpriteBatches, NULL },
 };
 
-ViewCamera D_acropolis_sanctuary_80186188[16] = {
+ViewCamera gAcropolisSanctuaryViewCameras[16] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 6200, 0x7530, 8000 } }, 589 },
     { { { { 345, 0, 4081 }, { 546, 4059, -46 }, { -4044, 548, 342 } }, { 4961, 1400, 8451 } }, 230 },
     { { { { 559, 0, -4057 }, { -549, 4058, -75 }, { 4020, 554, 554 } }, { 9472, 1403, 8386 } }, 230 },
@@ -1947,15 +2085,15 @@ static inline void _acropolisSanctuaryDisableWeaponTriggers(void)
     WorldCollisionTrigger* trigger16;
 
     disabledTriggerMask = ~WORLD_COLLISION_TRIGGER_ENABLED;
-    trigger6            = &D_acropolis_sanctuary_80183AE4[6];
-    trigger9            = &D_acropolis_sanctuary_80183AE4[9];
-    trigger10           = &D_acropolis_sanctuary_80183AE4[10];
-    trigger11           = &D_acropolis_sanctuary_80183AE4[11];
-    trigger12           = &D_acropolis_sanctuary_80183AE4[12];
-    trigger13           = &D_acropolis_sanctuary_80183AE4[13];
-    trigger14           = &D_acropolis_sanctuary_80183AE4[14];
-    trigger15           = &D_acropolis_sanctuary_80183AE4[15];
-    trigger16           = &D_acropolis_sanctuary_80183AE4[16];
+    trigger6            = &_gAcropolisSanctuaryActionTriggers[6];
+    trigger9            = &_gAcropolisSanctuaryActionTriggers[9];
+    trigger10           = &_gAcropolisSanctuaryActionTriggers[10];
+    trigger11           = &_gAcropolisSanctuaryActionTriggers[11];
+    trigger12           = &_gAcropolisSanctuaryActionTriggers[12];
+    trigger13           = &_gAcropolisSanctuaryActionTriggers[13];
+    trigger14           = &_gAcropolisSanctuaryActionTriggers[14];
+    trigger15           = &_gAcropolisSanctuaryActionTriggers[15];
+    trigger16           = &_gAcropolisSanctuaryActionTriggers[16];
 
     trigger6->flags  &= disabledTriggerMask;
     trigger9->flags  &= disabledTriggerMask;
@@ -2141,7 +2279,7 @@ static void _acropolisSanctuaryInitRoomTask(Task* task)
         sceneSetPlacedActorDrawMode(ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_INDEX, ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_DRAW);
         if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) != 0 && placedActor != NULL) {
             TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLAY_ANIMATION, &D_acropolis_sanctuary_80180AE8, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLACE, &D_acropolis_sanctuary_801808BC, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLACE, &_gAcropolisSanctuaryRupertRestoredPlacement, 0);
         }
     }
     _acropolisSanctuaryPlaceBlockerCollision();
@@ -2337,7 +2475,7 @@ static void _acropolisSanctuaryPlaceBlockerCollision(void)
     enum {
         ACROPOLIS_SANCTUARY_BLOCKER_SURFACE_CLASS = 1,
     };
-    WorldCollisionGrid* roomGrid        = &D_acropolis_sanctuary_80183568;
+    WorldCollisionGrid* roomGrid        = &_gAcropolisSanctuaryCollisionGrid;
     WorldCollisionGrid* blockerTemplate = &D_acropolis_sanctuary_801822EC;
     SVECTOR             placementOffset;
     s32                 elementIndex;
@@ -2449,11 +2587,11 @@ void acropolisSanctuaryMosaicTask(Task* task)
 /// Writes `sizeClass` and the work's temporary offset; evaluates tileIndex once.
 /// The captured pointers and argument must have no side effects. Expands to
 /// statements and requires a braced call site; placement is copied at spawn.
-#define ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(tileIndex)                                                    \
-    sizeClass           = tile->sizeClass;                                                                  \
-    mosaicWork->move.vx = 0;                                                                                \
-    mosaicWork->move.vy = ((tile->originV * 1145) >> 7) - D_acropolis_sanctuary_80182710[sizeClass][0].vy;  \
-    mosaicWork->move.vz = -((tile->originU * 2147) >> 8) - D_acropolis_sanctuary_80182710[sizeClass][0].vz; \
+#define ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(tileIndex)                                                           \
+    sizeClass           = tile->sizeClass;                                                                         \
+    mosaicWork->move.vx = 0;                                                                                       \
+    mosaicWork->move.vy = ((tile->originV * 1145) >> 7) - _gAcropolisSanctuaryMosaicTileCorners[sizeClass][0].vy;  \
+    mosaicWork->move.vz = -((tile->originU * 2147) >> 8) - _gAcropolisSanctuaryMosaicTileCorners[sizeClass][0].vz; \
     effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, mosaicCoord, (tileIndex), &mosaicWork->move)
 
     mosaicWork  = task->spawnArg2.pointer;
@@ -2498,11 +2636,11 @@ void acropolisSanctuaryMosaicTileTask(Task* task)
     gte_SetTransMatrix(&GsWSMATRIX);
     // Transform the size-class corners into narrowed world positions.
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(tileScratch->corners); cornerIndex++) {
-        tileScratch->corners[cornerIndex].vx = D_acropolis_sanctuary_80182710[sizeClass][cornerIndex].vx;
+        tileScratch->corners[cornerIndex].vx = _gAcropolisSanctuaryMosaicTileCorners[sizeClass][cornerIndex].vx;
         // Byte addressing preserves separate store and GTE operand registers.
         scratchCorner     = (SVECTOR*)((u8*)tileScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(_AcropolisSanctuaryMosaicTileScratch, corners));
-        scratchCorner->vy = D_acropolis_sanctuary_80182710[sizeClass][cornerIndex].vy;
-        scratchCorner->vz = D_acropolis_sanctuary_80182710[sizeClass][cornerIndex].vz;
+        scratchCorner->vy = _gAcropolisSanctuaryMosaicTileCorners[sizeClass][cornerIndex].vy;
+        scratchCorner->vz = _gAcropolisSanctuaryMosaicTileCorners[sizeClass][cornerIndex].vz;
         gte_SetRotMatrix(&tileCoord->workm);
         gte_ldv0(&tileScratch->corners[cornerIndex]);
         gte_rtv0();
@@ -2695,7 +2833,7 @@ void acropolisSanctuaryMosaicShardTask(Task* task)
         shardWork->pos.vz = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
     }
     gte_SetTransMatrix(&GsWSMATRIX);
-    baseCorners = D_acropolis_sanctuary_80182710[0];
+    baseCorners = _gAcropolisSanctuaryMosaicTileCorners[ACROPOLIS_SANCTUARY_MOSAIC_TILE_SMALL];
     // Scale and transform the three shard corners before projecting them together.
     for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(shardScratch->corners); cornerIndex++) {
         shardScratch->corners[cornerIndex].vx = baseCorners[cornerIndex].vx;
@@ -2808,13 +2946,13 @@ void acropolisSanctuaryFlameTask(Task* task)
 
     flameWork  = task->spawnArg2.pointer;
     flameCoord = task->extra.coordBody->coord;
-    if ((D_acropolis_sanctuary_801827D4[task->spawnArg1.value & ACROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK] >> (gGameSession->location.loc.view - 1)) & 1) {
+    if ((_gAcropolisSanctuaryFlameViewMasks[task->spawnArg1.value & ACROPOLIS_SANCTUARY_FLAME_PLACEMENT_MASK] >> (gGameSession->location.loc.view - 1)) & 1) {
         actorRenderComposeCoord(flameCoord);
         flameScratch = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (task->state == ACROPOLIS_SANCTUARY_FLAME_STATE_INITIAL) {
             // Initialize on the first visible update, then retain only the placement index.
-            baseGrey              = D_acropolis_sanctuary_8017D5D8;
-            flickerGrey           = D_acropolis_sanctuary_8017D5DC;
+            baseGrey              = _gAcropolisSanctuaryFlameBaseGrey;
+            flickerGrey           = _gAcropolisSanctuaryFlameFlickerGrey;
             spawnParams           = task->spawnArg1.value;
             flameWork->scale      = (spawnParams & ACROPOLIS_SANCTUARY_FLAME_SIZE_BITS)
                                         ? ((spawnParams >> ACROPOLIS_SANCTUARY_FLAME_SIZE_SHIFT) & ACROPOLIS_SANCTUARY_FLAME_SIZE_MASK)
