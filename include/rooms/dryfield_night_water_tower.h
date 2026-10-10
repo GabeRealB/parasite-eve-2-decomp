@@ -16,13 +16,30 @@ extern AreaVariant D_dryfield_night_water_tower_80182B5C[22];
 // dryfield_night_water_tower
 extern WorldCoordRoomLighting D_dryfield_night_water_tower_8017E74C[];
 
-extern WorldCollisionRoomResources D_dryfield_night_water_tower_8017E754[];
+/// Collision resources for the night Water Tower's only room (room ID 1).
+///
+/// Stage 3 area 20 borrows this room array. Its grid and both trigger arrays
+/// are writable during binding and contact dispatch; there are no occluders.
+/// Keep the overlay loaded until the grid is retired and triggers are unlinked.
+extern WorldCollisionRoomResources gDryfieldNightWaterTowerCollisionRooms[1];
 
 extern u8* D_dryfield_night_water_tower_8017E764[];
 
-extern ViewCount D_dryfield_night_water_tower_8017E768[];
+/// Ten logical views searched through the identity map for night Water Tower room 1.
+///
+/// This signed halfword count limits reverse lookup; it is not the identity
+/// map's capacity. The stage map borrows the one-element array while this
+/// room overlay is loaded; there is no terminator.
+extern ViewCount gDryfieldNightWaterTowerViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_water_tower_8017E76C[];
+/// Four night Water Tower warp endpoints, indexed by warp ID minus one.
+///
+/// IDs 1..4 serve the G & R kitchen, breezeway, water tank and motel room 6,
+/// respectively. Entries supply world-coordinate spawns, yaw in 4096 units
+/// per turn, the initial logical view, and departure/arrival effects. The
+/// last two endpoints fade on departure. There is no terminator; the stage
+/// directory borrows the array while this overlay is loaded.
+extern DirectionWarpEntry gDryfieldNightWaterTowerWarpEntries[4];
 
 extern ViewCamera D_dryfield_night_water_tower_8017F418[];
 

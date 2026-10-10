@@ -256,7 +256,7 @@ D_neo_ark_bridge_80181F80 = 0x80181F80; // absolute:True owner=neo_ark_bridge
 D_neo_ark_bridge_80181F84 = 0x80181F84; // absolute:True owner=neo_ark_bridge
 D_neo_ark_bridge_80181F88 = 0x80181F88; // absolute:True owner=neo_ark_bridge
 D_neo_ark_bridge_80182814 = 0x80182814; // absolute:True owner=neo_ark_bridge shared=rooms
-D_neo_ark_bridge_80182838 = 0x80182838; // absolute:True owner=neo_ark_bridge shared=rooms
+D_neo_ark_bridge_80182838 = 0x80182838; // absolute:True owner=neo_ark_bridge
 D_neo_ark_bridge_80184564 = 0x80184564; // absolute:True owner=neo_ark_bridge shared=rooms
 D_neo_ark_bridge_8018470C = 0x8018470C; // absolute:True owner=neo_ark_bridge shared=rooms
 D_neo_ark_bridge_80184724 = 0x80184724; // absolute:True owner=neo_ark_bridge shared=rooms

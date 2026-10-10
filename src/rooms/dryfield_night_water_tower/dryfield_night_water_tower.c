@@ -86,7 +86,7 @@ s32 dryfieldNightWaterTowerIgnoreActionMessage(Task* unusedTask, s32 unusedMessa
 /// overlay and its message table must remain loaded for the task's lifetime.
 static void _dryfieldNightWaterTowerInitializeRoomTask(Task* task)
 {
-    task->msgTable = D_dryfield_night_water_tower_8017E6EC;
+    task->msgTable = gDryfieldNightWaterTowerRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state = task->state + 1;
 }

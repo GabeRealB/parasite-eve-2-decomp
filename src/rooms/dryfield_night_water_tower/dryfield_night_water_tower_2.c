@@ -31,6 +31,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
@@ -52,14 +53,14 @@
 /// `E744` are only reached by name.
 extern SVECTOR D_dryfield_night_water_tower_8017E744;
 
-extern WorldCollisionGrid    D_dryfield_night_water_tower_8017F3F4[1];
-extern WorldCollisionTrigger D_dryfield_night_water_tower_80182410[14];
-extern WorldCollisionTrigger D_dryfield_night_water_tower_80182838[9];
+static WorldCollisionGrid    _gDryfieldNightWaterTowerCollisionGrid;
+static WorldCollisionTrigger _gDryfieldNightWaterTowerViewBoundaryTriggers[14];
+static WorldCollisionTrigger _gDryfieldNightWaterTowerActionTriggers[9];
 extern WorldCoordRoomLights  D_dryfield_night_water_tower_801823F8[1];
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_night_water_tower_8017E6EC[6] = {
+TaskMessageEntry gDryfieldNightWaterTowerRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantWaterTowerMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightWaterTowerRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldNightWaterTowerIgnoreActionMessage },
@@ -82,47 +83,139 @@ WorldCoordRoomLighting D_dryfield_night_water_tower_8017E74C[1] = {
     { D_dryfield_night_water_tower_801823F8, NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_water_tower_8017E754[1] = {
-    { D_dryfield_night_water_tower_8017F3F4, D_dryfield_night_water_tower_80182410, D_dryfield_night_water_tower_80182838, NULL },
+WorldCollisionRoomResources gDryfieldNightWaterTowerCollisionRooms[1] = {
+    {
+        .grid                 = &_gDryfieldNightWaterTowerCollisionGrid,
+        .viewBoundaryTriggers = _gDryfieldNightWaterTowerViewBoundaryTriggers,
+        .actionTriggers       = _gDryfieldNightWaterTowerActionTriggers,
+        .occluders            = NULL,
+    },
 };
 
 u8* D_dryfield_night_water_tower_8017E764[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_night_water_tower_8017E768[1] = { 10 };
+enum { DRYFIELD_NIGHT_WATER_TOWER_LOGICAL_VIEW_COUNT = 10 };
 
-DirectionWarpEntry D_dryfield_night_water_tower_8017E76C[4] = {
-    { { { .word = 0 }, -2437, 0, -5662 }, { 0, 0, 0, 0 }, { { .word = 0 }, -1900, 0, 600 }, { 0, 0, 0, 0 }, 0x53140004, 0x53140003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, 477 },
-    { { { .word = 3072 }, 5646, 0, 1800 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 5646, 0, 1800 }, { 0, 0, 0, 0 }, 0x53140002, 0x53140001, 0x53140008, 10, DIRECTION_WARP_FLAG_NONE, 476 },
-    { { { .word = 1024 }, -2186, 1, 170 }, { 0, 0, 0, 0 }, { { .word = 0 }, -1900, 0, 600 }, { 0, 0, 0, 0 }, 0x53140005, 0x53140005, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 5500, 1, -5310 }, { 0, 0, 0, 0 }, { { .word = 0 }, -1900, 0, 600 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x53140005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_FADE_DEPARTURE, DIRECTION_WARP_MAP_FLAG_NONE },
+ViewCount gDryfieldNightWaterTowerViewCounts[1] = { DRYFIELD_NIGHT_WATER_TOWER_LOGICAL_VIEW_COUNT };
+
+/// Night Water Tower endpoint IDs, trigger-byte packing and map-marker flags.
+///
+/// Trigger bytes put the departure endpoint in the high nibble and the
+/// destination's arrival endpoint in the low nibble.
+enum {
+    DRYFIELD_NIGHT_WATER_TOWER_WARP_KITCHEN            = 1,
+    DRYFIELD_NIGHT_WATER_TOWER_WARP_BREEZEWAY          = 2,
+    DRYFIELD_NIGHT_WATER_TOWER_WARP_WATER_TANK         = 3,
+    DRYFIELD_NIGHT_WATER_TOWER_WARP_MOTEL_ROOM_6       = 4,
+    DRYFIELD_NIGHT_WATER_TOWER_WARP_ENDPOINT_SHIFT     = 4,
+    DRYFIELD_NIGHT_WATER_TOWER_WARP_KITCHEN_MAP_FLAG   = 477,
+    DRYFIELD_NIGHT_WATER_TOWER_WARP_BREEZEWAY_MAP_FLAG = 476,
 };
 
-static SVECTOR _gDryfieldNightWaterTowerCollision01E34Normals[25] = {
+DirectionWarpEntry gDryfieldNightWaterTowerWarpEntries[4] = {
+    [DRYFIELD_NIGHT_WATER_TOWER_WARP_KITCHEN - 1] = {
+        .player         = { { .word = 0 }, -2437, 0, -5662 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, -1900, 0, 600 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_WATER_TOWER, 4),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_WATER_TOWER, 3),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 3,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_WATER_TOWER_WARP_KITCHEN_MAP_FLAG,
+    },
+    [DRYFIELD_NIGHT_WATER_TOWER_WARP_BREEZEWAY - 1] = {
+        .player         = { { .word = 3072 }, 5646, 0, 1800 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 3072 }, 5646, 0, 1800 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_WATER_TOWER, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_WATER_TOWER, 1),
+        .blockedSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_WATER_TOWER, 8),
+        .initialView    = 10,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DRYFIELD_NIGHT_WATER_TOWER_WARP_BREEZEWAY_MAP_FLAG,
+    },
+    [DRYFIELD_NIGHT_WATER_TOWER_WARP_WATER_TANK - 1] = {
+        .player         = { { .word = 1024 }, -2186, 1, 170 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, -1900, 0, 600 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_WATER_TOWER, 5),
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_WATER_TOWER, 5),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 8,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+    [DRYFIELD_NIGHT_WATER_TOWER_WARP_MOTEL_ROOM_6 - 1] = {
+        .player         = { { .word = 3072 }, 5500, 1, -5310 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = 0 }, -1900, 0, 600 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_WATER_TOWER, 5),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_FADE_DEPARTURE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
+};
+
+/// Dimensions of the collision grid's X-major cell table.
+enum {
+    DRYFIELD_NIGHT_WATER_TOWER_COLLISION_CELL_COUNT_X = 4,
+    DRYFIELD_NIGHT_WATER_TOWER_COLLISION_CELL_COUNT_Z = 4,
+};
+
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gDryfieldNightWaterTowerCollisionGridNormals[25] = {
 #include "assets/dryfield_night_water_tower_collision_01E34_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightWaterTowerCollision01E34Verts[159] = {
+/// Room-space collision vertices in signed whole game-coordinate units.
+static SVECTOR _gDryfieldNightWaterTowerCollisionGridVerts[159] = {
 #include "assets/dryfield_night_water_tower_collision_01E34_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightWaterTowerCollision01E34Faces[69] = {
+/// Indexed room collision quads with room-local surface classes.
+static WorldCollisionGridFace _gDryfieldNightWaterTowerCollisionGridFaces[69] = {
 #include "assets/dryfield_night_water_tower_collision_01E34_faces.inc"
 };
 
-static s16 _gDryfieldNightWaterTowerCollision01E34Cells[310] = {
+/// Packed signed face-index lists, each ending at `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gDryfieldNightWaterTowerCollisionGridCells[310] = {
 #include "assets/dryfield_night_water_tower_collision_01E34_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightWaterTowerCollision01E34Cells[i])
-static s16* _gDryfieldNightWaterTowerCollision01E34Table[16] = {
+// The generated table requires GRID_CELL(i) to address halfword i in this pool.
+#define GRID_CELL(i) (&_gDryfieldNightWaterTowerCollisionGridCells[i])
+/// X-major 4-by-4 directory of face-index lists borrowed by the collision grid.
+static s16* _gDryfieldNightWaterTowerCollisionGridTable[DRYFIELD_NIGHT_WATER_TOWER_COLLISION_CELL_COUNT_X * DRYFIELD_NIGHT_WATER_TOWER_COLLISION_CELL_COUNT_Z] = {
 #include "assets/dryfield_night_water_tower_collision_01E34_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_water_tower_8017F3F4[1] = {
-    { NULL, _gDryfieldNightWaterTowerCollision01E34Normals, _gDryfieldNightWaterTowerCollision01E34Verts, _gDryfieldNightWaterTowerCollision01E34Faces, _gDryfieldNightWaterTowerCollision01E34Table, 7000, 7000, 4, 4, 4000, 69 },
+/// Mutable room collision mesh and its 4-by-4 XZ face index.
+///
+/// Cells are 4000 game units wide with origin (-7000, -7000). Setup binds the
+/// view coordinate before activation; keep this record and all five pools
+/// loaded while active. The 69 faces use surface classes 0..2.
+static WorldCollisionGrid _gDryfieldNightWaterTowerCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightWaterTowerCollisionGridNormals,
+    .vertices    = _gDryfieldNightWaterTowerCollisionGridVerts,
+    .faces       = _gDryfieldNightWaterTowerCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightWaterTowerCollisionGridTable,
+    .xBias       = 7000,
+    .zBias       = 7000,
+    .cellCountX  = DRYFIELD_NIGHT_WATER_TOWER_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = DRYFIELD_NIGHT_WATER_TOWER_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightWaterTowerCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_night_water_tower_8017F418[10] = {
@@ -809,61 +902,400 @@ WorldCoordRoomLights D_dryfield_night_water_tower_801823F8[1] = {
     { ARRAY_SIZE(D_dryfield_night_water_tower_801820B8), D_dryfield_night_water_tower_801820B8, ARRAY_SIZE(D_dryfield_night_water_tower_80182218), D_dryfield_night_water_tower_80182218, 0, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_water_tower_80182410[14] = {
-    { NULL, NULL, NULL, { 447, -1888, -4529, 0 }, { { -602, -2912, -2368, 0 }, { 595, -2912, 2364, 0 }, { -602, 2912, -2368, 0 }, { 595, 2912, 2364, 0 } }, { 3978, 0, -1007, 0 }, { 0, 0, 4096, 0 }, 3797, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 607, -1984, -4417, 0 }, { { 594, -3008, 2362, 0 }, { -603, -3008, -2369, 0 }, { 594, 3008, 2362, 0 }, { -603, 3008, -2369, 0 } }, { -3981, 0, 1006, 0 }, { 0, 0, 4096, 0 }, 3865, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4449, -1712, -4673, 0 }, { { 1730, -2736, 1722, 0 }, { -1730, -2736, -1722, 0 }, { 1730, 2736, 1722, 0 }, { -1730, 2736, -1722, 0 } }, { -2892, 0, 2904, 0 }, { 0, 0, 4096, 0 }, 3665, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4640, -1632, -4544, 0 }, { { -1730, -2656, -1722, 0 }, { 1730, -2656, 1722, 0 }, { -1730, 2656, -1722, 0 }, { 1730, 2656, 1722, 0 } }, { 2897, 0, -2912, 0 }, { 0, 0, 4096, 0 }, 3602, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4865, -1680, 575, 0 }, { { -2441, -2704, 6, 0 }, { 2441, -2704, -6, 0 }, { -2441, 2704, 6, 0 }, { 2441, 2704, -6, 0 } }, { -11, 0, -4102, 0 }, { 0, 0, 4096, 0 }, 3638, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4770, -1776, 446, 0 }, { { 2441, -2800, -17, 0 }, { -2440, -2800, 17, 0 }, { 2441, 2800, -17, 0 }, { -2440, 2800, 17, 0 } }, { 28, 0, 4105, 0 }, { 0, 0, 4096, 0 }, 3709, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3138, -1696, 3709, 0 }, { { 279, -2720, -1510, 0 }, { -278, -2720, 1511, 0 }, { 279, 2720, -1510, 0 }, { -278, 2720, 1511, 0 } }, { 4035, 0, 743, 0 }, { 0, 0, 4096, 0 }, 3114, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2816, -1792, 3518, 0 }, { { -238, -2816, 1330, 0 }, { 238, -2816, -1330, 0 }, { -238, 2816, 1330, 0 }, { 238, 2816, -1330, 0 } }, { -4039, 0, -724, 0 }, { 0, 0, 4096, 0 }, 3114, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5343, -1824, -2755, 0 }, { { 2712, -2848, 15, 0 }, { -2711, -2848, -14, 0 }, { 2712, 2848, 15, 0 }, { -2711, 2848, -14, 0 } }, { -23, 0, 4103, 0 }, { 0, 0, 4096, 0 }, 3924, 0, 7, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 5280, -1904, -2561, 0 }, { { -2757, -2928, -12, 0 }, { 2756, -2928, 11, 0 }, { -2757, 2928, -12, 0 }, { 2756, 2928, 11, 0 } }, { 16, 0, -4105, 0 }, { 0, 0, 4096, 0 }, 4015, 0, 2, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3023, -2016, -65, 0 }, { { 4, -3040, 1207, 0 }, { -3, -3040, -1206, 0 }, { 4, 3040, 1207, 0 }, { -3, 3040, -1206, 0 } }, { -4104, 0, 11, 0 }, { 0, 0, 4096, 0 }, 3268, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2847, -2128, -33, 0 }, { { -3, -3152, -1206, 0 }, { 4, -3152, 1207, 0 }, { -3, 3152, -1206, 0 }, { 4, 3152, 1207, 0 } }, { 4099, 0, -13, 0 }, { 0, 0, 4096, 0 }, 3367, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4431, -2048, 511, 0 }, { { -1504, -2928, 554, 0 }, { 1490, -2928, -570, 0 }, { -1504, 2928, 554, 0 }, { 1490, 2928, -570, 0 } }, { -1447, 0, -3853, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 7, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4382, -1888, 477, 0 }, { { 1497, -2928, -562, 0 }, { -1497, -2928, 562, 0 }, { 1497, 2928, -562, 0 }, { -1497, 2928, 562, 0 } }, { 1445, 0, 3851, 0 }, { 0, 0, 4096, 0 }, 3328, 0, 10, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Directed boundaries between logical views 2/3, 3/4, 4/5, 5/6, 2/7, 7/8 and 7/10.
+///
+/// parameter0 is the source view and parameter1 the destination. Setup binds
+/// the view coordinate and links/enables all 14 records, including the LAST
+/// record. Links and hit latches are mutable; unlink before unloading.
+static WorldCollisionTrigger _gDryfieldNightWaterTowerViewBoundaryTriggers[] = {
+    {
+        .origin       = { 447, -1888, -4529, 0 },
+        .vertices     = { { -602, -2912, -2368, 0 }, { 595, -2912, 2364, 0 }, { -602, 2912, -2368, 0 }, { 595, 2912, 2364, 0 } },
+        .normal       = { 3978, 0, -1007, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3797,
+        .control      = 0,
+        .parameter0   = 2,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { 607, -1984, -4417, 0 },
+        .vertices     = { { 594, -3008, 2362, 0 }, { -603, -3008, -2369, 0 }, { 594, 3008, 2362, 0 }, { -603, 3008, -2369, 0 } },
+        .normal       = { -3981, 0, 1006, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3865,
+        .control      = 0,
+        .parameter0   = 3,
+        .parameter1   = 2,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -4449, -1712, -4673, 0 },
+        .vertices     = { { 1730, -2736, 1722, 0 }, { -1730, -2736, -1722, 0 }, { 1730, 2736, 1722, 0 }, { -1730, 2736, -1722, 0 } },
+        .normal       = { -2892, 0, 2904, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3665,
+        .control      = 0,
+        .parameter0   = 4,
+        .parameter1   = 3,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -4640, -1632, -4544, 0 },
+        .vertices     = { { -1730, -2656, -1722, 0 }, { 1730, -2656, 1722, 0 }, { -1730, 2656, -1722, 0 }, { 1730, 2656, 1722, 0 } },
+        .normal       = { 2897, 0, -2912, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3602,
+        .control      = 0,
+        .parameter0   = 3,
+        .parameter1   = 4,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -4865, -1680, 575, 0 },
+        .vertices     = { { -2441, -2704, 6, 0 }, { 2441, -2704, -6, 0 }, { -2441, 2704, 6, 0 }, { 2441, 2704, -6, 0 } },
+        .normal       = { -11, 0, -4102, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3638,
+        .control      = 0,
+        .parameter0   = 4,
+        .parameter1   = 5,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -4770, -1776, 446, 0 },
+        .vertices     = { { 2441, -2800, -17, 0 }, { -2440, -2800, 17, 0 }, { 2441, 2800, -17, 0 }, { -2440, 2800, 17, 0 } },
+        .normal       = { 28, 0, 4105, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3709,
+        .control      = 0,
+        .parameter0   = 5,
+        .parameter1   = 4,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -3138, -1696, 3709, 0 },
+        .vertices     = { { 279, -2720, -1510, 0 }, { -278, -2720, 1511, 0 }, { 279, 2720, -1510, 0 }, { -278, 2720, 1511, 0 } },
+        .normal       = { 4035, 0, 743, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3114,
+        .control      = 0,
+        .parameter0   = 6,
+        .parameter1   = 5,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { -2816, -1792, 3518, 0 },
+        .vertices     = { { -238, -2816, 1330, 0 }, { 238, -2816, -1330, 0 }, { -238, 2816, 1330, 0 }, { 238, 2816, -1330, 0 } },
+        .normal       = { -4039, 0, -724, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3114,
+        .control      = 0,
+        .parameter0   = 5,
+        .parameter1   = 6,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { 5343, -1824, -2755, 0 },
+        .vertices     = { { 2712, -2848, 15, 0 }, { -2711, -2848, -14, 0 }, { 2712, 2848, 15, 0 }, { -2711, 2848, -14, 0 } },
+        .normal       = { -23, 0, 4103, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3924,
+        .control      = 0,
+        .parameter0   = 7,
+        .parameter1   = 2,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { 5280, -1904, -2561, 0 },
+        .vertices     = { { -2757, -2928, -12, 0 }, { 2756, -2928, 11, 0 }, { -2757, 2928, -12, 0 }, { 2756, 2928, 11, 0 } },
+        .normal       = { 16, 0, -4105, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 4015,
+        .control      = 0,
+        .parameter0   = 2,
+        .parameter1   = 7,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { 3023, -2016, -65, 0 },
+        .vertices     = { { 4, -3040, 1207, 0 }, { -3, -3040, -1206, 0 }, { 4, 3040, 1207, 0 }, { -3, 3040, -1206, 0 } },
+        .normal       = { -4104, 0, 11, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3268,
+        .control      = 0,
+        .parameter0   = 8,
+        .parameter1   = 7,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { 2847, -2128, -33, 0 },
+        .vertices     = { { -3, -3152, -1206, 0 }, { 4, -3152, 1207, 0 }, { -3, 3152, -1206, 0 }, { 4, 3152, 1207, 0 } },
+        .normal       = { 4099, 0, -13, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3367,
+        .control      = 0,
+        .parameter0   = 7,
+        .parameter1   = 8,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { 4431, -2048, 511, 0 },
+        .vertices     = { { -1504, -2928, 554, 0 }, { 1490, -2928, -570, 0 }, { -1504, 2928, 554, 0 }, { 1490, 2928, -570, 0 } },
+        .normal       = { -1447, 0, -3853, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3328,
+        .control      = 0,
+        .parameter0   = 7,
+        .parameter1   = 10,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY,
+    },
+    {
+        .origin       = { 4382, -1888, 477, 0 },
+        .vertices     = { { 1497, -2928, -562, 0 }, { -1497, -2928, 562, 0 }, { 1497, 2928, -562, 0 }, { -1497, 2928, 562, 0 } },
+        .normal       = { 1445, 0, 3851, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 3328,
+        .control      = 0,
+        .parameter0   = 10,
+        .parameter1   = 7,
+        .flags        = WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST,
+    },
 };
 
-WorldCollisionTrigger D_dryfield_night_water_tower_80182838[9] = {
-    { NULL, NULL, NULL, { -2832, -48, -5760, 0 }, { { -624, 0, -416, 0 }, { 624, 0, -416, 0 }, { -624, 0, 416, 0 }, { 624, 0, 416, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 749, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5760, -48, 1696, 0 }, { { 416, 0, -736, 0 }, { 416, 0, 736, 0 }, { -416, 0, -736, 0 }, { -416, 0, 736, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 844, WORLD_COLLISION_TRIGGER_ACTION_WARP, 22, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2290, -48, 0, 0 }, { { -591, 0, -480, 0 }, { 592, 0, -480, 0 }, { -591, 0, 480, 0 }, { 592, 0, 480, 0 } }, { 0, 4121, 0, 0 }, { 4096, 0, 0, 0 }, 759, WORLD_COLLISION_TRIGGER_ACTION_WARP, 21, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1008, -64, 3664, 0 }, { { -400, 0, -336, 0 }, { 528, 0, -592, 0 }, { -848, 0, 464, 0 }, { 720, 0, 464, 0 } }, { 0, 4105, 0, 0 }, { 201, 0, 4091, 0 }, 966, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4336, -64, -4416, 0 }, { { -1888, 0, -2304, 0 }, { 1888, 0, 1472, 0 }, { -1888, 0, -1472, 0 }, { 1888, 0, 2304, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4096, 0 }, 2974, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
-    { NULL, NULL, NULL, { 5568, -48, -5248, 0 }, { { 416, 0, -624, 0 }, { 416, 0, 624, 0 }, { -416, 0, -624, 0 }, { -416, 0, 624, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 749, WORLD_COLLISION_TRIGGER_ACTION_WARP, 30, 66, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2304, -64, 416, 0 }, { { -591, 0, -480, 0 }, { 592, 0, -480, 0 }, { -591, 0, 480, 0 }, { 592, 0, 480, 0 } }, { 0, 4121, 0, 0 }, { 201, 0, 4091, 0 }, 759, WORLD_COLLISION_TRIGGER_ACTION_WARP, 21, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3520, -64, -1248, 0 }, { { -1552, 0, -1536, 0 }, { 432, 0, -1536, 0 }, { -1552, 0, 1536, 0 }, { 432, 0, 1536, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 2172, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3520, -192, -1280, 0 }, { { -1552, 0, -1536, 0 }, { 432, 0, -1536, 0 }, { -1552, 0, 1536, 0 }, { 432, 0, 1536, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 2172, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Integer commands carried by the room's non-warp action triggers.
+enum {
+    DRYFIELD_NIGHT_WATER_TOWER_TRIGGER_MECHANISM_COMMAND = 7,
+    DRYFIELD_NIGHT_WATER_TOWER_TRIGGER_CAP_COMMAND_12    = 12,
+    DRYFIELD_NIGHT_WATER_TOWER_TRIGGER_ROOM_ACTION_1     = 1,
 };
 
-AreaResource D_dryfield_night_water_tower_80182AE4[3] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Night Water Tower interaction and departure quads.
+///
+/// Five quads use four warp endpoints; the water-tank endpoint has two quads.
+/// Other records request mechanism command 7, ignored room action 1, or CAP
+/// command 12 at two heights. Setup binds and enables all nine records,
+/// including LAST; links and hit latches stay mutable until unlinked.
+static WorldCollisionTrigger _gDryfieldNightWaterTowerActionTriggers[] = {
+    {
+        .origin       = { -2832, -48, -5760, 0 },
+        .vertices     = { { -624, 0, -416, 0 }, { 624, 0, -416, 0 }, { -624, 0, 416, 0 }, { 624, 0, 416, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 749,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_G_R_KITCHEN,
+        .parameter1   = (DRYFIELD_NIGHT_WATER_TOWER_WARP_KITCHEN << DRYFIELD_NIGHT_WATER_TOWER_WARP_ENDPOINT_SHIFT) | 2,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { 5760, -48, 1696, 0 },
+        .vertices     = { { 416, 0, -736, 0 }, { 416, 0, 736, 0 }, { -416, 0, -736, 0 }, { -416, 0, 736, 0 } },
+        .normal       = { 0, 4103, 0, 0 },
+        .facingNormal = { -4096, 0, 0, 0 },
+        .radius       = 844,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_BREEZEWAY,
+        .parameter1   = (DRYFIELD_NIGHT_WATER_TOWER_WARP_BREEZEWAY << DRYFIELD_NIGHT_WATER_TOWER_WARP_ENDPOINT_SHIFT) | 1,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { -2290, -48, 0, 0 },
+        .vertices     = { { -591, 0, -480, 0 }, { 592, 0, -480, 0 }, { -591, 0, 480, 0 }, { 592, 0, 480, 0 } },
+        .normal       = { 0, 4121, 0, 0 },
+        .facingNormal = { 4096, 0, 0, 0 },
+        .radius       = 759,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_WATER_TANK,
+        .parameter1   = (DRYFIELD_NIGHT_WATER_TOWER_WARP_WATER_TANK << DRYFIELD_NIGHT_WATER_TOWER_WARP_ENDPOINT_SHIFT) | 1,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { 1008, -64, 3664, 0 },
+        .vertices     = { { -400, 0, -336, 0 }, { 528, 0, -592, 0 }, { -848, 0, 464, 0 }, { 720, 0, 464, 0 } },
+        .normal       = { 0, 4105, 0, 0 },
+        .facingNormal = { 201, 0, 4091, 0 },
+        .radius       = 966,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = DRYFIELD_NIGHT_WATER_TOWER_TRIGGER_MECHANISM_COMMAND,
+        .parameter1   = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { -4336, -64, -4416, 0 },
+        .vertices     = { { -1888, 0, -2304, 0 }, { 1888, 0, 1472, 0 }, { -1888, 0, -1472, 0 }, { 1888, 0, 2304, 0 } },
+        .normal       = { 0, 4104, 0, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 2974,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC,
+        .parameter0   = DRYFIELD_NIGHT_WATER_TOWER_TRIGGER_ROOM_ACTION_1,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_QUAD,
+    },
+    {
+        .origin       = { 5568, -48, -5248, 0 },
+        .vertices     = { { 416, 0, -624, 0 }, { 416, 0, 624, 0 }, { -416, 0, -624, 0 }, { -416, 0, 624, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { -4096, 0, 0, 0 },
+        .radius       = 749,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_MOTEL_ROOM_6,
+        .parameter1   = (DRYFIELD_NIGHT_WATER_TOWER_WARP_MOTEL_ROOM_6 << DRYFIELD_NIGHT_WATER_TOWER_WARP_ENDPOINT_SHIFT) | 2,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { -2304, -64, 416, 0 },
+        .vertices     = { { -591, 0, -480, 0 }, { 592, 0, -480, 0 }, { -591, 0, 480, 0 }, { 592, 0, 480, 0 } },
+        .normal       = { 0, 4121, 0, 0 },
+        .facingNormal = { 201, 0, 4091, 0 },
+        .radius       = 759,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_WATER_TANK,
+        .parameter1   = (DRYFIELD_NIGHT_WATER_TOWER_WARP_WATER_TANK << DRYFIELD_NIGHT_WATER_TOWER_WARP_ENDPOINT_SHIFT) | 1,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { -3520, -64, -1248, 0 },
+        .vertices     = { { -1552, 0, -1536, 0 }, { 432, 0, -1536, 0 }, { -1552, 0, 1536, 0 }, { 432, 0, 1536, 0 } },
+        .normal       = { 0, 4097, 0, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 2172,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = DRYFIELD_NIGHT_WATER_TOWER_TRIGGER_CAP_COMMAND_12,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD,
+    },
+    {
+        .origin       = { -3520, -192, -1280, 0 },
+        .vertices     = { { -1552, 0, -1536, 0 }, { 432, 0, -1536, 0 }, { -1552, 0, 1536, 0 }, { 432, 0, 1536, 0 } },
+        .normal       = { 0, 4097, 0, 0 },
+        .facingNormal = { 0, 0, 4096, 0 },
+        .radius       = 2172,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = DRYFIELD_NIGHT_WATER_TOWER_TRIGGER_CAP_COMMAND_12,
+        .parameter1   = 0,
+        .flags        = WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+    },
 };
 
-AreaResource D_dryfield_night_water_tower_80182B08[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Scavenger and Moth load/spawn resources for night Water Tower variant 1.
+///
+/// Placement IDs 16 and 8 select base files 101600 and 300700 and descriptor
+/// zero. `AREA_PLACEMENT_END` terminates the table. Keep the room table live
+/// during loading/spawning and each actor overlay live until its tasks end.
+static AreaResource _gDryfieldNightWaterTowerVariant1Resources[] = {
+    {
+        .entryId        = 16,
+        .fileNumber     = 16,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = &gActor101600ScavengerTaskDesc,
+    },
+    {
+        .entryId        = 8,
+        .fileNumber     = 7,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = &gActor300700MothTaskDesc,
+    },
+    {
+        .entryId        = AREA_PLACEMENT_END,
+        .fileNumber     = 0,
+        .fileGroupIndex = 0,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = NULL,
+    },
 };
 
-AreaResource D_dryfield_night_water_tower_80182B20[2] = {
-    { 44, 44, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_04400_MAD_CHASER_TASK_ORDINARY, { 0, 0 }, gActor04400MadChaserTaskDescs },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Zebra Stalker load/spawn resource for night Water Tower variant 2.
+///
+/// Placement ID 6 selects base file 400600 and descriptor zero; the paired
+/// layout places three bodies. Includes `AREA_PLACEMENT_END`. The room table
+/// is borrowed during loading/spawning and the actor overlay outlives its tasks.
+static AreaResource _gDryfieldNightWaterTowerVariant2Resources[] = {
+    {
+        .entryId        = 6,
+        .fileNumber     = 6,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = &gActor400600ZebraStalkerTaskDesc,
+    },
+    {
+        .entryId        = AREA_PLACEMENT_END,
+        .fileNumber     = 0,
+        .fileGroupIndex = 0,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = NULL,
+    },
 };
 
-AreaResource D_dryfield_night_water_tower_80182B38[3] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
-    { 25, 25, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor02500Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Ordinary Mad Chaser load/spawn resource for night Water Tower variant 11.
+///
+/// Placement ID 44 selects base file 104400 and the ordinary descriptor for
+/// one body. Includes `AREA_PLACEMENT_END`. The room table is borrowed during
+/// loading/spawning and the actor overlay outlives its task.
+static AreaResource _gDryfieldNightWaterTowerVariant11Resources[] = {
+    {
+        .entryId        = 44,
+        .fileNumber     = 44,
+        .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR,
+        .taskIndex      = ACTOR_04400_MAD_CHASER_TASK_ORDINARY,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = gActor04400MadChaserTaskDescs,
+    },
+    {
+        .entryId        = AREA_PLACEMENT_END,
+        .fileNumber     = 0,
+        .fileGroupIndex = 0,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = NULL,
+    },
+};
+
+/// Zebra Stalker and Scorpion load/spawn resources for night Water Tower variant 21.
+///
+/// Placement IDs 6 and 25 select base files 400600 and 302500 and descriptor
+/// zero. The paired layout places two Stalkers and four Scorpions. Includes
+/// `AREA_PLACEMENT_END`; keep the room table live during loading/spawning and
+/// each actor overlay live until its tasks end.
+static AreaResource _gDryfieldNightWaterTowerVariant21Resources[] = {
+    {
+        .entryId        = 6,
+        .fileNumber     = 6,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = &gActor400600ZebraStalkerTaskDesc,
+    },
+    {
+        .entryId        = 25,
+        .fileNumber     = 25,
+        .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = gActor02500Tasks,
+    },
+    {
+        .entryId        = AREA_PLACEMENT_END,
+        .fileNumber     = 0,
+        .fileGroupIndex = 0,
+        .taskIndex      = 0,
+        .unknown_6      = { 0, 0 },
+        .taskTable      = NULL,
+    },
 };
 
 AreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C0B8, D_dryfield_night_water_tower_80182AE4 },
-    { D_map_dryfield_full_8017C158, D_dryfield_night_water_tower_80182B08 },
+    { D_map_dryfield_full_8017C0B8, _gDryfieldNightWaterTowerVariant1Resources },
+    { D_map_dryfield_full_8017C158, _gDryfieldNightWaterTowerVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -872,7 +1304,7 @@ AreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C198, D_dryfield_night_water_tower_80182B20 },
+    { D_map_dryfield_full_8017C198, _gDryfieldNightWaterTowerVariant11Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -882,7 +1314,7 @@ AreaVariant D_dryfield_night_water_tower_80182B5C[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C1B8, D_dryfield_night_water_tower_80182B38 },
+    { D_map_dryfield_full_8017C1B8, _gDryfieldNightWaterTowerVariant21Resources },
 };
 
 WorldCollisionFootstepSounds D_dryfield_night_water_tower_80182C0C = {

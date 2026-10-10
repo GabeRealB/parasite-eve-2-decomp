@@ -10,7 +10,13 @@
 
 extern TaskDesc gRoomEventTaskDesc;
 
-extern TaskMessageEntry D_dryfield_night_water_tower_8017E6EC[6];
+/// Message handlers borrowed by the night Water Tower's registered room task.
+///
+/// Resolves departures, refuses key-item use, ignores room actions, plays
+/// sound cues and handles room commands. The sixth entry ends the search, so
+/// unsupported IDs return zero. Keep the table and callbacks loaded while
+/// the room task can receive messages; never dispatch `TASK_MESSAGE_TABLE_END`.
+extern TaskMessageEntry gDryfieldNightWaterTowerRoomMessages[6];
 
 // Callbacks referenced by the overlay's shared data tables.
 
