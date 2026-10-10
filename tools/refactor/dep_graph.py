@@ -1284,11 +1284,25 @@ def footprints(nodes, edges, worklist_path: str, orders):
         # entry point listed in gameplay's effect and room tables overlap any
         # step declared in the table's file - 79 candidates held back by one
         # step, and rounds of one or two with ten workers.
+        #
+        # A table in another file that lists a global is the same case. A
+        # stage's map overlay holds the directories naming every room's tables,
+        # so each room's data step reached two files, its own and the map's, and
+        # one of two is "mostly": a single room per stage map could be worked at
+        # a time - five lanes of sixteen workers, with 120 of 128 candidates
+        # held back every round. The rename still edits the directory's entry,
+        # and entries of neighbouring rooms sit on neighbouring lines, so a join
+        # can meet a textual conflict there; each side renamed a different
+        # identifier, and the landing takes both.
         table = _node_kind(usr) == "data"
         for d in deps:
             o = step_of.get(d)
-            if o and not (table and _node_kind(d) == "func"):
-                reach[o].add(where)
+            if not o:
+                continue
+            kind = _node_kind(d) if table else ""
+            if kind == "func" or (kind == "data" and nodes.get(d, {}).get("file") != where):
+                continue
+            reach[o].add(where)
     return decl, reach
 
 
