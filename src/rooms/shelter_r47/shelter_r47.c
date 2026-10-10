@@ -113,19 +113,17 @@ static TaskDesc             D_shelter_r47_80186F70[3];
 static TaskDesc             D_shelter_r47_80186F94[2];
 static ActionPromptHotspot  D_shelter_r47_80186FB4[9];
 static TaskDesc             D_shelter_r47_80187020;
-/// Piece lists of the sprites `shelterR47ConsoleDrawSprite` draws, by sprite id.
-static _ShelterR47SpritePart* D_shelter_r47_8018729C[];
-static TaskDesc               D_shelter_r47_801872F0;
-static s32                    _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
-static s32                    _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedMode);
-static void                   _shelterR47AmbienceTask(Task* task);
-static s32                    _shelterR47RefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
-static s32                    _shelterR47ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
-static s32                    _shelterR47HandleSoundCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
-static void                   _shelterR47PlayCapCommandTask(Task* task);
-static void                   _shelterR47RestoreActorsAfterTerminalTask(Task* task);
-static void                   _shelterR47PlayEntryScene8Task(Task* task);
-static void                   _shelterR47PlayEntryScene7Task(Task* task);
+static TaskDesc             D_shelter_r47_801872F0;
+static s32                  _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static s32                  _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedMode);
+static void                 _shelterR47AmbienceTask(Task* task);
+static s32                  _shelterR47RefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+static s32                  _shelterR47ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32                  _shelterR47HandleSoundCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
+static void                 _shelterR47PlayCapCommandTask(Task* task);
+static void                 _shelterR47RestoreActorsAfterTerminalTask(Task* task);
+static void                 _shelterR47PlayEntryScene8Task(Task* task);
+static void                 _shelterR47PlayEntryScene7Task(Task* task);
 
 /// Phases and loaded-resource choices of this room's CAP playback tasks.
 enum {
@@ -217,171 +215,220 @@ static ActionPromptHotspot D_shelter_r47_80186FB4[9] = {
 
 static TaskDesc D_shelter_r47_80187020 = { { { TASK_BODY_NONE, 192 } }, shelterR47ConsoleTask, { .value = 0 } };
 
-static _ShelterR47SpritePart D_shelter_r47_8018702C[2] = {
+/// Console header: one 72x24-pixel piece followed by the list terminator.
+static _ShelterR47SpritePart _gShelterR47ConsoleHeaderParts[2] = {
     { 32, 255, 0, 0, 120, 160, 72, 24 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187044[2] = {
+/// Unpressed console switch button, using the 72x16-pixel button texture.
+static _ShelterR47SpritePart _gShelterR47ConsoleButtonParts[2] = {
     { 96, 255, 0, 0, 0, 184, 72, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_8018705C[2] = {
+/// Pressed console switch button, sharing the button texture with a flash palette.
+static _ShelterR47SpritePart _gShelterR47ConsolePressedButtonParts[2] = {
     { 128, 255, 0, 0, 0, 184, 72, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187074[3] = {
+/// Transfer-tunnel door switch-off message: a 255x16 strip and a 48x16 tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleTransferDoorOffStatusParts[3] = {
     { 0, 255, 0, 0, 0, 0, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187098[3] = {
+/// Transfer-tunnel door switch-on message, followed by the common status tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleTransferDoorOnStatusParts[3] = {
     { 0, 255, 0, 0, 0, 16, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_801870BC[3] = {
+/// Console switch 2's off message, followed by the common status tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleSwitch2OffStatusParts[3] = {
     { 0, 255, 0, 0, 0, 32, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_801870E0[3] = {
+/// Console switch 2's on message, followed by the common status tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleSwitch2OnStatusParts[3] = {
     { 0, 255, 0, 0, 0, 48, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187104[3] = {
+/// Observatory-access switch-on message, followed by the common status tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleObservatoryOnStatusParts[3] = {
     { 0, 255, 0, 0, 0, 64, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187128[3] = {
+/// Observatory-access switch-off message, followed by the common status tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleObservatoryOffStatusParts[3] = {
     { 0, 255, 0, 0, 0, 80, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_8018714C[3] = {
+/// Console switch 4's off message, followed by the common status tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleSwitch4OffStatusParts[3] = {
     { 0, 255, 0, 0, 0, 96, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187170[3] = {
+/// Console switch 4's on message, followed by the common status tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleSwitch4OnStatusParts[3] = {
     { 0, 255, 0, 0, 0, 112, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187194[3] = {
+/// Watcher-disable switch-off message, followed by the common status tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleWatchersOffStatusParts[3] = {
     { 0, 255, 0, 0, 0, 128, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_801871B8[3] = {
+/// Watcher-disable switch-on message, followed by the common status tail.
+static _ShelterR47SpritePart _gShelterR47ConsoleWatchersOnStatusParts[3] = {
     { 0, 255, 0, 0, 0, 144, 255, 16 },
     { 48, 255, 255, 0, 72, 184, 48, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_801871DC[2] = {
+/// 24x24-pixel label for the transfer-tunnel door row.
+static _ShelterR47SpritePart _gShelterR47ConsoleTransferDoorLabelParts[2] = {
     { 16, 255, 0, 0, 0, 160, 24, 24 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_801871F4[2] = {
+/// 24x24-pixel label for console row 1, which controls switch 2.
+static _ShelterR47SpritePart _gShelterR47ConsoleSwitch2LabelParts[2] = {
     { 16, 255, 0, 0, 24, 160, 24, 24 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_8018720C[2] = {
+/// 24x24-pixel label for the observatory-access row.
+static _ShelterR47SpritePart _gShelterR47ConsoleObservatoryLabelParts[2] = {
     { 16, 255, 0, 0, 48, 160, 24, 24 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187224[2] = {
+/// 24x24-pixel label for console row 3, which controls switch 4.
+static _ShelterR47SpritePart _gShelterR47ConsoleSwitch4LabelParts[2] = {
     { 16, 255, 0, 0, 72, 160, 24, 24 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_8018723C[2] = {
+/// 24x24-pixel label for the watcher-disable row.
+static _ShelterR47SpritePart _gShelterR47ConsoleWatchersLabelParts[2] = {
     { 16, 255, 0, 0, 96, 160, 24, 24 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187254[2] = {
+/// Ordinary 40x16-pixel switch graphic drawn beside each console row.
+static _ShelterR47SpritePart _gShelterR47ConsoleRowSwitchParts[2] = {
     { 80, 255, 0, 0, 120, 184, 40, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_8018726C[2] = {
+/// Selected row's switch graphic while changing views, using the active palette.
+static _ShelterR47SpritePart _gShelterR47ConsoleActiveRowSwitchParts[2] = {
     { 112, 255, 0, 0, 120, 184, 40, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart D_shelter_r47_80187284[2] = {
+/// 16x16-pixel marker shared by the selected row and the status reveal cursor.
+static _ShelterR47SpritePart _gShelterR47ConsoleMarkerParts[2] = {
     { 64, 255, 0, 0, 160, 184, 16, 16 },
     { SHELTER_R47_SPRITE_PART_END, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-static _ShelterR47SpritePart* D_shelter_r47_8018729C[21] = {
-    D_shelter_r47_8018702C,
-    D_shelter_r47_80187044,
-    D_shelter_r47_8018705C,
-    D_shelter_r47_80187074,
-    D_shelter_r47_80187098,
-    D_shelter_r47_801870BC,
-    D_shelter_r47_801870E0,
-    D_shelter_r47_80187128,
-    D_shelter_r47_80187104,
-    D_shelter_r47_8018714C,
-    D_shelter_r47_80187170,
-    D_shelter_r47_80187194,
-    D_shelter_r47_801871B8,
-    D_shelter_r47_801871DC,
-    D_shelter_r47_801871F4,
-    D_shelter_r47_8018720C,
-    D_shelter_r47_80187224,
-    D_shelter_r47_8018723C,
-    D_shelter_r47_80187254,
-    D_shelter_r47_8018726C,
-    D_shelter_r47_80187284,
+/// Console sprite piece lists, indexed by sprite ID 0..20.
+///
+/// IDs are 0 header, 1/2 unpressed/pressed button, 3..12 off/on status pairs,
+/// 13..17 row labels, 18/19 ordinary/active row switch and 20 marker.
+/// Each list ends with `SHELTER_R47_SPRITE_PART_END`. Status pairs and labels
+/// follow transfer door, switch 2, observatory, switch 4 and watcher-disable
+/// row order; the observatory pair reverses the texture's two UV rows.
+/// Off/on messages select zero/nonzero working switch values.
+/// The room overlay owns all lists and retains them through GPU completion.
+static _ShelterR47SpritePart* _gShelterR47ConsoleSpriteParts[21] = {
+    _gShelterR47ConsoleHeaderParts,
+    _gShelterR47ConsoleButtonParts,
+    _gShelterR47ConsolePressedButtonParts,
+    _gShelterR47ConsoleTransferDoorOffStatusParts,
+    _gShelterR47ConsoleTransferDoorOnStatusParts,
+    _gShelterR47ConsoleSwitch2OffStatusParts,
+    _gShelterR47ConsoleSwitch2OnStatusParts,
+    _gShelterR47ConsoleObservatoryOffStatusParts,
+    _gShelterR47ConsoleObservatoryOnStatusParts,
+    _gShelterR47ConsoleSwitch4OffStatusParts,
+    _gShelterR47ConsoleSwitch4OnStatusParts,
+    _gShelterR47ConsoleWatchersOffStatusParts,
+    _gShelterR47ConsoleWatchersOnStatusParts,
+    _gShelterR47ConsoleTransferDoorLabelParts,
+    _gShelterR47ConsoleSwitch2LabelParts,
+    _gShelterR47ConsoleObservatoryLabelParts,
+    _gShelterR47ConsoleSwitch4LabelParts,
+    _gShelterR47ConsoleWatchersLabelParts,
+    _gShelterR47ConsoleRowSwitchParts,
+    _gShelterR47ConsoleActiveRowSwitchParts,
+    _gShelterR47ConsoleMarkerParts,
 };
 
 static TaskDesc D_shelter_r47_801872F0 = { { { TASK_BODY_NONE, 192 } }, shelterR47ConsolePromptTask, { .value = 0 } };
 
-u8 D_shelter_r47_801872FC[8] = {
-    0,
+/// Byte offsets of the ten status starts in the console's reveal-stop storage.
+///
+/// The stops are pixel distances from the message origin. A value of
+/// `SHELTER_R47_CONSOLE_REVEAL_END` ends advancement and blinks the preceding byte.
+enum {
+    SHELTER_R47_CONSOLE_REVEAL_END                      = 255,
+    SHELTER_R47_CONSOLE_REVEAL_TRANSFER_DOOR_OFF_OFFSET = 0,
+    SHELTER_R47_CONSOLE_REVEAL_TRANSFER_DOOR_ON_OFFSET  = 8,
+    SHELTER_R47_CONSOLE_REVEAL_SWITCH_2_OFF_OFFSET      = 16,
+    SHELTER_R47_CONSOLE_REVEAL_SWITCH_2_ON_OFFSET       = 28,
+    SHELTER_R47_CONSOLE_REVEAL_OBSERVATORY_OFF_OFFSET   = 32,
+    SHELTER_R47_CONSOLE_REVEAL_OBSERVATORY_ON_OFFSET    = 44,
+    SHELTER_R47_CONSOLE_REVEAL_SWITCH_4_OFF_OFFSET      = 56,
+    SHELTER_R47_CONSOLE_REVEAL_SWITCH_4_ON_OFFSET       = 72,
+    SHELTER_R47_CONSOLE_REVEAL_WATCHERS_OFF_OFFSET      = 88,
+    SHELTER_R47_CONSOLE_REVEAL_WATCHERS_ON_OFFSET       = 104,
+    SHELTER_R47_CONSOLE_REVEAL_BYTES                    = 120,
+};
+
+/// Contiguous reveal stops for the console's five off/on status-message pairs.
+///
+/// Interior starts are borrowed by the status table while the overlay is loaded.
+/// Status 3 begins with END: cursor 0 blinks at the preceding status's final byte;
+/// an inherited cursor 1 advances through its zeros into status 4's stops.
+/// Keep the trailing zeros and the shared storage boundary for those reads.
+static u8 _gShelterR47ConsoleStatusRevealStops[SHELTER_R47_CONSOLE_REVEAL_BYTES] = {
+    [SHELTER_R47_CONSOLE_REVEAL_TRANSFER_DOOR_OFF_OFFSET] = 0,
     13,
     20,
     30,
     39,
     48,
     57,
-    255,
-};
-
-u8 D_shelter_r47_80187304[8] = {
-    0,
+    SHELTER_R47_CONSOLE_REVEAL_END,
+    [SHELTER_R47_CONSOLE_REVEAL_TRANSFER_DOOR_ON_OFFSET] = 0,
     13,
     22,
     30,
     40,
-    255,
+    SHELTER_R47_CONSOLE_REVEAL_END,
     0,
     0,
-};
-
-u8 D_shelter_r47_8018730C[12] = {
-    0,
+    [SHELTER_R47_CONSOLE_REVEAL_SWITCH_2_OFF_OFFSET] = 0,
     10,
     14,
     24,
@@ -392,18 +439,12 @@ u8 D_shelter_r47_8018730C[12] = {
     59,
     70,
     79,
-    255,
-};
-
-u8 D_shelter_r47_80187318[4] = {
-    255,
+    SHELTER_R47_CONSOLE_REVEAL_END,
+    [SHELTER_R47_CONSOLE_REVEAL_SWITCH_2_ON_OFFSET] = SHELTER_R47_CONSOLE_REVEAL_END,
     0,
     0,
     0,
-};
-
-u8 D_shelter_r47_8018731C[12] = {
-    0,
+    [SHELTER_R47_CONSOLE_REVEAL_OBSERVATORY_OFF_OFFSET] = 0,
     11,
     14,
     22,
@@ -413,12 +454,9 @@ u8 D_shelter_r47_8018731C[12] = {
     49,
     58,
     65,
-    255,
+    SHELTER_R47_CONSOLE_REVEAL_END,
     0,
-};
-
-u8 D_shelter_r47_80187328[12] = {
-    0,
+    [SHELTER_R47_CONSOLE_REVEAL_OBSERVATORY_ON_OFFSET] = 0,
     11,
     14,
     22,
@@ -427,13 +465,10 @@ u8 D_shelter_r47_80187328[12] = {
     39,
     49,
     58,
-    255,
+    SHELTER_R47_CONSOLE_REVEAL_END,
     0,
     0,
-};
-
-u8 D_shelter_r47_80187334[16] = {
-    0,
+    [SHELTER_R47_CONSOLE_REVEAL_SWITCH_4_OFF_OFFSET] = 0,
     11,
     21,
     32,
@@ -447,12 +482,9 @@ u8 D_shelter_r47_80187334[16] = {
     90,
     98,
     107,
-    255,
+    SHELTER_R47_CONSOLE_REVEAL_END,
     0,
-};
-
-u8 D_shelter_r47_80187344[16] = {
-    0,
+    [SHELTER_R47_CONSOLE_REVEAL_SWITCH_4_ON_OFFSET] = 0,
     11,
     21,
     32,
@@ -466,12 +498,9 @@ u8 D_shelter_r47_80187344[16] = {
     90,
     98,
     107,
-    255,
+    SHELTER_R47_CONSOLE_REVEAL_END,
     0,
-};
-
-u8 D_shelter_r47_80187354[16] = {
-    0,
+    [SHELTER_R47_CONSOLE_REVEAL_WATCHERS_OFF_OFFSET] = 0,
     12,
     20,
     30,
@@ -484,13 +513,10 @@ u8 D_shelter_r47_80187354[16] = {
     78,
     88,
     98,
-    255,
+    SHELTER_R47_CONSOLE_REVEAL_END,
     0,
     0,
-};
-
-u8 D_shelter_r47_80187364[16] = {
-    0,
+    [SHELTER_R47_CONSOLE_REVEAL_WATCHERS_ON_OFFSET] = 0,
     12,
     20,
     30,
@@ -504,21 +530,21 @@ u8 D_shelter_r47_80187364[16] = {
     88,
     96,
     104,
-    255,
+    SHELTER_R47_CONSOLE_REVEAL_END,
     0,
 };
 
 u8* D_shelter_r47_80187374[10] = {
-    D_shelter_r47_801872FC,
-    D_shelter_r47_80187304,
-    D_shelter_r47_8018730C,
-    D_shelter_r47_80187318,
-    D_shelter_r47_8018731C,
-    D_shelter_r47_80187328,
-    D_shelter_r47_80187334,
-    D_shelter_r47_80187344,
-    D_shelter_r47_80187354,
-    D_shelter_r47_80187364,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_TRANSFER_DOOR_OFF_OFFSET,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_TRANSFER_DOOR_ON_OFFSET,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_SWITCH_2_OFF_OFFSET,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_SWITCH_2_ON_OFFSET,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_OBSERVATORY_OFF_OFFSET,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_OBSERVATORY_ON_OFFSET,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_SWITCH_4_OFF_OFFSET,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_SWITCH_4_ON_OFFSET,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_WATCHERS_OFF_OFFSET,
+    _gShelterR47ConsoleStatusRevealStops + SHELTER_R47_CONSOLE_REVEAL_WATCHERS_ON_OFFSET,
 };
 
 ActionPromptHotspot D_shelter_r47_8018739C[5] = {
@@ -1282,7 +1308,7 @@ void shelterR47ConsoleDrawSprite(s16 originX, s16 originY, s16 spriteId)
     _ShelterR47SpritePart* part;
     POLY_FT4*              quad;
 
-    part = D_shelter_r47_8018729C[spriteId];
+    part = _gShelterR47ConsoleSpriteParts[spriteId];
     if (gGameSession->location.loc.view == SHELTER_R47_CONSOLE_SWITCH_2_OFF_VIEW && (u16)(spriteId - SHELTER_R47_CONSOLE_BUTTON_SPRITE) < SHELTER_R47_CONSOLE_BUTTON_SPRITE_COUNT) {
         return;
     }

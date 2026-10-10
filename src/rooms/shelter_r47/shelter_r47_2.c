@@ -681,8 +681,8 @@ void shelterR47ConsoleUpdateAndDraw(Task* task, s16 changingView)
 /// Requires live console work, a valid status 0..9 and its loaded reveal table.
 /// `messageY` is a display-centred pixel coordinate. Advances one stop on odd
 /// animation frames, then blinks the preceding stop for eight of sixteen frames.
-/// Status 3 starts with a terminator and reads the byte preceding its table;
-/// the containing storage contract for that empty-message case is unproven.
+/// Status starts borrow the shared reveal buffer. Status 3 at cursor 0 reads
+/// the preceding byte; an inherited cursor 1 walks into status 4's stops.
 /// Queues a marker and, before the terminator, one raw textured quad in slot 10.
 static void _shelterR47ConsoleDrawStatusReveal(Task* task, s16 messageY)
 {
@@ -716,7 +716,7 @@ static void _shelterR47ConsoleDrawStatusReveal(Task* task, s16 messageY)
             work->revealPos++;
         }
     } else {
-        // The empty status-3 table also takes this preceding-byte path.
+        // Status 3 at cursor 0 uses the preceding byte of the shared buffer.
         stopX = revealStop[-1];
         if ((u32)(gDisplayState.animFrame & SHELTER_R47_CONSOLE_REVEAL_BLINK_MASK) < SHELTER_R47_CONSOLE_REVEAL_BLINK_ON) {
             shelterR47ConsoleDrawSprite(stopX - 0x9D, messageY, SHELTER_R47_CONSOLE_MARKER_SPRITE);
