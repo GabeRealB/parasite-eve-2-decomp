@@ -2,6 +2,7 @@
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/stdio.h>
 
 #include "common.h"
@@ -32,6 +33,7 @@
 #include "main/gfx.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -93,10 +95,10 @@ static s32 _roamerExtendCooldown(Task* unusedTask, s32 unusedMessageId, s32 unus
 static s32 _roamerLatchSpawnRequestPoolA(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _roamerLatchSpawnRequestPoolB(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-extern WorldCollisionGrid    D_neo_ark_forest_zone_80182274[1];
+static WorldCollisionGrid    _gNeoArkForestZoneCollisionGrid;
 extern WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6];
 extern WorldCollisionTrigger D_neo_ark_forest_zone_801829D0[10];
-extern WorldCoordRoomLights  D_neo_ark_forest_zone_8018269C[1];
+static WorldCoordRoomLights  _gNeoArkForestZoneRoomLights;
 
 static void _neoArkForestZoneRoamerPoolATask(Task* task);
 static void _neoArkForestZoneRoamerPoolBTask(Task* task);
@@ -208,14 +210,14 @@ EvsCommand D_neo_ark_forest_zone_80181E6C[23] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_neo_ark_forest_zone_801820A4[1] = {
-    { D_neo_ark_forest_zone_80182274, D_neo_ark_forest_zone_801826B4, D_neo_ark_forest_zone_801829D0, NULL },
+    { &_gNeoArkForestZoneCollisionGrid, D_neo_ark_forest_zone_801826B4, D_neo_ark_forest_zone_801829D0, NULL },
 };
 
-WorldCoordRoomLighting D_neo_ark_forest_zone_801820B4[1] = {
-    { D_neo_ark_forest_zone_8018269C, NULL },
+WorldCoordRoomLighting gNeoArkForestZoneRoomLighting[1] = {
+    { &_gNeoArkForestZoneRoomLights, NULL },
 };
 
-u8* D_neo_ark_forest_zone_801820BC[1] = {
+u8* gNeoArkForestZoneViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -227,34 +229,55 @@ DirectionWarpEntry D_neo_ark_forest_zone_801820C4[3] = {
     { { { .word = 0 }, -3000, 0, -770 }, { 0, 0, 0, 0 }, { { .word = 0 }, -3000, 0, -770 }, { 0, 0, 0, 0 }, 0x550B0004, 0x550B0003, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gNeoArkForestZoneCollision04CB4Normals[6] = {
+/// Room-space face normals of the forest zone box, with ONE per unit.
+static SVECTOR _gNeoArkForestZoneCollisionGridNormals[] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_normals.inc"
 };
 
-static SVECTOR _gNeoArkForestZoneCollision04CB4Verts[8] = {
+/// Corners of the room box in signed game coordinates.
+static SVECTOR _gNeoArkForestZoneCollisionGridVerts[] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkForestZoneCollision04CB4Faces[6] = {
+/// Six box faces: class 1 on the Y=0 floor and class 0 on every other face.
+static WorldCollisionGridFace _gNeoArkForestZoneCollisionGridFaces[] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_faces.inc"
 };
 
-static s16 _gNeoArkForestZoneCollision04CB4Cells[30] = {
+/// Serialized signed face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gNeoArkForestZoneCollisionGridCells[] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkForestZoneCollision04CB4Cells[i])
-static s16* _gNeoArkForestZoneCollision04CB4Table[5] = {
+// The generated table supplies element offsets into the face-index storage.
+#define GRID_CELL(i) (&_gNeoArkForestZoneCollisionGridCells[i])
+/// Five X-major cells in one Z row, borrowing terminated face-index lists.
+static s16* _gNeoArkForestZoneCollisionGridTable[] = {
 #include "assets/neo_ark_forest_zone_collision_04CB4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_forest_zone_80182274[1] = {
-    { NULL, _gNeoArkForestZoneCollision04CB4Normals, _gNeoArkForestZoneCollision04CB4Verts, _gNeoArkForestZoneCollision04CB4Faces, _gNeoArkForestZoneCollision04CB4Table, 8000, 1300, 5, 1, 4000, 6 },
+/// Forest zone collision box and its five-by-one XZ cell index.
+///
+/// Geometry spans X=-8000..10000, Y=-5000..0 and Z=-1300..1300 in room units.
+/// Cells start at (-8000,-1300) and have 4000-unit sides. Room activation binds
+/// the mutable descriptor to the current view; the mesh stays owned by this overlay.
+static WorldCollisionGrid _gNeoArkForestZoneCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkForestZoneCollisionGridNormals,
+    .vertices    = _gNeoArkForestZoneCollisionGridVerts,
+    .faces       = _gNeoArkForestZoneCollisionGridFaces,
+    .cellFaceIds = _gNeoArkForestZoneCollisionGridTable,
+    .xBias       = 8000,
+    .zBias       = 1300,
+    .cellCountX  = ARRAY_SIZE(_gNeoArkForestZoneCollisionGridTable),
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gNeoArkForestZoneCollisionGridFaces),
 };
 
-ViewCamera D_neo_ark_forest_zone_80182298[6] = {
-    { { { { 4096, 0, 0 }, { 0, 78, -4095 }, { 0, 4095, 78 } }, { -1000, 0x7530, 575 } }, 380 },
+ViewCamera gNeoArkForestZoneViewCameras[NEO_ARK_FOREST_ZONE_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 78, -4095 }, { 0, 4095, 78 } }, { -1000, 30000, 575 } }, 380 },
     { { { { -1370, 0, -3859 }, { -488, 4063, 173 }, { 3828, 518, -1359 } }, { -3940, 1460, -810 } }, 230 },
     { { { { -1441, 0, -3833 }, { 76, 4095, -28 }, { 3833, -81, -1441 } }, { 1990, 870, -910 } }, 230 },
     { { { { -1589, 0, -3775 }, { 258, 4086, -108 }, { 3766, -280, -1585 } }, { 6420, 670, -1080 } }, 230 },
@@ -262,89 +285,161 @@ ViewCamera D_neo_ark_forest_zone_80182298[6] = {
     { { { { -905, 0, 3994 }, { -83, 4095, -19 }, { -3993, -86, -905 } }, { -1010, 1270, -860 } }, 329 },
 };
 
-SpriteBatch D_neo_ark_forest_zone_80182370[2] = {
+/// View 1's background selector and terminator; no source sprites are selected.
+///
+/// The zero first count retains decoded image strips. The source slot retains
+/// this list's address without treating it as a SpriteSource array.
+static SpriteBatch _gNeoArkForestZoneView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_forest_zone_80182380[4] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -80, -104, 1000, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 88 } }, -160, -120, 1000, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 72 } }, -160, -32, 1000, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 80 } }, -160, 40, 1000, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
+/// Forest foreground texture bindings and opaque, neutral source modulation.
+enum {
+    NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE      = getTPage(1, 0, 960, 0),
+    NEO_ARK_FOREST_ZONE_SPRITE_CLUT              = getClut(0, 255),
+    NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR     = 128,
+    NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION = 0,
 };
 
-SpriteBatch D_neo_ark_forest_zone_801823D0[3] = {
+/// View 2's four foreground rectangles at sorting depth 1000.
+///
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled OT sorting values. Texture page and CLUT values encode GPU addresses.
+static SpriteSource _gNeoArkForestZoneView2SpriteSources[] = {
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 8, 8 } }, -80, -104, 1000, { .fields = { 120, 240 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 80, 88 } }, -160, -120, 1000, { .fields = { 48, 0 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 48, 72 } }, -160, -32, 1000, { .fields = { 80, 168 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 96, 80 } }, -160, 40, 1000, { .fields = { 32, 88 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+};
+
+/// View 2's image-strip selector, full source range [0,4) and terminator.
+static SpriteBatch _gNeoArkForestZoneView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkForestZoneView2SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_forest_zone_801823E8[5] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, 72, 1604, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 32 } }, -160, -120, 1550, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 48 } }, -160, -88, 1571, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 80 } }, -160, -40, 1611, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 64 } }, -160, 40, 1502, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+/// View 3's five foreground rectangles at their individual OT sorting depths.
+///
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. All sources use opaque, neutral modulation.
+static SpriteSource _gNeoArkForestZoneView3SpriteSources[] = {
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 8, 8 } }, -112, 72, 1604, { .fields = { 120, 224 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 104, 32 } }, -160, -120, 1550, { .fields = { 24, 192 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 96, 48 } }, -160, -88, 1571, { .fields = { 32, 144 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 80, 80 } }, -160, -40, 1611, { .fields = { 48, 0 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 48, 64 } }, -160, 40, 1502, { .fields = { 80, 80 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
 };
 
-SpriteBatch D_neo_ark_forest_zone_8018244C[3] = {
+/// View 3's image-strip selector, full source range [0,5) and terminator.
+static SpriteBatch _gNeoArkForestZoneView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkForestZoneView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_forest_zone_80182464[5] = {
-    { 143, 0x3FC0, { .fields = { 96, 96 } }, 64, -120, 1050, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 48 } }, 96, -24, 1050, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, 80, 24, 1050, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 32 } }, 96, 32, 1050, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 64, 1050, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
+/// View 4's five foreground rectangles at sorting depth 1050.
+///
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. All sources use opaque, neutral modulation.
+static SpriteSource _gNeoArkForestZoneView4SpriteSources[] = {
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 96, 96 } }, 64, -120, 1050, { .fields = { 32, 0 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 64, 48 } }, 96, -24, 1050, { .fields = { 64, 96 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 80, 8 } }, 80, 24, 1050, { .fields = { 48, 184 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 64, 32 } }, 96, 32, 1050, { .fields = { 64, 144 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 16, 8 } }, 144, 64, 1050, { .fields = { 112, 176 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
 };
 
-SpriteBatch D_neo_ark_forest_zone_801824C8[3] = {
+/// View 4's image-strip selector, full source range [0,5) and terminator.
+static SpriteBatch _gNeoArkForestZoneView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkForestZoneView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_forest_zone_801824E0[7] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -40, 1342, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 48 } }, 64, -40, 1125, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 48 } }, 56, 8, 1125, { .fields = { 8, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 64 } }, 80, 56, 1125, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 104, 80 } }, 24, -120, 1314, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 128, -120, 1125, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 144, -120, 1125, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
+/// View 5's seven foreground rectangles at their individual OT sorting depths.
+///
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. All sources use opaque, neutral modulation.
+static SpriteSource _gNeoArkForestZoneView5SpriteSources[] = {
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 8, 8 } }, 56, -40, 1342, { .fields = { 120, 240 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 96, 48 } }, 64, -40, 1125, { .fields = { 16, 144 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 104, 48 } }, 56, 8, 1125, { .fields = { 8, 192 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 80, 64 } }, 80, 56, 1125, { .fields = { 32, 80 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 104, 80 } }, 24, -120, 1314, { .fields = { 24, 0 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 16, 80 } }, 128, -120, 1125, { .fields = { 112, 80 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
+    { NEO_ARK_FOREST_ZONE_SPRITE_TEXTURE_PAGE, NEO_ARK_FOREST_ZONE_SPRITE_CLUT, { .fields = { 16, 80 } }, 144, -120, 1125, { .fields = { 112, 160 } }, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_NEUTRAL_COLOR, NEO_ARK_FOREST_ZONE_SPRITE_OPAQUE_MODULATION },
 };
 
-SpriteBatch D_neo_ark_forest_zone_8018256C[3] = {
+/// View 5's image-strip selector, full source range [0,7) and terminator.
+static SpriteBatch _gNeoArkForestZoneView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkForestZoneView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_forest_zone_80182584[2] = {
+/// View 6's background selector and terminator; no source sprites are selected.
+///
+/// The zero first count retains decoded image strips. The source slot retains
+/// this list's address without treating it as a SpriteSource array.
+static SpriteBatch _gNeoArkForestZoneView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_forest_zone_80182594[6] = {
-    { { .empty = D_neo_ark_forest_zone_80182370 }, D_neo_ark_forest_zone_80182370, NULL },
-    { { .elements = D_neo_ark_forest_zone_80182380 }, D_neo_ark_forest_zone_801823D0, NULL },
-    { { .elements = D_neo_ark_forest_zone_801823E8 }, D_neo_ark_forest_zone_8018244C, NULL },
-    { { .elements = D_neo_ark_forest_zone_80182464 }, D_neo_ark_forest_zone_801824C8, NULL },
-    { { .elements = D_neo_ark_forest_zone_801824E0 }, D_neo_ark_forest_zone_8018256C, NULL },
-    { { .empty = D_neo_ark_forest_zone_80182584 }, D_neo_ark_forest_zone_80182584, NULL },
+SpriteView gNeoArkForestZoneSpriteViews[NEO_ARK_FOREST_ZONE_VIEW_COUNT] = {
+    { { .empty = _gNeoArkForestZoneView1SpriteBatches }, _gNeoArkForestZoneView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkForestZoneView2SpriteSources }, _gNeoArkForestZoneView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkForestZoneView3SpriteSources }, _gNeoArkForestZoneView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkForestZoneView4SpriteSources }, _gNeoArkForestZoneView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkForestZoneView5SpriteSources }, _gNeoArkForestZoneView5SpriteBatches, NULL },
+    { { .empty = _gNeoArkForestZoneView6SpriteBatches }, _gNeoArkForestZoneView6SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_neo_ark_forest_zone_801825DC[2] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -4220, -1742, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3641, 3828, 3683 }, { 0, 0 } }, 6362, 0x3E20 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -252, -969, 623 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, 6, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4100, 4096 }, { 0, 0 } }, 1601, 2781 },
+/// Room point lights: one admitted in every view and one admitted only in view 6.
+///
+/// Positions and falloff radii use room-coordinate units; RGB has 12 fractional
+/// bits. Coordinate binding/composition and attenuation queries modify the records.
+static WorldCoordPointLight _gNeoArkForestZonePointLights[] = {
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -4220, -1742, 0 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = WORLD_COORDINATE_LIGHT_ALL_VIEWS,
+                           } },
+            .color     = { 3641, 3828, 3683 },
+        },
+        .inner = 6362,
+        .outer = 15904,
+    },
+    {
+        .head = {
+            .transform = { .lighting = {
+                               .composeStamp = GRAPHICS_COORD_DIRTY,
+                               .local        = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -252, -969, 623 } },
+                               .composed     = { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } },
+                               .viewId       = 6,
+                           } },
+            .color     = { ONE, 4100, ONE },
+        },
+        .inner = 1601,
+        .outer = 2781,
+    },
 };
 
-WorldCoordRoomLights D_neo_ark_forest_zone_8018269C[1] = {
-    { 0, NULL, ARRAY_SIZE(D_neo_ark_forest_zone_801825DC), D_neo_ark_forest_zone_801825DC, 0, NULL },
+/// The room's two point lights, with no directional or cone light arrays.
+///
+/// Borrows writable light records for this overlay's lifetime; the count is in elements.
+static WorldCoordRoomLights _gNeoArkForestZoneRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkForestZonePointLights),
+    .pointLights           = _gNeoArkForestZonePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6] = {
@@ -356,37 +451,68 @@ WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6] = {
     { NULL, NULL, NULL, { -4176, -2657, 110, 0 }, { { 192, -3056, 3755, 0 }, { -200, -3056, -3764, 0 }, { 192, 3057, 3755, 0 }, { -200, 3057, -3764, 0 } }, { -4098, 0, 213, 0 }, { 0, 0, 4096, 0 }, 4830, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_forest_zone_8018287C[3] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
-    { 10, 561, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor356100HornedStrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Resource keys matched by the forest zone's placement tables.
+enum {
+    NEO_ARK_FOREST_ZONE_RESOURCE_HORNED_STRANGER       = 13,
+    NEO_ARK_FOREST_ZONE_RESOURCE_EXTRA_HORNED_STRANGER = 10,
+    NEO_ARK_FOREST_ZONE_RESOURCE_BLACK_BEETLE          = 38,
+    NEO_ARK_FOREST_ZONE_RESOURCE_PAWN_GOLEM            = 20,
+    NEO_ARK_FOREST_ZONE_RESOURCE_EXTRA_PAWN_GOLEM      = 56,
 };
 
-AreaResource D_neo_ark_forest_zone_801828A0[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 1's two Horned Stranger resource recipes, keyed by placement entry ID.
+///
+/// Selects actor packages 401300 and 356100, descriptor zero, through file-group
+/// bases 40 and 30. The final AREA_PLACEMENT_END record ends loading/spawn searches.
+static AreaResource _gNeoArkForestZoneVariant1Resources[] = {
+    { .entryId = NEO_ARK_FOREST_ZONE_RESOURCE_HORNED_STRANGER, .fileNumber = 13, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401300HornedStrangerTaskDesc },
+    { .entryId = NEO_ARK_FOREST_ZONE_RESOURCE_EXTRA_HORNED_STRANGER, .fileNumber = 561, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor356100HornedStrangerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_forest_zone_801828B8[2] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 2's Horned Stranger resource recipe for its two entry-13 placements.
+///
+/// Selects actor package 401300, descriptor zero, with an ending record.
+static AreaResource _gNeoArkForestZoneVariant2Resources[] = {
+    { .entryId = NEO_ARK_FOREST_ZONE_RESOURCE_HORNED_STRANGER, .fileNumber = 13, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401300HornedStrangerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_forest_zone_801828D0[2] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 3's Horned Stranger resource recipe, ending at AREA_PLACEMENT_END.
+///
+/// Selects actor package 401300, descriptor zero. Only entry ID 13 matches;
+/// this resource table's termination is independent of the placement table's walk.
+static AreaResource _gNeoArkForestZoneVariant3Resources[] = {
+    { .entryId = NEO_ARK_FOREST_ZONE_RESOURCE_HORNED_STRANGER, .fileNumber = 13, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401300HornedStrangerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_forest_zone_801828E8[3] = {
-    { 13, 13, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401300HornedStrangerTaskDesc },
-    { 20, 20, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, gActor302000PawnGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 4's Black Beetle resource recipe for its ten entry-38 placements.
+///
+/// Selects actor package 103800, descriptor zero, with an ending record.
+static AreaResource _gNeoArkForestZoneVariant4Resources[] = {
+    { .entryId = NEO_ARK_FOREST_ZONE_RESOURCE_BLACK_BEETLE, .fileNumber = 38, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103800BlackBeetleTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_forest_zone_8018290C[3] = {
-    { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
-    { 56, 56, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205600PawnGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 5's Horned Stranger and Pawn GOLEM resource recipes.
+///
+/// Placement IDs 13 and 20 select actor packages 401300 and 302000 respectively,
+/// each at descriptor zero. The table ends at AREA_PLACEMENT_END.
+static AreaResource _gNeoArkForestZoneVariant5Resources[] = {
+    { .entryId = NEO_ARK_FOREST_ZONE_RESOURCE_HORNED_STRANGER, .fileNumber = 13, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor401300HornedStrangerTaskDesc },
+    { .entryId = NEO_ARK_FOREST_ZONE_RESOURCE_PAWN_GOLEM, .fileNumber = 20, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = gActor302000PawnGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Variant 11's two Pawn GOLEM resource recipes, keyed by placement entry ID.
+///
+/// IDs 20 and 56 select actor packages 102000 and 205600 respectively, each at
+/// descriptor zero. The table ends at AREA_PLACEMENT_END.
+static AreaResource _gNeoArkForestZoneVariant11Resources[] = {
+    { .entryId = NEO_ARK_FOREST_ZONE_RESOURCE_PAWN_GOLEM, .fileNumber = 20, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102000PawnGolemTasks },
+    { .entryId = NEO_ARK_FOREST_ZONE_RESOURCE_EXTRA_PAWN_GOLEM, .fileNumber = 56, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = gActor205600PawnGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaResource D_neo_ark_forest_zone_80182930[2] = {
@@ -401,17 +527,17 @@ AreaPlacement D_neo_ark_forest_zone_80182948[2] = {
 
 AreaVariant D_neo_ark_forest_zone_80182968[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017B190, D_neo_ark_forest_zone_8018287C },
-    { D_map_neo_ark_8017B1C0, D_neo_ark_forest_zone_801828A0 },
-    { D_map_neo_ark_8017B1F0, D_neo_ark_forest_zone_801828B8 },
-    { D_map_neo_ark_8017B210, D_neo_ark_forest_zone_801828D0 },
-    { D_map_neo_ark_8017B2C0, D_neo_ark_forest_zone_801828E8 },
+    { D_map_neo_ark_8017B190, _gNeoArkForestZoneVariant1Resources },
+    { D_map_neo_ark_8017B1C0, _gNeoArkForestZoneVariant2Resources },
+    { D_map_neo_ark_8017B1F0, _gNeoArkForestZoneVariant3Resources },
+    { D_map_neo_ark_8017B210, _gNeoArkForestZoneVariant4Resources },
+    { D_map_neo_ark_8017B2C0, _gNeoArkForestZoneVariant5Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { D_neo_ark_forest_zone_80182948, D_neo_ark_forest_zone_80182930 },
-    { D_map_neo_ark_8017B300, D_neo_ark_forest_zone_8018290C },
+    { D_map_neo_ark_8017B300, _gNeoArkForestZoneVariant11Resources },
     { NULL, NULL },
 };
 
@@ -428,29 +554,49 @@ WorldCollisionTrigger D_neo_ark_forest_zone_801829D0[10] = {
     { NULL, NULL, NULL, { 1024, -64, -1120, 0 }, { { 9328, 0, -400, 0 }, { 9296, 0, 400, 0 }, { -9296, 0, -400, 0 }, { -9328, 0, 400, 0 } }, { 0, 4104, 0, 0 }, { 0, 0, 4095, 0 }, 9328, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_forest_zone_80182CC8 = {
-    0x10000039,
-    0x1000003B,
-    0x10000039,
+/// Cue-2 bases in the loaded type-1 bank; cue 1 uses the following entry.
+enum {
+    NEO_ARK_FOREST_ZONE_FOOTSTEP_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x39,
+    NEO_ARK_FOREST_ZONE_FOOTSTEP_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3B,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_forest_zone_80182CD4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump footstep bases for the class-1 floor.
+///
+/// Walking and scripted jumps share a cue pair; running uses the following pair.
+/// Consumers borrow the cues while this overlay and its type-1 bank are loaded.
+static WorldCollisionFootstepSounds _gNeoArkForestZoneFootstepSounds = {
+    .walk         = NEO_ARK_FOREST_ZONE_FOOTSTEP_WALK,
+    .run          = NEO_ARK_FOREST_ZONE_FOOTSTEP_RUN,
+    .scriptedJump = NEO_ARK_FOREST_ZONE_FOOTSTEP_WALK,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_forest_zone_80182CDC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_forest_zone_80182CC8 },
+/// Classes 0 and 2..7: probe blocking, weapon impacts and pushback without footsteps.
+static WorldCollisionSurfaceProperties _gNeoArkForestZoneSolidSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_forest_zone_80182CE4[8] = {
-    D_neo_ark_forest_zone_80182CD4,
-    D_neo_ark_forest_zone_80182CDC,
-    D_neo_ark_forest_zone_80182CD4,
-    D_neo_ark_forest_zone_80182CD4,
-    D_neo_ark_forest_zone_80182CD4,
-    D_neo_ark_forest_zone_80182CD4,
-    D_neo_ark_forest_zone_80182CD4,
-    D_neo_ark_forest_zone_80182CD4,
+/// Class 1: probe blocking, weapon impacts, pushback and the floor's footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkForestZoneSolidFootstepSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkForestZoneFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkForestZoneSurfaceProperties[NEO_ARK_FOREST_ZONE_SURFACE_CLASS_COUNT] = {
+    &_gNeoArkForestZoneSolidSurface,
+    &_gNeoArkForestZoneSolidFootstepSurface,
+    &_gNeoArkForestZoneSolidSurface,
+    &_gNeoArkForestZoneSolidSurface,
+    &_gNeoArkForestZoneSolidSurface,
+    &_gNeoArkForestZoneSolidSurface,
+    &_gNeoArkForestZoneSolidSurface,
+    &_gNeoArkForestZoneSolidSurface,
 };
 
 DamageAttack D_neo_ark_forest_zone_80182D04[6] = {

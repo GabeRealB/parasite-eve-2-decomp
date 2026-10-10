@@ -13,22 +13,52 @@
 
 extern AreaVariant D_neo_ark_forest_zone_80182968[13];
 
+/// Extents of the forest zone's mapped view resources and surface-class directory.
+enum {
+    NEO_ARK_FOREST_ZONE_VIEW_COUNT          = 6,
+    NEO_ARK_FOREST_ZONE_SURFACE_CLASS_COUNT = 8,
+};
+
 // neo_ark_forest_zone
 extern WorldCollisionRoomResources D_neo_ark_forest_zone_801820A4[];
 
-extern WorldCoordRoomLighting D_neo_ark_forest_zone_801820B4[];
+/// Lighting for room 1: two point lights and the default ambient minima.
+///
+/// Indexed by room - 1. One point light accepts every view and the other accepts
+/// view 6 only. Borrows mutable light storage from the loaded forest zone overlay.
+extern WorldCoordRoomLighting gNeoArkForestZoneRoomLighting[1];
 
-extern u8* D_neo_ark_forest_zone_801820BC[];
+/// Logical-view map for room 1, mapping views 1..6 to the same resource indices.
+///
+/// Indexed by room - 1, then view - 1. Borrows gameplay's `gViewIdentityMap`;
+/// this room uses its first `NEO_ARK_FOREST_ZONE_VIEW_COUNT` entries. The pointer
+/// directory requires the forest zone overlay to remain loaded.
+extern u8* gNeoArkForestZoneViewMaps[1];
 
 extern ViewCount D_neo_ark_forest_zone_801820C0[];
 
 extern DirectionWarpEntry D_neo_ark_forest_zone_801820C4[];
 
-extern ViewCamera D_neo_ark_forest_zone_80182298[];
+/// Cameras for mapped views 1..6, indexed by mapped view - 1.
+///
+/// Rotations use `ONE` for 1.0, translations are negated world-space camera
+/// origins, and perspective distances are pixels. Keep the forest zone overlay
+/// loaded until any queued camera application finishes.
+extern ViewCamera gNeoArkForestZoneViewCameras[NEO_ARK_FOREST_ZONE_VIEW_COUNT];
 
-extern SpriteView D_neo_ark_forest_zone_80182594[];
+/// Sprite descriptors for mapped views 1..6, indexed by mapped view - 1.
+///
+/// Views 1 and 6 have no source sprites; views 2..5 have 4, 5, 5 and 7 sources.
+/// Every view retains image-strip backgrounds and has no clipping-area list.
+/// Descriptors and mutable source/batch arrays require this overlay to stay loaded.
+extern SpriteView gNeoArkForestZoneSpriteViews[NEO_ARK_FOREST_ZONE_VIEW_COUNT];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_forest_zone_80182CE4[];
+/// Collision policies and footstep cues indexed by room-local surface class 0..7.
+///
+/// Every class blocks probes, allows weapon impacts and applies grid pushback.
+/// Class 1, used by the floor, supplies footsteps; all other classes have no cues.
+/// The directory and its borrowed records require the forest zone overlay loaded.
+extern WorldCollisionSurfaceProperties* gNeoArkForestZoneSurfaceProperties[NEO_ARK_FOREST_ZONE_SURFACE_CLASS_COUNT];
 
 /// Selects the forest zone's enemy effects and keeps ambient effects enabled.
 ///
