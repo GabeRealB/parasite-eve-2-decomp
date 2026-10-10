@@ -35,7 +35,14 @@ extern ViewCount D_neo_ark_pyramid_8017FC68[];
 
 extern DirectionWarpEntry D_neo_ark_pyramid_8017FC6C[];
 
-extern ViewCamera D_neo_ark_pyramid_801802E8[];
+/// Authored cameras for mapped view indices 1..8, stored at index minus one.
+///
+/// Rotation coefficients use `ONE` (4096) per unit; translation is the negated
+/// world-space camera origin in game units. Projection distance is in pixels.
+/// The stage map borrows this array; keep the room overlay loaded until queued
+/// camera tasks have applied their records. There is no terminator.
+/// Both room maps select this array; the solved-altar map swaps indices 4 and 6.
+extern ViewCamera gNeoArkPyramidViewCameras[8];
 
 /// Sprite sources and batch lists for the pyramid's eight mapped views.
 ///

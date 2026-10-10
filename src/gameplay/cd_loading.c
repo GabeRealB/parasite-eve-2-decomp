@@ -492,7 +492,7 @@ AreaRecord D_8010CDD4[39] = {
     { D_dryfield_night_motel_room_1_8018075C, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
     { D_dryfield_night_motel_room_2_801809A0, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
     { D_dryfield_night_motel_room_3_80180D24, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[9].state },
-    { D_dryfield_night_motel_room_4_801802FC, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
+    { gDryfieldNightMotelRoom4AreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[10].state },
     { D_dryfield_night_parking_lot_80181438, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[11].state },
     { D_dryfield_night_toilet_8017F354, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[12].state },
     { gDryfieldNightMotelLobbyAreaVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[34].state },

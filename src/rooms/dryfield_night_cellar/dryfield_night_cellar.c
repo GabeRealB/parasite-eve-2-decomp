@@ -949,36 +949,63 @@ static WorldCoordRoomLights _gDryfieldNightCellarRoom2Lights = {
     .coneLights            = NULL,
 };
 
-AreaResource D_dryfield_night_cellar_80180720[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys used by this room's resource recipes.
+enum {
+    DRYFIELD_NIGHT_CELLAR_SCAVENGER_RESOURCE_ENTRY = 16,
+    DRYFIELD_NIGHT_CELLAR_BAT_RESOURCE_ENTRY       = 37,
+    DRYFIELD_NIGHT_CELLAR_RAT_RESOURCE_ENTRY       = 7,
 };
 
-AreaResource D_dryfield_night_cellar_80180738[3] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor200700RatTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Scavenger loading/spawn recipe for night cellar variant 1.
+///
+/// Five placements use entry 16, base-group-10 file 16 and descriptor 0.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gDryfieldNightCellarVariant1Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_CELLAR_SCAVENGER_RESOURCE_ENTRY, .fileNumber = 16, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_cellar_8018075C[3] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203700BatTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Bat and Rat loading/spawn recipes for night cellar variant 3.
+///
+/// Six Bats use entry 37, base-group-10 file 37; five Rats use entry 7,
+/// base-group-20 file 7. Both spawn descriptor 0.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gDryfieldNightCellarVariant3Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_CELLAR_BAT_RESOURCE_ENTRY, .fileNumber = 37, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103700BatTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_CELLAR_RAT_RESOURCE_ENTRY, .fileNumber = 7, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor200700RatTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Scavenger and Bat loading/spawn recipes for night cellar variant 11.
+///
+/// Two Scavengers use entry 16, base-group-10 file 16; eight Bats use entry
+/// 37, base-group-20 file 37. Both spawn descriptor 0.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gDryfieldNightCellarVariant11Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_CELLAR_SCAVENGER_RESOURCE_ENTRY, .fileNumber = 16, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_CELLAR_BAT_RESOURCE_ENTRY, .fileNumber = 37, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor203700BatTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_night_cellar_80180780[12] = {
     { NULL, NULL },
-    { gMapDryfieldFullCellarVariant1Placements, D_dryfield_night_cellar_80180720 },
+    { gMapDryfieldFullCellarVariant1Placements, _gDryfieldNightCellarVariant1Resources },
     { NULL, NULL },
-    { gMapDryfieldFullCellarVariant3Placements, D_dryfield_night_cellar_80180738 },
-    { NULL, NULL },
-    { NULL, NULL },
+    { gMapDryfieldFullCellarVariant3Placements, _gDryfieldNightCellarVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { gMapDryfieldFullCellarVariant11Placements, D_dryfield_night_cellar_8018075C },
+    { NULL, NULL },
+    { NULL, NULL },
+    { gMapDryfieldFullCellarVariant11Placements, _gDryfieldNightCellarVariant11Resources },
 };
 
 /// Cue-2 script bases in the loaded type-1 room bank; cue 1 uses the next entry.

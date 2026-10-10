@@ -34,7 +34,13 @@ extern ViewCount D_shelter_b1_storeroom_80184B6C[];
 
 extern DirectionWarpEntry D_shelter_b1_storeroom_80184B70[];
 
-extern ViewCamera D_shelter_b1_storeroom_801850FC[];
+/// Authored cameras for mapped view indices 1..8, stored at index minus one.
+///
+/// Rotation coefficients use `ONE` (4096) per unit; translation is the negated
+/// world-space camera origin in game units. Projection distance is in pixels.
+/// The stage map borrows this array; keep the room overlay loaded until queued
+/// camera tasks have applied their records. There is no terminator.
+extern ViewCamera gShelterB1StoreroomViewCameras[8];
 
 /// Foreground sprite resources for mapped views 1..8, indexed by view minus one.
 ///

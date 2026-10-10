@@ -301,18 +301,20 @@ static s32 _acropolisHelicopterLandingPadLiftHandleRunRequest(Task* task, s32 me
 
 #include "../../shared/actor_messages_place_euler.inc.c"
 
-/// State handlers of the lift task `acropolisHelicopterLandingPadLiftTask`,
-/// indexed by `Task::state`: set-up, the per-frame model update and
-/// `enemyTaskExit`.
-static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5C4 = {
-    { _acropolisHelicopterLandingPadLiftInit, _acropolisHelicopterLandingPadLiftUpdate, enemyTaskExit },
+/// Landing-pad lift handlers indexed by task state 0..2.
+///
+/// State 0 creates the lift, state 1 updates its travel and view visibility,
+/// and state 2 releases its enemy resources. The dispatcher copies the complete
+/// three-handler table before selecting a state.
+static const TaskFuncTable3 _gAcropolisHelicopterLandingPadLiftStates = {
+    .funcs = { _acropolisHelicopterLandingPadLiftInit, _acropolisHelicopterLandingPadLiftUpdate, enemyTaskExit },
 };
 
 void acropolisHelicopterLandingPadLiftTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_acropolis_helicopter_landing_pad_8017D5C4;
+    stateHandlers = _gAcropolisHelicopterLandingPadLiftStates;
     stateHandlers.funcs[task->state](task);
 }
 

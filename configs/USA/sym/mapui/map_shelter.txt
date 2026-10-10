@@ -102,7 +102,7 @@ gShelterB1StoreroomRoomLighting = 0x80184B60; // absolute:True owner=shelter_b1_
 gShelterB1StoreroomRoomViewMaps = 0x80184B68; // absolute:True owner=shelter_b1_storeroom shared=rooms
 D_shelter_b1_storeroom_80184B6C = 0x80184B6C; // absolute:True owner=shelter_b1_storeroom
 D_shelter_b1_storeroom_80184B70 = 0x80184B70; // absolute:True owner=shelter_b1_storeroom
-D_shelter_b1_storeroom_801850FC = 0x801850FC; // absolute:True owner=shelter_b1_storeroom
+gShelterB1StoreroomViewCameras = 0x801850FC; // absolute:True owner=shelter_b1_storeroom
 gShelterB1StoreroomSpriteViews = 0x80186090; // absolute:True owner=shelter_b1_storeroom
 gShelterB1StoreroomSurfaceClassProperties = 0x80186DEC; // absolute:True owner=shelter_b1_storeroom
 shelterB1NorthMaintenanceWalkwayRoomTask = 0x8017DAFC; // type:func absolute:True owner=shelter_b1_north_maintenance_walkway
@@ -122,7 +122,7 @@ gShelterB1ArmoryRoomViewMaps = 0x80182580; // absolute:True owner=shelter_b1_arm
 D_shelter_b1_armory_80182584 = 0x80182584; // absolute:True owner=shelter_b1_armory
 D_shelter_b1_armory_80182588 = 0x80182588; // absolute:True owner=shelter_b1_armory
 gShelterB1ArmoryCollisionGrid = 0x80182ED0; // absolute:True owner=shelter_b1_armory
-D_shelter_b1_armory_80182EF4 = 0x80182EF4; // absolute:True owner=shelter_b1_armory
+gShelterB1ArmoryViewCameras = 0x80182EF4; // absolute:True owner=shelter_b1_armory
 gShelterB1ArmorySpriteViews = 0x80184220; // absolute:True owner=shelter_b1_armory
 gShelterB1ArmoryRoomLights = 0x80184AFC; // absolute:True owner=shelter_b1_armory
 D_shelter_b1_armory_80184B14 = 0x80184B14; // absolute:True owner=shelter_b1_armory
@@ -234,7 +234,7 @@ gShelterB1PodServiceGantryRoomViewMaps = 0x8017FB1C; // absolute:True owner=shel
 D_shelter_b1_pod_service_gantry_8017FB20 = 0x8017FB20; // absolute:True owner=shelter_b1_pod_service_gantry
 D_shelter_b1_pod_service_gantry_8017FB24 = 0x8017FB24; // absolute:True owner=shelter_b1_pod_service_gantry
 gShelterB1PodServiceGantryRoomCollision = 0x801801C4; // absolute:True owner=shelter_b1_pod_service_gantry
-D_shelter_b1_pod_service_gantry_801801E8 = 0x801801E8; // absolute:True owner=shelter_b1_pod_service_gantry
+gShelterB1PodServiceGantryViewCameras = 0x801801E8; // absolute:True owner=shelter_b1_pod_service_gantry
 gShelterB1PodServiceGantrySpriteViews = 0x80181BA0; // absolute:True owner=shelter_b1_pod_service_gantry
 gShelterB1PodServiceGantryRoomLights = 0x801824F4; // absolute:True owner=shelter_b1_pod_service_gantry
 gShelterB1PodServiceGantrySurfacePropertiesByClass = 0x80182520; // absolute:True owner=shelter_b1_pod_service_gantry

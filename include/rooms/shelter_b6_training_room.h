@@ -37,7 +37,13 @@ extern DirectionWarpEntry D_shelter_b6_training_room_80184420[];
 /// stay loaded while collision queries or ground-beam projections use it.
 extern WorldCollisionGrid gShelterB6TrainingRoomCollisionGrid;
 
-extern ViewCamera D_shelter_b6_training_room_80184758[];
+/// Authored cameras for mapped view indices 1..8, stored at index minus one.
+///
+/// Rotation coefficients use `ONE` (4096) per unit; translation is the negated
+/// world-space camera origin in game units. Projection distance is in pixels.
+/// The stage map borrows this array; keep the room overlay loaded until queued
+/// camera tasks have applied their records. There is no terminator.
+extern ViewCamera gShelterB6TrainingRoomViewCameras[SHELTER_B6_TRAINING_ROOM_VIEW_COUNT];
 
 /// Sprite descriptors for mapped training-room views 1..8.
 ///

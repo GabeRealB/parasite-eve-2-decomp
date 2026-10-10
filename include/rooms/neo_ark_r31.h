@@ -29,7 +29,13 @@ extern ViewCount D_neo_ark_r31_8017DA20[];
 
 extern DirectionWarpEntry D_neo_ark_r31_8017DA24[];
 
-extern ViewCamera D_neo_ark_r31_8017DA5C[];
+/// Authored cameras for mapped view indices 1..3, stored at index minus one.
+///
+/// Rotation coefficients use `ONE` (4096) per unit; translation is the negated
+/// world-space camera origin in game units. Projection distance is in pixels.
+/// The stage map borrows this array; keep the room overlay loaded until queued
+/// camera tasks have applied their records. There is no terminator.
+extern ViewCamera gNeoArkR31ViewCameras[3];
 
 /// Neo Ark r31's sprite resources, indexed by mapped view minus one.
 ///

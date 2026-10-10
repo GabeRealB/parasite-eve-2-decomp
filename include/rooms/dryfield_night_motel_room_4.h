@@ -11,7 +11,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_night_motel_room_4_801802FC[13];
+/// Night Motel Room 4's placement/resource directory indexed by variant 0..12.
+///
+/// Variants 1 and 2 contain Odd Strangers and Moths/Blood Sucklers respectively;
+/// all other slots are empty. Gameplay borrows the directory from this room.
+/// Its placements belong to the stage map, its recipes to this room and its
+/// task descriptors to actor overlays; keep each owner loaded while used.
+extern AreaVariant gDryfieldNightMotelRoom4AreaVariants[13];
 
 /// Dryfield Night Motel Room 4's authored lighting and default ambient minima.
 ///
@@ -19,7 +25,12 @@ extern AreaVariant D_dryfield_night_motel_room_4_801802FC[13];
 /// Borrowed lighting storage remains writable and requires the room overlay loaded.
 extern WorldCoordRoomLighting gDryfieldNightMotelRoom4RoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_motel_room_4_8017DA98[];
+/// Collision resources for room slot 1, selected by room minus one.
+///
+/// Contains the grid, eight view boundaries, seven action triggers and two
+/// sight occluders. Setup mutates the borrowed elements; the stage-map directory
+/// and active collision lists require this room overlay loaded until unlinked.
+extern WorldCollisionRoomResources gDryfieldNightMotelRoom4RoomCollisionResources[1];
 
 /// The room's logical-view directory, borrowing gameplay's identity map for views 1..6.
 ///
@@ -28,11 +39,28 @@ extern WorldCollisionRoomResources D_dryfield_night_motel_room_4_8017DA98[];
 /// loaded; the borrowed mapping needs gameplay loaded.
 extern u8* gDryfieldNightMotelRoom4ViewMaps[1];
 
-extern ViewCount D_dryfield_night_motel_room_4_8017DAAC[];
+/// Six logical views searched in room slot 1's identity map.
+///
+/// Indexed by room minus one; the count is signed 16-bit and has no terminator.
+/// Identity indices 1..6 also select this area's cameras, images and sprites.
+/// The stage map borrows this count array while the room overlay stays loaded.
+extern ViewCount gDryfieldNightMotelRoom4ViewCounts[1];
 
-extern DirectionWarpEntry D_dryfield_night_motel_room_4_8017DAB0[];
+/// The door's arrival/departure endpoint, selected by 1-based warp slot 1.
+///
+/// Player and companion arrive at (3580, 0, 541) in game units with zero yaw
+/// and logical view 2. Arrival/departure play the room's sound events; blocked
+/// departure is silent. Later arrivals mark nibble 483 visited. The stage map
+/// borrows this unterminated array, requiring the room overlay loaded.
+extern DirectionWarpEntry gDryfieldNightMotelRoom4WarpEntries[1];
 
-extern ViewCamera D_dryfield_night_motel_room_4_8017E1F4[];
+/// Authored cameras for mapped view indices 1..6, stored at index minus one.
+///
+/// Rotation coefficients use `ONE` (4096) per unit; translation is the negated
+/// world-space camera origin in game units. Projection distance is in pixels.
+/// The stage map borrows this array; keep the room overlay loaded until queued
+/// camera tasks have applied their records. There is no terminator.
+extern ViewCamera gDryfieldNightMotelRoom4ViewCameras[6];
 
 /// Sprite resources for mapped views 1..6, indexed by mapped view - 1.
 ///

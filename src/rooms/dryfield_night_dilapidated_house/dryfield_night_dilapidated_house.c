@@ -72,29 +72,56 @@ WorldCollisionOccluder D_dryfield_night_dilapidated_house_80189F08[1] = {
     { NULL, NULL, { -4096, -2000, 1232, 0 }, { { 0, 2576, -2544, 0 }, { 0, -2576, -2544, 0 }, { 0, 2576, 2544, 0 }, { 0, -2576, 2544, 0 } }, { 4097, 0, 0, 0 }, 3620, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_dryfield_night_dilapidated_house_80189F44[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204000BloodSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys used by this room's resource recipes.
+enum {
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SCORPION_RESOURCE_ENTRY      = 25,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SCAVENGER_RESOURCE_ENTRY     = 16,
+    DRYFIELD_NIGHT_DILAPIDATED_HOUSE_BLOOD_SUCKLER_RESOURCE_ENTRY = 40,
 };
 
-AreaResource D_dryfield_night_dilapidated_house_80189F68[3] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { 40, 40, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor204000BloodSucklerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Scorpion and Blood Suckler recipes for night dilapidated-house variant 3.
+///
+/// Five Scorpions use entry 25, base-group-10 file 25; two Blood Sucklers
+/// use entry 40, base-group-20 file 40. Both spawn descriptor 0.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gDryfieldNightDilapidatedHouseVariant3Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SCORPION_RESOURCE_ENTRY, .fileNumber = 25, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102500Tasks },
+    { .entryId = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_BLOOD_SUCKLER_RESOURCE_ENTRY, .fileNumber = 40, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor204000BloodSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_dryfield_night_dilapidated_house_80189F8C[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Scavenger and Blood Suckler recipes for night dilapidated-house variant 4.
+///
+/// Four Scavengers use entry 16, base-group-10 file 16; two Blood Sucklers
+/// use entry 40, base-group-20 file 40. Both spawn descriptor 0.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gDryfieldNightDilapidatedHouseVariant4Resources[3] = {
+    { .entryId = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SCAVENGER_RESOURCE_ENTRY, .fileNumber = 16, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_BLOOD_SUCKLER_RESOURCE_ENTRY, .fileNumber = 40, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor204000BloodSucklerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// Scavenger recipe for night dilapidated-house variant 21.
+///
+/// Five placements use entry 16, base-group-10 file 16 and descriptor 0.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gDryfieldNightDilapidatedHouseVariant21Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SCAVENGER_RESOURCE_ENTRY, .fileNumber = 16, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor101600ScavengerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { gMapDryfieldFullDilapidatedHouseVariant3Placements, D_dryfield_night_dilapidated_house_80189F44 },
-    { gMapDryfieldFullDilapidatedHouseVariant4Placements, D_dryfield_night_dilapidated_house_80189F68 },
+    { gMapDryfieldFullDilapidatedHouseVariant3Placements, _gDryfieldNightDilapidatedHouseVariant3Resources },
+    { gMapDryfieldFullDilapidatedHouseVariant4Placements, _gDryfieldNightDilapidatedHouseVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -111,7 +138,7 @@ AreaVariant D_dryfield_night_dilapidated_house_80189FA4[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { gMapDryfieldFullDilapidatedHouseVariant21Placements, D_dryfield_night_dilapidated_house_80189F8C },
+    { gMapDryfieldFullDilapidatedHouseVariant21Placements, _gDryfieldNightDilapidatedHouseVariant21Resources },
 };
 
 WorldCoordRoomAmbientEntry gDryfieldNightDilapidatedHouseAmbientByView[12] = {

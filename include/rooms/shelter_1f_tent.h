@@ -39,7 +39,13 @@ extern DirectionWarpEntry D_shelter_1f_tent_80181D4C[];
 /// binds the writable grid to the view. Keep the overlay loaded while used.
 extern WorldCollisionGrid gShelter1fTentCollisionGrid;
 
-extern ViewCamera D_shelter_1f_tent_80182314[];
+/// Authored cameras for mapped view indices 1..10, stored at index minus one.
+///
+/// Rotation coefficients use `ONE` (4096) per unit; translation is the negated
+/// world-space camera origin in game units. Projection distance is in pixels.
+/// The stage map borrows this array; keep the room overlay loaded until queued
+/// camera tasks have applied their records. There is no terminator.
+extern ViewCamera gShelter1fTentViewCameras[10];
 
 /// The tent's ten sprite views, indexed by mapped view minus one.
 ///

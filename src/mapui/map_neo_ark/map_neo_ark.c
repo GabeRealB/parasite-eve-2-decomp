@@ -979,15 +979,15 @@ static ViewCamera* D_map_neo_ark_8017ACA4[33] = {
     gShelterB6NurseryViewCameras,
     gShelterB6GrowthRoomViewCameras,
     gShelterB6CorridorViewCameras,
-    D_shelter_b6_training_room_80184758,
+    gShelterB6TrainingRoomViewCameras,
     gNeoArkR26ViewCameras,
     gNeoArkBridgeViewCameras,
-    D_shelter_1f_tent_80182314,
+    gShelter1fTentViewCameras,
     gNeoArkWoodlandPathViewCameras,
     gNeoArkSubmarineGalleryViewCameras,
-    D_neo_ark_r31_8017DA5C,
-    D_neo_ark_pyramid_801802E8,
-    D_neo_ark_substation_8017E8C8,
+    gNeoArkR31ViewCameras,
+    gNeoArkPyramidViewCameras,
+    gNeoArkSubstationViewCameras,
 };
 
 ViewCameraTable D_map_neo_ark_8017AD28 = { D_map_neo_ark_8017ACA4 };

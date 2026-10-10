@@ -208,22 +208,43 @@ WorldCollisionOccluder gAcropolisHelicopterLandingPadSightOccluders[2] = {
     },
 };
 
-AreaResource D_acropolis_helicopter_landing_pad_801861A0[2] = {
-    { 27, 109, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor510900TaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys used by this room's resource recipes.
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_NO9_RESOURCE_ENTRY        = 27,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_RESOURCE_ENTRY     = 144,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_HELICOPTER_RESOURCE_ENTRY = 254,
 };
 
-AreaResource D_acropolis_helicopter_landing_pad_801861B8[4] = {
-    { 27, 110, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor511000No9GolemTaskDescriptors },
-    { 144, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor511000RupertTaskDescriptors },
-    { 254, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor511000HelicopterTaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// No. 9 GOLEM's loading and body-spawn recipe for landing-pad variant 1.
+///
+/// Entry 27 loads base-group-50 file 109 and spawns descriptor 0.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gAcropolisHelicopterLandingPadVariant1Resources[2] = {
+    { .entryId = ACROPOLIS_HELICOPTER_LANDING_PAD_NO9_RESOURCE_ENTRY, .fileNumber = 109, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = 0, .taskTable = gActor510900TaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END },
+};
+
+/// No. 9, Rupert and helicopter recipes for landing-pad variant 2.
+///
+/// All use file 110: No. 9 selects base group 50, Rupert and the helicopter
+/// select base group 60. Each spawns descriptor 0; all three map placements
+/// have fileIdLow=0, so both base-60 recipes participate in base loading.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gAcropolisHelicopterLandingPadVariant2Resources[4] = {
+    { .entryId = ACROPOLIS_HELICOPTER_LANDING_PAD_NO9_RESOURCE_ENTRY, .fileNumber = 110, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_50, .taskIndex = 0, .taskTable = gActor511000No9GolemTaskDescriptors },
+    { .entryId = ACROPOLIS_HELICOPTER_LANDING_PAD_RUPERT_RESOURCE_ENTRY, .fileNumber = 110, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .taskTable = gActor511000RupertTaskDescriptors },
+    { .entryId = ACROPOLIS_HELICOPTER_LANDING_PAD_HELICOPTER_RESOURCE_ENTRY, .fileNumber = 110, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_60, .taskIndex = 0, .taskTable = gActor511000HelicopterTaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_acropolis_helicopter_landing_pad_801861E8[13] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BD2C, D_acropolis_helicopter_landing_pad_801861A0 },
-    { D_map_akropolis_8017BD4C, D_acropolis_helicopter_landing_pad_801861B8 },
+    { D_map_akropolis_8017BD2C, _gAcropolisHelicopterLandingPadVariant1Resources },
+    { D_map_akropolis_8017BD4C, _gAcropolisHelicopterLandingPadVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

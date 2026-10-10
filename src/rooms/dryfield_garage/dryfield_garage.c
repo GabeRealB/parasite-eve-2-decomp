@@ -669,9 +669,21 @@ static WorldCollisionTrigger _gDryfieldGarageActionTriggers[11] = {
     { NULL, NULL, NULL, { 3624, -64, 2944, 0 }, { { -1864, 0, -1552, 0 }, { 1912, 0, -1552, 0 }, { -1928, 0, 1008, 0 }, { 1880, 0, 1008, 0 } }, { 0, 4119, 0, 0 }, { 201, 0, -4091, 0 }, 2455, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_dryfield_garage_80180060[2] = {
-    { 106, 203, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor120300TaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys used by this room's resource recipes.
+enum {
+    DRYFIELD_GARAGE_GARY_RESOURCE_ENTRY = 106,
+};
+
+/// Gary Douglas's loading and body-spawn recipe for garage variant 1.
+///
+/// The map's single placement uses entry 106. Base-group-10 file 203 loads
+/// actor_120300; the descriptor index selects Gary's body.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gDryfieldGarageVariant1Resources[2] = {
+    { .entryId = DRYFIELD_GARAGE_GARY_RESOURCE_ENTRY, .fileNumber = 203, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = ACTOR_120300_TASK_BODY, .taskTable = gActor120300TaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 /// Placement keys matching the garage's enemy loading recipes.
@@ -720,7 +732,7 @@ static AreaPlacement _gDryfieldGarageVariant10Placements[2] = {
 
 AreaVariant D_dryfield_garage_801800E0[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B724, D_dryfield_garage_80180060 },
+    { D_map_dryfield_8017B724, _gDryfieldGarageVariant1Resources },
     { D_map_dryfield_8017B744, _gDryfieldGarageVariant2Resources },
     { D_map_dryfield_8017B7A4, _gDryfieldGarageVariant3Resources },
     { NULL, NULL },

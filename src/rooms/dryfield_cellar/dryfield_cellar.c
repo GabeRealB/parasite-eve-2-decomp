@@ -981,15 +981,28 @@ static WorldCoordRoomLights _gDryfieldCellarRoom2Lights = {
     .coneLights            = NULL,
 };
 
-AreaResource D_dryfield_cellar_80180AA8[3] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
-    { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor200700RatTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys used by this room's resource recipes.
+enum {
+    DRYFIELD_CELLAR_BAT_RESOURCE_ENTRY = 37,
+    DRYFIELD_CELLAR_RAT_RESOURCE_ENTRY = 7,
+};
+
+/// Bat and Rat loading/spawn recipes for daytime cellar variant 1.
+///
+/// Eight Bat placements use entry 37, base-group-10 file 37; two Rats use
+/// entry 7, base-group-20 file 7. Both spawn descriptor 0.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gDryfieldCellarVariant1Resources[3] = {
+    { .entryId = DRYFIELD_CELLAR_BAT_RESOURCE_ENTRY, .fileNumber = 37, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103700BatTaskDesc },
+    { .entryId = DRYFIELD_CELLAR_RAT_RESOURCE_ENTRY, .fileNumber = 7, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor200700RatTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_dryfield_cellar_80180ACC[12] = {
     { NULL, NULL },
-    { D_map_dryfield_8017BC14, D_dryfield_cellar_80180AA8 },
+    { D_map_dryfield_8017BC14, _gDryfieldCellarVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

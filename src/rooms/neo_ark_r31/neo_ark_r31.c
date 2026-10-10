@@ -59,10 +59,10 @@ DirectionWarpEntry D_neo_ark_r31_8017DA24[1] = {
     { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 1, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-ViewCamera D_neo_ark_r31_8017DA5C[3] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -7510, 0x61A8, -6980 } }, 329 },
-    { { { { 2889, 0, -2903 }, { 2898, 236, 2884 }, { 167, -4089, 167 } }, { -8000, -1000, -7000 } }, 289 },
-    { { { { -3243, 0, 2501 }, { 1904, 2655, 2469 }, { -1621, 3118, -2102 } }, { -8340, 1050, -7830 } }, 289 },
+ViewCamera gNeoArkR31ViewCameras[3] = {
+    { .transform = { .m = { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, .t = { -7510, 0x61A8, -6980 } }, .screenDistance = 329 },
+    { .transform = { .m = { { 2889, 0, -2903 }, { 2898, 236, 2884 }, { 167, -4089, 167 } }, .t = { -8000, -1000, -7000 } }, .screenDistance = 289 },
+    { .transform = { .m = { { -3243, 0, 2501 }, { 1904, 2655, 2469 }, { -1621, 3118, -2102 } }, .t = { -8340, 1050, -7830 } }, .screenDistance = 289 },
 };
 
 /// Keeps decoded image strips without source sprites for mapped view 1.

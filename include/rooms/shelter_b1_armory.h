@@ -35,7 +35,13 @@ extern DirectionWarpEntry D_shelter_b1_armory_80182588[];
 /// descriptor to the current view; it and its pools stay live with this overlay.
 extern WorldCollisionGrid gShelterB1ArmoryCollisionGrid;
 
-extern ViewCamera D_shelter_b1_armory_80182EF4[];
+/// Authored cameras for mapped view indices 1..13, stored at index minus one.
+///
+/// Rotation coefficients use `ONE` (4096) per unit; translation is the negated
+/// world-space camera origin in game units. Projection distance is in pixels.
+/// The stage map borrows this array; keep the room overlay loaded until queued
+/// camera tasks have applied their records. There is no terminator.
+extern ViewCamera gShelterB1ArmoryViewCameras[13];
 
 /// Shelter b1 armory's sprite resources, indexed by mapped view minus one.
 ///

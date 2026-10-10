@@ -34,7 +34,13 @@ extern DirectionWarpEntry D_shelter_b1_pod_service_gantry_8017FB24[];
 /// its private pools must remain writable and loaded while active.
 extern WorldCollisionGrid gShelterB1PodServiceGantryRoomCollision;
 
-extern ViewCamera D_shelter_b1_pod_service_gantry_801801E8[];
+/// Authored cameras for mapped view indices 1..46, stored at index minus one.
+///
+/// Rotation coefficients use `ONE` (4096) per unit; translation is the negated
+/// world-space camera origin in game units. Projection distance is in pixels.
+/// The stage map borrows this array; keep the room overlay loaded until queued
+/// camera tasks have applied their records. There is no terminator.
+extern ViewCamera gShelterB1PodServiceGantryViewCameras[46];
 
 /// Background and foreground sprite descriptors for all 46 mapped gantry views.
 ///

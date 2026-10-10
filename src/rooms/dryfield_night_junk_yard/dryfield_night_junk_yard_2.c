@@ -1005,9 +1005,20 @@ WorldCollisionOccluder D_dryfield_night_junk_yard_80184318[1] = {
     { NULL, NULL, { 0x4980, -544, 1536, 0 }, { { 0, 1024, -1024, 0 }, { 0, -1024, -1024, 0 }, { 0, 1024, 1024, 0 }, { 0, -1024, 1024, 0 } }, { 4096, 0, 0, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-AreaResource D_dryfield_night_junk_yard_80184354[2] = {
-    { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Placement-entry keys used by this room's resource recipes.
+enum {
+    DRYFIELD_NIGHT_JUNK_YARD_ZEBRA_STALKER_RESOURCE_ENTRY = 6,
+};
+
+/// Zebra Stalker recipe for night junk-yard variant 1.
+///
+/// Two placements use entry 6, base-group-40 file 6 and descriptor 0.
+/// The final record is `AREA_PLACEMENT_END`. Keep this room, its map-owned
+/// placements and the selected actor overlays loaded during loading, spawning
+/// and model-flag updates.
+static AreaResource _gDryfieldNightJunkYardVariant1Resources[2] = {
+    { .entryId = DRYFIELD_NIGHT_JUNK_YARD_ZEBRA_STALKER_RESOURCE_ENTRY, .fileNumber = 6, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor400600ZebraStalkerTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaResource D_dryfield_night_junk_yard_8018436C[3] = {
@@ -1035,7 +1046,7 @@ AreaResource D_dryfield_night_junk_yard_801843CC[3] = {
 
 AreaVariant D_dryfield_night_junk_yard_801843F0[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C7F8, D_dryfield_night_junk_yard_80184354 },
+    { D_map_dryfield_full_8017C7F8, _gDryfieldNightJunkYardVariant1Resources },
     { D_map_dryfield_full_8017C828, D_dryfield_night_junk_yard_8018436C },
     { NULL, NULL },
     { D_map_dryfield_full_8017C878, D_dryfield_night_junk_yard_80184390 },
