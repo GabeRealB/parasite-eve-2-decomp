@@ -16,19 +16,43 @@ extern AreaVariant D_dryfield_driveway_8017EDD4[11];
 // dryfield_driveway
 extern WorldCollisionRoomResources D_dryfield_driveway_8017E784[];
 
-extern u8* D_dryfield_driveway_8017E7AC[];
+/// Logical-view maps for driveway room selectors 1 and 2.
+///
+/// Indexed by room minus one, then logical view minus one (views 1..7).
+/// Room 1 uses the identity map; room 2 uses the after-rope map, sending
+/// logical view 4 to resource slot 7 and logical view 7 to slot 4.
+/// Results are 1-based camera/image/sprite indices. Borrow while this overlay is loaded.
+extern u8* gDryfieldDrivewayRoomViewMaps[2];
 
-extern WorldCoordRoomLighting D_dryfield_driveway_8017E7B4[];
+/// Lighting choices for driveway room selectors 1 and 2.
+///
+/// Indexed by room minus one. Both borrow the same twelve point lights and
+/// use the default ambient minima. Records and lights stay live with this overlay.
+extern WorldCoordRoomLighting gDryfieldDrivewayRoomLighting[2];
 
 extern ViewCount D_dryfield_driveway_8017E7C4[];
 
 extern DirectionWarpEntry D_dryfield_driveway_8017E7C8[];
 
-extern ViewCamera D_dryfield_driveway_8017EE2C[];
+/// Seven driveway cameras, indexed by mapped view minus one.
+///
+/// Slots 4 and 7 share a camera pose for the before/after-rope backgrounds.
+/// Borrowed records must remain loaded until a queued camera update applies them.
+extern ViewCamera gDryfieldDrivewayViewCameras[7];
 
-extern SpriteView D_dryfield_driveway_8017FC44[];
+/// Sprite layers and clipping lists for the seven mapped driveway views.
+///
+/// Indexed by mapped view minus one, independently of the logical view.
+/// Slots 1 and 6 contain no source sprites; slots 4 and 7 supply the
+/// before/after-rope layers. Descriptors and backing lists stay live with this overlay.
+extern SpriteView gDryfieldDrivewaySpriteViews[7];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_driveway_80180660[];
+/// Driveway collision policies indexed by surface class 0..7.
+///
+/// Class 1 passes probes and disables weapon impacts; class 2 supplies footstep
+/// sounds. Other classes block probes and allow impacts without footstep sounds.
+/// All classes apply pushback. Borrow these records while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldDrivewaySurfacePropertiesByClass[8];
 
 /// Enables the current view's ambient effects on every room-effect update.
 ///

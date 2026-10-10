@@ -74,10 +74,10 @@ extern RoomLatchedEvent gRoomEventLatched;
 extern AnimationPlayRequest     D_dryfield_driveway_8017E330;
 extern AnimationPlayRequest     D_dryfield_driveway_8017E358;
 extern AnimationBankCopyRequest D_dryfield_driveway_8017E328;
-extern WorldCollisionGrid       D_dryfield_driveway_8017ED74[1];
+static WorldCollisionGrid       _gDryfieldDrivewayCollisionGrid;
 extern WorldCollisionTrigger    D_dryfield_driveway_8017FC98[6];
 extern WorldCollisionTrigger    D_dryfield_driveway_801802F8[11];
-extern WorldCoordRoomLights     D_dryfield_driveway_801802E0[1];
+static WorldCoordRoomLights     _gDryfieldDrivewayRoomLights;
 static s32                      _dryfieldDrivewayUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32                      _dryfieldDrivewayIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
 static s32                      _dryfieldDrivewayIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, s32 unusedRequestWord, s32 unusedSecondArg);
@@ -196,11 +196,15 @@ TaskMessageEntry D_dryfield_driveway_8017E754[6] = {
 };
 
 WorldCollisionRoomResources D_dryfield_driveway_8017E784[2] = {
-    { D_dryfield_driveway_8017ED74, D_dryfield_driveway_8017FC98, D_dryfield_driveway_801802F8, NULL },
-    { D_dryfield_driveway_8017ED74, D_dryfield_driveway_8017FC98, D_dryfield_driveway_801802F8, NULL },
+    { &_gDryfieldDrivewayCollisionGrid, D_dryfield_driveway_8017FC98, D_dryfield_driveway_801802F8, NULL },
+    { &_gDryfieldDrivewayCollisionGrid, D_dryfield_driveway_8017FC98, D_dryfield_driveway_801802F8, NULL },
 };
 
-u8 D_dryfield_driveway_8017E7A4[8] = {
+/// Logical-view to resource-slot map after the wire rope is used.
+///
+/// The first seven bytes map views 1..7; the retained eighth zero is outside
+/// that domain, not a list terminator. Logical view 4 selects resource slot 7.
+static u8 _gDryfieldDrivewayAfterRopeViewMap[8] = {
     1,
     2,
     3,
@@ -211,14 +215,14 @@ u8 D_dryfield_driveway_8017E7A4[8] = {
     0,
 };
 
-u8* D_dryfield_driveway_8017E7AC[2] = {
+u8* gDryfieldDrivewayRoomViewMaps[2] = {
     gViewIdentityMap,
-    D_dryfield_driveway_8017E7A4,
+    _gDryfieldDrivewayAfterRopeViewMap,
 };
 
-WorldCoordRoomLighting D_dryfield_driveway_8017E7B4[2] = {
-    { D_dryfield_driveway_801802E0, NULL },
-    { D_dryfield_driveway_801802E0, NULL },
+WorldCoordRoomLighting gDryfieldDrivewayRoomLighting[2] = {
+    { &_gDryfieldDrivewayRoomLights, NULL },
+    { &_gDryfieldDrivewayRoomLights, NULL },
 };
 
 ViewCount D_dryfield_driveway_8017E7C4[2] = { 7, 7 };
@@ -229,34 +233,64 @@ DirectionWarpEntry D_dryfield_driveway_8017E7C8[3] = {
     { { { .word = 1024 }, -9500, 4, -1418 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 200, 0, 1650 }, { 0, 0, 0, 0 }, 0x52190002, 0x52190001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 482 },
 };
 
-static SVECTOR _gDryfieldDrivewayCollision017B4Normals[13] = {
+/// Room-space collision normals, with `ONE` representing unit length.
+static SVECTOR _gDryfieldDrivewayCollisionGridNormals[13] = {
 #include "assets/dryfield_driveway_collision_017B4_normals.inc"
 };
 
-static SVECTOR _gDryfieldDrivewayCollision017B4Verts[64] = {
+/// Collision vertices in signed room-space game coordinates.
+static SVECTOR _gDryfieldDrivewayCollisionGridVerts[64] = {
 #include "assets/dryfield_driveway_collision_017B4_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldDrivewayCollision017B4Faces[23] = {
+/// Indexed collision quads and their room-local surface classes.
+static WorldCollisionGridFace _gDryfieldDrivewayCollisionGridFaces[23] = {
 #include "assets/dryfield_driveway_collision_017B4_faces.inc"
 };
 
-static s16 _gDryfieldDrivewayCollision017B4Cells[154] = {
+/// Signed face-index lists ending with `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gDryfieldDrivewayCollisionGridCells[154] = {
 #include "assets/dryfield_driveway_collision_017B4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldDrivewayCollision017B4Cells[i])
-static s16* _gDryfieldDrivewayCollision017B4Table[21] = {
+// Generated offsets count halfword elements in this grid's face-list pool.
+#define GRID_CELL(i) (&_gDryfieldDrivewayCollisionGridCells[i])
+/// X-major face-list pointers for the seven by three XZ cells; NULL is empty.
+static s16* _gDryfieldDrivewayCollisionGridTable[21] = {
 #include "assets/dryfield_driveway_collision_017B4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_driveway_8017ED74[1] = {
-    { NULL, _gDryfieldDrivewayCollision017B4Normals, _gDryfieldDrivewayCollision017B4Verts, _gDryfieldDrivewayCollision017B4Faces, _gDryfieldDrivewayCollision017B4Table, 0x2B16, 5210, 7, 3, 4000, 23 },
+/// Driveway collision mesh and its seven by three XZ cell index.
+///
+/// Cells are 4000 game units wide, with origin (-11030, -5210) on XZ.
+/// Both room selectors borrow this mutable grid; setup binds its view coordinate.
+/// The descriptor, mesh pools and cell lists remain live while this overlay is loaded.
+static WorldCollisionGrid _gDryfieldDrivewayCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldDrivewayCollisionGridNormals,
+    .vertices    = _gDryfieldDrivewayCollisionGridVerts,
+    .faces       = _gDryfieldDrivewayCollisionGridFaces,
+    .cellFaceIds = _gDryfieldDrivewayCollisionGridTable,
+    .xBias       = 0x2B16,
+    .zBias       = 5210,
+    .cellCountX  = 7,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldDrivewayCollisionGridFaces),
 };
 
-AreaResource D_dryfield_driveway_8017ED98[2] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
+enum {
+    DRYFIELD_DRIVEWAY_BAT_RESOURCE_ID = 37,
+    DRYFIELD_DRIVEWAY_BAT_FILE_NUMBER = 37,
+};
+
+/// Bat file and task selection for placement variant 1, followed by the end record.
+///
+/// Resource 37 serves all 25 bat placements; base group 10 and file number 37
+/// select actor file 103700. The resource and borrowed task descriptor must stay loaded.
+static AreaResource _gDryfieldDrivewayBatResources[2] = {
+    { DRYFIELD_DRIVEWAY_BAT_RESOURCE_ID, DRYFIELD_DRIVEWAY_BAT_FILE_NUMBER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -271,7 +305,7 @@ AreaResource D_dryfield_driveway_8017EDBC[2] = {
 
 AreaVariant D_dryfield_driveway_8017EDD4[11] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B7E4, D_dryfield_driveway_8017ED98 },
+    { D_map_dryfield_8017B7E4, _gDryfieldDrivewayBatResources },
     { D_map_dryfield_8017B984, D_dryfield_driveway_8017EDB0 },
     { D_map_dryfield_8017B994, D_dryfield_driveway_8017EDBC },
     { NULL, NULL },
@@ -283,8 +317,8 @@ AreaVariant D_dryfield_driveway_8017EDD4[11] = {
     { NULL, NULL },
 };
 
-ViewCamera D_dryfield_driveway_8017EE2C[7] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 1950, 0x7530, -2670 } }, 380 },
+ViewCamera gDryfieldDrivewayViewCameras[7] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 1950, 0x7530, -2670 } }, 380 },
     { { { { -651, 0, 4043 }, { -292, 4085, -47 }, { -4033, -296, -649 } }, { 4393, 820, 1267 } }, 230 },
     { { { { -852, 0, 4006 }, { 449, 4070, 95 }, { -3980, 459, -846 } }, { 425, 1344, 1172 } }, 230 },
     { { { { -1441, 0, 3833 }, { 939, 3971, 353 }, { -3717, 1003, -1397 } }, { -2544, 1724, -2548 } }, 230 },
@@ -293,12 +327,14 @@ ViewCamera D_dryfield_driveway_8017EE2C[7] = {
     { { { { -1441, 0, 3833 }, { 939, 3971, 353 }, { -3717, 1003, -1397 } }, { -2544, 1724, -2548 } }, 230 },
 };
 
-SpriteBatch D_dryfield_driveway_8017EF28[2] = {
+/// Empty mapped-view-1 sprite list retaining decoded background strips.
+static SpriteBatch _gDryfieldDrivewayView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_driveway_8017EF38[9] = {
+/// Nine depth-sorted texture rectangles for mapped view 2, in drawing-origin pixels.
+static SpriteSource _gDryfieldDrivewayView2SpriteSources[9] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 112, 375, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -32, 88, 375, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, 80, 375, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
@@ -310,14 +346,16 @@ SpriteSource D_dryfield_driveway_8017EF38[9] = {
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 152, 56, 54, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_driveway_8017EFEC[4] = {
+/// Two source ranges covering mapped view 2, after the background-strip selector.
+static SpriteBatch _gDryfieldDrivewayView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 1, 0 } },
-    { 5, 4, 0, 0, { 0, 0 } },
+    { 5, ARRAY_SIZE(_gDryfieldDrivewayView2SpriteSources) - 5, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_driveway_8017F00C[17] = {
+/// Seventeen depth-sorted texture rectangles for mapped view 3, in drawing-origin pixels.
+static SpriteSource _gDryfieldDrivewayView3SpriteSources[17] = {
     { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 88, 240, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 40 } }, -120, 80, 240, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 56, 32 } }, -56, 88, 240, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
@@ -337,22 +375,27 @@ SpriteSource D_dryfield_driveway_8017F00C[17] = {
     { 143, 0x3FC0, { .fields = { 8, 72 } }, 48, -48, 931, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_driveway_8017F160[7] = {
+/// Five source ranges covering mapped view 3, after the background-strip selector.
+static SpriteBatch _gDryfieldDrivewayView3SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 0, 0 } },
     { 6, 6, 0, 0, { 3, 0 } },
     { 12, 1, 0, 0, { 2, 0 } },
     { 13, 2, 0, 0, { 4, 0 } },
-    { 15, 2, 0, 0, { 1, 0 } },
+    { 15, ARRAY_SIZE(_gDryfieldDrivewayView3SpriteSources) - 15, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_dryfield_driveway_8017F198[2] = {
+/// Mapped-view-3 clip in draw-buffer pixels, restored to full screen at depth 925.
+///
+/// The second record ends the list; clipping affects depth-sorted scene objects too.
+static SpriteDrawArea _gDryfieldDrivewayView3SpriteDrawAreas[2] = {
     { { 0, 0, 231, 239 }, 925 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_dryfield_driveway_8017F1AC[50] = {
+/// Fifty depth-sorted texture rectangles for mapped view 4, before using the rope.
+static SpriteSource _gDryfieldDrivewayView4SpriteSources[50] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 16, 1125, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 8, 1125, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 56 } }, -64, -16, 1125, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -405,7 +448,8 @@ SpriteSource D_dryfield_driveway_8017F1AC[50] = {
     { 142, 0x3FC0, { .fields = { 16, 40 } }, 104, 40, 883, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_driveway_8017F594[14] = {
+/// Mapped-view-4 ranges covering all fifty sources, including one retained empty range.
+static SpriteBatch _gDryfieldDrivewayView4SpriteBatches[14] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 7, 0 } },
     { 5, 0, 0, 0, { 2, 0 } },
@@ -418,11 +462,12 @@ SpriteBatch D_dryfield_driveway_8017F594[14] = {
     { 34, 5, 0, 0, { 8, 0 } },
     { 39, 5, 0, 0, { 4, 0 } },
     { 44, 1, 0, 0, { 11, 0 } },
-    { 45, 5, 0, 0, { 3, 0 } },
+    { 45, ARRAY_SIZE(_gDryfieldDrivewayView4SpriteSources) - 45, 0, 0, { 3, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_driveway_8017F604[12] = {
+/// Twelve depth-sorted texture rectangles for mapped view 5, in drawing-origin pixels.
+static SpriteSource _gDryfieldDrivewayView5SpriteSources[12] = {
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 8, 948, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 16, 888, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 8 } }, -88, 24, 895, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
@@ -437,19 +482,24 @@ SpriteSource D_dryfield_driveway_8017F604[12] = {
     { 143, 0x3FC0, { .fields = { 24, 32 } }, -88, 72, 681, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_driveway_8017F6F4[4] = {
+/// Two source ranges covering mapped view 5, after the background-strip selector.
+static SpriteBatch _gDryfieldDrivewayView5SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 1, 0 } },
-    { 8, 4, 0, 0, { 0, 0 } },
+    { 8, ARRAY_SIZE(_gDryfieldDrivewayView5SpriteSources) - 8, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_driveway_8017F714[2] = {
+/// Empty mapped-view-6 sprite list retaining decoded background strips.
+static SpriteBatch _gDryfieldDrivewayView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_driveway_8017F724[60] = {
+/// Sixty depth-sorted texture rectangles for the after-rope version of logical view 4.
+///
+/// Room selector 2 maps that logical view to resource slot 7.
+static SpriteSource _gDryfieldDrivewayView7SpriteSources[60] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, 16, 1125, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -48, 8, 1125, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 56 } }, -64, -16, 1125, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
@@ -512,7 +562,8 @@ SpriteSource D_dryfield_driveway_8017F724[60] = {
     { 142, 0x3FC0, { .fields = { 16, 40 } }, 104, 40, 883, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_driveway_8017FBD4[14] = {
+/// Mapped-view-7 ranges covering all sixty sources, including one retained empty range.
+static SpriteBatch _gDryfieldDrivewayView7SpriteBatches[14] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 7, 0 } },
     { 5, 0, 0, 0, { 2, 0 } },
@@ -525,18 +576,18 @@ SpriteBatch D_dryfield_driveway_8017FBD4[14] = {
     { 41, 4, 0, 0, { 8, 0 } },
     { 45, 5, 0, 0, { 4, 0 } },
     { 50, 5, 0, 0, { 11, 0 } },
-    { 55, 5, 0, 0, { 3, 0 } },
+    { 55, ARRAY_SIZE(_gDryfieldDrivewayView7SpriteSources) - 55, 0, 0, { 3, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_driveway_8017FC44[7] = {
-    { { .empty = D_dryfield_driveway_8017EF28 }, D_dryfield_driveway_8017EF28, NULL },
-    { { .elements = D_dryfield_driveway_8017EF38 }, D_dryfield_driveway_8017EFEC, NULL },
-    { { .elements = D_dryfield_driveway_8017F00C }, D_dryfield_driveway_8017F160, D_dryfield_driveway_8017F198 },
-    { { .elements = D_dryfield_driveway_8017F1AC }, D_dryfield_driveway_8017F594, NULL },
-    { { .elements = D_dryfield_driveway_8017F604 }, D_dryfield_driveway_8017F6F4, NULL },
-    { { .empty = D_dryfield_driveway_8017F714 }, D_dryfield_driveway_8017F714, NULL },
-    { { .elements = D_dryfield_driveway_8017F724 }, D_dryfield_driveway_8017FBD4, NULL },
+SpriteView gDryfieldDrivewaySpriteViews[7] = {
+    { { .empty = _gDryfieldDrivewayView1SpriteBatches }, _gDryfieldDrivewayView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldDrivewayView2SpriteSources }, _gDryfieldDrivewayView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldDrivewayView3SpriteSources }, _gDryfieldDrivewayView3SpriteBatches, _gDryfieldDrivewayView3SpriteDrawAreas },
+    { { .elements = _gDryfieldDrivewayView4SpriteSources }, _gDryfieldDrivewayView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldDrivewayView5SpriteSources }, _gDryfieldDrivewayView5SpriteBatches, NULL },
+    { { .empty = _gDryfieldDrivewayView6SpriteBatches }, _gDryfieldDrivewayView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldDrivewayView7SpriteSources }, _gDryfieldDrivewayView7SpriteBatches, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_driveway_8017FC98[6] = {
@@ -548,23 +599,33 @@ WorldCollisionTrigger D_dryfield_driveway_8017FC98[6] = {
     { NULL, NULL, NULL, { -26, -1488, 1301, 0 }, { { 435, -2512, -2213, 0 }, { -435, -2512, 2214, 0 }, { 435, 2512, -2213, 0 }, { -435, 2512, 2214, 0 } }, { 4031, 0, 792, 0 }, { 0, 0, 4096, 0 }, 3367, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_driveway_8017FE60[12] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x28AE, -2000, 2764 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 1966, 2048 }, { 0, 0 } }, 0x61A7, 0x61A8 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4104 }, { 0, 0 } }, 499, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4990, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4098, 4107 }, { 0, 0 } }, 339, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5990, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4106, 4108, 4107 }, { 0, 0 } }, 438, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6892, -2000, 2764 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 1966, 2048 }, { 0, 0 } }, 0x61A7, 0x61A8 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4508, 4508, 4506 }, { 0, 0 } }, 737, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x2856, 8167, 7585 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x2856, 8167, 7585 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x2856, 8167, 7585 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4099, 4097 }, { 0, 0 } }, 499, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2000, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4106, 4122, 4158 }, { 0, 0 } }, 398, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2990, -2000, 2220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4112, 4096, 4105 }, { 0, 0 } }, 498, 2000 },
+/// Twelve mutable point lights shared by both driveway room selectors and all views.
+///
+/// Placement and falloff radii use game coordinates; RGB intensity has twelve
+/// fractional bits. Room binding and shading update their parents, caches and attenuation.
+static WorldCoordPointLight _gDryfieldDrivewayPointLights[12] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x28AE, -2000, 2764 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 1966, 2048 }, { 0, 0 } }, 0x61A7, 0x61A8 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4000, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 4104 }, { 0, 0 } }, 499, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4990, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4098, 4107 }, { 0, 0 } }, 339, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5990, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4106, 4108, 4107 }, { 0, 0 } }, 438, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6892, -2000, 2764 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 1966, 2048 }, { 0, 0 } }, 0x61A7, 0x61A8 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4508, 4508, 4506 }, { 0, 0 } }, 737, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -1000, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x2856, 8167, 7585 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2000, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x2856, 8167, 7585 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 0x2856, 8167, 7585 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4099, 4097 }, { 0, 0 } }, 499, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2000, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4106, 4122, 4158 }, { 0, 0 } }, 398, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2990, -2000, 2220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4112, ONE, 4105 }, { 0, 0 } }, 498, 2000 },
 };
 
-WorldCoordRoomLights D_dryfield_driveway_801802E0[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_driveway_8017FE60), D_dryfield_driveway_8017FE60, 0, NULL },
+/// Shared driveway light collection: twelve point lights, no directional or cone lights.
+static WorldCoordRoomLights _gDryfieldDrivewayRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldDrivewayPointLights),
+    .pointLights           = _gDryfieldDrivewayPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_dryfield_driveway_801802F8[11] = {
@@ -581,33 +642,57 @@ WorldCollisionTrigger D_dryfield_driveway_801802F8[11] = {
     { NULL, NULL, NULL, { -1504, -64, 2400, 0 }, { { -1744, 0, -1760, 0 }, { 1712, 0, -1760, 0 }, { -1744, 0, 1120, 0 }, { 1712, 0, 1120, 0 } }, { 0, 4098, 0, 0 }, { 4096, 0, 0, 0 }, 2468, WORLD_COLLISION_TRIGGER_ACTION_ROOM, WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_dryfield_driveway_8018063C = {
-    0x1000001D,
-    0x1000001F,
-    0x1000001D,
+enum {
+    DRYFIELD_DRIVEWAY_FOOTSTEP_WALK_REQUEST = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1D,
+    DRYFIELD_DRIVEWAY_FOOTSTEP_RUN_REQUEST  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x1F,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_driveway_80180648[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Paired type-1 sound requests for surface class 2's walking, running and scripted jumps.
+///
+/// Cue 2 uses each base; cue 1 uses base + 1. Scripted jumps share the walk pair.
+/// Requests select the loaded type-1 sound bank; the surface borrows this room-owned record.
+static WorldCollisionFootstepSounds _gDryfieldDrivewayFootstepSounds = {
+    .walk         = DRYFIELD_DRIVEWAY_FOOTSTEP_WALK_REQUEST,
+    .run          = DRYFIELD_DRIVEWAY_FOOTSTEP_RUN_REQUEST,
+    .scriptedJump = DRYFIELD_DRIVEWAY_FOOTSTEP_WALK_REQUEST,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_driveway_80180650[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, impact-enabled surface policy without footstep sounds, for classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gDryfieldDrivewayBlockingSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_driveway_80180658[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_driveway_8018063C },
+/// Class-1 policy: probes pass, weapon impacts are disabled, pushback remains enabled.
+static WorldCollisionSurfaceProperties _gDryfieldDrivewayProbePassSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_PASS_PROBES,
+    WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_driveway_80180660[8] = {
-    D_dryfield_driveway_80180648,
-    D_dryfield_driveway_80180650,
-    D_dryfield_driveway_80180658,
-    D_dryfield_driveway_80180648,
-    D_dryfield_driveway_80180648,
-    D_dryfield_driveway_80180648,
-    D_dryfield_driveway_80180648,
-    D_dryfield_driveway_80180648,
+/// Class-2 blocking, impact-enabled surface policy with paired footstep sounds.
+static WorldCollisionSurfaceProperties _gDryfieldDrivewayFootstepSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gDryfieldDrivewayFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldDrivewaySurfacePropertiesByClass[8] = {
+    &_gDryfieldDrivewayBlockingSurfaceProperties,
+    &_gDryfieldDrivewayProbePassSurfaceProperties,
+    &_gDryfieldDrivewayFootstepSurfaceProperties,
+    &_gDryfieldDrivewayBlockingSurfaceProperties,
+    &_gDryfieldDrivewayBlockingSurfaceProperties,
+    &_gDryfieldDrivewayBlockingSurfaceProperties,
+    &_gDryfieldDrivewayBlockingSurfaceProperties,
+    &_gDryfieldDrivewayBlockingSurfaceProperties,
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
