@@ -16,11 +16,22 @@ extern AreaVariant D_acropolis_promenade_80183020[17];
 // acropolis_promenade
 extern WorldCollisionRoomResources D_acropolis_promenade_80181B90[];
 
-extern u8* D_acropolis_promenade_80181BC0[];
+/// Logical-view maps for promenade rooms 1 and 2, indexed by room minus one.
+///
+/// Each room has logical views 1..13; index at view minus one to obtain the
+/// 1-based camera, image and sprite index. Room 1 uses `gViewIdentityMap`;
+/// room 2 exchanges mapped views 4/8 and 5/9. The map overlay borrows these
+/// pointers while the promenade overlay is loaded; there is no terminator.
+extern u8* gAcropolisPromenadeViewMaps[2];
 
 extern ViewCount D_acropolis_promenade_80181BC8[];
 
-extern WorldCoordRoomLighting D_acropolis_promenade_80181BCC[];
+/// Lighting descriptors for promenade rooms 1 and 2, indexed by room minus one.
+///
+/// Both borrow the same mutable point-light collection and use the default
+/// ambient minima. The descriptors and lights require the promenade overlay
+/// to stay loaded; this two-element table has no terminator.
+extern WorldCoordRoomLighting gAcropolisPromenadeRoomLightingTable[2];
 
 extern DirectionWarpEntry D_acropolis_promenade_80181BDC[];
 
@@ -28,7 +39,15 @@ extern SpriteView D_acropolis_promenade_80185FB4[];
 
 extern ViewCamera D_acropolis_promenade_80186050[];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_promenade_801862B0[];
+/// Promenade collision and footstep policies, indexed by surface class 0..7.
+///
+/// Classes 0, 5 and 6 share blocking, pushback-enabled properties without
+/// footstep cues. Classes 1..4 also provide footstep cue bases. Class 7 passes
+/// probes and suppresses pushback while allowing weapon impacts. Classes 3 and
+/// 7 supply cue bases for entries absent from this room's loaded sound bank.
+/// The map overlay borrows all eight pointers and their records while the
+/// promenade overlay is loaded; there is no terminator.
+extern WorldCollisionSurfaceProperties* gAcropolisPromenadeSurfacePropertiesByClass[8];
 
 /// Emits the promenade's view-dependent lamps, ground glow and screen drips.
 ///

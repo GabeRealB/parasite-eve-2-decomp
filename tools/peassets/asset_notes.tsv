@@ -4633,7 +4633,7 @@ spk_168	Footstep bank of acropolis_forked_road: walk and run step sounds on surf
 spk_169	Acropolis forked road room sound bank: fountain-exit door sounds, the leap-in sound of the scripted Caterpillars (actor_105500/102600) and the dormant Grinning Stranger's two random sounds.	
 spk_17	MP5A5 weapon sound bank (weapon 30): primary shot, secondary flash fire, empty-chamber click, reload start and reload load cues.	
 spk_170	Footstep bank of acropolis_observatory: walk, scripted-jump and run step sounds on surface class 1.	
-spk_171	Footstep bank of acropolis_promenade: walk, jump and run step sounds on surface classes 1, 2 and 4.	
+spk_171	Footstep bank of acropolis_promenade: walk, stair-climb and run step sounds on surface classes 1, 2 and 4.	The third footstep base is selected for scripted stair climbing (actor mode 2, state 3).
 spk_172	Acropolis promenade room sound bank: door sounds of the sanctuary and bridge warps, two caption-cue one-shots and two sounds of the post-battle scene.	
 spk_173	Footstep bank of acropolis_sanctuary: walk, scripted-jump and run step sounds on surface classes 1 and 2.	
 spk_174	Acropolis sanctuary room sound bank: door sounds of the promenade and roof-garden warps and the two sounds of the room's automatic cutscene; the item-lid entries are not reached.	

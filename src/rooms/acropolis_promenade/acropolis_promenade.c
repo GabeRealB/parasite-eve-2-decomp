@@ -109,19 +109,14 @@ static void _acropolisPromenadeMoviePathTask(Task* task);
 static void _acropolisPromenadeMovieSkipFadeOutTask(Task* task);
 static void _acropolisPromenadeSceneFadeInTask(Task* task);
 
-extern WorldCollisionGrid    D_acropolis_promenade_801823DC[1];
+static WorldCollisionGrid    _gAcropolisPromenadeRoom1CollisionGrid;
 extern WorldCollisionGrid    D_acropolis_promenade_80182BD0[1];
 extern WorldCollisionTrigger D_acropolis_promenade_80182BF4[6];
 extern WorldCollisionTrigger D_acropolis_promenade_80182DBC[6];
-extern WorldCoordRoomLights  D_acropolis_promenade_80183A08[1];
+static WorldCoordRoomLights  _gAcropolisPromenadeRoomLights;
 
 extern AnimationPlayRequest D_acropolis_promenade_80180EBC;
 
-extern SpriteBatch  D_acropolis_promenade_80183A20[2];
-extern SpriteBatch  D_acropolis_promenade_80183FF8[11];
-extern SpriteBatch  D_acropolis_promenade_801841A4[5];
-extern SpriteBatch  D_acropolis_promenade_8018462C[9];
-extern SpriteBatch  D_acropolis_promenade_80184CF0[9];
 extern SpriteBatch  D_acropolis_promenade_80185224[9];
 extern SpriteBatch  D_acropolis_promenade_801854EC[8];
 extern SpriteBatch  D_acropolis_promenade_801858C4[9];
@@ -129,11 +124,6 @@ extern SpriteBatch  D_acropolis_promenade_80185F24[10];
 extern SpriteBatch  D_acropolis_promenade_80185F74[2];
 extern SpriteBatch  D_acropolis_promenade_80185F84[2];
 extern SpriteBatch  D_acropolis_promenade_80185F94[2];
-extern SpriteSource D_acropolis_promenade_80183A30[74];
-extern SpriteSource D_acropolis_promenade_80184050[17];
-extern SpriteSource D_acropolis_promenade_801841CC[56];
-extern SpriteSource D_acropolis_promenade_80184674[83];
-extern SpriteSource D_acropolis_promenade_80184D38[63];
 extern SpriteSource D_acropolis_promenade_8018526C[32];
 extern SpriteSource D_acropolis_promenade_8018552C[46];
 extern SpriteSource D_acropolis_promenade_8018590C[78];
@@ -295,11 +285,15 @@ u16 D_acropolis_promenade_80181B78[12] = {
 };
 
 WorldCollisionRoomResources D_acropolis_promenade_80181B90[2] = {
-    { D_acropolis_promenade_801823DC, D_acropolis_promenade_80182BF4, D_acropolis_promenade_80182DBC, NULL },
+    { &_gAcropolisPromenadeRoom1CollisionGrid, D_acropolis_promenade_80182BF4, D_acropolis_promenade_80182DBC, NULL },
     { D_acropolis_promenade_80182BD0, D_acropolis_promenade_80182BF4, D_acropolis_promenade_80182DBC, NULL },
 };
 
-u8 D_acropolis_promenade_80181BB0[16] = {
+/// Room 2's logical-view to camera/image/sprite mapping.
+///
+/// Only the first thirteen bytes are view entries, indexed by logical view
+/// minus one. The final three serialized zero bytes lie outside that domain.
+static u8 _gAcropolisPromenadeRoom2ViewMap[16] = {
     1,
     2,
     3,
@@ -318,16 +312,16 @@ u8 D_acropolis_promenade_80181BB0[16] = {
     0,
 };
 
-u8* D_acropolis_promenade_80181BC0[2] = {
+u8* gAcropolisPromenadeViewMaps[2] = {
     gViewIdentityMap,
-    D_acropolis_promenade_80181BB0,
+    _gAcropolisPromenadeRoom2ViewMap,
 };
 
 ViewCount D_acropolis_promenade_80181BC8[2] = { 13, 13 };
 
-WorldCoordRoomLighting D_acropolis_promenade_80181BCC[2] = {
-    { D_acropolis_promenade_80183A08, NULL },
-    { D_acropolis_promenade_80183A08, NULL },
+WorldCoordRoomLighting gAcropolisPromenadeRoomLightingTable[2] = {
+    { &_gAcropolisPromenadeRoomLights, NULL },
+    { &_gAcropolisPromenadeRoomLights, NULL },
 };
 
 DirectionWarpEntry D_acropolis_promenade_80181BDC[5] = {
@@ -338,30 +332,49 @@ DirectionWarpEntry D_acropolis_promenade_80181BDC[5] = {
     { { { .word = 1024 }, -2197, 44, -1977 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -2197, 44, -1977 }, { 0, 0, 0, 0 }, 0x510B000E, 0x510B000D, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, 491 },
 };
 
-static SVECTOR _gAcropolisPromenadeCollision04E1CNormals[30] = {
+/// Room 1 grid's room-axis normals, with 4096 representing unit length.
+static SVECTOR _gAcropolisPromenadeRoom1CollisionGridNormals[30] = {
 #include "assets/acropolis_promenade_collision_04E1C_normals.inc"
 };
 
-static SVECTOR _gAcropolisPromenadeCollision04E1CVerts[93] = {
+/// Room 1 grid's vertices in signed game-coordinate units.
+static SVECTOR _gAcropolisPromenadeRoom1CollisionGridVerts[93] = {
 #include "assets/acropolis_promenade_collision_04E1C_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisPromenadeCollision04E1CFaces[38] = {
+/// Room 1 grid's quads, indexing its vertex/normal pools and surface classes 0/1.
+static WorldCollisionGridFace _gAcropolisPromenadeRoom1CollisionGridFaces[38] = {
 #include "assets/acropolis_promenade_collision_04E1C_faces.inc"
 };
 
-static s16 _gAcropolisPromenadeCollision04E1CCells[144] = {
+/// Serialized room 1 cell face-index lists, each ending at a signed -1 marker.
+static s16 _gAcropolisPromenadeRoom1CollisionGridCells[144] = {
 #include "assets/acropolis_promenade_collision_04E1C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisPromenadeCollision04E1CCells[i])
-static s16* _gAcropolisPromenadeCollision04E1CTable[10] = {
+#define GRID_CELL(i) (&_gAcropolisPromenadeRoom1CollisionGridCells[i])
+/// Room 1 grid's ten cell lists, indexed as x * 5 + z.
+static s16* _gAcropolisPromenadeRoom1CollisionGridTable[10] = {
 #include "assets/acropolis_promenade_collision_04E1C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_promenade_801823DC[1] = {
-    { NULL, _gAcropolisPromenadeCollision04E1CNormals, _gAcropolisPromenadeCollision04E1CVerts, _gAcropolisPromenadeCollision04E1CFaces, _gAcropolisPromenadeCollision04E1CTable, 2780, 8590, 2, 5, 4000, 38 },
+/// Mutable collision grid for promenade room 1, bound to the view on activation.
+///
+/// The 2-by-5 X-major grid uses 4000-unit square cells and room-axis biases
+/// (2780, 8590). Its mesh and cell lists remain borrowed while the room is loaded.
+static WorldCollisionGrid _gAcropolisPromenadeRoom1CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisPromenadeRoom1CollisionGridNormals,
+    .vertices    = _gAcropolisPromenadeRoom1CollisionGridVerts,
+    .faces       = _gAcropolisPromenadeRoom1CollisionGridFaces,
+    .cellFaceIds = _gAcropolisPromenadeRoom1CollisionGridTable,
+    .xBias       = 2780,
+    .zBias       = 8590,
+    .cellCountX  = 2,
+    .cellCountZ  = 5,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisPromenadeRoom1CollisionGridFaces),
 };
 
 static SVECTOR _gAcropolisPromenadeCollision05610Normals[30] = {
@@ -790,16 +803,27 @@ static WorldCoordPointLight _gAcropolisPromenadePointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_promenade_80183A08[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisPromenadePointLights), _gAcropolisPromenadePointLights, 0, NULL },
+/// Point-light collection shared by both promenade rooms for model shading.
+///
+/// No directional or cone lights are supplied. The room owns the mutable light
+/// array, whose coordinate caches and attenuation change during lighting updates.
+static WorldCoordRoomLights _gAcropolisPromenadeRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisPromenadePointLights),
+    .pointLights           = _gAcropolisPromenadePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-SpriteBatch D_acropolis_promenade_80183A20[2] = {
+/// Empty sprite list for mapped views 1 and 13, retaining decoded image strips.
+static SpriteBatch _gAcropolisPromenadeViews1And13SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_promenade_80183A30[74] = {
+/// Mapped view 2's 74 sprite rectangles, with pixel positions and unscaled OT depths.
+static SpriteSource _gAcropolisPromenadeView2SpriteSources[74] = {
     { 141, 0x3FC0, { .fields = { 72, 24 } }, -160, 96, 450, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 56 } }, -160, -32, 450, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 32, 32 } }, -160, 24, 450, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
@@ -876,7 +900,8 @@ SpriteSource D_acropolis_promenade_80183A30[74] = {
     { 143, 0x4040, { .fields = { 8, 64 } }, -104, 8, 463, { .fields = { 56, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_acropolis_promenade_80183FF8[11] = {
+/// Mapped view 2's source ranges, after an empty image-strip batch and before the end marker.
+static SpriteBatch _gAcropolisPromenadeView2SpriteBatches[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 0, 0 } },
     { 3, 2, 0, 0, { 5, 0 } },
@@ -886,11 +911,12 @@ SpriteBatch D_acropolis_promenade_80183FF8[11] = {
     { 49, 4, 0, 0, { 7, 0 } },
     { 53, 3, 0, 0, { 3, 0 } },
     { 56, 9, 0, 0, { 8, 0 } },
-    { 65, 9, 0, 0, { 2, 0 } },
+    { 65, ARRAY_SIZE(_gAcropolisPromenadeView2SpriteSources) - 65, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_promenade_80184050[17] = {
+/// Mapped view 3's 17 sprite rectangles, with pixel positions and unscaled OT depths.
+static SpriteSource _gAcropolisPromenadeView3SpriteSources[17] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -72, -48, 1525, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -56, -40, 1568, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 120 } }, -160, -120, 1450, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
@@ -910,15 +936,17 @@ SpriteSource D_acropolis_promenade_80184050[17] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 8, 24, 2449, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_promenade_801841A4[5] = {
+/// Mapped view 3's source ranges, after an empty image-strip batch and before the end marker.
+static SpriteBatch _gAcropolisPromenadeView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 1, 0 } },
     { 8, 6, 0, 0, { 2, 0 } },
-    { 14, 3, 0, 0, { 0, 0 } },
+    { 14, ARRAY_SIZE(_gAcropolisPromenadeView3SpriteSources) - 14, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_promenade_801841CC[56] = {
+/// Mapped view 4's 56 sprite rectangles, with pixel positions and unscaled OT depths.
+static SpriteSource _gAcropolisPromenadeView4SpriteSources[56] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, 64, 1067, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 136 } }, -160, -112, 587, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 136 } }, -152, -112, 659, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
@@ -977,7 +1005,8 @@ SpriteSource D_acropolis_promenade_801841CC[56] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, -112, 16, 2200, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_promenade_8018462C[9] = {
+/// Mapped view 4's source ranges, after an empty image-strip batch and before the end marker.
+static SpriteBatch _gAcropolisPromenadeView4SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 3, 0 } },
     { 16, 9, 0, 0, { 4, 0 } },
@@ -985,11 +1014,12 @@ SpriteBatch D_acropolis_promenade_8018462C[9] = {
     { 35, 3, 0, 0, { 5, 0 } },
     { 38, 11, 0, 0, { 0, 0 } },
     { 49, 2, 0, 0, { 6, 0 } },
-    { 51, 5, 0, 0, { 2, 0 } },
+    { 51, ARRAY_SIZE(_gAcropolisPromenadeView4SpriteSources) - 51, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_promenade_80184674[83] = {
+/// Mapped view 5's 83 sprite rectangles, with pixel positions and unscaled OT depths.
+static SpriteSource _gAcropolisPromenadeView5SpriteSources[83] = {
     { 143, 0x3FC0, { .fields = { 24, 64 } }, -80, -80, 3667, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 48 } }, -56, -80, 3667, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -96, -80, 3667, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
@@ -1075,7 +1105,8 @@ SpriteSource D_acropolis_promenade_80184674[83] = {
     { 142, 0x3FC0, { .fields = { 48, 32 } }, -160, 88, 875, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_acropolis_promenade_80184CF0[9] = {
+/// Mapped view 5's source ranges, after an empty image-strip batch and before the end marker.
+static SpriteBatch _gAcropolisPromenadeView5SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 3, 0 } },
     { 13, 22, 0, 0, { 4, 0 } },
@@ -1083,11 +1114,12 @@ SpriteBatch D_acropolis_promenade_80184CF0[9] = {
     { 37, 22, 0, 0, { 5, 0 } },
     { 59, 3, 0, 0, { 0, 0 } },
     { 62, 17, 0, 0, { 6, 0 } },
-    { 79, 4, 0, 0, { 2, 0 } },
+    { 79, ARRAY_SIZE(_gAcropolisPromenadeView5SpriteSources) - 79, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_promenade_80184D38[63] = {
+/// Mapped view 6's 63 sprite rectangles, with pixel positions and unscaled OT depths.
+static SpriteSource _gAcropolisPromenadeView6SpriteSources[63] = {
     { 143, 0x3FC0, { .fields = { 24, 176 } }, -160, -120, 1475, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 104 } }, -136, -56, 1500, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 96 } }, -120, -48, 1525, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
@@ -1387,19 +1419,19 @@ SpriteBatch D_acropolis_promenade_80185FA4[2] = {
 };
 
 SpriteView D_acropolis_promenade_80185FB4[13] = {
-    { { .empty = D_acropolis_promenade_80183A20 }, D_acropolis_promenade_80183A20, NULL },
-    { { .elements = D_acropolis_promenade_80183A30 }, D_acropolis_promenade_80183FF8, NULL },
-    { { .elements = D_acropolis_promenade_80184050 }, D_acropolis_promenade_801841A4, NULL },
-    { { .elements = D_acropolis_promenade_801841CC }, D_acropolis_promenade_8018462C, NULL },
-    { { .elements = D_acropolis_promenade_80184674 }, D_acropolis_promenade_80184CF0, NULL },
-    { { .elements = D_acropolis_promenade_80184D38 }, D_acropolis_promenade_80185224, NULL },
+    { { .empty = _gAcropolisPromenadeViews1And13SpriteBatches }, _gAcropolisPromenadeViews1And13SpriteBatches, NULL },
+    { { .elements = _gAcropolisPromenadeView2SpriteSources }, _gAcropolisPromenadeView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisPromenadeView3SpriteSources }, _gAcropolisPromenadeView3SpriteBatches, NULL },
+    { { .elements = _gAcropolisPromenadeView4SpriteSources }, _gAcropolisPromenadeView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisPromenadeView5SpriteSources }, _gAcropolisPromenadeView5SpriteBatches, NULL },
+    { { .elements = _gAcropolisPromenadeView6SpriteSources }, D_acropolis_promenade_80185224, NULL },
     { { .elements = D_acropolis_promenade_8018526C }, D_acropolis_promenade_801854EC, NULL },
     { { .elements = D_acropolis_promenade_8018552C }, D_acropolis_promenade_801858C4, NULL },
     { { .elements = D_acropolis_promenade_8018590C }, D_acropolis_promenade_80185F24, NULL },
     { { .empty = D_acropolis_promenade_80185F74 }, D_acropolis_promenade_80185F74, NULL },
     { { .empty = D_acropolis_promenade_80185F84 }, D_acropolis_promenade_80185F84, NULL },
     { { .empty = D_acropolis_promenade_80185F94 }, D_acropolis_promenade_80185F94, NULL },
-    { { .empty = D_acropolis_promenade_80183A20 }, D_acropolis_promenade_80183A20, NULL },
+    { { .empty = _gAcropolisPromenadeViews1And13SpriteBatches }, _gAcropolisPromenadeViews1And13SpriteBatches, NULL },
 };
 
 ViewCamera D_acropolis_promenade_80186050[13] = {
@@ -1432,69 +1464,110 @@ PadScriptVibrationSegment D_acropolis_promenade_8018623C[2] = {
     { 60, 60, 1, 0 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_promenade_80186244 = {
-    0x10000009,
-    0x1000000B,
-    0x10000009,
+/// Class 1's cue-2 bases in the loaded type-1 bank for walking, running and stair climbing.
+static WorldCollisionFootstepSounds _gAcropolisPromenadeSurfaceClass1FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x09,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x0B,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x09,
 };
 
-WorldCollisionFootstepSounds D_acropolis_promenade_80186250 = {
-    0x10000031,
-    0x10000033,
-    0x10000031,
+/// Class 2's cue-2 bases in the loaded type-1 bank for walking, running and stair climbing.
+static WorldCollisionFootstepSounds _gAcropolisPromenadeSurfaceClass2FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x31,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x33,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x31,
 };
 
-WorldCollisionFootstepSounds D_acropolis_promenade_8018625C = {
-    0x10000025,
-    0x10000027,
-    0x10000025,
+/// Class 3's cue-2 bases in the loaded type-1 bank for walking, running and stair climbing.
+///
+/// These entries have no scripts in the promenade's sound bank.
+static WorldCollisionFootstepSounds _gAcropolisPromenadeSurfaceClass3FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
 };
 
-WorldCollisionFootstepSounds D_acropolis_promenade_80186268 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+/// Class 4's cue-2 bases in the loaded type-1 bank for walking, running and stair climbing.
+static WorldCollisionFootstepSounds _gAcropolisPromenadeSurfaceClass4FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
 };
 
-WorldCollisionFootstepSounds D_acropolis_promenade_80186274 = {
-    0x10000025,
-    0x10000027,
-    0x10000025,
+/// Class 7's cue-2 bases, matching class 3's cues while retaining separate storage.
+///
+/// These entries have no scripts in the promenade's sound bank.
+static WorldCollisionFootstepSounds _gAcropolisPromenadeSurfaceClass7FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x27,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x25,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_promenade_80186280[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking and pushback-enabled properties without footstep cues for classes 0, 5 and 6.
+static WorldCollisionSurfaceProperties _gAcropolisPromenadeDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_promenade_80186288[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_promenade_80186244 },
+/// Class 1's blocking, impact-enabled and pushback-enabled properties with footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisPromenadeSurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisPromenadeSurfaceClass1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_promenade_80186290[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_promenade_80186250 },
+/// Class 2's blocking, impact-enabled and pushback-enabled properties with footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisPromenadeSurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisPromenadeSurfaceClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_promenade_80186298[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_promenade_8018625C },
+/// Class 3's blocking, impact-enabled and pushback-enabled properties with footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisPromenadeSurfaceClass3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisPromenadeSurfaceClass3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_promenade_801862A0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_promenade_80186268 },
+/// Class 4's blocking, impact-enabled and pushback-enabled properties with footstep cues.
+static WorldCollisionSurfaceProperties _gAcropolisPromenadeSurfaceClass4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisPromenadeSurfaceClass4FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_promenade_801862A8[1] = {
-    { 1, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_SUPPRESS_PUSHBACK, &D_acropolis_promenade_80186274 },
+/// Class 7's probe-passable, impact-enabled properties with suppressed pushback and footstep cues.
+///
+/// The first byte is retained as 1; its role remains unproven.
+static WorldCollisionSurfaceProperties _gAcropolisPromenadeSurfaceClass7Properties = {
+    .field_0             = 1,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_SUPPRESS_PUSHBACK,
+    .footstepSounds      = &_gAcropolisPromenadeSurfaceClass7FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_promenade_801862B0[8] = {
-    D_acropolis_promenade_80186280,
-    D_acropolis_promenade_80186288,
-    D_acropolis_promenade_80186290,
-    D_acropolis_promenade_80186298,
-    D_acropolis_promenade_801862A0,
-    D_acropolis_promenade_80186280,
-    D_acropolis_promenade_80186280,
-    D_acropolis_promenade_801862A8,
+WorldCollisionSurfaceProperties* gAcropolisPromenadeSurfacePropertiesByClass[8] = {
+    &_gAcropolisPromenadeDefaultSurfaceProperties,
+    &_gAcropolisPromenadeSurfaceClass1Properties,
+    &_gAcropolisPromenadeSurfaceClass2Properties,
+    &_gAcropolisPromenadeSurfaceClass3Properties,
+    &_gAcropolisPromenadeSurfaceClass4Properties,
+    &_gAcropolisPromenadeDefaultSurfaceProperties,
+    &_gAcropolisPromenadeDefaultSurfaceProperties,
+    &_gAcropolisPromenadeSurfaceClass7Properties,
 };
 
 RoomEventMsg D_acropolis_promenade_801862D0;

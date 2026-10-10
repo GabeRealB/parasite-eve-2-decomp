@@ -220,7 +220,7 @@ acropolisBridgeKeypadTask = 0x8017F788; // type:func absolute:True owner=acropol
 acropolisSecurityRoomPowerSupplyTask = 0x80180294; // type:func absolute:True owner=acropolis_security_room
 acropolisCafeteriaLoosePropTask = 0x80181E70; // type:func absolute:True owner=acropolis_cafeteria
 gAcropolisCafeteriaModel07CA8 = 0x801858C4; // absolute:True owner=acropolis_cafeteria shared=rooms
-gAcropolisCafeteriaModel08638 = 0x8018625C; // absolute:True owner=acropolis_cafeteria shared=rooms
+gAcropolisCafeteriaModel08638 = 0x8018625C; // absolute:True owner=acropolis_cafeteria
 gAcropolisCafeteriaModel09090 = 0x80186CAC; // absolute:True owner=acropolis_cafeteria
 gAcropolisCafeteriaModel09A20 = 0x80187518; // absolute:True owner=acropolis_cafeteria
 func_807011D8 = 0x807011D8; // type:func absolute:True
