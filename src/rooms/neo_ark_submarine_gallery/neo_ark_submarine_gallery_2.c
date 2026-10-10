@@ -36,6 +36,7 @@
 #include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -57,12 +58,6 @@ enum { NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX = 32 };
 static void _neoArkSubmarineGalleryDrawLightPrism(const GfxCoord* coord, s16 firstVertex);
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-// Indexed views below share one contiguous table.
-
-extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858D4[1];
-extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858DC[1];
-extern WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858E4[1];
-
 TaskDesc D_neo_ark_submarine_gallery_8018186C = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
 TaskDesc D_neo_ark_submarine_gallery_80181878 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
@@ -83,50 +78,66 @@ TaskDesc D_neo_ark_submarine_gallery_801818BC[1] = {
     { { { TASK_BODY_COORD, 96 } }, neoArkSubmarineGalleryRedDiscTask, { .value = 0 } },
 };
 
-SVECTOR D_neo_ark_submarine_gallery_801818C8[40] = {
-    { -760, 2800, 3820, 0 },
-    { -760, 3200, 3820, 0 },
-    { 2170, 2800, 3250, 0 },
-    { 2170, 3200, 3250, 0 },
-    { 3830, 2800, 760, 0 },
-    { 3830, 3200, 760, 0 },
-    { 3250, 2800, -2170, 0 },
-    { 3250, 3200, -2170, 0 },
-    { 770, 2800, -3830, 0 },
-    { 770, 3200, -3830, 0 },
-    { -2170, 2800, -3250, 0 },
-    { -2170, 3200, -3250, 0 },
-    { -3830, 2800, -760, 0 },
-    { -3830, 3200, -760, 0 },
-    { -3250, 2800, 2170, 0 },
-    { -3250, 3200, 2170, 0 },
-    { -640, 4800, 3240, 0 },
-    { -500, 4800, 2500, 0 },
-    { 1840, 4800, 2740, 0 },
-    { 1420, 4800, 2130, 0 },
-    { 3240, 4800, 640, 0 },
-    { 2500, 4800, 500, 0 },
-    { 2750, 4800, -1830, 0 },
-    { 2120, 4800, -1420, 0 },
-    { 640, 4800, -3240, 0 },
-    { 500, 4800, -2500, 0 },
-    { -1830, 4800, -2750, 0 },
-    { -1420, 4800, -2120, 0 },
-    { -3240, 4800, -640, 0 },
-    { -2500, 4800, -500, 0 },
-    { -2740, 4800, 1830, 0 },
-    { -2120, 4800, 1420, 0 },
-    { 820, 2110, 3780, 0 },
-    { 1610, 2110, 3500, 0 },
-    { 1340, 2110, 2710, 0 },
-    { 540, 2110, 2990, 0 },
-    { 820, 3400, 3780, 0 },
-    { 1610, 3400, 3500, 0 },
-    { 1340, 3400, 2710, 0 },
-    { 540, 3400, 2990, 0 },
+/// Fixed capsule endpoints, disc centres and prism corners for the gallery lights.
+///
+/// All positions use signed game-coordinate units. Capsule endpoints are stored
+/// as eight pairs, although mapped view 5 also joins points 5 and 6. Disc
+/// centres use world space; prism corners are local to the glow task's coordinate.
+/// Storage is borrowed only during drawing and retains all authored positions.
+static struct {
+    SVECTOR worldCapsulePoints[16]; // World-space endpoints, normally paired consecutively
+    SVECTOR worldDiscCenters[16];   // World-space centres of the disc glows
+    SVECTOR localPrismCorners[8];   // Four lit corners followed by four dark corners, in task-local space
+} _gNeoArkSubmarineGalleryLightGeometry = {
+    .worldCapsulePoints = {
+        { -760, 2800, 3820, 0 },
+        { -760, 3200, 3820, 0 },
+        { 2170, 2800, 3250, 0 },
+        { 2170, 3200, 3250, 0 },
+        { 3830, 2800, 760, 0 },
+        { 3830, 3200, 760, 0 },
+        { 3250, 2800, -2170, 0 },
+        { 3250, 3200, -2170, 0 },
+        { 770, 2800, -3830, 0 },
+        { 770, 3200, -3830, 0 },
+        { -2170, 2800, -3250, 0 },
+        { -2170, 3200, -3250, 0 },
+        { -3830, 2800, -760, 0 },
+        { -3830, 3200, -760, 0 },
+        { -3250, 2800, 2170, 0 },
+        { -3250, 3200, 2170, 0 },
+    },
+    .worldDiscCenters = {
+        { -640, 4800, 3240, 0 },
+        { -500, 4800, 2500, 0 },
+        { 1840, 4800, 2740, 0 },
+        { 1420, 4800, 2130, 0 },
+        { 3240, 4800, 640, 0 },
+        { 2500, 4800, 500, 0 },
+        { 2750, 4800, -1830, 0 },
+        { 2120, 4800, -1420, 0 },
+        { 640, 4800, -3240, 0 },
+        { 500, 4800, -2500, 0 },
+        { -1830, 4800, -2750, 0 },
+        { -1420, 4800, -2120, 0 },
+        { -3240, 4800, -640, 0 },
+        { -2500, 4800, -500, 0 },
+        { -2740, 4800, 1830, 0 },
+        { -2120, 4800, 1420, 0 },
+    },
+    .localPrismCorners = {
+        { 820, 2110, 3780, 0 },
+        { 1610, 2110, 3500, 0 },
+        { 1340, 2110, 2710, 0 },
+        { 540, 2110, 2990, 0 },
+        { 820, 3400, 3780, 0 },
+        { 1610, 3400, 3500, 0 },
+        { 1340, 3400, 2710, 0 },
+        { 540, 3400, 2990, 0 },
+    },
 };
 
-u8* D_neo_ark_submarine_gallery_80181A08[1] = {
+u8* gNeoArkSubmarineGalleryViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -193,31 +204,56 @@ SVECTOR D_neo_ark_submarine_gallery_80181B1C[6] = {
     { 0, 0, 0, -1 },
 };
 
-static SVECTOR _gNeoArkSubmarineGalleryCollision04DDCNormals[31] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gNeoArkSubmarineGalleryCollisionGridNormals[31] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_normals.inc"
 };
 
-static SVECTOR _gNeoArkSubmarineGalleryCollision04DDCVerts[104] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gNeoArkSubmarineGalleryCollisionGridVerts[104] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_verts.inc"
 };
 
-static WorldCollisionGridFace _gNeoArkSubmarineGalleryCollision04DDCFaces[50] = {
+/// Indexed gallery quads selecting local surface classes 0, 3 and 4.
+static WorldCollisionGridFace _gNeoArkSubmarineGalleryCollisionGridFaces[50] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_faces.inc"
 };
 
-static s16 _gNeoArkSubmarineGalleryCollision04DDCCells[206] = {
+/// Authored cell face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+///
+/// Halfwords between selected lists remain part of the asset storage.
+static s16 _gNeoArkSubmarineGalleryCollisionGridCells[206] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gNeoArkSubmarineGalleryCollision04DDCCells[i])
-static s16* _gNeoArkSubmarineGalleryCollision04DDCTable[9] = {
+enum {
+    NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_COUNT_X = 3,
+    NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_COUNT_Z = 3,
+    NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_SIZE    = 4000,
+};
+
+#define GRID_CELL(i) (&_gNeoArkSubmarineGalleryCollisionGridCells[i])
+/// X-major directory of the gallery's nine 4000-unit collision cells.
+static s16* _gNeoArkSubmarineGalleryCollisionGridTable[NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_COUNT_X * NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_COUNT_Z] = {
 #include "assets/neo_ark_submarine_gallery_collision_04DDC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_neo_ark_submarine_gallery_8018239C = { NULL, _gNeoArkSubmarineGalleryCollision04DDCNormals, _gNeoArkSubmarineGalleryCollision04DDCVerts, _gNeoArkSubmarineGalleryCollision04DDCFaces, _gNeoArkSubmarineGalleryCollision04DDCTable, 5000, 5000, 3, 3, 4000, 50 };
+WorldCollisionGrid gNeoArkSubmarineGalleryCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gNeoArkSubmarineGalleryCollisionGridNormals,
+    .vertices    = _gNeoArkSubmarineGalleryCollisionGridVerts,
+    .faces       = _gNeoArkSubmarineGalleryCollisionGridFaces,
+    .cellFaceIds = _gNeoArkSubmarineGalleryCollisionGridTable,
+    .xBias       = 5000,
+    .zBias       = 5000,
+    .cellCountX  = NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_COUNT_X,
+    .cellCountZ  = NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_COUNT_Z,
+    .cellSize    = NEO_ARK_SUBMARINE_GALLERY_GRID_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gNeoArkSubmarineGalleryCollisionGridFaces),
+};
 
-ViewCamera D_neo_ark_submarine_gallery_801823C0[7] = {
+ViewCamera gNeoArkSubmarineGalleryViewCameras[NEO_ARK_SUBMARINE_GALLERY_VIEW_COUNT] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x4E20, 0 } }, 603 },
     { { { { 2429, 0, -3297 }, { 0, 4096, 0 }, { 3297, 0, 2429 } }, { 3800, -4000, -200 } }, 257 },
     { { { { 0, 0, -4095 }, { -3996, 899, 0 }, { 899, 3996, 0 } }, { 3340, 27, 0 } }, 257 },
@@ -227,12 +263,16 @@ ViewCamera D_neo_ark_submarine_gallery_801823C0[7] = {
     { { { { -639, 0, 4045 }, { 1045, 3956, 165 }, { -3908, 1058, -617 } }, { -7620, -3215, -3705 } }, 272 },
 };
 
-SpriteBatch D_neo_ark_submarine_gallery_801824BC[2] = {
+/// Empty sprite list for mapped view 1, retaining decoded-image presentation.
+///
+/// The source slot also stores this list's address but is never read as sprites.
+static SpriteBatch _gNeoArkSubmarineGalleryView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_gallery_801824CC[149] = {
+/// View-2 sprite rectangles and depths: 110 opaque and 39 semitransparent elements.
+static SpriteSource _gNeoArkSubmarineGalleryView2SpriteSources[149] = {
     { 142, 0x3FC0, { .fields = { 8, 48 } }, 32, 40, 712, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 64 } }, 40, 40, 637, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 72 } }, 48, 40, 587, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
@@ -384,16 +424,22 @@ SpriteSource D_neo_ark_submarine_gallery_801824CC[149] = {
     { 143, 0x4040, { .fields = { 8, 88 } }, 152, -64, 1900, { .fields = { 96, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_submarine_gallery_80183070[6] = {
+/// View-2 source ranges [0,19), [19,88), [88,110) and [110,149), then END.
+///
+/// The leading zero-count record selects decoded-image strips; all ranges are
+/// visible and included in cached packet processing. Authored trailing bytes
+/// are retained with their role unproven.
+static SpriteBatch _gNeoArkSubmarineGalleryView2SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 69, 0, 0, { 0, 0 } },
     { 88, 22, 0, 0, { 2, 0 } },
-    { 110, 39, 0, 0, { 1, 0 } },
+    { 110, ARRAY_SIZE(_gNeoArkSubmarineGalleryView2SpriteSources) - 110, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_gallery_801830A0[78] = {
+/// View-3 opaque sprite rectangles and depths, selected in two contiguous ranges.
+static SpriteSource _gNeoArkSubmarineGalleryView3SpriteSources[78] = {
     { 143, 0x3FC0, { .fields = { 32, 16 } }, -104, -120, 1175, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -104, -104, 1175, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 16 } }, -104, -88, 1175, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
@@ -474,15 +520,21 @@ SpriteSource D_neo_ark_submarine_gallery_801830A0[78] = {
     { 143, 0x3FC0, { .fields = { 80, 8 } }, -112, 16, 1364, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_submarine_gallery_801836B8[5] = {
+/// View-3 source ranges [0,19) and [19,78), a zero-count end range, then END.
+///
+/// The leading zero-count record selects decoded-image strips. The empty range
+/// starts one past the source array and is kept; authored trailing bytes have
+/// an unproven role. All nonempty ranges are visible and cached.
+static SpriteBatch _gNeoArkSubmarineGalleryView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 1, 0 } },
-    { 19, 59, 0, 0, { 2, 0 } },
-    { 78, 0, 0, 0, { 0, 0 } },
+    { 19, ARRAY_SIZE(_gNeoArkSubmarineGalleryView3SpriteSources) - 19, 0, 0, { 2, 0 } },
+    { ARRAY_SIZE(_gNeoArkSubmarineGalleryView3SpriteSources), 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_gallery_801836E0[101] = {
+/// View-4 sprite rectangles and depths: 83 opaque and 18 semitransparent elements.
+static SpriteSource _gNeoArkSubmarineGalleryView4SpriteSources[101] = {
     { 141, 0x3FC0, { .fields = { 16, 32 } }, -160, 88, 250, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 16, 32 } }, -144, 88, 250, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 32 } }, -128, 88, 250, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
@@ -586,16 +638,21 @@ SpriteSource D_neo_ark_submarine_gallery_801836E0[101] = {
     { 142, 0x4000, { .fields = { 8, 56 } }, 128, -96, 900, { .fields = { 48, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_submarine_gallery_80183EC4[6] = {
+/// View-4 source ranges [0,19), [19,76), [76,83) and [83,101), then END.
+///
+/// The leading zero-count record selects decoded-image strips. All ranges are
+/// visible and cached; authored trailing bytes retain an unproven role.
+static SpriteBatch _gNeoArkSubmarineGalleryView4SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 57, 0, 0, { 0, 0 } },
     { 76, 7, 0, 0, { 2, 0 } },
-    { 83, 18, 0, 0, { 1, 0 } },
+    { 83, ARRAY_SIZE(_gNeoArkSubmarineGalleryView4SpriteSources) - 83, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_gallery_80183EF4[123] = {
+/// View-5 sprite rectangles and depths: 103 opaque and 20 semitransparent elements.
+static SpriteSource _gNeoArkSubmarineGalleryView5SpriteSources[123] = {
     { 142, 0x3FC0, { .fields = { 16, 48 } }, -160, 24, 625, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 48 } }, -144, 24, 750, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 40 } }, -128, 24, 750, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
@@ -721,17 +778,22 @@ SpriteSource D_neo_ark_submarine_gallery_80183EF4[123] = {
     { 143, 0x4040, { .fields = { 16, 96 } }, 144, -80, 1900, { .fields = { 96, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_submarine_gallery_80184890[7] = {
+/// View-5 source ranges [0,20), [20,40), [40,84), [84,103) and [103,123), then END.
+///
+/// The leading zero-count record selects decoded-image strips. All ranges are
+/// visible and cached; authored trailing bytes retain an unproven role.
+static SpriteBatch _gNeoArkSubmarineGalleryView5SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 0, 0 } },
     { 20, 20, 0, 0, { 3, 0 } },
     { 40, 44, 0, 0, { 2, 0 } },
     { 84, 19, 0, 0, { 4, 0 } },
-    { 103, 20, 0, 0, { 1, 0 } },
+    { 103, ARRAY_SIZE(_gNeoArkSubmarineGalleryView5SpriteSources) - 103, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_gallery_801848C8[19] = {
+/// View-6 opaque sprite rectangles and depths, selected as one complete range.
+static SpriteSource _gNeoArkSubmarineGalleryView6SpriteSources[19] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 500, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, 80, 500, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -128, 80, 500, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
@@ -753,13 +815,15 @@ SpriteSource D_neo_ark_submarine_gallery_801848C8[19] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 96, 500, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_submarine_gallery_80184A44[3] = {
+/// View-6 list drawing every source sprite after selecting decoded-image strips.
+static SpriteBatch _gNeoArkSubmarineGalleryView6SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 19, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkSubmarineGalleryView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_submarine_gallery_80184A5C[33] = {
+/// View-7 sprite rectangles and depths: nine opaque and 24 semitransparent elements.
+static SpriteSource _gNeoArkSubmarineGalleryView7SpriteSources[33] = {
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -136, -16, 1125, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -120, -16, 1125, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 64 } }, -104, -16, 1125, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
@@ -795,31 +859,41 @@ SpriteSource D_neo_ark_submarine_gallery_80184A5C[33] = {
     { 143, 0x4000, { .fields = { 8, 56 } }, 8, -120, 2560, { .fields = { 24, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_submarine_gallery_80184CF0[4] = {
+/// View-7 source ranges [0,9) and [9,33), then END, with decoded-image strips.
+///
+/// Both ranges are visible and cached; authored trailing bytes retain an
+/// unproven role.
+static SpriteBatch _gNeoArkSubmarineGalleryView7SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 1, 0 } },
-    { 9, 24, 0, 0, { 0, 0 } },
+    { 9, ARRAY_SIZE(_gNeoArkSubmarineGalleryView7SpriteSources) - 9, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_submarine_gallery_80184D10[7] = {
-    { { .empty = D_neo_ark_submarine_gallery_801824BC }, D_neo_ark_submarine_gallery_801824BC, NULL },
-    { { .elements = D_neo_ark_submarine_gallery_801824CC }, D_neo_ark_submarine_gallery_80183070, NULL },
-    { { .elements = D_neo_ark_submarine_gallery_801830A0 }, D_neo_ark_submarine_gallery_801836B8, NULL },
-    { { .elements = D_neo_ark_submarine_gallery_801836E0 }, D_neo_ark_submarine_gallery_80183EC4, NULL },
-    { { .elements = D_neo_ark_submarine_gallery_80183EF4 }, D_neo_ark_submarine_gallery_80184890, NULL },
-    { { .elements = D_neo_ark_submarine_gallery_801848C8 }, D_neo_ark_submarine_gallery_80184A44, NULL },
-    { { .elements = D_neo_ark_submarine_gallery_80184A5C }, D_neo_ark_submarine_gallery_80184CF0, NULL },
+SpriteView gNeoArkSubmarineGallerySpriteViews[NEO_ARK_SUBMARINE_GALLERY_VIEW_COUNT] = {
+    { { .empty = _gNeoArkSubmarineGalleryView1SpriteBatches }, _gNeoArkSubmarineGalleryView1SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineGalleryView2SpriteSources }, _gNeoArkSubmarineGalleryView2SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineGalleryView3SpriteSources }, _gNeoArkSubmarineGalleryView3SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineGalleryView4SpriteSources }, _gNeoArkSubmarineGalleryView4SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineGalleryView5SpriteSources }, _gNeoArkSubmarineGalleryView5SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineGalleryView6SpriteSources }, _gNeoArkSubmarineGalleryView6SpriteBatches, NULL },
+    { { .elements = _gNeoArkSubmarineGalleryView7SpriteSources }, _gNeoArkSubmarineGalleryView7SpriteBatches, NULL },
 };
 
-WorldCoordLight D_neo_ark_submarine_gallery_80184D64[4] = {
+/// Four all-view directional sources, with Q12 RGB intensity and room-axis vectors.
+///
+/// Coordinates and attenuation remain writable for composition and light queries.
+static WorldCoordLight _gNeoArkSubmarineGalleryRoomLightsDirectional[4] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 208, 208, 208 }, { 0, 0 } },
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -1000, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 208, 208, 208 }, { 0, 0 } },
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 208, 208, 208 }, { 0, 0 } },
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1000, -1000, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 208, 208, 208 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_neo_ark_submarine_gallery_80184EC4[10] = {
+/// Ten all-view point sources, with Q12 RGB and integer room-distance falloff radii.
+///
+/// Coordinates and attenuation remain writable for composition and light queries.
+static WorldCoordPointLight _gNeoArkSubmarineGalleryRoomLightsPoint[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2400, 4608, 1600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 1000, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2900, 4608, -600 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 1000, 2000 },
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1601, 4608, -2400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 1000, 2000 },
@@ -832,7 +906,14 @@ WorldCoordPointLight D_neo_ark_submarine_gallery_80184EC4[10] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1100, 4608, 3300 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3076, 3076, 3076 }, { 0, 0 } }, 1000, 2000 },
 };
 
-WorldCoordRoomLights D_neo_ark_submarine_gallery_80185284 = { ARRAY_SIZE(D_neo_ark_submarine_gallery_80184D64), D_neo_ark_submarine_gallery_80184D64, ARRAY_SIZE(D_neo_ark_submarine_gallery_80184EC4), D_neo_ark_submarine_gallery_80184EC4, 0, NULL };
+WorldCoordRoomLights gNeoArkSubmarineGalleryRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gNeoArkSubmarineGalleryRoomLightsDirectional),
+    .directionalLights     = _gNeoArkSubmarineGalleryRoomLightsDirectional,
+    .pointLightCount       = ARRAY_SIZE(_gNeoArkSubmarineGalleryRoomLightsPoint),
+    .pointLights           = _gNeoArkSubmarineGalleryRoomLightsPoint,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_neo_ark_submarine_gallery_8018529C[8] = {
     { NULL, NULL, NULL, { 1901, 1952, -1890, 0 }, { { 1807, -3712, -1820, 0 }, { -1807, -3712, 1819, 0 }, { 1807, 3712, -1820, 0 }, { -1807, 3712, 1819, 0 } }, { 2912, 0, 2892, 0 }, { 0, 0, 4096, 0 }, 4492, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -858,9 +939,19 @@ WorldCollisionTrigger D_neo_ark_submarine_gallery_801854FC[10] = {
     { NULL, NULL, NULL, { -3169, 4896, -1632, 0 }, { { -1575, 0, 924, 0 }, { 496, 0, -1725, 0 }, { -495, 0, 1725, 0 }, { 1575, 0, -923, 0 } }, { 0, 4102, 0, 0 }, { 3614, 0, 1930, 0 }, 1823, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_neo_ark_submarine_gallery_801857F4[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
-    { 61, 61, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor206100SeaDiverTaskDescriptors },
+enum {
+    NEO_ARK_SUBMARINE_GALLERY_RESOURCE_WAYPOINT_ACTOR = 4,
+    NEO_ARK_SUBMARINE_GALLERY_RESOURCE_SEA_DIVER      = 61,
+};
+
+/// Waypoint-actor and Sea Diver load/spawn resources for layout variant 1.
+///
+/// Placement entry IDs select file numbers 4 and 61 in groups 10 and 20,
+/// respectively; descriptor 0 starts each actor. AREA_PLACEMENT_END terminates
+/// the list. Resource and task-table storage borrow their loaded overlays.
+static AreaResource _gNeoArkSubmarineGalleryVariant1Resources[3] = {
+    { NEO_ARK_SUBMARINE_GALLERY_RESOURCE_WAYPOINT_ACTOR, NEO_ARK_SUBMARINE_GALLERY_RESOURCE_WAYPOINT_ACTOR, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+    { NEO_ARK_SUBMARINE_GALLERY_RESOURCE_SEA_DIVER, NEO_ARK_SUBMARINE_GALLERY_RESOURCE_SEA_DIVER, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor206100SeaDiverTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -881,7 +972,7 @@ AreaResource D_neo_ark_submarine_gallery_80185848[2] = {
 
 AreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C4A0, D_neo_ark_submarine_gallery_801857F4 },
+    { D_map_neo_ark_8017C4A0, _gNeoArkSubmarineGalleryVariant1Resources },
     { D_map_neo_ark_8017C4D0, D_neo_ark_submarine_gallery_80185818 },
     { D_map_neo_ark_8017C510, D_neo_ark_submarine_gallery_80185830 },
     { NULL, NULL },
@@ -895,33 +986,59 @@ AreaVariant D_neo_ark_submarine_gallery_80185860[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_neo_ark_submarine_gallery_801858C8 = {
-    0x10000015,
-    0x10000017,
-    0x10000015,
+enum {
+    NEO_ARK_SUBMARINE_GALLERY_FOOTSTEP_WALK_CUE2 = SOUND_SCRIPT_REQUEST_TYPE_1 | 21,
+    NEO_ARK_SUBMARINE_GALLERY_FOOTSTEP_RUN_CUE2  = SOUND_SCRIPT_REQUEST_TYPE_1 | 23,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858D4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Cue-2 bases in the loaded type-1 bank for the gallery's class-4 floor.
+///
+/// Cue 1 uses the next entry; companions add 100. Walking and scripted jumps
+/// share a pair, while running uses the following pair.
+static WorldCollisionFootstepSounds _gNeoArkSubmarineGalleryFloorFootstepSounds = {
+    .walk         = NEO_ARK_SUBMARINE_GALLERY_FOOTSTEP_WALK_CUE2,
+    .run          = NEO_ARK_SUBMARINE_GALLERY_FOOTSTEP_RUN_CUE2,
+    .scriptedJump = NEO_ARK_SUBMARINE_GALLERY_FOOTSTEP_WALK_CUE2,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858DC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent blocking collision policy shared by classes 0, 1, 2, 5, 6 and 7.
+static WorldCollisionSurfaceProperties _gNeoArkSubmarineGalleryBlockingSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_neo_ark_submarine_gallery_801858E4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_neo_ark_submarine_gallery_801858C8 },
+/// Class-3 collision policy passing probes and suppressing weapon hit effects.
+///
+/// Pushback remains enabled; this class has no footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkSubmarineGalleryProbePassSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[8] = {
-    D_neo_ark_submarine_gallery_801858D4,
-    D_neo_ark_submarine_gallery_801858D4,
-    D_neo_ark_submarine_gallery_801858D4,
-    D_neo_ark_submarine_gallery_801858DC,
-    D_neo_ark_submarine_gallery_801858E4,
-    D_neo_ark_submarine_gallery_801858D4,
-    D_neo_ark_submarine_gallery_801858D4,
-    D_neo_ark_submarine_gallery_801858D4,
+/// Class-4 gallery floor: blocking contacts, weapon impacts and footstep cues.
+static WorldCollisionSurfaceProperties _gNeoArkSubmarineGalleryFloorSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gNeoArkSubmarineGalleryFloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gNeoArkSubmarineGallerySurfacePropertiesByClass[NEO_ARK_SUBMARINE_GALLERY_SURFACE_CLASS_COUNT] = {
+    &_gNeoArkSubmarineGalleryBlockingSurface,
+    &_gNeoArkSubmarineGalleryBlockingSurface,
+    &_gNeoArkSubmarineGalleryBlockingSurface,
+    &_gNeoArkSubmarineGalleryProbePassSurface,
+    &_gNeoArkSubmarineGalleryFloorSurface,
+    &_gNeoArkSubmarineGalleryBlockingSurface,
+    &_gNeoArkSubmarineGalleryBlockingSurface,
+    &_gNeoArkSubmarineGalleryBlockingSurface,
 };
 
 /// Draws two additive capsule glows from consecutive world-space endpoint pairs.
@@ -971,41 +1088,41 @@ void neoArkSubmarineGalleryDrawViewGlowsTask(Task* task)
     mappedViewIndex = viewGetMappedIndex();
     switch (mappedViewIndex) {
         case 2:
-            _neoArkSubmarineGalleryDrawGlowPair(D_neo_ark_submarine_gallery_801818C8, NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[4], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[16], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[17], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[18], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[31], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _neoArkSubmarineGalleryDrawGlowPair(_gNeoArkSubmarineGalleryLightGeometry.worldCapsulePoints, NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _glowDrawCapsule(&_gNeoArkSubmarineGalleryLightGeometry.worldCapsulePoints[4], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[0], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[1], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[2], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[15], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             _neoArkSubmarineGalleryDrawLightPrism(prismCoord, NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX);
             break;
         case 3:
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[12], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[16], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[17], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[26], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[27], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[28], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[29], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[30], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[31], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _glowDrawCapsule(&_gNeoArkSubmarineGalleryLightGeometry.worldCapsulePoints[12], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[0], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[1], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[10], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[11], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[12], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[13], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[14], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[15], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             break;
         case 4:
-            _neoArkSubmarineGalleryDrawGlowPair(&D_neo_ark_submarine_gallery_801818C8[6], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[10], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[24], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[25], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[26], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            glowDrawDisc(&D_neo_ark_submarine_gallery_801818C8[27], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _neoArkSubmarineGalleryDrawGlowPair(&_gNeoArkSubmarineGalleryLightGeometry.worldCapsulePoints[6], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _glowDrawCapsule(&_gNeoArkSubmarineGalleryLightGeometry.worldCapsulePoints[10], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[8], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[9], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[10], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            glowDrawDisc(&_gNeoArkSubmarineGalleryLightGeometry.worldDiscCenters[11], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             break;
         case 5:
-            _neoArkSubmarineGalleryDrawGlowPair(&D_neo_ark_submarine_gallery_801818C8[2], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _neoArkSubmarineGalleryDrawGlowPair(&_gNeoArkSubmarineGalleryLightGeometry.worldCapsulePoints[2], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             // The final capsule starts at the preceding capsule's second endpoint.
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[5], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _glowDrawCapsule(&_gNeoArkSubmarineGalleryLightGeometry.worldCapsulePoints[5], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             break;
         case 6:
-            _neoArkSubmarineGalleryDrawGlowPair(&D_neo_ark_submarine_gallery_801818C8[6], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
-            _glowDrawCapsule(&D_neo_ark_submarine_gallery_801818C8[10], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _neoArkSubmarineGalleryDrawGlowPair(&_gNeoArkSubmarineGalleryLightGeometry.worldCapsulePoints[6], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
+            _glowDrawCapsule(&_gNeoArkSubmarineGalleryLightGeometry.worldCapsulePoints[10], NEO_ARK_SUBMARINE_GALLERY_GLOW_RADIUS_SCALE, NEO_ARK_SUBMARINE_GALLERY_GLOW_COLOR);
             break;
     }
 }
@@ -1065,8 +1182,8 @@ static inline void _neoArkSubmarineGalleryProjectPrismQuad(EffectQuadScratch* qu
 
 /// Draws a pulsing additive light prism with four fading sides and a lit cap.
 ///
-/// `firstVertex` selects eight consecutive entries in the room's corner table;
-/// the only caller selects entries 32..39. The first four form the lit ring,
+/// `firstVertex` is the vector-slot offset of `localPrismCorners` in the room's
+/// light geometry; the only caller selects slots 32..39. The first four form the lit ring,
 /// the next four its dark counterpart. `coord` is borrowed read-only with
 /// `workm` already composed in the input space of `GsWSMATRIX`. Rotation is
 /// Q12; rotated corners and translated positions retain their low 16 bits as
@@ -1088,12 +1205,12 @@ static void _neoArkSubmarineGalleryDrawLightPrism(const GfxCoord* coord, s16 fir
     /// once; cornerSlot is 0..3 and evaluated repeatedly. Each axis retains its
     /// low 16 bits as a signed projection coordinate. Use only as a standalone
     /// statement sequence here, never as an unbraced branch body.
-#define NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(vertexIndex, cornerSlot)                                  \
-    gte_ldv0(&D_neo_ark_submarine_gallery_801818C8[(vertexIndex)]);                                                \
-    gte_rtv0();                                                                                                    \
-    gte_stsv(&quadScratch->vertices[(cornerSlot)]);                                                                \
-    quadScratch->vertices[(cornerSlot)].vx = (u16)quadScratch->vertices[(cornerSlot)].vx + (u16)coord->workm.t[0]; \
-    quadScratch->vertices[(cornerSlot)].vy = (u16)quadScratch->vertices[(cornerSlot)].vy + (u16)coord->workm.t[1]; \
+#define NEO_ARK_SUBMARINE_GALLERY_TRANSFORM_PRISM_CORNER(vertexIndex, cornerSlot)                                                     \
+    gte_ldv0(&_gNeoArkSubmarineGalleryLightGeometry.localPrismCorners[(vertexIndex) - NEO_ARK_SUBMARINE_GALLERY_PRISM_FIRST_VERTEX]); \
+    gte_rtv0();                                                                                                                       \
+    gte_stsv(&quadScratch->vertices[(cornerSlot)]);                                                                                   \
+    quadScratch->vertices[(cornerSlot)].vx = (u16)quadScratch->vertices[(cornerSlot)].vx + (u16)coord->workm.t[0];                    \
+    quadScratch->vertices[(cornerSlot)].vy = (u16)quadScratch->vertices[(cornerSlot)].vy + (u16)coord->workm.t[1];                    \
     quadScratch->vertices[(cornerSlot)].vz = (u16)quadScratch->vertices[(cornerSlot)].vz + (u16)coord->workm.t[2]
 
     enum {

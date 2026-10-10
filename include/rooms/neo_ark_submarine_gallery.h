@@ -33,26 +33,58 @@ extern TaskDesc D_neo_ark_submarine_gallery_8018186C;
 
 extern AreaVariant D_neo_ark_submarine_gallery_80185860[13];
 
-// neo_ark_submarine_gallery
-extern u8* D_neo_ark_submarine_gallery_80181A08[];
+/// Number of mapped camera and sprite views in the gallery.
+enum { NEO_ARK_SUBMARINE_GALLERY_VIEW_COUNT = 7 };
+
+/// Number of room-local collision surface-class slots.
+enum { NEO_ARK_SUBMARINE_GALLERY_SURFACE_CLASS_COUNT = 8 };
+
+/// The gallery's single logical room uses the shared identity view map.
+///
+/// Logical views 1..7 select the corresponding camera, image and sprite view.
+/// The directory is borrowed while this overlay and gameplay remain loaded.
+extern u8* gNeoArkSubmarineGalleryViewMaps[1];
 
 extern ViewCount D_neo_ark_submarine_gallery_80181A0C[];
 
 extern DirectionWarpEntry D_neo_ark_submarine_gallery_80181A10[];
 
-extern WorldCollisionGrid D_neo_ark_submarine_gallery_8018239C;
+/// Collision mesh and 3-by-3 XZ cell index for the gallery.
+///
+/// The 4000-unit cells cover X/Z from -5000 through 6999. Its 50 faces select
+/// room-local surface classes 0, 3 and 4. Activation binds the mutable grid to
+/// the current view; its mesh pools remain borrowed from this loaded overlay.
+extern WorldCollisionGrid gNeoArkSubmarineGalleryCollisionGrid;
 
-extern ViewCamera D_neo_ark_submarine_gallery_801823C0[];
+/// Camera transforms and pixel projection distances for mapped views 1..7.
+///
+/// Indexed by mapped view minus one, with Q12 rotations and signed world-unit
+/// translations. Queued camera application requires this overlay to stay loaded.
+extern ViewCamera gNeoArkSubmarineGalleryViewCameras[NEO_ARK_SUBMARINE_GALLERY_VIEW_COUNT];
 
-extern SpriteView D_neo_ark_submarine_gallery_80184D10[];
+/// Sprite sources and terminated batch lists for mapped views 1..7.
+///
+/// Indexed by mapped view minus one. View 1 has no source sprites; every view
+/// requests decoded-image strips and has no clipping list. Source and batch
+/// storage remains mutable and borrowed while this room overlay is loaded.
+extern SpriteView gNeoArkSubmarineGallerySpriteViews[NEO_ARK_SUBMARINE_GALLERY_VIEW_COUNT];
 
-extern WorldCoordRoomLights D_neo_ark_submarine_gallery_80185284;
+/// Four directional and ten point lights shading the gallery in every view.
+///
+/// No cone lights are present. Coordinate composition and light queries mutate
+/// the borrowed light arrays; keep this overlay loaded throughout their use.
+extern WorldCoordRoomLights gNeoArkSubmarineGalleryRoomLights;
 
 extern WorldCollisionTrigger D_neo_ark_submarine_gallery_8018529C[];
 
 extern WorldCollisionTrigger D_neo_ark_submarine_gallery_801854FC[];
 
-extern WorldCollisionSurfaceProperties* D_neo_ark_submarine_gallery_801858EC[];
+/// Collision and footstep policies indexed by room-local surface class 0..7.
+///
+/// Class 3 passes probes and ignores weapon impacts; class 4 is the sounding
+/// floor. Other classes block probes and permit impacts without footstep cues.
+/// All classes apply pushback. Records borrow this overlay's loaded lifetime.
+extern WorldCollisionSurfaceProperties* gNeoArkSubmarineGallerySurfacePropertiesByClass[NEO_ARK_SUBMARINE_GALLERY_SURFACE_CLASS_COUNT];
 
 /// Draws the gallery's fixed glows for the current mapped camera view.
 ///

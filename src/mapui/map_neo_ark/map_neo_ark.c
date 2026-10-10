@@ -560,7 +560,7 @@ static WorldCoordRoomLighting D_map_neo_ark_8017A9E4[1] = {
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9EC[1] = {
-    { &D_neo_ark_submarine_gallery_80185284, NULL },
+    { &gNeoArkSubmarineGalleryRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_neo_ark_8017A9F4[1] = {
@@ -706,7 +706,7 @@ static WorldCollisionRoomResources D_map_neo_ark_8017ABEC[1] = {
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017ABFC[1] = {
-    { &D_neo_ark_submarine_gallery_8018239C, D_neo_ark_submarine_gallery_8018529C, D_neo_ark_submarine_gallery_801854FC, NULL },
+    { &gNeoArkSubmarineGalleryCollisionGrid, D_neo_ark_submarine_gallery_8018529C, D_neo_ark_submarine_gallery_801854FC, NULL },
 };
 
 static WorldCollisionRoomResources D_map_neo_ark_8017AC0C[1] = {
@@ -781,7 +781,7 @@ static ViewCamera* D_map_neo_ark_8017ACA4[33] = {
     gNeoArkBridgeViewCameras,
     D_shelter_1f_tent_80182314,
     D_neo_ark_woodland_path_80181D80,
-    D_neo_ark_submarine_gallery_801823C0,
+    gNeoArkSubmarineGalleryViewCameras,
     D_neo_ark_r31_8017DA5C,
     D_neo_ark_pyramid_801802E8,
     D_neo_ark_substation_8017E8C8,
@@ -819,7 +819,7 @@ static u8** D_map_neo_ark_8017AD2C[33] = {
     gNeoArkBridgeViewMaps,
     D_shelter_1f_tent_80181D44,
     D_neo_ark_woodland_path_80181694,
-    D_neo_ark_submarine_gallery_80181A08,
+    gNeoArkSubmarineGalleryViewMaps,
     gNeoArkR31ViewMaps,
     gNeoArkPyramidViewMaps,
     D_neo_ark_substation_8017E408,
@@ -857,7 +857,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     gNeoArkBridgeSpriteViews,
     D_shelter_1f_tent_801838E4,
     D_neo_ark_woodland_path_80183C6C,
-    D_neo_ark_submarine_gallery_80184D10,
+    gNeoArkSubmarineGallerySpriteViews,
     D_neo_ark_r31_8017DAF8,
     gNeoArkPyramidSpriteViews,
     D_neo_ark_substation_8017F584,
@@ -895,7 +895,7 @@ WorldCollisionSurfaceProperties** D_map_neo_ark_8017AE3C[33] = {
     gNeoArkBridgeSurfaceProperties,
     D_shelter_1f_tent_801842B4,
     D_neo_ark_woodland_path_80184910,
-    D_neo_ark_submarine_gallery_801858EC,
+    gNeoArkSubmarineGallerySurfacePropertiesByClass,
     gNeoArkR31SurfacePropertiesByClass,
     gNeoArkPyramidSurfaceProperties,
     D_neo_ark_substation_80180328,
