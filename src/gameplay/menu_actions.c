@@ -314,7 +314,7 @@ void itemMenuDrawPeCommandRow(UiList* list, UiObject* object)
     }
 
     ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_DRAW_FILL_ONLY);
-    textDrawString(&request, (const u8*)Gp_StrPEnergy);
+    textDrawString(&request, gItemMenuParasiteEnergyTitle);
 
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (attachmentIsTrainingMode() != 0) {
@@ -656,7 +656,7 @@ void itemMenuDrawSortRow(UiList* list, UiObject* object)
                 list->actionResult    = USER_INTERFACE_LIST_ACTION_SKIP_ROW;
                 list->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
             } else {
-                uiSetPromptText(Gp_StrChangeOrderHelp, 0, 0);
+                uiSetPromptText(gItemMenuSortHelpText, 0, 0);
             }
         }
     }

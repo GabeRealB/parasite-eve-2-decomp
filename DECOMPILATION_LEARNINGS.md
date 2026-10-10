@@ -6842,7 +6842,7 @@ req.y = y + arg2;
 
 Assign `color = 0x606060` in the same branch so `lui a2, 0x60` fills the
 `beqz equipped` delay slot. Inlining `req.colorRgb = 0x606060` puts the
-constant in `$a1` and delays `la a1, Gp_StrE`. `itemMenuDrawEquipmentMarker` is the
+constant in `$a1` and delays `la a1, gItemMenuEquippedMarkerText`. `itemMenuDrawEquipmentMarker` is the
 example.
 
 ## Save incoming `$a2` first, then split `SCRATCH_STACK_CURSOR_SLOT` so `lui` sits in the prologue
@@ -148896,7 +148896,7 @@ address add is placed directly in front of the load that reads it.
   leftover, as said, but a leftover is also taken whenever a load stall leaves
   nothing else ready, and the store order decides who gets that slot. See the
   section at the end of this file with this function's name.
-- `itemMenuInfoTask`, `SOFT_TOUCH_REG_USE(text, attr)`: `a1 = &Gp_StrAddHp` is the
+- `itemMenuInfoTask`, `SOFT_TOUCH_REG_USE(text, attr)`: `a1 = &gItemMenuArmorHpBonusLabel` is the
   highest-LUID leftover. `flags = attr->features` is a load, wins the first
   leftover slot on hazard and launches the `attr` add, so `a1` ends above the
   add with `a0`. The target has it between the add and the load; the asm does

@@ -379,10 +379,10 @@ void itemMenuConsumableChoiceListTask(Task* choiceTask)
     if (currentState == ITEM_MENU_CONSUMABLE_CHOICE_NO_AMMO) {
         s32 drawMode = selectingState;
 
-        uiDrawPanelLabel(&object->panel, Gp_StrNotice);
+        uiDrawPanelLabel(&object->panel, (const char*)gItemMenuNoticePanelTitle);
         textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, Gp_StrWrongAmmo2, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
     } else {
-        uiDrawPanelLabel(&object->panel, Gp_StrEquip);
+        uiDrawPanelLabel(&object->panel, (const char*)gItemMenuEquipTitle);
         itemMenuDrawEquippedNotice(object, weaponItemId);
     }
     // Count inactive updates too, but accept expiry or input only while active.
@@ -635,7 +635,7 @@ void itemMenuReloadNoticeTask(Task* task)
     consumableItemId = task->spawnArg1.value & ITEM_MENU_RELOAD_ARGUMENT_ITEM_MASK;
     weaponItemId     = (task->spawnArg1.value >> ITEM_MENU_RELOAD_ARGUMENT_WEAPON_SHIFT) & ITEM_MENU_RELOAD_ARGUMENT_ITEM_MASK;
     obj->result      = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&obj->panel, Gp_StrReload);
+    uiDrawPanelLabel(&obj->panel, (const char*)gItemMenuReloadTitle);
     if (task->state == ITEM_MENU_RELOAD_NOTICE_START) {
         if (consumableItemId == INVENTORY_ITEM_NONE) {
             // Preserve the selected item's name before clearing its load record.
@@ -736,7 +736,7 @@ void itemMenuAttachNoticeTask(Task* task)
             task->state = task->state + 1;
         }
     }
-    uiDrawPanelLabel(&obj->panel, Gp_StrAttach);
+    uiDrawPanelLabel(&obj->panel, (const char*)gItemMenuAttachTitle);
     textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0, (const u8*)Gp_StrEquipped, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     textEndX = textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 6, 0xE, itemText, ITEM_MENU_NOTICE_ITEM_COLOR_RGB, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -787,7 +787,7 @@ void itemMenuEquipNoticeTask(Task* task)
             task->state = task->state + 1;
         }
     }
-    uiDrawPanelLabel(&obj->panel, Gp_StrEquip);
+    uiDrawPanelLabel(&obj->panel, (const char*)gItemMenuEquipTitle);
     itemText     = itemGetText(task->spawnArg1.value, ITEM_TEXT_NAME, 0);
     textColorRgb = ITEM_MENU_NOTICE_TEXT_COLOR_RGB;
     textDrawUiLine(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrEquipped, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);

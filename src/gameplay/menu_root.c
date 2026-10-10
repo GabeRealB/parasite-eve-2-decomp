@@ -34,7 +34,7 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-u8** D_80114D80;
+const u8** D_80114D80;
 
 u16 Gp_ItemCountShow;
 
@@ -263,20 +263,20 @@ UiListRowCallback D_8010E95C[1] = { itemMenuDrawCollectedItemRow };
 
 UiList D_8010E960 = { D_8010E95C, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-u8* D_8010E984[3] = {
-    gGpStrRange,
-    gGpStrRate,
-    gGpStrWeight,
+const u8* D_8010E984[3] = {
+    gItemMenuWeaponRangeLabel,
+    gItemMenuWeaponRateLabel,
+    (const u8*)gGpStrWeight,
 };
 
-u8* D_8010E990[1] = {
-    gGpStrPower,
+const u8* D_8010E990[1] = {
+    gItemMenuAmmoPowerLabel,
 };
 
-u8* D_8010E994[3] = {
-    Gp_StrAddHp,
-    Gp_StrAddMp,
-    gGpStrAttachDot,
+const u8* D_8010E994[3] = {
+    gItemMenuArmorHpBonusLabel,
+    gItemMenuArmorMpBonusLabel,
+    gItemMenuArmorAttachmentCountLabel,
 };
 
 UiListRowCallback D_8010E9A0[1] = { itemMenuDrawWeaponChoiceRow };

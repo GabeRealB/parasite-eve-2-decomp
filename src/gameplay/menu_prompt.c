@@ -688,7 +688,7 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
     hpSeparatorText.x = panel->contentOriginX.unsignedValue + 0x32 + valueX;
     hpSeparatorText.y = panel->contentOriginY.unsignedValue + firstRowY;
     ITEM_MENU_INIT_STATS_TEXT(hpSeparatorText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-    textDrawString(&hpSeparatorText, Gp_StrSlash);
+    textDrawString(&hpSeparatorText, gItemMenuFractionSeparatorText);
 
     hpMaximumText.x = panel->contentOriginX.unsignedValue + 0x37 + valueX;
     hpMaximumText.y = panel->contentOriginY.unsignedValue + firstRowY;
@@ -708,7 +708,7 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
     mpSeparatorText.x = panel->contentOriginX.unsignedValue + 0x32 + valueX;
     mpSeparatorText.y = panel->contentOriginY.unsignedValue + rowY;
     ITEM_MENU_INIT_STATS_TEXT(mpSeparatorText, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-    textDrawString(&mpSeparatorText, Gp_StrSlash);
+    textDrawString(&mpSeparatorText, gItemMenuFractionSeparatorText);
 
     mpMaximumText.x = panel->contentOriginX.unsignedValue + 0x37 + valueX;
     mpMaximumText.y = panel->contentOriginY.unsignedValue + rowY;
@@ -732,22 +732,22 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset)
     textReq.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 2);
     textReq.y = panel->contentOriginY.unsignedValue + (firstRowY - 2);
     ITEM_MENU_INIT_STATS_TEXT(textReq, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-    textDrawString(&textReq, Gp_StrHp);
+    textDrawString(&textReq, gItemMenuHpLabel);
 
     mpLabelText.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 2);
     mpLabelText.y = panel->contentOriginY.unsignedValue + 0x10 + firstRowY;
     ITEM_MENU_INIT_STATS_TEXT(mpLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-    textDrawString(&mpLabelText, Gp_StrMp);
+    textDrawString(&mpLabelText, gItemMenuMpLabel);
 
     experienceLabelText.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 2);
     experienceLabelText.y = panel->contentOriginY.unsignedValue + 0x22 + firstRowY;
     ITEM_MENU_INIT_STATS_TEXT(experienceLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-    textDrawString(&experienceLabelText, Gp_StrExp);
+    textDrawString(&experienceLabelText, gItemMenuExpLabel);
 
     bpLabelText.x = panel->contentLeft.unsignedValue + (panel->contentOriginX.unsignedValue + 0x57);
     bpLabelText.y = panel->contentOriginY.unsignedValue + 0x22 + firstRowY;
     ITEM_MENU_INIT_STATS_TEXT(bpLabelText, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-    textDrawString(&bpLabelText, Gp_StrBp);
+    textDrawString(&bpLabelText, gItemMenuBpLabel);
 }
 
 /// Draws the fixed decorations and live statistics in the player-summary panel.
@@ -867,7 +867,7 @@ void itemMenuArmorSummaryTask(Task* task)
     topY        = object->panel.contentTop.signedValue;
     rowY        = topY + ITEM_MENU_LIST_ROW_HEIGHT;
     columnWidth = (object->panel.contentRight.signedValue - rowX) / 2;
-    uiDrawTitle(&(object)->panel, Gp_StrArmor);
+    uiDrawTitle(&(object)->panel, (const char*)gItemMenuArmorTitle);
 
     // Convert the one-based equipment selector to the armour catalogue id.
     if (itemId > PLAYER_STATUS_EQUIPMENT_NONE) {
@@ -890,19 +890,19 @@ void itemMenuArmorSummaryTask(Task* task)
         hpLabelReq.x = object->panel.contentOriginX.unsignedValue + 2 + rowX;
         hpLabelReq.y = object->panel.contentOriginY.unsignedValue + (rowY - 2);
         ITEM_MENU_INIT_STATS_TEXT(hpLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-        textDrawString(&hpLabelReq, Gp_StrHp);
+        textDrawString(&hpLabelReq, gItemMenuHpLabel);
 
         mpLabelReq.x = object->panel.contentOriginX.unsignedValue + (rowX + columnWidth);
         mpLabelReq.y = object->panel.contentOriginY.unsignedValue + (rowY - 2);
         rowX         = contentLeft + 4;
         ITEM_MENU_INIT_STATS_TEXT(mpLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-        textDrawString(&mpLabelReq, Gp_StrMp);
+        textDrawString(&mpLabelReq, gItemMenuMpLabel);
 
         rowY                  = topY + 0x3D;
         attachmentsLabelReq.x = object->panel.contentOriginX.unsignedValue + rowX;
         attachmentsLabelReq.y = object->panel.contentOriginY.unsignedValue + topY + 0x2C;
         ITEM_MENU_INIT_STATS_TEXT(attachmentsLabelReq, &object->panel, colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_OUTLINED);
-        textDrawString(&attachmentsLabelReq, Gp_StrAttachments);
+        textDrawString(&attachmentsLabelReq, gItemMenuAttachmentsTitle);
 
         // Attachment slots are one-based in carried rows and displayed five per line.
         for (attachmentIndex = 0; attachmentIndex < equipmentGetArmorAttachmentSlotCount(itemId); attachmentIndex++) {
@@ -970,7 +970,7 @@ void itemMenuParasiteEnergySummaryTask(Task* task)
     object->result = USER_INTERFACE_RESULT_NONE;
     firstColumnX   = object->panel.contentLeft.signedValue + 3;
     columnWidth    = (object->panel.contentRight.signedValue - object->panel.contentLeft.signedValue) / (s32)ARRAY_SIZE(D_8010E844);
-    uiDrawTitle(&(object)->panel, Gp_StrPEnergy);
+    uiDrawTitle(&(object)->panel, (const char*)gItemMenuParasiteEnergyTitle);
 
     // Draw levels from the third ability upward; the third appears once it can be learned.
     abilityRow      = 0;
@@ -1130,7 +1130,7 @@ void itemMenuDrawEquipmentMarker(const UiObject* object, s32 x, s32 y, s32 itemI
         markerReq.glyphTable = TEXT_GLYPH_TABLE_SMALL;
         markerReq.alignment  = TEXT_ALIGNMENT_LEFT;
         markerReq.drawMode   = TEXT_DRAW_OUTLINED_SINGLE_ENTRY;
-        textDrawString(&markerReq, Gp_StrE);
+        textDrawString(&markerReq, gItemMenuEquippedMarkerText);
     } else {
         hasCarriedLoad = 0;
         if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_WEAPON_ITEM_COUNT) {
@@ -1568,7 +1568,7 @@ static void _itemMenuInventoryListTask(Task* task)
         }
         task->state = task->state + 1;
     }
-    uiDrawPanelLabel(&(object)->panel, Gp_StrItemHdr);
+    uiDrawPanelLabel(&(object)->panel, (const char*)gItemMenuItemTitle);
     _itemMenuSetReorderableRows(inventoryList);
     uiRefreshListViewport(inventoryList, &(object)->panel);
     inventoryList->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
@@ -2374,7 +2374,7 @@ void itemMenuArmorPanelTask(Task* task)
     object         = task->spawnArg2.pointer;
     player         = &gPlayerStatus;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(object)->panel, Gp_StrArmor);
+    uiDrawPanelLabel(&(object)->panel, (const char*)gItemMenuArmorTitle);
 
     // Initialize attachment rows, then refresh their capacity as armor changes.
     if (task->state == ITEM_MENU_ARMOR_PANEL_INITIAL) {

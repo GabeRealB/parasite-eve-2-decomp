@@ -916,7 +916,7 @@ void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task)
     y            = object->panel.contentTop.signedValue + 0xF;
     work         = task->work;
     x            = object->panel.contentLeft.signedValue + 2;
-    uiDrawPanelLabel(&(object)->panel, Gp_StrNotice);
+    uiDrawPanelLabel(&(object)->panel, (const char*)gItemMenuNoticePanelTitle);
     hiddenState = USER_INTERFACE_PANEL_HIDDEN;
     itemId      = work->previousWeaponItemId;
     if (object->panel.state != hiddenState) {
@@ -1189,7 +1189,7 @@ static inline void _itemMenuDrawParasiteEnergyHeader(const UiPanel* panel)
     expLabelRequest.x = panel->contentOriginX.unsignedValue + labelX;
     expLabelRequest.y = panel->contentOriginY.unsignedValue + (valueY - 2);
     ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(expLabelRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
-    textDrawString(&expLabelRequest, (const u8*)Gp_StrExp);
+    textDrawString(&expLabelRequest, gItemMenuExpLabel);
     expValueRequest.x = panel->contentOriginX.unsignedValue + 10 + labelX;
     expValueRequest.y = panel->contentOriginY.unsignedValue + valueY;
     ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(expValueRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
@@ -1198,7 +1198,7 @@ static inline void _itemMenuDrawParasiteEnergyHeader(const UiPanel* panel)
     mpLabelRequest.x = panel->contentOriginX.unsignedValue + labelX;
     mpLabelRequest.y = panel->contentOriginY.unsignedValue + (valueY - 2);
     ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(mpLabelRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_ALIGNMENT_RIGHT, TEXT_DRAW_OUTLINED);
-    textDrawString(&mpLabelRequest, (const u8*)Gp_StrMp);
+    textDrawString(&mpLabelRequest, gItemMenuMpLabel);
     mpValueRequest.x = panel->contentOriginX.unsignedValue + 10 + labelX;
     mpValueRequest.y = panel->contentOriginY.unsignedValue + valueY;
     ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(mpValueRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
@@ -1206,7 +1206,7 @@ static inline void _itemMenuDrawParasiteEnergyHeader(const UiPanel* panel)
     slashRequest.x = panel->contentOriginX.unsignedValue + 37 + labelX;
     slashRequest.y = panel->contentOriginY.unsignedValue + valueY;
     ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(slashRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_CENTER, TEXT_DRAW_TRANSLUCENT_OUTLINED);
-    textDrawString(&slashRequest, (const u8*)Gp_StrSlash);
+    textDrawString(&slashRequest, gItemMenuFractionSeparatorText);
     maxMpRequest.x = panel->contentOriginX.unsignedValue + 42 + labelX;
     maxMpRequest.y = panel->contentOriginY.unsignedValue + valueY;
     ITEM_MENU_SET_PARASITE_ENERGY_HEADER_TEXT_STYLE(maxMpRequest, panel, textColorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_ALIGNMENT_LEFT, TEXT_DRAW_TRANSLUCENT_OUTLINED);
@@ -1299,7 +1299,7 @@ void itemMenuInventoryCountTask(Task* task)
     occupiedRows = inventoryCountOccupiedRows(carriedItems);
     rowCapacity  = inventoryGetRangeCapacity(carriedItems);
     textItoaUnsigned(countText, occupiedRows);
-    textAppendString(countText, (const u8*)Gp_StrSlash);
+    textAppendString(countText, gItemMenuFractionSeparatorText);
     textItoaUnsigned(capacityText, rowCapacity);
     textAppendString(countText, capacityText);
     countBaseX              = object->panel.contentOriginX.unsignedValue - 2;
@@ -1504,9 +1504,9 @@ static void _itemPickupTitleTask(Task* task)
     object         = task->spawnArg2.pointer;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (itemId < ITEM_PICKUP_KEY_ITEM_FIRST) {
-        uiDrawTitle(&(object)->panel, Gp_StrItemHdr);
+        uiDrawTitle(&(object)->panel, (const char*)gItemMenuItemTitle);
     } else {
-        uiDrawTitle(&(object)->panel, Gp_StrKeyItem);
+        uiDrawTitle(&(object)->panel, (const char*)gItemMenuKeyItemTitle);
     }
     if (task->state == ITEM_PICKUP_TITLE_STATE_INIT) {
         previewObject = uiSpawnObject(&D_8010F09C, 0, 0, 1, object);
@@ -1680,7 +1680,7 @@ static void _itemPickupObtainedNoticeTask(Task* task)
     object         = task->spawnArg2.pointer;
     itemId         = (u16)task->spawnArg1.value;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, Gp_StrNotice);
+    uiDrawPanelLabel(&object->panel, (const char*)gItemMenuNoticePanelTitle);
     if (task->state == ITEM_PICKUP_OBTAINED_STATE_INIT) {
         task->killCountdown = ITEM_PICKUP_OBTAINED_NOTICE_UPDATES;
         contentWidth        = textMeasureLineWidth(itemGetText(itemId, ITEM_TEXT_NAME, 0)) + 0xB;

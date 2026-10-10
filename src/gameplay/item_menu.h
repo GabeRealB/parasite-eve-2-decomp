@@ -1136,7 +1136,7 @@ extern u8* Gp_CaliberNameTbl[];
 
 extern u8* Gp_FeatNameTbl[];
 
-extern u8** D_80114D80;
+extern const u8** D_80114D80;
 
 extern u16 Gp_ItemCountShow;
 
@@ -1246,11 +1246,11 @@ extern UiList D_8010E938;
 
 extern UiList D_8010E960;
 
-extern u8* D_8010E984[3];
+extern const u8* D_8010E984[3];
 
-extern u8* D_8010E990[1];
+extern const u8* D_8010E990[1];
 
-extern u8* D_8010E994[3];
+extern const u8* D_8010E994[3];
 
 extern UiList D_8010E9A4;
 
@@ -1295,91 +1295,126 @@ extern UiObjectDesc gItemMenuDialogDesc;
 /// bypass this table and supply a CLUT directly.
 extern const u16 gItemMenuIconPaletteCluts[12];
 
-extern const char Gp_StrAddHp[];
+/// Encoded ADD HP label for armor maximum-HP bonuses.
+extern const u8 gItemMenuArmorHpBonusLabel[];
 
-extern const char Gp_StrAddMp[];
+/// Encoded ADD MP label for armor maximum-MP bonuses.
+extern const u8 gItemMenuArmorMpBonusLabel[];
 
-extern const char Gp_StrPEnergy[];
+/// Encoded P.Energy title and command-row label for Parasite Energy.
+extern const u8 gItemMenuParasiteEnergyTitle[];
 
 extern const char Gp_StrOption[];
 
 extern const char Gp_StrExit[];
 
-extern const char Gp_StrSlash[];
+/// Encoded slash separating current values from their maximum or capacity.
+extern const u8 gItemMenuFractionSeparatorText[];
 
-extern const char Gp_StrHp[];
+/// Encoded HP label for player health and armor HP bonuses.
+extern const u8 gItemMenuHpLabel[];
 
-extern const char Gp_StrMp[];
+/// Encoded MP label for player energy and armor MP bonuses.
+extern const u8 gItemMenuMpLabel[];
 
-extern const char Gp_StrExp[];
+/// Encoded EXP label for the player's experience-point total.
+extern const u8 gItemMenuExpLabel[];
 
-extern const char Gp_StrBp[];
+/// Encoded BP label for the player's BP total.
+extern const u8 gItemMenuBpLabel[];
 
-extern const char Gp_StrArmor[];
+/// Encoded title for armor summary, selection and detail panels.
+extern const u8 gItemMenuArmorTitle[];
 
-extern const char Gp_StrAttachments[];
+/// Encoded Attachments title and armor-summary attachment-list label.
+extern const u8 gItemMenuAttachmentsTitle[];
 
 extern const char Gp_StrWeaponTitle[];
 
-extern const char Gp_StrE[];
+/// Encoded E marker identifying the currently equipped item.
+extern const u8 gItemMenuEquippedMarkerText[];
 
-extern const char Gp_StrItemHdr[];
+/// Encoded title for the carried-item list and ordinary-item pickup panels.
+extern const u8 gItemMenuItemTitle[];
 
 extern const char Gp_StrAttachments2[];
 
-extern const char Gp_StrNextReplay[];
+/// Encoded title for an item awarded as next-replay supply.
+extern const u8 gItemMenuNextReplaySupplyTitle[];
 
-extern const char Gp_StrSpecs[];
+/// Encoded title for the ordinary item-information panel.
+extern const u8 gItemMenuSpecificationsTitle[];
 
-extern const char Gp_StrOperation[];
+/// Encoded heading for a weapon's firing controls.
+extern const u8 gItemMenuWeaponOperationLabel[];
 
-extern const char D_8009707C[];
+/// Encoded dash for an armor HP or MP bonus of zero.
+extern const u8 gItemMenuNoArmorBonusText[];
 
-extern const char Gp_StrAttachments3[];
+/// Encoded ATTACHMENTS label for an armor item's attachment-slot count.
+extern const u8 gItemMenuArmorAttachmentSlotsLabel[];
 
-extern const char Gp_StrSpecialFeat[];
+/// Encoded heading for an armor item's special features.
+extern const u8 gItemMenuArmorFeaturesLabel[];
 
-extern const char Gp_StrPowerCaps[];
+/// Encoded POWER label for a consumable's base attack amount.
+extern const u8 gItemMenuConsumablePowerLabel[];
 
-extern const char Gp_StrCapacity[];
+/// Encoded CAPACITY label for carried consumable quantity and stack limit.
+extern const u8 gItemMenuConsumableCapacityLabel[];
 
-extern const char Gp_StrSpecial[];
+/// Encoded SPECIAL label for a consumable's nonzero hit-reaction effect.
+extern const u8 gItemMenuConsumableSpecialLabel[];
 
-extern const char Gp_StrApplicableWpn[];
+/// Encoded heading for weapons compatible with the selected consumable.
+extern const u8 gItemMenuApplicableWeaponsLabel[];
 
-extern const char Gp_StrNotice[];
+/// Encoded Notice title for item-use, pickup and equipment-result panels.
+extern const u8 gItemMenuNoticePanelTitle[];
 
-extern const char Gp_StrKeyItem[];
+/// Encoded title for the key-item list and key-item pickup panels.
+extern const u8 gItemMenuKeyItemTitle[];
 
 extern const char gGpStrWeight[];
 
-extern const char gGpStrRate[];
+/// Encoded Rate label for the weapon comparison's rate column.
+extern const u8 gItemMenuWeaponRateLabel[];
 
-extern const char gGpStrRange[];
+/// Encoded Range label for the weapon comparison's range column.
+extern const u8 gItemMenuWeaponRangeLabel[];
 
-extern const char gGpStrPower[];
+/// Encoded Power label for the ammunition comparison's base attack amount.
+extern const u8 gItemMenuAmmoPowerLabel[];
 
-extern const char gGpStrAttachDot[];
+/// Encoded Attach. label for the armor comparison's attachment-slot count.
+extern const u8 gItemMenuArmorAttachmentCountLabel[];
 
 extern const char Gp_StrAttention[];
 
 extern const char Gp_StrSelectWeapon[];
 
-extern const char Gp_StrEquip[];
+/// Encoded title for equipment confirmation notices.
+extern const u8 gItemMenuEquipTitle[];
 
 extern const char Gp_StrSelectAmmo[];
 
 extern const char Gp_StrSelectArmor[];
 
-extern const char Gp_StrReload[];
+/// Encoded title for ammunition-loading and removal notices.
+extern const u8 gItemMenuReloadTitle[];
 
-extern const char Gp_StrAttach[];
+/// Encoded title for an attachment confirmation notice.
+extern const u8 gItemMenuAttachTitle[];
 
 extern char Gp_StrCustomizeHelp[];
 
 extern char Gp_StrRemoveAmmoHelp[];
 
-extern char Gp_StrChangeOrderHelp[36];
+/// Encoded prompt describing the inventory Sort command.
+///
+/// The first NUL ends the prompt. The retained 0xDD byte after it is not
+/// displayed; its original purpose is unproven.
+extern const u8 gItemMenuSortHelpText[36];
 
 /// Queues an item's display-resource load, replacing requests for the same profile.
 ///

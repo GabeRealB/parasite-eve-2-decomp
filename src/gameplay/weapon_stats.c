@@ -463,10 +463,10 @@ void itemMenuEquipmentDetailTask(Task* task)
             itemId = weaponLoad->secondaryItemId;
         }
     } else if (detailKind == ITEM_MENU_DETAIL_ARMOR) {
-        uiDrawPanelLabel(&object->panel, Gp_StrArmor);
+        uiDrawPanelLabel(&object->panel, (const char*)gItemMenuArmorTitle);
         itemId = player->armor + (ITEM_MENU_ARMOR_ITEM_FIRST - 1);
     } else {
-        uiDrawPanelLabel(&object->panel, Gp_StrAttachments);
+        uiDrawPanelLabel(&object->panel, (const char*)gItemMenuAttachmentsTitle);
         omitStats = true;
         if (Gp_SelItemRec != NULL) {
             itemId = Gp_SelItemRec->itemId;

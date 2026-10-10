@@ -39,92 +39,92 @@ static void _itemMenuSizeAttachmentPicker(UiList* list, UiObject* unused);
 
 static inline s32 _itemMenuDecodeEnergyPreviewIndex(s32 packedAbilityId);
 
-const char Gp_StrPEnergy[] = "P.Energy";
+const u8 gItemMenuParasiteEnergyTitle[] = "P.Energy";
 
 const char Gp_StrOption[] = "Option";
 
 const char Gp_StrExit[] = "Exit";
 
-const char Gp_StrSlash[] = "/";
+const u8 gItemMenuFractionSeparatorText[] = "/";
 
-const char Gp_StrHp[] = "HP";
+const u8 gItemMenuHpLabel[] = "HP";
 
-const char Gp_StrMp[] = "MP";
+const u8 gItemMenuMpLabel[] = "MP";
 
-const char Gp_StrExp[] = "EXP";
+const u8 gItemMenuExpLabel[] = "EXP";
 
-const char Gp_StrBp[] = "BP";
+const u8 gItemMenuBpLabel[] = "BP";
 
-const char Gp_StrArmor[] = "Armor";
+const u8 gItemMenuArmorTitle[] = "Armor";
 
-const char Gp_StrAttachments[] = "Attachments";
+const u8 gItemMenuAttachmentsTitle[] = "Attachments";
 
 const char Gp_StrWeaponTitle[] = "Weapon";
 
-const char Gp_StrE[] = "E";
+const u8 gItemMenuEquippedMarkerText[] = "E";
 
-const char Gp_StrItemHdr[] = "Item";
+const u8 gItemMenuItemTitle[] = "Item";
 
 const char Gp_StrAttachments2[] = "ATTACHMENTs";
 
 const char Gp_StrSelectTitle[] = "Select";
 
-const char Gp_StrNextReplay[] = "NEXT REPLAY SUPPLY";
+const u8 gItemMenuNextReplaySupplyTitle[] = "NEXT REPLAY SUPPLY";
 
-const char Gp_StrSpecs[] = "Specifications";
+const u8 gItemMenuSpecificationsTitle[] = "Specifications";
 
-const char Gp_StrOperation[] = "OPERATION";
+const u8 gItemMenuWeaponOperationLabel[] = "OPERATION";
 
-const char Gp_StrAddHp[] = "ADD HP";
+const u8 gItemMenuArmorHpBonusLabel[] = "ADD HP";
 
-const char D_8009707C[] = "-";
+const u8 gItemMenuNoArmorBonusText[] = "-";
 
-const char Gp_StrAddMp[] = "ADD MP";
+const u8 gItemMenuArmorMpBonusLabel[] = "ADD MP";
 
-const char Gp_StrAttachments3[] = "ATTACHMENTS";
+const u8 gItemMenuArmorAttachmentSlotsLabel[] = "ATTACHMENTS";
 
-const char Gp_StrSpecialFeat[] = "SPECIAL FEATURES";
+const u8 gItemMenuArmorFeaturesLabel[] = "SPECIAL FEATURES";
 
-const char Gp_StrPowerCaps[] = "POWER";
+const u8 gItemMenuConsumablePowerLabel[] = "POWER";
 
-const char Gp_StrCapacity[] = "CAPACITY";
+const u8 gItemMenuConsumableCapacityLabel[] = "CAPACITY";
 
-const char Gp_StrSpecial[] = "SPECIAL";
+const u8 gItemMenuConsumableSpecialLabel[] = "SPECIAL";
 
-const char Gp_StrApplicableWpn[] = "APPLICABLE WEAPONS";
+const u8 gItemMenuApplicableWeaponsLabel[] = "APPLICABLE WEAPONS";
 
-const char Gp_StrNotice[] = "Notice";
+const u8 gItemMenuNoticePanelTitle[] = "Notice";
 
-const char Gp_StrKeyItem[] = "Key Item";
+const u8 gItemMenuKeyItemTitle[] = "Key Item";
 
 const char gGpStrWeight[] = "Weight";
 
-const char gGpStrRate[] = "Rate";
+const u8 gItemMenuWeaponRateLabel[] = "Rate";
 
-const char gGpStrRange[] = "Range";
+const u8 gItemMenuWeaponRangeLabel[] = "Range";
 
-const char gGpStrPower[] = "Power";
+const u8 gItemMenuAmmoPowerLabel[] = "Power";
 
-const char gGpStrAttachDot[] = "Attach.";
+const u8 gItemMenuArmorAttachmentCountLabel[] = "Attach.";
 
 const char Gp_StrAttention[] = "Attention";
 
 const char Gp_StrSelectWeapon[] = "Select Weapon";
 
-const char Gp_StrEquip[] = "Equip";
+const u8 gItemMenuEquipTitle[] = "Equip";
 
 const char Gp_StrSelectAmmo[] = "Select AMMO";
 
 const char Gp_StrSelectArmor[] = "Select Armor";
 
-const char Gp_StrReload[] = "Reload";
+const u8 gItemMenuReloadTitle[] = "Reload";
 
-const char Gp_StrAttach[] = "Attach";
+const u8 gItemMenuAttachTitle[] = "Attach";
 
-char Gp_StrCustomizeHelp[]     = "Customize game settings.";
-char Gp_StrRemoveAmmoHelp[]    = "Remove loaded ammunition.";
-char Gp_StrDetachArmorHelp[]   = "Detach items from armor.";
-char Gp_StrChangeOrderHelp[36] = "Change the order of items carried.\000\335";
+char     Gp_StrCustomizeHelp[]                                       = "Customize game settings.";
+char     Gp_StrRemoveAmmoHelp[]                                      = "Remove loaded ammunition.";
+char     Gp_StrDetachArmorHelp[]                                     = "Detach items from armor.";
+const u8 gItemMenuSortHelpText[36] __attribute__((section(".data"))) = "Change the order of items carried.\000\335";
 
 /// Draws `item`'s name, its equipment status marker in `mode`, the variant
 /// marker for items 0x0F-0x32 and its icon at (`x`, `y`) in `obj`. Nothing is

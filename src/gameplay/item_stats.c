@@ -295,9 +295,9 @@ void itemMenuInfoTask(Task* task)
         }
     } else {
         if (task->spawnArg1.value & ITEM_MENU_INFO_NEXT_REPLAY) {
-            uiDrawPanelLabel(&object->panel, Gp_StrNextReplay);
+            uiDrawPanelLabel(&object->panel, (const char*)gItemMenuNextReplaySupplyTitle);
         } else {
-            uiDrawPanelLabel(&object->panel, Gp_StrSpecs);
+            uiDrawPanelLabel(&object->panel, (const char*)gItemMenuSpecificationsTitle);
         }
         if (object->panel.state == USER_INTERFACE_PANEL_OPEN) {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
@@ -457,7 +457,7 @@ void itemMenuInfoTask(Task* task)
                 labelRequest.colorRgb   = ITEM_MENU_PANEL_TEXT_COLOR;
                 labelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                 labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&labelRequest, (const u8*)Gp_StrOperation);
+                textDrawString(&labelRequest, gItemMenuWeaponOperationLabel);
             } else if ((u32)(itemId - ITEM_MENU_INFO_ARMOR_ITEM_FIRST) < (u32)ITEM_MENU_INFO_EQUIPMENT_ITEM_COUNT) {
                 armorStats            = &Gp_ModStatAttrs[(itemId)-ITEM_MENU_INFO_ARMOR_ITEM_FIRST];
                 displayedFeatureCount = 0;
@@ -473,7 +473,7 @@ void itemMenuInfoTask(Task* task)
                 labelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 labelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                 labelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&labelRequest, (const u8*)Gp_StrAddHp);
+                textDrawString(&labelRequest, gItemMenuArmorHpBonusLabel);
                 if (armorStats->hpBonus == 0) {
                     armorBonusRequest.x          = object->panel.contentOriginX.unsignedValue + 0x78;
                     armorBonusRequest.y          = object->panel.contentOriginY.unsignedValue + rowY;
@@ -482,7 +482,7 @@ void itemMenuInfoTask(Task* task)
                     armorBonusRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     armorBonusRequest.alignment  = TEXT_ALIGNMENT_RIGHT;
                     armorBonusRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    textDrawString(&armorBonusRequest, (const u8*)D_8009707C);
+                    textDrawString(&armorBonusRequest, gItemMenuNoArmorBonusText);
                 } else {
                     armorBonusRequest.x          = object->panel.contentOriginX.unsignedValue + 0x7A;
                     armorBonusRequest.y          = object->panel.contentOriginY.unsignedValue + rowY;
@@ -502,7 +502,7 @@ void itemMenuInfoTask(Task* task)
                 armorBonusRequest.colorRgb   = ITEM_MENU_PANEL_TEXT_COLOR;
                 armorBonusRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                 armorBonusRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&armorBonusRequest, (const u8*)Gp_StrAddMp);
+                textDrawString(&armorBonusRequest, gItemMenuArmorMpBonusLabel);
                 if (armorStats->mpBonus == 0) {
                     armorDetailsRequest.x          = object->panel.contentOriginX.unsignedValue + 0x76 + rowX;
                     armorDetailsRequest.y          = object->panel.contentOriginY.unsignedValue + rowY;
@@ -511,7 +511,7 @@ void itemMenuInfoTask(Task* task)
                     armorDetailsRequest.colorRgb   = ITEM_MENU_PANEL_TEXT_COLOR;
                     armorDetailsRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
                     armorDetailsRequest.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-                    textDrawString(&armorDetailsRequest, (const u8*)D_8009707C);
+                    textDrawString(&armorDetailsRequest, gItemMenuNoArmorBonusText);
                 } else {
                     armorDetailsRequest.x          = object->panel.contentOriginX.unsignedValue + 0x78 + rowX;
                     armorDetailsRequest.y          = object->panel.contentOriginY.unsignedValue + rowY;
@@ -531,7 +531,7 @@ void itemMenuInfoTask(Task* task)
                 armorDetailsRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 armorDetailsRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                 armorDetailsRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&armorDetailsRequest, (const u8*)Gp_StrAttachments3);
+                textDrawString(&armorDetailsRequest, gItemMenuArmorAttachmentSlotsLabel);
                 featureIndex                      = 0;
                 attachmentCountRequest.x          = object->panel.contentOriginX.unsignedValue + 0x78 + rowX;
                 attachmentCountRequest.y          = object->panel.contentOriginY.unsignedValue + rowY;
@@ -550,7 +550,7 @@ void itemMenuInfoTask(Task* task)
                 featureLabelRequest.glyphTable = TEXT_GLYPH_TABLE_SMALL;
                 featureLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                 featureLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&featureLabelRequest, (const u8*)Gp_StrSpecialFeat);
+                textDrawString(&featureLabelRequest, gItemMenuArmorFeaturesLabel);
                 featureName = Gp_FeatNameTbl;
                 do {
                     if (armorFeatures & 1) {
@@ -580,7 +580,7 @@ void itemMenuInfoTask(Task* task)
                 categoryRequest.colorRgb   = ITEM_MENU_PANEL_TEXT_COLOR;
                 categoryRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                 categoryRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                textDrawString(&categoryRequest, (const u8*)Gp_StrSpecialFeat);
+                textDrawString(&categoryRequest, gItemMenuArmorFeaturesLabel);
             } else {
                 consumableIndex = itemId - INVENTORY_CONSUMABLE_ITEM_FIRST;
                 if ((u32)consumableIndex < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
@@ -608,7 +608,7 @@ void itemMenuInfoTask(Task* task)
                     powerLabelRequest.colorRgb   = textColorRgb;
                     powerLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                     powerLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                    textDrawString(&powerLabelRequest, (const u8*)Gp_StrPowerCaps);
+                    textDrawString(&powerLabelRequest, gItemMenuConsumablePowerLabel);
                     powerValueRequest.x          = object->panel.contentOriginX.unsignedValue + 0x4C;
                     powerValueRequest.y          = object->panel.contentOriginY.unsignedValue + rowY;
                     powerValueRequest.otIndex    = object->panel.otIndex.signedValue + 1;
@@ -619,7 +619,7 @@ void itemMenuInfoTask(Task* task)
                     textDrawString(&powerValueRequest, quantityText);
                     textItoaSigned(quantityText, inventoryGetConsumableStackQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId));
                     textItoaSigned(stackLimitText, Gp_StackLimits[consumableIndex].maxHeld);
-                    textAppendString(quantityText, (const u8*)Gp_StrSlash);
+                    textAppendString(quantityText, gItemMenuFractionSeparatorText);
                     textAppendString(quantityText, stackLimitText);
                     rowY                            = contentTop + 0x3C;
                     capacityLabelRequest.x          = object->panel.contentOriginX.unsignedValue + 2;
@@ -629,7 +629,7 @@ void itemMenuInfoTask(Task* task)
                     capacityLabelRequest.colorRgb   = textColorRgb;
                     capacityLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                     capacityLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                    textDrawString(&capacityLabelRequest, (const u8*)Gp_StrCapacity);
+                    textDrawString(&capacityLabelRequest, gItemMenuConsumableCapacityLabel);
                     capacityValueRequest.x          = object->panel.contentOriginX.unsignedValue + 0x4C;
                     capacityValueRequest.y          = object->panel.contentOriginY.unsignedValue + rowY;
                     capacityValueRequest.otIndex    = object->panel.otIndex.signedValue + 1;
@@ -647,7 +647,7 @@ void itemMenuInfoTask(Task* task)
                         extraLabelRequest.colorRgb   = textColorRgb;
                         extraLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                         extraLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                        textDrawString(&extraLabelRequest, (const u8*)Gp_StrSpecial);
+                        textDrawString(&extraLabelRequest, gItemMenuConsumableSpecialLabel);
                         specialValueRequest.x          = object->panel.contentOriginX.unsignedValue + 0x4C;
                         specialValueRequest.y          = object->panel.contentOriginY.unsignedValue + rowY;
                         specialValueRequest.otIndex    = object->panel.otIndex.signedValue + 1;
@@ -665,7 +665,7 @@ void itemMenuInfoTask(Task* task)
                     extraLabelRequest.colorRgb   = textColorRgb;
                     extraLabelRequest.alignment  = TEXT_ALIGNMENT_LEFT;
                     extraLabelRequest.drawMode   = TEXT_DRAW_OUTLINED;
-                    textDrawString(&extraLabelRequest, (const u8*)Gp_StrApplicableWpn);
+                    textDrawString(&extraLabelRequest, gItemMenuApplicableWeaponsLabel);
                 }
             }
         } else {
@@ -733,7 +733,7 @@ void itemMenuUseKeyItemTask(Task* task)
         task->state         = task->state + 1;
     }
     if (task->state != ITEM_MENU_KEY_ITEM_USE_STATE_NO_NOTICE) {
-        uiDrawPanelLabel(&object->panel, Gp_StrNotice);
+        uiDrawPanelLabel(&object->panel, (const char*)gItemMenuNoticePanelTitle);
         if (task->spawnArg1.value == ITEM_MENU_KEY_ITEM_USE_REFUSED_ID) {
             textColorRgb = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_NORMAL);
             textDrawUiLine(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)Gp_StrNoUseNow, textColorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
@@ -957,7 +957,7 @@ void itemMenuCollectedItemsTask(Task* task)
     object         = task->spawnArg2.pointer;
     collectedList  = &D_8010E960;
     object->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&object->panel, Gp_StrKeyItem);
+    uiDrawPanelLabel(&object->panel, (const char*)gItemMenuKeyItemTitle);
     if (task->state == ITEM_MENU_COLLECTED_INIT) {
         _itemMenuRefreshCollectedCount(collectedList);
         uiInitList(collectedList, &object->panel);
