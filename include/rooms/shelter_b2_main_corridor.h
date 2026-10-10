@@ -23,13 +23,29 @@ extern SVECTOR D_shelter_b2_main_corridor_80182EFC[12];
 /// Undisplaced water-surface Y in signed world units, shared with the room's actors.
 extern s16 gShelterB2MainCorridorWaterY;
 
-extern AreaVariant D_shelter_b2_main_corridor_8018933C[22];
-
 /// Extents of the corridor's room-map directory and collision surface-class table.
 enum {
     SHELTER_B2_MAIN_CORRIDOR_ROOM_COUNT          = 1,
     SHELTER_B2_MAIN_CORRIDOR_SURFACE_CLASS_COUNT = 8,
 };
+
+/// Extents of the corridor's exported view, placement and trigger tables.
+enum {
+    SHELTER_B2_MAIN_CORRIDOR_VIEW_COUNT                  = 13,
+    SHELTER_B2_MAIN_CORRIDOR_WARP_ENTRY_COUNT            = 6,
+    SHELTER_B2_MAIN_CORRIDOR_AREA_VARIANT_COUNT          = 22,
+    SHELTER_B2_MAIN_CORRIDOR_VIEW_BOUNDARY_TRIGGER_COUNT = 18,
+    SHELTER_B2_MAIN_CORRIDOR_ACTION_TRIGGER_COUNT        = 7,
+};
+
+/// Placement/resource pairs indexed by the saved corridor layout variant, 0..21.
+///
+/// Variants 1/2 place three Bog Divers, 3 a Bog Diver and large Mossback,
+/// 4 an empty layout, and 11/21 two Watchers and one Rook GOLEM. All other
+/// slots are absent (both pointers NULL); there is no table terminator.
+/// The selected room lists end with `AREA_PLACEMENT_END` and remain borrowed
+/// while loading or while spawned actors refer to their placements.
+extern AreaVariant gShelterB2MainCorridorAreaVariants[SHELTER_B2_MAIN_CORRIDOR_AREA_VARIANT_COUNT];
 
 /// Logical-view maps for the corridor's single room, indexed by room ID minus one.
 ///
@@ -38,9 +54,21 @@ enum {
 /// stays live with this overlay; the borrowed map stays live with gameplay.
 extern u8* gShelterB2MainCorridorViewMaps[SHELTER_B2_MAIN_CORRIDOR_ROOM_COUNT];
 
-extern ViewCount D_shelter_b2_main_corridor_801830D0[];
+/// Logical-view reverse-search length for the corridor's single room.
+///
+/// Room ID minus one selects the signed element count 13. The borrowed
+/// identity map has a separate 50-byte capacity; this count has no terminator
+/// and stays valid while the corridor overlay is loaded.
+extern ViewCount gShelterB2MainCorridorViewCounts[SHELTER_B2_MAIN_CORRIDOR_ROOM_COUNT];
 
-extern DirectionWarpEntry D_shelter_b2_main_corridor_801830D4[];
+/// Six arrival/departure endpoints selected by 1-based corridor warp IDs.
+///
+/// In order: elevator hall, EVE tunnel route, laboratory, observatory route,
+/// breeding room and septic tank. Transforms use world units and 4096 yaw
+/// units per turn; each initial view is 1..13. Sounds and optional map marks
+/// belong to these endpoints. No terminator; keep this overlay loaded until
+/// the entry has been copied or its transforms consumed by actor spawning.
+extern DirectionWarpEntry gShelterB2MainCorridorWarpEntries[SHELTER_B2_MAIN_CORRIDOR_WARP_ENTRY_COUNT];
 
 /// Collision mesh and XZ cell directory for the corridor's walls and floors.
 ///
@@ -50,9 +78,20 @@ extern DirectionWarpEntry D_shelter_b2_main_corridor_801830D4[];
 /// `gShelterB2MainCorridorSurfacePropertiesByClass`.
 extern WorldCollisionGrid gShelterB2MainCorridorCollisionGrid;
 
-extern ViewCamera D_shelter_b2_main_corridor_80184464[];
+/// Cameras selected by the corridor's mapped view index minus one, 0..12.
+///
+/// Rotations use `ONE` per unit, translations are negated world-space camera
+/// origins, and projection distances are pixels. No terminator; queued camera
+/// application borrows these records until dispatch, while this overlay is loaded.
+extern ViewCamera gShelterB2MainCorridorViewCameras[SHELTER_B2_MAIN_CORRIDOR_VIEW_COUNT];
 
-extern SpriteView D_shelter_b2_main_corridor_80188848[];
+/// Sprite sources and batch lists selected by mapped view index minus one, 0..12.
+///
+/// All views use decoded-image backgrounds and no draw-area list. Views 1,
+/// 12 and 13 retain an empty batch-list address in `sources.empty`; the other
+/// views select mutable source rectangles. This table has no terminator;
+/// its borrowed lists remain valid while the corridor overlay is loaded.
+extern SpriteView gShelterB2MainCorridorSpriteViews[SHELTER_B2_MAIN_CORRIDOR_VIEW_COUNT];
 
 /// Eight point lights shared by every corridor view, with no directional or cone lights.
 ///
@@ -60,9 +99,21 @@ extern SpriteView D_shelter_b2_main_corridor_80188848[];
 /// overlay loaded while coordinate updates or lighting queries use them.
 extern WorldCoordRoomLights gShelterB2MainCorridorRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b2_main_corridor_80188BFC[];
+/// Eighteen directed boundaries changing the corridor's current logical view.
+///
+/// Source/destination bytes select views 2..11. Positions and radii use room
+/// units and normals use `ONE` per unit. LAST marks the final included record.
+/// Room setup binds the mutable nodes to the view; keep this overlay loaded
+/// until their collision lists are unlinked.
+extern WorldCollisionTrigger gShelterB2MainCorridorViewBoundaryTriggers[SHELTER_B2_MAIN_CORRIDOR_VIEW_BOUNDARY_TRIGGER_COUNT];
 
-extern WorldCollisionTrigger D_shelter_b2_main_corridor_801893EC[];
+/// Seven interaction quads for four Shelter warps, two route actions and an access scene.
+///
+/// The six travel quads require facing and an interaction press. The final
+/// access-scene quad activates automatically and carries LAST. Positions and
+/// radii use room units; normals use `ONE` per unit. Room setup binds these
+/// mutable nodes to the view; keep this overlay loaded until they are unlinked.
+extern WorldCollisionTrigger gShelterB2MainCorridorActionTriggers[SHELTER_B2_MAIN_CORRIDOR_ACTION_TRIGGER_COUNT];
 
 /// Collision responses for surface classes 0..7, indexed directly by class.
 ///

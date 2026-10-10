@@ -948,7 +948,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b2_north_maintenance_walkway_80183C64,
     gShelterB2LaboratoryWarpEntries,
     gShelterB2BreedingRoomWarpEntries,
-    D_shelter_b2_main_corridor_801830D4,
+    gShelterB2MainCorridorWarpEntries,
     D_shelter_b2_septic_tank_80183574,
     D_shelter_b2_pod_access_tunnel_80183E30,
     D_shelter_r36_8017E9C4,
@@ -1000,7 +1000,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b2_north_maintenance_walkway_80183C60,
     gShelterB2LaboratoryRoomViewCounts,
     gShelterB2BreedingRoomRoomViewCounts,
-    D_shelter_b2_main_corridor_801830D0,
+    gShelterB2MainCorridorViewCounts,
     D_shelter_b2_septic_tank_80183570,
     D_shelter_b2_pod_access_tunnel_80183E2C,
     D_shelter_r36_8017E9C0,
@@ -1094,7 +1094,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B224[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B234[1] = {
-    { &gShelterB2MainCorridorCollisionGrid, D_shelter_b2_main_corridor_80188BFC, D_shelter_b2_main_corridor_801893EC, NULL },
+    { &gShelterB2MainCorridorCollisionGrid, gShelterB2MainCorridorViewBoundaryTriggers, gShelterB2MainCorridorActionTriggers, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B244[1] = {
@@ -1225,7 +1225,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     gShelterB2NorthMaintenanceWalkwayViewCameras,
     gShelterB2LaboratoryViewCameras,
     gShelterB2BreedingRoomViewCameras,
-    D_shelter_b2_main_corridor_80184464,
+    gShelterB2MainCorridorViewCameras,
     gShelterB2SepticTankViewCameras,
     gShelterB2PodAccessTunnelViewCameras,
     D_shelter_r36_8017EAD4,
@@ -1341,7 +1341,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB2NorthMaintenanceWalkwaySpriteViews,
     gShelterB2LaboratorySpriteViews,
     gShelterB2BreedingRoomSpriteViews,
-    D_shelter_b2_main_corridor_80188848,
+    gShelterB2MainCorridorSpriteViews,
     gShelterB2SepticTankSpriteViews,
     gShelterB2PodAccessTunnelSpriteViews,
     D_shelter_r36_8017F318,

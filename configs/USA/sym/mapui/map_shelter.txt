@@ -350,14 +350,14 @@ gShelterB2BreedingRoomOccluders = 0x8018467C; // absolute:True owner=shelter_b2_
 gShelterB2BreedingRoomSurfacePropertiesByClass = 0x801847F4; // absolute:True owner=shelter_b2_breeding_room
 shelterB2MainCorridorRoomTask = 0x8017E338; // type:func absolute:True owner=shelter_b2_main_corridor shared=rooms
 gShelterB2MainCorridorViewMaps = 0x801830CC; // absolute:True owner=shelter_b2_main_corridor
-D_shelter_b2_main_corridor_801830D0 = 0x801830D0; // absolute:True owner=shelter_b2_main_corridor
-D_shelter_b2_main_corridor_801830D4 = 0x801830D4; // absolute:True owner=shelter_b2_main_corridor shared=rooms
+gShelterB2MainCorridorViewCounts = 0x801830D0; // absolute:True owner=shelter_b2_main_corridor
+gShelterB2MainCorridorWarpEntries = 0x801830D4; // absolute:True owner=shelter_b2_main_corridor shared=rooms
 gShelterB2MainCorridorCollisionGrid = 0x80184440; // absolute:True owner=shelter_b2_main_corridor
-D_shelter_b2_main_corridor_80184464 = 0x80184464; // absolute:True owner=shelter_b2_main_corridor
-D_shelter_b2_main_corridor_80188848 = 0x80188848; // absolute:True owner=shelter_b2_main_corridor
+gShelterB2MainCorridorViewCameras = 0x80184464; // absolute:True owner=shelter_b2_main_corridor
+gShelterB2MainCorridorSpriteViews = 0x80188848; // absolute:True owner=shelter_b2_main_corridor
 gShelterB2MainCorridorRoomLights = 0x80188BE4; // absolute:True owner=shelter_b2_main_corridor shared=rooms
-D_shelter_b2_main_corridor_80188BFC = 0x80188BFC; // absolute:True owner=shelter_b2_main_corridor shared=rooms
-D_shelter_b2_main_corridor_801893EC = 0x801893EC; // absolute:True owner=shelter_b2_main_corridor
+gShelterB2MainCorridorViewBoundaryTriggers = 0x80188BFC; // absolute:True owner=shelter_b2_main_corridor shared=rooms
+gShelterB2MainCorridorActionTriggers = 0x801893EC; // absolute:True owner=shelter_b2_main_corridor
 gShelterB2MainCorridorSurfacePropertiesByClass = 0x80189624; // absolute:True owner=shelter_b2_main_corridor
 shelterB2SepticTankRoomTask = 0x8017DB10; // type:func absolute:True owner=shelter_b2_septic_tank shared=rooms
 gShelterB2SepticTankViewMaps = 0x8018356C; // absolute:True owner=shelter_b2_septic_tank

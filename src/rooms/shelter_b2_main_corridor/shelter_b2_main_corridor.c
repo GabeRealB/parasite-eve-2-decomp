@@ -40,6 +40,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -151,15 +152,6 @@ extern EvsCommand D_shelter_b2_main_corridor_80182CA8[];
 
 /// Tasks the room's first task state spawns.
 extern TaskDesc D_shelter_b2_main_corridor_80182DE0[];
-
-/// Light positions the per-view drawer places beams and glows at.
-extern SVECTOR D_shelter_b2_main_corridor_80182F7C[];
-extern SVECTOR D_shelter_b2_main_corridor_80182F9C[];
-extern SVECTOR D_shelter_b2_main_corridor_80182FAC[];
-extern SVECTOR D_shelter_b2_main_corridor_80182FBC[];
-extern SVECTOR D_shelter_b2_main_corridor_80182FCC[];
-extern SVECTOR D_shelter_b2_main_corridor_8018305C[];
-extern SVECTOR D_shelter_b2_main_corridor_8018306C[];
 
 /// Areas the room re-applies when it clears its pending game-flag state.
 extern AreaApplyRec D_shelter_b2_main_corridor_80189644[];
@@ -273,7 +265,11 @@ static RoomWaterSurface _gShelterB2MainCorridorWaterWaveSurfaces[] = {
 
 s16 gShelterB2MainCorridorWaterY = 150;
 
-SVECTOR D_shelter_b2_main_corridor_80182E2C[8] = {
+/// Eight-point Bog Diver patrol ring selected by spawn waypoint-set bits 4..5 = 0.
+///
+/// X/Z use room coordinates; Y is depth below the sampled water level.
+/// Borrowed through the room's waypoint-set directory until the divers retire.
+static SVECTOR _gShelterB2MainCorridorDiverPatrolWaypoints0[8] = {
     { 1700, 1500, -4300, 0 },
     { -1700, 1500, -4300, 0 },
     { 1700, 1500, -6700, 0 },
@@ -307,7 +303,7 @@ SVECTOR D_shelter_b2_main_corridor_80182EAC[8] = {
 };
 
 SVECTOR* D_shelter_b2_main_corridor_80182EEC[4] = {
-    D_shelter_b2_main_corridor_80182E2C,
+    _gShelterB2MainCorridorDiverPatrolWaypoints0,
     D_shelter_b2_main_corridor_80182E6C,
     D_shelter_b2_main_corridor_80182EAC,
     D_shelter_b2_main_corridor_80182E6C,
@@ -335,29 +331,40 @@ SVECTOR D_shelter_b2_main_corridor_80182F5C[4] = {
     { -667, -1910, -0x3EB4, 0 },
 };
 
-SVECTOR D_shelter_b2_main_corridor_80182F7C[4] = {
+/// Two consecutive world-space endpoint pairs for mapped view 2's white beams.
+static SVECTOR _gShelterB2MainCorridorView2WhiteBeamPoints[4] = {
     { 668, -1910, -0x4A3D, 0 },
     { 668, -1910, -0x45ED, 0 },
     { 668, -1910, -0x4309, 0 },
     { 668, -1910, -0x3EB4, 0 },
 };
 
-SVECTOR D_shelter_b2_main_corridor_80182F9C[2] = {
+/// World-space point indices shared by the corridor's beam and flare views.
+enum {
+    SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_LEFT_FAR   = 0,
+    SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_LEFT_NEAR  = 2,
+    SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_RIGHT_FAR  = 4,
+    SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_RIGHT_NEAR = 6,
+    SHELTER_B2_MAIN_CORRIDOR_GLOW_WHITE_FAR        = 24,
+    SHELTER_B2_MAIN_CORRIDOR_GLOW_WHITE_NEAR       = 26,
+    SHELTER_B2_MAIN_CORRIDOR_GLOW_POINT_COUNT      = 36,
+};
+
+/// World-space beam endpoints and flare centres shared by mapped views 3..11.
+///
+/// Points 0..7 form four green beam pairs, 8..9 the red pair, and 10..23
+/// two seven-point rows (flares use 16 and 23; other row entries are unused).
+/// Points 24..35 are six white beam pairs interleaved by far/near position;
+/// views 10/11 select every other pair.
+/// Coordinates use signed world units. There is no terminator. Each beam
+/// reads its selected point and the next point within this single array.
+static SVECTOR _gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_POINT_COUNT] = {
     { -3246, -2265, -0x2988, 0 },
     { -3246, -2265, -9370, 0 },
-};
-
-SVECTOR D_shelter_b2_main_corridor_80182FAC[2] = {
     { -3246, -2265, -2620, 0 },
     { -3246, -2265, -1381, 0 },
-};
-
-SVECTOR D_shelter_b2_main_corridor_80182FBC[2] = {
     { 3260, -2265, -0x2988, 0 },
     { 3260, -2265, -9370, 0 },
-};
-
-SVECTOR D_shelter_b2_main_corridor_80182FCC[18] = {
     { 3260, -2265, -2620, 0 },
     { 3260, -2265, -1381, 0 },
     { -365, -2226, -180, 0 },
@@ -376,14 +383,8 @@ SVECTOR D_shelter_b2_main_corridor_80182FCC[18] = {
     { 1293, -4768, -5483, 0 },
     { 1293, -4768, -3483, 0 },
     { 1293, -4768, -1483, 0 },
-};
-
-SVECTOR D_shelter_b2_main_corridor_8018305C[2] = {
     { -4243, -45, -0x2816, 0 },
     { -4243, -45, -9767, 0 },
-};
-
-SVECTOR D_shelter_b2_main_corridor_8018306C[10] = {
     { -4243, -45, -2278, 0 },
     { -4243, -45, -1791, 0 },
     { -4816, -45, -9098, 0 },
@@ -402,15 +403,35 @@ u8* gShelterB2MainCorridorViewMaps[SHELTER_B2_MAIN_CORRIDOR_ROOM_COUNT] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b2_main_corridor_801830D0[1] = { 13 };
+ViewCount gShelterB2MainCorridorViewCounts[SHELTER_B2_MAIN_CORRIDOR_ROOM_COUNT] = { SHELTER_B2_MAIN_CORRIDOR_VIEW_COUNT };
 
-DirectionWarpEntry D_shelter_b2_main_corridor_801830D4[6] = {
-    { { { .word = 0 }, -67, -6, -0x4909 }, { 0, 0, 0, 0 }, { { .word = 0 }, -67, -6, -0x4909 }, { 0, 0, 0, 0 }, 0x54210002, 0x54210001, 0x5421000B, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1C7 },
-    { { { .word = 1024 }, -4600, 0, -9900 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -4600, 0, -9900 }, { 0, 0, 0, 0 }, 0x5421000A, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_FADE_DEPARTURE, 431 },
-    { { { .word = 3072 }, 3448, 0, -9932 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3448, 0, -9932 }, { 0, 0, 0, 0 }, 0x54210002, 0x54210001, 0x5421000B, 5, DIRECTION_WARP_FLAG_NONE, 451 },
-    { { { .word = 1024 }, -4900, 0, -1900 }, { 0, 0, 0, 0 }, { { .word = 1536 }, -5450, 0, -1400 }, { 0, 0, 0, 0 }, 0x5421000A, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_FADE_DEPARTURE, GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR },
-    { { { .word = 3072 }, 3467, 0, -1983 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3467, 0, -1983 }, { 0, 0, 0, 0 }, 0x54210002, 0x54210001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 31, 0, 72 }, { 0, 0, 0, 0 }, { { .word = 2304 }, -1000, 0, -1400 }, { 0, 0, 0, 0 }, 0x54210002, 0x54210001, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// One-based endpoint IDs packed in the high nibble of corridor warp triggers.
+enum {
+    SHELTER_B2_MAIN_CORRIDOR_WARP_ELEVATOR_HALL     = 1,
+    SHELTER_B2_MAIN_CORRIDOR_WARP_EVE_ROUTE         = 2,
+    SHELTER_B2_MAIN_CORRIDOR_WARP_LABORATORY        = 3,
+    SHELTER_B2_MAIN_CORRIDOR_WARP_OBSERVATORY_ROUTE = 4,
+    SHELTER_B2_MAIN_CORRIDOR_WARP_BREEDING_ROOM     = 5,
+    SHELTER_B2_MAIN_CORRIDOR_WARP_SEPTIC_TANK       = 6,
+};
+
+/// Sound events and map-marker IDs belonging to the corridor's warp endpoints.
+enum {
+    SHELTER_B2_MAIN_CORRIDOR_DOOR_ARRIVAL_SOUND           = 0x54210002,
+    SHELTER_B2_MAIN_CORRIDOR_DOOR_DEPARTURE_SOUND         = 0x54210001,
+    SHELTER_B2_MAIN_CORRIDOR_DOOR_BLOCKED_SOUND           = 0x5421000B,
+    SHELTER_B2_MAIN_CORRIDOR_ROUTE_ARRIVAL_SOUND          = 0x5421000A,
+    SHELTER_B2_MAIN_CORRIDOR_EVE_ROUTE_MAP_FLAG           = 0x1AF,
+    SHELTER_B2_MAIN_CORRIDOR_LABORATORY_ENDPOINT_MAP_FLAG = 0x1C3,
+};
+
+DirectionWarpEntry gShelterB2MainCorridorWarpEntries[SHELTER_B2_MAIN_CORRIDOR_WARP_ENTRY_COUNT] = {
+    { { { .word = 0 }, -67, -6, -0x4909 }, { 0, 0, 0, 0 }, { { .word = 0 }, -67, -6, -0x4909 }, { 0, 0, 0, 0 }, SHELTER_B2_MAIN_CORRIDOR_DOOR_ARRIVAL_SOUND, SHELTER_B2_MAIN_CORRIDOR_DOOR_DEPARTURE_SOUND, SHELTER_B2_MAIN_CORRIDOR_DOOR_BLOCKED_SOUND, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1C7 },
+    { { { .word = 1024 }, -4600, 0, -9900 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -4600, 0, -9900 }, { 0, 0, 0, 0 }, SHELTER_B2_MAIN_CORRIDOR_ROUTE_ARRIVAL_SOUND, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 10, DIRECTION_WARP_FLAG_FADE_DEPARTURE, SHELTER_B2_MAIN_CORRIDOR_EVE_ROUTE_MAP_FLAG },
+    { { { .word = 3072 }, 3448, 0, -9932 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3448, 0, -9932 }, { 0, 0, 0, 0 }, SHELTER_B2_MAIN_CORRIDOR_DOOR_ARRIVAL_SOUND, SHELTER_B2_MAIN_CORRIDOR_DOOR_DEPARTURE_SOUND, SHELTER_B2_MAIN_CORRIDOR_DOOR_BLOCKED_SOUND, 5, DIRECTION_WARP_FLAG_NONE, SHELTER_B2_MAIN_CORRIDOR_LABORATORY_ENDPOINT_MAP_FLAG },
+    { { { .word = 1024 }, -4900, 0, -1900 }, { 0, 0, 0, 0 }, { { .word = 1536 }, -5450, 0, -1400 }, { 0, 0, 0, 0 }, SHELTER_B2_MAIN_CORRIDOR_ROUTE_ARRIVAL_SOUND, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 11, DIRECTION_WARP_FLAG_FADE_DEPARTURE, GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR },
+    { { { .word = 3072 }, 3467, 0, -1983 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 3467, 0, -1983 }, { 0, 0, 0, 0 }, SHELTER_B2_MAIN_CORRIDOR_DOOR_ARRIVAL_SOUND, SHELTER_B2_MAIN_CORRIDOR_DOOR_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 2048 }, 31, 0, 72 }, { 0, 0, 0, 0 }, { { .word = 2304 }, -1000, 0, -1400 }, { 0, 0, 0, 0 }, SHELTER_B2_MAIN_CORRIDOR_DOOR_ARRIVAL_SOUND, SHELTER_B2_MAIN_CORRIDOR_DOOR_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 enum {
@@ -459,8 +480,8 @@ WorldCollisionGrid gShelterB2MainCorridorCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gShelterB2MainCorridorCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b2_main_corridor_80184464[13] = {
-    { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5EE9, 8000 } }, 230 },
+ViewCamera gShelterB2MainCorridorViewCameras[SHELTER_B2_MAIN_CORRIDOR_VIEW_COUNT] = {
+    { { { { 4095, 0, 0 }, { 0, 0, -ONE }, { 0, 4095, 0 } }, { 0, 0x5EE9, 8000 } }, 230 },
     { { { { -3955, 0, -1064 }, { -138, 4061, 515 }, { 1055, 533, -3921 } }, { 821, 1576, 0x2726 } }, 275 },
     { { { { 3997, 0, -892 }, { -135, 4048, -608 }, { 881, 623, 3951 } }, { 821, 1576, 0x3C7F } }, 275 },
     { { { { 518, 0, 4062 }, { 964, 3979, -123 }, { -3946, 971, 504 } }, { -912, 1817, 0x28C1 } }, 246 },
@@ -1391,61 +1412,64 @@ static SpriteSource _gShelterB2MainCorridorView10SpriteSources[21] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, -72, 641, { .fields = { 112, 0 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b2_main_corridor_80188464[3] = {
+/// Decoded-image background followed by all 21 source sprites for mapped view 10.
+static SpriteBatch _gShelterB2MainCorridorView10SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2MainCorridorView10SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_main_corridor_8018847C[45] = {
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, -32, 843, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, -32, 832, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -32, 826, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -24, 841, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -24, 848, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, -24, 1250, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, -32, 837, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, -64, 748, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, -56, 734, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -56, 719, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -48, 711, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, -88, 692, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 0, -88, 684, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 8, -88, 677, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -64, 664, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, -88, 675, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 24, -64, 678, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, -88, 675, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 32, -88, 682, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 96, 497, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 88, 499, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 8, 80, 506, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 8, 72, 513, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, 104, 485, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, 112, 484, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 96, 492, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 88, 499, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 80, 505, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, 72, 1250, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 72, 1250, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -144, -8, 579, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -136, 8, 572, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -128, 8, 570, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, -8, 596, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, -8, 609, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, -8, 650, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, -8, 692, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 8, 753, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 8, 778, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 40, 744, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 32, 720, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 24, 660, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 16, 624, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 48, 1250, { .fields = { 80, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, -8, 1250, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+/// Mutable depth-sorted sprite rectangles for mapped corridor view 11.
+static SpriteSource _gShelterB2MainCorridorView11SpriteSources[45] = {
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, -32, 843, { .fields = { 104, 24 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, -32, 832, { .fields = { 104, 0 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -32, 826, { .fields = { 104, 72 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -24, 841, { .fields = { 96, 64 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -24, 848, { .fields = { 96, 96 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 32, -24, 1250, { .fields = { 96, 32 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 16, -32, 837, { .fields = { 80, 136 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, -64, 748, { .fields = { 112, 160 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, -56, 734, { .fields = { 104, 144 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -56, 719, { .fields = { 104, 192 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -48, 711, { .fields = { 104, 216 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, -88, 692, { .fields = { 104, 168 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 0, -88, 684, { .fields = { 112, 0 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 8, -88, 677, { .fields = { 112, 32 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -64, 664, { .fields = { 96, 80 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, -88, 675, { .fields = { 104, 120 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 24, -64, 678, { .fields = { 120, 200 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 24, -88, 675, { .fields = { 104, 96 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 32, -88, 682, { .fields = { 120, 64 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 96, 497, { .fields = { 72, 144 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 88, 499, { .fields = { 72, 152 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 8, 80, 506, { .fields = { 80, 112 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 8, 72, 513, { .fields = { 80, 120 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, 104, 485, { .fields = { 32, 128 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -40, 112, 484, { .fields = { 32, 184 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 96, 492, { .fields = { 64, 192 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 88, 499, { .fields = { 64, 176 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 80, 505, { .fields = { 80, 160 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, -16, 72, 1250, { .fields = { 80, 0 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 72, 1250, { .fields = { 80, 168 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, -144, -8, 579, { .fields = { 120, 0 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -136, 8, 572, { .fields = { 120, 160 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -128, 8, 570, { .fields = { 120, 120 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, -8, 596, { .fields = { 104, 232 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, -8, 609, { .fields = { 112, 240 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, -8, 650, { .fields = { 104, 48 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -112, -8, 692, { .fields = { 112, 64 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 8, 753, { .fields = { 120, 232 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 8, 778, { .fields = { 112, 96 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -96, 40, 744, { .fields = { 96, 16 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 32, 720, { .fields = { 112, 192 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 24, 660, { .fields = { 112, 216 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, -120, 16, 624, { .fields = { 112, 128 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 48, 1250, { .fields = { 80, 248 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, -8, 1250, { .fields = { 88, 48 } }, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B2_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b2_main_corridor_80188800[5] = {
+/// Decoded-image background and three source ranges (0..18, 19..29, 30..44) for view 11.
+static SpriteBatch _gShelterB2MainCorridorView11SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 1, 0 } },
     { 19, 11, 0, 0, { 2, 0 } },
@@ -1453,17 +1477,19 @@ SpriteBatch D_shelter_b2_main_corridor_80188800[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_main_corridor_80188828[2] = {
+/// Empty batch list for mapped view 12; its retained source slot supplies no sprites.
+static SpriteBatch _gShelterB2MainCorridorView12SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b2_main_corridor_80188838[2] = {
+/// Empty batch list for mapped view 13; its retained source slot supplies no sprites.
+static SpriteBatch _gShelterB2MainCorridorView13SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b2_main_corridor_80188848[13] = {
+SpriteView gShelterB2MainCorridorSpriteViews[SHELTER_B2_MAIN_CORRIDOR_VIEW_COUNT] = {
     { { .empty = _gShelterB2MainCorridorView1SpriteBatches }, _gShelterB2MainCorridorView1SpriteBatches, NULL },
     { { .elements = _gShelterB2MainCorridorView2SpriteSources }, _gShelterB2MainCorridorView2SpriteBatches, NULL },
     { { .elements = _gShelterB2MainCorridorView3SpriteSources }, _gShelterB2MainCorridorView3SpriteBatches, NULL },
@@ -1473,10 +1499,10 @@ SpriteView D_shelter_b2_main_corridor_80188848[13] = {
     { { .elements = _gShelterB2MainCorridorView7SpriteSources }, _gShelterB2MainCorridorView7SpriteBatches, NULL },
     { { .elements = _gShelterB2MainCorridorView8SpriteSources }, _gShelterB2MainCorridorView8SpriteBatches, NULL },
     { { .elements = _gShelterB2MainCorridorView9SpriteSources }, _gShelterB2MainCorridorView9SpriteBatches, NULL },
-    { { .elements = _gShelterB2MainCorridorView10SpriteSources }, D_shelter_b2_main_corridor_80188464, NULL },
-    { { .elements = D_shelter_b2_main_corridor_8018847C }, D_shelter_b2_main_corridor_80188800, NULL },
-    { { .empty = D_shelter_b2_main_corridor_80188828 }, D_shelter_b2_main_corridor_80188828, NULL },
-    { { .empty = D_shelter_b2_main_corridor_80188838 }, D_shelter_b2_main_corridor_80188838, NULL },
+    { { .elements = _gShelterB2MainCorridorView10SpriteSources }, _gShelterB2MainCorridorView10SpriteBatches, NULL },
+    { { .elements = _gShelterB2MainCorridorView11SpriteSources }, _gShelterB2MainCorridorView11SpriteBatches, NULL },
+    { { .empty = _gShelterB2MainCorridorView12SpriteBatches }, _gShelterB2MainCorridorView12SpriteBatches, NULL },
+    { { .empty = _gShelterB2MainCorridorView13SpriteBatches }, _gShelterB2MainCorridorView13SpriteBatches, NULL },
 };
 
 /// Eight mutable point lights in room coordinates, admitted in every logical view.
@@ -1502,130 +1528,139 @@ WorldCoordRoomLights gShelterB2MainCorridorRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b2_main_corridor_80188BFC[18] = {
-    { NULL, NULL, NULL, { -32, -1744, -0x32E0, 0 }, { { -2304, -3792, 192, 0 }, { 2304, -3792, -192, 0 }, { -2304, 3792, 192, 0 }, { 2304, 3792, -192, 0 } }, { -343, 0, -4108, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -15, -1728, -0x3382, 0 }, { { 2384, -3792, -192, 0 }, { -2384, -3792, 192, 0 }, { 2384, 3792, -192, 0 }, { -2384, 3792, 192, 0 } }, { 330, 0, 4104, 0 }, { 0, 0, 4096, 0 }, 4463, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 96, -1664, -7136, 0 }, { { -2304, -3792, 192, 0 }, { 2304, -3792, -192, 0 }, { -2304, 3792, 192, 0 }, { 2304, 3792, -192, 0 } }, { -343, 0, -4108, 0 }, { 0, 0, 4096, 0 }, 4434, 0, 3, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 160, -1441, -7328, 0 }, { { 2384, -3792, -192, 0 }, { -2384, -3792, 192, 0 }, { 2384, 3792, -192, 0 }, { -2384, 3792, 192, 0 } }, { 330, 0, 4104, 0 }, { 0, 0, 4096, 0 }, 4463, 0, 6, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -176, -1408, -3584, 0 }, { { 1952, -3792, -32, 0 }, { -1952, -3792, 32, 0 }, { 1952, 3792, -32, 0 }, { -1952, 3792, 32, 0 } }, { 66, 0, 4097, 0 }, { 0, 0, 4096, 0 }, 4252, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -96, -1441, -3456, 0 }, { { -1888, -3792, 32, 0 }, { 1888, -3792, -32, 0 }, { -1888, 3792, 32, 0 }, { 1888, 3792, -32, 0 } }, { -70, 0, -4101, 0 }, { 0, 0, 4096, 0 }, 4222, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1904, -1633, -0x2710, 0 }, { { 64, -3792, -1648, 0 }, { -64, -3792, 1648, 0 }, { 64, 3792, -1648, 0 }, { -64, 3792, 1648, 0 } }, { 4095, 0, 159, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 5, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2048, -1664, -0x2711, 0 }, { { -32, -3792, 1664, 0 }, { 32, -3792, -1664, 0 }, { -32, 3792, 1664, 0 }, { 32, 3792, -1664, 0 } }, { -4107, 0, -80, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 3, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1856, -1632, -0x2780, 0 }, { { -32, -3792, 1664, 0 }, { 32, -3792, -1664, 0 }, { -32, 3792, 1664, 0 }, { 32, 3792, -1664, 0 } }, { -4107, 0, -80, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2016, -1568, -0x2740, 0 }, { { 64, -3792, -1648, 0 }, { -64, -3792, 1648, 0 }, { 64, 3792, -1648, 0 }, { -64, 3792, 1648, 0 } }, { 4095, 0, 159, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2016, -1600, -1920, 0 }, { { 64, -3792, -1648, 0 }, { -64, -3792, 1648, 0 }, { 64, 3792, -1648, 0 }, { -64, 3792, 1648, 0 } }, { 4095, 0, 159, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 9, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 2208, -1632, -1920, 0 }, { { -32, -3792, 1664, 0 }, { 32, -3792, -1664, 0 }, { -32, 3792, 1664, 0 }, { 32, 3792, -1664, 0 } }, { -4107, 0, -80, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 7, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1999, -1568, -2048, 0 }, { { 80, -3792, 1440, 0 }, { -80, -3792, -1440, 0 }, { 80, 3792, 1440, 0 }, { -80, 3792, -1440, 0 } }, { -4106, 0, 227, 0 }, { 0, 0, 4096, 0 }, 4055, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -2128, -1600, -2015, 0 }, { { -80, -3792, -1456, 0 }, { 80, -3792, 1456, 0 }, { -80, 3792, -1456, 0 }, { 80, 3792, 1456, 0 } }, { 4093, 0, -226, 0 }, { 0, 0, 4096, 0 }, 4055, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4352, -1536, -9952, 0 }, { { 303, -3792, -1622, 0 }, { -306, -3792, 1618, 0 }, { 303, 3792, -1622, 0 }, { -306, 3792, 1618, 0 } }, { 4026, 0, 756, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 4, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4256, -1664, -9952, 0 }, { { -306, -3792, 1618, 0 }, { 303, -3792, -1622, 0 }, { -306, 3792, 1618, 0 }, { 303, 3792, -1622, 0 } }, { -4027, 0, -758, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 10, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4350, -1632, -1952, 0 }, { { -64, -3792, 1648, 0 }, { 64, -3792, -1648, 0 }, { -64, 3792, 1648, 0 }, { 64, 3792, -1648, 0 } }, { -4096, 0, -160, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 11, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -4448, -1568, -1920, 0 }, { { 64, -3792, -1648, 0 }, { -64, -3792, 1648, 0 }, { 64, 3792, -1648, 0 }, { -64, 3792, 1648, 0 } }, { 4095, 0, 159, 0 }, { 0, 0, 4096, 0 }, 4127, 0, 8, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB2MainCorridorViewBoundaryTriggers[SHELTER_B2_MAIN_CORRIDOR_VIEW_BOUNDARY_TRIGGER_COUNT] = {
+    { NULL, NULL, NULL, { -32, -1744, -0x32E0, 0 }, { { -2304, -3792, 192, 0 }, { 2304, -3792, -192, 0 }, { -2304, 3792, 192, 0 }, { 2304, 3792, -192, 0 } }, { -343, 0, -4108, 0 }, { 0, 0, ONE, 0 }, 4434, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -15, -1728, -0x3382, 0 }, { { 2384, -3792, -192, 0 }, { -2384, -3792, 192, 0 }, { 2384, 3792, -192, 0 }, { -2384, 3792, 192, 0 } }, { 330, 0, 4104, 0 }, { 0, 0, ONE, 0 }, 4463, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 96, -1664, -7136, 0 }, { { -2304, -3792, 192, 0 }, { 2304, -3792, -192, 0 }, { -2304, 3792, 192, 0 }, { 2304, 3792, -192, 0 } }, { -343, 0, -4108, 0 }, { 0, 0, ONE, 0 }, 4434, 0, 3, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 160, -1441, -7328, 0 }, { { 2384, -3792, -192, 0 }, { -2384, -3792, 192, 0 }, { 2384, 3792, -192, 0 }, { -2384, 3792, 192, 0 } }, { 330, 0, 4104, 0 }, { 0, 0, ONE, 0 }, 4463, 0, 6, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -176, -1408, -3584, 0 }, { { 1952, -3792, -32, 0 }, { -1952, -3792, 32, 0 }, { 1952, 3792, -32, 0 }, { -1952, 3792, 32, 0 } }, { 66, 0, 4097, 0 }, { 0, 0, ONE, 0 }, 4252, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -96, -1441, -3456, 0 }, { { -1888, -3792, 32, 0 }, { 1888, -3792, -32, 0 }, { -1888, 3792, 32, 0 }, { 1888, 3792, -32, 0 } }, { -70, 0, -4101, 0 }, { 0, 0, ONE, 0 }, 4222, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1904, -1633, -0x2710, 0 }, { { 64, -3792, -1648, 0 }, { -64, -3792, 1648, 0 }, { 64, 3792, -1648, 0 }, { -64, 3792, 1648, 0 } }, { 4095, 0, 159, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 5, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2048, -1664, -0x2711, 0 }, { { -32, -3792, 1664, 0 }, { 32, -3792, -1664, 0 }, { -32, 3792, 1664, 0 }, { 32, 3792, -1664, 0 } }, { -4107, 0, -80, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 3, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1856, -1632, -0x2780, 0 }, { { -32, -3792, 1664, 0 }, { 32, -3792, -1664, 0 }, { -32, 3792, 1664, 0 }, { 32, 3792, -1664, 0 } }, { -4107, 0, -80, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2016, -1568, -0x2740, 0 }, { { 64, -3792, -1648, 0 }, { -64, -3792, 1648, 0 }, { 64, 3792, -1648, 0 }, { -64, 3792, 1648, 0 } }, { 4095, 0, 159, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2016, -1600, -1920, 0 }, { { 64, -3792, -1648, 0 }, { -64, -3792, 1648, 0 }, { 64, 3792, -1648, 0 }, { -64, 3792, 1648, 0 } }, { 4095, 0, 159, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 9, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 2208, -1632, -1920, 0 }, { { -32, -3792, 1664, 0 }, { 32, -3792, -1664, 0 }, { -32, 3792, 1664, 0 }, { 32, 3792, -1664, 0 } }, { -4107, 0, -80, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 7, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1999, -1568, -2048, 0 }, { { 80, -3792, 1440, 0 }, { -80, -3792, -1440, 0 }, { 80, 3792, 1440, 0 }, { -80, 3792, -1440, 0 } }, { -4106, 0, 227, 0 }, { 0, 0, ONE, 0 }, 4055, 0, 8, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -2128, -1600, -2015, 0 }, { { -80, -3792, -1456, 0 }, { 80, -3792, 1456, 0 }, { -80, 3792, -1456, 0 }, { 80, 3792, 1456, 0 } }, { 4093, 0, -226, 0 }, { 0, 0, ONE, 0 }, 4055, 0, 7, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4352, -1536, -9952, 0 }, { { 303, -3792, -1622, 0 }, { -306, -3792, 1618, 0 }, { 303, 3792, -1622, 0 }, { -306, 3792, 1618, 0 } }, { 4026, 0, 756, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 4, 10, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4256, -1664, -9952, 0 }, { { -306, -3792, 1618, 0 }, { 303, -3792, -1622, 0 }, { -306, 3792, 1618, 0 }, { 303, 3792, -1622, 0 } }, { -4027, 0, -758, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 10, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4350, -1632, -1952, 0 }, { { -64, -3792, 1648, 0 }, { 64, -3792, -1648, 0 }, { -64, 3792, 1648, 0 }, { 64, 3792, -1648, 0 } }, { -ONE, 0, -160, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 11, 8, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -4448, -1568, -1920, 0 }, { { 64, -3792, -1648, 0 }, { -64, -3792, 1648, 0 }, { 64, 3792, -1648, 0 }, { -64, 3792, 1648, 0 } }, { 4095, 0, 159, 0 }, { 0, 0, ONE, 0 }, 4127, 0, 8, 11, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b2_main_corridor_80189154[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Bog Diver package and terminator for placement variant 1.
+static AreaResource _gShelterB2MainCorridorVariant1Resources[2] = {
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_main_corridor_8018916C[2] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Bog Diver package and terminator for placement variant 2.
+static AreaResource _gShelterB2MainCorridorVariant2Resources[2] = {
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_main_corridor_80189184[3] = {
-    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100400Tasks },
+/// Bog Diver and large Mossback packages for placement variant 3.
+static AreaResource _gShelterB2MainCorridorVariant3Resources[3] = {
+    { 4, 4, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, ACTOR_00400_BODY_TASK_INDEX, { 0, 0 }, gActor100400Tasks },
     { 49, 49, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_main_corridor_801891A8[1] = {
+/// Terminator-only resource list for the empty placement variant 4.
+static AreaResource _gShelterB2MainCorridorVariant4Resources[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_main_corridor_801891B4[3] = {
+/// Watcher and slot-2 Rook GOLEM packages for placement variant 11.
+static AreaResource _gShelterB2MainCorridorVariant11Resources[3] = {
     { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
     { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_main_corridor_801891D8[3] = {
+/// Watcher and slot-2 Rook GOLEM packages for placement variant 21.
+static AreaResource _gShelterB2MainCorridorVariant21Resources[3] = {
     { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
     { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b2_main_corridor_801891FC[4] = {
-    { 4, 0, 1, 1700, 1500, -7400, 0, 0, 0, 2, 0 },
-    { 4, 0, 17, 1700, 3000, -0x34BC, 1024, 0, 0, 2, 0 },
-    { 4, 0, 33, -1700, 2200, -0x3200, 0, 0, 0, 2, 0 },
+/// Bog Diver swimming payloads: kind 1 in the low nibble, waypoint set in bits 4..5.
+enum {
+    SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_0 = 1,
+    SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_1 = 1 | (1 << 4),
+    SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_2 = 1 | (2 << 4),
+};
+
+/// Three swimming Bog Divers using waypoint sets 0, 1 and 2 in placement variant 1.
+static AreaPlacement _gShelterB2MainCorridorVariant1Placements[4] = {
+    { 4, 0, SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_0, 1700, 1500, -7400, 0, 0, 0, 2, 0 },
+    { 4, 0, SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_1, 1700, 3000, -0x34BC, 1024, 0, 0, 2, 0 },
+    { 4, 0, SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_2, -1700, 2200, -0x3200, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_main_corridor_8018923C[4] = {
-    { 4, 0, 1, 1700, 1500, -7400, 0, 0, 0, 2, 0 },
-    { 4, 0, 17, 1700, 3000, -0x34BC, 1024, 0, 0, 2, 0 },
-    { 4, 0, 33, -1700, 2200, -0x3200, 0, 0, 0, 2, 0 },
+/// Three swimming Bog Divers using waypoint sets 0, 1 and 2 in placement variant 2.
+static AreaPlacement _gShelterB2MainCorridorVariant2Placements[4] = {
+    { 4, 0, SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_0, 1700, 1500, -7400, 0, 0, 0, 2, 0 },
+    { 4, 0, SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_1, 1700, 3000, -0x34BC, 1024, 0, 0, 2, 0 },
+    { 4, 0, SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_2, -1700, 2200, -0x3200, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_main_corridor_8018927C[3] = {
-    { 4, 0, 1, 1700, 1500, -7400, 0, 0, 0, 2, 4 },
+/// One swimming Bog Diver and one large Mossback in placement variant 3.
+static AreaPlacement _gShelterB2MainCorridorVariant3Placements[3] = {
+    { 4, 0, SHELTER_B2_MAIN_CORRIDOR_DIVER_SWIM_SET_0, 1700, 1500, -7400, 0, 0, 0, 2, 4 },
     { 49, 2, 0, 0, 0, -0x2EE0, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_main_corridor_801892AC[1] = {
+/// Terminator-only placement list for the empty variant 4.
+static AreaPlacement _gShelterB2MainCorridorVariant4Placements[1] = {
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_main_corridor_801892BC[4] = {
+/// Two opposing Watchers and one Rook GOLEM in placement variant 11.
+static AreaPlacement _gShelterB2MainCorridorVariant11Placements[4] = {
     { 21, 20, 2048, -3600, -1750, -7000, 1024, 0, 0, 2, 7 },
     { 21, 20, 0, 3600, -1750, -7000, 3072, 0, 0, 2, 7 },
     { 23, 8, 1, 0, 0, -2000, 2048, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_main_corridor_801892FC[4] = {
+/// Two opposing Watchers and one Rook GOLEM in placement variant 21.
+static AreaPlacement _gShelterB2MainCorridorVariant21Placements[4] = {
     { 21, 23, 2048, -3600, -1750, -7000, 1024, 0, 0, 2, 7 },
     { 21, 23, 0, 3600, -1750, -7000, 3072, 0, 0, 2, 7 },
     { 57, 4, 1, 0, 0, -6000, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b2_main_corridor_8018933C[22] = {
-    { NULL, NULL },
-    { D_shelter_b2_main_corridor_801891FC, D_shelter_b2_main_corridor_80189154 },
-    { D_shelter_b2_main_corridor_8018923C, D_shelter_b2_main_corridor_8018916C },
-    { D_shelter_b2_main_corridor_8018927C, D_shelter_b2_main_corridor_80189184 },
-    { D_shelter_b2_main_corridor_801892AC, D_shelter_b2_main_corridor_801891A8 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_main_corridor_801892BC, D_shelter_b2_main_corridor_801891B4 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_main_corridor_801892FC, D_shelter_b2_main_corridor_801891D8 },
+AreaVariant gShelterB2MainCorridorAreaVariants[SHELTER_B2_MAIN_CORRIDOR_AREA_VARIANT_COUNT] = {
+    [1]  = { _gShelterB2MainCorridorVariant1Placements, _gShelterB2MainCorridorVariant1Resources },
+    [2]  = { _gShelterB2MainCorridorVariant2Placements, _gShelterB2MainCorridorVariant2Resources },
+    [3]  = { _gShelterB2MainCorridorVariant3Placements, _gShelterB2MainCorridorVariant3Resources },
+    [4]  = { _gShelterB2MainCorridorVariant4Placements, _gShelterB2MainCorridorVariant4Resources },
+    [11] = { _gShelterB2MainCorridorVariant11Placements, _gShelterB2MainCorridorVariant11Resources },
+    [21] = { _gShelterB2MainCorridorVariant21Placements, _gShelterB2MainCorridorVariant21Resources },
 };
 
-WorldCollisionTrigger D_shelter_b2_main_corridor_801893EC[7] = {
-    { NULL, NULL, NULL, { 0, -48, -0x4A80, 0 }, { { -1024, 0, -512, 0 }, { 1024, 0, -512, 0 }, { -1024, 0, 512, 0 }, { 1024, 0, 512, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 27, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4992, -48, -0x2890, 0 }, { { 1056, 0, -752, 0 }, { 1056, 0, 752, 0 }, { -1056, 0, -752, 0 }, { -1056, 0, 752, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4095, 0 }, 1292, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 8, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3584, -48, -0x2740, 0 }, { { 512, 0, -1024, 0 }, { 512, 0, 1024, 0 }, { -512, 0, -1024, 0 }, { -512, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 31, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4960, -48, -2448, 0 }, { { 928, 0, -528, 0 }, { 928, 0, 528, 0 }, { -928, 0, -528, 0 }, { -928, 0, 528, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 10, 7, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3328, -48, -1952, 0 }, { { 512, 0, -1024, 0 }, { 512, 0, 1024, 0 }, { -512, 0, -1024, 0 }, { -512, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 32, 81, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 32, -48, 192, 0 }, { { 1024, 0, 512, 0 }, { -1024, 0, 512, 0 }, { 1024, 0, -512, 0 }, { -1024, 0, -512, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, -4096, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 34, 97, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3200, -64, -2016, 0 }, { { 512, 0, -1024, 0 }, { 512, 0, 1024, 0 }, { -512, 0, -1024, 0 }, { -512, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 0, 0, 4096, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Room-action IDs sent by the corridor's interaction quads.
+enum {
+    SHELTER_B2_MAIN_CORRIDOR_TRIGGER_DEPARTURE_ACTION    = 10,
+    SHELTER_B2_MAIN_CORRIDOR_TRIGGER_ACCESS_SCENE_ACTION = 1,
+};
+
+WorldCollisionTrigger gShelterB2MainCorridorActionTriggers[SHELTER_B2_MAIN_CORRIDOR_ACTION_TRIGGER_COUNT] = {
+    { NULL, NULL, NULL, { 0, -48, -0x4A80, 0 }, { { -1024, 0, -512, 0 }, { 1024, 0, -512, 0 }, { -1024, 0, 512, 0 }, { 1024, 0, 512, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, ONE, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, (SHELTER_B2_MAIN_CORRIDOR_WARP_ELEVATOR_HALL << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4992, -48, -0x2890, 0 }, { { 1056, 0, -752, 0 }, { 1056, 0, 752, 0 }, { -1056, 0, -752, 0 }, { -1056, 0, 752, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, 4095, 0 }, 1292, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B2_MAIN_CORRIDOR_TRIGGER_DEPARTURE_ACTION, GAME_AREA_NEO_ARK_EVE_ACCESS_TUNNEL, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3584, -48, -0x2740, 0 }, { { 512, 0, -1024, 0 }, { 512, 0, 1024, 0 }, { -512, 0, -1024, 0 }, { -512, 0, 1024, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_LABORATORY, (SHELTER_B2_MAIN_CORRIDOR_WARP_LABORATORY << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4960, -48, -2448, 0 }, { { 928, 0, -528, 0 }, { 928, 0, 528, 0 }, { -928, 0, -528, 0 }, { -928, 0, 528, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, ONE, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_ROOM, SHELTER_B2_MAIN_CORRIDOR_TRIGGER_DEPARTURE_ACTION, GAME_AREA_NEO_ARK_OBSERVATORY, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3328, -48, -1952, 0 }, { { 512, 0, -1024, 0 }, { 512, 0, 1024, 0 }, { -512, 0, -1024, 0 }, { -512, 0, 1024, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_BREEDING_ROOM, (SHELTER_B2_MAIN_CORRIDOR_WARP_BREEDING_ROOM << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 32, -48, 192, 0 }, { { 1024, 0, 512, 0 }, { -1024, 0, 512, 0 }, { 1024, 0, -512, 0 }, { -1024, 0, -512, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, -ONE, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_SEPTIC_TANK, (SHELTER_B2_MAIN_CORRIDOR_WARP_SEPTIC_TANK << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3200, -64, -2016, 0 }, { { 512, 0, -1024, 0 }, { 512, 0, 1024, 0 }, { -512, 0, -1024, 0 }, { -512, 0, 1024, 0 } }, { 0, ONE, 0, 0 }, { 0, 0, ONE, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, SHELTER_B2_MAIN_CORRIDOR_TRIGGER_ACCESS_SCENE_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 enum {
@@ -2195,8 +2230,7 @@ static void _shelterB2MainCorridorInitializeWaterTask(Task* task)
 /// current view, scratch stack, ordering table and packet arena; queued
 /// additive packets live until GPU consumption.
 ///
-/// The view-10 caller spans adjacent array declarations; its C array boundary
-/// is unproven.
+/// Requires at least ten readable points from the selected array position.
 static inline void _shelterB2MainCorridorDrawWhiteBeamGroup(const SVECTOR worldBeamPoints[])
 {
     enum { SHELTER_B2_MAIN_CORRIDOR_WHITE_BEAM_POINT_STRIDE = 4 };
@@ -2225,13 +2259,13 @@ void shelterB2MainCorridorDrawViewGlowsTask(Task* task)
         case VIEW_GLOWS_DRAW:
             switch (viewGetMappedIndex() & VIEW_GLOWS_INDEX_MASK) {
                 case 2: {
-                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182F7C;
+                    const SVECTOR* beamPoints = _gShelterB2MainCorridorView2WhiteBeamPoints;
                     _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
                     _glowDrawBeam(&beamPoints[2], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
                     break;
                 }
                 case 3: {
-                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182FAC;
+                    const SVECTOR* beamPoints = &_gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_LEFT_NEAR];
                     _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     _glowDrawBeam(&beamPoints[2], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     _glowDrawBeam(&beamPoints[4], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
@@ -2241,7 +2275,7 @@ void shelterB2MainCorridorDrawViewGlowsTask(Task* task)
                     break;
                 }
                 case 4: {
-                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182F9C;
+                    const SVECTOR* beamPoints = &_gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_LEFT_FAR];
                     _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     _glowDrawBeam(&beamPoints[24], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
                     _glowDrawBeam(&beamPoints[28], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
@@ -2249,20 +2283,20 @@ void shelterB2MainCorridorDrawViewGlowsTask(Task* task)
                     break;
                 }
                 case 5:
-                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FBC, SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    _glowDrawBeam(&_gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_RIGHT_FAR], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     break;
                 case 6:
-                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FAC, SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    _glowDrawBeam(&_gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_LEFT_NEAR], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     // View 6 also includes the beams visible in view 7.
                     /* fallthrough */
                 case 7: {
-                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182FCC;
+                    const SVECTOR* beamPoints = &_gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_RIGHT_NEAR];
                     _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     _glowDrawBeam(&beamPoints[2], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_RED);
                     break;
                 }
                 case 8: {
-                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_80182FAC;
+                    const SVECTOR* beamPoints = &_gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_LEFT_NEAR];
                     _glowDrawBeam(&beamPoints[0], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     _glowDrawBeam(&beamPoints[24], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
                     _glowDrawBeam(&beamPoints[28], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, -GLOW_QUARTER_TURN, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_WHITE);
@@ -2270,15 +2304,15 @@ void shelterB2MainCorridorDrawViewGlowsTask(Task* task)
                     break;
                 }
                 case 9:
-                    _glowDrawBeam(D_shelter_b2_main_corridor_80182FCC, SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
+                    _glowDrawBeam(&_gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_GREEN_RIGHT_NEAR], SHELTER_B2_MAIN_CORRIDOR_BEAM_RADIUS_SCALE, 0, SHELTER_B2_MAIN_CORRIDOR_BEAM_COLOR_GREEN);
                     break;
                 case 10: {
-                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_8018305C;
+                    const SVECTOR* beamPoints = &_gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_WHITE_FAR];
                     _shelterB2MainCorridorDrawWhiteBeamGroup(beamPoints);
                     break;
                 }
                 case 11: {
-                    const SVECTOR* beamPoints = D_shelter_b2_main_corridor_8018306C;
+                    const SVECTOR* beamPoints = &_gShelterB2MainCorridorGlowPoints[SHELTER_B2_MAIN_CORRIDOR_GLOW_WHITE_NEAR];
                     _shelterB2MainCorridorDrawWhiteBeamGroup(beamPoints);
                     break;
                 }
