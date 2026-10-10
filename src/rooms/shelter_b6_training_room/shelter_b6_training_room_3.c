@@ -62,12 +62,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_ShelterB6TrainingRoomBandShapeStorage, 0x14);
 extern _ShelterB6TrainingRoomBandShapeStorage D_shelter_b6_training_room_80184404;
 
-/// Number of vertices in each ring of a `_ShelterB6TrainingRoomBandScratch`, and
-/// so the number of quads in one ring band. Not a power of two: the drawer wraps
-/// the next vertex index with `%`. Vertices sit this fraction of a full turn
-/// apart, a turn being `ONE` angle units, rounded down.
-#define SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT 6
-
 /// Scratch-stack workspace for drawing one of this room's ring bands.
 ///
 /// The six-segment counterpart of `EffectBandScratch`. The drawer places one
@@ -456,11 +450,11 @@ void shelterB6TrainingRoomGlowTask(Task* task)
     s32 seedPass;
 
     if (task->state == SHELTER_B6_TRAINING_ROOM_GLOW_INIT) {
-        D_shelter_b6_training_room_80185C98 = 0;
+        gShelterB6TrainingRoomHitFlashGeneration = 0;
         // Preserve all three seed passes over the selected band, including the discarded draws.
         for (seedPass = 0; seedPass < 3; seedPass++) {
             for (segmentIndex = 0; segmentIndex < SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT; segmentIndex++) {
-                D_shelter_b6_training_room_80185C60[task->spawnArg1.value][segmentIndex] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+                gShelterB6TrainingRoomRingTexturePhases[task->spawnArg1.value][segmentIndex] = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
             }
         }
         task->state = SHELTER_B6_TRAINING_ROOM_GLOW_DRAW;
@@ -615,11 +609,11 @@ void shelterB6TrainingRoomSummonRingTask(Task* task)
         switch (task->state) {
             // A positive spawn countdown is required for the brightness increment.
             case SHELTER_B6_TRAINING_ROOM_SUMMON_RING_INIT:
-                task->state                         = SHELTER_B6_TRAINING_ROOM_SUMMON_RING_GROW;
-                work->scale                         = 0;
-                work->angle                         = 0x100;
-                D_shelter_b6_training_room_80185C90 = NULL;
-                work->step                          = 0x80 / task->spawnArg1.value;
+                task->state                            = SHELTER_B6_TRAINING_ROOM_SUMMON_RING_GROW;
+                work->scale                            = 0;
+                work->angle                            = 0x100;
+                gShelterB6TrainingRoomSummonBeamOrigin = NULL;
+                work->step                             = 0x80 / task->spawnArg1.value;
             case SHELTER_B6_TRAINING_ROOM_SUMMON_RING_GROW:
                 if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     SHELTER_B6_TRAINING_ROOM_DRAW_SUMMON_GLOW(work, coord, (s16)((task->spawnArg1.value << 5) + 0x300), rgb);
@@ -635,7 +629,7 @@ void shelterB6TrainingRoomSummonRingTask(Task* task)
                     work->period = 0x600;
                     work->step   = 0;
                     // Publish the beam origin only once the buildup is complete.
-                    D_shelter_b6_training_room_80185C90 = coord;
+                    gShelterB6TrainingRoomSummonBeamOrigin = coord;
                 }
                 break;
             case SHELTER_B6_TRAINING_ROOM_SUMMON_RING_FADE:
@@ -699,14 +693,14 @@ void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusSca
     s32              baseRed;
     s32              baseGreen;
 
-    if (D_shelter_b6_training_room_80185C90 == NULL) {
+    if (gShelterB6TrainingRoomSummonBeamOrigin == NULL) {
         return;
     }
     // Narrow both cached translations to s16 before projection.
     scratch            = SCRATCH_STACK_RESERVE_BLOCK(RoomBeamScratch);
-    scratch->point0.vx = D_shelter_b6_training_room_80185C90->workm.t[0];
-    scratch->point0.vy = D_shelter_b6_training_room_80185C90->workm.t[1];
-    scratch->point0.vz = D_shelter_b6_training_room_80185C90->workm.t[2];
+    scratch->point0.vx = gShelterB6TrainingRoomSummonBeamOrigin->workm.t[0];
+    scratch->point0.vy = gShelterB6TrainingRoomSummonBeamOrigin->workm.t[1];
+    scratch->point0.vz = gShelterB6TrainingRoomSummonBeamOrigin->workm.t[2];
     scratch->point1.vx = endCoord->workm.t[0];
     scratch->point1.vy = endCoord->workm.t[1];
     scratch->point1.vz = endCoord->workm.t[2];
@@ -796,7 +790,7 @@ void shelterB6TrainingRoomDrawSummonBeam(const GfxCoord* endCoord, s16 radiusSca
                     } while (sweepAngle < sweepLimit);
                 }
 
-                _shelterB6TrainingRoomDrawGroundBeam(D_shelter_b6_training_room_80185C90, endCoord, radiusScale, colorIndex);
+                _shelterB6TrainingRoomDrawGroundBeam(gShelterB6TrainingRoomSummonBeamOrigin, endCoord, radiusScale, colorIndex);
             }
         }
     }
@@ -1178,7 +1172,7 @@ static void _shelterB6TrainingRoomDrawRingBand(const EffectWork* work, const Gfx
         nextSegment = segmentIndex + 1;
         gte_ldv3(&scratch->topRing[nextSegment % SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT], &scratch->bottomRing[segmentIndex], &scratch->bottomRing[nextSegment % SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT]);
         gte_rtpt();
-        textureFrame = ((s8)D_shelter_b6_training_room_80185C60[bandIndex][segmentIndex] + work->age) % SHELTER_B6_TRAINING_ROOM_RING_TEXTURE_FRAMES;
+        textureFrame = (gShelterB6TrainingRoomRingTexturePhases[bandIndex][segmentIndex] + work->age) % SHELTER_B6_TRAINING_ROOM_RING_TEXTURE_FRAMES;
         gte_stsxy3(&scratch->sxy1, &scratch->sxy2, &scratch->sxy3);
         gte_stflg(&scratch->projectionFlags);
         if (scratch->projectionFlags >= 0) {
@@ -1229,11 +1223,11 @@ void shelterB6TrainingRoomDrawBodyGlow(Task* task)
 
     anchorCoord = task->extra.tmd->coords + SHELTER_B6_TRAINING_ROOM_BODY_GLOW_ANCHOR_JOINT;
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        D_shelter_b6_training_room_80185C94 = anchorCoord;
-        brightness                          = ((gDisplayState.animFrame & 1) << 4) + SHELTER_B6_TRAINING_ROOM_BODY_GLOW_BASE_BRIGHTNESS;
-        rgb[0]                              = brightness;
-        rgb[1]                              = brightness;
-        rgb[2]                              = brightness >> 1;
+        gShelterB6TrainingRoomEnergyArcAnchor = anchorCoord;
+        brightness                            = ((gDisplayState.animFrame & 1) << 4) + SHELTER_B6_TRAINING_ROOM_BODY_GLOW_BASE_BRIGHTNESS;
+        rgb[0]                                = brightness;
+        rgb[1]                                = brightness;
+        rgb[2]                                = brightness >> 1;
         effectDrawGouraudDisc(anchorCoord, SHELTER_B6_TRAINING_ROOM_BODY_GLOW_INNER_RADIUS, rgb);
         effectDrawGouraudDisc(anchorCoord, SHELTER_B6_TRAINING_ROOM_BODY_GLOW_OUTER_RADIUS, rgb);
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -1279,7 +1273,7 @@ void shelterB6TrainingRoomEnergyArcTask(Task* task)
         // Draw the animated sprite every tick and the link to the body anchor on odd ticks.
         spriteQuadDraw(coord, work->age, work->scale, work->angle);
         if (work->age & 1) {
-            _shelterB6TrainingRoomDrawEnergyStrip(coord, D_shelter_b6_training_room_80185C94, work->age >> 1, work->scale);
+            _shelterB6TrainingRoomDrawEnergyStrip(coord, gShelterB6TrainingRoomEnergyArcAnchor, work->age >> 1, work->scale);
         }
         if (work->age > work->period) {
             effectKillTask(work, task);
@@ -1422,11 +1416,11 @@ void shelterB6TrainingRoomHitFlashTask(Task* task)
         work->scale = 0xC0;
         work->angle = 0x200;
         // A new generation supersedes every older hit flash; the stamp wraps at 16 bits.
-        D_shelter_b6_training_room_80185C98++;
+        gShelterB6TrainingRoomHitFlashGeneration++;
         task->state           = SHELTER_B6_TRAINING_ROOM_HIT_FLASH_FADE;
-        task->spawnArg1.value = D_shelter_b6_training_room_80185C98;
+        task->spawnArg1.value = gShelterB6TrainingRoomHitFlashGeneration;
     }
-    if (task->spawnArg1.value != D_shelter_b6_training_room_80185C98) {
+    if (task->spawnArg1.value != gShelterB6TrainingRoomHitFlashGeneration) {
         effectKillTask(work, task);
         return;
     }

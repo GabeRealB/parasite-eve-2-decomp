@@ -15,28 +15,63 @@
 
 extern AreaVariant D_shelter_b6_training_room_801859DC[13];
 
-// shelter_b6_training_room
-extern u8* D_shelter_b6_training_room_80184418[];
+/// Number of mapped camera and sprite views in the training room.
+enum { SHELTER_B6_TRAINING_ROOM_VIEW_COUNT = 8 };
+
+/// Logical-view map for the training room's single room slot.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..8 select the same
+/// 1-based camera, image and sprite indices. The directory lives with this
+/// room overlay; the shared byte map lives with gameplay.
+extern u8* gShelterB6TrainingRoomViewMaps[1];
 
 extern ViewCount D_shelter_b6_training_room_8018441C[];
 
 extern DirectionWarpEntry D_shelter_b6_training_room_80184420[];
 
-extern WorldCollisionGrid D_shelter_b6_training_room_80184734;
+/// The training room's wall, floor and raised-platform collision grid.
+///
+/// Six X-major cells (2 by 3), each 4000 game-coordinate units wide, cover
+/// X from 0 and Z from 750. Borrows writable pools of 7 normals, 22 vertices
+/// and 21 faces. Activation binds the view coordinate; the room overlay must
+/// stay loaded while collision queries or ground-beam projections use it.
+extern WorldCollisionGrid gShelterB6TrainingRoomCollisionGrid;
 
 extern ViewCamera D_shelter_b6_training_room_80184758[];
 
-extern SpriteView D_shelter_b6_training_room_80184D78[];
+/// Sprite descriptors for mapped training-room views 1..8.
+///
+/// Views 3 and 7 contain the two enemy parts' destroyed-state overlays;
+/// other views retain empty batch lists. Every view keeps decoded backdrop
+/// strips and has no clipping list. Batches stay writable for part visibility
+/// changes and all borrowed storage lives with this room overlay.
+extern SpriteView gShelterB6TrainingRoomSpriteViews[SHELTER_B6_TRAINING_ROOM_VIEW_COUNT];
 
-extern WorldCoordRoomLights D_shelter_b6_training_room_80185768;
+/// The training room's twelve point lights and twelve cone lights.
+///
+/// No directional lights are supplied. Every source contributes in all views;
+/// positions and falloff radii use room-coordinate units, RGB uses Q12 and
+/// cone openings use 4096 angle units per turn. Gameplay updates the borrowed
+/// transforms and attenuation while the room overlay remains loaded.
+extern WorldCoordRoomLights gShelterB6TrainingRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b6_training_room_80185780[];
 
 extern WorldCollisionTrigger D_shelter_b6_training_room_80185A44[];
 
-extern WorldCoordRoomAmbientEntry D_shelter_b6_training_room_80185BC0[];
+/// Minimum ambient RGB levels for logical training-room views 1..8.
+///
+/// Entry zero holds the count; entries 1..8 hold colours in 16 units per
+/// 8-bit colour level. View 3 has the brighter minimum; other views use
+/// (16, 16, 16). Storage is borrowed while this room overlay is loaded.
+extern WorldCoordRoomAmbientEntry gShelterB6TrainingRoomAmbientByView[SHELTER_B6_TRAINING_ROOM_VIEW_COUNT + 1];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b6_training_room_80185C38[];
+/// Collision and footstep policies indexed by training-room surface class 0..7.
+///
+/// All classes block probes, allow weapon impacts and apply pushback.
+/// Classes 1 and 2 have distinct footstep cue tables; classes 0 and 3..7
+/// share the silent record. The directory and records live with this overlay.
+extern WorldCollisionSurfaceProperties* gShelterB6TrainingRoomSurfaceProperties[8];
 
 /// Runs the training-room controller's initialization, update and teardown states.
 ///

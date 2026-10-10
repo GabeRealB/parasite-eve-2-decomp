@@ -9,13 +9,49 @@
 #include "main/coord.h"
 #include "main/task_types.h"
 
-extern u8 D_shelter_b6_training_room_80185C60[3][16];
+/// Number of ring-band shapes selected by the effect's band index (0..2).
+enum { SHELTER_B6_TRAINING_ROOM_BAND_COUNT = 3 };
 
-extern GfxCoord* D_shelter_b6_training_room_80185C90;
+/// Stored byte stride between bands in the ring texture-phase table.
+enum { SHELTER_B6_TRAINING_ROOM_RING_PHASE_ROW_STRIDE = 16 };
 
-extern GfxCoord* D_shelter_b6_training_room_80185C94;
+/// Number of vertices in each ring and quads in a band, also its used phase bytes.
+///
+/// Adjacent vertices differ by ONE / count angle units, rounded down;
+/// the next vertex wraps with remainder because the count is not a power of two.
+#define SHELTER_B6_TRAINING_ROOM_BAND_SEGMENT_COUNT 6
 
-extern u16 D_shelter_b6_training_room_80185C98;
+/// Signed texture phases indexed by band 0..2 and segment 0..5.
+///
+/// Initialization writes the low byte of each LCG draw in three complete
+/// passes over the selected band. Drawing adds effect age and takes signed
+/// remainder modulo six; negative results wrap through the packet UV bytes.
+/// The 16-byte row stride is retained; bytes 6..15 have no established role.
+/// Storage lives with this room overlay and owns no effect resources.
+extern s8 gShelterB6TrainingRoomRingTexturePhases[SHELTER_B6_TRAINING_ROOM_BAND_COUNT][SHELTER_B6_TRAINING_ROOM_RING_PHASE_ROW_STRIDE];
+
+/// Borrowed summon-ring coordinate supplying the beam's world-space origin.
+///
+/// Ring initialization clears it; completed buildup publishes the coordinate.
+/// Drawing reads its composed translation without updating it. Release retains
+/// the pointer, so every beam draw must end before the ring coordinate dies.
+/// NULL suppresses beam drawing; a non-NULL value alone does not prove liveness.
+extern const GfxCoord* gShelterB6TrainingRoomSummonBeamOrigin;
+
+/// Borrowed masked-body joint 1 used as the shield energy arcs' endpoint.
+///
+/// The body glow publishes it while room effects run. Arc drawing reads the
+/// cached composed translation; the body model must outlive every arc using it.
+/// Publication and teardown do not clear it. The body glow must run before
+/// the first arc draw, and stale non-NULL values do not establish liveness.
+extern const GfxCoord* gShelterB6TrainingRoomEnergyArcAnchor;
+
+/// Wrapping generation identifying the newest training-room hit flash.
+///
+/// Room-glow initialization resets it to zero. Each new flash increments the
+/// 16-bit value and copies it into its task's spawn word; unequal generations
+/// release older flashes. It is a replacement stamp, not an active-task count.
+extern u16 gShelterB6TrainingRoomHitFlashGeneration;
 
 extern TaskMessageEntry D_shelter_b6_training_room_80182AF4[6];
 

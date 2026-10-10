@@ -38,6 +38,7 @@ Task* D_shelter_b6_training_room_80185C5C;
 #include "gameplay/view.h"
 
 #include "main/coord.h"
+#include "main/display_types.h"
 #include "main/fs.h"
 #include "main/fs_types.h"
 #include "main/gameflag.h"
@@ -84,7 +85,16 @@ static inline void _shelterB6TrainingRoomMaskBackdrop(void)
 
 extern AreaResource D_shelter_b6_training_room_80185994[6];
 
-u8* D_shelter_b6_training_room_80184418[1] = {
+// Texture placement and source-element splits for the destroyed-part overlays.
+enum {
+    SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT         = getClut(0, 255),
+    SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR     = 128,
+    SHELTER_B6_TRAINING_ROOM_VIEW3_PART1_SPRITES      = 12,
+    SHELTER_B6_TRAINING_ROOM_VIEW7_PART0_SPRITES      = 14
+};
+
+u8* gShelterB6TrainingRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -95,29 +105,46 @@ DirectionWarpEntry D_shelter_b6_training_room_80184420[2] = {
     { { { .word = 3072 }, 4500, 0, 9390 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 4500, 0, 9390 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelterB6TrainingRoomCollision07174Normals[7] = {
+/// Q12 room-space normals borrowed by the training-room collision grid.
+static SVECTOR _gShelterB6TrainingRoomCollisionGridNormals[] = {
 #include "assets/shelter_b6_training_room_collision_07174_normals.inc"
 };
 
-static SVECTOR _gShelterB6TrainingRoomCollision07174Verts[22] = {
+/// Room-space collision vertices, including the raised platform, in game units.
+static SVECTOR _gShelterB6TrainingRoomCollisionGridVerts[] = {
 #include "assets/shelter_b6_training_room_collision_07174_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB6TrainingRoomCollision07174Faces[21] = {
+/// Wall, floor and platform faces indexing this grid's vertex and normal pools.
+static WorldCollisionGridFace _gShelterB6TrainingRoomCollisionGridFaces[] = {
 #include "assets/shelter_b6_training_room_collision_07174_faces.inc"
 };
 
-static s16 _gShelterB6TrainingRoomCollision07174Cells[84] = {
+/// Six signed face-index lists, each terminated by WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB6TrainingRoomCollisionGridCells[] = {
 #include "assets/shelter_b6_training_room_collision_07174_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB6TrainingRoomCollision07174Cells[i])
-static s16* _gShelterB6TrainingRoomCollision07174Table[6] = {
+#define GRID_CELL(i) (&_gShelterB6TrainingRoomCollisionGridCells[i])
+/// X-major pointers to the grid's two-by-three cell lists.
+static s16* _gShelterB6TrainingRoomCollisionGridTable[] = {
 #include "assets/shelter_b6_training_room_collision_07174_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_training_room_80184734 = { NULL, _gShelterB6TrainingRoomCollision07174Normals, _gShelterB6TrainingRoomCollision07174Verts, _gShelterB6TrainingRoomCollision07174Faces, _gShelterB6TrainingRoomCollision07174Table, 0, -750, 2, 3, 4000, 21 };
+WorldCollisionGrid gShelterB6TrainingRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB6TrainingRoomCollisionGridNormals,
+    .vertices    = _gShelterB6TrainingRoomCollisionGridVerts,
+    .faces       = _gShelterB6TrainingRoomCollisionGridFaces,
+    .cellFaceIds = _gShelterB6TrainingRoomCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = -750,
+    .cellCountX  = 2,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB6TrainingRoomCollisionGridFaces),
+};
 
 ViewCamera D_shelter_b6_training_room_80184758[8] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x61A8, -5250 } }, 380 },
@@ -130,154 +157,183 @@ ViewCamera D_shelter_b6_training_room_80184758[8] = {
     { { { { 4085, 0, -286 }, { -138, 3587, -1972 }, { 251, 1977, 3578 } }, { -2490, 2380, -6300 } }, 329 },
 };
 
-SpriteBatch D_shelter_b6_training_room_80184878[2] = {
+/// Empty mapped-view-1 list retaining decoded backdrop strips and its terminator.
+static SpriteBatch _gShelterB6TrainingRoomView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b6_training_room_80184888[2] = {
+/// Empty mapped-view-2 list retaining decoded backdrop strips and its terminator.
+static SpriteBatch _gShelterB6TrainingRoomView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b6_training_room_80184898[28] = {
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, 64, 1565, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 88, 1359, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, -24, 1567, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, 0, 1707, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 104, 32, 1697, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 64, 1684, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 64, 1688, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 32, 1731, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 0, 1775, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, -32, 1693, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 88, -24, 1821, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, -40, 1515, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, -32, 1632, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -112, 8, 1746, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 48, 1711, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 72, 1577, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 48, 1430, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 72, 1405, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, -32, 1744, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 0, 1906, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 32, 1867, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 64, 1834, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, -24, 1866, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 0, 1934, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 24, 1895, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 48, 1859, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -88, 72, 1821, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, -16, 1951, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+/// Destroyed-part rectangles for mapped view 3, in pixels and unscaled sorting depth.
+///
+/// Elements 0..11 show part slot 1, elements 12..27 show part slot 0.
+static SpriteSource _gShelterB6TrainingRoomView3SpriteSources[] = {
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 24 } }, 112, 64, 1565, { .fields = { 96, 120 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 16 } }, 112, 88, 1359, { .fields = { 96, 240 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 24 } }, 104, -24, 1567, { .fields = { 96, 96 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 32 } }, 104, 0, 1707, { .fields = { 112, 80 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 32 } }, 104, 32, 1697, { .fields = { 112, 144 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, 104, 64, 1684, { .fields = { 120, 112 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, 96, 64, 1688, { .fields = { 120, 176 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, 96, 32, 1731, { .fields = { 120, 208 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, 96, 0, 1775, { .fields = { 104, 0 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, 96, -32, 1693, { .fields = { 112, 176 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 16 } }, 88, -24, 1821, { .fields = { 96, 192 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 16 } }, 104, -40, 1515, { .fields = { 112, 240 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 40 } }, -112, -32, 1632, { .fields = { 112, 40 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 40 } }, -112, 8, 1746, { .fields = { 112, 0 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 24 } }, -112, 48, 1711, { .fields = { 96, 144 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 24 } }, -112, 72, 1577, { .fields = { 96, 168 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 24 } }, -120, 48, 1430, { .fields = { 104, 192 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 24 } }, -120, 72, 1405, { .fields = { 96, 0 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, -96, -32, 1744, { .fields = { 104, 64 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, -96, 0, 1906, { .fields = { 104, 32 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, -96, 32, 1867, { .fields = { 112, 112 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, -96, 64, 1834, { .fields = { 112, 208 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 24 } }, -88, -24, 1866, { .fields = { 96, 48 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 24 } }, -88, 0, 1934, { .fields = { 96, 72 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 24 } }, -88, 24, 1895, { .fields = { 96, 24 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 24 } }, -88, 48, 1859, { .fields = { 104, 216 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 16 } }, -88, 72, 1821, { .fields = { 96, 208 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 16 } }, -80, -16, 1951, { .fields = { 120, 240 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b6_training_room_80184AC8[4] = {
+/// Mapped-view-3 backdrop selector, mutable destroyed-part ranges and terminator.
+///
+/// Batch 1 selects part slot 1; batch 2 selects part slot 0. The leading
+/// zero-count batch retains the decoded backdrop. Both ranges fit all 28 sources.
+static SpriteBatch _gShelterB6TrainingRoomView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 1, 0 } },
-    { 12, 16, 0, 0, { 0, 0 } },
+    { 0, SHELTER_B6_TRAINING_ROOM_VIEW3_PART1_SPRITES, 0, 0, { 1, 0 } },
+    { SHELTER_B6_TRAINING_ROOM_VIEW3_PART1_SPRITES, ARRAY_SIZE(_gShelterB6TrainingRoomView3SpriteSources) - SHELTER_B6_TRAINING_ROOM_VIEW3_PART1_SPRITES, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b6_training_room_80184AE8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b6_training_room_80184AF8[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b6_training_room_80184B08[2] = {
+/// Empty mapped-view-4 list retaining decoded backdrop strips and its terminator.
+static SpriteBatch _gShelterB6TrainingRoomView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b6_training_room_80184B18[28] = {
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, -80, 1589, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, -40, 1643, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, 0, 1643, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 128, 40, 1514, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, -72, 1711, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, -40, 1762, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, 0, 1758, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 120, 40, 1650, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, -72, 1808, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, -40, 1832, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, 0, 1836, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 40, 1680, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 40, 1784, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, -72, 1806, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -88, 1507, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -48, 1606, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -8, 1619, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -160, 32, 1589, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -152, -80, 1616, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -152, -48, 1708, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -152, -8, 1708, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -152, 32, 1689, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -144, -80, 1680, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -48, 1743, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -8, 1747, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 32, 1752, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 48, 1722, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, -72, 1742, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-};
-
-SpriteBatch D_shelter_b6_training_room_80184D48[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 14, 0, 0, { 1, 0 } },
-    { 14, 14, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
-};
-
-SpriteBatch D_shelter_b6_training_room_80184D68[2] = {
+/// Empty mapped-view-5 list retaining decoded backdrop strips and its terminator.
+static SpriteBatch _gShelterB6TrainingRoomView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b6_training_room_80184D78[8] = {
-    { { .empty = D_shelter_b6_training_room_80184878 }, D_shelter_b6_training_room_80184878, NULL },
-    { { .empty = D_shelter_b6_training_room_80184888 }, D_shelter_b6_training_room_80184888, NULL },
-    { { .elements = D_shelter_b6_training_room_80184898 }, D_shelter_b6_training_room_80184AC8, NULL },
-    { { .empty = D_shelter_b6_training_room_80184AE8 }, D_shelter_b6_training_room_80184AE8, NULL },
-    { { .empty = D_shelter_b6_training_room_80184AF8 }, D_shelter_b6_training_room_80184AF8, NULL },
-    { { .empty = D_shelter_b6_training_room_80184B08 }, D_shelter_b6_training_room_80184B08, NULL },
-    { { .elements = D_shelter_b6_training_room_80184B18 }, D_shelter_b6_training_room_80184D48, NULL },
-    { { .empty = D_shelter_b6_training_room_80184D68 }, D_shelter_b6_training_room_80184D68, NULL },
+/// Empty mapped-view-6 list retaining decoded backdrop strips and its terminator.
+static SpriteBatch _gShelterB6TrainingRoomView6SpriteBatches[] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-WorldCoordPointLight D_shelter_b6_training_room_80184DD8[12] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2500, -2750, 7500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 1638, 1392 }, { 0, 0 } }, 3000, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2500, -2750, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 1638, 1392 }, { 0, 0 } }, 3000, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 250, -2000, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2457, 1228 }, { 0, 0 } }, 750, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4750, -2000, 9500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2457, 1228 }, { 0, 0 } }, 750, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2500, -2750, 3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1310, 1228, 983 }, { 0, 0 } }, 1000, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2500, -2750, 7500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1310, 1228, 983 }, { 0, 0 } }, 1000, 4500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 250, -2250, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2457, 1228 }, { 0, 0 } }, 750, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4750, -2250, 9500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2457, 1228 }, { 0, 0 } }, 750, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1030, -1417, 0x2710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 245, 1638, 1474 }, { 0, 0 } }, 100, 700 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2070, -1417, 0x2742 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 245, 1638, 1474 }, { 0, 0 } }, 100, 600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 550, -1417, 0x2710 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 245, 1638, 1474 }, { 0, 0 } }, 100, 600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1785, -1417, 0x27A6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1474, 245, 0 }, { 0, 0 } }, 100, 400 },
+/// Destroyed-part rectangles for mapped view 7, in pixels and unscaled sorting depth.
+///
+/// Elements 0..13 show part slot 0, elements 14..27 show part slot 1.
+static SpriteSource _gShelterB6TrainingRoomView7SpriteSources[] = {
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, -80, 1589, { .fields = { 104, 200 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, -40, 1643, { .fields = { 96, 0 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, 0, 1643, { .fields = { 96, 40 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 16, 40 } }, 128, 40, 1514, { .fields = { 104, 160 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, 120, -72, 1711, { .fields = { 88, 0 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, 120, -40, 1762, { .fields = { 96, 80 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, 120, 0, 1758, { .fields = { 96, 120 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, 120, 40, 1650, { .fields = { 96, 224 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, 112, -72, 1808, { .fields = { 88, 64 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, 112, -40, 1832, { .fields = { 112, 120 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, 112, 0, 1836, { .fields = { 120, 128 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, 112, 40, 1680, { .fields = { 88, 32 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 24 } }, 104, 40, 1784, { .fields = { 88, 96 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 16 } }, 104, -72, 1806, { .fields = { 88, 120 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, -160, -88, 1507, { .fields = { 112, 80 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, -160, -48, 1606, { .fields = { 120, 208 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, -160, -8, 1619, { .fields = { 112, 0 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 48 } }, -160, 32, 1589, { .fields = { 120, 0 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, -152, -80, 1616, { .fields = { 96, 192 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, -152, -48, 1708, { .fields = { 120, 168 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, -152, -8, 1708, { .fields = { 104, 120 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, -152, 32, 1689, { .fields = { 104, 80 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 32 } }, -144, -80, 1680, { .fields = { 96, 160 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, -48, 1743, { .fields = { 112, 40 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, -8, 1747, { .fields = { 120, 88 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, 32, 1752, { .fields = { 120, 48 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 16 } }, -136, 48, 1722, { .fields = { 104, 240 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_TRAINING_ROOM_PART_SPRITE_TEXTURE_PAGE, SHELTER_B6_TRAINING_ROOM_PART_SPRITE_CLUT, { .fields = { 8, 16 } }, -136, -72, 1742, { .fields = { 112, 240 } }, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, SHELTER_B6_TRAINING_ROOM_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-WorldCoordSpotLight D_shelter_b6_training_room_80185258[12] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 200, -5750, 740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4800, -5750, 6240 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4800, -5750, 7740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4800, -5750, 9740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 200, -5750, 2740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 200, -5750, 4240 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4800, -5750, 740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4800, -5750, 2740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4800, -5750, 4240 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 200, -5750, 6240 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 200, -5750, 7740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 200, -5750, 9740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
+/// Mapped-view-7 backdrop selector, mutable destroyed-part ranges and terminator.
+///
+/// Batch 1 selects part slot 0; batch 2 selects part slot 1. The leading
+/// zero-count batch retains the decoded backdrop. Both ranges fit all 28 sources.
+static SpriteBatch _gShelterB6TrainingRoomView7SpriteBatches[] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { 0, SHELTER_B6_TRAINING_ROOM_VIEW7_PART0_SPRITES, 0, 0, { 1, 0 } },
+    { SHELTER_B6_TRAINING_ROOM_VIEW7_PART0_SPRITES, ARRAY_SIZE(_gShelterB6TrainingRoomView7SpriteSources) - SHELTER_B6_TRAINING_ROOM_VIEW7_PART0_SPRITES, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_shelter_b6_training_room_80185768 = { 0, NULL, ARRAY_SIZE(D_shelter_b6_training_room_80184DD8), D_shelter_b6_training_room_80184DD8, ARRAY_SIZE(D_shelter_b6_training_room_80185258), D_shelter_b6_training_room_80185258 };
+/// Empty mapped-view-8 list retaining decoded backdrop strips and its terminator.
+static SpriteBatch _gShelterB6TrainingRoomView8SpriteBatches[] = {
+    { 0, 0, 0, 0, { 0, 0 } },
+    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+};
+
+SpriteView gShelterB6TrainingRoomSpriteViews[SHELTER_B6_TRAINING_ROOM_VIEW_COUNT] = {
+    { { .empty = _gShelterB6TrainingRoomView1SpriteBatches }, _gShelterB6TrainingRoomView1SpriteBatches, NULL },
+    { { .empty = _gShelterB6TrainingRoomView2SpriteBatches }, _gShelterB6TrainingRoomView2SpriteBatches, NULL },
+    { { .elements = _gShelterB6TrainingRoomView3SpriteSources }, _gShelterB6TrainingRoomView3SpriteBatches, NULL },
+    { { .empty = _gShelterB6TrainingRoomView4SpriteBatches }, _gShelterB6TrainingRoomView4SpriteBatches, NULL },
+    { { .empty = _gShelterB6TrainingRoomView5SpriteBatches }, _gShelterB6TrainingRoomView5SpriteBatches, NULL },
+    { { .empty = _gShelterB6TrainingRoomView6SpriteBatches }, _gShelterB6TrainingRoomView6SpriteBatches, NULL },
+    { { .elements = _gShelterB6TrainingRoomView7SpriteSources }, _gShelterB6TrainingRoomView7SpriteBatches, NULL },
+    { { .empty = _gShelterB6TrainingRoomView8SpriteBatches }, _gShelterB6TrainingRoomView8SpriteBatches, NULL },
+};
+
+/// Twelve room-space point lights, writable for transform composition and attenuation.
+static WorldCoordPointLight _gShelterB6TrainingRoomPointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2500, -2750, 7500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 1638, 1392 }, { 0, 0 } }, 3000, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2500, -2750, 3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1720, 1638, 1392 }, { 0, 0 } }, 3000, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 250, -2000, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2457, 1228 }, { 0, 0 } }, 750, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4750, -2000, 9500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2457, 1228 }, { 0, 0 } }, 750, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2500, -2750, 3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1310, 1228, 983 }, { 0, 0 } }, 1000, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2500, -2750, 7500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1310, 1228, 983 }, { 0, 0 } }, 1000, 4500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 250, -2250, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2457, 1228 }, { 0, 0 } }, 750, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4750, -2250, 9500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2457, 1228 }, { 0, 0 } }, 750, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1030, -1417, 0x2710 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 245, 1638, 1474 }, { 0, 0 } }, 100, 700 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2070, -1417, 0x2742 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 245, 1638, 1474 }, { 0, 0 } }, 100, 600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 550, -1417, 0x2710 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 245, 1638, 1474 }, { 0, 0 } }, 100, 600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1785, -1417, 0x27A6 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1474, 245, 0 }, { 0, 0 } }, 100, 400 },
+};
+
+/// Twelve room-space cone lights with Q12 axes and 375-unit full openings (4096 per turn).
+static WorldCoordSpotLight _gShelterB6TrainingRoomConeLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 200, -5750, 740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4800, -5750, 6240 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4800, -5750, 7740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4800, -5750, 9740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 200, -5750, 2740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 200, -5750, 4240 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4800, -5750, 740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4800, -5750, 2740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4800, -5750, 4240 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { -564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 200, -5750, 6240 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 200, -5750, 7740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 200, -5750, 9740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3686 }, { 0, 0 } }, { 564, 4056, 7, 0 }, 5000, 6500, 375 },
+};
+
+WorldCoordRoomLights gShelterB6TrainingRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB6TrainingRoomPointLights),
+    .pointLights           = _gShelterB6TrainingRoomPointLights,
+    .coneLightCount        = ARRAY_SIZE(_gShelterB6TrainingRoomConeLights),
+    .coneLights            = _gShelterB6TrainingRoomConeLights,
+};
 
 WorldCollisionTrigger D_shelter_b6_training_room_80185780[7] = {
     { NULL, NULL, NULL, { 2497, -2912, 4352, 0 }, { { 3360, -3312, 0, 0 }, { -3360, -3312, 0, 0 }, { 3360, 3312, 0, 0 }, { -3360, 3312, 0, 0 } }, { 0, 0, 4106, 0 }, { 0, 0, 4096, 0 }, 4692, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -322,8 +378,8 @@ WorldCollisionTrigger D_shelter_b6_training_room_80185A44[5] = {
     { NULL, NULL, NULL, { 4671, -64, 4352, 0 }, { { -352, 0, -1088, 0 }, { 352, 0, -1088, 0 }, { -352, 0, 1088, 0 }, { 352, 0, 1088, 0 } }, { 0, 4103, 0, 0 }, { -4091, 0, 201, 0 }, 1137, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b6_training_room_80185BC0[9] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b6_training_room_80185BC0) - 1 },
+WorldCoordRoomAmbientEntry gShelterB6TrainingRoomAmbientByView[SHELTER_B6_TRAINING_ROOM_VIEW_COUNT + 1] = {
+    { .viewCount = ARRAY_SIZE(gShelterB6TrainingRoomAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 457, 493, 457, 475 } },
@@ -334,48 +390,71 @@ WorldCoordRoomAmbientEntry D_shelter_b6_training_room_80185BC0[9] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_shelter_b6_training_room_80185C08 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Type-1 footstep cue bases for surface class 1's outer floor faces.
+///
+/// Walk and scripted jump select entries 89/90; run selects 91/92.
+/// The second entry is animation cue 1; companion playback adds 100.
+static WorldCollisionFootstepSounds _gShelterB6TrainingRoomSurface1FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 89,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 91,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 89,
 };
 
-WorldCollisionFootstepSounds D_shelter_b6_training_room_80185C14 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Type-1 footstep cue bases for surface class 2's two narrow floor strips.
+///
+/// Walk and scripted jump select entries 93/94; run selects 95/96.
+/// The second entry is animation cue 1; companion playback adds 100.
+static WorldCollisionFootstepSounds _gShelterB6TrainingRoomSurface2FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 93,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 95,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 93,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_training_room_80185C20[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, impact-enabled surface with pushback and no footsteps (classes 0, 3..7).
+static WorldCollisionSurfaceProperties _gShelterB6TrainingRoomDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_training_room_80185C28[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_training_room_80185C08 },
+/// Surface class 1's blocking, weapon-impact, pushback and footstep policies.
+static WorldCollisionSurfaceProperties _gShelterB6TrainingRoomSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB6TrainingRoomSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_training_room_80185C30[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_training_room_80185C14 },
+/// Surface class 2's blocking, weapon-impact, pushback and footstep policies.
+static WorldCollisionSurfaceProperties _gShelterB6TrainingRoomSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB6TrainingRoomSurface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b6_training_room_80185C38[8] = {
-    D_shelter_b6_training_room_80185C20,
-    D_shelter_b6_training_room_80185C28,
-    D_shelter_b6_training_room_80185C30,
-    D_shelter_b6_training_room_80185C20,
-    D_shelter_b6_training_room_80185C20,
-    D_shelter_b6_training_room_80185C20,
-    D_shelter_b6_training_room_80185C20,
-    D_shelter_b6_training_room_80185C20,
+WorldCollisionSurfaceProperties* gShelterB6TrainingRoomSurfaceProperties[8] = {
+    &_gShelterB6TrainingRoomDefaultSurfaceProperties,
+    &_gShelterB6TrainingRoomSurface1Properties,
+    &_gShelterB6TrainingRoomSurface2Properties,
+    &_gShelterB6TrainingRoomDefaultSurfaceProperties,
+    &_gShelterB6TrainingRoomDefaultSurfaceProperties,
+    &_gShelterB6TrainingRoomDefaultSurfaceProperties,
+    &_gShelterB6TrainingRoomDefaultSurfaceProperties,
+    &_gShelterB6TrainingRoomDefaultSurfaceProperties,
 };
 
-u8 D_shelter_b6_training_room_80185C60[3][16];
+s8 gShelterB6TrainingRoomRingTexturePhases[SHELTER_B6_TRAINING_ROOM_BAND_COUNT][SHELTER_B6_TRAINING_ROOM_RING_PHASE_ROW_STRIDE];
 
-GfxCoord* D_shelter_b6_training_room_80185C90;
+const GfxCoord* gShelterB6TrainingRoomSummonBeamOrigin;
 
-GfxCoord* D_shelter_b6_training_room_80185C94;
+const GfxCoord* gShelterB6TrainingRoomEnergyArcAnchor;
 
-u16 D_shelter_b6_training_room_80185C98;
+u16 gShelterB6TrainingRoomHitFlashGeneration;
 
 s32 shelterB6TrainingRoomRefuseKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
