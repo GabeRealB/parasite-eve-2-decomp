@@ -846,136 +846,224 @@ static AnimationSet _gAs12OtherBodyHitAnimation = {
     },
 };
 
-static AnimationPackedPose _gAs12Animation0646CBank1[18] = {
+/// Translation/rotation keyframes for `_gAs12DeathAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12DeathAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_0646C_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation0646CBank4[184] = {
+/// Rotation-only keyframes for `_gAs12DeathAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12DeathAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0646C_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation0646CRecords[239] = {
+/// Keyframe durations and control records for `_gAs12DeathAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12DeathAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0646C_records.inc"
 };
 
-static u16 _gAs12Animation0646CIndices[20] = {
+/// Record-array starts of `_gAs12DeathAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12DeathAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0646C_indices.inc"
 };
 
-static AnimationSet _gAs12Animation0646C = {
-    _gAs12Animation0646CRecords,
-    _gAs12Animation0646CIndices,
-    { NULL, _gAs12Animation0646CBank1, NULL, NULL, _gAs12Animation0646CBank4, NULL, NULL, NULL },
+/// Player death clip in AS12 bank slot 18.
+///
+/// Stops at its final pose after HP reaches zero in normal or scripted control.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12DeathAnimation = {
+    .records           = _gAs12DeathAnimationRecords,
+    .trackStartIndices = _gAs12DeathAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12DeathAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12DeathAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation07704Bank1[29] = {
+/// Translation/rotation keyframes for `_gAs12HealthyIdleAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12HealthyIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_07704_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation07704Bank4[450] = {
+/// Rotation-only keyframes for `_gAs12HealthyIdleAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12HealthyIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_07704_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation07704Records[633] = {
+/// Keyframe durations and control records for `_gAs12HealthyIdleAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12HealthyIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_07704_records.inc"
 };
 
-static u16 _gAs12Animation07704Indices[20] = {
+/// Record-array starts of `_gAs12HealthyIdleAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12HealthyIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_07704_indices.inc"
 };
 
-static AnimationSet _gAs12Animation07704 = {
-    _gAs12Animation07704Records,
-    _gAs12Animation07704Indices,
-    { NULL, _gAs12Animation07704Bank1, NULL, NULL, _gAs12Animation07704Bank4, NULL, NULL, NULL },
+/// Repeating player idle clip above half maximum HP, in AS12 bank slot 23.
+///
+/// Selected at the 300-tick direction-free idle trigger in normal control.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12HealthyIdleAnimation = {
+    .records           = _gAs12HealthyIdleAnimationRecords,
+    .trackStartIndices = _gAs12HealthyIdleAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12HealthyIdleAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12HealthyIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation0827CBank1[12] = {
+/// Translation/rotation keyframes for `_gAs12CriticalHealthIdleAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12CriticalHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_0827C_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation0827CBank4[266] = {
+/// Rotation-only keyframes for `_gAs12CriticalHealthIdleAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12CriticalHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0827C_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation0827CRecords[412] = {
+/// Keyframe durations and control records for `_gAs12CriticalHealthIdleAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12CriticalHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0827C_records.inc"
 };
 
-static u16 _gAs12Animation0827CIndices[20] = {
+/// Record-array starts of `_gAs12CriticalHealthIdleAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12CriticalHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0827C_indices.inc"
 };
 
-static AnimationSet _gAs12Animation0827C = {
-    _gAs12Animation0827CRecords,
-    _gAs12Animation0827CIndices,
-    { NULL, _gAs12Animation0827CBank1, NULL, NULL, _gAs12Animation0827CBank4, NULL, NULL, NULL },
+/// Repeating critical-health idle and paralysis clip in AS12 bank slot 25.
+///
+/// Selected at the normal-control idle trigger with HP at most a quarter of
+/// maximum; paralysis also reuses this clip regardless of HP.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12CriticalHealthIdleAnimation = {
+    .records           = _gAs12CriticalHealthIdleAnimationRecords,
+    .trackStartIndices = _gAs12CriticalHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12CriticalHealthIdleAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12CriticalHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation08998Bank1[9] = {
+/// Translation/rotation keyframes for `_gAs12LowHealthIdleAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12LowHealthIdleAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_08998_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation08998Bank4[144] = {
+/// Rotation-only keyframes for `_gAs12LowHealthIdleAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12LowHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_08998_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation08998Records[264] = {
+/// Keyframe durations and control records for `_gAs12LowHealthIdleAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12LowHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_08998_records.inc"
 };
 
-static u16 _gAs12Animation08998Indices[20] = {
+/// Record-array starts of `_gAs12LowHealthIdleAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12LowHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_08998_indices.inc"
 };
 
-static AnimationSet _gAs12Animation08998 = {
-    _gAs12Animation08998Records,
-    _gAs12Animation08998Indices,
-    { NULL, _gAs12Animation08998Bank1, NULL, NULL, _gAs12Animation08998Bank4, NULL, NULL, NULL },
+/// Repeating player idle clip between quarter and half maximum HP, in AS12 bank slot 24.
+///
+/// Selected at the 300-tick direction-free idle trigger with HP above a quarter
+/// and at most half maximum HP; integer thresholds round down.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12LowHealthIdleAnimation = {
+    .records           = _gAs12LowHealthIdleAnimationRecords,
+    .trackStartIndices = _gAs12LowHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12LowHealthIdleAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12LowHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation08E18Bank1[6] = {
+/// Translation/rotation keyframes for `_gAs12ScriptedPresentationEntryAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12ScriptedPresentationEntryAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_08E18_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation08E18Bank4[107] = {
+/// Rotation-only keyframes for `_gAs12ScriptedPresentationEntryAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12ScriptedPresentationEntryAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_08E18_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation08E18Records[143] = {
+/// Keyframe durations and control records for `_gAs12ScriptedPresentationEntryAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12ScriptedPresentationEntryAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_08E18_records.inc"
 };
 
-static u16 _gAs12Animation08E18Indices[20] = {
+/// Record-array starts of `_gAs12ScriptedPresentationEntryAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12ScriptedPresentationEntryAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_08E18_indices.inc"
 };
 
-static AnimationSet _gAs12Animation08E18 = {
-    _gAs12Animation08E18Records,
-    _gAs12Animation08E18Indices,
-    { NULL, _gAs12Animation08E18Bank1, NULL, NULL, _gAs12Animation08E18Bank4, NULL, NULL, NULL },
+/// Player entry presentation for scripted events, in AS12 bank slots 32 and 34.
+///
+/// A zero presentation variant selects slot 32 before the event command.
+/// Slot 34 retains the same descriptor; playback stops at the final pose.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12ScriptedPresentationEntryAnimation = {
+    .records           = _gAs12ScriptedPresentationEntryAnimationRecords,
+    .trackStartIndices = _gAs12ScriptedPresentationEntryAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12ScriptedPresentationEntryAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12ScriptedPresentationEntryAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation08FF0Bank1[3] = {
+/// Translation/rotation keyframes for `_gAs12ScriptedPresentationExitAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12ScriptedPresentationExitAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_08FF0_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation08FF0Bank4[32] = {
+/// Rotation-only keyframes for `_gAs12ScriptedPresentationExitAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12ScriptedPresentationExitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_08FF0_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation08FF0Records[57] = {
+/// Keyframe durations and control records for `_gAs12ScriptedPresentationExitAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12ScriptedPresentationExitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_08FF0_records.inc"
 };
 
-static u16 _gAs12Animation08FF0Indices[20] = {
+/// Record-array starts of `_gAs12ScriptedPresentationExitAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12ScriptedPresentationExitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_08FF0_indices.inc"
 };
 
-static AnimationSet _gAs12Animation08FF0 = {
-    _gAs12Animation08FF0Records,
-    _gAs12Animation08FF0Indices,
-    { NULL, _gAs12Animation08FF0Bank1, NULL, NULL, _gAs12Animation08FF0Bank4, NULL, NULL, NULL },
+/// Player exit presentation for scripted events, in AS12 bank slots 33 and 35.
+///
+/// A nonzero presentation variant selects slot 33 after the event command.
+/// Slot 35 retains the same descriptor; playback stops at the final pose.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12ScriptedPresentationExitAnimation = {
+    .records           = _gAs12ScriptedPresentationExitAnimationRecords,
+    .trackStartIndices = _gAs12ScriptedPresentationExitAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12ScriptedPresentationExitAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12ScriptedPresentationExitAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gAs12Animation09554Bank1[11] = {
@@ -1283,24 +1371,24 @@ AnimationBank D_as12_8012C300 = { { {
     &_gAs12Animation0C468,
     &_gAs12Part4HitAnimation,
     &_gAs12OtherBodyHitAnimation,
-    &_gAs12Animation0646C,
+    &_gAs12DeathAnimation,
     &_gAs12UnarmedWalkAnimation,
     &_gAs12Animation0C468,
     &_gAs12IdleAnimation,
     &_gAs12IdleAnimation,
-    &_gAs12Animation07704,
-    &_gAs12Animation08998,
-    &_gAs12Animation0827C,
+    &_gAs12HealthyIdleAnimation,
+    &_gAs12LowHealthIdleAnimation,
+    &_gAs12CriticalHealthIdleAnimation,
     &_gAs12PeReleaseFamily0Animation,
     &_gAs12PeChargeFamily0Animation,
     &_gAs12PeCastFamily0Animation,
     &_gAs12PeReleaseFamily1Animation,
     &_gAs12PeChargeFamily1Animation,
     &_gAs12PeCastFamily1Animation,
-    &_gAs12Animation08E18,
-    &_gAs12Animation08FF0,
-    &_gAs12Animation08E18,
-    &_gAs12Animation08FF0,
+    &_gAs12ScriptedPresentationEntryAnimation,
+    &_gAs12ScriptedPresentationExitAnimation,
+    &_gAs12ScriptedPresentationEntryAnimation,
+    &_gAs12ScriptedPresentationExitAnimation,
     &_gAs12StairAscentAnimation,
     &_gAs12StairDescentAnimation,
     &_gAs12StairAscentFinishEvenAnimation,
