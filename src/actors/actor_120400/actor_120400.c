@@ -78,9 +78,11 @@ static void _actor120400IdleKyleMadiganWalk(Task* task);
 static void _actor120400RunKyleMadiganWalkStep(Task* task);
 static void _actor120400BeginKyleMadiganWalk(Task* task);
 
-/// Spawn, tick and teardown handlers of the two child tasks, dispatched by
-/// `_actor120400KyleMadiganHandTask`.
-static const TaskFuncTable3 D_actor_120400_80131E24 = { {
+/// Task-state callbacks shared by Kyle Madigan's left and right hand models.
+///
+/// `Task::state` selects 0 attach, 1 inherit the body's drawing and buffer
+/// policy or 2 kill the hand. The body supplies borrowed coordinates and lighting.
+static const TaskFuncTable3 _gActor120400KyleMadiganHandStates = { {
     _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
     taskKill,
@@ -1059,7 +1061,7 @@ static void _actor120400KyleMadiganHandTask(Task* handTask)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_120400_80131E24;
+    states = _gActor120400KyleMadiganHandStates;
     states.funcs[handTask->state](handTask);
 }
 

@@ -73,13 +73,6 @@ enum {
 
 extern AnimationSet** gActorMotionAnimBanks19[1];
 
-/// `taskMessageDispatch` handler table installed at `Task::msgTable` by
-/// `_actor317000Init`; terminator id `TASK_MESSAGE_TABLE_END`.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_317000_8016CF50[];
-
 static void _actor317000Update(Task* task);
 static void _actor317000FacePlayerAfterLeap(Task* task);
 static void _actor317000TurnHeadToTarget(Task* task, Task* targetTask, s32 maxYaw, s32 maxPitch, s32 blendWeight);
@@ -355,7 +348,13 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
 
 TaskDesc D_actor_317000_8016CF44 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor317000Task, { .model = &_gActor317000GrinningStrangerBody } };
 
-TaskMessageEntry D_actor_317000_8016CF50[6] = {
+/// Message map for the script-controlled Grinning Stranger and its leap sequence.
+///
+/// Playback borrows an `AnimationPlayRequest`, placement an `ActorTransform`,
+/// and commands an `ActorCommand`; drawing takes a scalar mode. The walk message
+/// borrows a launch placement and an optional `ActorMotionWalkAnim` clip pair.
+/// The task borrows this terminated map and its callbacks until teardown.
+static const TaskMessageEntry _gActor317000Messages[6] __attribute__((section(".data"))) = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor317000SetDrawMode },
@@ -704,7 +703,7 @@ static void _actor317000Init(Task* task)
     _actor317000BindLighting(task);
     _actor317000SetDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_317000_DRAW_HIDE_AUTO, 0);
 
-    task->msgTable     = D_actor_317000_8016CF50;
+    task->msgTable     = _gActor317000Messages;
     task->exitCallback = _actor317000Exit;
     task->state++;
 }

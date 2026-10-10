@@ -1224,7 +1224,11 @@ static s32 _actor323300StrangerPlayAnimation(Task* task, s32 messageId, const An
     return 0;
 }
 
-static const TaskFuncTable3 D_actor_323300_80161E6C = { {
+/// Task-state callbacks for the Lesser Stranger's transforming body.
+///
+/// `Task::state` selects 0 spawn, 1 frame update or 2 restore model parents and kill.
+/// Actor control gates all three states; the entries take the live task.
+static const TaskFuncTable3 _gActor323300StrangerStates = { {
     _actor323300StrangerSpawn,
     _actor323300StrangerUpdate,
     _actor323300StrangerExit,
@@ -1239,7 +1243,7 @@ static void _actor323300StrangerTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_323300_80161E6C;
+    stateHandlers = _gActor323300StrangerStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         stateHandlers.funcs[task->state](task);
     }

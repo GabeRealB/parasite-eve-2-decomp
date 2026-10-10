@@ -64,3 +64,4 @@ _actor113000SetEyes = 0x80132474; // type:func
 _actor113000Spawn = 0x80131f90; // type:func
 _actor113000Update = 0x80132070; // type:func
 _actor113000Task = 0x80131f38; // type:func
+_gActor113000RupertBroderickHurtStates = 0x80131e24;

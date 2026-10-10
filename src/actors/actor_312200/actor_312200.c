@@ -38,10 +38,6 @@
 #include "../../shared/actor_contacts.h"
 #include "../../shared/actor_messages.h"
 
-extern u8 D_actor_312200_80169F44[];
-
-extern TaskMessageEntry D_actor_312200_80169F5C[4];
-
 /// Whole-unit part of the last step `_actorContactApplyGridPushback` applied.
 extern SVECTOR ActorContact_ScratchPosition;
 
@@ -276,34 +272,25 @@ static AnimationSet _gActor312200Animation080E0 = {
 /// to the playback API's frame count. The five-by-five storage is retained.
 static s8 _gActor312200AnimationBlendFrames[5][5] = { 0 };
 
-u8 D_actor_312200_80169F44[24] = {
-    0,
-    0,
-    0,
-    0,
-    136,
-    145,
-    22,
-    128,
-    92,
-    149,
-    22,
-    128,
-    152,
-    155,
-    22,
-    128,
-    0,
-    159,
-    22,
-    128,
-    0,
-    0,
-    0,
-    0,
+/// Animation sets for the scripted SWAT member, indexed by animation ID.
+///
+/// Requests select IDs 1..4; entries 0 and 5 are null slots, not terminators.
+/// The rig borrows this word-aligned table and its sets until teardown.
+static AnimationSet* _gActor312200AnimationSets[6] = {
+    NULL,
+    &_gActor312200Animation07368,
+    &_gActor312200Animation0773C,
+    &_gActor312200Animation07D78,
+    &_gActor312200Animation080E0,
+    NULL,
 };
 
-TaskMessageEntry D_actor_312200_80169F5C[4] = {
+/// Message map for the scripted SWAT member's drawing, commands and placement.
+///
+/// Drawing takes a scalar mode; commands borrow an `ActorCommand`, and placement
+/// borrows an `ActorTransform`. The second payload is unused by all three.
+/// The task borrows this terminated map and its callbacks until teardown.
+static const TaskMessageEntry _gActor312200Messages[4] __attribute__((section(".data"))) = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor312200SetModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor312200ApplyCommand },
     { ACTOR_MESSAGE_PLACE, _actor312200Place },
@@ -454,7 +441,7 @@ static void _actor312200Spawn(Enemy* enemy, Task* task)
     enemy->reactionFlags          = 0;
     // The original spawn clears this byte twice.
     enemy->field_4D = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_312200_80169F44, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor312200AnimationSets, model, work->rig.poses, work->rig.slots);
     work->animRequest = ACTOR_312200_ANIM_REQUEST_RESET;
     work->animId      = ACTOR_312200_ANIM_1;
     work->animRate    = ANIMATION_RATE_ONE;
@@ -472,7 +459,7 @@ static void _actor312200Spawn(Enemy* enemy, Task* task)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->contacts), 0);
-    task->msgTable       = D_actor_312200_80169F5C;
+    task->msgTable       = _gActor312200Messages;
     work->field_8AC      = 0;
     work->relightPending = 1;
     // Compose the world position before ranking the three lighting contributions.

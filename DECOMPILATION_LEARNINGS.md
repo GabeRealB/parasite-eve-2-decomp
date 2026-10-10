@@ -64809,7 +64809,7 @@ did this to five of its six carriers, e.g.
 
 ```
 build/USA/src/actors/actor_135600/actor_135600_2.i:(.text+0xc):
-    undefined reference to `D_actor_135600_80131E30'
+    undefined reference to `_gActor135600KyleMadiganHeldItemStates'
 ```
 
 The manifest `rodata` cut documented elsewhere is the fix when the *whole run*
@@ -100681,10 +100681,10 @@ call that clobbers memory, so the round trip survives by construction. Give the
 table a record type, declare the local with it, and assign wholesale:
 
 ```c
-extern const AnimationPlayRequest D_actor_135400_80131EA0;   /* rodata, 5 words */
+extern const AnimationPlayRequest _gActor135400FlintInitialCycleRequest;   /* rodata, 5 words */
 AnimationPlayRequest spawn;
 
-cycleRequest = D_actor_135400_80131EA0;   /* lw t0/t1/t2, sw..., lw t0/t1, sw... */
+cycleRequest = _gActor135400FlintInitialCycleRequest;   /* lw t0/t1/t2, sw..., lw t0/t1, sw... */
 ...
 work->cycleRequest = cycleRequest;              /* 5 loads then 5 stores, through the stack */
 ```
@@ -101618,8 +101618,8 @@ the prefix and the work struct, which is the cheap place to find out.
 **Prediction, not yet run:** `_actor311900InitRupert` (the unit's other
 spawn, still `INCLUDE_ASM`) is this body with `gameFlagGetNibble(0xA) & 2`
 for `gameFlagGetNibble(1) >= 3`, `_actor311900InitRupertLighting` for
-`_actor311900InitSwatLighting`, `D_actor_311900_8016EBE8` for
-`D_actor_311900_8016EBF4`, plus two extra stores (`advanceFrames` / `advancing`
+`_actor311900InitSwatLighting`, `_gActor311900RupertAnimationSets` for
+`_gActor311900SwatAnimationSets`, plus two extra stores (`advanceFrames` / `advancing`
 to 0) and a view-dependent `model->flags` seed before the closing
 `_actor311900UpdateAnimation`. Its asm is the same shape up to those six
 edits, so porting this source with them should land it.
@@ -101854,7 +101854,7 @@ pattern), so type the index `s32` — the family's `_actor444000ApplyCommand`
 does exactly that; and the handler's fourth parameter is unread, so the seed's
 two-parameter m2c signature puts the payload in `$a1` where the target reads
 `$a2`. The arity comes from the dispatch table, not the body:
-`D_actor_312200_80169F5C` lists this handler as a `TaskMessageEntry` id 0x7DB handler,
+`_gActor312200Messages` lists this handler as a `TaskMessageEntry` id 0x7DB handler,
 i.e. `s32 f(Task*, s32, Msg*, s32)`.
 
 Evidence: scratch `nonmatchings/_actor312200ApplyCommand-vacuum/`; `base_1.c`
@@ -102800,7 +102800,7 @@ static s32 _actor223600SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32
 
 100.000% on the next build, every penalty zero. The unused `messageId` and
 second payload word remain in the signature: `TaskMessageHandler` dispatch
-passes four arguments to every entry of `D_actor_223600_80150B28`. When an m2c
+passes four arguments to every entry of `_gActor223600Messages`. When an m2c
 signature has fewer parameters than the register numbers in the names suggest -
 or a name like `arg2` sitting in the second slot - read the caller or the
 dispatch table before accepting it. A narrow type m2c inferred from a store
@@ -126650,10 +126650,10 @@ all — no `jal`, no `lui`/`addiu` pair. The single reference is a data word:
 
 so the search has to span the family's `data/` tree (`asm/<ver>/<family>/`, not
 just `<family>/nonmatchings/<overlay>/`), where the neighbours name it: it is
-the handler half of a `TaskMessageEntry` pair, id `0x7DD` in `D_actor_317000_8016CF50`
+the handler half of a `TaskMessageEntry` pair, id `0x7DD` in `_gActor317000Messages`
 (the same table the overlay's 0x7DB handler, 0x7D4 and `ActorsShared80162bc4`
 sit in). The matched installer names that table directly —
-`task->msgTable = D_actor_317000_8016CF50;` in `_actor317000Init` — so
+`task->msgTable = _gActor317000Messages;` in `_actor317000Init` — so
 "which table is this handler in" is readable from `src/` without the binary.
 
 Worth doing before writing any C, because it settles what the empty caller list
@@ -126837,7 +126837,7 @@ declared immediately before the consuming function it lands immediately before
 that function's `.text`. maspsx rewrites `.rdata` to `.section .rodata`, so a
 `const` placed in address order *between* the surrounding
 `INCLUDE_ASM`/`INCLUDE_RODATA` lines lands exactly where the target has the
-words - `_actor223600Update` declares `D_actor_223600_80149E4C`
+words - `_actor223600Update` declares `_gActor223600BehaviorStates`
 immediately before the tick, which puts its three words at 0x2C, ahead of
 `ActorsShared80135df4Table` at 0x38. A `const` at the *top* of the file instead
 collects ahead of the leading rodata; see `## Migrated D_* tables have no
@@ -127482,7 +127482,7 @@ branch, which moves the load's death into the shift:
 ```c
     temp_a1 = temp_s1->cycleRequest.animationId;
     temp_v0 = temp_a1 + 1;                                  /* before the if */
-    if (D_actor_135400_8013F8C4[temp_a1] < (s16) temp_v1) {
+    if (_gActor135400FlintCycleHoldFrames[temp_a1] < (s16) temp_v1) {
         temp_s1->cycleRequest.animationId = temp_v0;
 ```
 
@@ -127499,7 +127499,7 @@ Reading the two uses back as two reads of the same lvalue is the whole fix -
 `cse` folds them into one load whose last use is the `addiu`:
 
 ```c
-    if (D_actor_135400_8013F8C4[work->cycleRequest.animationId] < (s16) holdFrames) {
+    if (_gActor135400FlintCycleHoldFrames[work->cycleRequest.animationId] < (s16) holdFrames) {
         work->cycleRequest.animationId = work->cycleRequest.animationId + 1;
         if (work->cycleRequest.animationId >= ACTOR_135400_FLINT_CYCLE_CLIP_LIMIT) {
             work->cycleRequest.animationId = ACTOR_135400_FLINT_FIRST_CYCLE_CLIP;
@@ -130615,12 +130615,12 @@ value across a bail-out branch, look for a second variable rather than for a pin
 
 ```c
 enemy->reactionFlags = 0;
-enemy->param = &D_actor_223600_8014CFCC;
+enemy->param = &_gActor223600EnemyParams;
 enemy->recs = 0;
-enemy->hpMax = D_actor_223600_8014CFCC.field_4;
-enemy->hp = D_actor_223600_8014CFCC.field_4;
+enemy->hpMax = _gActor223600EnemyParams.hpMax;
+enemy->hp = _gActor223600EnemyParams.hpMax;
 ...
-func_actor_223600_8014B2F4(task, D_actor_223600_8014CFCC.field_4);
+func_actor_223600_8014B2F4(task, _gActor223600EnemyParams.hpMax);
 ```
 
 compiles to three `lhu`s, each with its own load-delay `nop`, where the ROM has

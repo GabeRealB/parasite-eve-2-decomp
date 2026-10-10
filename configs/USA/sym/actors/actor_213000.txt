@@ -99,3 +99,6 @@ _actor213000PlayAnimation = 0x8014a70c; // type:func
 _actor213000SetModelDraw = 0x8014a8a4; // type:func
 _actor213000ApplyHeldModelCommand = 0x8014a980; // type:func
 _actor213000InitializeEricBaldwin = 0x80149e54; // type:func
+_gActor213000HeldModelStates = 0x80149e24;
+_gActor213000RightHandStates = 0x80149e30;
+_gActor213000ThreeRootModelStates = 0x80149e3c;

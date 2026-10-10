@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -121,25 +123,7 @@ typedef struct {
 } _Actor135400GaryDouglasPlaces;
 STATIC_ASSERT_SIZEOF(_Actor135400GaryDouglasPlaces, 0x30);
 
-/// The actor's two-entry `TaskDesc` table, indexed by `taskSpawnFromTable`:
-/// entry 1 is the model-bearing part task `_modelPlacementAttachPartTask`
-/// reparents, entry 2 the second part (`_modelPlacementAttachPart`).
-extern TaskDesc D_actor_135400_8013A4AC[];
-
 extern TaskMessageEntry D_actor_135400_8013A4D0[5];
-
-/// The second task's message table: `(message id, handler)` pairs for 0x7D3 /
-/// 0x7D4 / 0x7D5, ended by `TASK_MESSAGE_TABLE_END`. `_actor135400FlintSpawn` parks
-/// its address in `Task::msgTable`.
-extern TaskMessageEntry D_actor_135400_8013F8E4[4];
-
-/// Per-step frame counts of the second task's 0x7D3 animation: eight `s16`
-/// entries indexed by `_Actor135400FlintWork::cycleRequest.animationId`.
-/// `_actor135400FlintTick` runs the task's `killCountdown` up and, once it
-/// passes the entry for the current step, advances that step -- wrapping at 7
-/// -- and re-issues the animation. The first and last entries are zero, so
-/// neither ever expires.
-extern s16 D_actor_135400_8013F8C4[];
 
 extern AnimationSet*  D_actor_135400_8013A494[5];
 extern AnimationSet** gActorMotionAnimBanks[1];
@@ -400,7 +384,7 @@ AnimationSet** gActorMotionAnimBanks[1] = {
     D_actor_135400_8013A494,
 };
 
-TaskDesc D_actor_135400_8013A4AC[3] = {
+TaskDesc gActor135400GaryDouglasTasks[3] = {
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135400GaryDouglasTask, { .model = &_gActor135400GaryDouglasBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasHeadTask, { .model = &_gActor135400GaryDouglasHeadHat } },
     { { { TASK_BODY_TMD, 192 } }, _actor135400GaryDouglasCarriedTask, { .model = &_gActor135400Model071AC } },
@@ -570,7 +554,12 @@ static AnimationSet* _gActor135400FlintAnimationSets[7] = {
     &_gActor135400Animation0CFA4,
 };
 
-s16 D_actor_135400_8013F8C4[8] = {
+/// Flint's hold durations in frames, indexed by the autonomous cycle cursor.
+///
+/// Only cursors 1..6 are used; the stored zeros at 0 and 7 are unused slots.
+/// A transition occurs when the signed timer exceeds the selected duration.
+/// The initial cursor 2 times displayed clip 1 before advancing to clip 3.
+static const s16 _gActor135400FlintCycleHoldFrames[8] __attribute__((section(".data"))) = {
     0,
     700,
     28,
@@ -591,7 +580,12 @@ static AnimationSet** _gActor135400FlintAnimationBanks[1] = {
 
 TaskDesc D_actor_135400_8013F8D8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor135400FlintTask, { .model = &_gActor135400FlintBody } };
 
-TaskMessageEntry D_actor_135400_8013F8E4[4] = {
+/// Flint's message map for animation playback, Euler placement and drawing.
+///
+/// Playback borrows an `AnimationPlayRequest` selecting bank 0 and clip 1..6;
+/// placement borrows an `ActorTransform`, and drawing takes a scalar mode.
+/// The task borrows this terminated map and its callbacks until teardown.
+static const TaskMessageEntry _gActor135400FlintMessages[4] __attribute__((section(".data"))) = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor135400FlintPlayAnimation },
     { ACTOR_MESSAGE_PLACE, _actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor135400FlintSetDrawMode },
@@ -687,12 +681,12 @@ static inline void _actor135400SpawnGaryAttachments(Task* task, _Actor135400Gary
            ACTOR_135400_GARY_CARRIED_TASK = 2,
            ACTOR_135400_GARY_CARRIED_PART = 8 };
     Task* childTask;
-    childTask = taskSpawnFromTable(D_actor_135400_8013A4AC, ACTOR_135400_GARY_HEAD_TASK, ACTOR_135400_GARY_HEAD_PART, task);
+    childTask = taskSpawnFromTable(gActor135400GaryDouglasTasks, ACTOR_135400_GARY_HEAD_TASK, ACTOR_135400_GARY_HEAD_PART, task);
     if (childTask != NULL) {
         work->headTask = childTask;
         _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
     }
-    childTask = taskSpawnFromTable(D_actor_135400_8013A4AC, ACTOR_135400_GARY_CARRIED_TASK, ACTOR_135400_GARY_CARRIED_PART, task);
+    childTask = taskSpawnFromTable(gActor135400GaryDouglasTasks, ACTOR_135400_GARY_CARRIED_TASK, ACTOR_135400_GARY_CARRIED_PART, task);
     if (childTask != NULL) {
         work->carriedTask = childTask;
     }
@@ -1019,7 +1013,7 @@ static void _actor135400FlintTick(Task* task)
     // Keep the original halfword wrap and signed hold-time comparison.
     holdFrames          = task->killCountdown + 1;
     task->killCountdown = holdFrames;
-    if (D_actor_135400_8013F8C4[work->cycleRequest.animationId] < (s16)holdFrames) {
+    if (_gActor135400FlintCycleHoldFrames[work->cycleRequest.animationId] < (s16)holdFrames) {
         work->cycleRequest.animationId = work->cycleRequest.animationId + 1;
         if (work->cycleRequest.animationId >= ACTOR_135400_FLINT_CYCLE_CLIP_LIMIT) {
             work->cycleRequest.animationId = ACTOR_135400_FLINT_FIRST_CYCLE_CLIP;
@@ -1039,9 +1033,11 @@ static void _actor135400FlintTick(Task* task)
     }
 }
 
-/// State table of the second task: spawn, per-frame tick and exit callback.
-/// Dispatched by `_actor135400FlintTask`.
-static const TaskFuncTable3 D_actor_135400_80131E94 = { {
+/// Task-state callbacks for Flint's autonomous animation cycle.
+///
+/// `Task::state` selects 0 spawn, 1 frame update or 2 enemy teardown.
+/// Actor control gates all three states; the entries take the live task.
+static const TaskFuncTable3 _gActor135400FlintStates = { {
     _actor135400FlintSpawn,
     _actor135400FlintTick,
     _actor135400FlintExit,
@@ -1055,15 +1051,30 @@ static void _actor135400FlintTask(Task* task)
 {
     TaskFuncTable3 handlers;
 
-    handlers = D_actor_135400_80131E94;
+    handlers = _gActor135400FlintStates;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         handlers.funcs[task->state](task);
     }
 }
 
-/// The animation arguments `_actor135400FlintSpawn` copies into
-/// `_Actor135400FlintWork::cycleRequest` when the second task is created.
-static const AnimationPlayRequest D_actor_135400_80131EA0 = { 0, 2, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Seed cursor and blend duration, in frames, of Flint's autonomous cycle.
+enum {
+    ACTOR_135400_FLINT_INITIAL_CYCLE_CURSOR = 2,
+    ACTOR_135400_FLINT_CYCLE_BLEND_FRAMES   = 10,
+};
+
+/// Initial cursor and playback settings for Flint's autonomous clip cycle.
+///
+/// The work keeps its own copy: bank 0, cursor 2 and ten-frame interpolation.
+/// Spawn plays clip 1 separately, so cursor 2 first holds clip 1, then selects 3.
+/// The world-collision word is zero; Flint's animation handler ignores it.
+static const AnimationPlayRequest _gActor135400FlintInitialCycleRequest = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_135400_FLINT_INITIAL_CYCLE_CURSOR,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_135400_FLINT_CYCLE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Initializes Flint before the night-garage event has progressed.
 ///
@@ -1081,7 +1092,7 @@ static void _actor135400FlintSpawn(Task* task)
 
     memset(&initialRequest, 0, sizeof(initialRequest));
     initialRequest.animationId = ACTOR_135400_FLINT_FIRST_CYCLE_CLIP;
-    cycleRequest               = D_actor_135400_80131EA0;
+    cycleRequest               = _gActor135400FlintInitialCycleRequest;
     if ((gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0) || ((work = memCalloc(sizeof(*work), 0)) == NULL)) {
         enemyTaskExit(task);
         return;
@@ -1094,7 +1105,7 @@ static void _actor135400FlintSpawn(Task* task)
     _actor135400FlintPlayAnimation(task, ACTOR_MESSAGE_PLAY_ANIMATION, &initialRequest, 0);
     _actor135400FlintSetDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     _actor135400FlintInitLighting(task);
-    task->msgTable     = D_actor_135400_8013F8E4;
+    task->msgTable     = _gActor135400FlintMessages;
     task->exitCallback = _actor135400FlintExit;
     task->state       += 1;
 }

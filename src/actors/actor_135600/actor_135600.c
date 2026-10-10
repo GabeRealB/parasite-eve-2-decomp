@@ -77,19 +77,21 @@ enum {
     ACTOR_135600_HELD_QUAD_SHORTEN_ANGLE = 0x1F5, // 4096 units per turn
 };
 
-/// States of the two part tasks (`D_actor_135600_8013B0C4` entries 1 and 2),
-/// dispatched by `_actor135600KyleMadiganHandTask`: attach to the parent, idle,
-/// kill.
-static const TaskFuncTable3 D_actor_135600_80131E24 = { {
+/// Task-state callbacks shared by Kyle Madigan's two hand models.
+///
+/// `Task::state` selects 0 attach to the body part, 1 idle under the body rig
+/// or 2 kill the hand. Body coordinates and lighting remain borrowed.
+static const TaskFuncTable3 _gActor135600KyleMadiganHandStates = { {
     _modelPlacementAttachPartTask,
     _actor135600IdleKyleMadiganHand,
     taskKill,
 } };
 
-/// States of the marker task (entry 3), dispatched by
-/// `_actor135600KyleMadiganHeldItemTask`: attach to the parent with an offset, draw the
-/// marker, kill.
-static const TaskFuncTable3 D_actor_135600_80131E30 = { {
+/// Task-state callbacks for Kyle Madigan's held model and its textured quad.
+///
+/// `Task::state` selects 0 attach with an offset, 1 update and draw the quad
+/// or 2 kill the child. The parent supplies borrowed coordinates and lighting.
+static const TaskFuncTable3 _gActor135600KyleMadiganHeldItemStates = { {
     _actor135600AttachKyleMadiganHeldItem,
     _actor135600UpdateKyleMadiganHeldItem,
     taskKill,
@@ -918,7 +920,7 @@ static void _actor135600KyleMadiganHandTask(Task* handTask)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_135600_80131E24;
+    states = _gActor135600KyleMadiganHandStates;
     states.funcs[handTask->state](handTask);
 }
 
@@ -938,7 +940,7 @@ static void _actor135600KyleMadiganHeldItemTask(Task* itemTask)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_135600_80131E30;
+    states = _gActor135600KyleMadiganHeldItemStates;
     states.funcs[itemTask->state](itemTask);
 }
 

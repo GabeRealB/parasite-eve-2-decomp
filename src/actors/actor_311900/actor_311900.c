@@ -86,14 +86,6 @@ typedef struct {
 } _Actor311900Work;
 STATIC_ASSERT_SIZEOF(_Actor311900Work, 0x4CC);
 
-/// The animation data `animationInitContext` builds the first setup path's clip
-/// context from; the spawn hands it over whole, so it is only ever a byte
-/// address here.
-extern u8 D_actor_311900_8016EBE8[];
-
-/// The animation data the second setup path builds its clip context from.
-extern u8 D_actor_311900_8016EBF4[];
-
 static void _actor311900InitRupert(Enemy* enemy, Task* task);
 static void _actor311900UpdateRupert(Enemy* enemy, Task* task);
 static void _actor311900InitSwat(Enemy* enemy, Task* task);
@@ -217,34 +209,24 @@ static AnimationSet _gActor311900Animation0CDA0 = {
     { NULL, _gActor311900Animation0CDA0Bank1, NULL, NULL, _gActor311900Animation0CDA0Bank4, NULL, NULL, NULL },
 };
 
-u8 D_actor_311900_8016EBE8[12] = {
-    0,
-    0,
-    0,
-    0,
-    200,
-    231,
-    22,
-    128,
-    0,
-    0,
-    0,
-    0,
+/// Rupert's animation-set table for the security-monitor scene.
+///
+/// Only index 1 is playable; indices 0 and 2 are null slots, not terminators.
+/// The rig borrows this word-aligned table and its loaded set until teardown.
+static AnimationSet* _gActor311900RupertAnimationSets[3] = {
+    NULL,
+    &_gActor311900Animation0C9A8,
+    NULL,
 };
 
-u8 D_actor_311900_8016EBF4[12] = {
-    0,
-    0,
-    0,
-    0,
-    192,
-    235,
-    22,
-    128,
-    0,
-    0,
-    0,
-    0,
+/// The SWAT figure's animation-set table for the security-monitor scene.
+///
+/// Only index 1 is playable; indices 0 and 2 are null slots, not terminators.
+/// The rig borrows this word-aligned table and its loaded set until teardown.
+static AnimationSet* _gActor311900SwatAnimationSets[3] = {
+    NULL,
+    &_gActor311900Animation0CDA0,
+    NULL,
 };
 
 TaskDesc D_actor_311900_8016EC00 = { { { TASK_BODY_TMD, 96 } }, _actor311900SwatTask, { .model = &_gActor311900SwatMember2Body } };
@@ -469,7 +451,7 @@ static void _actor311900InitRupert(Enemy* enemy, Task* task)
     enemy->field_4  = &rootCoord->coord;
     enemy->field_48 = 0;
     model->flags    = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBE8, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gActor311900RupertAnimationSets, model, work->rig.poses,
                          work->rig.slots);
     rootCoord->parent   = &gGfxViewCoord;
     work->animState     = ACTOR_ENEMY_ANIM_RESET;
@@ -565,7 +547,7 @@ static void _actor311900InitSwat(Enemy* enemy, Task* task)
     enemy->field_4  = &rootCoord->coord;
     enemy->field_48 = 0;
     model->flags    = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_311900_8016EBF4, model, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gActor311900SwatAnimationSets, model, work->rig.poses,
                          work->rig.slots);
     rootCoord->parent = &gGfxViewCoord;
     work->animState   = ACTOR_ENEMY_ANIM_RESET;

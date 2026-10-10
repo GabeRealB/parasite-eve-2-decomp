@@ -71,3 +71,4 @@ _actor213100UpdateBody = 0x80149e3c; // type:func
 _actor213100InitBody = 0x8014a118; // type:func
 _actor213100BodyTask = 0x8014a0c0; // type:func
 _actor213100SetModelDraw = 0x8014a40c; // type:func
+_gActor213100HeldModelStates = 0x80149e24;

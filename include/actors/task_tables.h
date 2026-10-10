@@ -126,7 +126,12 @@ extern TaskDesc D_actor_142600_80135E24;
 /// Slot export of `gActor02400Tasks` from actor_102400, with the same descriptor contract.
 extern TaskDesc gActor102400Tasks[2];
 
-extern TaskDesc D_actor_123200_80137234;
+/// Spawn recipe for the staged Bone Suckler used by the motel-room event.
+///
+/// Index 0 creates a six-part TMD body at priority 96 with automatic buffers.
+/// Spawn through the enemy API with a live owned `Enemy` in spawn argument 2.
+/// Keep actor_123200's callbacks and borrowed geometry loaded until teardown.
+extern TaskDesc gActor123200BoneSucklerTaskDesc;
 
 extern TaskDesc D_actor_142900_80137600[];
 
@@ -211,7 +216,14 @@ extern TaskDesc gActor110300ViewFigureTasks[VIEW_FIGURE_TASK_COUNT];
 
 extern TaskDesc D_actor_111800_8013A468;
 
-extern TaskDesc D_actor_135400_8013A4AC[];
+/// Gary Douglas spawn recipes: 0 body, 1 head and hat, 2 carried model.
+///
+/// All three create TMD bodies at priority 192; there is no terminator. Entry 0
+/// skips automatic model buffers and expects a live owned `Enemy` in spawn
+/// argument 2. The body spawns entries 1 and 2 with itself in argument 2 and
+/// parent coordinate indices 4 and 8 respectively in argument 1. The children
+/// borrow its coordinates and lighting. Keep actor_135400 loaded until teardown.
+extern TaskDesc gActor135400GaryDouglasTasks[3];
 
 /// Caterpillar body and puff spawn descriptors: indices 0 and 1, no terminator.
 ///

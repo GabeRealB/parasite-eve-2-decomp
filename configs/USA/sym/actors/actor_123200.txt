@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_123200.
 ActorContact_ScratchPosition = 0x80137240; // size:0x8 defined:True
 _gActor123200EffectSpawnArg = 0x80137248; // size:0x8 defined:True
-D_actor_123200_80137234 = 0x80137234; // size:0xC defined:True
+gActor123200BoneSucklerTaskDesc = 0x80137234; // size:0xC defined:True
 _gActor123200AnimationResource = 0x80137154; // size:0xC0 defined:True
 _gActor123200Messages = 0x80137214; // size:0x20 defined:True
 _gActor123200Attacks = 0x80134204; // size:0x4 defined:True
@@ -80,3 +80,4 @@ _actor123200ApplyCommand = 0x80133edc; // type:func
 _actor123200Hide = 0x80134178; // type:func
 _actor123200Task = 0x801341a8; // type:func
 _gActor123200StateHandlers = 0x80131e24;
+_gActor123200TaskStates = 0x80131e30;

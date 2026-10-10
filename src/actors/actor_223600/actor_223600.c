@@ -139,21 +139,6 @@ typedef struct {
 } _Actor223600AxisStepScratch;
 STATIC_ASSERT_SIZEOF(_Actor223600AxisStepScratch, 0xC);
 
-/// Effect record the spawn handler fills with the instance's own coordinate
-/// and the 0x100 / 1 argument pair.
-extern EffectSpawnArg D_actor_223600_80150B5C;
-
-/// Enemy parameters the spawn handler installs at `Enemy::param`.
-extern EnemyParams D_actor_223600_8014CFCC;
-
-/// Animation-set table bound to the work block's context by `animationInitContext`.
-extern AnimationSet* D_actor_223600_801509C0[26];
-
-/// Message table the spawn handler publishes as `Task::msgTable`.
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_223600_80150B28[4];
-
 /// Integer part of the last movement step `func_actor_223600_8014AA04`
 /// applied.
 static SVECTOR ActorContact_ScratchPosition;
@@ -214,7 +199,23 @@ static DamageAttack _gActor223600Attacks[1] = {
     { 24, ACTOR_223600_ATTACK_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams D_actor_223600_8014CFCC = { _gActor223600Attacks, 1, 6, 20, 3, 100, 0, 100, 0 };
+/// Shared combat parameters of this staged Blood Suckler kind.
+///
+/// Every spawned enemy borrows this record and its one attack row. Starts at
+/// one hit point; release credits 6 experience, 20 battle points and 3 magic
+/// points. Reaction chances are 100 percent, with zero buildup steps and damage
+/// pulses; those zero counts do not expire their respective reactions.
+static EnemyParams _gActor223600EnemyParams = {
+    .attacks              = _gActor223600Attacks,
+    .hpMax                = 1,
+    .exp                  = 6,
+    .bp                   = 20,
+    .mp                   = 3,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
 PadScriptCmd D_actor_223600_8014CFDC[3] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1) },
@@ -590,7 +591,12 @@ static AnimationSet _gActor223600Animation06B78 = {
     { NULL, _gActor223600Animation06B78Bank1, NULL, NULL, _gActor223600Animation06B78Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_actor_223600_801509C0[26] = {
+/// Animation-set table for the staged Blood Suckler, indexed by requested set.
+///
+/// Loaded indices are 1..8 and 10..15: 1 initial, 2 walk, 14 fall and 15 land.
+/// Indices 0, 9 and 16..25 are null slots, not terminators. The rig borrows
+/// this table and its loaded sets until teardown; playback does not check bounds.
+static AnimationSet* _gActor223600AnimationSets[26] = {
     NULL,
     &_gActor223600Animation049A0,
     &_gActor223600Animation04C64,
@@ -878,7 +884,12 @@ u8 D_actor_223600_80150A28[256] = {
     0,
 };
 
-TaskMessageEntry D_actor_223600_80150B28[4] = {
+/// Message map for the staged Blood Suckler's drawing, commands and placement.
+///
+/// Drawing takes a scalar mode; commands borrow an `ActorCommand`, and placement
+/// borrows an `ActorTransform`. The second payload is unused by all three.
+/// The task borrows this terminated map and its callbacks until teardown.
+static const TaskMessageEntry _gActor223600Messages[4] __attribute__((section(".data"))) = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor223600SetModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor223600ApplyCommand },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
@@ -901,7 +912,12 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-EffectSpawnArg D_actor_223600_80150B5C = { 0 };
+/// Effect spawn record overwritten with the most recently spawned model root.
+///
+/// Each spawn stores a borrowed coordinate and argument halves 0x100 and 1.
+/// No reader or effect ID is established, so the halves' units and purpose are
+/// unproven. The coordinate is not cleared when its owning task is destroyed.
+static EffectSpawnArg _gActor223600EffectSpawnArg = { 0 };
 
 #include "../../shared/actor_contacts.h"
 
@@ -997,9 +1013,9 @@ static void _actor223600Spawn(Enemy* enemy, Task* task)
         return;
     }
     coord->parent  = &gGfxViewCoord;
-    task->msgTable = D_actor_223600_80150B28;
+    task->msgTable = _gActor223600Messages;
     model->flags   = 0;
-    animationInitContext(&work->rig.anim, D_actor_223600_801509C0, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor223600AnimationSets, model, work->rig.poses, work->rig.slots);
 
     enemy->field_4    = &coord->coord;
     enemy->field_48   = 0;
@@ -1012,8 +1028,8 @@ static void _actor223600Spawn(Enemy* enemy, Task* task)
     enemy->hpMax                  = 1;
     enemy->hp                     = 1;
     enemy->reactionFlags          = 0;
-    hitPoints                     = D_actor_223600_8014CFCC.hpMax;
-    enemy->param                  = &D_actor_223600_8014CFCC;
+    hitPoints                     = _gActor223600EnemyParams.hpMax;
+    enemy->param                  = &_gActor223600EnemyParams;
     enemy->recs                   = 0;
     enemy->hpMax                  = hitPoints;
     enemy->hp                     = hitPoints;
@@ -1056,9 +1072,9 @@ static void _actor223600Spawn(Enemy* enemy, Task* task)
     work->state     = ACTOR_223600_STATE_HIDDEN;
     work->prevState = ACTOR_223600_PREVIOUS_STATE_UNSET;
 
-    D_actor_223600_80150B5C.coord      = task->extra.tmd->coords;
-    D_actor_223600_80150B5C.spawnArgLo = 0x100;
-    D_actor_223600_80150B5C.spawnArgHi = 1;
+    _gActor223600EffectSpawnArg.coord      = task->extra.tmd->coords;
+    _gActor223600EffectSpawnArg.spawnArgLo = 0x100;
+    _gActor223600EffectSpawnArg.spawnArgHi = 1;
     task->state++;
 }
 
@@ -1373,11 +1389,11 @@ static void _actor223600DropIn(Enemy* enemy, Task* task)
     work->stateFrame++;
 }
 
-/// The three state handlers the tick below picks between by the work block's
-/// `state` (`ACTOR_223600_STATE_*`), copied onto the stack before the call. The copy is a three-word
-/// block move out of the unit's `.rodata`, which is why the table is a rodata
-/// object rather than a local initialiser.
-static const EnemyTaskFuncTable3 D_actor_223600_80149E4C = {
+/// Behavior-state callbacks for the staged Blood Suckler.
+///
+/// `_Actor223600Work::state` selects 0 hidden, 1 walk or 2 drop in
+/// (`ACTOR_223600_STATE_*`). Each entry receives the live enemy and its task.
+static const EnemyTaskFuncTable3 _gActor223600BehaviorStates = {
     {
         _actor223600Hide,
         _actor223600Walk,
@@ -1402,7 +1418,7 @@ static void _actor223600Update(Enemy* enemy, Task* task)
     s32                 panOffset;
 
     work          = task->work;
-    stateHandlers = D_actor_223600_80149E4C;
+    stateHandlers = _gActor223600BehaviorStates;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:

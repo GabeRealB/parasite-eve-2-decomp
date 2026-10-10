@@ -87,9 +87,11 @@ static s32  _actor210700Place(Task* task, s32 messageId, const ActorTransform* p
 static s32  _actor210700SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedSecondArg);
 static s32  _actor210700SetEyes(Task* task, s32 messageId, s32 eyeMode, s32 unusedSecondArg);
 
-/// The actor's three task states - spawn, tick and teardown - which
-/// `_actor210700Task` runs by `Task::state`.
-static const TaskFuncTable3 D_actor_210700_80149E24 = { {
+/// Task-state callbacks for Rupert Broderick's script-controlled body.
+///
+/// `Task::state` selects 0 initialize, 1 frame update or 2 enemy teardown.
+/// All three entries take the live task; there is no terminator or bounds check.
+static const TaskFuncTable3 _gActor210700RupertBroderickStates = { {
     _actor210700Init,
     _actor210700Update,
     _actor210700Exit,
@@ -634,7 +636,7 @@ static void _actor210700Task(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_210700_80149E24;
+    stateHandlers = _gActor210700RupertBroderickStates;
     stateHandlers.funcs[task->state](task);
 }
 

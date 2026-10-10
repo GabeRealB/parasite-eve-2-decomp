@@ -95,3 +95,4 @@ _actor210700SetEyes = 0x8014a4b0; // type:func
 _actor210700Init = 0x80149f90; // type:func
 _actor210700Update = 0x8014a0ac; // type:func
 _actor210700Task = 0x80149f38; // type:func
+_gActor210700RupertBroderickStates = 0x80149e24;

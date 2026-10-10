@@ -136,19 +136,21 @@ static s32  _actor113100ApplyCommand(Task* task, s32 messageId, const ActorComma
 static void _actor113100BillboardTask(Task* task);
 static void _actor113100AttachedModelTask(Task* task);
 
-/// States of a child task posed on one of the parent's parts: attach to the
-/// parent, rebuild its display matrix every frame, then `taskKill`. Dispatched
-/// by `_actor113100BillboardTask`.
-static const TaskFuncTable3 D_actor_113100_80131E24 = { {
+/// Task-state callbacks for Pierce Carradine's camera-facing billboard child.
+///
+/// `Task::state` selects 0 attach, 1 face the camera or 2 kill the child.
+/// Attachment borrows a parent model part through the child's active lifetime.
+static const TaskFuncTable3 _gActor113100BillboardStates = { {
     _actor113100AttachBillboard,
     _actor113100FaceBillboardToCamera,
     taskKill,
 } };
 
-/// States of the child task: attach to the parent's part, mirror its active-draw
-/// and buffer flags each frame, then `taskKill`.
-/// Dispatched by `_actor113100AttachedModelTask`.
-static const TaskFuncTable3 D_actor_113100_80131E30 = { {
+/// Task-state callbacks shared by Pierce Carradine's two attached models.
+///
+/// `Task::state` selects 0 attach, 1 inherit the parent's drawing and buffer
+/// policy or 2 kill the child. Parent coordinates and lighting remain borrowed.
+static const TaskFuncTable3 _gActor113100AttachedModelStates = { {
     _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
     taskKill,
@@ -1646,7 +1648,7 @@ static void _actor113100BillboardTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_113100_80131E24;
+    states = _gActor113100BillboardStates;
     states.funcs[task->state](task);
 }
 
@@ -1733,7 +1735,7 @@ static void _actor113100AttachedModelTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_113100_80131E30;
+    states = _gActor113100AttachedModelStates;
     states.funcs[task->state](task);
 }
 

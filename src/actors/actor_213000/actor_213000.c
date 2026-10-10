@@ -552,9 +552,11 @@ static void _actor213000InitializeEricBaldwin(Task* task)
     task->state++;
 }
 
-/// State table of the children spawned from table entries 1 and 2: attach to
-/// the parent, idle, kill.
-static const TaskFuncTable3 D_actor_213000_80149E24 = {
+/// Task-state callbacks shared by Eric Baldwin's two held models.
+///
+/// `Task::state` selects 0 attach to the body part, 1 idle or 2 kill the child.
+/// The body supplies borrowed coordinates and lighting; drawing is controlled separately.
+static const TaskFuncTable3 _gActor213000HeldModelStates = {
     {
         _modelPlacementAttachPartTask,
         _actor213000HeldModelIdle,
@@ -572,7 +574,7 @@ static void _actor213000HeldModelTask(Task* heldModelTask)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_213000_80149E24;
+    states = _gActor213000HeldModelStates;
     states.funcs[heldModelTask->state](heldModelTask);
 }
 
@@ -585,8 +587,11 @@ static void _actor213000HeldModelIdle(Task* unusedTask)
 {
 }
 
-/// State table of the child spawned from table entry 4: setup, tick, kill.
-static const TaskFuncTable3 D_actor_213000_80149E30 = {
+/// Task-state callbacks for Eric Baldwin's right-hand model.
+///
+/// `Task::state` selects 0 attach, 1 inherit the body's drawing and buffer
+/// policy or 2 kill the hand. Body coordinates and lighting remain borrowed.
+static const TaskFuncTable3 _gActor213000RightHandStates = {
     {
         _modelPlacementAttachChild,
         _modelPlacementMirrorParentDrawFlags,
@@ -606,7 +611,7 @@ static void _actor213000RightHandTask(Task* handTask)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_213000_80149E30;
+    states = _gActor213000RightHandStates;
     states.funcs[handTask->state](handTask);
 }
 
@@ -700,8 +705,11 @@ static void _actor213000AttachThreeRootModel(Task* childTask)
 #define MODEL_PLACEMENT_MIRROR_PARENT_DRAW_FLAGS_TASK _modelPlacementMirrorParentDrawFlagsTask
 #include "../../shared/model_placement_mirror_parent.inc.c"
 
-/// State table of the child spawned from table entry 3: setup, tick, kill.
-static const TaskFuncTable3 D_actor_213000_80149E3C = {
+/// Task-state callbacks for Eric Baldwin's three-root attached model.
+///
+/// `Task::state` selects 0 attach roots to body parts 9..11, 1 inherit drawing
+/// and buffer policy or 2 kill the child. Body coordinates and lighting remain borrowed.
+static const TaskFuncTable3 _gActor213000ThreeRootModelStates = {
     {
         _actor213000AttachThreeRootModel,
         _modelPlacementMirrorParentDrawFlagsTask,
@@ -718,7 +726,7 @@ static void _actor213000ThreeRootModelTask(Task* childTask)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_213000_80149E3C;
+    states = _gActor213000ThreeRootModelStates;
     states.funcs[childTask->state](childTask);
 }
 

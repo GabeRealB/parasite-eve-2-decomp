@@ -79,3 +79,4 @@ _actor323300StrangerTask = 0x80163840; // type:func
 _actor323300WomanSpawn = 0x80161e78; // type:func
 _actor323300WomanApplyCommand = 0x80162360; // type:func
 _actor323300WomanTask = 0x80162630; // type:func
+_gActor323300StrangerStates = 0x80161e6c;

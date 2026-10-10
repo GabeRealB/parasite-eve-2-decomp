@@ -84,9 +84,11 @@ static const TaskFuncTable4 _gReverseWalkStepHandlers = { {
 /// Backward movement scales it by -0.4 before rotating into the parent frame.
 static const VECTOR _gReverseWalkForwardVelocity = { 0, 0, 0x200000, 0 };
 
-/// Spawn, tick and exit handlers of the child part tasks, dispatched by
-/// `_actor350700KyleMadiganAttachmentTask`.
-static const TaskFuncTable3 D_actor_350700_80161E50 = { {
+/// Task-state callbacks shared by Kyle Madigan's attached hands and gun model.
+///
+/// `Task::state` selects 0 attach to the body part, 1 idle under the body rig
+/// or 2 kill the child. Body coordinates and lighting remain borrowed.
+static const TaskFuncTable3 _gActor350700KyleMadiganAttachmentStates = { {
     _modelPlacementAttachPartTask,
     _actor350700KyleMadiganAttachmentIdle,
     taskKill,
@@ -794,7 +796,7 @@ static void _actor350700KyleMadiganAttachmentTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_actor_350700_80161E50;
+    stateHandlers = _gActor350700KyleMadiganAttachmentStates;
     stateHandlers.funcs[task->state](task);
 }
 

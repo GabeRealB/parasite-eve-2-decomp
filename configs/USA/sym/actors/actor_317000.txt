@@ -1,6 +1,6 @@
 // Overlay-local symbols for actor_317000.
 D_actor_317000_8016CF44 = 0x8016CF44; // size:0xC defined:True
-D_actor_317000_8016CF50 = 0x8016CF50; // size:0x30 defined:True
+_gActor317000Messages = 0x8016CF50; // size:0x30 defined:True
 _gActor317000GrinningStrangerBodySkeleton = 0x80162D64; // size:0x2AC defined:True
 _gActor317000GrinningStrangerBodyPartVerts = 0x80163010; // size:0x4C defined:True
 _gActor317000GrinningStrangerBodyVerts = 0x8016305C; // size:0x990 defined:True

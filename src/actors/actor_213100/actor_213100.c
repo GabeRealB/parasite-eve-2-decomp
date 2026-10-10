@@ -461,9 +461,11 @@ static void _actor213100UpdateBody(Task* actorTask)
     }
 }
 
-/// State table of the child the spawn state creates: attach to the parent,
-/// idle, kill.
-static const TaskFuncTable3 D_actor_213100_80149E24 = {
+/// Task-state callbacks for Jodie Bouquet's held model.
+///
+/// `Task::state` selects 0 attach to the body part, 1 idle or 2 kill the child.
+/// The body supplies borrowed coordinates and lighting until teardown.
+static const TaskFuncTable3 _gActor213100HeldModelStates = {
     {
         _modelPlacementAttachPartTask,
         _actor213100HeldModelIdle,
@@ -480,7 +482,7 @@ static void _actor213100HeldModelTask(Task* heldModelTask)
 {
     TaskFuncTable3 stateCallbacks;
 
-    stateCallbacks = D_actor_213100_80149E24;
+    stateCallbacks = _gActor213100HeldModelStates;
     stateCallbacks.funcs[heldModelTask->state](heldModelTask);
 }
 

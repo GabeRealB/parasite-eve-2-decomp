@@ -80,9 +80,11 @@ static void _actor113000Spawn(Task* task);
 static void _actor113000Update(Task* task);
 static void _actor113000InitLighting(Task* task);
 
-/// The actor's three task states, which `_actor113000Task` runs by
-/// `Task::state`: spawn, per-frame tick and exit.
-static const TaskFuncTable3 D_actor_113000_80131E24 = { {
+/// Task-state callbacks for the hurt Rupert Broderick actor.
+///
+/// `Task::state` selects 0 spawn, 1 frame update or 2 enemy teardown.
+/// All three entries take the live task; there is no terminator or bounds check.
+static const TaskFuncTable3 _gActor113000RupertBroderickHurtStates = { {
     _actor113000Spawn,
     _actor113000Update,
     enemyTaskExit,
@@ -477,7 +479,7 @@ static void _actor113000Task(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_113000_80131E24;
+    states = _gActor113000RupertBroderickHurtStates;
     states.funcs[task->state](task);
 }
 

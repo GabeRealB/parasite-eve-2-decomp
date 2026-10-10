@@ -1102,7 +1102,7 @@ AreaResource D_dryfield_night_garage_80187450[2] = {
 };
 
 AreaResource D_dryfield_night_garage_80187468[3] = {
-    { 106, 354, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_135400_8013A4AC },
+    { 106, 354, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor135400GaryDouglasTasks },
     { 114, 354, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_actor_135400_8013F8D8 },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

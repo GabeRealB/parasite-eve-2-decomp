@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/abs.h>
@@ -606,7 +608,7 @@ static TaskMessageEntry _gActor123200Messages[4] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_123200_80137234 = { { { TASK_BODY_TMD, 96 } }, _actor123200Task, { .model = &_gActor123200BoneSucklerBody } };
+TaskDesc gActor123200BoneSucklerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor123200Task, { .model = &_gActor123200BoneSucklerBody } };
 
 static SVECTOR ActorContact_ScratchPosition;
 
@@ -974,9 +976,11 @@ static void _actor123200Update(Enemy* enemy, Task* task)
     }
 }
 
-/// The enemy's three task states -- spawn, per-frame tick and teardown -- which
-/// `_actor123200Task` runs by `Task::state`.
-static const EnemyTaskFuncTable3 D_actor_123200_80131E30 = {
+/// Task-state callbacks for the staged Bone Suckler actor.
+///
+/// `Task::state` selects 0 spawn, 1 frame update or 2 destroy the enemy and task.
+/// Each callback receives the live enemy from spawn argument 2 and its task.
+static const EnemyTaskFuncTable3 _gActor123200TaskStates = {
     {
         _actor123200Spawn,
         _actor123200Update,
@@ -1108,6 +1112,6 @@ static void _actor123200Task(Task* task)
 {
     EnemyTaskFuncTable3 taskHandlers;
 
-    taskHandlers = D_actor_123200_80131E30;
+    taskHandlers = _gActor123200TaskStates;
     taskHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

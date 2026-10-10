@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_135400.
 _gActor135400FlintLights = 0x8013F904; // size:0x30 defined:True
 D_actor_135400_8013F8D8 = 0x8013F8D8; // size:0xC defined:True
-D_actor_135400_8013F8E4 = 0x8013F8E4; // size:0x20 defined:True
+_gActor135400FlintMessages = 0x8013F8E4; // size:0x20 defined:True
 _gActor135400GaryDouglasBodySkeleton = 0x80132F9C; // size:0x2D0 defined:True
 _gActor135400GaryDouglasBodyPartVerts = 0x8013326C; // size:0x50 defined:True
 _gActor135400GaryDouglasBodyVerts = 0x801332BC; // size:0xB60 defined:True
@@ -41,7 +41,7 @@ _gActor135400Animation0864CIndices = 0x8013A444; // size:0x28 defined:True
 _gActor135400Animation0864C = 0x8013A46C; // size:0x28 defined:True
 D_actor_135400_8013A494 = 0x8013A494; // size:0x14 defined:True
 gActorMotionAnimBanks = 0x8013A4A8; // size:0x4 defined:True
-D_actor_135400_8013A4AC = 0x8013A4AC; // size:0x24 defined:True
+gActor135400GaryDouglasTasks = 0x8013A4AC; // size:0x24 defined:True
 D_actor_135400_8013A4D0 = 0x8013A4D0; // size:0x28 defined:True
 _gActor135400FlintBodySkeleton = 0x8013A4F8; // size:0x2AC defined:True
 _gActor135400FlintBodyPartVerts = 0x8013A7A4; // size:0x4C defined:True
@@ -75,7 +75,7 @@ _gActor135400Animation0DA60Records = 0x8013F440; // size:0x418 defined:True
 _gActor135400Animation0DA60Indices = 0x8013F858; // size:0x28 defined:True
 _gActor135400Animation0DA60 = 0x8013F880; // size:0x28 defined:True
 _gActor135400FlintAnimationSets = 0x8013F8A8; // size:0x1C defined:True
-D_actor_135400_8013F8C4 = 0x8013F8C4; // size:0x10 defined:True
+_gActor135400FlintCycleHoldFrames = 0x8013F8C4; // size:0x10 defined:True
 _gActor135400FlintAnimationBanks = 0x8013F8D4; // size:0x4 defined:True
 
 dryfieldNightGaragePlaceLowCollisionBox = 0x80180414; // type:func absolute:True owner=dryfield_night_garage
@@ -104,3 +104,5 @@ _actor135400GaryDouglasTask = 0x801325a8; // type:func
 _actor135400GaryDouglasSpawn = 0x80132064; // type:func
 _gActor135400GaryDouglasHeadStates = 0x80131e24;
 _gActor135400GaryDouglasCarriedStates = 0x80131e30;
+_gActor135400FlintStates = 0x80131e94;
+_gActor135400FlintInitialCycleRequest = 0x80131ea0;

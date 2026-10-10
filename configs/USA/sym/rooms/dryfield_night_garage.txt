@@ -110,7 +110,7 @@ D_dryfield_night_garage_80187450 = 0x80187450; // size:0x18 defined:True
 D_dryfield_night_garage_80187468 = 0x80187468; // size:0x24 defined:True
 D_dryfield_night_garage_8018748C = 0x8018748C; // size:0x18 defined:True
 D_dryfield_night_garage_801874A4 = 0x801874A4; // size:0x18 defined:True
-D_actor_135400_8013A4AC = 0x8013A4AC; // absolute:True owner=actor_135400
+gActor135400GaryDouglasTasks = 0x8013A4AC; // absolute:True owner=actor_135400
 gActor136300TaskTable = 0x8013B11C; // absolute:True owner=actor_136300
 D_actor_135400_8013F8D8 = 0x8013F8D8; // absolute:True owner=actor_135400
 gActor101600ScavengerTaskDesc = 0x801445DC; // absolute:True owner=actor_101600

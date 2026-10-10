@@ -34,16 +34,6 @@ typedef struct {
 } _Actor110700No9GolemWork;
 STATIC_ASSERT_SIZEOF(_Actor110700No9GolemWork, 0x480);
 
-/// The actor's message table: handlers for 0x7D3 (start an animation), 0x7D4
-/// (place the actor) and 0x7D5 (visibility), then the terminator.
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_110700_8013BFA0[];
-
-/// Animation-set table bound to the work block's context by `animationInitContext`.
-extern u8 D_actor_110700_8013BFC0[];
-
 static void _actor110700No9GolemSetup(Enemy* enemy, Task* task);
 static void _actor110700No9GolemUpdate(Enemy* enemy, Task* task);
 
@@ -208,38 +198,29 @@ static AnimationSet _gActor110700Animation0A14C = {
 
 TaskDesc D_actor_110700_8013BF94 = { { { TASK_BODY_TMD, 96 } }, _actor110700No9GolemTask, { .model = &_gActor110700No9GolemAkropolisBody } };
 
-TaskMessageEntry D_actor_110700_8013BFA0[4] = {
+/// Message map for the script-posed No. 9 golem.
+///
+/// Animation messages borrow an `AnimationPlayRequest` with clip ID 1..5;
+/// placement borrows an `ActorTransform`, and model drawing takes a flag word.
+/// The task borrows this terminated map and its callbacks until teardown.
+static const TaskMessageEntry _gActor110700No9GolemMessages[4] __attribute__((section(".data"))) = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor110700No9GolemPlayAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor110700No9GolemSetModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-u8 D_actor_110700_8013BFC0[24] = {
-    0,
-    0,
-    0,
-    0,
-    132,
-    123,
-    19,
-    128,
-    156,
-    132,
-    19,
-    128,
-    44,
-    160,
-    19,
-    128,
-    52,
-    165,
-    19,
-    128,
-    108,
-    191,
-    19,
-    128,
+/// Animation sets of the script-posed No. 9 golem, indexed by clip ID.
+///
+/// Entry 0 denotes no requested clip and must not be played; IDs 1..5 are loaded
+/// sets. The rig borrows this word-aligned table and its sets until teardown.
+static AnimationSet* _gActor110700No9GolemAnimationSets[6] = {
+    NULL,
+    &_gActor110700Animation05D64,
+    &_gActor110700Animation0667C,
+    &_gActor110700Animation0820C,
+    &_gActor110700Animation08714,
+    &_gActor110700Animation0A14C,
 };
 
 /// Runs the script-posed No. 9 golem's setup or per-frame update.
@@ -282,9 +263,9 @@ static void _actor110700No9GolemSetup(Enemy* enemy, Task* task)
     model->lightMtx = &work->light;
     model->colorMtx = &work->color;
     model->flags    = 0;
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_110700_8013BFC0, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor110700No9GolemAnimationSets, model, work->rig.poses, work->rig.slots);
     work->animId            = ACTOR_110700_ANIMATION_NONE;
-    task->msgTable          = D_actor_110700_8013BFA0;
+    task->msgTable          = _gActor110700No9GolemMessages;
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     task->state             = ACTOR_110700_STATE_UPDATE;
 }
