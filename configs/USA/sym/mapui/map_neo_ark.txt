@@ -345,12 +345,12 @@ gMappicS502NurseryShape = 0x8012F044; // absolute:True owner=mappic_s5_02
 gMappicS502GrowthRoomShape = 0x8012F124; // absolute:True owner=mappic_s5_02
 gMappicS502EveElevatorCorridorShape = 0x8012F224; // absolute:True owner=mappic_s5_02 shared=mappic
 gMappicS502TrainingRoomShape = 0x8012F2B4; // absolute:True owner=mappic_s5_02
-D_mappic_s5_03_8012EFA0 = 0x8012EFA0; // absolute:True owner=mappic_s5_03 shared=mappic
-D_mappic_s5_03_8012F030 = 0x8012F030; // absolute:True owner=mappic_s5_03 shared=mappic
-D_mappic_s5_03_8012F110 = 0x8012F110; // absolute:True owner=mappic_s5_03
-D_mappic_s5_03_8012F1F0 = 0x8012F1F0; // absolute:True owner=mappic_s5_03
-D_mappic_s5_03_8012F2B8 = 0x8012F2B8; // absolute:True owner=mappic_s5_03
-D_mappic_s5_03_8012F348 = 0x8012F348; // absolute:True owner=mappic_s5_03
+gMappicS503ParkingGarageShape = 0x8012EFA0; // absolute:True owner=mappic_s5_03 shared=mappic
+gMappicS503VehicularAirlockShape = 0x8012F030; // absolute:True owner=mappic_s5_03 shared=mappic
+gMappicS503BulwarkShape = 0x8012F110; // absolute:True owner=mappic_s5_03
+gMappicS503HeliportShape = 0x8012F1F0; // absolute:True owner=mappic_s5_03
+gMappicS503AirlockShape = 0x8012F2B8; // absolute:True owner=mappic_s5_03
+gMappicS503GuardroomShape = 0x8012F348; // absolute:True owner=mappic_s5_03
 
 mapNeoArkResolveRoomVariant = 0x80179B14; // type:func
 mapNeoArkSetupMovieBuffers = 0x801799bc; // type:func

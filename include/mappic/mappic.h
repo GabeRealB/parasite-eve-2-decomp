@@ -347,17 +347,51 @@ extern TmdSource gMappicS502EveElevatorCorridorShape;
 extern TmdSource gMappicS502TrainingRoomShape;
 
 // mappic_s5_03
-extern TmdSource D_mappic_s5_03_8012EFA0;
+/// Parking garage's area-fill quad on Shelter 1F's map page (stage 5, page 3).
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_03 loaded during use.
+extern TmdSource gMappicS503ParkingGarageShape;
 
-extern TmdSource D_mappic_s5_03_8012F030;
+/// Vehicular airlock's area-fill quad on Shelter 1F's map page (stage 5, page 3).
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_03 loaded during use.
+extern TmdSource gMappicS503VehicularAirlockShape;
 
-extern TmdSource D_mappic_s5_03_8012F110;
+/// Bulwark's area fill on Shelter 1F's map page (stage 5, page 3).
+///
+/// Two triangles and two quads use eight vertices in the model X/Z plane,
+/// scaled by 1495/4096, with Z mapped to inverted screen Y. Has no normal
+/// data. The map borrows the vertices and first stream group; keep
+/// mappic_s5_03 loaded during use.
+extern TmdSource gMappicS503BulwarkShape;
 
-extern TmdSource D_mappic_s5_03_8012F1F0;
+/// Heliport's area fill, shared with the Tent, on Shelter 1F's stage-5 map page 3.
+///
+/// Two triangles and two quads use eight vertices in the model X/Z plane,
+/// scaled by 1495/4096, with Z mapped to inverted screen Y. Exploration and
+/// marked-area state count either Heliport or Tent. Has no normal data. The
+/// map borrows the vertices and first stream group; keep mappic_s5_03 loaded
+/// during use.
+extern TmdSource gMappicS503HeliportShape;
 
-extern TmdSource D_mappic_s5_03_8012F2B8;
+/// Airlock's area fill on Shelter 1F's map page (stage 5, page 3).
+///
+/// Three quads use eight vertices in the model X/Z plane, scaled by
+/// 1495/4096, with Z mapped to inverted screen Y. Has no normal data. The
+/// map borrows the vertices and first stream group; keep mappic_s5_03 loaded
+/// during use.
+extern TmdSource gMappicS503AirlockShape;
 
-extern TmdSource D_mappic_s5_03_8012F348;
+/// Guardroom's area-fill quad on Shelter 1F's map page (stage 5, page 3).
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_03 loaded during use.
+extern TmdSource gMappicS503GuardroomShape;
 
 // mappic_s3_00
 /// Water tank's four-quad area fill on page 1 of the nighttime Dryfield map.
