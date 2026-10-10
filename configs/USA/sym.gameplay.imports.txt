@@ -1497,7 +1497,7 @@ D_dryfield_night_saloon_g_r_80188EE4 = 0x80188EE4; // absolute:True owner=dryfie
 
 D_dryfield_night_souvenir_shop_8017F62C = 0x8017F62C; // absolute:True owner=dryfield_night_souvenir_shop
 
-D_dryfield_night_toilet_8017F354 = 0x8017F354; // absolute:True owner=dryfield_night_toilet shared=rooms
+D_dryfield_night_toilet_8017F354 = 0x8017F354; // absolute:True owner=dryfield_night_toilet
 
 D_dryfield_night_trailer_coach_8018C15C = 0x8018C15C; // absolute:True owner=dryfield_night_trailer_coach
 

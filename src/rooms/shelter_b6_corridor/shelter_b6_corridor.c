@@ -27,6 +27,7 @@
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -67,12 +68,6 @@
 /// context's ramp.
 extern s32 gScreenWaveRamp;
 
-/// The room task's message records.
-extern TaskMessageEntry D_shelter_b6_corridor_8017EF24[];
-
-extern EvsCommand D_shelter_b6_corridor_8017F354[];
-extern EvsCommand D_shelter_b6_corridor_8017F684[];
-
 /// The context the wave task was spawned with: its ramp limit, peak, mode and
 /// tint.
 extern ScreenWaveCtx* gScreenWaveCtx;
@@ -109,15 +104,8 @@ typedef struct {
 } _ShelterB6CorridorStorage51B0;
 STATIC_ASSERT_SIZEOF(_ShelterB6CorridorStorage51B0, 8);
 
-extern _ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
-
-// Indexed views below share one contiguous table.
-extern AnimationPlayRequest     D_shelter_b6_corridor_8017F27C;
-extern ActorCommand             D_shelter_b6_corridor_8017F34C;
-extern ActorCommand             D_shelter_b6_corridor_8017F350;
-extern AnimationBankCopyRequest D_shelter_b6_corridor_8017F260;
-static void                     _shelterB6CorridorFinishScriptedBattle(s32 endDelayFrames);
-static void                     _shelterB6CorridorLockAttachmentsAndCancelEffects(void);
+static void _shelterB6CorridorFinishScriptedBattle(s32 endDelayFrames);
+static void _shelterB6CorridorLockAttachmentsAndCancelEffects(void);
 
 /// Requested battle-end hold in frames, before any final-release override.
 enum {
@@ -131,8 +119,14 @@ static s32 _shelterB6CorridorHandlePartCommand(Task* unusedTask, s32 unusedMessa
 static s32 _shelterB6CorridorIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, DirectionActionRequest* unusedRequest, s32 unusedArg);
 static s32 _shelterB6CorridorStartBattleEndScene(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-TaskDesc D_shelter_b6_corridor_8017EF08[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveGridTask, { .value = 0 } },
+enum { SHELTER_B6_CORRIDOR_SCREEN_WAVE_PRIORITY = 192 };
+
+/// Retained bodyless screen-wave recipe at priority 192, followed by a terminator.
+///
+/// No recovered caller spawns this table. Entry 0 requires a persistent
+/// `ScreenWaveCtx` in spawn argument 2; entry 1 must never be spawned.
+static TaskDesc _gShelterB6CorridorScreenWaveTasks[2] = {
+    { { { TASK_BODY_NONE, SHELTER_B6_CORRIDOR_SCREEN_WAVE_PRIORITY } }, _screenWaveGridTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -140,7 +134,12 @@ s32 gScreenWaveRamp = 256;
 
 enum { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-TaskMessageEntry D_shelter_b6_corridor_8017EF24[6] = {
+/// Five room-message handlers and the end marker for unsupported requests.
+///
+/// Resolves departures, rejects key items, ignores room actions, selects
+/// Eve-part dialogue and starts the battle-end scene. Borrowed by the room task
+/// until teardown; the records and callbacks must remain loaded.
+static TaskMessageEntry _gShelterB6CorridorRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB6CorridorResolveRoomTransition },
     { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB6CorridorRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB6CorridorIgnoreRoomAction },
@@ -171,18 +170,52 @@ static AnimationSet _gShelterB6CorridorAnimation01C70 = {
     { NULL, _gShelterB6CorridorAnimation01C70Bank1, NULL, NULL, _gShelterB6CorridorAnimation01C70Bank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_shelter_b6_corridor_8017F258[2] = {
+/// Two player-bank extension words: absent clip 47 and the battle-end clip 48.
+///
+/// Both scripts copy the complete table; its clip data must stay loaded
+/// through player playback. Later extension entries are left unchanged.
+static AnimationSet* _gShelterB6CorridorBattleEndAnimationSets[2] = {
     NULL,
     &_gShelterB6CorridorAnimation01C70,
 };
 
-AnimationBankCopyRequest D_shelter_b6_corridor_8017F260 = { { .sets = D_shelter_b6_corridor_8017F258 }, ARRAY_SIZE(D_shelter_b6_corridor_8017F258) };
+/// Installs the two battle-end extension words in the equipped player bank.
+static AnimationBankCopyRequest _gShelterB6CorridorBattleEndAnimationBankCopy = {
+    .source    = { .sets = _gShelterB6CorridorBattleEndAnimationSets },
+    .wordCount = ARRAY_SIZE(_gShelterB6CorridorBattleEndAnimationSets),
+};
 
-AnimationPlayRequest D_shelter_b6_corridor_8017F268 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Unreferenced playback-shaped record: bank 1, clip 1, reset, grid disabled.
+///
+/// Its intended receiver and interpretation are unproven.
+static AnimationPlayRequest D_shelter_b6_corridor_8017F268 = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_shelter_b6_corridor_8017F27C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+enum { SHELTER_B6_CORRIDOR_BATTLE_END_PLAYER_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 1 };
 
-AnimationPlayRequest D_shelter_b6_corridor_8017F290[5] = {
+/// Player battle-end clip, blended over 20 frames with grid participation disabled.
+///
+/// Both scripts resolve the equipped weapon bank in a copy, overwriting
+/// `source.index`. Clip 48 is supplied by the preceding extension-copy request;
+/// the room animation data must remain loaded through playback.
+static AnimationPlayRequest _gShelterB6CorridorBattleEndPlayerAnimation = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B6_CORRIDOR_BATTLE_END_PLAYER_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Five unreferenced playback-shaped records: bank 0 and clips 1, 1, 2, 3 and 4.
+///
+/// The intended receiver and ordering contract are unproven. Retains reset
+/// and blend choices, whole-frame durations and disabled grid participation.
+static AnimationPlayRequest D_shelter_b6_corridor_8017F290[5] = {
     { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 0 }, 2, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -190,77 +223,156 @@ AnimationPlayRequest D_shelter_b6_corridor_8017F290[5] = {
     { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 4, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-ActorTransform D_shelter_b6_corridor_8017F2F4 = { { 7000, 0, 0, 0 }, { 0, -1024, 0, 0 } };
+/// Masked Eve's battle-end start: room XYZ (7000, 0, 0), yaw -ONE/4.
+///
+/// Placement copies the position and Euler angles before the backward walk.
+static ActorTransform _gShelterB6CorridorBattleEndEveStartTransform = {
+    .pos = { 7000, 0, 0, 0 },
+    .rot = { 0, -ONE / 4, 0, 0 },
+};
 
-ActorTransform D_shelter_b6_corridor_8017F30C = { { 7800, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+/// Masked Eve's backward-walk target: room XYZ (7800, 0, 0), final yaw ONE/4.
+///
+/// Walk dispatch copies the target; the optional clip pair selects clips 3 and 4.
+static ActorTransform _gShelterB6CorridorBattleEndEveBackingTarget = {
+    .pos = { 7800, 0, 0, 0 },
+    .rot = { 0, ONE / 4, 0, 0 },
+};
 
-ActorTransform D_shelter_b6_corridor_8017F324 = { { 0x4E20, 0, 0, 0 }, { 0, 1024, 0, 0 } };
+/// Masked Eve's forward exit target: room XYZ (20000, 0, 0), final yaw ONE/4.
+///
+/// Walk dispatch copies the target and selects the walker's default clips 2 and 1.
+static ActorTransform _gShelterB6CorridorBattleEndEveExitTarget = {
+    .pos = { 20000, 0, 0, 0 },
+    .rot = { 0, ONE / 4, 0, 0 },
+};
 
-ActorCommand D_shelter_b6_corridor_8017F33C = { { .loc = { 5, 24 } }, 1 };
+/// Actor command values and bank-0 clips used by the battle-end scene.
+enum {
+    SHELTER_B6_CORRIDOR_EVE_WALK_BACKWARD        = 1,
+    SHELTER_B6_CORRIDOR_EVE_WALK_FORWARD         = 2,
+    SHELTER_B6_CORRIDOR_EVE_CONTROLLER_STOP      = 1,
+    SHELTER_B6_CORRIDOR_EVE_BODY_DESTROY         = 1,
+    SHELTER_B6_CORRIDOR_EVE_BACKING_CLIP         = 3,
+    SHELTER_B6_CORRIDOR_EVE_BACKING_ARRIVAL_CLIP = 4,
+};
 
-ActorCommand D_shelter_b6_corridor_8017F340 = { { .loc = { 5, 24 } }, 2 };
+/// Selects backward motion for masked Eve's subsequent walk requests.
+static ActorCommand _gShelterB6CorridorEveWalkBackwardCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR } },
+    .command = SHELTER_B6_CORRIDOR_EVE_WALK_BACKWARD,
+};
 
-ActorMotionWalkAnim D_shelter_b6_corridor_8017F344 = { .animationId = 3, .nextAnimId = 4 };
+/// Selects forward motion for masked Eve's subsequent walk requests.
+static ActorCommand _gShelterB6CorridorEveWalkForwardCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR } },
+    .command = SHELTER_B6_CORRIDOR_EVE_WALK_FORWARD,
+};
 
-ActorCommand D_shelter_b6_corridor_8017F34C = { { .loc = { 5, 24 } }, 1 };
+/// Bank-0 backward clip 3 and arrival clip 4 for masked Eve's first scene walk.
+///
+/// Dispatch copies the IDs into playback and the queued arrival byte; it
+/// retains no pointer. The actor's clip data must remain loaded while playing.
+static ActorMotionWalkAnim _gShelterB6CorridorBattleEndEveWalkAnimations = {
+    .animationId = SHELTER_B6_CORRIDOR_EVE_BACKING_CLIP,
+    .nextAnimId  = SHELTER_B6_CORRIDOR_EVE_BACKING_ARRIVAL_CLIP,
+};
 
-ActorCommand D_shelter_b6_corridor_8017F350 = { { .loc = { 5, 24 } }, 1 };
+/// Latches a stop request in the corridor's Eve-part controller.
+static ActorCommand _gShelterB6CorridorStopEveControllerCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR } },
+    .command = SHELTER_B6_CORRIDOR_EVE_CONTROLLER_STOP,
+};
 
-EvsCommand D_shelter_b6_corridor_8017F354[34] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b6_corridor_8017F260 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_corridor_8017F27C }, { .value = 0 } },
+/// Latches teardown of the stationary Eve battle body after it is hidden.
+static ActorCommand _gShelterB6CorridorDestroyEveBodyCommand = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR } },
+    .command = SHELTER_B6_CORRIDOR_EVE_BODY_DESTROY,
+};
+
+/// Placement selectors, visibility choices and authored cues for the battle-end scene.
+enum {
+    SHELTER_B6_CORRIDOR_PLACED_EVE_WALKER     = 0,
+    SHELTER_B6_CORRIDOR_PLACED_EVE_CONTROLLER = 2,
+    SHELTER_B6_CORRIDOR_PLACED_EVE_BODY       = 3,
+    SHELTER_B6_CORRIDOR_ACTOR_HIDE            = 0,
+    SHELTER_B6_CORRIDOR_ACTOR_SHOW            = 1,
+    SHELTER_B6_CORRIDOR_BATTLE_END_VIEW       = 5,
+    SHELTER_B6_CORRIDOR_BATTLE_END_SOUND      = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 4),
+    SHELTER_B6_CORRIDOR_WAIT_NEXT_TICK        = 0,
+    SHELTER_B6_CORRIDOR_FADE_DEFAULT_DURATION = 0, // Select the interpreter's seven-frame ramp
+    SHELTER_B6_CORRIDOR_FADE_KEEP_DURATION    = 0, // Return with the current ramp duration
+};
+
+/// Normal battle-end scene: replace Eve's battle body with her walker, then restore play.
+///
+/// Borrows 34 commands through END and their room-owned payloads through
+/// execution. Placed actors 0, 2 and 3 are the walker, part controller and
+/// battle body. Player playback additionally borrows this room's animation data.
+static EvsCommand _gShelterB6CorridorBattleEndScript[34] = {
+    // Hold the player in the room-supplied pose before the body swap.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShelterB6CorridorBattleEndAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB6CorridorBattleEndPlayerAnimation }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB6CorridorLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F34C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F350 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F33C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_shelter_b6_corridor_8017F2F4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_shelter_b6_corridor_8017F30C } }, { .message = { .pointer = &D_shelter_b6_corridor_8017F344 } } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55180004 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = SHELTER_B6_CORRIDOR_FADE_KEEP_DURATION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Replace the battle body with the walker and stage its backward approach.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_WALKER }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_CORRIDOR_ACTOR_SHOW }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_CONTROLLER }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB6CorridorStopEveControllerCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_BODY }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_CORRIDOR_ACTOR_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_BODY }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB6CorridorDestroyEveBodyCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = SHELTER_B6_CORRIDOR_BATTLE_END_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_WALKER }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB6CorridorEveWalkBackwardCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_WALKER }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB6CorridorBattleEndEveStartTransform } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_WALKER }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gShelterB6CorridorBattleEndEveBackingTarget } }, { .message = { .pointer = &_gShelterB6CorridorBattleEndEveWalkAnimations } } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B6_CORRIDOR_WAIT_NEXT_TICK }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SHELTER_B6_CORRIDOR_BATTLE_END_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F340 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_shelter_b6_corridor_8017F324 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_WALKER }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB6CorridorEveWalkForwardCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_WALKER }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gShelterB6CorridorBattleEndEveExitTarget } }, { .message = { .pointer = NULL } } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = SHELTER_B6_CORRIDOR_FADE_KEEP_DURATION }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_WALKER }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_CORRIDOR_ACTOR_HIDE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Disable skipping before releasing combat and restoring player control.
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB6CorridorFinishScriptedBattle }, { .value = SHELTER_B6_CORRIDOR_BATTLE_END_NORMAL_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_shelter_b6_corridor_8017F684[18] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip path restoring the battle-end scene's actor visibility and gameplay state.
+///
+/// Borrows 18 commands through END, with the same actor and animation lifetimes
+/// as the normal script. Hides the walker, stops the controller and destroys
+/// the battle body, omitting the walk and sound cue before releasing combat.
+static EvsCommand _gShelterB6CorridorBattleEndSkipScript[18] = {
+    // Restore the post-scene actor state under the primary fade.
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = SHELTER_B6_CORRIDOR_FADE_DEFAULT_DURATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB6CorridorLockAttachmentsAndCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b6_corridor_8017F260 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_corridor_8017F27C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F34C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b6_corridor_8017F350 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShelterB6CorridorBattleEndAnimationBankCopy } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB6CorridorBattleEndPlayerAnimation }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_WALKER }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_CORRIDOR_ACTOR_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_CONTROLLER }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB6CorridorStopEveControllerCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_BODY }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = SHELTER_B6_CORRIDOR_ACTOR_HIDE }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = SHELTER_B6_CORRIDOR_PLACED_EVE_BODY }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gShelterB6CorridorDestroyEveBodyCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = SHELTER_B6_CORRIDOR_WAIT_NEXT_TICK }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB6CorridorFinishScriptedBattle }, { .value = SHELTER_B6_CORRIDOR_BATTLE_END_SKIP_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -647,7 +759,8 @@ ScreenWaveGridOscillator gScreenWaveRows[30] = { 0 };
 
 _ShelterB6CorridorScreenWaveGrid gScreenWaveGrid = { { 0 }, { 0 } };
 
-_ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
+/// Room-entry storage written with the halfword 2; gameplay role and extent are unproven.
+static _ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
 
 /// Serial of the newest player-hit glow to start running in this room.
 ///
@@ -779,7 +892,7 @@ static s32 _shelterB6CorridorStartBattleEndScene(Task* unusedTask, s32 unusedMes
 {
     enum { SHELTER_B6_CORRIDOR_OBJECTIVE_AFTER_BATTLE = 0x2F };
 
-    evsStartScriptWithSkip(D_shelter_b6_corridor_8017F354, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b6_corridor_8017F684);
+    evsStartScriptWithSkip(_gShelterB6CorridorBattleEndScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gShelterB6CorridorBattleEndSkipScript);
     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_CORRIDOR_OBJECTIVE_AFTER_BATTLE);
     return 0;
 }
@@ -815,7 +928,7 @@ static void _shelterB6CorridorInitRoom(Task* task)
         SHELTER_B6_CORRIDOR_SCENE_MUSIC_ENTRY   = 2,
     };
 
-    task->msgTable = D_shelter_b6_corridor_8017EF24;
+    task->msgTable = _gShelterB6CorridorRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     _shelterB6CorridorMaskImagePixels();
     D_shelter_b6_corridor_801851B0.field_0 = 2;
@@ -838,8 +951,11 @@ static void _shelterB6CorridorSetImageMaskMode(Task* unusedTask)
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
 }
 
-/// The room task's three states: set the room up, the per-frame state, end.
-static const TaskFuncTable3 D_shelter_b6_corridor_8017D5C4 = {
+/// Room-state dispatch: 0 initialize, 1 maintain the image-mask mode, 2 kill the task.
+///
+/// Copied as a complete three-callback value and indexed by `Task::state`;
+/// no terminator or bounds check. The room must stay loaded through dispatch.
+static const TaskFuncTable3 _gShelterB6CorridorRoomStates = {
     { _shelterB6CorridorInitRoom, _shelterB6CorridorSetImageMaskMode, taskKill },
 };
 
@@ -847,7 +963,7 @@ void shelterB6CorridorRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b6_corridor_8017D5C4;
+    states = _gShelterB6CorridorRoomStates;
     states.funcs[task->state](task);
 }
 
