@@ -26,7 +26,13 @@ extern AreaVariant D_dryfield_night_motel_balcony_8018EA94[13];
 /// keep this overlay loaded while coordinate setup or lighting queries use it.
 extern WorldCoordRoomLighting gDryfieldNightMotelBalconyRoomLighting[3];
 
-extern WorldCollisionRoomResources D_dryfield_night_motel_balcony_80182E18[];
+/// Collision resources for the balcony's three 1-based room variants.
+///
+/// Room minus one selects a record. Rooms 1 and 2 share their grid; room 3
+/// uses a separate mesh. All three share sight occluders and have distinct
+/// view-boundary and action-trigger lists. Nighttime Dryfield area 29 borrows
+/// this directory; keep the overlay and linked mutable resources loaded.
+extern WorldCollisionRoomResources gDryfieldNightMotelBalconyRoomCollisionResources[3];
 
 /// Per-room logical-view maps for the balcony's three room variants.
 ///
@@ -38,13 +44,39 @@ extern WorldCollisionRoomResources D_dryfield_night_motel_balcony_80182E18[];
 /// loaded; the nighttime Dryfield map borrows them without taking ownership.
 extern u8* gDryfieldNightMotelBalconyViewMaps[3];
 
-extern ViewCount D_dryfield_night_motel_balcony_80182EA4[];
+/// Logical-view reverse-search counts for the balcony's three rooms.
+///
+/// Room minus one selects a signed 16-bit count of 39 map bytes, independently
+/// of the maps' stored capacities. There is no terminator. Nighttime Dryfield
+/// area 29 borrows this room-owned array while the overlay is loaded.
+extern ViewCount gDryfieldNightMotelBalconyRoomViewCounts[3];
 
-extern DirectionWarpEntry D_dryfield_night_motel_balcony_80182EAC[];
+/// Five warp endpoints for the nighttime motel balcony.
+///
+/// A 1-based warp ID minus one selects player/companion placements, departure
+/// sounds, arrival view and optional map marker. Endpoints 1..5 start in
+/// logical views 2, 6, 5, 4 and 5; endpoint 5 repeats endpoint 3's placement
+/// with no sounds. Nighttime Dryfield area 29 borrows these records while this
+/// room overlay is loaded. Positions use world game units; yaw uses 4096 per turn.
+extern DirectionWarpEntry gDryfieldNightMotelBalconyWarpEntries[5];
 
-extern ViewCamera D_dryfield_night_motel_balcony_80184004[];
+/// Camera records for the balcony's 39 mapped views.
+///
+/// Mapped view minus one selects a record shared by all three room variants.
+/// Rotation uses 4096 per unit; translation is the negated world-space camera
+/// origin in game units and projection distance uses pixels. Nighttime Dryfield
+/// area 29 borrows this writable array; keep it loaded until queued camera
+/// application finishes. There is no count record or terminator.
+extern ViewCamera gDryfieldNightMotelBalconyViewCameras[39];
 
-extern SpriteView D_dryfield_night_motel_balcony_8018D078[];
+/// Scenery sprite descriptors for the balcony's 39 mapped views.
+///
+/// Mapped view minus one selects borrowed source, batch and optional clipping
+/// lists shared by the three room view maps. Views 1, 3, 13, 15, 16, 24, 27,
+/// 28 and 34 carry empty source slots. Batches and clipping lists have their own
+/// sentinels; this directory has none. Nighttime Dryfield area 29 borrows the
+/// directory and writable backing lists while this room overlay is loaded.
+extern SpriteView gDryfieldNightMotelBalconySpriteViews[39];
 
 /// Collision and footstep records indexed by balcony surface class 0..7.
 ///
