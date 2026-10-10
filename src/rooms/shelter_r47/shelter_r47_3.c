@@ -610,206 +610,364 @@ static SpriteSource _gShelterR47View8SpriteSources[10] = {
     { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 16, 16 } }, 8, -16, 1800, { .fields = { 112, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_801895DC[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 10, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped room view 8, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded image strips. The following range
+/// covers every source. Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View8SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterR47View8SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_r47_801895F4[24] = {
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -64, 0, 812, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -112, -8, 800, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -160, -8, 800, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -160, -24, 800, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 16, 0, 812, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 64, -8, 800, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 112, -8, 800, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, -24, 800, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -72, 56, 634, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -120, 56, 656, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -152, 56, 827, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -160, 32, 649, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 24, 56, 634, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 72, 56, 656, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 120, 56, 673, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 32, 650, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -64, 0, 570, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -64, 32, 630, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -64, 64, 701, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -48, 96, 801, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 96, 802, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 24, 64, 701, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 32, 631, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 32, 0, 570, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+/// 24 texture rectangles and sorting depths for mapped room view 9.
+///
+/// Positions are pixels relative to the draw origin; depths are unscaled OT values.
+/// The view's batches select source ranges in elements, without a source sentinel.
+/// Sources and textures are borrowed while the room and view resources are loaded.
+static SpriteSource _gShelterR47View9SpriteSources[24] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 16 } }, -64, 0, 812, { .fields = { 40, 200 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, -112, -8, 800, { .fields = { 48, 128 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, -160, -8, 800, { .fields = { 40, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 16 } }, -160, -24, 800, { .fields = { 104, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 16 } }, 16, 0, 812, { .fields = { 56, 240 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, 64, -8, 800, { .fields = { 40, 176 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, 112, -8, 800, { .fields = { 48, 104 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 16 } }, 136, -24, 800, { .fields = { 32, 232 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, -72, 56, 634, { .fields = { 40, 152 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, -120, 56, 656, { .fields = { 80, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, -152, 56, 827, { .fields = { 48, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 24 } }, -160, 32, 649, { .fields = { 88, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, 24, 56, 634, { .fields = { 48, 32 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, 72, 56, 656, { .fields = { 48, 80 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, 120, 56, 673, { .fields = { 24, 56 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 24 } }, 120, 32, 650, { .fields = { 56, 56 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, -64, 0, 570, { .fields = { 96, 64 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, -64, 32, 630, { .fields = { 96, 32 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 32 } }, -64, 64, 701, { .fields = { 88, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, -48, 96, 801, { .fields = { 64, 24 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, 96, 802, { .fields = { 56, 232 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 40, 32 } }, 24, 64, 701, { .fields = { 88, 160 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 32, 32, 631, { .fields = { 96, 128 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 32 } }, 32, 0, 570, { .fields = { 96, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_801897D4[7] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
-    { 4, 4, 0, 0, { 3, 0 } },
-    { 8, 4, 0, 0, { 2, 0 } },
-    { 12, 4, 0, 0, { 4, 0 } },
-    { 16, 8, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped room view 9, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded image strips. Five ranges cover all
+/// 24 source sprites; the nonzero `field_6` bytes have no established role.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View9SpriteBatches[7] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 4, .field_6 = { 0, 0 } },
+    { .firstSprite = 4, .spriteCount = 4, .field_6 = { 3, 0 } },
+    { .firstSprite = 8, .spriteCount = 4, .field_6 = { 2, 0 } },
+    { .firstSprite = 12, .spriteCount = 4, .field_6 = { 4, 0 } },
+    { .firstSprite = 16, .spriteCount = ARRAY_SIZE(_gShelterR47View9SpriteSources) - 16, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_8018980C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 10.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View10SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_r47_8018981C[2] = {
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 88, 104, 520, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 120, 104, 511, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// 2 texture rectangles and sorting depths for mapped room view 11.
+///
+/// Positions are pixels relative to the draw origin; depths are unscaled OT values.
+/// The view's batches select source ranges in elements, without a source sentinel.
+/// Sources and textures are borrowed while the room and view resources are loaded.
+static SpriteSource _gShelterR47View11SpriteSources[2] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, 88, 104, 520, { .fields = { 96, 16 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 16 } }, 120, 104, 511, { .fields = { 96, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_80189844[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 2, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped room view 11, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded image strips. The following range
+/// covers every source. Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View11SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterR47View11SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_8018985C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 12.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View12SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_8018986C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 13.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View13SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_r47_8018987C[14] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 212, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, 72, 212, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -64, 72, 212, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -16, 72, 212, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 32, 72, 212, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 80, 72, 212, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 72, 212, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 80, 32, 212, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 32, 48, 212, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 24, 212, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -16, 48, 212, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -64, 48, 212, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -160, 40, 212, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -112, 48, 212, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
+/// 14 texture rectangles and sorting depths for mapped room view 14.
+///
+/// Positions are pixels relative to the draw origin; depths are unscaled OT values.
+/// The view's batches select source ranges in elements, without a source sentinel.
+/// Sources and textures are borrowed while the room and view resources are loaded.
+static SpriteSource _gShelterR47View14SpriteSources[14] = {
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, 72, 212, { .fields = { 80, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, -112, 72, 212, { .fields = { 80, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, -64, 72, 212, { .fields = { 80, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, -16, 72, 212, { .fields = { 80, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, 32, 72, 212, { .fields = { 80, 192 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 48 } }, 80, 72, 212, { .fields = { 32, 0 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 48 } }, 128, 72, 212, { .fields = { 48, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 40 } }, 80, 32, 212, { .fields = { 32, 144 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, 32, 48, 212, { .fields = { 32, 216 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 32, 48 } }, 128, 24, 212, { .fields = { 48, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, -16, 48, 212, { .fields = { 0, 48 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, -64, 48, 212, { .fields = { 0, 96 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 32 } }, -160, 40, 212, { .fields = { 32, 184 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
+    { SHELTER_R47_VIEW_SPRITE_PAGE_960, SHELTER_R47_VIEW_SPRITE_CLUT, { .fields = { 48, 24 } }, -112, 48, 212, { .fields = { 0, 72 } }, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_NEUTRAL_COLOR, SHELTER_R47_VIEW_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_shelter_r47_80189994[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 14, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped room view 14, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded image strips. The following range
+/// covers every source. Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View14SpriteBatches[3] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterR47View14SpriteSources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_801899AC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 15.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View15SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_801899BC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 16.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View16SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_801899CC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 17.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View17SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_801899DC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 18.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View18SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_801899EC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 19.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View19SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_801899FC[2] = {
-    { 0, 0, 1, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 20.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// The first record retains its authored hidden flag despite its zero count.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View20SpriteBatches[2] = {
+    { .spriteCount = 0, .hidden = true },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A0C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 21.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View21SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A1C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 22.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View22SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A2C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 23.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View23SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A3C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 24.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View24SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A4C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 25.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View25SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A5C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 26.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View26SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A6C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 27.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View27SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A7C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 28.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View28SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A8C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 29.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View29SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189A9C[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 30.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View30SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189AAC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 31.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View31SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189ABC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 32.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View32SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189ACC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 33.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View33SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189ADC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 34.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View34SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189AEC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 35.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View35SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_r47_80189AFC[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Decoded-image background with no source sprites for mapped room view 36.
+///
+/// The zero-count first record selects image strips; `SPRITE_BATCH_END`
+/// ends the list. The view retains this address in `sources.empty`.
+/// Consumers borrow the list while the room overlay is loaded.
+static SpriteBatch _gShelterR47View36SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteBatch D_shelter_r47_80189B0C[2] = {
@@ -883,35 +1041,35 @@ SpriteView D_shelter_r47_80189C68[46] = {
     { { .elements = _gShelterR47View5SpriteSources }, _gShelterR47View5SpriteBatches, NULL },
     { { .empty = _gShelterR47View6SpriteBatches }, _gShelterR47View6SpriteBatches, NULL },
     { { .empty = _gShelterR47View7SpriteBatches }, _gShelterR47View7SpriteBatches, NULL },
-    { { .elements = _gShelterR47View8SpriteSources }, D_shelter_r47_801895DC, NULL },
-    { { .elements = D_shelter_r47_801895F4 }, D_shelter_r47_801897D4, NULL },
-    { { .empty = D_shelter_r47_8018980C }, D_shelter_r47_8018980C, NULL },
-    { { .elements = D_shelter_r47_8018981C }, D_shelter_r47_80189844, NULL },
-    { { .empty = D_shelter_r47_8018985C }, D_shelter_r47_8018985C, NULL },
-    { { .empty = D_shelter_r47_8018986C }, D_shelter_r47_8018986C, NULL },
-    { { .elements = D_shelter_r47_8018987C }, D_shelter_r47_80189994, NULL },
-    { { .empty = D_shelter_r47_801899AC }, D_shelter_r47_801899AC, NULL },
-    { { .empty = D_shelter_r47_801899BC }, D_shelter_r47_801899BC, NULL },
-    { { .empty = D_shelter_r47_801899CC }, D_shelter_r47_801899CC, NULL },
-    { { .empty = D_shelter_r47_801899DC }, D_shelter_r47_801899DC, NULL },
-    { { .empty = D_shelter_r47_801899EC }, D_shelter_r47_801899EC, NULL },
-    { { .empty = D_shelter_r47_801899FC }, D_shelter_r47_801899FC, NULL },
-    { { .empty = D_shelter_r47_80189A0C }, D_shelter_r47_80189A0C, NULL },
-    { { .empty = D_shelter_r47_80189A1C }, D_shelter_r47_80189A1C, NULL },
-    { { .empty = D_shelter_r47_80189A2C }, D_shelter_r47_80189A2C, NULL },
-    { { .empty = D_shelter_r47_80189A3C }, D_shelter_r47_80189A3C, NULL },
-    { { .empty = D_shelter_r47_80189A4C }, D_shelter_r47_80189A4C, NULL },
-    { { .empty = D_shelter_r47_80189A5C }, D_shelter_r47_80189A5C, NULL },
-    { { .empty = D_shelter_r47_80189A6C }, D_shelter_r47_80189A6C, NULL },
-    { { .empty = D_shelter_r47_80189A7C }, D_shelter_r47_80189A7C, NULL },
-    { { .empty = D_shelter_r47_80189A8C }, D_shelter_r47_80189A8C, NULL },
-    { { .empty = D_shelter_r47_80189A9C }, D_shelter_r47_80189A9C, NULL },
-    { { .empty = D_shelter_r47_80189AAC }, D_shelter_r47_80189AAC, NULL },
-    { { .empty = D_shelter_r47_80189ABC }, D_shelter_r47_80189ABC, NULL },
-    { { .empty = D_shelter_r47_80189ACC }, D_shelter_r47_80189ACC, NULL },
-    { { .empty = D_shelter_r47_80189ADC }, D_shelter_r47_80189ADC, NULL },
-    { { .empty = D_shelter_r47_80189AEC }, D_shelter_r47_80189AEC, NULL },
-    { { .empty = D_shelter_r47_80189AFC }, D_shelter_r47_80189AFC, NULL },
+    { { .elements = _gShelterR47View8SpriteSources }, _gShelterR47View8SpriteBatches, NULL },
+    { { .elements = _gShelterR47View9SpriteSources }, _gShelterR47View9SpriteBatches, NULL },
+    { { .empty = _gShelterR47View10SpriteBatches }, _gShelterR47View10SpriteBatches, NULL },
+    { { .elements = _gShelterR47View11SpriteSources }, _gShelterR47View11SpriteBatches, NULL },
+    { { .empty = _gShelterR47View12SpriteBatches }, _gShelterR47View12SpriteBatches, NULL },
+    { { .empty = _gShelterR47View13SpriteBatches }, _gShelterR47View13SpriteBatches, NULL },
+    { { .elements = _gShelterR47View14SpriteSources }, _gShelterR47View14SpriteBatches, NULL },
+    { { .empty = _gShelterR47View15SpriteBatches }, _gShelterR47View15SpriteBatches, NULL },
+    { { .empty = _gShelterR47View16SpriteBatches }, _gShelterR47View16SpriteBatches, NULL },
+    { { .empty = _gShelterR47View17SpriteBatches }, _gShelterR47View17SpriteBatches, NULL },
+    { { .empty = _gShelterR47View18SpriteBatches }, _gShelterR47View18SpriteBatches, NULL },
+    { { .empty = _gShelterR47View19SpriteBatches }, _gShelterR47View19SpriteBatches, NULL },
+    { { .empty = _gShelterR47View20SpriteBatches }, _gShelterR47View20SpriteBatches, NULL },
+    { { .empty = _gShelterR47View21SpriteBatches }, _gShelterR47View21SpriteBatches, NULL },
+    { { .empty = _gShelterR47View22SpriteBatches }, _gShelterR47View22SpriteBatches, NULL },
+    { { .empty = _gShelterR47View23SpriteBatches }, _gShelterR47View23SpriteBatches, NULL },
+    { { .empty = _gShelterR47View24SpriteBatches }, _gShelterR47View24SpriteBatches, NULL },
+    { { .empty = _gShelterR47View25SpriteBatches }, _gShelterR47View25SpriteBatches, NULL },
+    { { .empty = _gShelterR47View26SpriteBatches }, _gShelterR47View26SpriteBatches, NULL },
+    { { .empty = _gShelterR47View27SpriteBatches }, _gShelterR47View27SpriteBatches, NULL },
+    { { .empty = _gShelterR47View28SpriteBatches }, _gShelterR47View28SpriteBatches, NULL },
+    { { .empty = _gShelterR47View29SpriteBatches }, _gShelterR47View29SpriteBatches, NULL },
+    { { .empty = _gShelterR47View30SpriteBatches }, _gShelterR47View30SpriteBatches, NULL },
+    { { .empty = _gShelterR47View31SpriteBatches }, _gShelterR47View31SpriteBatches, NULL },
+    { { .empty = _gShelterR47View32SpriteBatches }, _gShelterR47View32SpriteBatches, NULL },
+    { { .empty = _gShelterR47View33SpriteBatches }, _gShelterR47View33SpriteBatches, NULL },
+    { { .empty = _gShelterR47View34SpriteBatches }, _gShelterR47View34SpriteBatches, NULL },
+    { { .empty = _gShelterR47View35SpriteBatches }, _gShelterR47View35SpriteBatches, NULL },
+    { { .empty = _gShelterR47View36SpriteBatches }, _gShelterR47View36SpriteBatches, NULL },
     { { .empty = D_shelter_r47_80189B0C }, D_shelter_r47_80189B0C, NULL },
     { { .empty = D_shelter_r47_80189B1C }, D_shelter_r47_80189B1C, NULL },
     { { .empty = D_shelter_r47_80189B2C }, D_shelter_r47_80189B2C, NULL },

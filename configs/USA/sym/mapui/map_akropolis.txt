@@ -138,7 +138,7 @@ acropolisBridgeRoomTask = 0x8017DA0C; // type:func absolute:True owner=acropolis
 gAcropolisBridgeRoomCollisionResources = 0x80189A54; // absolute:True owner=acropolis_bridge
 gAcropolisBridgeViewMaps = 0x80189A80; // absolute:True owner=acropolis_bridge shared=rooms
 gAcropolisBridgeViewCounts = 0x80189A88; // absolute:True owner=acropolis_bridge
-gAcropolisBridgeRoomLightingTable = 0x80189A8C; // absolute:True owner=acropolis_bridge shared=rooms
+gAcropolisBridgeRoomLightingTable = 0x80189A8C; // absolute:True owner=acropolis_bridge
 gAcropolisBridgeWarpEntries = 0x80189AB4; // absolute:True owner=acropolis_bridge
 gAcropolisBridgeSpriteViews = 0x8018FFA4; // absolute:True owner=acropolis_bridge
 gAcropolisBridgeViewCameras = 0x80190A24; // absolute:True owner=acropolis_bridge
