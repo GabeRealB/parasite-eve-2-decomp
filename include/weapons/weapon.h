@@ -73,7 +73,12 @@ extern TmdSource D_unused_85_8011D53C;
 
 extern TmdSource D_p08_8011D924;
 
-extern TmdSource D_mongoose_8011D934;
+/// Single-part Mongoose model attached to the player's weapon hand.
+///
+/// The source and its geometry stay live while the Mongoose package is loaded.
+/// Model creation resolves draw handlers in its writable stream; release all
+/// attached instances before replacing the package.
+extern TmdSource gMongooseModel;
 
 extern TmdSource D_pa3_8011DA04;
 

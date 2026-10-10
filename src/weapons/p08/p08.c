@@ -1,6 +1,10 @@
 #include "weapons/p08.h"
 
-#include "types.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
+#include "common.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/items.h"
@@ -177,37 +181,46 @@ TmdSource D_p08_snail_8011D924 = {
     _gP08SnailP08Model00440Stream,
 };
 #elif WEAPON_ID == 0x9
-static TmdBone _gMongooseModel00450Skeleton[1] = {
+/// Identity transform for the Mongoose model's self-parented root.
+static TmdBone _gMongooseModelSkeleton[] = {
 #include "assets/mongoose_model_00450_skeleton.inc"
 };
 
-static u32 _gMongooseModel00450PartVerts[1] = {
+/// Vertex count for the Mongoose model's only part.
+static u32 _gMongooseModelPartVerts[] = {
 #include "assets/mongoose_model_00450_partVerts.inc"
 };
 
-static SVECTOR _gMongooseModel00450Verts[28] = {
+/// Mongoose vertices in integer coordinates local to the weapon root.
+static SVECTOR _gMongooseModelVerts[] = {
 #include "assets/mongoose_model_00450_verts.inc"
 };
 
-static SVECTOR _gMongooseModel00450Normals[28] = {
+/// Part-local Mongoose lighting normals, indexed independently of the vertices.
+static SVECTOR _gMongooseModelNormals[] = {
 #include "assets/mongoose_model_00450_normals.inc"
 };
 
-static u32 _gMongooseModel00450Stream[201] = {
+/// Writable Mongoose draw stream: four textured Gouraud triangles and 24 quads.
+///
+/// Model creation fills its handler slots. The sole skeletal group is followed
+/// by an empty group and `TMD_STREAM_END`.
+static u32 _gMongooseModelStream[] = {
 #include "assets/mongoose_model_00450_stream.inc"
 };
 
-TmdSource D_mongoose_8011D934 = {
-    0,
-    1408,
-    0,
-    1,
-    _gMongooseModel00450PartVerts,
-    _gMongooseModel00450Verts,
-    _gMongooseModel00450Normals,
-    _gMongooseModel00450Skeleton,
-    _gMongooseModel00450Stream,
+TmdSource gMongooseModel = {
+    .handlersResolved    = 0,
+    .bufferHalfBytes     = 4 * sizeof(POLY_GT3) + 24 * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gMongooseModelSkeleton),
+    .partVertexCounts    = _gMongooseModelPartVerts,
+    .verts               = _gMongooseModelVerts,
+    .normals             = _gMongooseModelNormals,
+    .skeleton            = _gMongooseModelSkeleton,
+    .stream              = _gMongooseModelStream,
 };
+STATIC_ASSERT(ARRAY_SIZE(_gMongooseModelPartVerts) == ARRAY_SIZE(_gMongooseModelSkeleton), mongoose_model_part_counts);
 #endif
 
 /* Each package carries its own animation bank. */
@@ -1086,114 +1099,158 @@ AnimationBank D_p08_8012A85C = { { {
     NULL,
 } } };
 #elif WEAPON_ID == 0x9
-static AnimationPackedPose _gMongooseAnimation00928Bank1[2] = {
+/// Idle encoding-1 poses: local translations and 1/4096-turn Euler angles.
+static AnimationPackedPose _gMongooseIdleAnimationBank1[] = {
 #include "assets/mongoose_animation_00928_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation00928Bank4[8] = {
+/// Idle encoding-4 rotations, packed in eight-unit angular steps.
+static AnimationPackedRotation _gMongooseIdleAnimationBank4[] = {
 #include "assets/mongoose_animation_00928_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation00928Records[76] = {
+/// Idle keyframes and controls, holding each part in a two-frame loop.
+static AnimationRecord _gMongooseIdleAnimationRecords[] = {
 #include "assets/mongoose_animation_00928_records.inc"
 };
 
-static u16 _gMongooseAnimation00928Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseIdleAnimationRecords`, plus a retained final halfword.
+static u16 _gMongooseIdleAnimationIndices[] = {
 #include "assets/mongoose_animation_00928_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation00928 = {
-    _gMongooseAnimation00928Records,
-    _gMongooseAnimation00928Indices,
-    { NULL, _gMongooseAnimation00928Bank1, NULL, NULL, _gMongooseAnimation00928Bank4, NULL, NULL, NULL },
+/// Standing pose of the player using the Mongoose animation bank.
+///
+/// Native-bank set 1 supplies ordinary idle; sets 21, 22 and 41 reuse it.
+/// Its nineteen part tracks and private arrays stay loaded during playback.
+static AnimationSet _gMongooseIdleAnimation = {
+    .records           = _gMongooseIdleAnimationRecords,
+    .trackStartIndices = _gMongooseIdleAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseIdleAnimationBank1, [4] = _gMongooseIdleAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation00FCCBank1[12] = {
+/// Unarmed-walk encoding-1 poses: local translations and 1/4096-turn Euler angles.
+static AnimationPackedPose _gMongooseUnarmedWalkAnimationBank1[] = {
 #include "assets/mongoose_animation_00FCC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation00FCCBank4[151] = {
+/// Unarmed-walk encoding-4 rotations, packed in eight-unit angular steps.
+static AnimationPackedRotation _gMongooseUnarmedWalkAnimationBank4[] = {
 #include "assets/mongoose_animation_00FCC_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation00FCCRecords[218] = {
+/// Unarmed-walk keyframes, cues and loop controls; durations count normal-rate frames.
+static AnimationRecord _gMongooseUnarmedWalkAnimationRecords[] = {
 #include "assets/mongoose_animation_00FCC_records.inc"
 };
 
-static u16 _gMongooseAnimation00FCCIndices[20] = {
+/// Nineteen part-track starts in `_gMongooseUnarmedWalkAnimationRecords`, plus a retained final halfword.
+static u16 _gMongooseUnarmedWalkAnimationIndices[] = {
 #include "assets/mongoose_animation_00FCC_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation00FCC = {
-    _gMongooseAnimation00FCCRecords,
-    _gMongooseAnimation00FCCIndices,
-    { NULL, _gMongooseAnimation00FCCBank1, NULL, NULL, _gMongooseAnimation00FCCBank4, NULL, NULL, NULL },
+/// Player walk used when no held-weapon model occupies equipment slot 1.
+///
+/// Native-bank set 19 supplies nineteen player-part tracks. Moving tracks
+/// repeat 29-frame loops after their initial keyframes; fixed tracks repeat
+/// two-frame holds. This set's private arrays stay loaded during playback.
+static AnimationSet _gMongooseUnarmedWalkAnimation = {
+    .records           = _gMongooseUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gMongooseUnarmedWalkAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseUnarmedWalkAnimationBank1, [4] = _gMongooseUnarmedWalkAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation01918Bank1[16] = {
+/// Forward-walk encoding-1 poses: local translations and 1/4096-turn Euler angles.
+static AnimationPackedPose _gMongooseWalkAnimationBank1[] = {
 #include "assets/mongoose_animation_01918_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation01918Bank4[221] = {
+/// Forward-walk encoding-4 rotations, packed in eight-unit angular steps.
+static AnimationPackedRotation _gMongooseWalkAnimationBank4[] = {
 #include "assets/mongoose_animation_01918_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation01918Records[306] = {
+/// Forward-walk keyframes, cues and loop controls; durations count normal-rate frames.
+static AnimationRecord _gMongooseWalkAnimationRecords[] = {
 #include "assets/mongoose_animation_01918_records.inc"
 };
 
-static u16 _gMongooseAnimation01918Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseWalkAnimationRecords`, plus a retained final halfword.
+static u16 _gMongooseWalkAnimationIndices[] = {
 #include "assets/mongoose_animation_01918_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation01918 = {
-    _gMongooseAnimation01918Records,
-    _gMongooseAnimation01918Indices,
-    { NULL, _gMongooseAnimation01918Bank1, NULL, NULL, _gMongooseAnimation01918Bank4, NULL, NULL, NULL },
+/// Player's forward walk while holding the Mongoose.
+///
+/// Native-bank set 2 supplies nineteen player-part tracks. Moving tracks
+/// repeat 30-frame loops after their initial keyframes; fixed tracks repeat
+/// two-frame holds. This set's private arrays stay loaded during playback.
+static AnimationSet _gMongooseWalkAnimation = {
+    .records           = _gMongooseWalkAnimationRecords,
+    .trackStartIndices = _gMongooseWalkAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseWalkAnimationBank1, [4] = _gMongooseWalkAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation021F0Bank1[19] = {
+/// Backward-walk encoding-1 poses: local translations and 1/4096-turn Euler angles.
+static AnimationPackedPose _gMongooseBackwardWalkAnimationBank1[] = {
 #include "assets/mongoose_animation_021F0_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation021F0Bank4[193] = {
+/// Backward-walk encoding-4 rotations, packed in eight-unit angular steps.
+static AnimationPackedRotation _gMongooseBackwardWalkAnimationBank4[] = {
 #include "assets/mongoose_animation_021F0_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation021F0Records[296] = {
+/// Backward-walk keyframes, cues and loop controls; durations count normal-rate frames.
+static AnimationRecord _gMongooseBackwardWalkAnimationRecords[] = {
 #include "assets/mongoose_animation_021F0_records.inc"
 };
 
-static u16 _gMongooseAnimation021F0Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseBackwardWalkAnimationRecords`, plus a retained final halfword.
+static u16 _gMongooseBackwardWalkAnimationIndices[] = {
 #include "assets/mongoose_animation_021F0_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation021F0 = {
-    _gMongooseAnimation021F0Records,
-    _gMongooseAnimation021F0Indices,
-    { NULL, _gMongooseAnimation021F0Bank1, NULL, NULL, _gMongooseAnimation021F0Bank4, NULL, NULL, NULL },
+/// Player's backward walk while using the Mongoose animation bank.
+///
+/// Native-bank set 3 supplies nineteen player-part tracks. Moving tracks
+/// repeat 33-frame loops after their initial keyframes; fixed tracks repeat
+/// two-frame holds. This set's private arrays stay loaded during playback.
+static AnimationSet _gMongooseBackwardWalkAnimation = {
+    .records           = _gMongooseBackwardWalkAnimationRecords,
+    .trackStartIndices = _gMongooseBackwardWalkAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseBackwardWalkAnimationBank1, [4] = _gMongooseBackwardWalkAnimationBank4 },
 };
 
-static AnimationPackedPose _gMongooseAnimation02924Bank1[13] = {
+/// Run encoding-1 poses: local translations and 1/4096-turn Euler angles.
+static AnimationPackedPose _gMongooseRunAnimationBank1[] = {
 #include "assets/mongoose_animation_02924_bank1.inc"
 };
 
-static AnimationPackedRotation _gMongooseAnimation02924Bank4[167] = {
+/// Run encoding-4 rotations, packed in eight-unit angular steps.
+static AnimationPackedRotation _gMongooseRunAnimationBank4[] = {
 #include "assets/mongoose_animation_02924_bank4.inc"
 };
 
-static AnimationRecord _gMongooseAnimation02924Records[235] = {
+/// Run keyframes, cues and loop controls; durations count normal-rate frames.
+static AnimationRecord _gMongooseRunAnimationRecords[] = {
 #include "assets/mongoose_animation_02924_records.inc"
 };
 
-static u16 _gMongooseAnimation02924Indices[20] = {
+/// Nineteen part-track starts in `_gMongooseRunAnimationRecords`, plus a retained final halfword.
+static u16 _gMongooseRunAnimationIndices[] = {
 #include "assets/mongoose_animation_02924_indices.inc"
 };
 
-static AnimationSet _gMongooseAnimation02924 = {
-    _gMongooseAnimation02924Records,
-    _gMongooseAnimation02924Indices,
-    { NULL, _gMongooseAnimation02924Bank1, NULL, NULL, _gMongooseAnimation02924Bank4, NULL, NULL, NULL },
+/// Player's forward run while using the Mongoose animation bank.
+///
+/// Native-bank set 4 supplies nineteen player-part tracks. Moving tracks
+/// repeat 19-frame loops after their initial keyframes; fixed tracks repeat
+/// two-frame holds. This set's private arrays stay loaded during playback.
+static AnimationSet _gMongooseRunAnimation = {
+    .records           = _gMongooseRunAnimationRecords,
+    .trackStartIndices = _gMongooseRunAnimationIndices,
+    .poseBanks         = { [1] = _gMongooseRunAnimationBank1, [4] = _gMongooseRunAnimationBank4 },
 };
 
 static AnimationPackedPose _gMongooseAnimation03184Bank1[19] = {
@@ -1880,10 +1937,10 @@ static AnimationSet _gMongooseAnimation0D7D8 = {
 
 AnimationBank D_mongoose_8012A9C0 = { { {
     NULL,
-    &_gMongooseAnimation00928,
-    &_gMongooseAnimation01918,
-    &_gMongooseAnimation021F0,
-    &_gMongooseAnimation02924,
+    &_gMongooseIdleAnimation,
+    &_gMongooseWalkAnimation,
+    &_gMongooseBackwardWalkAnimation,
+    &_gMongooseRunAnimation,
     &_gMongooseAnimation03184,
     &_gMongooseAnimation039E8,
     &_gMongooseAnimation0D20C,
@@ -1898,10 +1955,10 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     &_gMongooseAnimation0664C,
     &_gMongooseAnimation0696C,
     &_gMongooseAnimation07130,
-    &_gMongooseAnimation00FCC,
+    &_gMongooseUnarmedWalkAnimation,
     &_gMongooseAnimation0C59C,
-    &_gMongooseAnimation00928,
-    &_gMongooseAnimation00928,
+    &_gMongooseIdleAnimation,
+    &_gMongooseIdleAnimation,
     &_gMongooseAnimation083C8,
     &_gMongooseAnimation0965C,
     &_gMongooseAnimation08F40,
@@ -1920,7 +1977,7 @@ AnimationBank D_mongoose_8012A9C0 = { { {
     &_gMongooseAnimation05244,
     &_gMongooseAnimation04EB4,
     &_gMongooseAnimation03CFC,
-    &_gMongooseAnimation00928,
+    &_gMongooseIdleAnimation,
     &_gMongooseAnimation0A218,
     &_gMongooseAnimation0A40C,
     &_gMongooseAnimation0A88C,

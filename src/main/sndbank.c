@@ -318,7 +318,7 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_unused_85_8011D53C } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_mongoose_8011D934 } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gMongooseModel } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gGrenadePistolWeaponModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { .model = &gMm1WeaponModel } },
