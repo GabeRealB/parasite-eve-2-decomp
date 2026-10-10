@@ -29,6 +29,7 @@
 #include "gameplay/message.h"
 #include "gameplay/pad_input.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -69,50 +70,43 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/falling_leaves.h"
 
-/// Set to 1 by the fade-out task once the scene has finished.
-
-/// Per-frame path the streamed scene walks `gPlayerStatus.coordMtx` along, indexed by
-/// `gCdCmdQueue::movieFrame - 1` for the 0x78 frames the ride lasts.
-extern SVECTOR D_acropolis_forked_road_80180F80[];
-
 /// The script pair the streamed scene runs.
 extern PadScriptCmd              D_acropolis_forked_road_80185058[6];
 extern PadScriptVibrationSegment D_acropolis_forked_road_80185070[2];
 
 /// The script pair the return ride runs.
-extern PadScriptCmd              D_acropolis_forked_road_80185038[6];
 extern PadScriptVibrationSegment D_acropolis_forked_road_80185050[2];
-
-/// The fourteen spawn offsets of the forked road's ambient effects, indexed
-/// 0..13 by the first-frame burst below.
-extern SVECTOR D_acropolis_forked_road_80182178[14];
-
-/// One bit per in-game day (shifted by `GameSession::location.loc.view - 1`) for each of
-/// the sixteen ambient-effect slots: which of the room's lamps are lit today.
-extern u16 D_acropolis_forked_road_801821E8[14];
 
 static void _acropolisForkedRoadOutboundMoviePathTask(Task* task);
 static void _acropolisForkedRoadReturnMoviePathTask(Task* task);
 static void _acropolisForkedRoadSkipFadeOutTask(Task* task);
 static void _acropolisForkedRoadSkipFadeInTask(Task* task);
 
-extern AnimationPlayRequest     D_acropolis_forked_road_8018207C;
-extern AnimationBankCopyRequest D_acropolis_forked_road_80182060;
-static WorldCollisionGrid       _gAcropolisForkedRoadCollisionGrid;
-extern WorldCollisionTrigger    D_acropolis_forked_road_80182C14[6];
-extern WorldCollisionTrigger    D_acropolis_forked_road_80182DDC[7];
-static WorldCoordRoomLights     _gAcropolisForkedRoadRoomLights;
-static void                     _acropolisForkedRoadReleaseMaggotCaterpillarEntrance(void);
+static WorldCollisionGrid    _gAcropolisForkedRoadCollisionGrid;
+static WorldCollisionTrigger _gAcropolisForkedRoadViewBoundaryTriggers[6];
+static WorldCollisionTrigger _gAcropolisForkedRoadActionTriggers[7];
+static WorldCoordRoomLights  _gAcropolisForkedRoadRoomLights;
+static void                  _acropolisForkedRoadReleaseMaggotCaterpillarEntrance(void);
 
-TaskDesc D_acropolis_forked_road_80180F44[5] = {
-    { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadOutboundMoviePathTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadReturnMoviePathTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadSkipFadeOutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadSkipFadeInTask, { .value = 0 } },
+enum { ACROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY = 192 };
+
+TaskDesc gAcropolisForkedRoadMovieTaskDescriptors[ACROPOLIS_FORKED_ROAD_MOVIE_TASK_COUNT] = {
+    [ACROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE] = { { { TASK_BODY_NONE, ACROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, _acropolisForkedRoadOutboundMoviePathTask, { .value = 0 } },
+    [ACROPOLIS_FORKED_ROAD_TASK_UNUSED_MOVIE]   = { { { TASK_BODY_NONE, ACROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, NULL, { .value = 0 } },
+    [ACROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE]   = { { { TASK_BODY_NONE, ACROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, _acropolisForkedRoadReturnMoviePathTask, { .value = 0 } },
+    [ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_OUT]  = { { { TASK_BODY_NONE, ACROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, _acropolisForkedRoadSkipFadeOutTask, { .value = 0 } },
+    [ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_IN]   = { { { TASK_BODY_NONE, ACROPOLIS_FORKED_ROAD_MOVIE_TASK_PRIORITY } }, _acropolisForkedRoadSkipFadeInTask, { .value = 0 } },
 };
 
-SVECTOR D_acropolis_forked_road_80180F80[300] = {
+/// Player-root translations sampled along the observatory route's movie path.
+///
+/// All 300 signed-halfword XYZ samples use whole units in the root's parent
+/// frame, without a terminator. Outbound indexing is `movieFrame - 1`; the
+/// movie descriptor caps frames at 300, and the controller requests departure
+/// on index 120 or Start. Return indexing is `59 - movieFrame` and requires
+/// frames 1..59 at every access; normal exit begins below index 11. Keep the
+/// overlay loaded while either task reads the table. The fourth halfword is unused.
+static SVECTOR _gAcropolisForkedRoadMoviePlayerPositions[300] = {
 #include "assets/acropolis_forked_road_path_039C0.inc"
 };
 
@@ -161,35 +155,69 @@ static AnimationSet _gAcropolisForkedRoadAnimation04A6C = {
     { NULL, _gAcropolisForkedRoadAnimation04A6CBank1, NULL, NULL, _gAcropolisForkedRoadAnimation04A6CBank4, NULL, NULL, NULL },
 };
 
-AnimationSet* D_acropolis_forked_road_80182054[3] = {
+/// Three set pointers copied to equipped-weapon bank entries 47..49 for the lock-release event.
+///
+/// Entry 47 is cleared; entries 48 and 49 borrow the two room clips. No
+/// terminator: the copy request covers all three words. Keep the overlay and
+/// clip pools loaded while the player bank retains these pointers.
+static AnimationSet* _gAcropolisForkedRoadLockReleaseAnimationSets[3] = {
     NULL,
     &_gAcropolisForkedRoadAnimation045FC,
     &_gAcropolisForkedRoadAnimation04A6C,
 };
 
-AnimationBankCopyRequest D_acropolis_forked_road_80182060 = { { .sets = D_acropolis_forked_road_80182054 }, ARRAY_SIZE(D_acropolis_forked_road_80182054) };
+/// Installs the lock-release event's three-pointer extension in the player's equipped-weapon bank.
+///
+/// The request is borrowed synchronously; the copied set pointers outlive the message.
+static AnimationBankCopyRequest _gAcropolisForkedRoadLockReleaseBankCopyRequest = {
+    .source    = { .sets = _gAcropolisForkedRoadLockReleaseAnimationSets },
+    .wordCount = ARRAY_SIZE(_gAcropolisForkedRoadLockReleaseAnimationSets),
+};
 
 AnimationPlayRequest D_acropolis_forked_road_80182068 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_acropolis_forked_road_8018207C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE };
+enum {
+    ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_PLAYER_CLIP  = 48,
+    ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_BLEND_FRAMES = 20,
+    ACROPOLIS_FORKED_ROAD_ENTRANCE_WAIT_TICKS       = 10,
+    ACROPOLIS_FORKED_ROAD_BATTLE_WAIT_TICKS         = 3,
+};
+
+/// Blends the player to extension clip 48 with grid collision disabled for the lock-release event.
+///
+/// The event interpreter copies the request and resolves its bank from the
+/// equipped weapon, replacing the stored index. Blend duration is twenty
+/// normal-rate frames; the installed set and its data must remain loaded.
+static AnimationPlayRequest _gAcropolisForkedRoadLockReleasePlayerClip48Request = {
+    .source               = { .index = 1 },
+    .animationId          = ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_PLAYER_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_acropolis_forked_road_80182090[2] = {
     { { .index = 1 }, 49, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_DISABLE },
     { { .index = 1 }, 9, ANIMATION_BLEND_INTERPOLATE, 10, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-EvsCommand D_acropolis_forked_road_801820B8[8] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_forked_road_80182060 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_forked_road_8018207C }, { .value = 0 } },
+EvsCommand gAcropolisForkedRoadLockReleaseScript[8] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gAcropolisForkedRoadLockReleaseBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisForkedRoadLockReleasePlayerClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisForkedRoadReleaseMaggotCaterpillarEntrance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_FORKED_ROAD_ENTRANCE_WAIT_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACROPOLIS_FORKED_ROAD_BATTLE_WAIT_TICKS }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_acropolis_forked_road_80182178[14] = {
+/// Fourteen wall-lamp offsets in their effect controller's coordinate frame.
+///
+/// Indexed by lamp 0..13, shared with `_gAcropolisForkedRoadWallLampViewMasks`.
+/// XYZ uses whole coordinate units. Spawning copies the position; there is no
+/// sentinel. Cells 0, 1 and 2 use indices 0..3, 4..11 and 12..13 respectively.
+static SVECTOR _gAcropolisForkedRoadWallLampPositions[14] = {
     { -50, -1810, 2070, 0 },
     { -50, -1810, 430, 0 },
     { 470, -3290, -2200, 0 },
@@ -206,9 +234,13 @@ SVECTOR D_acropolis_forked_road_80182178[14] = {
     { -770, -1058, -2990, 0 },
 };
 
-// Gameplay effect bank 6, entry 0x89 calls the lamp callback at 0x8017E410.
-// The ambient spawner supplies exactly indices 0..13 through that shared table.
-u16 D_acropolis_forked_road_801821E8[14] = {
+/// Logical-view visibility masks for wall lamps 0..13.
+///
+/// Bit `view - 1` permits drawing in that 1-based logical view, before mapping
+/// to a camera/image index. Room view domains are 1..10, 1..9 and 1..9; no mask
+/// sets bits above view 9. Lamp 10's zero mask suppresses it in every view.
+/// No terminator; keep this overlay loaded for the lamps' lifetimes.
+static u16 _gAcropolisForkedRoadWallLampViewMasks[14] = {
     208,
     240,
     20,
@@ -227,10 +259,10 @@ u16 D_acropolis_forked_road_801821E8[14] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCollisionRoomResources D_acropolis_forked_road_80182214[3] = {
-    { &_gAcropolisForkedRoadCollisionGrid, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
-    { &_gAcropolisForkedRoadCollisionGrid, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
-    { &_gAcropolisForkedRoadCollisionGrid, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
+WorldCollisionRoomResources gAcropolisForkedRoadRoomCollisionResources[3] = {
+    { &_gAcropolisForkedRoadCollisionGrid, _gAcropolisForkedRoadViewBoundaryTriggers, _gAcropolisForkedRoadActionTriggers, NULL },
+    { &_gAcropolisForkedRoadCollisionGrid, _gAcropolisForkedRoadViewBoundaryTriggers, _gAcropolisForkedRoadActionTriggers, NULL },
+    { &_gAcropolisForkedRoadCollisionGrid, _gAcropolisForkedRoadViewBoundaryTriggers, _gAcropolisForkedRoadActionTriggers, NULL },
 };
 
 /// Room 2's logical-view to camera/image/sprite map, indexed by view minus one.
@@ -279,7 +311,7 @@ u8* gAcropolisForkedRoadViewMaps[3] = {
     _gAcropolisForkedRoadRoom3ViewMap,
 };
 
-ViewCount D_acropolis_forked_road_80182268[3] = { 10, 9, 9 };
+ViewCount gAcropolisForkedRoadViewCounts[3] = { 10, 9, 9 };
 
 WorldCoordRoomLighting gAcropolisForkedRoadRoomLightingTable[3] = {
     { &_gAcropolisForkedRoadRoomLights, NULL },
@@ -287,10 +319,17 @@ WorldCoordRoomLighting gAcropolisForkedRoadRoomLightingTable[3] = {
     { &_gAcropolisForkedRoadRoomLights, NULL },
 };
 
-DirectionWarpEntry D_acropolis_forked_road_80182288[5] = {
+enum {
+    ACROPOLIS_FORKED_ROAD_FOUNTAIN_ARRIVAL_SOUND   = 0x51090003,
+    ACROPOLIS_FORKED_ROAD_FOUNTAIN_DEPARTURE_SOUND = 0x51090002,
+    ACROPOLIS_FORKED_ROAD_FOUNTAIN_BLOCKED_SOUND   = 0x51090006,
+    ACROPOLIS_FORKED_ROAD_FOUNTAIN_WARP_MAP_FLAG   = 0x1EF,
+};
+
+DirectionWarpEntry gAcropolisForkedRoadWarpEntries[5] = {
     { { { .word = 1920 }, -3791, 1, 833 }, { 0, 0, 0, 0 }, { { .word = 1920 }, -3791, 1, 833 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
-    { { { .word = 0 }, -5107, 1, -4030 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5107, 1, -4030 }, { 0, 0, 0, 0 }, 0x51090003, 0x51090002, 0x51090006, 4, DIRECTION_WARP_FLAG_NONE, 495 },
+    { { { .word = 0 }, -5107, 1, -4030 }, { 0, 0, 0, 0 }, { { .word = 0 }, -5107, 1, -4030 }, { 0, 0, 0, 0 }, ACROPOLIS_FORKED_ROAD_FOUNTAIN_ARRIVAL_SOUND, ACROPOLIS_FORKED_ROAD_FOUNTAIN_DEPARTURE_SOUND, ACROPOLIS_FORKED_ROAD_FOUNTAIN_BLOCKED_SOUND, 4, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_FORKED_ROAD_FOUNTAIN_WARP_MAP_FLAG },
     { { { .word = 1792 }, -4094, -470, 1325 }, { 0, 0, 0, 0 }, { { .word = 1792 }, -3764, -600, 797 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_SCRIPTED_PLAYER, DIRECTION_WARP_MAP_FLAG_NONE },
     { { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
 };
@@ -348,105 +387,209 @@ static WorldCollisionGrid _gAcropolisForkedRoadCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gAcropolisForkedRoadCollisionGridFaces),
 };
 
-WorldCollisionTrigger D_acropolis_forked_road_80182C14[6] = {
-    { NULL, NULL, NULL, { -1905, 0, -353, 0 }, { { -509, 3168, 2239, 0 }, { 510, 3168, -2238, 0 }, { -509, -3168, 2239, 0 }, { 510, -3168, -2238, 0 } }, { 3996, 0, 909, 0 }, { 0, 0, 4096, 0 }, 3907, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -1712, 0, -149, 0 }, { { 526, 3168, -2286, 0 }, { -525, 3168, 2287, 0 }, { 526, -3168, -2286, 0 }, { -525, -3168, 2287, 0 } }, { -4002, 0, -920, 0 }, { 0, 0, 4096, 0 }, 3941, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6711, 0, -2121, 0 }, { { 1938, 3168, 482, 0 }, { -1937, 3168, -481, 0 }, { 1938, -3168, 482, 0 }, { -1937, -3168, -481, 0 } }, { 989, 0, -3983, 0 }, { 0, 0, 4096, 0 }, 3736, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -6668, 0, -2514, 0 }, { { -1920, 3168, -512, 0 }, { 1920, 3168, 513, 0 }, { -1920, -3168, -512, 0 }, { 1920, -3168, 513, 0 } }, { -1058, 0, 3959, 0 }, { 0, 0, 4096, 0 }, 3736, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3905, 0, -3010, 0 }, { { -943, 3168, 1067, 0 }, { 943, 3168, -1066, 0 }, { -943, -3168, 1067, 0 }, { 943, -3168, -1066, 0 } }, { 3088, 0, 2731, 0 }, { 0, 0, 4096, 0 }, 3472, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { -3575, 0, -2822, 0 }, { { 1290, 3168, -1366, 0 }, { -1290, 3168, 1367, 0 }, { 1290, -3168, -1366, 0 }, { -1290, -3168, 1367, 0 } }, { -2990, 0, -2822, 0 }, { 0, 0, 4096, 0 }, 3683, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Six directed view-change quads shared by the three forked-road rooms.
+///
+/// Pairs select logical views 2/3 and 2/4; parameter bytes are source/destination
+/// views. Geometry uses whole room units and normals use `ONE`. Setup binds the
+/// view coordinate, links and enables each record, including the final LAST
+/// entry. Keep this mutable storage loaded until the boundary list is unlinked.
+static WorldCollisionTrigger _gAcropolisForkedRoadViewBoundaryTriggers[6] = {
+    { NULL, NULL, NULL, { -1905, 0, -353, 0 }, { { -509, 3168, 2239, 0 }, { 510, 3168, -2238, 0 }, { -509, -3168, 2239, 0 }, { 510, -3168, -2238, 0 } }, { 3996, 0, 909, 0 }, { 0, 0, ONE, 0 }, 3907, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -1712, 0, -149, 0 }, { { 526, 3168, -2286, 0 }, { -525, 3168, 2287, 0 }, { 526, -3168, -2286, 0 }, { -525, -3168, 2287, 0 } }, { -4002, 0, -920, 0 }, { 0, 0, ONE, 0 }, 3941, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6711, 0, -2121, 0 }, { { 1938, 3168, 482, 0 }, { -1937, 3168, -481, 0 }, { 1938, -3168, 482, 0 }, { -1937, -3168, -481, 0 } }, { 989, 0, -3983, 0 }, { 0, 0, ONE, 0 }, 3736, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -6668, 0, -2514, 0 }, { { -1920, 3168, -512, 0 }, { 1920, 3168, 513, 0 }, { -1920, -3168, -512, 0 }, { 1920, -3168, 513, 0 } }, { -1058, 0, 3959, 0 }, { 0, 0, ONE, 0 }, 3736, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3905, 0, -3010, 0 }, { { -943, 3168, 1067, 0 }, { 943, 3168, -1066, 0 }, { -943, -3168, 1067, 0 }, { 943, -3168, -1066, 0 } }, { 3088, 0, 2731, 0 }, { 0, 0, ONE, 0 }, 3472, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { -3575, 0, -2822, 0 }, { { 1290, 3168, -1366, 0 }, { -1290, 3168, 1367, 0 }, { 1290, -3168, -1366, 0 }, { -1290, -3168, 1367, 0 } }, { -2990, 0, -2822, 0 }, { 0, 0, ONE, 0 }, 3683, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_forked_road_80182DDC[7] = {
-    { NULL, NULL, NULL, { -5024, -64, -4192, 0 }, { { -896, 0, -768, 0 }, { 896, 0, -768, 0 }, { -896, 0, 768, 0 }, { 896, 0, 768, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, 4096, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_WARP, 8, 50, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -192, -96, 1440, 0 }, { { -768, 0, -736, 0 }, { 768, 0, -736, 0 }, { -768, 0, 736, 0 }, { 768, 0, 736, 0 } }, { 0, 4106, 0, 0 }, { -4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, 10, 36, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3905, -128, 1039, 0 }, { { -433, 0, -633, 0 }, { 721, 0, -218, 0 }, { -720, 0, 219, 0 }, { 434, 0, 634, 0 } }, { 0, 4114, 0, 0 }, { 1189, 0, -3920, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_FACING, 68, 244, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1049, -96, -712, 0 }, { { -1285, 0, 644, 0 }, { -1287, 0, -1365, 0 }, { 232, 0, 613, 0 }, { 231, 0, -468, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, 4096, 0 }, 1872, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3922, -656, 1150, 0 }, { { -1191, -1520, -451, 0 }, { 1192, -1520, 452, 0 }, { -1191, 1520, -451, 0 }, { 1192, 1520, 452, 0 } }, { 1451, 0, -3834, 0 }, { 1380, 0, -3857, 0 }, 1982, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 22, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4113, -512, 1439, 0 }, { { -983, 0, -519, 0 }, { 1087, 0, 270, 0 }, { -1087, 0, -270, 0 }, { 983, 0, 519, 0 } }, { 0, 4098, 0, 0 }, { -1568, 0, 3784, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100 | WORLD_COLLISION_TRIGGER_AUTOMATIC, 66, 112, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -2336, -96, -512, 0 }, { { -256, 0, -2624, 0 }, { 1344, 0, -1600, 0 }, { -1344, 0, 1600, 0 }, { 256, 0, 2624, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, 4096, 0 }, 2635, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 1, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+// Action-1 control bit 8 selects descent; its parameter0 packs surface class and steps.
+enum {
+    ACROPOLIS_FORKED_ROAD_STAIR_DESCEND       = 0x100,
+    ACROPOLIS_FORKED_ROAD_STAIR_SURFACE_CLASS = 4,
+    ACROPOLIS_FORKED_ROAD_ASCENT_STEPS        = 4,
+    ACROPOLIS_FORKED_ROAD_DESCENT_STEPS       = 2,
+    ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_ACTION = 1,
 };
 
-AreaResource D_acropolis_forked_road_80182FF0[2] = {
+/// Seven interaction and automatic-action quads shared by all forked-road rooms.
+///
+/// Includes fountain/observatory/square warps, two stair climbs, CAP command 4
+/// and room action 1 for the lock-release event. Warp parameter1 packs the
+/// departure slot in its high nibble and arrival slot in its low nibble.
+/// Stair parameters pack surface class/step count and yaw in 16-angle-unit steps.
+/// Geometry uses room units and normals use `ONE`. Setup links and enables all
+/// records through LAST; keep the mutable array loaded until the list is unlinked.
+static WorldCollisionTrigger _gAcropolisForkedRoadActionTriggers[7] = {
+    { NULL, NULL, NULL, { -5024, -64, -4192, 0 }, { { -896, 0, -768, 0 }, { 896, 0, -768, 0 }, { -896, 0, 768, 0 }, { 896, 0, 768, 0 } }, { 0, 4100, 0, 0 }, { 0, 0, ONE, 0 }, 1180, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FOUNTAIN, (3 << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -192, -96, 1440, 0 }, { { -768, 0, -736, 0 }, { 768, 0, -736, 0 }, { -768, 0, 736, 0 }, { 768, 0, 736, 0 } }, { 0, 4106, 0, 0 }, { -ONE, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_OBSERVATORY, (2 << 4) | 4, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3905, -128, 1039, 0 }, { { -433, 0, -633, 0 }, { 721, 0, -218, 0 }, { -720, 0, 219, 0 }, { 434, 0, 634, 0 } }, { 0, 4114, 0, 0 }, { 1189, 0, -3920, 0 }, 768, WORLD_COLLISION_TRIGGER_ACTION_FACING, (ACROPOLIS_FORKED_ROAD_STAIR_SURFACE_CLASS << 4) | ACROPOLIS_FORKED_ROAD_ASCENT_STEPS, 244, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1049, -96, -712, 0 }, { { -1285, 0, 644, 0 }, { -1287, 0, -1365, 0 }, { 232, 0, 613, 0 }, { 231, 0, -468, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, ONE, 0 }, 1872, WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON, 4, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3922, -656, 1150, 0 }, { { -1191, -1520, -451, 0 }, { 1192, -1520, 452, 0 }, { -1191, 1520, -451, 0 }, { 1192, 1520, 452, 0 } }, { 1451, 0, -3834, 0 }, { 1380, 0, -3857, 0 }, 1982, WORLD_COLLISION_TRIGGER_ACTION_WARP | WORLD_COLLISION_TRIGGER_AUTOMATIC, GAME_AREA_ACROPOLIS_SQUARE, (1 << 4) | 6, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4113, -512, 1439, 0 }, { { -983, 0, -519, 0 }, { 1087, 0, 270, 0 }, { -1087, 0, -270, 0 }, { 983, 0, 519, 0 } }, { 0, 4098, 0, 0 }, { -1568, 0, 3784, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_FORKED_ROAD_STAIR_DESCEND | WORLD_COLLISION_TRIGGER_AUTOMATIC, (ACROPOLIS_FORKED_ROAD_STAIR_SURFACE_CLASS << 4) | ACROPOLIS_FORKED_ROAD_DESCENT_STEPS, 112, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -2336, -96, -512, 0 }, { { -256, 0, -2624, 0 }, { 1344, 0, -1600, 0 }, { -1344, 0, 1600, 0 }, { 256, 0, 2624, 0 } }, { 0, 4099, 0, 0 }, { 0, 0, ONE, 0 }, 2635, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, ACROPOLIS_FORKED_ROAD_LOCK_RELEASE_ACTION, 0, WORLD_COLLISION_TRIGGER_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Actor loading and spawn recipes for forked-road placement variant 2.
+///
+/// Selects entry 19 / file 19 in the base-30 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant2Resources[2] = {
     { 19, 19, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor301900GrinningStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_80183008[3] = {
+/// Actor loading and spawn recipes for forked-road placement variant 3.
+///
+/// Selects entry 10 / file 10 in base 40 and entry 7 / file 7 in base 30.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant3Resources[3] = {
     { 10, 10, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401000StrangerTaskDesc },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700RatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_8018302C[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 4.
+///
+/// Selects entry 55 / file 55 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant4Resources[2] = {
     { 55, 55, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105500MaggotCaterpillarTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_80183044[3] = {
+/// Actor loading and spawn recipes for forked-road placement variant 7.
+///
+/// Selects entry 20 / file 20 in base 10 and entry 7 / file 7 in base 20.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant7Resources[3] = {
     { 20, 20, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102000PawnGolemTasks },
     { 7, 7, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor200700RatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_80183068[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 8.
+///
+/// Selects entry 26 / file 26 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant8Resources[2] = {
     { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_80183080[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 9.
+///
+/// Selects entry 18 / file 18 in the base-40 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant9Resources[2] = {
     { 18, 18, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor401800OddStrangerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_80183098[3] = {
+/// Actor loading and spawn recipes for forked-road placement variant 10.
+///
+/// Selects entries 7 and 8, both using file 7 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant10Resources[3] = {
     { 7, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor00700RatTaskDesc },
     { 8, 7, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor00700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_801830BC[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 11.
+///
+/// Selects entry 24 / file 24 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant11Resources[2] = {
     { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_801830D4[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 12.
+///
+/// Selects entry 25 / file 25 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant12Resources[2] = {
     { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_801830EC[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 13.
+///
+/// Selects entry 26 / file 26 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant13Resources[2] = {
     { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_80183104[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 14.
+///
+/// Selects entry 37 / file 37 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant14Resources[2] = {
     { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_8018311C[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 15.
+///
+/// Selects entry 15 / file 15 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant15Resources[2] = {
     { 15, 15, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_80183134[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 16.
+///
+/// Selects entry 38 / file 38 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant16Resources[2] = {
     { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_8018314C[2] = {
+/// Actor loading and spawn recipes for forked-road placement variant 20.
+///
+/// Selects entry 16 / file 16 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant20Resources[2] = {
     { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_80183164[3] = {
+/// Actor loading and spawn recipes for forked-road placement variant 21.
+///
+/// Selects entries/files 46 and 47 in the base-10 family.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+static AreaResource _gAcropolisForkedRoadVariant21Resources[3] = {
     { 46, 46, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor104600SucklercephTaskDesc },
     { 47, 47, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor104600SkullStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_forked_road_80183188[5] = {
+/// Actor loading and spawn recipes for forked-road placement variant 22.
+///
+/// Selects entries/files 70 and 71 in base 10, and 72 and 73 in base 20.
+/// Each live entry spawns descriptor slot 0; `AREA_PLACEMENT_END` ends the list.
+/// Keep the table and borrowed descriptors loaded through loading and spawning.
+/// All four resources are loaded; the placement table selects only entries 70 and 72.
+static AreaResource _gAcropolisForkedRoadVariant22Resources[5] = {
     { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SlouchTaskDescs },
     { 71, 71, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SucklercephTaskDescs },
     { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
@@ -457,27 +600,27 @@ AreaResource D_acropolis_forked_road_80183188[5] = {
 AreaVariant D_acropolis_forked_road_801831C4[24] = {
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017B1DC, D_acropolis_forked_road_80182FF0 },
-    { D_map_akropolis_8017B1FC, D_acropolis_forked_road_80183008 },
-    { D_map_akropolis_8017B24C, D_acropolis_forked_road_8018302C },
+    { D_map_akropolis_8017B1DC, _gAcropolisForkedRoadVariant2Resources },
+    { D_map_akropolis_8017B1FC, _gAcropolisForkedRoadVariant3Resources },
+    { D_map_akropolis_8017B24C, _gAcropolisForkedRoadVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017B29C, D_acropolis_forked_road_80183044 },
-    { D_map_akropolis_8017B2EC, D_acropolis_forked_road_80183068 },
-    { D_map_akropolis_8017B33C, D_acropolis_forked_road_80183080 },
-    { D_map_akropolis_8017B35C, D_acropolis_forked_road_80183098 },
-    { D_map_akropolis_8017B41C, D_acropolis_forked_road_801830BC },
-    { D_map_akropolis_8017B48C, D_acropolis_forked_road_801830D4 },
-    { D_map_akropolis_8017B4FC, D_acropolis_forked_road_801830EC },
-    { D_map_akropolis_8017B54C, D_acropolis_forked_road_80183104 },
-    { D_map_akropolis_8017B5BC, D_acropolis_forked_road_8018311C },
-    { D_map_akropolis_8017B5EC, D_acropolis_forked_road_80183134 },
+    { D_map_akropolis_8017B29C, _gAcropolisForkedRoadVariant7Resources },
+    { D_map_akropolis_8017B2EC, _gAcropolisForkedRoadVariant8Resources },
+    { D_map_akropolis_8017B33C, _gAcropolisForkedRoadVariant9Resources },
+    { D_map_akropolis_8017B35C, _gAcropolisForkedRoadVariant10Resources },
+    { D_map_akropolis_8017B41C, _gAcropolisForkedRoadVariant11Resources },
+    { D_map_akropolis_8017B48C, _gAcropolisForkedRoadVariant12Resources },
+    { D_map_akropolis_8017B4FC, _gAcropolisForkedRoadVariant13Resources },
+    { D_map_akropolis_8017B54C, _gAcropolisForkedRoadVariant14Resources },
+    { D_map_akropolis_8017B5BC, _gAcropolisForkedRoadVariant15Resources },
+    { D_map_akropolis_8017B5EC, _gAcropolisForkedRoadVariant16Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017B65C, D_acropolis_forked_road_8018314C },
-    { D_map_akropolis_8017B67C, D_acropolis_forked_road_80183164 },
-    { D_map_akropolis_8017B6AC, D_acropolis_forked_road_80183188 },
+    { D_map_akropolis_8017B65C, _gAcropolisForkedRoadVariant20Resources },
+    { D_map_akropolis_8017B67C, _gAcropolisForkedRoadVariant21Resources },
+    { D_map_akropolis_8017B6AC, _gAcropolisForkedRoadVariant22Resources },
     { NULL, NULL },
 };
 
@@ -880,7 +1023,7 @@ SpriteBatch D_acropolis_forked_road_801844D0[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_forked_road_801844E0[12] = {
+SpriteView gAcropolisForkedRoadSpriteViews[12] = {
     { { .empty = _gAcropolisForkedRoadView1SpriteBatches }, _gAcropolisForkedRoadView1SpriteBatches, NULL },
     { { .elements = _gAcropolisForkedRoadView2SpriteSources }, _gAcropolisForkedRoadView2SpriteBatches, NULL },
     { { .elements = _gAcropolisForkedRoadViews3And12SpriteSources }, _gAcropolisForkedRoadViews3And12SpriteBatches, NULL },
@@ -942,8 +1085,8 @@ static WorldCoordRoomLights _gAcropolisForkedRoadRoomLights = {
     .coneLights            = NULL,
 };
 
-ViewCamera D_acropolis_forked_road_80184E88[12] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 2130, 0x61A8, 630 } }, 541 },
+ViewCamera gAcropolisForkedRoadViewCameras[12] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 2130, 0x61A8, 630 } }, 541 },
     { { { { 1721, 0, 3716 }, { 310, 4081, -143 }, { -3703, 342, 1715 } }, { -849, 1600, 2900 } }, 235 },
     { { { { 1174, 0, -3924 }, { -167, 4092, -50 }, { 3920, 174, 1173 } }, { 5150, 1500, 1530 } }, 235 },
     { { { { -3906, 0, 1229 }, { 110, 4079, 349 }, { -1225, 366, -3891 } }, { 3990, 1330, -439 } }, 257 },
@@ -957,11 +1100,24 @@ ViewCamera D_acropolis_forked_road_80184E88[12] = {
     { { { { 1174, 0, -3924 }, { -167, 4092, -50 }, { 3920, 174, 1173 } }, { 5150, 1500, 1530 } }, 235 },
 };
 
-PadScriptCmd D_acropolis_forked_road_80185038[6] = {
+enum {
+    ACROPOLIS_FORKED_ROAD_RETURN_VIBRATION_WAIT_FRAMES = 2,
+    ACROPOLIS_FORKED_ROAD_RETURN_VIBRATION_LOOP_COUNT  = 16,
+};
+
+/// Six-step on/off-motor vibration script for the return movie path.
+///
+/// Reads segments 0 and 1 of the return ride's segment table: a two-frame motor
+/// hold, a two-frame WAIT, then a one-frame hold. LOOP/JUMP repeat from step 0
+/// until the counter reaches zero; step 5 stops the lane. The variable motor
+/// lane stays stopped; segment intensities and its initial STOP operand are ignored.
+/// Commands are borrowed
+/// until the adopted vibration task is torn down; keep this overlay loaded.
+static PadScriptCmd _gAcropolisForkedRoadReturnMovieVibrationCommands[6] = {
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 1) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 2), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, ACROPOLIS_FORKED_ROAD_RETURN_VIBRATION_WAIT_FRAMES), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 16), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, ACROPOLIS_FORKED_ROAD_RETURN_VIBRATION_LOOP_COUNT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
@@ -1061,15 +1217,15 @@ WorldCollisionSurfaceProperties* gAcropolisForkedRoadSurfacePropertiesByClass[8]
 /// Copies a frame-indexed movie-path sample into the borrowed player root.
 ///
 /// Requires a live `RoomMoviePathWork` and index 0..299 in the room's
-/// `D_acropolis_forked_road_80180F80` path. Both arguments are evaluated three
+/// `_gAcropolisForkedRoadMoviePlayerPositions` path. Both arguments are evaluated three
 /// times, once per XYZ store, and must be stable and side-effect-free. Positions
 /// use whole room units; rotation and coordinate cache stamps are untouched.
 /// Expands to a braced statement block; use inside a braced scope.
-#define ACROPOLIS_FORKED_ROAD_APPLY_MOVIE_PATH_POSITION(movieWork, pathIndex)            \
-    {                                                                                    \
-        (movieWork)->playerMtx->t[0] = D_acropolis_forked_road_80180F80[(pathIndex)].vx; \
-        (movieWork)->playerMtx->t[1] = D_acropolis_forked_road_80180F80[(pathIndex)].vy; \
-        (movieWork)->playerMtx->t[2] = D_acropolis_forked_road_80180F80[(pathIndex)].vz; \
+#define ACROPOLIS_FORKED_ROAD_APPLY_MOVIE_PATH_POSITION(movieWork, pathIndex)                     \
+    {                                                                                             \
+        (movieWork)->playerMtx->t[0] = _gAcropolisForkedRoadMoviePlayerPositions[(pathIndex)].vx; \
+        (movieWork)->playerMtx->t[1] = _gAcropolisForkedRoadMoviePlayerPositions[(pathIndex)].vy; \
+        (movieWork)->playerMtx->t[2] = _gAcropolisForkedRoadMoviePlayerPositions[(pathIndex)].vz; \
     }
 
 /// Moves the player along the outbound movie path, then reloads the observatory.
@@ -1121,18 +1277,18 @@ static void _acropolisForkedRoadOutboundMoviePathTask(Task* task)
             entryPose.rot.vy = ACROPOLIS_FORKED_ROAD_OUTBOUND_YAW;
             entryPose.rot.vx = 0;
             entryPose.rot.vz = 0;
-            entryPose.pos.vx = D_acropolis_forked_road_80180F80[0].vx - ACROPOLIS_FORKED_ROAD_OUTBOUND_APPROACH_X_DISTANCE;
-            entryPose.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
-            entryPose.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
+            entryPose.pos.vx = _gAcropolisForkedRoadMoviePlayerPositions[0].vx - ACROPOLIS_FORKED_ROAD_OUTBOUND_APPROACH_X_DISTANCE;
+            entryPose.pos.vy = _gAcropolisForkedRoadMoviePlayerPositions[0].vy;
+            entryPose.pos.vz = _gAcropolisForkedRoadMoviePlayerPositions[0].vz;
             TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &entryPose, 0);
             task->state = task->state + 1;
             break;
 
         case ACROPOLIS_FORKED_ROAD_OUTBOUND_APPROACH:
             approachTarget.rot.vy = ACROPOLIS_FORKED_ROAD_OUTBOUND_YAW;
-            approachTarget.pos.vx = D_acropolis_forked_road_80180F80[0].vx;
-            approachTarget.pos.vy = D_acropolis_forked_road_80180F80[0].vy;
-            approachTarget.pos.vz = D_acropolis_forked_road_80180F80[0].vz;
+            approachTarget.pos.vx = _gAcropolisForkedRoadMoviePlayerPositions[0].vx;
+            approachTarget.pos.vy = _gAcropolisForkedRoadMoviePlayerPositions[0].vy;
+            approachTarget.pos.vz = _gAcropolisForkedRoadMoviePlayerPositions[0].vz;
             TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &approachTarget, 0);
             task->state = task->state + 1;
             break;
@@ -1204,8 +1360,6 @@ static void _acropolisForkedRoadReturnMoviePathTask(Task* task)
         ACROPOLIS_FORKED_ROAD_RETURN_REVEAL_TICK         = 3,
         ACROPOLIS_FORKED_ROAD_RETURN_YAW                 = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4,
         ACROPOLIS_FORKED_ROAD_RETURN_LOGICAL_VIEW        = 5,
-        ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_OUT         = 3,
-        ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_IN          = 4,
         ACROPOLIS_FORKED_ROAD_PRIMARY_CHARACTER_ID       = 1,
         ACROPOLIS_FORKED_ROAD_ALTERNATE_WEAPON_BANK_BASE = 0x22,
         ACROPOLIS_FORKED_ROAD_RETURN_IDLE_ANIMATION      = 1
@@ -1244,7 +1398,7 @@ static void _acropolisForkedRoadReturnMoviePathTask(Task* task)
         case ACROPOLIS_FORKED_ROAD_RETURN_WAIT_MOVIE:
             if (cdQueue->movieReady != 0) {
                 ACROPOLIS_FORKED_ROAD_APPLY_MOVIE_PATH_POSITION(movieWork, ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame);
-                movieWork->padScriptTask      = padScriptSpawn(D_acropolis_forked_road_80185038,
+                movieWork->padScriptTask      = padScriptSpawn(_gAcropolisForkedRoadReturnMovieVibrationCommands,
                                                                D_acropolis_forked_road_80185050);
                 gGameSession->padScriptFlags |= GAME_SESSION_PAD_SCRIPT_DURING_BATTLE_FREEZE;
                 taskReparent(task, movieWork->padScriptTask);
@@ -1266,23 +1420,23 @@ static void _acropolisForkedRoadReturnMoviePathTask(Task* task)
                 if (taskPollKill(movieWork->skipFadeTask, &fadeResult) != 0) {
                     exitPose.pos.vx = -0x190;
                     exitPose.pos.vy = 1;
-                    exitPose.pos.vz = D_acropolis_forked_road_80180F80[ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame].vz;
+                    exitPose.pos.vz = _gAcropolisForkedRoadMoviePlayerPositions[ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame].vz;
                     exitPose.rot.vz = 0;
                     exitPose.rot.vx = 0;
                     exitPose.rot.vy = ACROPOLIS_FORKED_ROAD_RETURN_YAW;
                     TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE, &exitPose, 0);
-                    taskSpawnFromTable(D_acropolis_forked_road_80180F44, ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_IN, 0, 0);
+                    taskSpawnFromTable(gAcropolisForkedRoadMovieTaskDescriptors, ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_IN, 0, 0);
                     task->state = task->state + 1;
                     break;
                 }
             } else if (padIsStartPressed() != 0) {
-                movieWork->skipFadeTask    = taskSpawnFromTable(D_acropolis_forked_road_80180F44, ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_OUT, 0, 0);
+                movieWork->skipFadeTask    = taskSpawnFromTable(gAcropolisForkedRoadMovieTaskDescriptors, ACROPOLIS_FORKED_ROAD_TASK_SKIP_FADE_OUT, 0, 0);
                 movieWork->skipFadeStarted = 1;
             }
             if ((ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame) < ACROPOLIS_FORKED_ROAD_RETURN_WALK_EXIT_INDEX) {
                 exitPose.pos.vx = -0x190;
                 exitPose.pos.vy = 1;
-                exitPose.pos.vz = D_acropolis_forked_road_80180F80[ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame].vz;
+                exitPose.pos.vz = _gAcropolisForkedRoadMoviePlayerPositions[ACROPOLIS_FORKED_ROAD_RETURN_FRAME_ORIGIN - cdQueue->movieFrame].vz;
                 TASK_MESSAGE_DISPATCH_POINTER(((RoomMoviePathWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &exitPose, 0);
                 task->state = task->state + 1;
             }
@@ -1371,16 +1525,16 @@ void acropolisForkedRoadInitializeRoomEffectsTask(Task* task)
     effectCoord = task->extra.coordBody->coord;
     if (task->state == ACROPOLIS_FORKED_ROAD_ROOM_EFFECTS_INITIALIZE) {
         for (lampIndex = 0; lampIndex < ACROPOLIS_FORKED_ROAD_CELL_0_SMALL_END; lampIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + ACROPOLIS_FORKED_ROAD_LAMP_SCALE_512, &D_acropolis_forked_road_80182178[lampIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + ACROPOLIS_FORKED_ROAD_LAMP_SCALE_512, &_gAcropolisForkedRoadWallLampPositions[lampIndex]);
         }
         for (lampIndex = ACROPOLIS_FORKED_ROAD_CELL_0_SMALL_END; lampIndex < ACROPOLIS_FORKED_ROAD_CELL_0_LARGE_END; lampIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + ACROPOLIS_FORKED_ROAD_LAMP_SCALE_768, &D_acropolis_forked_road_80182178[lampIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + ACROPOLIS_FORKED_ROAD_LAMP_SCALE_768, &_gAcropolisForkedRoadWallLampPositions[lampIndex]);
         }
         for (lampIndex = ACROPOLIS_FORKED_ROAD_CELL_0_LARGE_END; lampIndex < ACROPOLIS_FORKED_ROAD_CELL_1_END; lampIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + (ACROPOLIS_FORKED_ROAD_LAMP_SCALE_512 | ACROPOLIS_FORKED_ROAD_LAMP_CELL_1), &D_acropolis_forked_road_80182178[lampIndex]);
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + (ACROPOLIS_FORKED_ROAD_LAMP_SCALE_512 | ACROPOLIS_FORKED_ROAD_LAMP_CELL_1), &_gAcropolisForkedRoadWallLampPositions[lampIndex]);
         }
-        for (lampIndex = ACROPOLIS_FORKED_ROAD_CELL_1_END; lampIndex < (s32)ARRAY_SIZE(D_acropolis_forked_road_80182178); lampIndex++) {
-            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + ACROPOLIS_FORKED_ROAD_LAMP_CELL_2, &D_acropolis_forked_road_80182178[lampIndex]);
+        for (lampIndex = ACROPOLIS_FORKED_ROAD_CELL_1_END; lampIndex < (s32)ARRAY_SIZE(_gAcropolisForkedRoadWallLampPositions); lampIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_FORKED_ROAD_WALL_LAMP, effectCoord, lampIndex + ACROPOLIS_FORKED_ROAD_LAMP_CELL_2, &_gAcropolisForkedRoadWallLampPositions[lampIndex]);
         }
         gRoomEffectFlashId      = EFFECT_ACROPOLIS_FORKED_ROAD_FLASH;
         gRoomEffectTwinTrailId  = EFFECT_ACROPOLIS_FORKED_ROAD_TWIN_TRAIL;
@@ -1446,7 +1600,7 @@ void acropolisForkedRoadWallLampTask(Task* task)
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN &&
-        ((D_acropolis_forked_road_801821E8[task->spawnArg1.value & WALL_LAMP_INDEX_MASK] >> (gGameSession->location.loc.view - 1)) & 1)) {
+        ((_gAcropolisForkedRoadWallLampViewMasks[task->spawnArg1.value & WALL_LAMP_INDEX_MASK] >> (gGameSession->location.loc.view - 1)) & 1)) {
         actorRenderComposeCoord(coord);
         projection = SCRATCH_STACK_RESERVE_BLOCK(RoomGlowSpriteScratch);
         if (task->state == WALL_LAMP_INITIALIZE) {

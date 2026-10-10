@@ -13,8 +13,12 @@
 
 extern AreaVariant D_acropolis_forked_road_801831C4[24];
 
-// acropolis_forked_road
-extern WorldCollisionRoomResources D_acropolis_forked_road_80182214[];
+/// Collision resources for forked-road rooms 1..3, indexed by room minus one.
+///
+/// All three entries borrow the same grid, six view boundaries and seven action
+/// triggers; no sight occluders are supplied. Setup mutates the grid's view parent
+/// and links the triggers. Keep this overlay loaded until those resources are unlinked.
+extern WorldCollisionRoomResources gAcropolisForkedRoadRoomCollisionResources[3];
 
 /// Logical-view maps for forked-road rooms 1..3, indexed by room minus one.
 ///
@@ -25,7 +29,12 @@ extern WorldCollisionRoomResources D_acropolis_forked_road_80182214[];
 /// while its maps are borrowed by the stage directory.
 extern u8* gAcropolisForkedRoadViewMaps[3];
 
-extern ViewCount D_acropolis_forked_road_80182268[];
+/// Logical-view search counts for forked-road rooms 1..3, indexed by room minus one.
+///
+/// Room 1 searches ten map bytes; rooms 2 and 3 search nine. These counts do not
+/// describe the maps' capacities or the twelve mapped sprite/camera slots.
+/// No terminator; the stage directory borrows this array while the overlay is loaded.
+extern ViewCount gAcropolisForkedRoadViewCounts[3];
 
 /// Model-lighting resources for forked-road rooms 1..3, indexed by room minus one.
 ///
@@ -34,11 +43,32 @@ extern ViewCount D_acropolis_forked_road_80182268[];
 /// ambient minima. Keep this overlay loaded while its resources are borrowed.
 extern WorldCoordRoomLighting gAcropolisForkedRoadRoomLightingTable[3];
 
-extern DirectionWarpEntry D_acropolis_forked_road_80182288[];
+/// Arrival placements and departure policies for forked-road warp slots 1..5.
+///
+/// Indexed by warp minus one, with no terminator. Slots 2 and 5 share the
+/// observatory-route placements but select views 8 and 3. Slot 3 is the fountain
+/// exit with door cues and a map marker; slot 4 is the scripted arrival from the square.
+/// Positions use room units and yaw uses 4096 per turn. Borrowed until copied by
+/// the direction code; keep this overlay loaded through that copy.
+extern DirectionWarpEntry gAcropolisForkedRoadWarpEntries[5];
 
-extern SpriteView D_acropolis_forked_road_801844E0[];
+/// Sprite resources for twelve mapped forked-road views, indexed by mapped view minus one.
+///
+/// Slots 3/12 and 7/8 share their respective sources and batches. Slots 1, 4, 6,
+/// 9 and 10 retain their empty batch lists in the source slot, without source
+/// elements. Every draw-area pointer is NULL. Slots 11/12 are retained outside
+/// the current logical-view mappings. Keep this overlay loaded while these
+/// mutable descriptors, sources and batch lists are borrowed for rendering.
+extern SpriteView gAcropolisForkedRoadSpriteViews[12];
 
-extern ViewCamera D_acropolis_forked_road_80184E88[];
+/// Cameras for twelve mapped forked-road views, indexed by mapped view minus one.
+///
+/// Rotation coefficients use `ONE`; translation is the negated world-space
+/// camera origin in whole room units, and projection distance is in pixels.
+/// Slots 3/5/12 contain equal camera values, as do 7/8; each has separate storage.
+/// Slots 11/12 are retained outside the current logical-view mappings. No
+/// terminator; keep this overlay loaded until a borrowed camera has been applied.
+extern ViewCamera gAcropolisForkedRoadViewCameras[12];
 
 /// Collision and footstep policies indexed by the forked road's surface class 0..7.
 ///

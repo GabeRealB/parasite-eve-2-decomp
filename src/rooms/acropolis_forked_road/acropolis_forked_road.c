@@ -88,7 +88,6 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
         ACROPOLIS_FORKED_ROAD_DESTINATION_ROOM_UNLOCKED = 2,
         ACROPOLIS_FORKED_ROAD_OBSERVATORY_NORMAL_WARP   = 2,
         ACROPOLIS_FORKED_ROAD_OUTBOUND_MOVIE_VIEW       = 7,
-        ACROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE       = 0,
         ACROPOLIS_FORKED_ROAD_MAP_MARKER_SEEN           = 2,
         ACROPOLIS_FORKED_ROAD_ROUTE_CAP_COMMAND         = 2
     };
@@ -135,7 +134,7 @@ static s32 _acropolisForkedRoadResolveTransitionMessage(Task* unusedTask, s32 me
                 // Select the movie view before starting the controller that owns the departure.
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_FORKED_ROAD_OUTBOUND_MOVIE_VIEW;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(D_acropolis_forked_road_80180F44, ACROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE, 0, 0);
+                taskSpawnFromTable(gAcropolisForkedRoadMovieTaskDescriptors, ACROPOLIS_FORKED_ROAD_TASK_OUTBOUND_MOVIE, 0, 0);
                 gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_FORKED_ROAD_ROUTE_MOVIE_STARTED);
             }
             return 0;
@@ -208,7 +207,7 @@ static s32 _acropolisForkedRoadHandleActionMessage(Task* unusedTask, s32 message
     if (actionRequest->actionId == ACROPOLIS_FORKED_ROAD_ACTION_LOCK_RELEASE_EVENT && (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_FORKED_ROAD_EVENT_LOCK_BIT)) {
         placementVariant = gGameSession->location.loc.variant;
         if (((placementVariant == ACROPOLIS_FORKED_ROAD_EVENT_VARIANT_4) || (placementVariant == ACROPOLIS_FORKED_ROAD_EVENT_VARIANT_8)) && (gameFlagGetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 0)) {
-            evsStartScript(D_acropolis_forked_road_801820B8, EVENT_SCRIPT_HUD_KEEP);
+            evsStartScript(gAcropolisForkedRoadLockReleaseScript, EVENT_SCRIPT_HUD_KEEP);
             gameFlagSetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN, 1);
         }
     }
@@ -233,12 +232,11 @@ static void _acropolisForkedRoadInitializeRoomTask(Task* task)
 static void _acropolisForkedRoadStartReturnArrivalScene(Task* unusedTask)
 {
     enum {
-        ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP = 2,
-        ACROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE   = 2
+        ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP = 2
     };
     if ((D_acropolis_forked_road_80180F3C.spawned == 0) && (gGameSession->location.loc.warp == ACROPOLIS_FORKED_ROAD_RETURN_ARRIVAL_WARP)) {
         D_acropolis_forked_road_80180F3C.spawned = 1;
-        taskSpawnFromTable(D_acropolis_forked_road_80180F44, ACROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE, 0, 0);
+        taskSpawnFromTable(gAcropolisForkedRoadMovieTaskDescriptors, ACROPOLIS_FORKED_ROAD_TASK_RETURN_MOVIE, 0, 0);
     }
 }
 
