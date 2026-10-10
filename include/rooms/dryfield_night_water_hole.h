@@ -19,9 +19,23 @@ extern AreaVariant D_dryfield_night_water_hole_80183418[22];
 // dryfield_night_water_hole
 extern WorldCollisionRoomResources D_dryfield_night_water_hole_80180A04[];
 
-extern WorldCoordRoomLighting D_dryfield_night_water_hole_80180A44[];
+/// Lighting and logical-view ambient minima for the night water hole's four rooms.
+///
+/// Indexed by room - 1 (rooms 1..4). Rooms 1 and 3 share the underpass-switch-1
+/// on bank; rooms 2 and 4 share its off bank. Ambient entries use logical views
+/// 1..11, independently of the mapped camera/image index. The stage directory
+/// borrows these records and their mutable lights while this overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldNightWaterHoleRoomLighting[4];
 
-extern u8* D_dryfield_night_water_hole_80180A94[];
+/// Logical-view maps for the night water hole's four room selectors.
+///
+/// Indexed by room - 1, then logical view - 1 (rooms 1..4, views 1..11).
+/// Entries are unsigned 1-based camera/image/sprite indices within 1..26;
+/// each map retains a twelfth zero byte outside the view count, not a terminator.
+/// Rooms 1/3 select switch-on resources, rooms 2/4 switch-off resources; rooms
+/// 3/4 substitute mapped indices for logical views 7/8. The stage directory
+/// borrows the maps only while this overlay is loaded.
+extern u8* gDryfieldNightWaterHoleViewMaps[4];
 
 extern ViewCount D_dryfield_night_water_hole_80180AA4[];
 
@@ -31,7 +45,16 @@ extern ViewCamera D_dryfield_night_water_hole_80180F74[];
 
 extern SpriteView D_dryfield_night_water_hole_80182384[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_water_hole_801835F8[];
+/// Active collision policies and footstep cues for this room's eight surface classes.
+///
+/// Indexed directly by surface class 0..7, independently of room selector.
+/// All defaults block probes, allow weapon impacts and apply pushback. Classes
+/// 1/2 use footstep bases 37/39/41; class 6 uses 61/63/61. Classes 0/3/4/5/7
+/// have no footstep cues. Opening the Shelter route replaces slots 1/2/4 with
+/// records using 61/63/61. Cue order is walk/run/scripted jump in the loaded
+/// type-1 sound bank. The stage directory borrows this mutable table and its
+/// records only while this overlay is loaded; there is no terminal entry.
+extern WorldCollisionSurfaceProperties* gDryfieldNightWaterHoleSurfacePropertiesByClass[8];
 
 /// Advances and draws one eight-cell water-spray particle in this room.
 ///
