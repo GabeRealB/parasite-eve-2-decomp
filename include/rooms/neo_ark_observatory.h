@@ -11,7 +11,12 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_neo_ark_observatory_80180DBC[2];
+/// Spawn descriptors for the room's player reflection and its attachment reflections.
+///
+/// Slot 0 starts the player reflection; slot 1 starts attachment or equipment
+/// reflections. Both start bodyless at priority 112. There is no terminator.
+/// The callbacks and their room resources require this overlay to stay loaded.
+extern TaskDesc gNeoArkObservatoryReflectionTaskDescs[2];
 
 extern AreaVariant D_neo_ark_observatory_8018786C[13];
 
@@ -38,7 +43,14 @@ extern DirectionWarpEntry D_neo_ark_observatory_801815E8[];
 
 extern ViewCamera D_neo_ark_observatory_80181FC8[];
 
-extern SpriteView D_neo_ark_observatory_801860E8[];
+/// Sprite resources for mapped camera views 1..21, indexed by mapped view minus one.
+///
+/// All views retain decoded background strips and use no draw-area clipping.
+/// Views 1, 2, 13, 15, 16, 20 and 21 select no source sprites; their source slot
+/// retains the zero-count batch-list address. Lists and mutable source records
+/// are borrowed while the observatory overlay is loaded. Logical views reach
+/// this table through `gNeoArkObservatoryViewMaps`.
+extern SpriteView gNeoArkObservatorySpriteViews[21];
 
 /// Collision and footstep properties indexed by the room-local surface class (0..7).
 ///

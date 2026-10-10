@@ -937,7 +937,7 @@ static SpriteView* D_map_neo_ark_8017ADB4[33] = {
     gShelter1fHeliportSpriteViews,
     gShelter1fAirlockSpriteViews,
     gShelter1fGuardroomSpriteViews,
-    D_neo_ark_observatory_801860E8,
+    gNeoArkObservatorySpriteViews,
     gNeoArkEveAccessTunnelSpriteViews,
     gNeoArkEveElevatorSpriteViews,
     gNeoArkNorthPromenadeSpriteViews,

@@ -2177,7 +2177,7 @@ void sceneStartRoomTasks(void)
             taskSpawnFromTable(&D_neo_ark_submarine_tunnel_801810E4, SCENE_ROOM_WATER_DISTORTION_TASK_INDEX, 0, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 0, 0):
-            taskSpawnFromTable(D_neo_ark_observatory_80180DBC, 0, SCENE_ROOM_REFLECTION_MODE_FLOOR, 0);
+            taskSpawnFromTable(gNeoArkObservatoryReflectionTaskDescs, 0, SCENE_ROOM_REFLECTION_MODE_FLOOR, 0);
             break;
         case GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_MOTEL_ROOM_6, 0, 0):
             taskSpawnFromTable(gDryfieldMotelRoom6ReflectionTaskDescs, 0, SCENE_ROOM_REFLECTION_MODE_PLANE, 0);

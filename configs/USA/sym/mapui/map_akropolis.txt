@@ -118,7 +118,7 @@ gAcropolisSanctuaryViewMaps = 0x801827FC; // absolute:True owner=acropolis_sanct
 gAcropolisSanctuaryViewCounts = 0x80182800; // absolute:True owner=acropolis_sanctuary
 gAcropolisSanctuaryRoomLightingTable = 0x80182804; // absolute:True owner=acropolis_sanctuary shared=rooms
 gAcropolisSanctuaryWarpEntries = 0x8018280C; // absolute:True owner=acropolis_sanctuary shared=rooms
-gAcropolisSanctuarySpriteViews = 0x801860C8; // absolute:True owner=acropolis_sanctuary shared=rooms
+gAcropolisSanctuarySpriteViews = 0x801860C8; // absolute:True owner=acropolis_sanctuary
 gAcropolisSanctuaryViewCameras = 0x80186188; // absolute:True owner=acropolis_sanctuary
 gAcropolisSanctuarySurfacePropertiesByClass = 0x801863F8; // absolute:True owner=acropolis_sanctuary
 gAcropolisSanctuaryModel090F0 = 0x80186A08; // absolute:True owner=acropolis_sanctuary
@@ -156,7 +156,7 @@ acropolisHelicopterLandingPadLiftTask = 0x8017D964; // type:func absolute:True o
 acropolisHelicopterLandingPadRoomTask = 0x8017EB00; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 acropolisHelicopterLandingPadPickupModelTask = 0x801822B0; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 gAcropolisHelicopterLandingPadModel0547C = 0x801836EC; // absolute:True owner=acropolis_helicopter_landing_pad
-D_acropolis_helicopter_landing_pad_80184F10 = 0x80184F10; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
+D_acropolis_helicopter_landing_pad_80184F10 = 0x80184F10; // absolute:True owner=acropolis_helicopter_landing_pad
 gAcropolisHelicopterLandingPadViewMaps = 0x80184F3C; // absolute:True owner=acropolis_helicopter_landing_pad
 gAcropolisHelicopterLandingPadViewCounts = 0x80184F40; // absolute:True owner=acropolis_helicopter_landing_pad shared=rooms
 gAcropolisHelicopterLandingPadRoomLightingTable = 0x80184F44; // absolute:True owner=acropolis_helicopter_landing_pad

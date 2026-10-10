@@ -90,20 +90,15 @@ extern SVECTOR D_neo_ark_observatory_80181368;
 
 extern WorldCollisionGrid gFollowCollisionSource;
 static WorldCollisionGrid _gNeoArkObservatoryCollisionGrid;
-extern SVECTOR            D_neo_ark_observatory_80181434[];
-extern SVECTOR            D_neo_ark_observatory_801814E4[];
-extern SVECTOR            D_neo_ark_observatory_801814F4[];
-extern SVECTOR            D_neo_ark_observatory_801814FC[];
-extern SVECTOR            D_neo_ark_observatory_8018150C[];
-extern SVECTOR            D_neo_ark_observatory_8018151C[];
-extern SVECTOR            D_neo_ark_observatory_80181524[];
-extern SVECTOR            D_neo_ark_observatory_80181564[];
-extern SVECTOR            D_neo_ark_observatory_80181574[];
-extern SVECTOR            D_neo_ark_observatory_8018157C[];
 
 extern AreaApplyRec  D_neo_ark_observatory_80187A28[];
 extern RoomDeparture gRoomDeparture;
-extern s16           D_neo_ark_observatory_80187A3C;
+
+/// Signed base grey intensity for the room's light beams, reset on the glow task's first tick.
+///
+/// The setter stores the low halfword without clamping. Drawing adds a
+/// four-frame pulse of -4..4 and rejects negative results before narrowing RGB.
+static s16 _gNeoArkObservatoryLightBeamIntensity;
 
 /// Defines the reflection scale at the shared implementation's include position.
 ///
@@ -156,9 +151,11 @@ static void _neoArkObservatoryCapEventTask(Task* task);
 
 #include "../../shared/planar_reflection_data.inc.c"
 
-TaskDesc D_neo_ark_observatory_80180DBC[2] = {
-    { { { TASK_BODY_NONE, 112 } }, _neoArkObservatoryPlayerReflectionTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 112 } }, _planarReflectionAttachmentTask, { .value = 0 } },
+enum { NEO_ARK_OBSERVATORY_REFLECTION_PRIORITY = 112 };
+
+TaskDesc gNeoArkObservatoryReflectionTaskDescs[2] = {
+    { { { TASK_BODY_NONE, NEO_ARK_OBSERVATORY_REFLECTION_PRIORITY } }, _neoArkObservatoryPlayerReflectionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, NEO_ARK_OBSERVATORY_REFLECTION_PRIORITY } }, _planarReflectionAttachmentTask, { .value = 0 } },
 };
 
 /// Borrows this overlay's two reflection task descriptors.
@@ -168,7 +165,7 @@ TaskDesc D_neo_ark_observatory_80180DBC[2] = {
 /// while the overlay is loaded; the caller neither owns nor copies the table.
 static inline TaskDesc* _planarReflectionGetTaskTable(void)
 {
-    return D_neo_ark_observatory_80180DBC;
+    return gNeoArkObservatoryReflectionTaskDescs;
 }
 
 TaskDesc D_neo_ark_observatory_80180DD4 = { { { TASK_BODY_NONE, 32 } }, roomEventDepartureTask, { .value = 0 } };
@@ -276,7 +273,20 @@ static s16* _gNeoArkObservatoryCollision03E50Table[1] = {
 
 WorldCollisionGrid gFollowCollisionSource = { NULL, _gNeoArkObservatoryCollision03E50Normals, _gNeoArkObservatoryCollision03E50Verts, _gNeoArkObservatoryCollision03E50Faces, _gNeoArkObservatoryCollision03E50Table, 399, 500, 1, 1, 4000, 4 };
 
-SVECTOR D_neo_ark_observatory_80181434[22] = {
+enum {
+    NEO_ARK_OBSERVATORY_HIGH_GLOW_FIRST = 22,
+    NEO_ARK_OBSERVATORY_LOW_GLOW_FIRST  = 29,
+};
+
+/// World-space ring centres and glow points for the observatory's mapped views.
+///
+/// Elements 0..21 are eleven consecutive beam pairs, inner ring then outer
+/// ring. Elements 22..28 are high glow points; 29..43 are low glow points.
+/// View selections borrow interior pointers into this complete bank, so both
+/// positive and negative element offsets stay within it. XYZ uses signed
+/// 16-bit room coordinates; the fourth halfword is unused by the drawers.
+static SVECTOR _gNeoArkObservatoryLightPositions[44] = {
+    // Beam ring centres.
     { 512, -5120, 8192, 0 },
     { 512, -1024, 8192, 0 },
     { 1536, -5120, 8448, 0 },
@@ -299,32 +309,16 @@ SVECTOR D_neo_ark_observatory_80181434[22] = {
     { 4096, 0, 1536, 0 },
     { 4096, -3584, 0x3600, 0 },
     { 4096, 0, 0x3600, 0 },
-};
-
-SVECTOR D_neo_ark_observatory_801814E4[2] = {
+    // High glow points.
     { 0x2EE0, -3000, 0x2EE0, 0 },
     { 1000, -3000, 0x2EE0, 0 },
-};
-
-SVECTOR D_neo_ark_observatory_801814F4[1] = {
     { 8000, -3000, 0x2EE0, 0 },
-};
-
-SVECTOR D_neo_ark_observatory_801814FC[2] = {
     { 8000, -3000, 0x2710, 0 },
     { 8000, -3000, 8000, 0 },
-};
-
-SVECTOR D_neo_ark_observatory_8018150C[2] = {
     { 8000, -3000, 6000, 0 },
     { 8000, -3000, 4000, 0 },
-};
-
-SVECTOR D_neo_ark_observatory_8018151C[1] = {
+    // Low glow points.
     { 5640, -210, 3030, 0 },
-};
-
-SVECTOR D_neo_ark_observatory_80181524[8] = {
     { 5640, -210, 2580, 0 },
     { 5640, -210, 30, 0 },
     { 5640, -210, 0x325A, 0 },
@@ -333,18 +327,9 @@ SVECTOR D_neo_ark_observatory_80181524[8] = {
     { 4110, -70, 360, 0 },
     { 2380, -70, 1400, 0 },
     { 980, -70, 3160, 0 },
-};
-
-SVECTOR D_neo_ark_observatory_80181564[2] = {
     { 60, -70, 5640, 0 },
     { -240, -70, 8000, 0 },
-};
-
-SVECTOR D_neo_ark_observatory_80181574[1] = {
     { 70, -70, 0x292C, 0 },
-};
-
-SVECTOR D_neo_ark_observatory_8018157C[3] = {
     { 970, -70, 0x321E, 0 },
     { 2380, -70, 0x38FE, 0 },
     { 4120, -70, 0x3D0E, 0 },
@@ -1015,7 +1000,12 @@ static SpriteBatch _gNeoArkObservatoryView9SpriteBatches[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_80184288[76] = {
+/// Texture rectangles and sorting depths for mapped view 10.
+///
+/// Positions are pixels relative to the view's drawing origin; sizes are
+/// pixels, UVs are texels, and depth is the unscaled ordering value. This view's
+/// batches select source ranges in elements while the room overlay is loaded.
+static SpriteSource _gNeoArkObservatoryView10SpriteSources[76] = {
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 1150, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 24, 1150, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, -24, 1150, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
@@ -1094,18 +1084,27 @@ SpriteSource D_neo_ark_observatory_80184288[76] = {
     { 142, 0x3FC0, { .fields = { 40, 24 } }, -72, 88, 1200, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_80184878[8] = {
+/// Drawing ranges for mapped view 10, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges cover this view's complete source array in elements.
+static SpriteBatch _gNeoArkObservatoryView10SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 19, 0, 0, { 3, 0 } },
     { 19, 18, 0, 0, { 0, 0 } },
     { 37, 21, 0, 0, { 5, 0 } },
     { 58, 14, 0, 0, { 1, 0 } },
     { 72, 2, 0, 0, { 4, 0 } },
-    { 74, 2, 0, 0, { 2, 0 } },
+    { 74, ARRAY_SIZE(_gNeoArkObservatoryView10SpriteSources) - 74, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_801848B8[78] = {
+/// Texture rectangles and sorting depths for mapped view 11.
+///
+/// Positions are pixels relative to the view's drawing origin; sizes are
+/// pixels, UVs are texels, and depth is the unscaled ordering value. This view's
+/// batches select source ranges in elements while the room overlay is loaded.
+static SpriteSource _gNeoArkObservatoryView11SpriteSources[78] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 80, -80, 1450, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 72, 1200, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 24, 1200, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
@@ -1186,18 +1185,27 @@ SpriteSource D_neo_ark_observatory_801848B8[78] = {
     { 142, 0x3FC0, { .fields = { 32, 40 } }, 32, 40, 1187, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_80184ED0[8] = {
+/// Drawing ranges for mapped view 11, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges cover this view's complete source array in elements.
+static SpriteBatch _gNeoArkObservatoryView11SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 3, 0 } },
     { 20, 18, 0, 0, { 0, 0 } },
     { 38, 22, 0, 0, { 5, 0 } },
     { 60, 14, 0, 0, { 1, 0 } },
     { 74, 2, 0, 0, { 4, 0 } },
-    { 76, 2, 0, 0, { 2, 0 } },
+    { 76, ARRAY_SIZE(_gNeoArkObservatoryView11SpriteSources) - 76, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_80184F10[23] = {
+/// Texture rectangles and sorting depths for mapped view 12.
+///
+/// Positions are pixels relative to the view's drawing origin; sizes are
+/// pixels, UVs are texels, and depth is the unscaled ordering value. This view's
+/// batches select source ranges in elements while the room overlay is loaded.
+static SpriteSource _gNeoArkObservatoryView12SpriteSources[23] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, -80, 1125, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 64, 1125, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 16, 1125, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
@@ -1223,18 +1231,31 @@ SpriteSource D_neo_ark_observatory_80184F10[23] = {
     { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, 64, 1125, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_801850DC[3] = {
+/// Drawing ranges for mapped view 12, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges cover this view's complete source array in elements.
+static SpriteBatch _gNeoArkObservatoryView12SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 23, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkObservatoryView12SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_observatory_801850F4[2] = {
+/// Drawing ranges for mapped view 13, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// No source sprites are selected; the source slot retains this list address.
+static SpriteBatch _gNeoArkObservatoryView13SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_80185104[14] = {
+/// Texture rectangles and sorting depths for mapped view 14.
+///
+/// Positions are pixels relative to the view's drawing origin; sizes are
+/// pixels, UVs are texels, and depth is the unscaled ordering value. This view's
+/// batches select source ranges in elements while the room overlay is loaded.
+static SpriteSource _gNeoArkObservatoryView14SpriteSources[14] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 64, 1000, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, 64, 1000, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, -64, 80, 1000, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
@@ -1251,23 +1272,40 @@ SpriteSource D_neo_ark_observatory_80185104[14] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, -120, 1000, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_8018521C[3] = {
+/// Drawing ranges for mapped view 14, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges cover this view's complete source array in elements.
+static SpriteBatch _gNeoArkObservatoryView14SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 14, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkObservatoryView14SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_observatory_80185234[2] = {
+/// Drawing ranges for mapped view 15, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// No source sprites are selected; the source slot retains this list address.
+static SpriteBatch _gNeoArkObservatoryView15SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_observatory_80185244[2] = {
+/// Drawing ranges for mapped view 16, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// No source sprites are selected; the source slot retains this list address.
+static SpriteBatch _gNeoArkObservatoryView16SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_80185254[21] = {
+/// Texture rectangles and sorting depths for mapped view 17.
+///
+/// Positions are pixels relative to the view's drawing origin; sizes are
+/// pixels, UVs are texels, and depth is the unscaled ordering value. This view's
+/// batches select source ranges in elements while the room overlay is loaded.
+static SpriteSource _gNeoArkObservatoryView17SpriteSources[21] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, -88, 1200, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 56, 1125, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 8, 1125, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
@@ -1291,13 +1329,22 @@ SpriteSource D_neo_ark_observatory_80185254[21] = {
     { 143, 0x3FC0, { .fields = { 8, 48 } }, 48, 56, 1200, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_801853F8[3] = {
+/// Drawing ranges for mapped view 17, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges cover this view's complete source array in elements.
+static SpriteBatch _gNeoArkObservatoryView17SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 21, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gNeoArkObservatoryView17SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_80185410[82] = {
+/// Texture rectangles and sorting depths for mapped view 18.
+///
+/// Positions are pixels relative to the view's drawing origin; sizes are
+/// pixels, UVs are texels, and depth is the unscaled ordering value. This view's
+/// batches select source ranges in elements while the room overlay is loaded.
+static SpriteSource _gNeoArkObservatoryView18SpriteSources[82] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, -40, -80, 975, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -72, 987, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
     { 141, 0x3FC0, { .fields = { 8, 8 } }, -40, -8, 1275, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
@@ -1382,17 +1429,26 @@ SpriteSource D_neo_ark_observatory_80185410[82] = {
     { 141, 0x3FC0, { .fields = { 32, 8 } }, -80, 32, 1712, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_neo_ark_observatory_80185A78[7] = {
+/// Drawing ranges for mapped view 18, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges cover this view's complete source array in elements.
+static SpriteBatch _gNeoArkObservatoryView18SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 26, 0, 0, { 0, 0 } },
     { 26, 10, 0, 0, { 3, 0 } },
     { 36, 23, 0, 0, { 2, 0 } },
     { 59, 8, 0, 0, { 4, 0 } },
-    { 67, 15, 0, 0, { 1, 0 } },
+    { 67, ARRAY_SIZE(_gNeoArkObservatoryView18SpriteSources) - 67, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_neo_ark_observatory_80185AB0[74] = {
+/// Texture rectangles and sorting depths for mapped view 19.
+///
+/// Positions are pixels relative to the view's drawing origin; sizes are
+/// pixels, UVs are texels, and depth is the unscaled ordering value. This view's
+/// batches select source ranges in elements while the room overlay is loaded.
+static SpriteSource _gNeoArkObservatoryView19SpriteSources[74] = {
     { 142, 0x3FC0, { .fields = { 24, 32 } }, -160, 64, 1550, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 32 } }, -160, 32, 1550, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 32, 40 } }, -160, -8, 1550, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
@@ -1469,7 +1525,11 @@ SpriteSource D_neo_ark_observatory_80185AB0[74] = {
     { 143, 0x4040, { .fields = { 32, 48 } }, -112, 48, 1300, { .fields = { 64, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_neo_ark_observatory_80186078[10] = {
+/// Drawing ranges for mapped view 19, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// Remaining ranges cover this view's complete source array in elements.
+static SpriteBatch _gNeoArkObservatoryView19SpriteBatches[10] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 0, 0 } },
     { 16, 11, 0, 0, { 4, 0 } },
@@ -1478,21 +1538,29 @@ SpriteBatch D_neo_ark_observatory_80186078[10] = {
     { 46, 7, 0, 0, { 1, 0 } },
     { 53, 12, 0, 0, { 6, 0 } },
     { 65, 6, 0, 0, { 7, 0 } },
-    { 71, 3, 0, 0, { 2, 0 } },
+    { 71, ARRAY_SIZE(_gNeoArkObservatoryView19SpriteSources) - 71, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_observatory_801860C8[2] = {
+/// Drawing ranges for mapped view 20, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// No source sprites are selected; the source slot retains this list address.
+static SpriteBatch _gNeoArkObservatoryView20SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_neo_ark_observatory_801860D8[2] = {
+/// Drawing ranges for mapped view 21, ending with `SPRITE_BATCH_END`.
+///
+/// The zero-count first record keeps decoded background strips enabled.
+/// No source sprites are selected; the source slot retains this list address.
+static SpriteBatch _gNeoArkObservatoryView21SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_neo_ark_observatory_801860E8[21] = {
+SpriteView gNeoArkObservatorySpriteViews[21] = {
     { { .empty = _gNeoArkObservatoryView1SpriteBatches }, _gNeoArkObservatoryView1SpriteBatches, NULL },
     { { .empty = _gNeoArkObservatoryView2SpriteBatches }, _gNeoArkObservatoryView2SpriteBatches, NULL },
     { { .elements = _gNeoArkObservatoryView3SpriteSources }, _gNeoArkObservatoryView3SpriteBatches, NULL },
@@ -1502,18 +1570,18 @@ SpriteView D_neo_ark_observatory_801860E8[21] = {
     { { .elements = _gNeoArkObservatoryView7SpriteSources }, _gNeoArkObservatoryView7SpriteBatches, NULL },
     { { .elements = _gNeoArkObservatoryView8SpriteSources }, _gNeoArkObservatoryView8SpriteBatches, NULL },
     { { .elements = _gNeoArkObservatoryView9SpriteSources }, _gNeoArkObservatoryView9SpriteBatches, NULL },
-    { { .elements = D_neo_ark_observatory_80184288 }, D_neo_ark_observatory_80184878, NULL },
-    { { .elements = D_neo_ark_observatory_801848B8 }, D_neo_ark_observatory_80184ED0, NULL },
-    { { .elements = D_neo_ark_observatory_80184F10 }, D_neo_ark_observatory_801850DC, NULL },
-    { { .empty = D_neo_ark_observatory_801850F4 }, D_neo_ark_observatory_801850F4, NULL },
-    { { .elements = D_neo_ark_observatory_80185104 }, D_neo_ark_observatory_8018521C, NULL },
-    { { .empty = D_neo_ark_observatory_80185234 }, D_neo_ark_observatory_80185234, NULL },
-    { { .empty = D_neo_ark_observatory_80185244 }, D_neo_ark_observatory_80185244, NULL },
-    { { .elements = D_neo_ark_observatory_80185254 }, D_neo_ark_observatory_801853F8, NULL },
-    { { .elements = D_neo_ark_observatory_80185410 }, D_neo_ark_observatory_80185A78, NULL },
-    { { .elements = D_neo_ark_observatory_80185AB0 }, D_neo_ark_observatory_80186078, NULL },
-    { { .empty = D_neo_ark_observatory_801860C8 }, D_neo_ark_observatory_801860C8, NULL },
-    { { .empty = D_neo_ark_observatory_801860D8 }, D_neo_ark_observatory_801860D8, NULL },
+    { { .elements = _gNeoArkObservatoryView10SpriteSources }, _gNeoArkObservatoryView10SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView11SpriteSources }, _gNeoArkObservatoryView11SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView12SpriteSources }, _gNeoArkObservatoryView12SpriteBatches, NULL },
+    { { .empty = _gNeoArkObservatoryView13SpriteBatches }, _gNeoArkObservatoryView13SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView14SpriteSources }, _gNeoArkObservatoryView14SpriteBatches, NULL },
+    { { .empty = _gNeoArkObservatoryView15SpriteBatches }, _gNeoArkObservatoryView15SpriteBatches, NULL },
+    { { .empty = _gNeoArkObservatoryView16SpriteBatches }, _gNeoArkObservatoryView16SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView17SpriteSources }, _gNeoArkObservatoryView17SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView18SpriteSources }, _gNeoArkObservatoryView18SpriteBatches, NULL },
+    { { .elements = _gNeoArkObservatoryView19SpriteSources }, _gNeoArkObservatoryView19SpriteBatches, NULL },
+    { { .empty = _gNeoArkObservatoryView20SpriteBatches }, _gNeoArkObservatoryView20SpriteBatches, NULL },
+    { { .empty = _gNeoArkObservatoryView21SpriteBatches }, _gNeoArkObservatoryView21SpriteBatches, NULL },
 };
 
 /// The 17 point lights for room configuration 1.
@@ -1694,8 +1762,6 @@ AreaApplyRec D_neo_ark_observatory_80187A28[2] = {
 };
 
 RoomDeparture gRoomDeparture;
-
-s16 D_neo_ark_observatory_80187A3C;
 
 static __inline__ void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve);
 static void            _neoArkObservatoryInitializeRoom(Task* task);
@@ -2056,20 +2122,20 @@ void neoArkObservatoryGlowTask(Task* effectTask)
     u8 mappedView;
 
     if (effectTask->state == NEO_ARK_OBSERVATORY_GLOW_STATE_INIT) {
-        D_neo_ark_observatory_80187A3C = 0;
-        effectTask->state              = NEO_ARK_OBSERVATORY_GLOW_STATE_DRAW;
+        _gNeoArkObservatoryLightBeamIntensity = 0;
+        effectTask->state                     = NEO_ARK_OBSERVATORY_GLOW_STATE_DRAW;
     }
 
     // Select the lights visible in the mapped camera, including alternate room views.
-    // Retained offsets span light-position storage split into separate array symbols.
+    // Interior pointers select overlapping glow groups and beam pairs in the same bank.
     mappedView = viewGetMappedIndex();
     switch (mappedView) {
         case 2:
-            glowDrawDisc(&D_neo_ark_observatory_801814E4[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_HIGH_GLOW_FIRST], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         case 3: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_801814F4;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_HIGH_GLOW_FIRST + 2];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
@@ -2077,7 +2143,7 @@ void neoArkObservatoryGlowTask(Task* effectTask)
         case 4:
         case 16: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_801814FC;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_HIGH_GLOW_FIRST + 3];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
@@ -2087,27 +2153,27 @@ void neoArkObservatoryGlowTask(Task* effectTask)
         case 5:
         case 17: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_8018150C;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_HIGH_GLOW_FIRST + 5];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         }
         case 6:
         case 18:
-            glowDrawDisc(&D_neo_ark_observatory_8018151C[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
+            glowDrawDisc(&_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_LOW_GLOW_FIRST], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         case 7: {
             const SVECTOR* beamCenters;
-            beamCenters = D_neo_ark_observatory_80181434;
-            _neoArkObservatoryDrawLightBeam(&beamCenters[0], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
-            _neoArkObservatoryDrawLightBeam(&beamCenters[2], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 0xC);
-            _neoArkObservatoryDrawLightBeam(&beamCenters[4], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
+            beamCenters = _gNeoArkObservatoryLightPositions;
+            _neoArkObservatoryDrawLightBeam(&beamCenters[0], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 8);
+            _neoArkObservatoryDrawLightBeam(&beamCenters[2], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 0xC);
+            _neoArkObservatoryDrawLightBeam(&beamCenters[4], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 8);
         }
             // View 7 also draws the glow discs used by mapped view 19.
             /* fallthrough */
         case 19: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_8018151C;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_LOW_GLOW_FIRST];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
             glowDrawDisc(&glowPoints[6], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
@@ -2119,62 +2185,62 @@ void neoArkObservatoryGlowTask(Task* effectTask)
         case 8:
         case 20: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_80181564;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_LOW_GLOW_FIRST + 9];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
-            _neoArkObservatoryDrawLightBeam(&glowPoints[-32], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
-            _neoArkObservatoryDrawLightBeam(&glowPoints[-30], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
-            _neoArkObservatoryDrawLightBeam(&glowPoints[-28], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-32], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 8);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-30], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 8);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-28], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 8);
             break;
         }
         case 9: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_80181574;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_LOW_GLOW_FIRST + 11];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
             glowDrawDisc(&glowPoints[3], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
             glowDrawDisc(&glowPoints[-6], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
             glowDrawDisc(&glowPoints[-8], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
-            _neoArkObservatoryDrawLightBeam(&glowPoints[-28], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
-            _neoArkObservatoryDrawLightBeam(&glowPoints[-26], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 0xC);
-            _neoArkObservatoryDrawLightBeam(&glowPoints[-24], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, D_neo_ark_observatory_80187A3C, 8);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-28], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 8);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-26], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 0xC);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-24], NEO_ARK_OBSERVATORY_BEAM_SMALL_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 8);
             break;
         }
         case 10: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_80181524;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_LOW_GLOW_FIRST + 1];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[5], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[6], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
             glowDrawDisc(&glowPoints[7], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
-            _neoArkObservatoryDrawLightBeam(&glowPoints[-12], NEO_ARK_OBSERVATORY_BEAM_LARGE_RADIUS, D_neo_ark_observatory_80187A3C, 0x10);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-12], NEO_ARK_OBSERVATORY_BEAM_LARGE_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 0x10);
             break;
         }
         case 11: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_8018157C;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_LOW_GLOW_FIRST + 12];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_DIM);
             glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_MEDIUM);
             glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[-7], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[-8], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
-            _neoArkObservatoryDrawLightBeam(&glowPoints[-21], NEO_ARK_OBSERVATORY_BEAM_LARGE_RADIUS, D_neo_ark_observatory_80187A3C, 0x10);
+            _neoArkObservatoryDrawLightBeam(&glowPoints[-21], NEO_ARK_OBSERVATORY_BEAM_LARGE_RADIUS, _gNeoArkObservatoryLightBeamIntensity, 0x10);
             break;
         }
         case 12:
         case 14: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_801814E4;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_HIGH_GLOW_FIRST];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[2], NEO_ARK_OBSERVATORY_GLOW_HIGH_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
         }
         case 21: {
             const SVECTOR* glowPoints;
-            glowPoints = D_neo_ark_observatory_80181564;
+            glowPoints = &_gNeoArkObservatoryLightPositions[NEO_ARK_OBSERVATORY_LOW_GLOW_FIRST + 9];
             glowDrawDisc(&glowPoints[0], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             glowDrawDisc(&glowPoints[1], NEO_ARK_OBSERVATORY_GLOW_LOW_RADIUS, NEO_ARK_OBSERVATORY_GLOW_DISC_BRIGHT);
             break;
@@ -2271,5 +2337,5 @@ static void _neoArkObservatoryDrawLightBeam(const SVECTOR ringCenters[2], s32 ou
 
 void neoArkObservatorySetLightBeamIntensity(s32 intensity)
 {
-    D_neo_ark_observatory_80187A3C = intensity;
+    _gNeoArkObservatoryLightBeamIntensity = intensity;
 }
