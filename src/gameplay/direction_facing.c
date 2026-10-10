@@ -76,7 +76,7 @@ _DirectionStairSurfaces D_801149FC[5] = {
     { D_801149E8, D_801149F4 },
     { gShelterB4WaterSupplyStairSurfaceRows[0], gShelterB4WaterSupplyStairSurfaceRows[1] },
     { gShelterB4WaterSupplyStairSurfaceRows[2], gShelterB4WaterSupplyStairSurfaceRows[3] },
-    { D_shelter_b4_reservoir_801850C8, D_shelter_b4_reservoir_801850D8 }
+    { gShelterB4ReservoirStairAscentSurfaces, gShelterB4ReservoirStairDescentSurfaces }
 };
 
 /// Releases action activity, then discards the primary parameters and secondary hit.

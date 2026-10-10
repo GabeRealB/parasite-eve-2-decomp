@@ -346,8 +346,8 @@ _gActor00400DiverEnergyBallNormals = 0x801416BC; // size:0xC8 defined:True
 _gActor00400DiverEnergyBallStream = 0x80141784; // size:0x438 defined:True
 _gActor00400DiverEnergyBall = 0x80141BBC; // size:0x24 defined:True
 _gActor00400Attacks = 0x80141BE0; // size:0x8 defined:True
-D_shelter_b4_reservoir_801851D4 = 0x801851D4; // absolute:True owner=shelter_b4_reservoir
-D_shelter_b4_reservoir_801851E4 = 0x801851E4; // absolute:True owner=shelter_b4_reservoir
+gShelterB4ReservoirDiverPatrolRings = 0x801851D4; // absolute:True owner=shelter_b4_reservoir
+gShelterB4ReservoirDiverSurfaceSpots = 0x801851E4; // absolute:True owner=shelter_b4_reservoir
 gShelterB4ReservoirMainWaterY = 0x80184F80; // absolute:True owner=shelter_b4_reservoir shared=rooms
 D_shelter_b2_septic_tank_801836A4 = 0x801836A4; // absolute:True owner=shelter_b2_septic_tank
 D_shelter_b2_septic_tank_801836B4 = 0x801836B4; // absolute:True owner=shelter_b2_septic_tank

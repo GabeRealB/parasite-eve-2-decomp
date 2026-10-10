@@ -14,10 +14,21 @@
 
 #include "main/task_types.h"
 
-// Room data exported to the shared waypoint actor.
-extern SVECTOR* D_shelter_b4_reservoir_801851D4[4];
+/// Four patrol-ring selections borrowed by the reservoir's Bog Divers.
+///
+/// Spawn bits 4..5 select entry 0..3; all four point to the same eight-point
+/// ring. XYZ use game-coordinate units; swimming adds the sampled water Y to
+/// each waypoint's depth. The room and ring must outlive every borrowing diver.
+extern SVECTOR* gShelterB4ReservoirDiverPatrolRings[4];
 
-extern SVECTOR D_shelter_b4_reservoir_801851E4[5];
+/// Writable emergence spots shared by the reservoir's Bog Divers.
+///
+/// Entry 0 is the fallback claim; entries 1..3 are searched by XZ distance.
+/// `pad` is 0 free, 1 claimed or -1 end (entry 4). Claims are released when
+/// moved or on actor teardown. X/Z use world-coordinate units; the searches
+/// do not read Y. The list must stay live and writable until every borrowing
+/// diver has released its claim.
+extern SVECTOR gShelterB4ReservoirDiverSurfaceSpots[5];
 
 /// Main reservoir water-plane Y in world units, shared with the Bog Diver.
 ///
@@ -35,9 +46,19 @@ extern s16 gShelterB4ReservoirMainWaterY;
 /// actors may retain their placement records until teardown.
 extern AreaVariant gShelterB4ReservoirAreaVariants[12];
 
-extern u8 D_shelter_b4_reservoir_801850C8[16];
+/// Surface classes at each completed step of the reservoir's ten-step ascent.
+///
+/// Gameplay's stair flight 4 reads entries 0..10, including the final landing.
+/// Entries 11..15 are retained with no established use. Borrowed while this
+/// room is loaded; this row has no terminator.
+extern u8 gShelterB4ReservoirStairAscentSurfaces[16];
 
-extern u8 D_shelter_b4_reservoir_801850D8[16];
+/// Surface classes at each completed step of the reservoir's ten-step descent.
+///
+/// Gameplay's stair flight 4 reads entries 0..10, including the final landing.
+/// Entries 11..15 are retained with no established use. Borrowed while this
+/// room is loaded; this row has no terminator.
+extern u8 gShelterB4ReservoirStairDescentSurfaces[16];
 
 /// Lighting selections for reservoir room IDs 1 and 2, indexed by room minus one.
 ///
