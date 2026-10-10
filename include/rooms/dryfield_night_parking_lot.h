@@ -22,7 +22,12 @@ extern AreaVariant D_dryfield_night_parking_lot_80181438[22];
 /// loaded while either descriptor or its lights are in use.
 extern WorldCoordRoomLighting gDryfieldNightParkingLotRoomLighting[2];
 
-extern WorldCollisionRoomResources D_dryfield_night_parking_lot_8017EE24[];
+/// Collision resources for logical rooms 1 and 2, indexed by room - 1.
+///
+/// Both descriptors borrow the same mutable grid, view boundaries, action
+/// triggers and sight occluders. Keep the room overlay loaded while the grid
+/// is active or any trigger/occluder remains linked.
+extern WorldCollisionRoomResources gDryfieldNightParkingLotRoomCollisionResources[2];
 
 /// Logical-view maps for rooms 1 and 2 of the night parking lot.
 ///
@@ -32,13 +37,38 @@ extern WorldCollisionRoomResources D_dryfield_night_parking_lot_8017EE24[];
 /// gameplay and the room overlay to remain loaded.
 extern u8* gDryfieldNightParkingLotViewMaps[2];
 
-extern ViewCount D_dryfield_night_parking_lot_8017EE54[];
+/// Seven logical views in each parking-lot room, indexed by room - 1.
+///
+/// Counts limit logical-view searches, independently of the eleven mapped
+/// camera/sprite slots. The borrowed two-entry table has no terminator.
+extern ViewCount gDryfieldNightParkingLotViewCounts[2];
 
-extern DirectionWarpEntry D_dryfield_night_parking_lot_8017EE58[];
+/// Five parking-lot arrival/departure endpoints, indexed by warp ID - 1.
+///
+/// Slots 1..4 serve the main street, lobby, toilet and saloon doors; slot 5
+/// serves the scripted motel-balcony connection. Placements use game units
+/// and 4096 yaw units per turn. Entries supply logical initial views and
+/// stage-3 sound requests; slot 5 has no sound/map cue and selects scripted
+/// player mode. Borrowed from the loaded overlay, with no terminator.
+extern DirectionWarpEntry gDryfieldNightParkingLotWarpEntries[5];
 
-extern ViewCamera D_dryfield_night_parking_lot_8017FAF4[];
+/// Eleven parking-lot cameras, indexed by mapped view - 1.
+///
+/// Room 1 selects slots 1..7; room 2 selects 1, 8, 3, 4, 9, 10, 11.
+/// Slots 8..11 initially duplicate 2, 5, 6, 7 in separate writable storage.
+/// Transforms use world-coordinate translation and Q12 rotation; perspective
+/// distances are pixels. Keep this unterminated array loaded until application.
+extern ViewCamera gDryfieldNightParkingLotViewCameras[11];
 
-extern SpriteView D_dryfield_night_parking_lot_801805AC[];
+/// Eleven parking-lot sprite views, indexed by mapped view - 1.
+///
+/// Room 1 selects slots 1..7; room 2 selects 1, 8, 3, 4, 9, 10, 11.
+/// Slots 1, 7 and 11 have no source sprites. All views retain decoded
+/// background strips; slots 2 and 8 also supply clipping-area lists.
+/// Descriptors borrow mutable batch/source/clip arrays from this room overlay;
+/// keep them loaded while preparing or drawing sprites. There is no terminator
+/// in this directory; each batch and clip list has its own sentinel.
+extern SpriteView gDryfieldNightParkingLotSpriteViews[11];
 
 /// Collision policies and footstep cues for night parking-lot surface classes 0..7.
 ///
