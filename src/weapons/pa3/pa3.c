@@ -1722,136 +1722,225 @@ static AnimationSet _gSp12OtherBodyHitReactionAnimation = {
     },
 };
 
-static AnimationPackedPose _gSp12Animation059E8Bank1[18] = {
+/// Translation/rotation keyframes for `_gSp12DeathAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12DeathAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_059E8_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation059E8Bank4[184] = {
+/// Rotation-only keyframes for `_gSp12DeathAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12DeathAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_059E8_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation059E8Records[239] = {
+/// Keyframe durations and stop controls for `_gSp12DeathAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12DeathAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_059E8_records.inc"
 };
 
-static u16 _gSp12Animation059E8Indices[20] = {
+/// Record-array starts of `_gSp12DeathAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12DeathAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_059E8_indices.inc"
 };
 
-static AnimationSet _gSp12Animation059E8 = {
-    _gSp12Animation059E8Records,
-    _gSp12Animation059E8Indices,
-    { NULL, _gSp12Animation059E8Bank1, NULL, NULL, _gSp12Animation059E8Bank4, NULL, NULL, NULL },
+/// Player death pose in SP12 bank slot 18.
+///
+/// Zero or negative HP selects this clip on child tracks 1..18 with a four-frame
+/// blend. Its stop controls retain the final pose; a zero-duration entry blend
+/// resets those tracks directly. The nineteen tracks and their pose data borrow
+/// the loaded SP12 package for as long as playback refers to them.
+static AnimationSet _gSp12DeathAnimation = {
+    .records           = _gSp12DeathAnimationRecords,
+    .trackStartIndices = _gSp12DeathAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12DeathAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12DeathAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation06C80Bank1[29] = {
+/// Translation/rotation keyframes for `_gSp12HighHealthIdleAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12HighHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_06C80_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation06C80Bank4[450] = {
+/// Rotation-only keyframes for `_gSp12HighHealthIdleAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12HighHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_06C80_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation06C80Records[633] = {
+/// Keyframe durations and jump/stop controls for `_gSp12HighHealthIdleAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12HighHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_06C80_records.inc"
 };
 
-static u16 _gSp12Animation06C80Indices[20] = {
+/// Record-array starts of `_gSp12HighHealthIdleAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12HighHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_06C80_indices.inc"
 };
 
-static AnimationSet _gSp12Animation06C80 = {
-    _gSp12Animation06C80Records,
-    _gSp12Animation06C80Indices,
-    { NULL, _gSp12Animation06C80Bank1, NULL, NULL, _gSp12Animation06C80Bank4, NULL, NULL, NULL },
+/// Extended player idle above half maximum HP, in SP12 bank slot 23.
+///
+/// After 300 direction-free locomotion ticks, child tracks 1..18 blend in over
+/// five normal-rate frames. Track jumps repeat the idle until another clip is
+/// selected. The nineteen tracks and pose data must remain loaded during playback.
+static AnimationSet _gSp12HighHealthIdleAnimation = {
+    .records           = _gSp12HighHealthIdleAnimationRecords,
+    .trackStartIndices = _gSp12HighHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12HighHealthIdleAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12HighHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation077F8Bank1[12] = {
+/// Translation/rotation keyframes for `_gSp12LowHealthIdleAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12LowHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_077F8_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation077F8Bank4[266] = {
+/// Rotation-only keyframes for `_gSp12LowHealthIdleAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12LowHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_077F8_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation077F8Records[412] = {
+/// Keyframe durations and jump/stop controls for `_gSp12LowHealthIdleAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12LowHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_077F8_records.inc"
 };
 
-static u16 _gSp12Animation077F8Indices[20] = {
+/// Record-array starts of `_gSp12LowHealthIdleAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12LowHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_077F8_indices.inc"
 };
 
-static AnimationSet _gSp12Animation077F8 = {
-    _gSp12Animation077F8Records,
-    _gSp12Animation077F8Indices,
-    { NULL, _gSp12Animation077F8Bank1, NULL, NULL, _gSp12Animation077F8Bank4, NULL, NULL, NULL },
+/// Extended idle at or below a quarter of maximum HP and paralysis clip, in SP12 bank slot 25.
+///
+/// Direction-free locomotion selects it after 300 ticks with a five-frame blend;
+/// paralysis selects it with a six-frame blend. Both update all child tracks
+/// 1..18. Track jumps repeat the pose sequence. The nineteen tracks and pose
+/// data must remain loaded during playback.
+static AnimationSet _gSp12LowHealthIdleAnimation = {
+    .records           = _gSp12LowHealthIdleAnimationRecords,
+    .trackStartIndices = _gSp12LowHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12LowHealthIdleAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12LowHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation07F14Bank1[9] = {
+/// Translation/rotation keyframes for `_gSp12MediumHealthIdleAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12MediumHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_07F14_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation07F14Bank4[144] = {
+/// Rotation-only keyframes for `_gSp12MediumHealthIdleAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12MediumHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_07F14_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation07F14Records[264] = {
+/// Keyframe durations and jump/stop controls for `_gSp12MediumHealthIdleAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12MediumHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_07F14_records.inc"
 };
 
-static u16 _gSp12Animation07F14Indices[20] = {
+/// Record-array starts of `_gSp12MediumHealthIdleAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12MediumHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_07F14_indices.inc"
 };
 
-static AnimationSet _gSp12Animation07F14 = {
-    _gSp12Animation07F14Records,
-    _gSp12Animation07F14Indices,
-    { NULL, _gSp12Animation07F14Bank1, NULL, NULL, _gSp12Animation07F14Bank4, NULL, NULL, NULL },
+/// Extended player idle above a quarter and at most half maximum HP, in SP12 bank slot 24.
+///
+/// After 300 direction-free locomotion ticks, child tracks 1..18 blend in over
+/// five normal-rate frames. Track jumps repeat the idle until another clip is
+/// selected. HP thresholds use integer-truncated halves and quarters of maximum
+/// HP. The nineteen tracks and pose data must remain loaded during playback.
+static AnimationSet _gSp12MediumHealthIdleAnimation = {
+    .records           = _gSp12MediumHealthIdleAnimationRecords,
+    .trackStartIndices = _gSp12MediumHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12MediumHealthIdleAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12MediumHealthIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation08394Bank1[6] = {
+/// Translation/rotation keyframes for `_gSp12ScriptedPresentationEnterAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12ScriptedPresentationEnterAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_08394_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation08394Bank4[107] = {
+/// Rotation-only keyframes for `_gSp12ScriptedPresentationEnterAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12ScriptedPresentationEnterAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_08394_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation08394Records[143] = {
+/// Keyframe durations and stop controls for `_gSp12ScriptedPresentationEnterAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12ScriptedPresentationEnterAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_08394_records.inc"
 };
 
-static u16 _gSp12Animation08394Indices[20] = {
+/// Record-array starts of `_gSp12ScriptedPresentationEnterAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12ScriptedPresentationEnterAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_08394_indices.inc"
 };
 
-static AnimationSet _gSp12Animation08394 = {
-    _gSp12Animation08394Records,
-    _gSp12Animation08394Indices,
-    { NULL, _gSp12Animation08394Bank1, NULL, NULL, _gSp12Animation08394Bank4, NULL, NULL, NULL },
+/// Player entry to a scripted presentation, in SP12 bank slots 32 and 34.
+///
+/// A zero presentation selector plays slot 32 before a CAP or room command,
+/// starting child tracks 1..18 without a transition interval. Stop controls
+/// retain the final pose while the command runs. Slot 34 aliases the same set.
+/// The nineteen tracks and pose data must remain loaded during playback.
+static AnimationSet _gSp12ScriptedPresentationEnterAnimation = {
+    .records           = _gSp12ScriptedPresentationEnterAnimationRecords,
+    .trackStartIndices = _gSp12ScriptedPresentationEnterAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12ScriptedPresentationEnterAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12ScriptedPresentationEnterAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gSp12Animation0856CBank1[3] = {
+/// Translation/rotation keyframes for `_gSp12ScriptedPresentationLeaveAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gSp12ScriptedPresentationLeaveAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0856C_bank1.inc"
 };
 
-static AnimationPackedRotation _gSp12Animation0856CBank4[32] = {
+/// Rotation-only keyframes for `_gSp12ScriptedPresentationLeaveAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gSp12ScriptedPresentationLeaveAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0856C_bank4.inc"
 };
 
-static AnimationRecord _gSp12Animation0856CRecords[57] = {
+/// Keyframe durations and stop controls for `_gSp12ScriptedPresentationLeaveAnimation`'s nineteen part tracks.
+static const AnimationRecord _gSp12ScriptedPresentationLeaveAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0856C_records.inc"
 };
 
-static u16 _gSp12Animation0856CIndices[20] = {
+/// Record-array starts of `_gSp12ScriptedPresentationLeaveAnimation`'s nineteen model-part tracks.
+///
+/// Entries 0..18 are track starts; the serialized trailing zero halfword is retained.
+static const u16 _gSp12ScriptedPresentationLeaveAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/sp12_animation_0856C_indices.inc"
 };
 
-static AnimationSet _gSp12Animation0856C = {
-    _gSp12Animation0856CRecords,
-    _gSp12Animation0856CIndices,
-    { NULL, _gSp12Animation0856CBank1, NULL, NULL, _gSp12Animation0856CBank4, NULL, NULL, NULL },
+/// Player exit from a scripted presentation, in SP12 bank slots 33 and 35.
+///
+/// A nonzero presentation selector plays slot 33 after a CAP or room command,
+/// starting child tracks 1..18 without a transition interval. Stop controls
+/// retain the final pose until later playback resumes. Slot 35 aliases the same
+/// set. The nineteen tracks and pose data must remain loaded during playback.
+static AnimationSet _gSp12ScriptedPresentationLeaveAnimation = {
+    .records           = _gSp12ScriptedPresentationLeaveAnimationRecords,
+    .trackStartIndices = _gSp12ScriptedPresentationLeaveAnimationIndices,
+    .poseBanks         = {
+        [SP12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gSp12ScriptedPresentationLeaveAnimationBank1,
+        [SP12_ANIMATION_PACKED_ROTATION_BANK]      = _gSp12ScriptedPresentationLeaveAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gSp12Animation08AD0Bank1[11] = {
@@ -2159,24 +2248,24 @@ AnimationBank D_sp12_8012BCC8 = { { {
     &_gSp12Animation0BA44,
     &_gSp12Part4HitReactionAnimation,
     &_gSp12OtherBodyHitReactionAnimation,
-    &_gSp12Animation059E8,
+    &_gSp12DeathAnimation,
     &_gSp12UnarmedWalkAnimation,
     &_gSp12Animation0BA44,
     &_gSp12IdleAnimation,
     &_gSp12IdleAnimation,
-    &_gSp12Animation06C80,
-    &_gSp12Animation07F14,
-    &_gSp12Animation077F8,
+    &_gSp12HighHealthIdleAnimation,
+    &_gSp12MediumHealthIdleAnimation,
+    &_gSp12LowHealthIdleAnimation,
     &_gSp12PeReleaseFamily0Animation,
     &_gSp12PeChargeFamily0Animation,
     &_gSp12PeCastFamily0Animation,
     &_gSp12PeReleaseFamily1Animation,
     &_gSp12PeChargeFamily1Animation,
     &_gSp12PeCastFamily1Animation,
-    &_gSp12Animation08394,
-    &_gSp12Animation0856C,
-    &_gSp12Animation08394,
-    &_gSp12Animation0856C,
+    &_gSp12ScriptedPresentationEnterAnimation,
+    &_gSp12ScriptedPresentationLeaveAnimation,
+    &_gSp12ScriptedPresentationEnterAnimation,
+    &_gSp12ScriptedPresentationLeaveAnimation,
     &_gSp12StairAscentAnimation,
     &_gSp12StairDescentAnimation,
     &_gSp12StairAscentFinishEvenAnimation,
