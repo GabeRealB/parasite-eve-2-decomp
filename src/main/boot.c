@@ -68,16 +68,21 @@ size_t gMemSavedImageRegionBytes;
 #include "main/stream.h"
 
 /// Fixed addresses no image defines, which main points at: the work area
-/// at 0x801FD000, the load addresses of the first two actor
-/// slots, and 4MB into the dev kit's memory.
+/// at 0x801FD000, the first actor slot's load address, and 4MB into the
+/// dev kit's memory.
 
 extern u8 D_801FD000[];
 
 extern u8 D_80131E20[];
 
-extern u8 D_80149E20[];
-
 extern u8 D_80400000[];
+
+/// Fixed byte address of actor work buffer 1 (actor-overlay slot 2).
+///
+/// Initializes `Fs_ActorLoadBase1`. Loaded packages, scene/movie workspaces
+/// and GPU packets reuse this RAM; previous users must finish before reuse.
+/// This address specifies no capacity or reservation.
+#define FILE_SYSTEM_ACTOR_BUFFER_1_BASE ((u8*)0x80149E20)
 
 /// Fixed byte address of actor work buffer 2 (actor-overlay slot 3).
 ///
@@ -105,7 +110,7 @@ FsImgBuffers* gFsImageWorkspacePtr = &gFsImageWorkspace;
 /// Unreferenced.
 static void* Mem_UnusedTopRamPointer = D_801FD000;
 void*        Fs_ActorLoadBase0       = D_80131E20;
-void*        Fs_ActorLoadBase1       = D_80149E20;
+void*        Fs_ActorLoadBase1       = FILE_SYSTEM_ACTOR_BUFFER_1_BASE;
 void*        Fs_ActorLoadBase2       = FILE_SYSTEM_ACTOR_BUFFER_2_BASE;
 /// Unreferenced.
 static void* Mem_UnusedDevKitEndPointer = D_80400000;
