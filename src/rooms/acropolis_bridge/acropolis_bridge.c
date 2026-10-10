@@ -330,39 +330,41 @@ typedef struct {
 } _AcropolisBridgeBillboardScratch;
 STATIC_ASSERT_SIZEOF(_AcropolisBridgeBillboardScratch, 0x18);
 
-extern ActionPromptHotspot D_acropolis_bridge_8018983C[];
+/// Exit result shared by the bridge keypad's singleton state callbacks.
+///
+/// Opening initializes CANCELLED (0); a completed accepted blink stores
+/// ACCEPTED (1). Closing forwards the value to `taskRequestKill`.
+static s32 _gAcropolisBridgeKeypadExitResult;
 
-extern s32 D_acropolis_bridge_801917A8;
-
-/// Cursor into the packet buffer the bridge's screen-smear effects draw from.
-/// Every `DR_MOVE` task of the room takes the packet it points at
-/// and bumps it by one, the same way `gGpuPrimCursor` works for the main
-/// primitive heap.
-extern DR_MOVE* D_acropolis_bridge_801917AC;
-
-extern EffectUnitQuadCorner D_acropolis_bridge_8018990C[4];
-
-extern EnemyParams D_acropolis_bridge_80190C5C;
+/// Next frame-local GPU image-move packet for the bridge's framebuffer streaks.
+///
+/// The ambient task resets this borrowed cursor before streak tasks draw. Its
+/// two 0x7000-byte regions start at byte 0xA000 in `Fs_ActorLoadBase2`, selected
+/// by OT buffer 0/1. Each streak draw consumes one 24-byte `DR_MOVE`; the normal
+/// counted-effect limit of 129 fits either region. This is byte-addressed file
+/// workspace, not an array owned by the cursor. Keep it reserved until queued
+/// GPU work completes, and reset the cursor before reusing the frame region.
+static DR_MOVE* _gAcropolisBridgeStreakMoveCursor;
 
 static void _actionPromptResetDefault(Task* task);
 static void _acropolisBridgeWaitForKeypadResult(Task* task);
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u16 D_acropolis_bridge_801917A4[2];
+/// Captured movie frame with an adjacent halfword of unproven ownership.
+///
+/// Only `frame` is accessed. The second halfword retains its nonzero image
+/// value; it is not a second frame record or established padding.
+typedef struct {
+    u16 frame;     // Captured STR frame, used at path index frame + 1
+    u16 unknown_2; // Initialized to 0xF222; no consumer or role established
+} _AcropolisBridgeMovieFrameStorage;
+STATIC_ASSERT_SIZEOF(_AcropolisBridgeMovieFrameStorage, 4);
 
 extern TaskMessageEntry D_acropolis_bridge_80188E4C[];
 extern TaskDesc         D_acropolis_bridge_80188E7C[];
 extern EvsCommand       D_acropolis_bridge_80188EBC[];
 extern EvsCommand       D_acropolis_bridge_8018912C[];
 extern TaskDesc         D_acropolis_bridge_80189234;
-extern SVECTOR          D_acropolis_bridge_80189240[];
 extern TaskDesc         D_acropolis_bridge_80189830;
-
-/// Three 16-entry rows, one per digit of the bridge code, mapping a nibble to
-/// the SPRT command that renders it. Entries above 9 hold the row's blank
-/// sentinel.
-extern u8 D_acropolis_bridge_801898CC[3][16];
 
 extern TaskMessageEntry D_acropolis_bridge_801898FC[];
 extern SVECTOR          D_acropolis_bridge_8018991C[7];
@@ -378,8 +380,6 @@ extern SVECTOR          D_acropolis_bridge_80189A4C;
 /// Command and segment arrays `padScriptSpawn` borrows during the bridge cutscene.
 extern PadScriptCmd              D_acropolis_bridge_80190B8C[6];
 extern PadScriptVibrationSegment D_acropolis_bridge_80190BA4[6];
-
-extern s16 D_acropolis_bridge_801915E4[][6];
 
 /// State handler table the per-frame tick dispatches through on
 /// `_AcropolisBridgeEnemyWork::state`.
@@ -481,10 +481,10 @@ static void _acropolisBridgeKeypadCursorTask(Task* task);
 static s32  _acropolisBridgeSpawnArrivalDust(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 static WorldCollisionGrid    _gAcropolisBridgeRoom1Collision;
-extern WorldCollisionGrid    D_acropolis_bridge_8018B694[1];
-extern WorldCollisionTrigger D_acropolis_bridge_8018B6B8[4];
-extern WorldCollisionTrigger D_acropolis_bridge_8018B7E8[7];
-extern WorldCollisionTrigger D_acropolis_bridge_8018B9FC[7];
+static WorldCollisionGrid    _gAcropolisBridgeRoom2Collision;
+static WorldCollisionTrigger _gAcropolisBridgeViewBoundaryTriggers[4];
+static WorldCollisionTrigger _gAcropolisBridgeRoom1ActionTriggers[7];
+static WorldCollisionTrigger _gAcropolisBridgeRoom2ActionTriggers[7];
 
 static WorldCoordRoomLights      _gAcropolisBridgeRoomLights;
 extern PadScriptCmd              D_acropolis_bridge_80190BBC[6];
@@ -520,7 +520,7 @@ typedef struct {
 } _AcropolisBridgeEnemyTaskDescStorage;
 STATIC_ASSERT_SIZEOF(_AcropolisBridgeEnemyTaskDescStorage, 0x14);
 
-extern _AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780;
+static _AcropolisBridgeEnemyTaskDescStorage _gAcropolisBridgeEnemyTaskDescStorage;
 
 static s32  _acropolisBridgeEnemyApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static s32  _acropolisBridgeEnemySetModelDraw(Task* task, s32 messageId, s32 drawRequest, s32 unusedArg);
@@ -619,13 +619,24 @@ EvsCommand D_acropolis_bridge_8018912C[11] = {
 
 TaskDesc D_acropolis_bridge_80189234 = { { { TASK_BODY_NONE, 192 } }, _acropolisBridgeKeypadMovieTask, { .value = 0 } };
 
-SVECTOR D_acropolis_bridge_80189240[190] = {
+/// Raw movie samples supplying the bridge enemies' presentation height.
+///
+/// Read Y at captured STR frame + 1, in signed game-coordinate units; the
+/// presentation subtracts its own root-height offset. The index must be below
+/// 190. X, Z and the fourth halfword remain in the asset but have no consumers.
+/// Keep the samples loaded while the movie and its enemy presentation run.
+static const SVECTOR _gAcropolisBridgeMovieEnemyHeightPath[190] SECTION(".data") = {
 #include "assets/acropolis_bridge_path_0BC80.inc"
 };
 
 TaskDesc D_acropolis_bridge_80189830 = { { { TASK_BODY_NONE, 192 } }, _acropolisBridgeKeypadCursorTask, { .value = 0 } };
 
-ActionPromptHotspot D_acropolis_bridge_8018983C[12] = {
+/// Cursor hit regions for the bridge keypad's ten digit keys and clear key.
+///
+/// Rectangles use pixels relative to the view centre. IDs 0..9 are the entered
+/// digit, and CLEAR (10) blanks the entry; END terminates the list. Hit testing
+/// mutates `hit`, so this singleton table stays writable while the keypad runs.
+static ActionPromptHotspot _gAcropolisBridgeKeypadHotspots[] = {
     { 20, -41, 20, 21, 1, 0, 0 },
     { 41, -41, 20, 21, 2, 0, 0 },
     { 62, -41, 20, 21, 3, 0, 0 },
@@ -636,14 +647,39 @@ ActionPromptHotspot D_acropolis_bridge_8018983C[12] = {
     { 41, 1, 20, 21, 8, 0, 0 },
     { 62, 1, 20, 21, 9, 0, 0 },
     { 20, 23, 20, 21, 0, 0, 0 },
-    { 42, 23, 40, 21, 10, 0, 0 },
+    { 42, 23, 40, 21, ACROPOLIS_BRIDGE_KEYPAD_KEY_CLEAR, 0, 0 },
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-u8 D_acropolis_bridge_801898CC[3][16] = {
-    { 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 33, 33, 33, 33, 33 },
-    { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 32, 32, 32, 32, 32, 32 },
-    { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 31, 31, 31, 31, 31, 31 },
+/// Nibble-to-sprite-batch lookup for the keypad's hundreds, tens and ones rows.
+///
+/// Each 16-entry row maps 0..9 to that digit's batch in mapped view 8. Nibbles
+/// 10..15 select the row's blank batch (33, 32 or 31), not a list terminator.
+static const u8 _gAcropolisBridgeKeypadDigitBatches[ACROPOLIS_BRIDGE_KEYPAD_CODE_DIGITS][16] SECTION(".data") = {
+    { ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 1,
+      ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 2, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 3,
+      ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 4, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 5,
+      ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 6, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 7,
+      ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 8, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH + 9,
+      ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH,
+      ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH,
+      ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH },
+    { ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH, ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + 1,
+      ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + 2, ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + 3,
+      ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + 4, ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + 5,
+      ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + 6, ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + 7,
+      ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + 8, ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH + 9,
+      ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH, ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH,
+      ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH, ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH,
+      ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH, ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH },
+    { ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH, ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + 1,
+      ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + 2, ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + 3,
+      ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + 4, ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + 5,
+      ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + 6, ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + 7,
+      ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + 8, ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH + 9,
+      ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH, ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH,
+      ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH, ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH,
+      ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH, ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH },
 };
 
 TaskMessageEntry D_acropolis_bridge_801898FC[2] = {
@@ -651,7 +687,11 @@ TaskMessageEntry D_acropolis_bridge_801898FC[2] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-EffectUnitQuadCorner D_acropolis_bridge_8018990C[4] = {
+/// X/Z unit signs of the horizontal ground-glow quad, in GPU strip order.
+///
+/// The drawer scales these four corners in local game coordinates before its
+/// retained origin replacement. Storage is read-only and lives with this overlay.
+static const EffectUnitQuadCorner _gAcropolisBridgeGroundGlowUnitCorners[4] SECTION(".data") = {
     { -1, 1 },
     { 1, 1 },
     { -1, -1 },
@@ -744,9 +784,9 @@ SVECTOR D_acropolis_bridge_80189A44 = { -4700, -1000, -620, 0 };
 
 SVECTOR D_acropolis_bridge_80189A4C = { -4700, -1000, -520, 0 };
 
-WorldCollisionRoomResources D_acropolis_bridge_80189A54[2] = {
-    { &_gAcropolisBridgeRoom1Collision, D_acropolis_bridge_8018B6B8, D_acropolis_bridge_8018B7E8, NULL },
-    { D_acropolis_bridge_8018B694, D_acropolis_bridge_8018B6B8, D_acropolis_bridge_8018B9FC, NULL },
+WorldCollisionRoomResources gAcropolisBridgeRoomCollisionResources[ACROPOLIS_BRIDGE_ROOM_COUNT] = {
+    { &_gAcropolisBridgeRoom1Collision, _gAcropolisBridgeViewBoundaryTriggers, _gAcropolisBridgeRoom1ActionTriggers, NULL },
+    { &_gAcropolisBridgeRoom2Collision, _gAcropolisBridgeViewBoundaryTriggers, _gAcropolisBridgeRoom2ActionTriggers, NULL },
 };
 
 /// Maps room 2's logical views 1..10 to the shared camera and sprite views.
@@ -773,7 +813,7 @@ u8* gAcropolisBridgeViewMaps[2] = {
     _gAcropolisBridgeRoom2ViewMap,
 };
 
-ViewCount D_acropolis_bridge_80189A88[2] = { 10, 10 };
+ViewCount gAcropolisBridgeViewCounts[ACROPOLIS_BRIDGE_ROOM_COUNT] = { ACROPOLIS_BRIDGE_VIEW_COUNT, ACROPOLIS_BRIDGE_VIEW_COUNT };
 
 WorldCoordRoomLighting gAcropolisBridgeRoomLightingTable[2] = {
     { &_gAcropolisBridgeRoomLights, NULL },
@@ -808,9 +848,15 @@ u8 D_acropolis_bridge_80189A9C[24] = {
     2,
 };
 
-DirectionWarpEntry D_acropolis_bridge_80189AB4[2] = {
-    { { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, 0x510E0008, 0x510E0007, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, 491 },
-    { { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, 0x510E0006, 0x510E0005, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 490 },
+/// Map-marker nibble IDs attached to the bridge's two warp endpoints.
+enum {
+    ACROPOLIS_BRIDGE_PROMENADE_WARP_MAP_FLAG   = 491,
+    ACROPOLIS_BRIDGE_FIRE_ESCAPE_WARP_MAP_FLAG = 490
+};
+
+DirectionWarpEntry gAcropolisBridgeWarpEntries[ACROPOLIS_BRIDGE_WARP_COUNT] = {
+    { { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -3643, 2, -2161 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 8), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 7), DIRECTION_WARP_SOUND_NONE, ACROPOLIS_BRIDGE_VIEW_OVERVIEW, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_BRIDGE_PROMENADE_WARP_MAP_FLAG },
+    { { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -0x3D4E, 0, -2098 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 6), SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE, 5), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, ACROPOLIS_BRIDGE_FIRE_ESCAPE_WARP_MAP_FLAG },
 };
 
 /// Room-space Q12 face normals for the bridge's room-1 collision grid.
@@ -858,57 +904,108 @@ static WorldCollisionGrid _gAcropolisBridgeRoom1Collision = {
     .faceCount   = ARRAY_SIZE(_gAcropolisBridgeRoom1CollisionFaces),
 };
 
-static SVECTOR _gAcropolisBridgeCollision0E0D4Normals[17] = {
+/// Room-space Q12 face normals for the bridge's room-2 collision grid.
+static SVECTOR _gAcropolisBridgeRoom2CollisionNormals[17] = {
 #include "assets/acropolis_bridge_collision_0E0D4_normals.inc"
 };
 
-static SVECTOR _gAcropolisBridgeCollision0E0D4Verts[205] = {
+/// Signed game-coordinate vertices for the bridge's room-2 collision grid.
+static SVECTOR _gAcropolisBridgeRoom2CollisionVerts[205] = {
 #include "assets/acropolis_bridge_collision_0E0D4_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisBridgeCollision0E0D4Faces[93] = {
+/// Indexed faces and surface classes for the bridge's room-2 collision grid.
+static WorldCollisionGridFace _gAcropolisBridgeRoom2CollisionFaces[93] = {
 #include "assets/acropolis_bridge_collision_0E0D4_faces.inc"
 };
 
-static s16 _gAcropolisBridgeCollision0E0D4Cells[274] = {
+/// Sentinel-terminated face-index lists for the bridge's room-2 grid cells.
+static s16 _gAcropolisBridgeRoom2CollisionCells[274] = {
 #include "assets/acropolis_bridge_collision_0E0D4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisBridgeCollision0E0D4Cells[i])
-static s16* _gAcropolisBridgeCollision0E0D4Table[25] = {
+/// Resolves one asset table entry's cell-list offset in signed-halfword elements.
+///
+/// The generated table include requires GRID_CELL to be defined. Its argument
+/// is evaluated once as an array index into the 274-entry room-2 cell pool;
+/// undefine the binding immediately after the include.
+#define GRID_CELL(i) (&_gAcropolisBridgeRoom2CollisionCells[i])
+/// X-major 5-by-5 directory into the room-2 grid's face-index lists.
+static s16* _gAcropolisBridgeRoom2CollisionTable[25] = {
 #include "assets/acropolis_bridge_collision_0E0D4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_bridge_8018B694[1] = {
-    { NULL, _gAcropolisBridgeCollision0E0D4Normals, _gAcropolisBridgeCollision0E0D4Verts, _gAcropolisBridgeCollision0E0D4Faces, _gAcropolisBridgeCollision0E0D4Table, 0x3E94, 8470, 5, 5, 4000, 93 },
+/// Collision mesh and XZ cell index selected for bridge room 2.
+///
+/// The 25 cells span 4000 game-coordinate units each. Activation binds the
+/// view coordinate; all mesh pools stay writable and live with this overlay.
+static WorldCollisionGrid _gAcropolisBridgeRoom2Collision = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisBridgeRoom2CollisionNormals,
+    .vertices    = _gAcropolisBridgeRoom2CollisionVerts,
+    .faces       = _gAcropolisBridgeRoom2CollisionFaces,
+    .cellFaceIds = _gAcropolisBridgeRoom2CollisionTable,
+    .xBias       = 16020,
+    .zBias       = 8470,
+    .cellCountX  = 5,
+    .cellCountZ  = 5,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisBridgeRoom2CollisionFaces),
 };
 
-WorldCollisionTrigger D_acropolis_bridge_8018B6B8[4] = {
+/// Directed logical-view boundaries 6 <-> 7 and 2 <-> 7, shared by both rooms.
+///
+/// LAST marks the final included record. Room binding installs the coordinate
+/// and mutable list links; origins, corners and radii use game units, normals
+/// use Q12. Keep this overlay loaded until the records are unlinked.
+static WorldCollisionTrigger _gAcropolisBridgeViewBoundaryTriggers[4] = {
     { NULL, NULL, NULL, { -7584, 0, -1984, 0 }, { { 0, -4175, -2304, 0 }, { 0, -4209, 2304, 0 }, { 0, 4209, -2304, 0 }, { 0, 4175, 2304, 0 } }, { 4116, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -7040, 0, -1984, 0 }, { { 0, -4175, 2304, 0 }, { 0, -4209, -2304, 0 }, { 0, 4209, 2304, 0 }, { 0, 4175, -2304, 0 } }, { -4117, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -0x2E00, 0, -1984, 0 }, { { 0, -4175, 2304, 0 }, { 0, -4209, -2304, 0 }, { 0, 4209, 2304, 0 }, { 0, 4175, -2304, 0 } }, { -4117, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 2, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -0x301F, 0, -1983, 0 }, { { 0, -4175, -2304, 0 }, { 0, -4209, 2304, 0 }, { 0, 4209, -2304, 0 }, { 0, 4175, 2304, 0 } }, { 4116, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 7, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_acropolis_bridge_8018B7E8[7] = {
-    { NULL, NULL, NULL, { -2995, -144, -2076, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -5009, -64, -2432, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 133, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6176, 992, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 200, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, 133, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x33C0, 928, -2048, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, 133, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x38E0, -64, -1984, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 133, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x3D00, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Packed five-step stair selectors and the descent bit in the trigger control.
+///
+/// Before the movie, selector 0x85 uses indexed surface flight 0; afterwards
+/// selector 0x45 applies surface class 4. Facing bytes store yaw / 16.
+enum {
+    ACROPOLIS_BRIDGE_STAIR_DESCEND        = 0x100,
+    ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR = 0x80 | 5,
+    ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR = (4 << 4) | 5
 };
 
-WorldCollisionTrigger D_acropolis_bridge_8018B9FC[7] = {
-    { NULL, NULL, NULL, { -2979, -112, -1404, 0 }, { { -288, 0, -1024, 0 }, { 288, 0, -1024, 0 }, { -288, 0, 1024, 0 }, { 288, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, 11, 21, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -4893, -64, -2624, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, 69, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6113, -992, -2016, 0 }, { { -367, 0, -1024, 0 }, { 368, 0, -1024, 0 }, { -367, 0, 1024, 0 }, { 368, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 69, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x33D0, -1056, -2048, 0 }, { { -256, 0, -1024, 0 }, { 256, 0, -1024, 0 }, { -256, 0, 1024, 0 }, { 256, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4091, 0, 201, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_FACING | 0x100, 69, 192, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x38C0, -64, -1984, 0 }, { { -240, 0, -1024, 0 }, { 240, 0, -1024, 0 }, { -240, 0, 1024, 0 }, { 240, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_FACING, 69, 64, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x3DA0, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, 15, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Room-1 interactions before the keypad movie changes the bridge layout.
+///
+/// Seven included facing quads provide promenade/fire-escape warps, keypad
+/// CAP command 7 and four five-step stair flights. LAST ends the array. Runtime
+/// coordinates, list links and hit latches are mutable; keep this overlay loaded
+/// until unlinked. Geometry uses game units and normals use Q12.
+static WorldCollisionTrigger _gAcropolisBridgeRoom1ActionTriggers[7] = {
+    { NULL, NULL, NULL, { -2995, -144, -2076, 0 }, { { -336, 0, -1024, 0 }, { 336, 0, -1024, 0 }, { -336, 0, 1024, 0 }, { 336, 0, 1024, 0 } }, { 0, 4100, 0, 0 }, { -4096, 0, 0, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_PROMENADE, (1 << 4) | 5, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_BRIDGE_KEYPAD_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -5009, -64, -2432, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6176, 992, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 200, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x33C0, 928, -2048, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x38E0, -64, -1984, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM1_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x3D00, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Room-2 interactions after the keypad movie changes the bridge layout.
+///
+/// The same seven roles use shifted warp/stair geometry and surface class 4
+/// for the five-step flights. LAST ends the array. Runtime coordinates, list
+/// links and hit latches are mutable and require the loaded bridge overlay.
+/// Geometry uses game units and normals use Q12.
+static WorldCollisionTrigger _gAcropolisBridgeRoom2ActionTriggers[7] = {
+    { NULL, NULL, NULL, { -2979, -112, -1404, 0 }, { { -288, 0, -1024, 0 }, { 288, 0, -1024, 0 }, { -288, 0, 1024, 0 }, { 288, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1063, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_PROMENADE, (1 << 4) | 5, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4544, -128, -448, 0 }, { { -576, 0, -576, 0 }, { 576, 0, -576, 0 }, { -576, 0, 576, 0 }, { 576, 0, 576, 0 } }, { 0, 4105, 0, 0 }, { 4094, 0, -1, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, ACROPOLIS_BRIDGE_KEYPAD_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -4893, -64, -2624, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6113, -992, -2016, 0 }, { { -367, 0, -1024, 0 }, { 368, 0, -1024, 0 }, { -367, 0, 1024, 0 }, { 368, 0, 1024, 0 } }, { 0, 4102, 0, 0 }, { -4091, 0, 200, 0 }, 1086, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x33D0, -1056, -2048, 0 }, { { -256, 0, -1024, 0 }, { 256, 0, -1024, 0 }, { -256, 0, 1024, 0 }, { 256, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4091, 0, 201, 0 }, 1055, WORLD_COLLISION_TRIGGER_ACTION_FACING | ACROPOLIS_BRIDGE_STAIR_DESCEND, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (3072 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x38C0, -64, -1984, 0 }, { { -240, 0, -1024, 0 }, { 240, 0, -1024, 0 }, { -240, 0, 1024, 0 }, { 240, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_FACING, ACROPOLIS_BRIDGE_STAIR_ROOM2_SELECTOR, (1024 >> 4), WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x3DA0, -64, -2016, 0 }, { { -208, 0, -1024, 0 }, { 208, 0, -1024, 0 }, { -208, 0, 1024, 0 }, { 208, 0, 1024, 0 } }, { 0, 4095, 0, 0 }, { 4091, 0, 201, 0 }, 1039, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_ACROPOLIS_FIRE_ESCAPE, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Encoded 8-bit texture pages, palette rows and modulation for bridge sprites.
@@ -1942,7 +2039,13 @@ static SpriteSource _gAcropolisBridgeKeypadSpriteSources[] = {
     { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 72, 96 } }, 0, 24, 84, { .fields = { 56, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_bridge_8018FD90[37] = {
+/// Mutable sprite selections for the keypad in mapped bridge view 8.
+///
+/// The zero-count background record is followed by ten ones, ten tens and ten
+/// hundreds digit batches, three blanks, error and the six-sprite prompt. The
+/// final END record contributes no sprites. Ranges cover the 40 keypad sources;
+/// state callbacks change visibility. Storage lives with the bridge overlay.
+static SpriteBatch _gAcropolisBridgeKeypadSpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 14, 0 } },
     { 1, 1, 0, 0, { 18, 0 } },
@@ -1982,24 +2085,39 @@ SpriteBatch D_acropolis_bridge_8018FD90[37] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_bridge_8018FEB8[2] = {
+/// Background-only batches for mapped bridge view 9, used by the keypad movie.
+///
+/// The zero first count enables decoded image strips; END terminates the list.
+/// Its address also occupies the view's empty source slot, supplying no sprites.
+static SpriteBatch _gAcropolisBridgeView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_bridge_8018FEC8[9] = {
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -72, 56, 750, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 140, 0x3FC0, { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 24 } }, -72, 56, 750, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 141, 0x4040, { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 24, 24 } }, -72, 56, 750, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4040, { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
+/// Nine sprite rectangles forming the arrival scene's three presentation frames.
+///
+/// Mapped view 10 draws one consecutive triple at a time. Positions and sizes
+/// are pixels relative to the view centre; depth is an unscaled sorting value.
+/// Texture pages are 8-bit with neutral RGB modulation. Keep writable sources
+/// loaded while their cached packets and batches are used.
+static SpriteSource _gAcropolisBridgeArrivalSpriteSources[] = {
+    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 224 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
+    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 24, 32 } }, -72, 56, 750, { .fields = { 104, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
+    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_0, ACROPOLIS_BRIDGE_SPRITE_CLUT_0, { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 104, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
+    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_2, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 120, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
+    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 240 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
+    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, ACROPOLIS_BRIDGE_SPRITE_CLUT_1, { .fields = { 24, 24 } }, -72, 56, 750, { .fields = { 80, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
+    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_1, getClut(0, 257), { .fields = { 136, 208 } }, -48, -104, 750, { .fields = { 112, 0 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
+    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, getClut(0, 257), { .fields = { 24, 24 } }, -72, 56, 750, { .fields = { 80, 232 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
+    { ACROPOLIS_BRIDGE_SPRITE_TEXTURE_PAGE_3, getClut(0, 257), { .fields = { 64, 16 } }, 24, 104, 750, { .fields = { 16, 208 } }, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_NEUTRAL_RGB, ACROPOLIS_BRIDGE_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_acropolis_bridge_8018FF7C[5] = {
+/// Three selectable sprite triples for the arrival scene in mapped view 10.
+///
+/// A zero-count background record precedes the triples and END follows them.
+/// The scene callback changes their visibility; the three ranges exactly cover
+/// the nine arrival sources. Storage stays writable with the loaded overlay.
+static SpriteBatch _gAcropolisBridgeArrivalSpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
     { 3, 3, 0, 0, { 2, 0 } },
@@ -2007,7 +2125,7 @@ SpriteBatch D_acropolis_bridge_8018FF7C[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_acropolis_bridge_8018FFA4[10] = {
+SpriteView gAcropolisBridgeSpriteViews[ACROPOLIS_BRIDGE_VIEW_COUNT] = {
     { { .empty = _gAcropolisBridgeView1SpriteBatches }, _gAcropolisBridgeView1SpriteBatches, NULL },
     { { .elements = _gAcropolisBridgeView2SpriteSources }, _gAcropolisBridgeView2SpriteBatches, NULL },
     { { .elements = _gAcropolisBridgeView3SpriteSources }, _gAcropolisBridgeView3SpriteBatches, NULL },
@@ -2015,29 +2133,42 @@ SpriteView D_acropolis_bridge_8018FFA4[10] = {
     { { .elements = _gAcropolisBridgeView5SpriteSources }, _gAcropolisBridgeView5SpriteBatches, NULL },
     { { .elements = _gAcropolisBridgeView6SpriteSources }, _gAcropolisBridgeView6SpriteBatches, NULL },
     { { .elements = _gAcropolisBridgeView7SpriteSources }, _gAcropolisBridgeView7SpriteBatches, NULL },
-    { { .elements = _gAcropolisBridgeKeypadSpriteSources }, D_acropolis_bridge_8018FD90, NULL },
-    { { .empty = D_acropolis_bridge_8018FEB8 }, D_acropolis_bridge_8018FEB8, NULL },
-    { { .elements = D_acropolis_bridge_8018FEC8 }, D_acropolis_bridge_8018FF7C, NULL },
+    { { .elements = _gAcropolisBridgeKeypadSpriteSources }, _gAcropolisBridgeKeypadSpriteBatches, NULL },
+    { { .empty = _gAcropolisBridgeView9SpriteBatches }, _gAcropolisBridgeView9SpriteBatches, NULL },
+    { { .elements = _gAcropolisBridgeArrivalSpriteSources }, _gAcropolisBridgeArrivalSpriteBatches, NULL },
 };
 
-AreaResource D_acropolis_bridge_8019001C[2] = {
-    { 41, 41, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &D_acropolis_bridge_80191780.desc },
+/// Default-layout enemy resource, keyed by placement entry 41, followed by END.
+///
+/// Six default placements share its one TMD enemy recipe at task index zero.
+/// File 41 at group base 60 selects global-library file 604100. The variant
+/// directory borrows this writable table and descriptor while the room is loaded.
+static AreaResource _gAcropolisBridgeDefaultAreaResources[] = {
+    { 41, 41, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, &_gAcropolisBridgeEnemyTaskDescStorage.desc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_bridge_80190034[1] = {
+/// Empty resource list for bridge placement variant 2.
+///
+/// Its END-only table matches that variant's empty placement list and borrows
+/// no file or task recipe. The variant directory retains its own table address.
+static AreaResource _gAcropolisBridgeVariant2AreaResources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_acropolis_bridge_80190040[1] = {
+/// Empty resource list for bridge placement variant 3.
+///
+/// Its END-only table matches that variant's empty placement list and retains
+/// a separate address in the variant directory. Storage lives with this overlay.
+static AreaResource _gAcropolisBridgeVariant3AreaResources[] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_acropolis_bridge_8019004C[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017BC7C, D_acropolis_bridge_8019001C },
-    { D_map_akropolis_8017BCEC, D_acropolis_bridge_80190034 },
-    { D_map_akropolis_8017BCFC, D_acropolis_bridge_80190040 },
+    { D_map_akropolis_8017BC7C, _gAcropolisBridgeDefaultAreaResources },
+    { D_map_akropolis_8017BCEC, _gAcropolisBridgeVariant2AreaResources },
+    { D_map_akropolis_8017BCFC, _gAcropolisBridgeVariant3AreaResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -2295,15 +2426,15 @@ static WorldCoordRoomLights _gAcropolisBridgeRoomLights = {
     .coneLights            = NULL,
 };
 
-ViewCamera D_acropolis_bridge_80190A24[10] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 9107, 0x7530, 3098 } }, 499 },
+ViewCamera gAcropolisBridgeViewCameras[ACROPOLIS_BRIDGE_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { 9107, 0x7530, 3098 } }, 499 },
     { { { { -990, 0, 3974 }, { 1381, 3840, 344 }, { -3726, 1423, -928 } }, { 9483, 1851, 1361 } }, 230 },
     { { { { -716, 0, -4032 }, { -1803, 3663, 320 }, { 3607, 1831, -640 } }, { 8500, 2876, 1406 } }, 230 },
     { { { { -388, 0, -4077 }, { -2430, 3288, 231 }, { 3273, 2441, -312 } }, { 0x3AE4, 4509, 1554 } }, 230 },
     { { { { -1039, 0, 3961 }, { 2408, 3252, 631 }, { -3146, 2489, -825 } }, { 0x2BF7, 3255, 1351 } }, 230 },
     { { { { -386, 0, -4077 }, { -2842, 2936, 269 }, { 2923, 2855, -276 } }, { 9497, 4691, 1750 } }, 230 },
     { { { { -431, 0, -4073 }, { -1488, 3812, 157 }, { 3791, 1496, -401 } }, { 0x3CF8, 1974, 1394 } }, 230 },
-    { { { { 0, 0, 4096 }, { 3580, 1989, 0 }, { -1989, 3580, 0 } }, { 4620, 1300, 500 } }, 230 },
+    { { { { 0, 0, ONE }, { 3580, 1989, 0 }, { -1989, 3580, 0 } }, { 4620, 1300, 500 } }, 230 },
     { { { { 1369, 0, 3860 }, { 952, 3969, -337 }, { -3741, 1010, 1326 } }, { 1976, 2297, 3308 } }, 230 },
     { { { { -990, 0, 3974 }, { 1381, 3840, 344 }, { -3726, 1423, -928 } }, { 0x3552, 1930, 1439 } }, 230 },
 };
@@ -2436,12 +2567,35 @@ WorldCollisionSurfaceProperties* gAcropolisBridgeSurfacePropertiesByClass[8] = {
     &_gAcropolisBridgeSurface7Properties,
 };
 
-DamageAttack D_acropolis_bridge_80190C54[2] = {
-    { 18, 3 },
+/// Victim reaction packed into the bridge enemy's category-4 contact key.
+enum { ACROPOLIS_BRIDGE_ENEMY_ATTACK_REACTION_POISON = 3 };
+
+/// Attack rows shared by all bridge enemies.
+///
+/// Attack index 0 has base power 18 and applies the player's poison reaction.
+/// The second all-zero row has no established consumer; it is an attack record,
+/// not a sentinel. Both rows remain live with their shared parameter record.
+static DamageAttack _gAcropolisBridgeEnemyAttacks[] = {
+    { 18, ACROPOLIS_BRIDGE_ENEMY_ATTACK_REACTION_POISON },
     { 0, 0 },
 };
 
-EnemyParams D_acropolis_bridge_80190C5C = { D_acropolis_bridge_80190C54, 80, 6, 36, 1, 100, 0, 100, 0 };
+/// Shared attack, HP, reward and hit-response parameters for bridge enemies.
+///
+/// Setup and the accepted-keypad command read the configured 80 HP; setup's
+/// later assignment still reduces the live enemy to 1 HP. All instances borrow
+/// this writable record and its attack rows while the bridge overlay is loaded.
+static EnemyParams _gAcropolisBridgeEnemyParams = {
+    .attacks              = _gAcropolisBridgeEnemyAttacks,
+    .hpMax                = 80,
+    .exp                  = 6,
+    .bp                   = 36,
+    .mp                   = 1,
+    .critChance           = 100,
+    .buildupSteps         = 0,
+    .damageOverTimeChance = 100,
+    .damageOverTimeTicks  = 0,
+};
 
 static TmdBone _gAcropolisBridgeModel13870Skeleton[4] = {
 #include "assets/acropolis_bridge_model_13870_skeleton.inc"
@@ -2596,7 +2750,12 @@ AnimationSet* D_acropolis_bridge_801915C8[7] = {
     NULL,
 };
 
-s16 D_acropolis_bridge_801915E4[6][6] = {
+/// Enemy animation transition durations, indexed by previous clip then new clip.
+///
+/// Both clip indices must be 0..5. Values count whole normal-rate frames:
+/// 1 between patrol/chase, 8 from either into bob, and 0 for the other pairs.
+/// The same duration starts each of the three driven animation slots.
+static const s16 _gAcropolisBridgeEnemyAnimationBlendFrames[6][6] SECTION(".data") = {
     { 0, 0, 0, 0, 0, 0 },
     { 0, 0, 1, 8, 0, 0 },
     { 0, 1, 0, 8, 0, 0 },
@@ -2772,7 +2931,19 @@ void (*D_acropolis_bridge_8019175C[9])(Task*) = {
     _acropolisBridgeEnemyAnimateAtPlacement,
 };
 
-_AcropolisBridgeEnemyTaskDescStorage D_acropolis_bridge_80191780 = { { { { TASK_BODY_TMD, 96 } }, _acropolisBridgeEnemyTask, { .model = &_gAcropolisBridgeModel13870 } }, { 0 } };
+/// Scheduler priority of the bridge enemy's TMD task recipe.
+enum { ACROPOLIS_BRIDGE_ENEMY_TASK_PRIORITY = 96 };
+
+/// One bridge-enemy spawn recipe with its retained, uninterpreted storage tail.
+///
+/// Default area resources borrow `desc` at task index zero. It runs the enemy
+/// callback on the embedded model; the overlay must remain loaded throughout
+/// the task's lifetime. The following eight zero bytes have no established
+/// consumer or ownership and remain represented by the existing storage type.
+static _AcropolisBridgeEnemyTaskDescStorage _gAcropolisBridgeEnemyTaskDescStorage = {
+    .desc      = { { { TASK_BODY_TMD, ACROPOLIS_BRIDGE_ENEMY_TASK_PRIORITY } }, _acropolisBridgeEnemyTask, { .model = &_gAcropolisBridgeModel13870 } },
+    .unknown_C = { 0 },
+};
 
 Task* D_acropolis_bridge_80191794 = NULL;
 
@@ -2782,14 +2953,15 @@ Task* D_acropolis_bridge_8019179C = NULL;
 
 s32 D_acropolis_bridge_801917A0 = 0;
 
-u16 D_acropolis_bridge_801917A4[2] = {
-    0,
-    0xF222,
+/// Movie frame published to enemy presentation, with the adjacent stored halfword.
+///
+/// The movie task writes `frame` on every non-exiting update, including its
+/// post-playback delay. It must stay below 189 for the height-path lookup.
+/// The retained second halfword has no established role or separate owner.
+static _AcropolisBridgeMovieFrameStorage _gAcropolisBridgeMovieFrameStorage = {
+    .frame     = 0,
+    .unknown_2 = 0xF222,
 };
-
-s32 D_acropolis_bridge_801917A8;
-
-DR_MOVE* D_acropolis_bridge_801917AC;
 
 extern AnimationSet* D_acropolis_bridge_801915C8[7];
 
@@ -3214,7 +3386,7 @@ static void _acropolisBridgeKeypadMovieTask(Task* movieTask)
             break;
     }
     // Publish the STR frame for the enemies, including the post-playback delay.
-    D_acropolis_bridge_801917A4[0] = queue->movieFrame;
+    _gAcropolisBridgeMovieFrameStorage.frame = queue->movieFrame;
 }
 
 /// Returns the enemy presentation's signed root Y sample for the current movie frame.
@@ -3225,7 +3397,7 @@ static void _acropolisBridgeKeypadMovieTask(Task* movieTask)
 /// The room path and captured frame must remain live.
 static s16 _acropolisBridgeGetMovieEnemyHeight(void)
 {
-    return D_acropolis_bridge_80189240[D_acropolis_bridge_801917A4[0] + 1].vy;
+    return _gAcropolisBridgeMovieEnemyHeightPath[_gAcropolisBridgeMovieFrameStorage.frame + 1].vy;
 }
 
 /// Opens the keypad with owned work and a separately spawned cursor task.
@@ -3263,10 +3435,10 @@ static void _acropolisBridgeKeypadOpen(Task* task)
     displayAcquireMenuHold();
     gGameSession->eventState = 1;
     gGameSession->hideHud    = 1;
-    for (hotspot = D_acropolis_bridge_8018983C; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+    for (hotspot = _gAcropolisBridgeKeypadHotspots; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
         hotspot->hit = 0;
     }
-    D_acropolis_bridge_801917A8 = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
+    _gAcropolisBridgeKeypadExitResult = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
     _acropolisBridgeShowKeypadCode(work->code, 0);
 }
 
@@ -3285,7 +3457,7 @@ static void _acropolisBridgeKeypadEnterCode(Task* task)
         ACROPOLIS_BRIDGE_KEYPAD_SHIFTED_DIGITS_MASK = 0xFF0
     };
     _AcropolisBridgeKeypadWork* work    = task->work;
-    ActionPromptHotspot*        hotspot = D_acropolis_bridge_8018983C;
+    ActionPromptHotspot*        hotspot = _gAcropolisBridgeKeypadHotspots;
     ActionPrompt*               prompt  = gActionPromptSlots;
 
     gGameSession->hideHud    = 1;
@@ -3332,8 +3504,8 @@ static void _acropolisBridgeKeypadEnterCode(Task* task)
         }
         // Cancellation wins when completion and cancel occur together.
         if (prompt->buttons.slots[ACROPOLIS_BRIDGE_KEYPAD_CANCEL_BUTTON].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            task->state                 = ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE;
-            D_acropolis_bridge_801917A8 = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
+            task->state                       = ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE;
+            _gAcropolisBridgeKeypadExitResult = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
         }
     }
     _acropolisBridgeShowKeypadCode(work->code, 0);
@@ -3376,7 +3548,7 @@ static inline void _acropolisBridgeKeypadStepResultBlink(_AcropolisBridgeKeypadW
 static void _acropolisBridgeKeypadBlinkAcceptedCode(Task* task)
 {
     ActionPrompt*               prompt   = gActionPromptSlots;
-    ActionPromptHotspot*        hotspots = D_acropolis_bridge_8018983C;
+    ActionPromptHotspot*        hotspots = _gAcropolisBridgeKeypadHotspots;
     _AcropolisBridgeKeypadWork* work     = task->work;
     GameLocationKey*            location = &gGameSession->location.loc;
     SpriteView*                 views;
@@ -3395,8 +3567,8 @@ static void _acropolisBridgeKeypadBlinkAcceptedCode(Task* task)
     }
 
     if (work->blinkCount == ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT) {
-        task->state                 = ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE;
-        D_acropolis_bridge_801917A8 = ACROPOLIS_BRIDGE_KEYPAD_ACCEPTED;
+        task->state                       = ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE;
+        _gAcropolisBridgeKeypadExitResult = ACROPOLIS_BRIDGE_KEYPAD_ACCEPTED;
     }
 }
 
@@ -3410,7 +3582,7 @@ static void _acropolisBridgeKeypadBlinkAcceptedCode(Task* task)
 static void _acropolisBridgeKeypadBlinkError(Task* task)
 {
     ActionPrompt*               prompt   = gActionPromptSlots;
-    ActionPromptHotspot*        hotspots = D_acropolis_bridge_8018983C;
+    ActionPromptHotspot*        hotspots = _gAcropolisBridgeKeypadHotspots;
     _AcropolisBridgeKeypadWork* work     = task->work;
     u8                          rejectedCount;
 
@@ -3430,8 +3602,8 @@ static void _acropolisBridgeKeypadBlinkError(Task* task)
         rejectedCount       = work->rejectedCount + 1;
         work->rejectedCount = rejectedCount;
         if (rejectedCount >= ACROPOLIS_BRIDGE_KEYPAD_REJECTED_LIMIT) {
-            task->state                 = ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE;
-            D_acropolis_bridge_801917A8 = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
+            task->state                       = ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE;
+            _gAcropolisBridgeKeypadExitResult = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
         }
     }
 }
@@ -3484,9 +3656,9 @@ static void _acropolisBridgeShowKeypadCode(s32 code, s16 hidePrompt)
         batches[ACROPOLIS_BRIDGE_KEYPAD_PROMPT_BATCH].hidden = 1;
     }
 
-    hundredsBatch = D_acropolis_bridge_801898CC[0][((u32)code & 0xF00) >> 8];
-    tensBatch     = D_acropolis_bridge_801898CC[1][((u32)code & 0xF0) >> 4];
-    onesBatch     = D_acropolis_bridge_801898CC[2][code & 0xF];
+    hundredsBatch = _gAcropolisBridgeKeypadDigitBatches[0][((u32)code & 0xF00) >> 8];
+    tensBatch     = _gAcropolisBridgeKeypadDigitBatches[1][((u32)code & 0xF0) >> 4];
+    onesBatch     = _gAcropolisBridgeKeypadDigitBatches[2][code & 0xF];
 
     ACROPOLIS_BRIDGE_SELECT_KEYPAD_DIGIT(batches, hundredsBatch, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH, batchIndex);
     ACROPOLIS_BRIDGE_SELECT_KEYPAD_DIGIT(batches, tensBatch, ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH, ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH, batchIndex);
@@ -3753,7 +3925,7 @@ static void _acropolisBridgeKeypadCheckCode(Task* task)
 {
     ActionPrompt*               prompt   = gActionPromptSlots;
     _AcropolisBridgeKeypadWork* work     = task->work;
-    ActionPromptHotspot*        hotspots = D_acropolis_bridge_8018983C;
+    ActionPromptHotspot*        hotspots = _gAcropolisBridgeKeypadHotspots;
 
     if (work->timer < ACROPOLIS_BRIDGE_KEYPAD_CHECK_DELAY_FRAMES) {
         work->timer++;
@@ -3794,7 +3966,7 @@ static void _acropolisBridgeKeypadClose(Task* task)
     displayReleaseMenuHold();
     _acropolisBridgeShowKeypadCode(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
     taskKill(task->spawnArg2.pointer);
-    taskRequestKill(task, D_acropolis_bridge_801917A8);
+    taskRequestKill(task, _gAcropolisBridgeKeypadExitResult);
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
@@ -3974,7 +4146,7 @@ void acropolisBridgeAmbientEffectsTask(Task* task)
     }
 
     // Borrow byte-addressed packet storage from the file buffer for this frame.
-    D_acropolis_bridge_801917AC =
+    _gAcropolisBridgeStreakMoveCursor =
         (DR_MOVE*)((u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * ACROPOLIS_BRIDGE_STREAK_PACKET_BUFFER_BYTES + ACROPOLIS_BRIDGE_STREAK_PACKET_BASE_BYTES));
 
 /// Seeds one view's framebuffer streaks with thirty attempted counted spawns.
@@ -4140,12 +4312,12 @@ void acropolisBridgeFallingStreakTask(Task* task)
         x     = work->move.vx;
         depth = 0x840 - (y - 0x60) * 8;
         if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
-            rect.x                      = x;
-            rect.y                      = y + bufferY;
-            rect.w                      = work->angle;
-            rect.h                      = 1;
-            movePacket                  = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = movePacket + 1;
+            rect.x                            = x;
+            rect.y                            = y + bufferY;
+            rect.w                            = work->angle;
+            rect.h                            = 1;
+            movePacket                        = _gAcropolisBridgeStreakMoveCursor;
+            _gAcropolisBridgeStreakMoveCursor = movePacket + 1;
             SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
@@ -4199,12 +4371,12 @@ void acropolisBridgeMidDustStreakTask(Task* task)
         x     = work->move.vx;
         depth = (0xF0 - y) * (0xF0 - y) / 15 + 0x2C0;
         if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
-            rect.x                      = x;
-            rect.y                      = y + bufferY;
-            rect.w                      = work->angle;
-            rect.h                      = 1;
-            movePacket                  = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = movePacket + 1;
+            rect.x                            = x;
+            rect.y                            = y + bufferY;
+            rect.w                            = work->angle;
+            rect.h                            = 1;
+            movePacket                        = _gAcropolisBridgeStreakMoveCursor;
+            _gAcropolisBridgeStreakMoveCursor = movePacket + 1;
             SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
@@ -4258,12 +4430,12 @@ void acropolisBridgeLowDustStreakTask(Task* task)
         x     = work->move.vx;
         depth = 0x600 - (y - 0x68) * 8;
         if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
-            rect.x                      = x;
-            rect.y                      = y + bufferY;
-            rect.w                      = work->angle;
-            rect.h                      = 1;
-            movePacket                  = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = movePacket + 1;
+            rect.x                            = x;
+            rect.y                            = y + bufferY;
+            rect.w                            = work->angle;
+            rect.h                            = 1;
+            movePacket                        = _gAcropolisBridgeStreakMoveCursor;
+            _gAcropolisBridgeStreakMoveCursor = movePacket + 1;
             SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
@@ -4317,12 +4489,12 @@ void acropolisBridgeTallDustStreakTask(Task* task)
         x     = work->move.vx;
         depth = (0xF0 - y) * (0xF0 - y) / 15 + 0x400;
         if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
-            rect.x                      = x;
-            rect.y                      = y + bufferY;
-            rect.w                      = work->angle;
-            rect.h                      = 1;
-            movePacket                  = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = movePacket + 1;
+            rect.x                            = x;
+            rect.y                            = y + bufferY;
+            rect.w                            = work->angle;
+            rect.h                            = 1;
+            movePacket                        = _gAcropolisBridgeStreakMoveCursor;
+            _gAcropolisBridgeStreakMoveCursor = movePacket + 1;
             SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
@@ -4366,12 +4538,12 @@ void acropolisBridgeParticleStreakTask(Task* task)
         x     = work->move.vx;
         depth = 0x800 - (y - 0x68) * 8;
         if (y < ACROPOLIS_BRIDGE_STREAK_LAST_SOURCE_ROW) {
-            rect.x                      = x;
-            rect.y                      = y + bufferY;
-            rect.w                      = work->angle;
-            rect.h                      = 1;
-            movePacket                  = D_acropolis_bridge_801917AC;
-            D_acropolis_bridge_801917AC = movePacket + 1;
+            rect.x                            = x;
+            rect.y                            = y + bufferY;
+            rect.w                            = work->angle;
+            rect.h                            = 1;
+            movePacket                        = _gAcropolisBridgeStreakMoveCursor;
+            _gAcropolisBridgeStreakMoveCursor = movePacket + 1;
             SetDrawMove(movePacket, &rect, x, y + bufferY + 1);
             addPrim(gGpuCurrentOt + (depth >> 4), movePacket);
         }
@@ -4419,7 +4591,7 @@ void acropolisBridgeGroundGlowTask(Task* task)
     scratchCursor  = &SCRATCH_STACK_CURSOR(_AcropolisBridgeQuadScratch);
     cornerIndex    = 0;
     worldMatrix    = &coord->workm;
-    unitCorners    = D_acropolis_bridge_8018990C;
+    unitCorners    = _gAcropolisBridgeGroundGlowUnitCorners;
     reservedTop    = *scratchCursor - 1;
     work->age      = task->spawnArg1.halves.low;
     *scratchCursor = reservedTop;
@@ -4992,7 +5164,7 @@ static s32 _acropolisBridgeEnemyApplyCommand(Task* task, s32 messageId, const Ac
                     goto hide;
             }
             {
-                u16 hp    = D_acropolis_bridge_80190C5C.hpMax;
+                u16 hp    = _gAcropolisBridgeEnemyParams.hpMax;
                 enemy->hp = hp;
                 work->hp  = hp;
             }
@@ -5046,7 +5218,7 @@ static void _acropolisBridgeEnemyUpdateAnimation(Task* task)
         for (blendSlot = ACROPOLIS_BRIDGE_ENEMY_FIRST_DRIVEN_SLOT; blendSlot < ARRAY_SIZE(blendWork->rig.slots); blendSlot++) {
             blendWork->rig.slots[blendSlot].rate = blendWork->animRate;
             animationSeekSlotWithBlend(&blendWork->rig.anim, blendSlot, blendWork->animId, 0,
-                                       D_acropolis_bridge_801915E4[blendWork->prevAnimId][blendWork->animId]);
+                                       _gAcropolisBridgeEnemyAnimationBlendFrames[blendWork->prevAnimId][blendWork->animId]);
         }
         _acropolisBridgeCommitEnemyAnimation(blendWork, work);
         return;
@@ -5185,8 +5357,8 @@ static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task)
     lightingModel->colorMtx = &work->colorMtx;
     enemy->field_4          = &rootCoord->coord;
     enemy->field_48         = 0;
-    enemy->param            = &D_acropolis_bridge_80190C5C;
-    configuredHp            = D_acropolis_bridge_80190C5C.hpMax;
+    enemy->param            = &_gAcropolisBridgeEnemyParams;
+    configuredHp            = _gAcropolisBridgeEnemyParams.hpMax;
     enemy->recs             = work->bodyContacts;
     enemy->hp               = configuredHp;
     work->hp                = 1;

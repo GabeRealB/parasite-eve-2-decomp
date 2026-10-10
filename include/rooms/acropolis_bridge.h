@@ -11,12 +11,24 @@
 
 #include "main/task_types.h"
 
+/// Extents of the bridge's room directory, mapped views and warp endpoints.
+enum {
+    ACROPOLIS_BRIDGE_ROOM_COUNT = 2,
+    ACROPOLIS_BRIDGE_VIEW_COUNT = 10,
+    ACROPOLIS_BRIDGE_WARP_COUNT = 2
+};
+
 extern u8 D_acropolis_bridge_80189A9C[24];
 
 extern AreaVariant D_acropolis_bridge_8019004C[12];
 
-// acropolis_bridge
-extern WorldCollisionRoomResources D_acropolis_bridge_80189A54[];
+/// Collision resources for the bridge's two rooms, indexed by room - 1.
+///
+/// Each room selects its own grid and action triggers; both share the directed
+/// view boundaries and have no sight occluders. The map directory borrows these
+/// mutable resources until the grid is retired and the triggers unlinked.
+/// Keep the bridge overlay loaded throughout their use.
+extern WorldCollisionRoomResources gAcropolisBridgeRoomCollisionResources[ACROPOLIS_BRIDGE_ROOM_COUNT];
 
 /// Logical-to-mapped view indices for the bridge's two rooms.
 ///
@@ -25,7 +37,11 @@ extern WorldCollisionRoomResources D_acropolis_bridge_80189A54[];
 /// order. The maps remain borrowed while the bridge overlay is loaded.
 extern u8* gAcropolisBridgeViewMaps[2];
 
-extern ViewCount D_acropolis_bridge_80189A88[];
+/// Logical-view counts for the bridge's two rooms, indexed by room - 1.
+///
+/// Each count admits ten elements in that room's logical-view map for reverse
+/// lookup. The map directory borrows this storage while the bridge is loaded.
+extern ViewCount gAcropolisBridgeViewCounts[ACROPOLIS_BRIDGE_ROOM_COUNT];
 
 /// Lighting descriptors for the bridge's two rooms, indexed by room - 1.
 ///
@@ -33,11 +49,30 @@ extern ViewCount D_acropolis_bridge_80189A88[];
 /// ambient minima. Descriptors and lights live with the bridge overlay.
 extern WorldCoordRoomLighting gAcropolisBridgeRoomLightingTable[2];
 
-extern DirectionWarpEntry D_acropolis_bridge_80189AB4[];
+/// Arrival/departure endpoints for the promenade and fire escape.
+///
+/// Warp ID 1 enters at view 6 facing -X; ID 2 enters at view 2 facing +X.
+/// Player and companion share each endpoint's placement, in world coordinates
+/// and 4096 angle units per turn. Each endpoint has arrival/departure sounds
+/// and a map marker, with no blocked sound or extra spawn/transition flags.
+/// Index by warp ID - 1 and keep the bridge overlay loaded during use.
+extern DirectionWarpEntry gAcropolisBridgeWarpEntries[ACROPOLIS_BRIDGE_WARP_COUNT];
 
-extern SpriteView D_acropolis_bridge_8018FFA4[];
+/// Sprite resources for the bridge's ten mapped views, indexed by mapped view - 1.
+///
+/// Views 1 and 9 have no source sprites and retain their batch-list addresses
+/// in `sources.empty`; view 8 supplies the keypad and view 10 the arrival scene.
+/// No view has a clip list. Records, sources and visibility flags stay writable
+/// and borrowed while the bridge overlay is loaded.
+extern SpriteView gAcropolisBridgeSpriteViews[ACROPOLIS_BRIDGE_VIEW_COUNT];
 
-extern ViewCamera D_acropolis_bridge_80190A24[];
+/// Camera transforms and projection distances for the bridge's ten mapped views.
+///
+/// Index by mapped view - 1: both rooms share this directory through their
+/// logical-view maps. Rotations use 12 fractional bits, translations are negated
+/// world-space camera origins and projection distances are pixels. A queued
+/// camera application borrows its record until dispatch; keep the bridge loaded.
+extern ViewCamera gAcropolisBridgeViewCameras[ACROPOLIS_BRIDGE_VIEW_COUNT];
 
 /// Collision and footstep policies for the bridge's surface classes 0..7.
 ///

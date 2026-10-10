@@ -57937,7 +57937,7 @@ argument and as an array index:
 
 ```c
 animationSeekSlotWithBlend(&blendWork->rig.anim, blendSlot, blendWork->animId, 0,
-              D_acropolis_bridge_801915E4[blendWork->prevAnimId][blendWork->animId]);
+              _gAcropolisBridgeEnemyAnimationBlendFrames[blendWork->prevAnimId][blendWork->animId]);
 ```
 
 The target loads it once with `lh` and uses that one register for both. With
