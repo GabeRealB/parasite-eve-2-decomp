@@ -179,8 +179,6 @@ extern TaskDesc gActor101200BoneSucklerTaskDesc;
 /// until enemy teardown. Placement entry 8 selects this descriptor.
 extern TaskDesc gActor00700MothTaskDesc;
 
-extern TaskDesc D_actor_511000_80139924[];
-
 /// Slot export of `gActor03700BatTaskDesc` from actor_103700, with the same descriptor contract.
 extern TaskDesc gActor103700BatTaskDesc;
 
@@ -443,8 +441,6 @@ extern TaskDesc gActor113100PierceCarradineTaskDescriptors[4];
 /// Slot export of `gActor01600ScavengerTaskDesc` from actor_101600, with the same descriptor contract.
 extern TaskDesc gActor101600ScavengerTaskDesc;
 
-extern TaskDesc D_actor_511000_801472E8[];
-
 /// Slot export of `gActor01100Tasks` from actor_101100, with the same descriptor contract.
 extern TaskDesc gActor101100Tasks[3];
 
@@ -631,8 +627,6 @@ extern TaskDesc gActor402200GolemTaskDesc;
 /// until the chosen opening state needs drawing. Borrows a live `Enemy` as
 /// spawn argument 2; the actor overlay and its model data must remain loaded.
 extern TaskDesc gActor401000StrangerTaskDesc;
-
-extern TaskDesc D_actor_511000_80155070[];
 
 /// Spawn recipes for the Burner model (index 0) and its floor-puff emitter (index 1).
 ///

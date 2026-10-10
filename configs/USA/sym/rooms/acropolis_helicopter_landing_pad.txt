@@ -59,9 +59,9 @@ _gAcropolisHelicopterLandingPadView23SpriteBatches = 0x801877D0; // size:0x10 de
 _gAcropolisHelicopterLandingPadView24SpriteBatches = 0x801877E0; // size:0x10 defined:True
 _gAcropolisHelicopterLandingPadView25SpriteBatches = 0x801877F0; // size:0x10 defined:True
 _gAcropolisHelicopterLandingPadView26SpriteBatches = 0x80187800; // size:0x10 defined:True
-D_actor_511000_80139924 = 0x80139924; // absolute:True owner=actor_511000
-D_actor_511000_801472E8 = 0x801472E8; // absolute:True owner=actor_511000
-D_actor_511000_80155070 = 0x80155070; // absolute:True owner=actor_511000
+gActor511000HelicopterTaskDescriptors = 0x80139924; // absolute:True owner=actor_511000
+gActor511000RupertTaskDescriptors = 0x801472E8; // absolute:True owner=actor_511000
+gActor511000No9GolemTaskDescriptors = 0x80155070; // absolute:True owner=actor_511000
 gActor510900TaskDescriptors = 0x80167A18; // absolute:True owner=actor_510900 shared=actors
 D_map_akropolis_8017BD2C = 0x8017BD2C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017BD4C = 0x8017BD4C; // absolute:True owner=map_akropolis

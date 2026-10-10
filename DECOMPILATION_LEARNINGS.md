@@ -98960,8 +98960,8 @@ single-assignment bodies sits at the lower address:
 beq  $a2,$a3, .L96C      # mode == 1: branches *forward*, over the whole tree
 slti $v0,$a2,2
 ...
-.L96C:  lui $v0,%hi(D_actor_511000_801472B4)   # target: mode-1 body first
-.L978:  lui $v0,%hi(D_actor_511000_80146C74)   # then the mode-0/2 body
+.L96C:  lui $v0,%hi(_gActor511000RupertEyesClosedUploads)   # target: mode-1 body first
+.L978:  lui $v0,%hi(_gActor511000RupertEyesOpenUploads)   # then the mode-0/2 body
 ```
 
 `stmt.c:expand_end_case` builds the dispatch tree from the case *values* only
@@ -111885,8 +111885,8 @@ The seed also carried both classic m2c type errors, each worth ~2 instructions
 of the 76: `TmdObject::coords` is a `GfxCoord*`, so
 `worldCoordSetModelLighting(obj, coord->workm.t, 0, 3)` gives `addiu a1,s2,0x38`
 (the seed's `s32*` plus `0x38` gave `+0xE0`), and the view table
-`D_actor_511000_80147EE4` is a `ViewCamera[]`, so
-`&D_actor_511000_80147EE4[task->killCountdown]` scales by 0x24 (`sll 3`/`addu`/
+`_gActor511000HelicopterSequenceCameras` is a `ViewCamera[]`, so
+`&_gActor511000HelicopterSequenceCameras[task->killCountdown]` scales by 0x24 (`sll 3`/`addu`/
 `sll 2`) where the seed's `s32` extern scaled by 0x24*4 (`sll 4`). Both fall out
 of reading the record the data actually holds - `MATRIX` + `u32`, 0x24 bytes,
 translation descending - rather than from the decompiler's placeholder types.

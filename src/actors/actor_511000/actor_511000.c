@@ -40,12 +40,6 @@
 #include "../../shared/model_placement.h"
 #include "../../shared/actor_messages.h"
 
-extern GpuImageUpload D_actor_511000_80146F94[2];
-
-extern GpuImageUpload D_actor_511000_80146C74[2];
-
-extern GpuImageUpload D_actor_511000_801472B4[2];
-
 /// Work block of the No. 9 golem, the package's enemy.
 ///
 /// The enemy's spawn state allocates it zeroed and keeps it at `Task::work`
@@ -177,111 +171,69 @@ static void _actor511000TickNo9GolemPart3Model(Enemy* enemy, Task* task);
 static void _actor511000AttachNo9GolemPart12Model(Enemy* enemy, Task* task);
 static void _actor511000TickNo9GolemPart12Model(Enemy* enemy, Task* task);
 
-/// State table of a child chained under a part of its spawner's model: the
-/// attach state, an empty tick and the kill.
-static const TaskFuncTable3 D_actor_511000_80131E24 = {
+/// Rupert's revolver states: 0 attach at body part 8, 1 idle, 2 kill.
+///
+/// Indexed by `Task::state` without a terminator or bounds check.
+static const TaskFuncTable3 _gActor511000RupertRevolverStates = {
     _modelPlacementAttachPartTask,
     _actor511000IdleRupertRevolver,
     taskKill,
 };
 
-/// State table of a child chained under a part of its spawner's model that
-/// also follows the spawner's active-draw and buffer flags: the attach state,
-/// the flag-mirroring tick and the kill.
-static const TaskFuncTable3 D_actor_511000_80131E30 = {
+/// Rupert's second prop states: 0 attach at part 12, 1 mirror draw policy, 2 kill.
+///
+/// Indexed by `Task::state` without a terminator or bounds check.
+static const TaskFuncTable3 _gActor511000RupertPropStates = {
     _modelPlacementAttachChild,
     _modelPlacementMirrorParentDrawFlags,
     taskKill,
 };
 
-/// State table of the task that owns the `_Actor511000RupertBroderickWork` block: its spawn
-/// state, the per-frame tick and the enemy task exit.
-static const TaskFuncTable3 D_actor_511000_80131E3C = {
+/// Rupert's body states: 0 initialize work and children, 1 update, 2 enemy exit.
+///
+/// Indexed by `Task::state`; exit requires the owning enemy in spawn argument 2.
+static const TaskFuncTable3 _gActor511000RupertBodyStates = {
     _actor511000InitRupert,
     _actor511000TickRupert,
     enemyTaskExit,
 };
 
-/// State table of the task that owns the `_Actor511000HelicopterWork` block: its spawn
-/// state, the per-frame tick and the kill.
-static const TaskFuncTable3 D_actor_511000_80131E48 = {
+/// Helicopter hull states: 0 initialize work and pose, 1 update, 2 kill.
+///
+/// Indexed by `Task::state` without a terminator or bounds check.
+static const TaskFuncTable3 _gActor511000HelicopterStates = {
     _actor511000InitHelicopter,
     _actor511000TickHelicopter,
     _actor511000KillHelicopter,
 };
 
-/// State table of a child placed at a translation preset under its spawner:
-/// the attach state, the spinning tick and the kill.
-static const TaskFuncTable3 D_actor_511000_80131E54 = {
+/// Main and tail rotor states: 0 attach to the hull, 1 spin, 2 kill.
+///
+/// Indexed by `Task::state`; spawn argument 1 selects rotor 1 or 2.
+static const TaskFuncTable3 _gActor511000HelicopterRotorStates = {
     _actor511000AttachHelicopterRotor,
     _actor511000TickHelicopterRotor,
     _actor511000KillHelicopterRotor,
 };
 
-/// State table of a child posed from the kill-countdown rotations: the attach
-/// state, the tick that follows the countdown and the kill.
-static const TaskFuncTable3 D_actor_511000_80131E60 = {
+/// Helicopter searchlight states: 0 attach, 1 aim and draw the glow, 2 kill.
+///
+/// Indexed by `Task::state`; aiming follows the parent's sequence frame 0..119.
+static const TaskFuncTable3 _gActor511000HelicopterSearchlightStates = {
     _actor511000AttachHelicopterSearchlight,
     _actor511000TickHelicopterSearchlight,
     _actor511000KillHelicopterSearchlight,
 };
 
-/// The enemy's three state handlers - spawn, per-frame tick and teardown.
-static const EnemyTaskFuncTable3 D_actor_511000_80131E6C = {
+/// No. 9 GOLEM body states: 0 initialize work and children, 1 update, 2 destroy.
+///
+/// Indexed by `Task::state`; each handler receives the owning enemy and task.
+static const EnemyTaskFuncTable3 _gActor511000No9GolemStates = {
     _actor511000SpawnNo9Golem,
     _actor511000TickNo9Golem,
     enemyDestroy,
 };
 
-/// Camera path `_actor511000TickHelicopter` walks while the session is in
-/// view 24, one 0x24-byte `ViewCamera` per step of the kill countdown: the
-/// rotation and projection plane repeat down the table while the translation
-/// descends, so the spawn of a view task per index pans the camera as the
-/// actor goes down. Handed straight to `viewQueueCamera`, exactly as
-/// `viewQueueCurrentCameraAndPackets` queues the current area's mapped camera.
-extern ViewCamera D_actor_511000_80147EE4[];
-
-/// The three texture upload lists used by the tick state and message handler.
-/// Each contains a 24-word by 16-row copy and a terminator; `pixels` points at
-/// the packed texture words.
-
-/// Animation sources the animation message handler selects by index.
-extern AnimationSet*  D_actor_511000_801472D4[4];
-extern AnimationSet** D_actor_511000_801472E4[1];
-
-/// Spawn table `_actor511000InitRupert` starts its two child tasks from,
-/// and the message table it parks in `Task::msgTable`.
-extern TaskDesc D_actor_511000_801472E8[];
-// Message-table callbacks use the argument views required by this TU.
-
-extern TaskMessageEntry D_actor_511000_8014730C[6];
-
-/// Offset `effectSpawn` places the tick state's effect at.
-extern SVECTOR D_actor_511000_8014733C;
-
-extern SVECTOR D_actor_511000_80147344[];
-extern SVECTOR D_actor_511000_80147704[];
-extern SVECTOR D_actor_511000_80147AC4[];
-extern u8      D_actor_511000_80147E84[ACTOR_511000_PALETTE_BYTES];
-extern u8      D_actor_511000_80147EC4[ACTOR_511000_PALETTE_BYTES];
-// Handler views preserve the signatures used by this TU. The dispatcher
-// transports each argument in a word register.
-
-extern TaskMessageEntry D_actor_511000_80148FC4[];
-
-/// Translation presets `_actor511000PlaceHelicopterPart` copies onto the root
-/// coordinate; `Task::spawnArg1` selects the entry.
-extern SVECTOR D_actor_511000_80148FE4[];
-
-extern CVECTOR D_actor_511000_80149004[];
-extern DVECTOR D_actor_511000_80149014[];
-
-/// Spawn table and per-child args for the children spawned on message 1.
-extern TaskDesc D_actor_511000_80139924[];
-extern s32      D_actor_511000_80149054[];
-
-/// Spawn table for the three children `_actor511000SpawnNo9Golem` creates.
-extern TaskDesc D_actor_511000_80155070[];
 /// Message table and animation data `_actor511000SpawnNo9Golem` installs.
 extern TaskMessageEntry D_actor_511000_801550A0[4];
 extern AnimationSet*    D_actor_511000_801550C0[4];
@@ -363,11 +315,17 @@ AnimationSet gActor511000Animation07ADC = {
     { NULL, _gActor511000Animation07ADCBank1, NULL, NULL, _gActor511000Animation07ADCBank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_511000_80139924[4] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterTask, { .model = &_gActor511000HelicopterBase } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop2 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop3 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000HelicopterSearchlightTask, { .model = &_gActor511000Model0A41C } },
+/// Execution priorities of the package's scene models and GOLEM models.
+enum {
+    ACTOR_511000_SCENE_MODEL_PRIORITY = 192,
+    ACTOR_511000_NO9_GOLEM_PRIORITY   = 96,
+};
+
+TaskDesc gActor511000HelicopterTaskDescriptors[4] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterTask, { .model = &_gActor511000HelicopterBase } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop2 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterRotorTask, { .model = &_gActor511000Prop3 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000HelicopterSearchlightTask, { .model = &_gActor511000Model0A41C } },
 };
 
 static TmdBone _gActor511000HelicopterBaseSkeleton[1] = {
@@ -656,87 +614,173 @@ static AnimationSet _gActor511000Animation14B2C = {
     { NULL, _gActor511000Animation14B2CBank1, NULL, NULL, _gActor511000Animation14B2CBank4, NULL, NULL, NULL },
 };
 
-u_long D_actor_511000_80146974[192] = {
+/// Eye-patch dimensions: width counts 16-bit VRAM words, height counts rows.
+enum {
+    ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS = 24,
+    ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS = 16,
+};
+
+/// Packed open-eye pixels for Rupert's face texture.
+///
+/// Two VRAM words per `u_long`; the GPU borrows this word-aligned storage until
+/// transfer completion. The patch covers 24 VRAM words by 16 rows.
+static u_long _gActor511000RupertEyesOpenPixels[ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS * ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
 #include "assets/actor_210700_image_0DE2C.inc"
 };
 
-GpuImageUpload D_actor_511000_80146C74[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_511000_80146974 },
+/// Writable COPY/END list restoring Rupert's open-eye texture patch.
+///
+/// Actor uploads relocate the first destination to the model's texture page
+/// at local Y 40; the pixel storage stays borrowed until GPU completion.
+static GpuImageUpload _gActor511000RupertEyesOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS, ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS }, _gActor511000RupertEyesOpenPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_511000_80146C94[192] = {
+/// Packed half-open-eye pixels for Rupert's face texture.
+///
+/// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
+/// until GPU transfer completion.
+static u_long _gActor511000RupertEyesHalfOpenPixels[ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS * ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
 #include "assets/actor_210700_image_0E14C.inc"
 };
 
-GpuImageUpload D_actor_511000_80146F94[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_511000_80146C94 },
+/// Writable COPY/END list for Rupert's half-open blink image.
+///
+/// Used at blink start and between closed and open eyes. Actor uploads relocate
+/// the first destination; the pixels remain borrowed until GPU completion.
+static GpuImageUpload _gActor511000RupertEyesHalfOpenUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS, ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS }, _gActor511000RupertEyesHalfOpenPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u_long D_actor_511000_80146FB4[192] = {
+/// Packed closed-eye pixels for Rupert's face texture.
+///
+/// Two VRAM words per `u_long`; the 24-word by 16-row patch remains borrowed
+/// until GPU transfer completion.
+static u_long _gActor511000RupertEyesClosedPixels[ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS * ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS / 2] = {
 #include "assets/actor_210700_image_0E46C.inc"
 };
 
-GpuImageUpload D_actor_511000_801472B4[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 24, 16 }, D_actor_511000_80146FB4 },
+/// Writable COPY/END list for Rupert's closed-eye image.
+///
+/// Used by the closed-eye command and the first timed blink step. Actor uploads
+/// relocate the first destination; pixels remain borrowed until GPU completion.
+static GpuImageUpload _gActor511000RupertEyesClosedUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, ACTOR_511000_EYE_TEXTURE_WIDTH_WORDS, ACTOR_511000_EYE_TEXTURE_HEIGHT_ROWS }, _gActor511000RupertEyesClosedPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-AnimationSet* D_actor_511000_801472D4[4] = {
+/// Rupert's bank-0 clip sources, with NULL at 0 and loaded sets at IDs 1..3.
+///
+/// Playback borrows this table and its clip data while the package is loaded.
+/// Clip indices are unchecked and must select one of the loaded sets.
+static AnimationSet* _gActor511000RupertAnimationSets[4] = {
     NULL,
     &_gActor511000Animation1121C,
     &_gActor511000Animation130D4,
     &_gActor511000Animation14B2C,
 };
 
-AnimationSet** D_actor_511000_801472E4[1] = {
-    D_actor_511000_801472D4,
+/// Animation-bank selector for Rupert's body; only bank index 0 is valid.
+///
+/// A bank change binds its clip table into the live playback context. Requests
+/// must keep this package and the selected clip data loaded until playback ends.
+static AnimationSet** _gActor511000RupertAnimationBanks[1] = {
+    _gActor511000RupertAnimationSets,
 };
 
-TaskDesc D_actor_511000_801472E8[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor511000RupertBodyTask, { .model = &_gActor511000RupertBroderickBody2 } },
-    { { { TASK_BODY_TMD, 192 } }, _actor511000RupertRevolverTask, { .model = &_gActor511000RupertBroderickMongoose } },
-    { { { TASK_BODY_TMD, 192 } }, _actor511000RupertPropTask, { .model = &_gActor511000Prop1 } },
+TaskDesc gActor511000RupertTaskDescriptors[3] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertBodyTask, { .model = &_gActor511000RupertBroderickBody2 } },
+    { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertRevolverTask, { .model = &_gActor511000RupertBroderickMongoose } },
+    { { { TASK_BODY_TMD, ACTOR_511000_SCENE_MODEL_PRIORITY } }, _actor511000RupertPropTask, { .model = &_gActor511000Prop1 } },
 };
 
-TaskMessageEntry D_actor_511000_8014730C[6] = {
+/// Rupert's eye-image message; argument 1 selects 0/2 open, 1 closed, 3 blink.
+enum { ACTOR_511000_RUPERT_MESSAGE_SET_EYES = 0x7E0 };
+
+/// Terminated message table for Rupert's animation, placement, drawing and props.
+///
+/// The eye entry selects an image or starts a blink. Payload types belong to
+/// each handler; the final END entry makes unsupported messages return zero.
+static TaskMessageEntry _gActor511000RupertMessages[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor511000PlayRupertAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor511000SetRupertModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor511000ApplyRupertCommand },
-    { 2016, _actor511000SetRupertEyes },
+    { ACTOR_511000_RUPERT_MESSAGE_SET_EYES, _actor511000SetRupertEyes },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_actor_511000_8014733C = { -30, 440, 140, 0 };
+/// Muzzle-flash position relative to Rupert's revolver root, in game units.
+///
+/// The shot effect snapshots the placement and retains this borrowed offset;
+/// keep the package loaded while the effect lives.
+static SVECTOR _gActor511000RupertMuzzleFlashOffset = { -30, 440, 140, 0 };
 
-SVECTOR D_actor_511000_80147344[120] = {
+/// Synchronized hull, camera and searchlight frames of the view-24 sequence.
+enum { ACTOR_511000_HELICOPTER_SEQUENCE_FRAME_COUNT = 120 };
+
+/// Helicopter hull Euler rotations for sequence frames 0..119.
+///
+/// Angles use 4096 units per turn in the root's parent coordinate frame.
+/// Shares the clamped playback cursor with the translations, camera and lamp.
+static SVECTOR _gActor511000HelicopterSequenceRotations[ACTOR_511000_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
 #include "assets/actor_511000_motion_15524.inc"
 };
 
-SVECTOR D_actor_511000_80147704[120] = {
+/// Helicopter hull positions for sequence frames 0..119, in parent game units.
+///
+/// Applied with the corresponding rotation; initialization uses frame 0 and
+/// view-24 updates advance the shared cursor through the repeated final frame.
+static SVECTOR _gActor511000HelicopterSequenceTranslations[ACTOR_511000_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
 #include "assets/actor_511000_motion_158E4.inc"
 };
 
-SVECTOR D_actor_511000_80147AC4[120] = {
+/// Searchlight Euler aim relative to the hull for sequence frames 0..119.
+///
+/// Angles use 4096 units per turn. Attachment applies frame 0; view-24 updates
+/// use the parent helicopter's clamped sequence cursor.
+static SVECTOR _gActor511000HelicopterSearchlightRotations[ACTOR_511000_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
 #include "assets/actor_511000_motion_15CA4.inc"
 };
 
-u8 D_actor_511000_80147E84[ACTOR_511000_PALETTE_BYTES] = {
+/// Lit red-ramp endpoint of the helicopter's sixteen-colour flashing palette.
+///
+/// RGB555/STP halfwords are stored low byte first for byte-pair blending. The
+/// fade discards STP; the initial upload source borrows this word-aligned row.
+static u8 _gActor511000HelicopterFlashLitPalette[ACTOR_511000_PALETTE_BYTES] = {
 #include "assets/actor_511000_clut_16064.inc"
 };
 
-GpuImageUpload D_actor_511000_80147EA4[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 264, 16, 1 }, (u_long*)D_actor_511000_80147E84 },
+/// Absolute VRAM row rewritten by the helicopter's flashing palette.
+enum { ACTOR_511000_HELICOPTER_FLASH_CLUT_ROW = 264 };
+
+/// Writable COPY/END list for the helicopter's flashing VRAM palette row.
+///
+/// Copies sixteen VRAM words to row 264. Hull initialization replaces `pixels`
+/// with its work-owned blended byte row; that hull and its pending GPU transfers
+/// must finish before the work is released. The list supports one live hull.
+static GpuImageUpload _gActor511000HelicopterFlashPaletteUploads[2] = {
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, ACTOR_511000_HELICOPTER_FLASH_CLUT_ROW, ACTOR_511000_PALETTE_COLORS, 1 }, (u_long*)_gActor511000HelicopterFlashLitPalette },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-u8 D_actor_511000_80147EC4[ACTOR_511000_PALETTE_BYTES] = {
+/// Dark endpoint of the helicopter's sixteen-colour flashing palette.
+///
+/// RGB555/STP halfwords stored low byte first: white and black endpoints are
+/// retained around fourteen 0x8421 dark-grey entries. The fade discards STP.
+static u8 _gActor511000HelicopterFlashDarkPalette[ACTOR_511000_PALETTE_BYTES] = {
 #include "assets/actor_511000_clut_160A4.inc"
 };
 
-ViewCamera D_actor_511000_80147EE4[120] = {
+/// Camera frames synchronized with the helicopter's view-24 hull and lamp poses.
+///
+/// Frames 0..119 share a fixed world-to-camera rotation and 447-pixel projection
+/// distance; the negated world-space camera origin changes each frame. Playback
+/// advances before queuing and repeats frame 119. Each queued camera task borrows
+/// its entry, so the package must remain loaded through that task's dispatch.
+static ViewCamera _gActor511000HelicopterSequenceCameras[ACTOR_511000_HELICOPTER_SEQUENCE_FRAME_COUNT] = {
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5598, 5926, 124 } }, 447 },
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 122 } }, 447 },
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 5599, 5926, 118 } }, 447 },
@@ -859,50 +903,81 @@ ViewCamera D_actor_511000_80147EE4[120] = {
     { { { { -328, 0, -4082 }, { 3905, 1193, -313 }, { 1189, -3918, -95 } }, { 4309, 5556, -793 } }, 447 },
 };
 
-TaskMessageEntry D_actor_511000_80148FC4[4] = {
+/// Terminated helicopter messages for sequence restart, placement and drawing.
+///
+/// PLAY_ANIMATION resets the shared sequence cursor without reading its payload.
+/// PLACE borrows an `ActorTransform`; SET_MODEL_DRAW takes an integer mode.
+/// The final END entry makes unsupported messages return zero.
+static TaskMessageEntry _gActor511000HelicopterMessages[4] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor511000RestartHelicopterSequence },
     { ACTOR_MESSAGE_PLACE, _actor511000PlaceHelicopter },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor511000SetHelicopterModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_actor_511000_80148FE4[4] = {
+/// Hull-relative translations of helicopter parts, in game units.
+///
+/// Spawn argument 1 indexes 1 main rotor, 2 tail rotor or 3 searchlight.
+/// Entry 0's downward offset is retained but none of these spawns selects it.
+static SVECTOR _gActor511000HelicopterPartOffsets[4] = {
     { 0, -0x3A98, 0, 0 },
     { 0, -1350, 1360, 0 },
     { 340, -230, -5790, 0 },
     { 0, 1520, 50, 0 },
 };
 
-CVECTOR D_actor_511000_80149004[4] = {
+/// Searchlight glow centre colours at frame distances 0..3 from peak frame 89.
+///
+/// The ramp is symmetric over frames 86..92; rim RGB channels are each 30 lower.
+static CVECTOR _gActor511000HelicopterSearchlightGlowColors[4] = {
     { 255, 255, 255, 0 },
     { 200, 200, 200, 0 },
     { 150, 150, 150, 0 },
     { 60, 60, 60, 0 },
 };
 
-DVECTOR D_actor_511000_80149014[16] = {
-    { 4096, 0 },
+/// One unit of a searchlight rim direction in signed 4.12 fixed point.
+enum { ACTOR_511000_SEARCHLIGHT_DIRECTION_ONE = 4096 };
+
+/// Sixteen equally spaced screen-XY unit directions for the searchlight glow rim.
+///
+/// Signed 4.12 samples start at +X and turn toward +Y. Scaling by the 300-pixel
+/// radius produces the triangle fan's rim; the final triangle wraps to sample 0.
+static DVECTOR _gActor511000HelicopterSearchlightRimDirections[16] = {
+    { ACTOR_511000_SEARCHLIGHT_DIRECTION_ONE, 0 },
     { 3784, 1567 },
     { 2896, 2896 },
     { 1567, 3784 },
-    { 0, 4096 },
+    { 0, ACTOR_511000_SEARCHLIGHT_DIRECTION_ONE },
     { -1567, 3784 },
     { -2896, 2896 },
     { -3784, 1567 },
-    { -4096, 0 },
+    { -ACTOR_511000_SEARCHLIGHT_DIRECTION_ONE, 0 },
     { -3784, -1567 },
     { -2896, -2896 },
     { -1567, -3784 },
-    { 0, -4096 },
+    { 0, -ACTOR_511000_SEARCHLIGHT_DIRECTION_ONE },
     { 1567, -3784 },
     { 2896, -2896 },
     { 3784, -1567 },
 };
 
-s32 D_actor_511000_80149054[3] = {
-    1,
-    2,
-    3,
+/// Child entries in `gActor511000HelicopterTaskDescriptors`, excluding hull 0.
+enum {
+    ACTOR_511000_HELICOPTER_MAIN_ROTOR_DESCRIPTOR  = 1,
+    ACTOR_511000_HELICOPTER_TAIL_ROTOR_DESCRIPTOR  = 2,
+    ACTOR_511000_HELICOPTER_SEARCHLIGHT_DESCRIPTOR = 3,
+};
+
+/// Descriptor indices spawned on the helicopter hull's first show request.
+///
+/// Ordered main rotor, tail rotor, searchlight. Spawn argument 1 is the entry's
+/// one-based position, selecting the corresponding hull-relative part offset;
+/// spawn argument 2 borrows the hull task.
+static s32 _gActor511000HelicopterChildDescriptorIndices[3] = {
+    ACTOR_511000_HELICOPTER_MAIN_ROTOR_DESCRIPTOR,
+    ACTOR_511000_HELICOPTER_TAIL_ROTOR_DESCRIPTOR,
+    ACTOR_511000_HELICOPTER_SEARCHLIGHT_DESCRIPTOR,
 };
 
 static TmdBone _gActor511000No9GolemAkropolisBodySkeleton[19] = {
@@ -1099,11 +1174,11 @@ static AnimationSet _gActor511000Animation23228 = {
     { NULL, _gActor511000Animation23228Bank1, NULL, NULL, _gActor511000Animation23228Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_511000_80155070[4] = {
-    { { { TASK_BODY_TMD, 96 } }, _actor511000No9GolemTask, { .model = &_gActor511000No9GolemAkropolisBody } },
-    { { { TASK_BODY_TMD, 96 } }, _actor511000No9GolemPart8Task, { .model = &_gActor511000Actor510900Model0FE60 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor511000No9GolemPart3Task, { .model = &_gActor511000Actor510900Model10468 } },
-    { { { TASK_BODY_TMD, 96 } }, _actor511000No9GolemPart12Task, { .model = &_gActor511000No9GolemAkropolisProp } },
+TaskDesc gActor511000No9GolemTaskDescriptors[4] = {
+    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemTask, { .model = &_gActor511000No9GolemAkropolisBody } },
+    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart8Task, { .model = &_gActor511000Actor510900Model0FE60 } },
+    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart3Task, { .model = &_gActor511000Actor510900Model10468 } },
+    { { { TASK_BODY_TMD, ACTOR_511000_NO9_GOLEM_PRIORITY } }, _actor511000No9GolemPart12Task, { .model = &_gActor511000No9GolemAkropolisProp } },
 };
 
 TaskMessageEntry D_actor_511000_801550A0[4] = {
@@ -1158,7 +1233,7 @@ static void _actor511000TickRupert(Task* task)
                 gunCoord = work->gunTask->extra.tmd->coords;
                 audioPan = (s8)worldCoordGetOriginAudioPan(gunCoord);
                 sndEvtRequestScriptStart(ACTOR_511000_SOUND_RUPERT_SHOT, audioPan, (s8)worldCoordGetOriginAudioDepth(gunCoord));
-                effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, gunCoord, 0, &D_actor_511000_8014733C);
+                effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, gunCoord, 0, &_gActor511000RupertMuzzleFlashOffset);
             }
         }
     }
@@ -1225,19 +1300,19 @@ static void _actor511000TickRupertBlink(Task* task)
         case ACTOR_511000_BLINK_CLOSED:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                _actor511000AdvanceRupertBlinkImage(task, work, &D_actor_511000_801472B4[0], &eyeRect);
+                _actor511000AdvanceRupertBlinkImage(task, work, &_gActor511000RupertEyesClosedUploads[0], &eyeRect);
             }
             break;
         case ACTOR_511000_BLINK_HALF:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                _actor511000AdvanceRupertBlinkImage(task, work, &D_actor_511000_80146F94[0], &eyeRect);
+                _actor511000AdvanceRupertBlinkImage(task, work, &_gActor511000RupertEyesHalfOpenUploads[0], &eyeRect);
             }
             break;
         case ACTOR_511000_BLINK_OPEN:
             work->blinkCountdown = work->blinkCountdown - 1;
             if (work->blinkCountdown < 0) {
-                actorRenderUploadTexture(task, &D_actor_511000_80146C74[0], &eyeRect);
+                actorRenderUploadTexture(task, &_gActor511000RupertEyesOpenUploads[0], &eyeRect);
                 work->blinkStep = ACTOR_511000_BLINK_NONE;
             }
             break;
@@ -1255,7 +1330,7 @@ static void _actor511000RupertRevolverTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_511000_80131E24;
+    states = _gActor511000RupertRevolverStates;
     states.funcs[task->state](task);
 }
 
@@ -1280,7 +1355,7 @@ static void _actor511000RupertPropTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_511000_80131E30;
+    states = _gActor511000RupertPropStates;
     states.funcs[task->state](task);
 }
 
@@ -1298,7 +1373,7 @@ static void _actor511000RupertBodyTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_511000_80131E3C;
+    states = _gActor511000RupertBodyStates;
     states.funcs[task->state](task);
 }
 
@@ -1343,10 +1418,10 @@ static void _actor511000InitRupert(Task* task)
             effectDrawGroundShadow(&groundPoint, 0x200, gRoomEffectState->groundShadowShade);
         }
     }
-    work->gunTask  = taskSpawnFromTable(D_actor_511000_801472E8, ACTOR_511000_RUPERT_GUN_DESCRIPTOR, ACTOR_511000_RUPERT_GUN_PART, task);
-    work->propTask = taskSpawnFromTable(D_actor_511000_801472E8, ACTOR_511000_RUPERT_PROP_DESCRIPTOR, ACTOR_511000_RUPERT_PROP_PART, task);
+    work->gunTask  = taskSpawnFromTable(gActor511000RupertTaskDescriptors, ACTOR_511000_RUPERT_GUN_DESCRIPTOR, ACTOR_511000_RUPERT_GUN_PART, task);
+    work->propTask = taskSpawnFromTable(gActor511000RupertTaskDescriptors, ACTOR_511000_RUPERT_PROP_DESCRIPTOR, ACTOR_511000_RUPERT_PROP_PART, task);
     _actor511000BindRupertLighting(task);
-    task->msgTable     = D_actor_511000_8014730C;
+    task->msgTable     = _gActor511000RupertMessages;
     task->exitCallback = enemyTaskExit;
     task->state++;
 }
@@ -1426,7 +1501,7 @@ static s32 _actor511000PlayRupertAnimation(Task* task, s32 messageId, const Anim
     if (request->source.index != work->bank) {
         work->bank   = request->source.index;
         work->animId = ACTOR_MODEL_STATE_NONE;
-        animationInitContext(&work->rig.anim, D_actor_511000_801472E4[work->bank], model, work->rig.poses,
+        animationInitContext(&work->rig.anim, _gActor511000RupertAnimationBanks[work->bank], model, work->rig.poses,
                              work->rig.slots);
     }
     if (request->animationId != work->animId) {
@@ -1553,11 +1628,11 @@ static s32 _actor511000SetRupertEyes(Task* task, s32 messageId, s32 eyeMode, s32
 
     switch (eyeMode) {
         case ACTOR_511000_EYES_CLOSED:
-            uploadList = &D_actor_511000_801472B4[0];
+            uploadList = &_gActor511000RupertEyesClosedUploads[0];
             break;
         case ACTOR_511000_EYES_OPEN:
         case ACTOR_511000_EYES_OPEN_ALTERNATE:
-            uploadList = &D_actor_511000_80146C74[0];
+            uploadList = &_gActor511000RupertEyesOpenUploads[0];
             break;
         case ACTOR_511000_EYES_BLINK: {
             _Actor511000RupertBroderickWork* stepWork;
@@ -1567,7 +1642,7 @@ static s32 _actor511000SetRupertEyes(Task* task, s32 messageId, s32 eyeMode, s32
             stepWork->blinkStep        = ACTOR_511000_BLINK_CLOSED;
             delayWork                  = task->work;
             delayWork->blinkFrameDelay = ACTOR_511000_BLINK_FRAME_DELAY;
-            uploadList                 = &D_actor_511000_80146F94[0];
+            uploadList                 = &_gActor511000RupertEyesHalfOpenUploads[0];
             break;
         }
         default:
@@ -1612,9 +1687,9 @@ static void _actor511000TickHelicopterSearchlight(Task* task)
 
     // The parent advances and clamps this frame before its attached searchlight runs.
     if (gGameSession->location.loc.view == SEQUENCE_VIEW) {
-        root->param.rot.vx = D_actor_511000_80147AC4[parentTask->killCountdown].vx;
-        root->param.rot.vy = D_actor_511000_80147AC4[parentTask->killCountdown].vy;
-        root->param.rot.vz = D_actor_511000_80147AC4[parentTask->killCountdown].vz;
+        root->param.rot.vx = _gActor511000HelicopterSearchlightRotations[parentTask->killCountdown].vx;
+        root->param.rot.vy = _gActor511000HelicopterSearchlightRotations[parentTask->killCountdown].vy;
+        root->param.rot.vz = _gActor511000HelicopterSearchlightRotations[parentTask->killCountdown].vz;
         RotMatrix(&root->param.rot, &root->coord);
         root->composeStamp = GRAPHICS_COORD_DIRTY;
 
@@ -1622,8 +1697,8 @@ static void _actor511000TickHelicopterSearchlight(Task* task)
         if (frameDistance < 0) {
             frameDistance = GLOW_PEAK_FRAME - parentTask->killCountdown;
         }
-        if (frameDistance < ARRAY_SIZE(D_actor_511000_80149004)) {
-            colorTable  = D_actor_511000_80149004;
+        if (frameDistance < ARRAY_SIZE(_gActor511000HelicopterSearchlightGlowColors)) {
+            colorTable  = _gActor511000HelicopterSearchlightGlowColors;
             centerColor = &colorTable[frameDistance];
             rimRgb[0]   = centerColor->r - RIM_SHADE_DROP;
             rimRgb[1]   = centerColor->g - RIM_SHADE_DROP;
@@ -1700,7 +1775,7 @@ static void _actor511000DrawHelicopterSearchlightGlow(Task* task, const CVECTOR*
     sortDepth    = RotTransPers(&worldOrigin, &screenCenter, &projectionScale, &projectionFlags);
     centerX      = screenCenter;
     centerY      = screenCenter >> 16;
-    unitOffset   = D_actor_511000_80149014;
+    unitOffset   = _gActor511000HelicopterSearchlightRimDirections;
     rimPoint     = screenRim;
     radiusPixels = RADIUS_PIXELS;
     for (pointIndex = 0; pointIndex < ARRAY_SIZE(screenRim); pointIndex++) {
@@ -1786,10 +1861,10 @@ static void _actor511000TickHelicopterPaletteFlash(_Actor511000HelicopterWork* w
     // Keep byte-pair accesses for the packed palette and publish the complete row.
     byteIndex = 0;
     do {
-        _actor511000BlendPaletteColor(&work->palette[byteIndex], &D_actor_511000_80147E84[byteIndex], &D_actor_511000_80147EC4[byteIndex], litWeight, darkWeight);
+        _actor511000BlendPaletteColor(&work->palette[byteIndex], &_gActor511000HelicopterFlashLitPalette[byteIndex], &_gActor511000HelicopterFlashDarkPalette[byteIndex], litWeight, darkWeight);
         byteIndex += 2;
     } while (byteIndex < ARRAY_SIZE(work->palette));
-    gpuUploadImages(&D_actor_511000_80147EA4[0]);
+    gpuUploadImages(&_gActor511000HelicopterFlashPaletteUploads[0]);
 }
 
 /// Initializes the helicopter's owned work, hidden hull and first sequence pose.
@@ -1814,12 +1889,12 @@ static void _actor511000InitHelicopter(Task* task)
     task->work          = work;
     work->freeCountdown = ACTOR_511000_HELICOPTER_FREE_NONE;
     model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    _actor511000PoseHelicopterSequenceFrame(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
+    _actor511000PoseHelicopterSequenceFrame(task, _gActor511000HelicopterSequenceRotations, _gActor511000HelicopterSequenceTranslations, 0);
     _actor511000BindHelicopterLighting(task);
     // The GPU API consumes words; the fade writes little-endian byte pairs.
-    task->msgTable                    = D_actor_511000_80148FC4;
-    D_actor_511000_80147EA4[0].pixels = (u_long*)work->palette;
-    task->state                      += 1;
+    task->msgTable                                       = _gActor511000HelicopterMessages;
+    _gActor511000HelicopterFlashPaletteUploads[0].pixels = (u_long*)work->palette;
+    task->state                                         += 1;
 }
 
 /// Advances the helicopter's synchronized camera and hull-pose playback by one frame.
@@ -1838,11 +1913,11 @@ static inline void _actor511000AdvanceHelicopterSequence(Task* task, GfxCoord* r
 
     nextFrame           = task->killCountdown + 1;
     task->killCountdown = nextFrame;
-    if (nextFrame >= (s32)ARRAY_SIZE(D_actor_511000_80147EE4)) {
-        task->killCountdown = ARRAY_SIZE(D_actor_511000_80147EE4) - 1;
+    if (nextFrame >= (s32)ARRAY_SIZE(_gActor511000HelicopterSequenceCameras)) {
+        task->killCountdown = ARRAY_SIZE(_gActor511000HelicopterSequenceCameras) - 1;
     }
-    viewQueueCamera(&D_actor_511000_80147EE4[task->killCountdown]);
-    _actor511000PoseHelicopterSequenceFrame(task, D_actor_511000_80147344, D_actor_511000_80147704, task->killCountdown);
+    viewQueueCamera(&_gActor511000HelicopterSequenceCameras[task->killCountdown]);
+    _actor511000PoseHelicopterSequenceFrame(task, _gActor511000HelicopterSequenceRotations, _gActor511000HelicopterSequenceTranslations, task->killCountdown);
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -2003,9 +2078,9 @@ static void _actor511000AttachHelicopterSearchlight(Task* task)
     _actor511000PlaceHelicopterPart(task);
     root->parent = parentRoot;
     taskReparent(parentTask, task);
-    root->param.rot.vx = D_actor_511000_80147AC4[0].vx;
-    root->param.rot.vy = D_actor_511000_80147AC4[0].vy;
-    root->param.rot.vz = D_actor_511000_80147AC4[0].vz;
+    root->param.rot.vx = _gActor511000HelicopterSearchlightRotations[0].vx;
+    root->param.rot.vy = _gActor511000HelicopterSearchlightRotations[0].vy;
+    root->param.rot.vz = _gActor511000HelicopterSearchlightRotations[0].vz;
     RotMatrix(&root->param.rot, &root->coord);
     root->composeStamp = GRAPHICS_COORD_DIRTY;
     task->state       += 1;
@@ -2099,8 +2174,8 @@ static s32 _actor511000SetHelicopterModelDraw(Task* task, s32 messageId, s32 dra
             break;
     }
     if (drawMode == ACTOR_MESSAGE_DRAW_SHOW && work->partsSpawned == 0) {
-        for (partIndex = 1; partIndex < (s32)ARRAY_SIZE(D_actor_511000_80149054) + 1; partIndex++) {
-            child = taskSpawnFromTable(D_actor_511000_80139924, D_actor_511000_80149054[partIndex - 1], partIndex, task);
+        for (partIndex = 1; partIndex < (s32)ARRAY_SIZE(_gActor511000HelicopterChildDescriptorIndices) + 1; partIndex++) {
+            child = taskSpawnFromTable(gActor511000HelicopterTaskDescriptors, _gActor511000HelicopterChildDescriptorIndices[partIndex - 1], partIndex, task);
             if (child != NULL) {
                 child->extra.tmd->flags &= ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             }
@@ -2145,9 +2220,9 @@ static void _actor511000PlaceHelicopterPart(Task* task)
     GfxCoord* root;
 
     root               = task->extra.tmd->coords;
-    root->coord.t[0]   = D_actor_511000_80148FE4[task->spawnArg1.value].vx;
-    root->coord.t[1]   = D_actor_511000_80148FE4[task->spawnArg1.value].vy;
-    root->coord.t[2]   = D_actor_511000_80148FE4[task->spawnArg1.value].vz;
+    root->coord.t[0]   = _gActor511000HelicopterPartOffsets[task->spawnArg1.value].vx;
+    root->coord.t[1]   = _gActor511000HelicopterPartOffsets[task->spawnArg1.value].vy;
+    root->coord.t[2]   = _gActor511000HelicopterPartOffsets[task->spawnArg1.value].vz;
     root->param.rot.vx = 0;
     root->param.rot.vy = 0;
     root->param.rot.vz = 0;
@@ -2189,7 +2264,7 @@ static void _actor511000HelicopterTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_511000_80131E48;
+    states = _gActor511000HelicopterStates;
     states.funcs[task->state](task);
 }
 
@@ -2202,7 +2277,7 @@ static void _actor511000HelicopterRotorTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_511000_80131E54;
+    states = _gActor511000HelicopterRotorStates;
     states.funcs[task->state](task);
 }
 
@@ -2215,7 +2290,7 @@ static void _actor511000HelicopterSearchlightTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_actor_511000_80131E60;
+    states = _gActor511000HelicopterSearchlightStates;
     states.funcs[task->state](task);
 }
 
@@ -2268,7 +2343,7 @@ static void _actor511000SpawnNo9Golem(Enemy* enemy, Task* task)
     task->msgTable         = D_actor_511000_801550A0;
     bodyRoot->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    childDescriptors = D_actor_511000_80155070;
+    childDescriptors = gActor511000No9GolemTaskDescriptors;
     spawned          = enemySpawnFromTable(childDescriptors, ACTOR_511000_GOLEM_PART8_CHILD, 0, enemy);
     session          = gGameSession;
     // Child models inherit the texture relocation of the parent's placement.
@@ -2410,7 +2485,7 @@ static void _actor511000No9GolemTask(Task* task)
 {
     EnemyTaskFuncTable3 states;
 
-    states = D_actor_511000_80131E6C;
+    states = _gActor511000No9GolemStates;
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 

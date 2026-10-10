@@ -8,6 +8,7 @@
 
 #include "acropolis_helicopter_landing_pad_private.h"
 
+#include "actors/actor_511000.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/actor_render.h"
@@ -213,9 +214,9 @@ AreaResource D_acropolis_helicopter_landing_pad_801861A0[2] = {
 };
 
 AreaResource D_acropolis_helicopter_landing_pad_801861B8[4] = {
-    { 27, 110, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, D_actor_511000_80155070 },
-    { 144, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_511000_801472E8 },
-    { 254, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, D_actor_511000_80139924 },
+    { 27, 110, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, gActor511000No9GolemTaskDescriptors },
+    { 144, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor511000RupertTaskDescriptors },
+    { 254, 110, AREA_RESOURCE_FILE_GROUP_BASE_60, 0, { 0, 0 }, gActor511000HelicopterTaskDescriptors },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
