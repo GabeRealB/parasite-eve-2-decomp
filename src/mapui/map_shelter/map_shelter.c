@@ -944,7 +944,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     gShelterB2ElevatorWarps,
     gShelterB2ElevatorHallWarpEntries,
     D_shelter_b2_south_maintenance_walkway_80182644,
-    D_shelter_b2_operating_room_80180BD0,
+    gShelterB2OperatingRoomWarpEntries,
     D_shelter_b2_north_maintenance_walkway_80183C64,
     gShelterB2LaboratoryWarpEntries,
     gShelterB2BreedingRoomWarpEntries,
@@ -996,7 +996,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     gShelterB2ElevatorViewCounts,
     gShelterB2ElevatorHallRoomViewCounts,
     D_shelter_b2_south_maintenance_walkway_80182640,
-    D_shelter_b2_operating_room_80180BCC,
+    gShelterB2OperatingRoomRoomViewCounts,
     D_shelter_b2_north_maintenance_walkway_80183C60,
     gShelterB2LaboratoryRoomViewCounts,
     gShelterB2BreedingRoomRoomViewCounts,
@@ -1078,7 +1078,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B1E4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B1F4[1] = {
-    { &gShelterB2OperatingRoomCollisionGrid, D_shelter_b2_operating_room_80183730, D_shelter_b2_operating_room_80183ADC, D_shelter_b2_operating_room_80183A28 },
+    { &gShelterB2OperatingRoomCollisionGrid, gShelterB2OperatingRoomViewBoundaryTriggers, gShelterB2OperatingRoomActionTriggers, gShelterB2OperatingRoomOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B204[1] = {

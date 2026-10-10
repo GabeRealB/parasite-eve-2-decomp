@@ -67,18 +67,8 @@
 #define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b2_operating_room_80184234[4];
-
 /// Spawn descriptor of the exit gate's transition task.
 extern TaskDesc gRoomEventTaskDesc;
-
-/// Descriptor of the room's own event task, which the message handler spawns.
-extern TaskDesc D_shelter_b2_operating_room_80180910;
-
-/// The room's message table, which the cap scripts index.
-extern TaskMessageEntry D_shelter_b2_operating_room_8018091C[];
 
 /// Spawn argument of the helper task 0x31 the room's event task starts.
 extern RoomFadeStorage gRoomEventFade;
@@ -103,9 +93,24 @@ enum { SHELTER_B2_OPERATING_ROOM_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b2_operating_room_80180910 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+enum { SHELTER_B2_OPERATING_ROOM_STAGED_EVENT_PRIORITY = 32 };
 
-TaskMessageEntry D_shelter_b2_operating_room_8018091C[5] = {
+/// Bodyless controller for a latched south-walkway or laboratory departure scene.
+///
+/// Spawn at index zero with unused payloads, after copying the destination and
+/// event into room-owned storage. The room overlay, CAP data and sound resources
+/// must remain loaded until the controller requests the destination reload.
+static TaskDesc _gShelterB2OperatingRoomStagedEventTaskDesc = {
+    { { TASK_BODY_NONE, SHELTER_B2_OPERATING_ROOM_STAGED_EVENT_PRIORITY } }, roomEventStagedTask, { .value = 0 }
+};
+
+/// Synchronous departure, key-item, interaction and CAP-command handlers.
+///
+/// The room task borrows this table for its lifetime. Unsupported messages
+/// return zero at the final sentinel; key-item and room-action requests are
+/// refused. Departure requests carry borrowed request/reply records, while
+/// room commands carry an integer command ID.
+static TaskMessageEntry _gShelterB2OperatingRoomMessageTable[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2OperatingRoomResolveRoomEventMessage },
     { SHELTER_B2_OPERATING_ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2OperatingRoomIgnoreKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2OperatingRoomIgnoreAction },
@@ -113,7 +118,11 @@ TaskMessageEntry D_shelter_b2_operating_room_8018091C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_b2_operating_room_80180944[15] = {
+/// Fifteen retained signed XYZ vectors with zero fourth components; role unproven.
+///
+/// No recovered code references this array. The first ten points form an XZ
+/// ring at Y=-1750, followed by two interior points and three points at Y=200.
+static SVECTOR D_shelter_b2_operating_room_80180944[15] = {
     { 4950, -1750, 2570, 0 },
     { 5170, -1750, 2570, 0 },
     { 5340, -1750, 2700, 0 },
@@ -209,12 +218,21 @@ u8* gShelterB2OperatingRoomRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b2_operating_room_80180BCC[1] = { 7 };
+enum {
+    SHELTER_B2_OPERATING_ROOM_LOGICAL_VIEW_COUNT = 7,
+    SHELTER_B2_OPERATING_ROOM_WARP_SOUTH_WALKWAY = 1,
+    SHELTER_B2_OPERATING_ROOM_WARP_NORTH_WALKWAY = 2,
+    SHELTER_B2_OPERATING_ROOM_WARP_LABORATORY    = 3,
+    SHELTER_B2_OPERATING_ROOM_MAP_SOUTH_DOOR     = 456,
+    SHELTER_B2_OPERATING_ROOM_MAP_NORTH_DOOR     = 458,
+};
 
-DirectionWarpEntry D_shelter_b2_operating_room_80180BD0[3] = {
-    { { { .word = 0 }, 0x27D8, 0, 400 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x27D8, 0, 400 }, { 0, 0, 0, 0 }, 0x541D0002, 0x541D0001, 0x541D0008, 2, DIRECTION_WARP_FLAG_NONE, 456 },
-    { { { .word = 2048 }, 0x27D8, 0, 5600 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x27D8, 0, 5600 }, { 0, 0, 0, 0 }, 0x541D0004, 0x541D0003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, 458 },
-    { { { .word = 0 }, 496, 0, 1017 }, { 0, 0, 0, 0 }, { { .word = 0 }, 496, 0, 1017 }, { 0, 0, 0, 0 }, 0x541D0006, 0x541D0005, DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+ViewCount gShelterB2OperatingRoomRoomViewCounts[1] = { SHELTER_B2_OPERATING_ROOM_LOGICAL_VIEW_COUNT };
+
+DirectionWarpEntry gShelterB2OperatingRoomWarpEntries[3] = {
+    { { { .word = 0 }, 0x27D8, 0, 400 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x27D8, 0, 400 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 2), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 1), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 8), 2, DIRECTION_WARP_FLAG_NONE, SHELTER_B2_OPERATING_ROOM_MAP_SOUTH_DOOR },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0x27D8, 0, 5600 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0x27D8, 0, 5600 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 4), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 3), DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, SHELTER_B2_OPERATING_ROOM_MAP_NORTH_DOOR },
+    { { { .word = 0 }, 496, 0, 1017 }, { 0, 0, 0, 0 }, { { .word = 0 }, 496, 0, 1017 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 6), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_OPERATING_ROOM, 5), DIRECTION_WARP_SOUND_NONE, 7, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 /// Room-space normals for the operating-room grid, with 4096 for unit length.
@@ -767,7 +785,7 @@ WorldCoordRoomLights gShelterB2OperatingRoomRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b2_operating_room_80183730[10] = {
+WorldCollisionTrigger gShelterB2OperatingRoomViewBoundaryTriggers[10] = {
     { NULL, NULL, NULL, { 2075, -1440, 1530, 0 }, { { 16, -1936, 1216, 0 }, { -16, -1936, -1215, 0 }, { 16, 1937, 1216, 0 }, { -16, 1937, -1215, 0 } }, { -4112, 0, 53, 0 }, { 0, 0, 4096, 0 }, 2275, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1916, -1408, 1628, 0 }, { { -16, -1936, -1312, 0 }, { 16, -1936, 1312, 0 }, { -16, 1937, -1312, 0 }, { 16, 1937, 1312, 0 } }, { 4115, 0, -52, 0 }, { 0, 0, 4096, 0 }, 2332, 0, 4, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 8800, -1472, 2080, 0 }, { { 16, -1936, 1216, 0 }, { -16, -1936, -1215, 0 }, { 16, 1937, 1216, 0 }, { -16, 1937, -1215, 0 } }, { -4112, 0, 53, 0 }, { 0, 0, 4096, 0 }, 2275, 0, 5, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -780,107 +798,169 @@ WorldCollisionTrigger D_shelter_b2_operating_room_80183730[10] = {
     { NULL, NULL, NULL, { 0x28C0, -1408, 3200, 0 }, { { -1473, -1936, 84, 0 }, { 1465, -1936, -92, 0 }, { -1473, 1937, 84, 0 }, { 1465, 1937, -92, 0 } }, { -246, 0, -4093, 0 }, { 0, 0, 4096, 0 }, 2428, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_shelter_b2_operating_room_80183A28[3] = {
+WorldCollisionOccluder gShelterB2OperatingRoomOccluders[3] = {
     { NULL, NULL, { 2144, -1648, 3968, 0 }, { { 0, 2672, 1920, 0 }, { 0, 2672, -1920, 0 }, { 0, -2672, 1920, 0 }, { 0, -2672, -1920, 0 } }, { 4110, 0, 0, 0 }, 3288, 1, 0 },
     { NULL, NULL, { 8576, -1504, 4640, 0 }, { { 0, 2528, 1840, 0 }, { 0, 2528, -1840, 0 }, { 0, -2528, 1840, 0 }, { 0, -2528, -1840, 0 } }, { 4113, 0, 0, 0 }, 3124, 1, 0 },
     { NULL, NULL, { 8576, 0, 400, 0 }, { { 0, 2672, 864, 0 }, { 0, 2672, -864, 0 }, { 0, -2672, 864, 0 }, { 0, -2672, -864, 0 } }, { 4109, 0, 0, 0 }, 2804, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b2_operating_room_80183ADC[13] = {
-    { NULL, NULL, NULL, { 0x2810, -48, 464, 0 }, { { -720, 0, -432, 0 }, { 720, 0, -432, 0 }, { -720, 0, 432, 0 }, { 720, 0, 432, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 839, WORLD_COLLISION_TRIGGER_ACTION_WARP, 28, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2820, -48, 5568, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_WARP, 30, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 528, -48, 864, 0 }, { { -720, 0, -432, 0 }, { 720, 0, -432, 0 }, { -720, 0, 432, 0 }, { 720, 0, 432, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 839, WORLD_COLLISION_TRIGGER_ACTION_WARP, 31, 50, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7552, -64, 4288, 0 }, { { -416, 0, -688, 0 }, { 416, 0, -688, 0 }, { -416, 0, 688, 0 }, { 416, 0, 688, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1376, -64, 2544, 0 }, { { -416, 0, -448, 0 }, { 416, 0, -448, 0 }, { -416, 0, 448, 0 }, { 416, 0, 448, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 610, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4336, -64, 896, 0 }, { { -816, 0, -368, 0 }, { 816, 0, -368, 0 }, { -816, 0, 368, 0 }, { 816, 0, 368, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 5216, -64, 3040, 0 }, { { -1936, 0, -1456, 0 }, { 1936, 0, -1456, 0 }, { -1936, 0, 1456, 0 }, { 1936, 0, 1456, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 2415, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2960, -64, 4592, 0 }, { { -784, 0, -416, 0 }, { 784, 0, -416, 0 }, { -784, 0, 416, 0 }, { 784, 0, 416, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 886, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -192, -64, 2912, 0 }, { { -400, 0, -1296, 0 }, { 400, 0, -1296, 0 }, { -400, 0, 1296, 0 }, { 400, 0, 1296, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 320, -64, 4784, 0 }, { { -720, 0, -448, 0 }, { 720, 0, -448, 0 }, { -720, 0, 448, 0 }, { 720, 0, 448, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, -4096, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3103, -64, 1175, 0 }, { { -738, 0, -192, 0 }, { 521, 0, -871, 0 }, { -744, 0, 952, 0 }, { 963, 0, 113, 0 } }, { 0, 4105, 0, 0 }, { 2896, 0, 2896, 0 }, 1207, WORLD_COLLISION_TRIGGER_ACTION_CAP, 10, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6928, -64, 4608, 0 }, { { -1024, 0, -448, 0 }, { 1024, 0, -448, 0 }, { -1024, 0, 448, 0 }, { 1024, 0, 448, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, 11, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7847, -64, 1343, 0 }, { { -763, 0, -1005, 0 }, { 787, 0, -200, 0 }, { -802, 0, 233, 0 }, { 780, 0, 974, 0 } }, { 0, 4098, 0, 0 }, { -1931, 0, 3612, 0 }, 1260, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Loaded CAP command slots selected directly by interaction quads.
+enum {
+    SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP1  = 1,
+    SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP6  = 6,
+    SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP7  = 7,
+    SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP8  = 8,
+    SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP9  = 9,
+    SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP10 = 10,
+    SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP11 = 11,
+    SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP12 = 12,
 };
 
-AreaResource D_shelter_b2_operating_room_80183EB8[5] = {
-    { 70, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SlouchTaskDescs },
-    { 71, 71, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SucklercephTaskDescs },
-    { 72, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
-    { 73, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200SkullStalkerTaskDesc },
+/// Room command IDs whose handlers choose a CAP slot from nursery progress.
+enum {
+    SHELTER_B2_OPERATING_ROOM_NURSERY_COMMAND4 = 4,
+    SHELTER_B2_OPERATING_ROOM_NURSERY_COMMAND5 = 5,
+};
+
+WorldCollisionTrigger gShelterB2OperatingRoomActionTriggers[13] = {
+    { NULL, NULL, NULL, { 0x2810, -48, 464, 0 }, { { -720, 0, -432, 0 }, { 720, 0, -432, 0 }, { -720, 0, 432, 0 }, { 720, 0, 432, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 839, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY, (SHELTER_B2_OPERATING_ROOM_WARP_SOUTH_WALKWAY << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2820, -48, 5568, 0 }, { { -864, 0, -432, 0 }, { 864, 0, -432, 0 }, { -864, 0, 432, 0 }, { 864, 0, 432, 0 } }, { 0, 4102, 0, 0 }, { 0, 0, -4096, 0 }, 964, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, (SHELTER_B2_OPERATING_ROOM_WARP_NORTH_WALKWAY << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 528, -48, 864, 0 }, { { -720, 0, -432, 0 }, { 720, 0, -432, 0 }, { -720, 0, 432, 0 }, { 720, 0, 432, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 839, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B2_LABORATORY, (SHELTER_B2_OPERATING_ROOM_WARP_LABORATORY << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7552, -64, 4288, 0 }, { { -416, 0, -688, 0 }, { 416, 0, -688, 0 }, { -416, 0, 688, 0 }, { 416, 0, 688, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 801, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP1, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1376, -64, 2544, 0 }, { { -416, 0, -448, 0 }, { 416, 0, -448, 0 }, { -416, 0, 448, 0 }, { 416, 0, 448, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 610, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP7, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4336, -64, 896, 0 }, { { -816, 0, -368, 0 }, { 816, 0, -368, 0 }, { -816, 0, 368, 0 }, { 816, 0, 368, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, 4096, 0 }, 893, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_NURSERY_COMMAND4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 5216, -64, 3040, 0 }, { { -1936, 0, -1456, 0 }, { 1936, 0, -1456, 0 }, { -1936, 0, 1456, 0 }, { 1936, 0, 1456, 0 } }, { 0, 4105, 0, 0 }, { 0, 0, 4096, 0 }, 2415, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_NURSERY_COMMAND5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2960, -64, 4592, 0 }, { { -784, 0, -416, 0 }, { 784, 0, -416, 0 }, { -784, 0, 416, 0 }, { 784, 0, 416, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 886, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP6, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -192, -64, 2912, 0 }, { { -400, 0, -1296, 0 }, { 400, 0, -1296, 0 }, { -400, 0, 1296, 0 }, { 400, 0, 1296, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 1354, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP8, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 320, -64, 4784, 0 }, { { -720, 0, -448, 0 }, { 720, 0, -448, 0 }, { -720, 0, 448, 0 }, { 720, 0, 448, 0 } }, { 0, 4114, 0, 0 }, { 0, 0, -4096, 0 }, 846, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP9, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3103, -64, 1175, 0 }, { { -738, 0, -192, 0 }, { 521, 0, -871, 0 }, { -744, 0, 952, 0 }, { 963, 0, 113, 0 } }, { 0, 4105, 0, 0 }, { 2896, 0, 2896, 0 }, 1207, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP10, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6928, -64, 4608, 0 }, { { -1024, 0, -448, 0 }, { 1024, 0, -448, 0 }, { -1024, 0, 448, 0 }, { 1024, 0, 448, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 1115, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP11, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7847, -64, 1343, 0 }, { { -763, 0, -1005, 0 }, { 787, 0, -200, 0 }, { -802, 0, 233, 0 }, { 780, 0, 974, 0 } }, { 0, 4098, 0, 0 }, { -1931, 0, 3612, 0 }, 1260, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B2_OPERATING_ROOM_INTERACTION_CAP12, CAP_EVENT_NO_FLAGS, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+/// Placement-entry keys joining each layout to its actor spawn recipe.
+enum {
+    SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA             = 24,
+    SHELTER_B2_OPERATING_ROOM_ENTRY_MAGGOT_CATERPILLAR = 26,
+    SHELTER_B2_OPERATING_ROOM_ENTRY_SLOUCH             = 70,
+    SHELTER_B2_OPERATING_ROOM_ENTRY_SUCKLERCEPH        = 71,
+    SHELTER_B2_OPERATING_ROOM_ENTRY_CREEPING_STRANGER  = 72,
+    SHELTER_B2_OPERATING_ROOM_ENTRY_SKULL_STALKER      = 73,
+};
+
+/// Initial Maggot behavior selected by the placement mode, without a scripted entrance.
+enum {
+    SHELTER_B2_OPERATING_ROOM_MAGGOT_DORMANT = 0,
+    SHELTER_B2_OPERATING_ROOM_MAGGOT_AIMED   = 1,
+};
+
+/// Four actor-resource recipes for layout 1, followed by the resource sentinel.
+///
+/// Slouch/Sucklerceph use file-group base 10; Creeping Stranger/Skull Stalker
+/// use base 20. All spawn descriptor zero. The Sucklerceph resource is retained
+/// without a matching placement; this table stays borrowed during loading and spawning.
+static AreaResource _gShelterB2OperatingRoomVariant1Resources[5] = {
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SLOUCH, 70, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SlouchTaskDescs },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SUCKLERCEPH, 71, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor107000SucklercephTaskDescs },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_CREEPING_STRANGER, 72, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200CreepingStrangerTaskDesc },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SKULL_STALKER, 73, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor207200SkullStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_operating_room_80183EF4[2] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
+/// Layout 2's slot-1 Amoeba resource and final resource sentinel.
+///
+/// File 102400 supplies descriptor zero, the enemy body rather than its fireball.
+/// Keep this room table and the actor package loaded through spawning.
+static AreaResource _gShelterB2OperatingRoomVariant2Resources[2] = {
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_operating_room_80183F0C[2] = {
-    { 26, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
+/// Layout 3's slot-1 Maggot body resource and final resource sentinel.
+///
+/// File 102600 supplies the single body descriptor at index zero; placement
+/// mode selects its behavior. Keep both overlays loaded through spawning.
+static AreaResource _gShelterB2OperatingRoomVariant3Resources[2] = {
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_MAGGOT_CATERPILLAR, 26, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor02600MaggotCaterpillarBodyTask },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b2_operating_room_80183F24[4] = {
-    { 24, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
-    { 70, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SlouchTaskDescs },
-    { 71, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SucklercephTaskDescs },
+/// Layout 11's slot-1 Amoeba and slot-2 Slouch/Sucklerceph resource recipes.
+///
+/// All select descriptor zero; the fourth record terminates the table. Resource
+/// keys and task code stay borrowed from their overlays during loading and spawning.
+static AreaResource _gShelterB2OperatingRoomVariant11Resources[4] = {
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 24, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102400Tasks },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SLOUCH, 70, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SlouchTaskDescs },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SUCKLERCEPH, 71, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor207000SucklercephTaskDescs },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b2_operating_room_80183F54[7] = {
-    { 70, 0, 0, 5250, 0, 900, 800, 0, 0, 2, 0 },
-    { 70, 0, 0, 0, 0, 2600, 2300, 0, 0, 2, 0 },
-    { 72, 0, 0, 4900, 0, 4400, 1200, 0, 2, 4, 0 },
-    { 72, 0, 0, 5500, 0, 1500, 1024, 0, 2, 4, 0 },
-    { 72, 0, 0, 3700, 0, 3000, 2048, 0, 2, 4, 0 },
-    { 73, 0, 1, 0x2710, 0, 3000, 3072, 0, 2, 4, 0 },
+/// Layout 1: two Slouches, three Creeping Strangers and one Skull Stalker.
+///
+/// The seventh record is the sentinel. Positions use world units and yaw uses
+/// 4096 per turn. Actors borrow these records until teardown; slot-2 placements
+/// relocate by two texture pages and four CLUT rows, slot-1 by zero and two.
+static AreaPlacement _gShelterB2OperatingRoomVariant1Placements[7] = {
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SLOUCH, 0, 0, 5250, 0, 900, 800, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SLOUCH, 0, 0, 0, 0, 2600, 2300, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_CREEPING_STRANGER, 0, 0, 4900, 0, 4400, 1200, 0, 2, 4, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_CREEPING_STRANGER, 0, 0, 5500, 0, 1500, 1024, 0, 2, 4, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_CREEPING_STRANGER, 0, 0, 3700, 0, 3000, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 2, 4, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SKULL_STALKER, 0, 1, 0x2710, 0, 3000, 3072, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_operating_room_80183FC4[5] = {
-    { 24, 0, 0, 3100, 0, 4300, 1024, 0, 0, 2, 0 },
-    { 24, 0, 0, 7200, 0, 4300, 2048, 0, 0, 2, 0 },
-    { 24, 0, 0, 3100, 0, 1600, 0, 0, 0, 2, 0 },
-    { 24, 0, 0, 7200, 0, 1600, 3072, 0, 0, 2, 0 },
+/// Layout 2: four Amoebas around the operating floor, followed by the sentinel.
+///
+/// Positions use world units, yaw uses 4096 per turn and texture relocation is
+/// zero pages/two CLUT rows. The enemy tasks borrow these records until teardown.
+static AreaPlacement _gShelterB2OperatingRoomVariant2Placements[5] = {
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 0, 0, 3100, 0, 4300, 1024, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 0, 0, 7200, 0, 4300, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 0, 0, 3100, 0, 1600, 0, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 0, 0, 7200, 0, 1600, 3072, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_operating_room_80184014[8] = {
-    { 26, 0, 1, 7800, 0, 1950, 1150, 0, 0, 2, 0 },
-    { 26, 0, 1, 7900, 0, 2250, 950, 0, 0, 2, 0 },
-    { 26, 0, 1, 500, 0, 4500, 1950, 0, 0, 2, 0 },
-    { 26, 0, 0, 6700, 0, 4300, 1850, 0, 0, 2, 0 },
-    { 26, 0, 0, 5400, 0, 1400, 500, 0, 0, 2, 0 },
-    { 26, 0, 0, 3600, 0, 4100, 0, 0, 0, 2, 0 },
-    { 26, 0, 0, 400, 0, 2900, 1700, 0, 0, 2, 0 },
+/// Layout 3: seven Maggot placements, followed by the sentinel.
+///
+/// Three start aimed and four dormant. Positions use world units,
+/// yaw uses 4096 per turn and relocation is zero pages/two CLUT rows. The enemy
+/// tasks borrow these records until teardown.
+static AreaPlacement _gShelterB2OperatingRoomVariant3Placements[8] = {
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_OPERATING_ROOM_MAGGOT_AIMED, 7800, 0, 1950, 1150, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_OPERATING_ROOM_MAGGOT_AIMED, 7900, 0, 2250, 950, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_OPERATING_ROOM_MAGGOT_AIMED, 500, 0, 4500, 1950, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_OPERATING_ROOM_MAGGOT_DORMANT, 6700, 0, 4300, 1850, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_OPERATING_ROOM_MAGGOT_DORMANT, 5400, 0, 1400, 500, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_OPERATING_ROOM_MAGGOT_DORMANT, 3600, 0, 4100, 0, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_MAGGOT_CATERPILLAR, 0, SHELTER_B2_OPERATING_ROOM_MAGGOT_DORMANT, 400, 0, 2900, 1700, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b2_operating_room_80184094[9] = {
-    { 24, 0, 0, 5700, 0, 1900, 800, 0, 0, 2, 0 },
-    { 24, 0, 0, 3650, 0, 1500, 400, 0, 0, 2, 0 },
-    { 24, 0, 0, 4950, 0, 4700, 2650, 0, 0, 2, 0 },
-    { 24, 0, 0, 800, 0, 3400, 1950, 0, 0, 2, 0 },
-    { 70, 0, 0, 5250, 0, 900, 800, 0, 2, 4, 0 },
-    { 70, 0, 0, 0, 0, 2450, 1800, 0, 2, 4, 0 },
-    { 70, 0, 0, 0x2904, 0, 3300, 2800, 0, 2, 4, 0 },
-    { 71, 0, 1, 9200, 0, 2200, 1024, 0, 2, 4, 0 },
+/// Layout 11: four Amoebas, three Slouches and one Sucklerceph, then the sentinel.
+///
+/// Positions use world units and yaw uses 4096 per turn. Slot-1 models relocate
+/// by zero pages/two CLUT rows, slot-2 placements by two/four. The enemy tasks borrow
+/// these records until teardown.
+static AreaPlacement _gShelterB2OperatingRoomVariant11Placements[9] = {
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 0, 0, 5700, 0, 1900, 800, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 0, 0, 3650, 0, 1500, 400, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 0, 0, 4950, 0, 4700, 2650, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_AMOEBA, 0, 0, 800, 0, 3400, 1950, 0, 0, 2, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SLOUCH, 0, 0, 5250, 0, 900, 800, 0, 2, 4, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SLOUCH, 0, 0, 0, 0, 2450, 1800, 0, 2, 4, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SLOUCH, 0, 0, 0x2904, 0, 3300, 2800, 0, 2, 4, 0 },
+    { SHELTER_B2_OPERATING_ROOM_ENTRY_SUCKLERCEPH, 0, 1, 9200, 0, 2200, 1024, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b2_operating_room_80184124[12] = {
-    { NULL, NULL },
-    { D_shelter_b2_operating_room_80183F54, D_shelter_b2_operating_room_80183EB8 },
-    { D_shelter_b2_operating_room_80183FC4, D_shelter_b2_operating_room_80183EF4 },
-    { D_shelter_b2_operating_room_80184014, D_shelter_b2_operating_room_80183F0C },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b2_operating_room_80184094, D_shelter_b2_operating_room_80183F24 },
+AreaVariant gShelterB2OperatingRoomAreaVariants[12] = {
+    [1]  = { _gShelterB2OperatingRoomVariant1Placements, _gShelterB2OperatingRoomVariant1Resources },
+    [2]  = { _gShelterB2OperatingRoomVariant2Placements, _gShelterB2OperatingRoomVariant2Resources },
+    [3]  = { _gShelterB2OperatingRoomVariant3Placements, _gShelterB2OperatingRoomVariant3Resources },
+    [11] = { _gShelterB2OperatingRoomVariant11Placements, _gShelterB2OperatingRoomVariant11Resources },
 };
 
 WorldCoordRoomAmbientEntry gShelterB2OperatingRoomRoomAmbient[8] = {
@@ -979,12 +1059,13 @@ RoomEventStartStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_b2_operating_room_80184234[4] = {
-    0,
-    37,
-    9,
-    8,
-};
+/// Whether the latest staged-departure check attempted to spawn its controller.
+///
+/// Each check clears `eventStarted` (0 no, 1 attempted), including queries and
+/// already-seen events. Spawn failure also leaves it set; it does not track the
+/// task's lifetime. The trailing initialized bytes have no recovered access,
+/// and their role and grouping are unproven.
+static RoomEventActiveBytes _gShelterB2OperatingRoomStagedEventStart = { 0, { 37, 9, 8 } };
 
 RoomEventReqStorage gRoomEventReq;
 
@@ -1015,13 +1096,15 @@ static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 
 static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
     enum {
-        SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG            = 0,
-        SHELTER_B2_OPERATING_ROOM_EVENT_FLAG_LATCHED       = 1,
-        SHELTER_B2_OPERATING_ROOM_EVENT_ORDINARY_DEPARTURE = 1,
-        SHELTER_B2_OPERATING_ROOM_EVENT_STAGED_DEPARTURE   = 2,
+        SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG             = 0,
+        SHELTER_B2_OPERATING_ROOM_EVENT_START_NOT_ATTEMPTED = 0,
+        SHELTER_B2_OPERATING_ROOM_EVENT_START_ATTEMPTED     = 1,
+        SHELTER_B2_OPERATING_ROOM_EVENT_FLAG_LATCHED        = 1,
+        SHELTER_B2_OPERATING_ROOM_EVENT_ORDINARY_DEPARTURE  = 1,
+        SHELTER_B2_OPERATING_ROOM_EVENT_STAGED_DEPARTURE    = 2,
     };
 
-    D_shelter_b2_operating_room_80184234[0] = 0;
+    _gShelterB2OperatingRoomStagedEventStart.eventStarted = SHELTER_B2_OPERATING_ROOM_EVENT_START_NOT_ATTEMPTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG) {
         if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
             // Own both records before the staged task can use the caller's stack data.
@@ -1030,8 +1113,8 @@ static __inline__ s32 _shelterB2OperatingRoomStartEvent(const RoomEventMsg* dest
             if (event->flagId != SHELTER_B2_OPERATING_ROOM_EVENT_NO_FLAG) {
                 gameFlagSetNibble(event->flagId, SHELTER_B2_OPERATING_ROOM_EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_b2_operating_room_80180910, 0, 0, 0);
-            D_shelter_b2_operating_room_80184234[0] = 1;
+            taskSpawnFromTable(&_gShelterB2OperatingRoomStagedEventTaskDesc, 0, 0, 0);
+            _gShelterB2OperatingRoomStagedEventStart.eventStarted = SHELTER_B2_OPERATING_ROOM_EVENT_START_ATTEMPTED;
         }
         return SHELTER_B2_OPERATING_ROOM_EVENT_STAGED_DEPARTURE;
     }
@@ -1156,7 +1239,7 @@ static s32 _shelterB2OperatingRoomIgnoreAction(Task* task, s32 messageId, const 
 /// room overlay.
 static void _shelterB2OperatingRoomInitTask(Task* task)
 {
-    task->msgTable = D_shelter_b2_operating_room_8018091C;
+    task->msgTable = _gShelterB2OperatingRoomMessageTable;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -1166,10 +1249,11 @@ static void _shelterB2OperatingRoomIdleTask(Task* task)
 {
 }
 
-/// The room task's three states, dispatched by
-/// `shelterB2OperatingRoomTask`: install the message table, idle,
-/// end.
-static const TaskFuncTable3 D_shelter_b2_operating_room_8017D5F0 = {
+/// Persistent room-task states: 0 install handlers, 1 idle, 2 release the task.
+///
+/// The dispatcher copies this three-callback record onto its stack each tick;
+/// the state must remain in 0..2 and the room overlay must stay loaded.
+static const TaskFuncTable3 _gShelterB2OperatingRoomTaskStates = {
     { _shelterB2OperatingRoomInitTask, _shelterB2OperatingRoomIdleTask, taskKill }
 };
 
@@ -1177,7 +1261,7 @@ void shelterB2OperatingRoomTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b2_operating_room_8017D5F0;
+    states = _gShelterB2OperatingRoomTaskStates;
     states.funcs[task->state](task);
 }
 

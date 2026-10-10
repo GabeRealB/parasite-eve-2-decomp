@@ -12,7 +12,14 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b2_operating_room_80184124[12];
+/// Enemy layouts indexed directly by the operating room's saved placement variant.
+///
+/// Slots 1, 2, 3 and 11 contain layouts; slot 0 and slots 4..10 are absent.
+/// Variant 1 places Slouches and Stalkers, 2 Amoebas, 3 Maggots,
+/// and 11 Amoebas with Slouches and a Sucklerceph. Select only a populated slot
+/// for loading/spawning. The directory and both sentinel-terminated tables in
+/// each layout remain borrowed while this room overlay is loaded.
+extern AreaVariant gShelterB2OperatingRoomAreaVariants[12];
 
 /// Logical-view maps for the operating room's single room slot.
 ///
@@ -20,9 +27,20 @@ extern AreaVariant D_shelter_b2_operating_room_80184124[12];
 /// camera/image/sprite IDs. The directory requires this room overlay to stay loaded.
 extern u8* gShelterB2OperatingRoomRoomViewMaps[1];
 
-extern ViewCount D_shelter_b2_operating_room_80180BCC[];
+/// Seven logical views for room ID 1, indexed by room ID minus one.
+///
+/// This signed element count bounds reverse lookup in the identity view map;
+/// the array has no terminator and remains borrowed from the loaded room overlay.
+extern ViewCount gShelterB2OperatingRoomRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b2_operating_room_80180BD0[];
+/// Three operating-room door endpoints, indexed by one-based warp ID minus one.
+///
+/// Endpoints 1/2/3 lead to the south walkway, north walkway and laboratory,
+/// respectively; arrivals select logical views 2/3/7. Each record places both
+/// actors in world units and supplies departure facing, sounds and optional
+/// door-map markers. There is no terminator; keep the room overlay loaded until
+/// endpoint copies are consumed.
+extern DirectionWarpEntry gShelterB2OperatingRoomWarpEntries[3];
 
 /// Operating-room collision mesh and its 4-by-2 XZ cell directory.
 ///
@@ -53,11 +71,29 @@ extern SpriteView gShelterB2OperatingRoomSpriteViews[7];
 /// updates require writable records; all light storage lives with this overlay.
 extern WorldCoordRoomLights gShelterB2OperatingRoomRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b2_operating_room_80183730[];
+/// Directed camera boundaries between logical view pairs 7/4, 5/2, 5/4, 7/6 and 3/2.
+///
+/// Each pair supplies both directions. Setup binds and enables all ten mutable
+/// quads through the final LAST-marked record; positions use room units and
+/// normals use 4096 per unit. Keep the room overlay loaded while they are linked.
+extern WorldCollisionTrigger gShelterB2OperatingRoomViewBoundaryTriggers[10];
 
-extern WorldCollisionOccluder D_shelter_b2_operating_room_80183A28[];
+/// Three room-space quads blocking enemy line of sight in the operating room.
+///
+/// Setup links and enables all three mutable records, including the LAST-marked
+/// final quad. Positions use game units and normals use 4096 per unit. Low flag
+/// bit 0 is retained with no established meaning. Storage stays borrowed from
+/// the room overlay until the list is cleared.
+extern WorldCollisionOccluder gShelterB2OperatingRoomOccluders[3];
 
-extern WorldCollisionTrigger D_shelter_b2_operating_room_80183ADC[];
+/// Three door warps and ten CAP interactions in room-space collision quads.
+///
+/// All require facing except the central command-5 quad, which also accepts
+/// proximity. Commands 4/5 route through the room task for nursery-dependent
+/// selection; the other interactions start CAP directly. Setup binds and enables
+/// the thirteen mutable records through LAST; keep the room overlay loaded while
+/// they are linked. Positions use game units and normals use 4096 per unit.
+extern WorldCollisionTrigger gShelterB2OperatingRoomActionTriggers[13];
 
 /// Minimum ambient colours for logical operating-room views 1..7.
 ///
