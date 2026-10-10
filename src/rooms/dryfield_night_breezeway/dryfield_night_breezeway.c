@@ -22,6 +22,7 @@
 #include "gameplay/sprites.h"
 #include "gameplay/view.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -29,6 +30,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 
@@ -46,17 +48,12 @@ static void _dryfieldNightBreezewayIdleRoomTask(Task* task);
 /// handlers, terminated by `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_dryfield_night_breezeway_8017E67C[];
 
-/// The anchor points of the room's lights: one run of eight `SVECTOR`s. The
-/// draw below reaches some points through their own address and others by
-/// indexing from an earlier one, so the run carries three names.
-
 /// The room's event task states: open the message table, idle, then kill the
 /// task.
 static const TaskFuncTable3 D_dryfield_night_breezeway_8017D5C4 = {
     { _dryfieldNightBreezewayInitRoomTask, _dryfieldNightBreezewayIdleRoomTask, taskKill },
 };
 
-// Indexed views below share one contiguous table.
 static s32 _dryfieldNightBreezewayRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
 static s32 _dryfieldNightBreezewayAcceptTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _dryfieldNightBreezewayHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArgument);
@@ -66,10 +63,10 @@ enum {
     DRYFIELD_NIGHT_BREEZEWAY_MESSAGE_USE_KEY_ITEM = 0x13F1,
 };
 
-extern WorldCollisionGrid    D_dryfield_night_breezeway_8017EBC4[1];
-extern WorldCollisionTrigger D_dryfield_night_breezeway_80180170[4];
-extern WorldCollisionTrigger D_dryfield_night_breezeway_801802A0[3];
-extern WorldCoordRoomLights  D_dryfield_night_breezeway_80180158[1];
+static WorldCollisionGrid    _gDryfieldNightBreezewayCollisionGrid;
+static WorldCollisionTrigger _gDryfieldNightBreezewayViewBoundaries[4];
+static WorldCollisionTrigger _gDryfieldNightBreezewayActionTriggers[3];
+static WorldCoordRoomLights  _gDryfieldNightBreezewayRoomLights;
 
 TaskMessageEntry D_dryfield_night_breezeway_8017E67C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightBreezewayAcceptTransition },
@@ -79,7 +76,20 @@ TaskMessageEntry D_dryfield_night_breezeway_8017E67C[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_dryfield_night_breezeway_8017E6A4[8] = {
+enum {
+    DRYFIELD_NIGHT_BREEZEWAY_GLOW_STAR_POINT         = 0,
+    DRYFIELD_NIGHT_BREEZEWAY_GLOW_FLARE_POINT        = 1,
+    DRYFIELD_NIGHT_BREEZEWAY_GLOW_STAR_SHAFT_POINTS  = 2,
+    DRYFIELD_NIGHT_BREEZEWAY_GLOW_VIEW3_SHAFT_POINTS = 4,
+    DRYFIELD_NIGHT_BREEZEWAY_GLOW_VIEW2_SHAFT_POINTS = 6,
+};
+
+/// World-space glow anchors in integer game coordinates.
+///
+/// Points 0 and 1 are the star and flare centres. Consecutive pairs 2/3,
+/// 4/5 and 6/7 are ordered shaft endpoints for views 3/4, 3 and 2 respectively.
+/// The draw routines borrow these points only while submitting this frame.
+static SVECTOR _gDryfieldNightBreezewayGlowPoints[8] = {
     { 17990, -1365, 2825, 0 },
     { 4290, -3080, 1810, 0 },
     { 17500, -2850, 2680, 0 },
@@ -90,52 +100,73 @@ SVECTOR D_dryfield_night_breezeway_8017E6A4[8] = {
     { 10000, -2600, 1140, 0 },
 };
 
-WorldCoordRoomLighting D_dryfield_night_breezeway_8017E6E4[1] = {
-    { D_dryfield_night_breezeway_80180158, NULL },
+WorldCoordRoomLighting gDryfieldNightBreezewayRoomLighting[1] = {
+    { .lights = &_gDryfieldNightBreezewayRoomLights, .ambientTable = NULL },
 };
 
 WorldCollisionRoomResources D_dryfield_night_breezeway_8017E6EC[1] = {
-    { D_dryfield_night_breezeway_8017EBC4, D_dryfield_night_breezeway_80180170, D_dryfield_night_breezeway_801802A0, NULL },
+    { &_gDryfieldNightBreezewayCollisionGrid, _gDryfieldNightBreezewayViewBoundaries, _gDryfieldNightBreezewayActionTriggers, NULL },
 };
 
-u8* D_dryfield_night_breezeway_8017E6FC[1] = {
+u8* gDryfieldNightBreezewayViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_night_breezeway_8017E700[1] = { 6 };
+ViewCount gDryfieldNightBreezewayViewCounts[1] = { ARRAY_SIZE(gDryfieldNightBreezewayViewCameras) };
 
 DirectionWarpEntry D_dryfield_night_breezeway_8017E704[2] = {
     { { { .word = 1024 }, 6656, 1, 1568 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 7940, 1, 1590 }, { 0, 0, 0, 0 }, 0x53160002, 0x53160001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 476 },
     { { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 0x44F3, 1, 2075 }, { 0, 0, 0, 0 }, 0x53160004, 0x53160003, 0x53160005, 4, DIRECTION_WARP_FLAG_NONE, 475 },
 };
 
-static SVECTOR _gDryfieldNightBreezewayCollision01604Normals[16] = {
+/// Collision-grid normal pool, with 4096 units for unit length.
+static SVECTOR _gDryfieldNightBreezewayCollisionGridNormals[16] = {
 #include "assets/dryfield_night_breezeway_collision_01604_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightBreezewayCollision01604Verts[48] = {
+/// Collision-grid vertex pool in room-local integer game coordinates.
+static SVECTOR _gDryfieldNightBreezewayCollisionGridVerts[48] = {
 #include "assets/dryfield_night_breezeway_collision_01604_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightBreezewayCollision01604Faces[25] = {
+/// Collision-grid quads indexing the vertex and normal pools; surface classes 0..2.
+static WorldCollisionGridFace _gDryfieldNightBreezewayCollisionGridFaces[25] = {
 #include "assets/dryfield_night_breezeway_collision_01604_faces.inc"
 };
 
-static s16 _gDryfieldNightBreezewayCollision01604Cells[130] = {
+/// Eight terminated face-index lists in their serialized 130-halfword storage.
+static s16 _gDryfieldNightBreezewayCollisionGridCells[130] = {
 #include "assets/dryfield_night_breezeway_collision_01604_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightBreezewayCollision01604Cells[i])
-static s16* _gDryfieldNightBreezewayCollision01604Table[8] = {
+// Generated table entries supply a constant halfword index into the cell-list storage.
+#define GRID_CELL(i) (&_gDryfieldNightBreezewayCollisionGridCells[i])
+/// X-major 4-by-2 cell directory borrowing the face-index lists.
+static s16* _gDryfieldNightBreezewayCollisionGridTable[8] = {
 #include "assets/dryfield_night_breezeway_collision_01604_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_breezeway_8017EBC4[1] = {
-    { NULL, _gDryfieldNightBreezewayCollision01604Normals, _gDryfieldNightBreezewayCollision01604Verts, _gDryfieldNightBreezewayCollision01604Faces, _gDryfieldNightBreezewayCollision01604Table, -5000, 1000, 4, 2, 4000, 25 },
+/// Breezeway collision mesh and its 4-by-2 XZ cell index.
+///
+/// Cells span 4000 game units, with origin (5000, -1000). Room activation
+/// binds the view transform and borrows this record and its mesh pools until
+/// the room resources are replaced; the overlay must remain loaded throughout.
+static WorldCollisionGrid _gDryfieldNightBreezewayCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightBreezewayCollisionGridNormals,
+    .vertices    = _gDryfieldNightBreezewayCollisionGridVerts,
+    .faces       = _gDryfieldNightBreezewayCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightBreezewayCollisionGridTable,
+    .xBias       = -5000,
+    .zBias       = 1000,
+    .cellCountX  = 4,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightBreezewayCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_breezeway_8017EBE8[6] = {
+ViewCamera gDryfieldNightBreezewayViewCameras[6] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2EE0, 0x5DC0, 0 } }, 322 },
     { { { { 0, 0, 4096 }, { -1081, 3950, 0 }, { -3950, -1081, 0 } }, { -0x38A4, 200, -1600 } }, 257 },
     { { { { 0, 0, -4095 }, { 831, 4010, 0 }, { 4010, -831, 0 } }, { -9800, 300, -1600 } }, 257 },
@@ -144,12 +175,18 @@ ViewCamera D_dryfield_night_breezeway_8017EBE8[6] = {
     { { { { 0, 0, -4096 }, { 0, 4096, 0 }, { 4096, 0, 0 } }, { -0x41AC, 295, -3414 } }, 680 },
 };
 
-SpriteBatch D_dryfield_night_breezeway_8017ECC0[2] = {
+/// View 1's empty sprite list; the zero first count preserves background-image strips.
+static SpriteBatch _gDryfieldNightBreezewayView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_breezeway_8017ECD0[96] = {
+/// View 2's 96 source rectangles, in view-centred pixels with unscaled OT depths.
+///
+/// Batches select elements 0..89 and 90..95. Cached packets snapshot texture
+/// geometry while per-frame linking reads the source depths; storage stays
+/// writable and loaded for the view's lifetime.
+static SpriteSource _gDryfieldNightBreezewayView2SpriteSources[96] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 144, -120, 426, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, -120, 420, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 144, -112, 431, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
@@ -248,14 +285,21 @@ SpriteSource D_dryfield_night_breezeway_8017ECD0[96] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 72, 626, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_breezeway_8017F450[4] = {
+/// View 2's sprite ranges, preserving image strips and selecting all 96 sources.
+///
+/// The serialized `SpriteBatch.field_6` bytes are retained; their role is unproven.
+static SpriteBatch _gDryfieldNightBreezewayView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 90, 0, 0, { 1, 0 } },
-    { 90, 6, 0, 0, { 0, 0 } },
+    { 90, ARRAY_SIZE(_gDryfieldNightBreezewayView2SpriteSources) - 90, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_breezeway_8017F470[46] = {
+/// View 3's 46 source rectangles, in view-centred pixels with unscaled OT depths.
+///
+/// Batches select elements 0..31 and 32..45. Cached texture geometry and live
+/// sorting depths borrow this writable storage while the overlay is loaded.
+static SpriteSource _gDryfieldNightBreezewayView3SpriteSources[46] = {
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -80, -120, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 104 } }, -72, -120, 750, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 64 } }, -56, -120, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
@@ -304,24 +348,33 @@ SpriteSource D_dryfield_night_breezeway_8017F470[46] = {
     { 142, 0x3FC0, { .fields = { 16, 8 } }, -32, 96, 250, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_breezeway_8017F808[4] = {
+/// View 3's sprite ranges, preserving image strips and selecting all 46 sources.
+///
+/// The serialized `SpriteBatch.field_6` bytes are retained; their role is unproven.
+static SpriteBatch _gDryfieldNightBreezewayView3SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 32, 0, 0, { 1, 0 } },
-    { 32, 14, 0, 0, { 0, 0 } },
+    { 32, ARRAY_SIZE(_gDryfieldNightBreezewayView3SpriteSources) - 32, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_breezeway_8017F828[2] = {
+/// View 4's empty sprite list; the zero first count preserves background-image strips.
+static SpriteBatch _gDryfieldNightBreezewayView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_breezeway_8017F838[2] = {
+/// View 5's empty sprite list; the zero first count preserves background-image strips.
+static SpriteBatch _gDryfieldNightBreezewayView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_breezeway_8017F848[60] = {
+/// View 6's 60 source rectangles, in view-centred pixels with unscaled OT depths.
+///
+/// Its single nonempty batch selects the entire array. Cached texture geometry
+/// and live sorting depths borrow this writable storage while the overlay is loaded.
+static SpriteSource _gDryfieldNightBreezewayView6SpriteSources[60] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 8, 298, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 136, 8, 296, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 16, 298, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
@@ -384,19 +437,20 @@ SpriteSource D_dryfield_night_breezeway_8017F848[60] = {
     { 142, 0x3FC0, { .fields = { 16, 80 } }, 112, 8, 298, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_breezeway_8017FCF8[3] = {
+/// View 6's complete source range, preceded by the image-strip selection record.
+static SpriteBatch _gDryfieldNightBreezewayView6SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 60, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightBreezewayView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_breezeway_8017FD10[6] = {
-    { { .empty = D_dryfield_night_breezeway_8017ECC0 }, D_dryfield_night_breezeway_8017ECC0, NULL },
-    { { .elements = D_dryfield_night_breezeway_8017ECD0 }, D_dryfield_night_breezeway_8017F450, NULL },
-    { { .elements = D_dryfield_night_breezeway_8017F470 }, D_dryfield_night_breezeway_8017F808, NULL },
-    { { .empty = D_dryfield_night_breezeway_8017F828 }, D_dryfield_night_breezeway_8017F828, NULL },
-    { { .empty = D_dryfield_night_breezeway_8017F838 }, D_dryfield_night_breezeway_8017F838, NULL },
-    { { .elements = D_dryfield_night_breezeway_8017F848 }, D_dryfield_night_breezeway_8017FCF8, NULL },
+SpriteView gDryfieldNightBreezewaySpriteViews[6] = {
+    { { .empty = _gDryfieldNightBreezewayView1SpriteBatches }, _gDryfieldNightBreezewayView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightBreezewayView2SpriteSources }, _gDryfieldNightBreezewayView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightBreezewayView3SpriteSources }, _gDryfieldNightBreezewayView3SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightBreezewayView4SpriteBatches }, _gDryfieldNightBreezewayView4SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightBreezewayView5SpriteBatches }, _gDryfieldNightBreezewayView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightBreezewayView6SpriteSources }, _gDryfieldNightBreezewayView6SpriteBatches, NULL },
 };
 
 /// Four directional model-shading lights shared by every nighttime breezeway view.
@@ -545,47 +599,114 @@ static WorldCoordPointLight _gDryfieldNightBreezewayPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_night_breezeway_80180158[1] = {
-    { ARRAY_SIZE(_gDryfieldNightBreezewayDirectionalLights), _gDryfieldNightBreezewayDirectionalLights, ARRAY_SIZE(_gDryfieldNightBreezewayPointLights), _gDryfieldNightBreezewayPointLights, 0, NULL },
+/// The single room's mutable shading-light collection: four directions, seven points, no cones.
+///
+/// Coordinate updates and shading queries borrow and mutate the light arrays
+/// while the breezeway overlay is loaded; this record owns no allocations.
+static WorldCoordRoomLights _gDryfieldNightBreezewayRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gDryfieldNightBreezewayDirectionalLights),
+    .directionalLights     = _gDryfieldNightBreezewayDirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightBreezewayPointLights),
+    .pointLights           = _gDryfieldNightBreezewayPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_dryfield_night_breezeway_80180170[4] = {
+/// Directed view-boundary quads for transitions 3->2, 2->3, 3->4 and 4->3.
+///
+/// Origins and corner offsets use integer room coordinates; normals use 4096
+/// per unit. The final quad is live and LAST-marked. Room binding mutates the
+/// coordinate, links and flags; keep the overlay loaded until they are unlinked.
+static WorldCollisionTrigger _gDryfieldNightBreezewayViewBoundaries[4] = {
     { NULL, NULL, NULL, { 0x2E60, -2880, 1440, 0 }, { { 0, -3568, -1024, 0 }, { 0, -3568, 1024, 0 }, { 0, 3568, -1024, 0 }, { 0, 3568, 1024, 0 } }, { 4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3709, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x2F20, -2816, 1472, 0 }, { { 0, -3280, 1024, 0 }, { 0, -3280, -1024, 0 }, { 0, 3280, 1024, 0 }, { 0, 3280, -1024, 0 } }, { -4097, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3434, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x3F8D, -2528, 2138, 0 }, { { -70, -3632, 1554, 0 }, { 56, -3632, -1563, 0 }, { -70, 3632, 1554, 0 }, { 56, 3632, -1563, 0 } }, { -4106, 0, -167, 0 }, { 0, 0, 4096, 0 }, 3949, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 0x3ECD, -2576, 2122, 0 }, { { 78, -3392, -1520, 0 }, { -88, -3392, 1512, 0 }, { 78, 3392, -1520, 0 }, { -88, 3392, 1512, 0 } }, { 4099, 0, 223, 0 }, { 0, 0, 4096, 0 }, 3709, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_dryfield_night_breezeway_801802A0[3] = {
-    { NULL, NULL, NULL, { 6416, -48, 1680, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { 4096, 0, 0, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x4580, -64, 1760, 0 }, { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } }, { 0, 4095, 0, 0 }, { -4091, 0, 201, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_WARP, 23, 34, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x45A0, -64, 2816, 0 }, { { -368, 0, -528, 0 }, { 368, 0, -528, 0 }, { -368, 0, 528, 0 }, { 368, 0, 528, 0 } }, { 0, 4103, 0, 0 }, { -4096, 0, 0, 0 }, 643, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+enum {
+    // Warp bytes pack the 1-based departure slot above the destination arrival slot.
+    DRYFIELD_NIGHT_BREEZEWAY_WATER_TOWER_WARP_SLOTS = (1 << 4) | 2,
+    DRYFIELD_NIGHT_BREEZEWAY_FACTORY_WARP_SLOTS     = (2 << 4) | 2,
+    DRYFIELD_NIGHT_BREEZEWAY_TRIGGER_CAP_COMMAND    = 1,
 };
 
-AreaResource D_dryfield_night_breezeway_80180384[2] = {
-    { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
+/// Facing-gated action quads for the water tower, factory and room CAP command 1.
+///
+/// The warps use departure slots 1/2 and destination arrival slot 2. The final
+/// live quad sends a room command that requests CAP event 1 when idle.
+/// Geometry uses room coordinates and 4096-based normals; links, coordinate,
+/// flags and hit latches remain mutable until room teardown unlinks the array.
+static WorldCollisionTrigger _gDryfieldNightBreezewayActionTriggers[3] = {
+    {
+        .origin       = { 6416, -48, 1680, 0 },
+        .vertices     = { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { 4096, 0, 0, 0 },
+        .radius       = 807,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_NIGHT_WATER_TOWER,
+        .parameter1   = DRYFIELD_NIGHT_BREEZEWAY_WATER_TOWER_WARP_SLOTS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { 0x4580, -64, 1760, 0 },
+        .vertices     = { { -368, 0, -720, 0 }, { 368, 0, -720, 0 }, { -368, 0, 720, 0 }, { 368, 0, 720, 0 } },
+        .normal       = { 0, 4095, 0, 0 },
+        .facingNormal = { -4091, 0, 201, 0 },
+        .radius       = 807,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_WARP,
+        .parameter0   = GAME_AREA_DRYFIELD_NIGHT_FACTORY,
+        .parameter1   = DRYFIELD_NIGHT_BREEZEWAY_FACTORY_WARP_SLOTS,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD,
+    },
+    {
+        .origin       = { 0x45A0, -64, 2816, 0 },
+        .vertices     = { { -368, 0, -528, 0 }, { 368, 0, -528, 0 }, { -368, 0, 528, 0 }, { 368, 0, 528, 0 } },
+        .normal       = { 0, 4103, 0, 0 },
+        .facingNormal = { -4096, 0, 0, 0 },
+        .radius       = 643,
+        .control      = WORLD_COLLISION_TRIGGER_ACTION_CAP,
+        .parameter0   = DRYFIELD_NIGHT_BREEZEWAY_TRIGGER_CAP_COMMAND,
+        .parameter1   = WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE,
+        .flags        = WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST,
+    },
+};
+
+/// Variant 1's bat resource, matched by placement entry 37 and ending with `AREA_PLACEMENT_END`.
+///
+/// Loads actor package 103700 and spawns descriptor 0. Placements and actors
+/// borrow this table and its task descriptor while their overlays remain loaded.
+static AreaResource _gDryfieldNightBreezewayVariant1Resources[2] = {
+    { .entryId = 37, .fileNumber = 37, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_breezeway_8018039C[3] = {
-    { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
-    { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
+/// Variant 3's Desert Chaser and moth resource recipes, ending with `AREA_PLACEMENT_END`.
+///
+/// Entry 1 loads file 400100; entry 8 loads 300700. Each spawns descriptor 0
+/// and must stay loaded with the placements and borrowed actor task descriptors.
+static AreaResource _gDryfieldNightBreezewayVariant3Resources[3] = {
+    { .entryId = 1, .fileNumber = 1, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_40, .taskIndex = 0, .taskTable = &gActor00100DesertChaserTaskDesc },
+    { .entryId = 8, .fileNumber = 7, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_30, .taskIndex = 0, .taskTable = &gActor300700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_breezeway_801803C0[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+/// Variant 21's actor-102500 and Mind Suckler resource recipes, ending with `AREA_PLACEMENT_END`.
+///
+/// Placement entries 25/15 load files 102500/201500 and spawn descriptor 0.
+/// The table and borrowed task descriptors remain loaded through their use.
+static AreaResource _gDryfieldNightBreezewayVariant21Resources[3] = {
+    { .entryId = 25, .fileNumber = 25, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102500Tasks },
+    { .entryId = 15, .fileNumber = 15, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_dryfield_night_breezeway_801803E4[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017C2A8, D_dryfield_night_breezeway_80180384 },
+    { D_map_dryfield_full_8017C2A8, _gDryfieldNightBreezewayVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C378, D_dryfield_night_breezeway_8018039C },
-    { NULL, NULL },
-    { NULL, NULL },
+    { D_map_dryfield_full_8017C378, _gDryfieldNightBreezewayVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -601,36 +722,58 @@ AreaVariant D_dryfield_night_breezeway_801803E4[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017C448, D_dryfield_night_breezeway_801803C0 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_dryfield_full_8017C448, _gDryfieldNightBreezewayVariant21Resources },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_breezeway_80180494 = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Class 2's paired footstep cues in the loaded type-1 sound-script bank.
+///
+/// Walk and scripted-jump cue 2 use entry 73; running uses entry 75. Cue 1
+/// uses the following entry and companion playback adds 100. Surface lookup
+/// borrows this record only while the breezeway overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldNightBreezewayClass2FootstepSounds = {
+    .walk         = SOUND_SCRIPT_REQUEST_TYPE_1 | 73,
+    .run          = SOUND_SCRIPT_REQUEST_TYPE_1 | 75,
+    .scriptedJump = SOUND_SCRIPT_REQUEST_TYPE_1 | 73,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_breezeway_801804A0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Shared policy for classes 0 and 3..7: blocking probes, weapon impacts, pushback and no footsteps.
+static WorldCollisionSurfaceProperties _gDryfieldNightBreezewayBlockingSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_breezeway_801804A8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 1 policy: pass probes, omit weapon impacts, apply pushback and play no footsteps.
+static WorldCollisionSurfaceProperties _gDryfieldNightBreezewayClass1SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_breezeway_801804B0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_breezeway_80180494 },
+/// Class 2 policy: blocking probes, weapon impacts and pushback with paired footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightBreezewayClass2SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightBreezewayClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_breezeway_801804B8[8] = {
-    D_dryfield_night_breezeway_801804A0,
-    D_dryfield_night_breezeway_801804A8,
-    D_dryfield_night_breezeway_801804B0,
-    D_dryfield_night_breezeway_801804A0,
-    D_dryfield_night_breezeway_801804A0,
-    D_dryfield_night_breezeway_801804A0,
-    D_dryfield_night_breezeway_801804A0,
-    D_dryfield_night_breezeway_801804A0,
+WorldCollisionSurfaceProperties* gDryfieldNightBreezewaySurfacePropertiesByClass[8] = {
+    &_gDryfieldNightBreezewayBlockingSurfaceProperties,
+    &_gDryfieldNightBreezewayClass1SurfaceProperties,
+    &_gDryfieldNightBreezewayClass2SurfaceProperties,
+    &_gDryfieldNightBreezewayBlockingSurfaceProperties,
+    &_gDryfieldNightBreezewayBlockingSurfaceProperties,
+    &_gDryfieldNightBreezewayBlockingSurfaceProperties,
+    &_gDryfieldNightBreezewayBlockingSurfaceProperties,
+    &_gDryfieldNightBreezewayBlockingSurfaceProperties,
 };
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -738,16 +881,16 @@ void dryfieldNightBreezewayDrawGlowsTask(Task* task)
     gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
     switch (gGameSession->location.loc.view) {
         case DRYFIELD_NIGHT_BREEZEWAY_VIEW_FLARE_AND_SHAFT:
-            _glowDrawFlare(&D_dryfield_night_breezeway_8017E6A4[1], DRYFIELD_NIGHT_BREEZEWAY_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_BREEZEWAY_FLARE_RADIUS_SCALE);
-            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6A4[6], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
+            _glowDrawFlare(&_gDryfieldNightBreezewayGlowPoints[DRYFIELD_NIGHT_BREEZEWAY_GLOW_FLARE_POINT], DRYFIELD_NIGHT_BREEZEWAY_FLARE_TEXTURE_INDEX, DRYFIELD_NIGHT_BREEZEWAY_FLARE_RADIUS_SCALE);
+            _glowDrawShaft(&_gDryfieldNightBreezewayGlowPoints[DRYFIELD_NIGHT_BREEZEWAY_GLOW_VIEW2_SHAFT_POINTS], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
             break;
         case DRYFIELD_NIGHT_BREEZEWAY_VIEW_STAR_AND_TWO_SHAFTS:
-            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6A4[4], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
+            _glowDrawShaft(&_gDryfieldNightBreezewayGlowPoints[DRYFIELD_NIGHT_BREEZEWAY_GLOW_VIEW3_SHAFT_POINTS], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
             // This view also shows the star and shaft drawn by view 4.
             /* fallthrough */
         case DRYFIELD_NIGHT_BREEZEWAY_VIEW_STAR_AND_SHAFT:
-            glowDrawPulsingStar(&D_dryfield_night_breezeway_8017E6A4[0], DRYFIELD_NIGHT_BREEZEWAY_STAR_PULSE_RATE, DRYFIELD_NIGHT_BREEZEWAY_STAR_RADIUS_SCALE);
-            _glowDrawShaft(&D_dryfield_night_breezeway_8017E6A4[2], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
+            glowDrawPulsingStar(&_gDryfieldNightBreezewayGlowPoints[DRYFIELD_NIGHT_BREEZEWAY_GLOW_STAR_POINT], DRYFIELD_NIGHT_BREEZEWAY_STAR_PULSE_RATE, DRYFIELD_NIGHT_BREEZEWAY_STAR_RADIUS_SCALE);
+            _glowDrawShaft(&_gDryfieldNightBreezewayGlowPoints[DRYFIELD_NIGHT_BREEZEWAY_GLOW_STAR_SHAFT_POINTS], DRYFIELD_NIGHT_BREEZEWAY_SHAFT_RADIUS_SCALE);
             break;
     }
 }

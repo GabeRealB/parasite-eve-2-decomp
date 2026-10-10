@@ -13,22 +13,45 @@
 
 extern AreaVariant D_dryfield_night_breezeway_801803E4[22];
 
-// dryfield_night_breezeway
-extern WorldCoordRoomLighting D_dryfield_night_breezeway_8017E6E4[];
+/// Lighting directory for the breezeway's single room, indexed by room minus one.
+///
+/// Borrows four directional and seven point lights, with default ambient minima.
+/// The record and writable light transforms stay live while this overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldNightBreezewayRoomLighting[1];
 
 extern WorldCollisionRoomResources D_dryfield_night_breezeway_8017E6EC[];
 
-extern u8* D_dryfield_night_breezeway_8017E6FC[];
+/// Logical-view map directory for the single breezeway room, indexed by room minus one.
+///
+/// Borrows `gViewIdentityMap`; views 1..6 select the same 1-based camera/image/sprite
+/// indices. The directory lives with this overlay and the byte map with gameplay.
+extern u8* gDryfieldNightBreezewayViewMaps[1];
 
-extern ViewCount D_dryfield_night_breezeway_8017E700[];
+/// Logical-view reverse-search count for the single breezeway room: six entries.
+extern ViewCount gDryfieldNightBreezewayViewCounts[1];
 
 extern DirectionWarpEntry D_dryfield_night_breezeway_8017E704[];
 
-extern ViewCamera D_dryfield_night_breezeway_8017EBE8[];
+/// Six cameras selected by mapped view minus one while the breezeway overlay is loaded.
+///
+/// Rotations use 4096 per unit; translations are negated world-space origins and
+/// projection distances are pixels. Views 1..6 map directly to these records.
+extern ViewCamera gDryfieldNightBreezewayViewCameras[6];
 
-extern SpriteView D_dryfield_night_breezeway_8017FD10[];
+/// Six sprite-view descriptors selected by mapped view minus one.
+///
+/// Views 2, 3 and 6 borrow 96, 46 and 60 sources; views 1, 4 and 5 are empty.
+/// Every list preserves image strips and has no clipping-area commands. Sources
+/// and terminated batch lists remain writable and live with the room overlay.
+extern SpriteView gDryfieldNightBreezewaySpriteViews[6];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_breezeway_801804B8[];
+/// Collision policies for room-local surface classes 0..7.
+///
+/// Class 1 passes probes and suppresses weapon impacts; class 2 blocks probes,
+/// permits impacts and supplies footsteps. Classes 0 and 3..7 share blocking,
+/// impact-enabled properties without footsteps. All classes apply pushback.
+/// The records and footstep cues are borrowed while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightBreezewaySurfacePropertiesByClass[8];
 
 /// Draws the night breezeway's view-dependent light glows.
 ///
