@@ -1,35 +1,37 @@
-#include <psyq/sys/types.h>
+#include "mappic/mappic.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "common.h"
 
-static TmdBone _gMappicS202MappicS400Model0005C0008CSkeleton[1] = {
+/// Identity transform and self-parented root for the Gas Station shape.
+static TmdBone _gMappicS202GasStationShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_0008C_skeleton.inc"
 };
 
-static u32 _gMappicS202MappicS400Model0005C0008CPartVerts[1] = {
+/// Vertex count of the Gas Station shape's sole part (six vertices).
+static u32 _gMappicS202GasStationShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_0008C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS202MappicS400Model0005C0008CVerts[6] = {
+/// Gas Station's map footprint in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS202GasStationShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_0008C_verts.inc"
 };
 
-static u32 _gMappicS202MappicS400Model0005C0008CStream[12] = {
+/// Two unlit quads' packed vertex byte offsets and white colour, followed by two group ends and the stream end.
+static u32 _gMappicS202GasStationShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_0008C_stream.inc"
 };
 
-TmdSource D_mappic_s2_02_8012EFBC = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS202MappicS400Model0005C0008CPartVerts,
-    _gMappicS202MappicS400Model0005C0008CVerts,
-    &_gMappicS202MappicS400Model0005C0008CVerts[6],
-    _gMappicS202MappicS400Model0005C0008CSkeleton,
-    _gMappicS202MappicS400Model0005C0008CStream,
+TmdSource gMappicS202GasStationShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS202GasStationShapeSkeleton),
+    .partVertexCounts = _gMappicS202GasStationShapePartVerts,
+    .verts            = _gMappicS202GasStationShapeVerts,
+    .normals          = &_gMappicS202GasStationShapeVerts[ARRAY_SIZE(_gMappicS202GasStationShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS202GasStationShapeSkeleton,
+    .stream           = _gMappicS202GasStationShapeStream,
 };
 
 static TmdBone _gMappicS202Model00C480011CSkeleton[1] = {
