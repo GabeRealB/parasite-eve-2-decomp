@@ -8,6 +8,7 @@
 
 #include "shelter_r47_private.h"
 
+#include "actors/actor_143400.h"
 #include "actors/task_tables.h"
 
 #include "gameplay/action_prompt.h"
@@ -71,8 +72,6 @@ static void _roomCutsceneTask(Task* task);
 
 static void _roomCutsceneSoundTask(Task* task);
 
-extern EvsCommand D_actor_143400_801350BC[];
-extern EvsCommand D_actor_143400_801359D4[];
 extern EvsCommand D_actor_443500_8014152C[];
 extern EvsCommand D_actor_443500_80141C1C[];
 extern EvsCommand D_actor_443500_80141D9C[];
@@ -809,7 +808,7 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
             case SHELTER_R47_ACTION_COMPANION_ENTRY:
                 if ((gameFlagGetNibble(GAME_FLAG_083) == 0) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 0)) {
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        evsStartScriptWithSkip(D_actor_143400_801350BC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_143400_801359D4);
+                        evsStartScriptWithSkip(gActor143400CompanionEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gActor143400CompanionEntrySkipScript);
                     }
                     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_R47_OBJECTIVE_COMPANION_ENTRY);
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_080, 1);
