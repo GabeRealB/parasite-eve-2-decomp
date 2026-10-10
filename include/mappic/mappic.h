@@ -315,13 +315,36 @@ extern TmdSource D_mappic_s5_00_8012FD84;
 extern TmdSource D_mappic_s5_00_8012FE4C;
 
 // mappic_s5_02
-extern TmdSource D_mappic_s5_02_8012F044;
+/// Nursery's area-fill mesh on page 2 (Shelter B6) of the Neo Ark map.
+///
+/// Fourteen vertices in the model X/Z plane form two triangles and five quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_02 loaded during use.
+extern TmdSource gMappicS502NurseryShape;
 
-extern TmdSource D_mappic_s5_02_8012F124;
+/// Growth room's area-fill mesh on page 2 (Shelter B6) of the Neo Ark map.
+///
+/// Eight vertices in the model X/Z plane form two triangles and two quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep mappic_s5_02 loaded during use.
+extern TmdSource gMappicS502GrowthRoomShape;
 
-extern TmdSource D_mappic_s5_02_8012F224;
+/// Shared EVE elevator and B6 Corridor area fill on page 2 of the Neo Ark map.
+///
+/// Twelve vertices in the model X/Z plane form five quads; the map scales
+/// them by 1495/4096 and maps Z to inverted screen Y. The two areas share
+/// visitation and marking for this shape. Has no normal data. The map borrows
+/// the vertices and first stream group; keep mappic_s5_02 loaded during use.
+extern TmdSource gMappicS502EveElevatorCorridorShape;
 
-extern TmdSource D_mappic_s5_02_8012F2B4;
+/// Training room's area-fill quad on page 2 (Shelter B6) of the Neo Ark map.
+///
+/// Four vertices in the model X/Z plane are scaled by 1495/4096, with Z
+/// mapped to inverted screen Y. Has no normal data. The map borrows the
+/// vertices and first stream group; keep mappic_s5_02 loaded during use.
+extern TmdSource gMappicS502TrainingRoomShape;
 
 // mappic_s5_03
 extern TmdSource D_mappic_s5_03_8012EFA0;

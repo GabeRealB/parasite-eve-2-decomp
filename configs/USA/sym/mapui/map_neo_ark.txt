@@ -341,10 +341,10 @@ D_mappic_s5_00_8012FBB4 = 0x8012FBB4; // absolute:True owner=mappic_s5_00 shared
 D_mappic_s5_00_8012FCB8 = 0x8012FCB8; // absolute:True owner=mappic_s5_00
 D_mappic_s5_00_8012FD84 = 0x8012FD84; // absolute:True owner=mappic_s5_00
 D_mappic_s5_00_8012FE4C = 0x8012FE4C; // absolute:True owner=mappic_s5_00
-D_mappic_s5_02_8012F044 = 0x8012F044; // absolute:True owner=mappic_s5_02
-D_mappic_s5_02_8012F124 = 0x8012F124; // absolute:True owner=mappic_s5_02
-D_mappic_s5_02_8012F224 = 0x8012F224; // absolute:True owner=mappic_s5_02 shared=mappic
-D_mappic_s5_02_8012F2B4 = 0x8012F2B4; // absolute:True owner=mappic_s5_02
+gMappicS502NurseryShape = 0x8012F044; // absolute:True owner=mappic_s5_02
+gMappicS502GrowthRoomShape = 0x8012F124; // absolute:True owner=mappic_s5_02
+gMappicS502EveElevatorCorridorShape = 0x8012F224; // absolute:True owner=mappic_s5_02 shared=mappic
+gMappicS502TrainingRoomShape = 0x8012F2B4; // absolute:True owner=mappic_s5_02
 D_mappic_s5_03_8012EFA0 = 0x8012EFA0; // absolute:True owner=mappic_s5_03 shared=mappic
 D_mappic_s5_03_8012F030 = 0x8012F030; // absolute:True owner=mappic_s5_03 shared=mappic
 D_mappic_s5_03_8012F110 = 0x8012F110; // absolute:True owner=mappic_s5_03
