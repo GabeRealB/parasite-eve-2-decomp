@@ -16,11 +16,23 @@ extern AreaVariant D_acropolis_forked_road_801831C4[24];
 // acropolis_forked_road
 extern WorldCollisionRoomResources D_acropolis_forked_road_80182214[];
 
-extern u8* D_acropolis_forked_road_8018225C[];
+/// Logical-view maps for forked-road rooms 1..3, indexed by room minus one.
+///
+/// Each byte at logical view minus one is a 1-based camera/image/sprite index.
+/// Room 1 borrows `gViewIdentityMap` for ten views; rooms 2 and 3 each search
+/// nine entries of their own twelve-byte maps. Maps have no terminator; their
+/// trailing zero entries must not select resources. Keep this overlay loaded
+/// while its maps are borrowed by the stage directory.
+extern u8* gAcropolisForkedRoadViewMaps[3];
 
 extern ViewCount D_acropolis_forked_road_80182268[];
 
-extern WorldCoordRoomLighting D_acropolis_forked_road_80182270[];
+/// Model-lighting resources for forked-road rooms 1..3, indexed by room minus one.
+///
+/// All entries borrow the same mutable collection of 24 point lights, with no
+/// directional or cone lights. NULL ambient tables select gameplay's default
+/// ambient minima. Keep this overlay loaded while its resources are borrowed.
+extern WorldCoordRoomLighting gAcropolisForkedRoadRoomLightingTable[3];
 
 extern DirectionWarpEntry D_acropolis_forked_road_80182288[];
 
@@ -28,7 +40,13 @@ extern SpriteView D_acropolis_forked_road_801844E0[];
 
 extern ViewCamera D_acropolis_forked_road_80184E88[];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_forked_road_801850A4[];
+/// Collision and footstep policies indexed by the forked road's surface class 0..7.
+///
+/// Every class blocks probes and applies pushback. Classes 2 and 3 suppress
+/// weapon impact responses; the others allow them. Only class 4 supplies
+/// footstep cues. There is no terminator, and the borrowed records and cues
+/// remain valid only while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gAcropolisForkedRoadSurfacePropertiesByClass[8];
 
 /// Spawns fourteen wall lamps and publishes this room's flash, trail and burst IDs.
 ///

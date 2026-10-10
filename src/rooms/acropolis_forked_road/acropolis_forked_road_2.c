@@ -98,27 +98,11 @@ static void _acropolisForkedRoadSkipFadeInTask(Task* task);
 
 extern AnimationPlayRequest     D_acropolis_forked_road_8018207C;
 extern AnimationBankCopyRequest D_acropolis_forked_road_80182060;
-extern WorldCollisionGrid       D_acropolis_forked_road_80182BF0[1];
+static WorldCollisionGrid       _gAcropolisForkedRoadCollisionGrid;
 extern WorldCollisionTrigger    D_acropolis_forked_road_80182C14[6];
 extern WorldCollisionTrigger    D_acropolis_forked_road_80182DDC[7];
-extern WorldCoordRoomLights     D_acropolis_forked_road_80184E70[1];
+static WorldCoordRoomLights     _gAcropolisForkedRoadRoomLights;
 static void                     _acropolisForkedRoadReleaseMaggotCaterpillarEntrance(void);
-
-extern SpriteBatch  D_acropolis_forked_road_80183284[2];
-extern SpriteBatch  D_acropolis_forked_road_80183938[12];
-extern SpriteBatch  D_acropolis_forked_road_80183A10[3];
-extern SpriteBatch  D_acropolis_forked_road_80183A28[2];
-extern SpriteBatch  D_acropolis_forked_road_80183AB0[3];
-extern SpriteBatch  D_acropolis_forked_road_80183AC8[2];
-extern SpriteBatch  D_acropolis_forked_road_80183F70[6];
-extern SpriteBatch  D_acropolis_forked_road_80183FA0[2];
-extern SpriteBatch  D_acropolis_forked_road_80183FB0[2];
-extern SpriteBatch  D_acropolis_forked_road_80184498[7];
-extern SpriteSource D_acropolis_forked_road_80183294[85];
-extern SpriteSource D_acropolis_forked_road_80183998[6];
-extern SpriteSource D_acropolis_forked_road_80183A38[6];
-extern SpriteSource D_acropolis_forked_road_80183AE8[58];
-extern SpriteSource D_acropolis_forked_road_80183FC0[62];
 
 TaskDesc D_acropolis_forked_road_80180F44[5] = {
     { { { TASK_BODY_NONE, 192 } }, _acropolisForkedRoadOutboundMoviePathTask, { .value = 0 } },
@@ -244,12 +228,17 @@ u16 D_acropolis_forked_road_801821E8[14] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_acropolis_forked_road_80182214[3] = {
-    { D_acropolis_forked_road_80182BF0, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
-    { D_acropolis_forked_road_80182BF0, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
-    { D_acropolis_forked_road_80182BF0, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
+    { &_gAcropolisForkedRoadCollisionGrid, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
+    { &_gAcropolisForkedRoadCollisionGrid, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
+    { &_gAcropolisForkedRoadCollisionGrid, D_acropolis_forked_road_80182C14, D_acropolis_forked_road_80182DDC, NULL },
 };
 
-u8 D_acropolis_forked_road_80182244[12] = {
+/// Room 2's logical-view to camera/image/sprite map, indexed by view minus one.
+///
+/// The first nine bytes are active, with logical views 3/5 and 7/8 sharing
+/// mapped indices 5 and 8. The three retained zero bytes are outside the room's
+/// reverse-search count, not a terminator. Borrowed while this overlay is loaded.
+static u8 _gAcropolisForkedRoadRoom2ViewMap[12] = {
     1,
     2,
     5,
@@ -264,7 +253,12 @@ u8 D_acropolis_forked_road_80182244[12] = {
     0,
 };
 
-u8 D_acropolis_forked_road_80182250[12] = {
+/// Room 3's logical-view to camera/image/sprite map, indexed by view minus one.
+///
+/// The first nine bytes are active, with the same mapping as room 2 but separate
+/// writable storage. The last three bytes are retained zeros outside the room's
+/// reverse-search count. Borrowed while this overlay is loaded; no terminator.
+static u8 _gAcropolisForkedRoadRoom3ViewMap[12] = {
     1,
     2,
     5,
@@ -279,18 +273,18 @@ u8 D_acropolis_forked_road_80182250[12] = {
     0,
 };
 
-u8* D_acropolis_forked_road_8018225C[3] = {
+u8* gAcropolisForkedRoadViewMaps[3] = {
     gViewIdentityMap,
-    D_acropolis_forked_road_80182244,
-    D_acropolis_forked_road_80182250,
+    _gAcropolisForkedRoadRoom2ViewMap,
+    _gAcropolisForkedRoadRoom3ViewMap,
 };
 
 ViewCount D_acropolis_forked_road_80182268[3] = { 10, 9, 9 };
 
-WorldCoordRoomLighting D_acropolis_forked_road_80182270[3] = {
-    { D_acropolis_forked_road_80184E70, NULL },
-    { D_acropolis_forked_road_80184E70, NULL },
-    { D_acropolis_forked_road_80184E70, NULL },
+WorldCoordRoomLighting gAcropolisForkedRoadRoomLightingTable[3] = {
+    { &_gAcropolisForkedRoadRoomLights, NULL },
+    { &_gAcropolisForkedRoadRoomLights, NULL },
+    { &_gAcropolisForkedRoadRoomLights, NULL },
 };
 
 DirectionWarpEntry D_acropolis_forked_road_80182288[5] = {
@@ -301,30 +295,57 @@ DirectionWarpEntry D_acropolis_forked_road_80182288[5] = {
     { { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, { { .word = 3072 }, -261, 1, 1205 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SECURITY_ROOM },
 };
 
-static SVECTOR _gAcropolisForkedRoadCollision05630Normals[18] = {
+/// Room-space face normals of `_gAcropolisForkedRoadCollisionGrid`, with `ONE` per unit.
+static SVECTOR _gAcropolisForkedRoadCollisionGridNormals[18] = {
 #include "assets/acropolis_forked_road_collision_05630_normals.inc"
 };
 
-static SVECTOR _gAcropolisForkedRoadCollision05630Verts[118] = {
+/// Signed room-coordinate vertex pool of `_gAcropolisForkedRoadCollisionGrid`.
+static SVECTOR _gAcropolisForkedRoadCollisionGridVerts[118] = {
 #include "assets/acropolis_forked_road_collision_05630_verts.inc"
 };
 
-static WorldCollisionGridFace _gAcropolisForkedRoadCollision05630Faces[38] = {
+/// Indexed quads and surface classes of `_gAcropolisForkedRoadCollisionGrid`.
+static WorldCollisionGridFace _gAcropolisForkedRoadCollisionGridFaces[38] = {
 #include "assets/acropolis_forked_road_collision_05630_faces.inc"
 };
 
-static s16 _gAcropolisForkedRoadCollision05630Cells[244] = {
+/// Packed face-index lists of `_gAcropolisForkedRoadCollisionGrid`, ending at -1.
+static s16 _gAcropolisForkedRoadCollisionGridCells[244] = {
 #include "assets/acropolis_forked_road_collision_05630_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gAcropolisForkedRoadCollision05630Cells[i])
-static s16* _gAcropolisForkedRoadCollision05630Table[24] = {
+enum {
+    ACROPOLIS_FORKED_ROAD_GRID_CELLS_X = 6,
+    ACROPOLIS_FORKED_ROAD_GRID_CELLS_Z = 4,
+};
+
+// Asset-include binding: i is an in-bounds halfword index into the cell-list pool.
+#define GRID_CELL(i) (&_gAcropolisForkedRoadCollisionGridCells[i])
+/// X-major directory of `_gAcropolisForkedRoadCollisionGrid`, indexed by x * 4 + z.
+static s16* _gAcropolisForkedRoadCollisionGridTable[ACROPOLIS_FORKED_ROAD_GRID_CELLS_X * ACROPOLIS_FORKED_ROAD_GRID_CELLS_Z] = {
 #include "assets/acropolis_forked_road_collision_05630_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_acropolis_forked_road_80182BF0[1] = {
-    { NULL, _gAcropolisForkedRoadCollision05630Normals, _gAcropolisForkedRoadCollision05630Verts, _gAcropolisForkedRoadCollision05630Faces, _gAcropolisForkedRoadCollision05630Table, 0x303E, 6900, 6, 4, 4000, 38 },
+/// Collision mesh shared by all three forked-road rooms.
+///
+/// Covers six X cells by four Z cells, each 4000 room-coordinate units wide,
+/// with origin (-12350, -6900) in XZ. Face indices, normals and vertices refer
+/// to the private asset pools above. Room setup binds the mutable view parent;
+/// keep this overlay loaded while the grid and its pools are active.
+static WorldCollisionGrid _gAcropolisForkedRoadCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gAcropolisForkedRoadCollisionGridNormals,
+    .vertices    = _gAcropolisForkedRoadCollisionGridVerts,
+    .faces       = _gAcropolisForkedRoadCollisionGridFaces,
+    .cellFaceIds = _gAcropolisForkedRoadCollisionGridTable,
+    .xBias       = 12350,
+    .zBias       = 6900,
+    .cellCountX  = ACROPOLIS_FORKED_ROAD_GRID_CELLS_X,
+    .cellCountZ  = ACROPOLIS_FORKED_ROAD_GRID_CELLS_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gAcropolisForkedRoadCollisionGridFaces),
 };
 
 WorldCollisionTrigger D_acropolis_forked_road_80182C14[6] = {
@@ -460,100 +481,124 @@ AreaVariant D_acropolis_forked_road_801831C4[24] = {
     { NULL, NULL },
 };
 
-SpriteBatch D_acropolis_forked_road_80183284[2] = {
+// Encoded 8-bit texture pages, palette rows and neutral RGB for the room sprites.
+enum {
+    ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896              = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960              = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT           = getClut(0, 255),
+    ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT = getClut(0, 256),
+    ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR         = 128,
+};
+
+/// Decoded-image background with no cached sprites for mapped view 1.
+///
+/// The zero-count header is followed by `SPRITE_BATCH_END`; no source elements are read.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_forked_road_80183294[85] = {
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 152, -32, 1212, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, -32, 1237, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 104, -56, 1237, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, -80, 1237, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, -72, 1222, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 120, -56, 1222, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 136, -72, 1212, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -56, 1212, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, -24, 1350, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 120, 16, 1375, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 128, 56, 1375, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, 16, 1400, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, -24, 1375, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -24, 1400, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, 16, 1400, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, 88, 40, 1425, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, 104, -40, 1312, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 112, -64, 1312, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 128, -64, 1375, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, -32, 1375, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -128, 40, 400, { .fields = { 0, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -160, 80, 400, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -120, 80, 400, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, -160, 48, 400, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -120, 48, 400, { .fields = { 0, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -120, 32, 400, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -80, 48, 400, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 56, 450, { .fields = { 40, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, 80, 450, { .fields = { 8, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -104, 104, 450, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -40, 80, 450, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 0, 104, 450, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, 0, 64, 450, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -80, 80, 450, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -112, 80, 450, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -104, 64, 450, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -80, 64, 450, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -64, 48, 450, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -40, 48, 450, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -40, 64, 450, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, -96, 96, 450, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 120, 104, 425, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, 88, 88, 425, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 64, 96, 425, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 40, 104, 425, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 8, 96, 425, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, 80, 455, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -136, 56, 455, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 16 } }, -144, 64, 455, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 80, 455, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 8 } }, -96, 64, 500, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -160, 48, 700, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -160, 56, 650, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -160, 72, 600, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 500, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, 56, 650, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -128, 72, 600, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -128, 88, 500, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -96, 72, 600, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -96, 88, 500, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -64, 88, 500, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -64, 80, 600, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -32, 96, 500, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -8, 104, 500, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 8, 112, 500, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, 72, 1050, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, 40, 1050, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, -160, 8, 1050, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -24, 1050, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -56, 1050, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -160, -88, 1050, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 16 } }, -160, -104, 1050, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 0, 2750, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, 24, 2475, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -120, 24, 2475, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -80, 24, 2475, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -40, 24, 2475, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -160, 8, 2500, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -120, 8, 2500, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -80, 8, 2500, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -40, 8, 2500, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -40, 0, 2750, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 0, 24, 2475, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 0, 8, 2500, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 0, 0, 2750, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
+/// Screen-space source sprites for mapped view 2, in batch order.
+///
+/// Positions are pixels from the view centre and dimensions are pixel extents; depth is
+/// an unscaled OT sorting value. Batches index elements, with no source sentinel.
+/// Keep this writable array loaded while cached packets are allocated or drawn.
+static SpriteSource _gAcropolisForkedRoadView2SpriteSources[85] = {
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 16 } }, 152, -32, 1212, { .fields = { 104, 240 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, 104, -32, 1237, { .fields = { 112, 240 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 24 } }, 104, -56, 1237, { .fields = { 112, 216 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 24 } }, 112, -80, 1237, { .fields = { 48, 136 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, 120, -72, 1222, { .fields = { 72, 240 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 24 } }, 120, -56, 1222, { .fields = { 96, 64 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, 136, -72, 1212, { .fields = { 80, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 24 } }, 136, -56, 1212, { .fields = { 56, 136 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 40 } }, 120, -24, 1350, { .fields = { 80, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 40 } }, 120, 16, 1375, { .fields = { 80, 120 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 128, 56, 1375, { .fields = { 40, 144 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 40 } }, 104, 16, 1400, { .fields = { 72, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 40 } }, 104, -24, 1375, { .fields = { 72, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 40 } }, 96, -24, 1400, { .fields = { 120, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 40 } }, 96, 16, 1400, { .fields = { 80, 40 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 16 } }, 88, 40, 1425, { .fields = { 96, 88 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, 104, -40, 1312, { .fields = { 96, 152 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 32 } }, 112, -64, 1312, { .fields = { 64, 72 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 32 } }, 128, -64, 1375, { .fields = { 32, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, 128, -32, 1375, { .fields = { 88, 240 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, -128, 40, 400, { .fields = { 0, 192 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 40 } }, -160, 80, 400, { .fields = { 88, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 40 } }, -120, 80, 400, { .fields = { 88, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 32 } }, -160, 48, 400, { .fields = { 112, 64 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 32 } }, -120, 48, 400, { .fields = { 0, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 16 } }, -120, 32, 400, { .fields = { 56, 48 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 16 } }, -80, 48, 400, { .fields = { 72, 144 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, -8, 56, 450, { .fields = { 40, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, 0, 80, 450, { .fields = { 8, 96 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, -104, 104, 450, { .fields = { 104, 184 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 40 } }, -40, 80, 450, { .fields = { 48, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, 0, 104, 450, { .fields = { 64, 128 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, 0, 64, 450, { .fields = { 88, 16 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 40 } }, -80, 80, 450, { .fields = { 88, 40 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -112, 80, 450, { .fields = { 72, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, -104, 64, 450, { .fields = { 104, 240 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 16 } }, -80, 64, 450, { .fields = { 64, 240 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, -64, 48, 450, { .fields = { 80, 136 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, -40, 48, 450, { .fields = { 80, 104 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 16 } }, -40, 64, 450, { .fields = { 56, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 24 } }, -96, 96, 450, { .fields = { 96, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, 120, 104, 425, { .fields = { 80, 184 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, 88, 88, 425, { .fields = { 104, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 24 } }, 64, 96, 425, { .fields = { 88, 216 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, 40, 104, 425, { .fields = { 80, 120 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 8, 96, 425, { .fields = { 0, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 40 } }, -136, 80, 455, { .fields = { 88, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 24 } }, -136, 56, 455, { .fields = { 32, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 16 } }, -144, 64, 455, { .fields = { 72, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 40 } }, -144, 80, 455, { .fields = { 120, 120 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, -96, 64, 500, { .fields = { 104, 88 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, -160, 48, 700, { .fields = { 40, 152 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -160, 56, 650, { .fields = { 56, 216 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -160, 72, 600, { .fields = { 56, 16 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, -160, 88, 500, { .fields = { 104, 128 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -128, 56, 650, { .fields = { 40, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -128, 72, 600, { .fields = { 40, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, -128, 88, 500, { .fields = { 96, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -96, 72, 600, { .fields = { 48, 184 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, -96, 88, 500, { .fields = { 104, 96 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, -64, 88, 500, { .fields = { 48, 104 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, -64, 80, 600, { .fields = { 24, 64 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 24 } }, -32, 96, 500, { .fields = { 104, 192 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, -8, 104, 500, { .fields = { 80, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 8 } }, 8, 112, 500, { .fields = { 48, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 32 } }, -160, 72, 1050, { .fields = { 48, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 32 } }, -160, 40, 1050, { .fields = { 48, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 32 } }, -160, 8, 1050, { .fields = { 112, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 32 } }, -160, -24, 1050, { .fields = { 24, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 32 } }, -160, -56, 1050, { .fields = { 8, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 32 } }, -160, -88, 1050, { .fields = { 0, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, -160, -104, 1050, { .fields = { 80, 152 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, -48, 0, 2750, { .fields = { 16, 96 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 32 } }, -160, 24, 2475, { .fields = { 8, 104 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 32 } }, -120, 24, 2475, { .fields = { 24, 72 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 32 } }, -80, 24, 2475, { .fields = { 40, 40 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 32 } }, -40, 24, 2475, { .fields = { 8, 168 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 16 } }, -160, 8, 2500, { .fields = { 40, 96 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 16 } }, -120, 8, 2500, { .fields = { 56, 64 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 16 } }, -80, 8, 2500, { .fields = { 40, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 16 } }, -40, 8, 2500, { .fields = { 40, 112 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 8 } }, -40, 0, 2750, { .fields = { 40, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 32 } }, 0, 24, 2475, { .fields = { 8, 136 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 16 } }, 0, 8, 2500, { .fields = { 56, 168 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 8 } }, 0, 0, 2750, { .fields = { 48, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_acropolis_forked_road_80183938[12] = {
+/// Decoded-image background and ten sprite ranges for mapped view 2.
+///
+/// The ranges partition all 85 source elements; the zero-count header and end record select no sprites.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadView2SpriteBatches[12] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 6, 0 } },
     { 8, 8, 0, 0, { 1, 0 } },
@@ -568,42 +613,72 @@ SpriteBatch D_acropolis_forked_road_80183938[12] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_forked_road_80183998[6] = {
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 64, 937, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 24, 937, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -16, 937, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -56, 937, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, -88, 937, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, -24, 937, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+/// Screen-space source sprites shared by mapped views 3 and 12.
+///
+/// Positions are pixels from the view centre and dimensions are pixel extents; depth is
+/// an unscaled OT sorting value. Batches index elements, with no source sentinel.
+/// Keep this writable array loaded while cached packets are allocated or drawn.
+static SpriteSource _gAcropolisForkedRoadViews3And12SpriteSources[6] = {
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 40 } }, -160, 64, 937, { .fields = { 104, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 40 } }, -160, 24, 937, { .fields = { 104, 40 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 40 } }, -160, -16, 937, { .fields = { 104, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 40 } }, -160, -56, 937, { .fields = { 120, 120 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 32 } }, -160, -88, 937, { .fields = { 120, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, -152, -24, 937, { .fields = { 112, 192 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_acropolis_forked_road_80183A10[3] = {
+/// Decoded-image background and one sprite range shared by mapped views 3 and 12.
+///
+/// The range selects all six shared source elements, after a zero-count header.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadViews3And12SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisForkedRoadViews3And12SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_forked_road_80183A28[2] = {
+/// Decoded-image background with no cached sprites for mapped view 4.
+///
+/// The zero-count header is followed by `SPRITE_BATCH_END`; no source elements are read.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_forked_road_80183A38[6] = {
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 64, 937, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 24, 937, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, -16, 937, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -56, 937, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, -88, 937, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, -24, 937, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+/// Screen-space source sprites for mapped view 5, in batch order.
+///
+/// Positions are pixels from the view centre and dimensions are pixel extents; depth is
+/// an unscaled OT sorting value. Batches index elements, with no source sentinel.
+/// Keep this writable array loaded while cached packets are allocated or drawn.
+static SpriteSource _gAcropolisForkedRoadView5SpriteSources[6] = {
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 40 } }, -160, 64, 937, { .fields = { 104, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 40 } }, -160, 24, 937, { .fields = { 104, 40 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 40 } }, -160, -16, 937, { .fields = { 104, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 40 } }, -160, -56, 937, { .fields = { 120, 120 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 32 } }, -160, -88, 937, { .fields = { 120, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, -152, -24, 937, { .fields = { 112, 192 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_acropolis_forked_road_80183AB0[3] = {
+/// Decoded-image background and one sprite range for mapped view 5.
+///
+/// The range selects all six source elements, after a zero-count header.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisForkedRoadView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_forked_road_80183AC8[2] = {
+/// Decoded-image background with no cached sprites for mapped view 6.
+///
+/// The zero-count header is followed by `SPRITE_BATCH_END`; no source elements are read.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadView6SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -613,68 +688,78 @@ SpriteBatch D_acropolis_forked_road_80183AD8[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_forked_road_80183AE8[58] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 56, -96, 750, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, -104, 750, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -72, -88, 750, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -40, -88, 750, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -8, -88, 750, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 24, -88, 750, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 56, -88, 750, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -72, -56, 750, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -40, -56, 750, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -8, -56, 750, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 24, -56, 750, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, -56, 750, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -40, -120, 750, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -8, -120, 750, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 24, -120, 750, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -40, 1125, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 32, -40, 1125, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -48, -64, 1125, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 24, -64, 1125, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -24, -80, 1125, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 8, -80, 1125, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -8, -80, 1125, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, -72, 1125, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, -64, 1125, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, -72, 1125, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -64, 1125, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -40, -88, 1178, { .fields = { 40, 184 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 32, -88, 1178, { .fields = { 40, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -32, -80, 1185, { .fields = { 40, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -24, -80, 1197, { .fields = { 64, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 16, -80, 1197, { .fields = { 48, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -80, 1195, { .fields = { 40, 176 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -32, -72, 1195, { .fields = { 40, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -24, -72, 1200, { .fields = { 40, 240 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 16, -72, 1200, { .fields = { 40, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -72, 1195, { .fields = { 40, 208 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -32, -64, 1200, { .fields = { 32, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 24, -64, 1200, { .fields = { 32, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 40, -64, 1175, { .fields = { 48, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 32, -64, 1195, { .fields = { 56, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -48, -64, 1175, { .fields = { 48, 232 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -48, -80, 1175, { .fields = { 40, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -32, -96, 1181, { .fields = { 40, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -16, -96, 1187, { .fields = { 40, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 16, -96, 1181, { .fields = { 32, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 16 } }, 0, -96, 1187, { .fields = { 32, 16 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 40, -80, 1175, { .fields = { 40, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 32, -80, 1195, { .fields = { 40, 112 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 8 } }, -16, -80, 1200, { .fields = { 64, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 16, 8 } }, 0, -80, 1200, { .fields = { 24, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 32, 32 } }, -64, -80, 757, { .fields = { 64, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 32, 32 } }, -32, -80, 756, { .fields = { 64, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 32, 32 } }, 0, -80, 757, { .fields = { 80, 128 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 32, 32 } }, 32, -80, 757, { .fields = { 96, 224 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 24, 24 } }, -56, -104, 750, { .fields = { 72, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 32, 32 } }, -32, -112, 762, { .fields = { 96, 64 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 32, 32 } }, 0, -112, 762, { .fields = { 96, 160 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 24, 24 } }, 32, -104, 751, { .fields = { 72, 192 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
+/// Opaque and semitransparent source sprites shared by mapped views 7 and 8.
+///
+/// Positions are pixels from the view centre and dimensions are pixel extents; depth is
+/// an unscaled OT sorting value. Batches index elements, with no source sentinel.
+/// Keep this writable array loaded while cached packets are allocated or drawn.
+static SpriteSource _gAcropolisForkedRoadViews7And8SpriteSources[58] = {
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, 56, -96, 750, { .fields = { 40, 248 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, -56, -104, 750, { .fields = { 48, 96 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, -72, -88, 750, { .fields = { 96, 96 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, -40, -88, 750, { .fields = { 96, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, -8, -88, 750, { .fields = { 96, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, 24, -88, 750, { .fields = { 96, 192 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 32 } }, 56, -88, 750, { .fields = { 112, 128 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -72, -56, 750, { .fields = { 32, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -40, -56, 750, { .fields = { 32, 64 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -8, -56, 750, { .fields = { 32, 48 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, 24, -56, 750, { .fields = { 32, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, 56, -56, 750, { .fields = { 56, 216 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, -40, -120, 750, { .fields = { 64, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, -8, -120, 750, { .fields = { 64, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, 24, -120, 750, { .fields = { 64, 64 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, -48, -40, 1125, { .fields = { 80, 240 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, 32, -40, 1125, { .fields = { 48, 16 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 24 } }, -48, -64, 1125, { .fields = { 56, 128 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 24 } }, 24, -64, 1125, { .fields = { 48, 192 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, -24, -80, 1125, { .fields = { 48, 112 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, 8, -80, 1125, { .fields = { 48, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, -8, -80, 1125, { .fields = { 64, 240 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, -40, -72, 1125, { .fields = { 48, 248 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, -24, -64, 1125, { .fields = { 48, 184 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, 24, -72, 1125, { .fields = { 24, 104 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, 8, -64, 1125, { .fields = { 32, 192 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, -40, -88, 1178, { .fields = { 40, 184 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, 32, -88, 1178, { .fields = { 40, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, -32, -80, 1185, { .fields = { 40, 168 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, -24, -80, 1197, { .fields = { 64, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, 16, -80, 1197, { .fields = { 48, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, 24, -80, 1195, { .fields = { 40, 176 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, -32, -72, 1195, { .fields = { 40, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, -24, -72, 1200, { .fields = { 40, 240 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, 16, -72, 1200, { .fields = { 40, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, 24, -72, 1195, { .fields = { 40, 208 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, -32, -64, 1200, { .fields = { 32, 120 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 8 } }, 24, -64, 1200, { .fields = { 32, 112 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 16, 16 } }, 40, -64, 1175, { .fields = { 48, 168 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 16 } }, 32, -64, 1195, { .fields = { 56, 152 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 16, 16 } }, -48, -64, 1175, { .fields = { 48, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 16, 16 } }, -48, -80, 1175, { .fields = { 40, 128 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 16, 16 } }, -32, -96, 1181, { .fields = { 40, 144 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 16, 16 } }, -16, -96, 1187, { .fields = { 40, 216 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 16, 16 } }, 16, -96, 1181, { .fields = { 32, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 16, 16 } }, 0, -96, 1187, { .fields = { 32, 16 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 16 } }, 40, -80, 1175, { .fields = { 40, 96 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 8, 16 } }, 32, -80, 1195, { .fields = { 40, 112 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 16, 8 } }, -16, -80, 1200, { .fields = { 64, 152 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 16, 8 } }, 0, -80, 1200, { .fields = { 24, 96 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 32, 32 } }, -64, -80, 757, { .fields = { 64, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 32, 32 } }, -32, -80, 756, { .fields = { 64, 96 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 32, 32 } }, 0, -80, 757, { .fields = { 80, 128 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 32, 32 } }, 32, -80, 757, { .fields = { 96, 224 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 24, 24 } }, -56, -104, 750, { .fields = { 72, 216 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 32, 32 } }, -32, -112, 762, { .fields = { 96, 64 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 32, 32 } }, 0, -112, 762, { .fields = { 96, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_SEMI_TRANSPARENT_CLUT, { .fields = { 24, 24 } }, 32, -104, 751, { .fields = { 72, 192 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_acropolis_forked_road_80183F70[6] = {
+/// Decoded-image background and four sprite ranges shared by mapped views 7 and 8.
+///
+/// The ranges partition all 58 shared source elements, after a zero-count header.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadViews7And8SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 3, 0 } },
     { 15, 11, 0, 0, { 0, 0 } },
@@ -683,82 +768,104 @@ SpriteBatch D_acropolis_forked_road_80183F70[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_forked_road_80183FA0[2] = {
+/// Decoded-image background with no cached sprites for mapped view 9.
+///
+/// The zero-count header is followed by `SPRITE_BATCH_END`; no source elements are read.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadView9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_forked_road_80183FB0[2] = {
+/// Decoded-image background with no cached sprites for mapped view 10.
+///
+/// The zero-count header is followed by `SPRITE_BATCH_END`; no source elements are read.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_forked_road_80183FC0[62] = {
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -56, 80, 1075, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -40, 80, 1062, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -24, 80, 1050, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 0, 88, 1037, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 24, 88, 1025, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 56, 96, 1012, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 88, 96, 1000, { .fields = { 32, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 120, 104, 987, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 128, 72, 1037, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, 80, 1025, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 128, 96, 1000, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 96, 64, 1075, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 96, 72, 1062, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 96, 80, 1050, { .fields = { 0, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 96, 96, 1025, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 64, 96, 1037, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 64, 80, 1062, { .fields = { 8, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 64, 72, 1075, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 64, 64, 1087, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 64, 1100, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 72, 1087, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 32, 80, 1075, { .fields = { 0, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 32, 96, 1050, { .fields = { 120, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 32, 56, 1112, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 16, 56, 1125, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 64, 1112, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 0, 72, 1100, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 0, 80, 1087, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 8, 96, 1062, { .fields = { 120, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -32, 64, 1125, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -32, 72, 1112, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -48, 64, 1137, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -32, 80, 1100, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 72, 1125, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, 80, 1112, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 40, 925, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 48, 950, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 136, 32, 950, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 48, 937, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 48, 925, { .fields = { 32, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 128, 40, 975, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 128, 64, 975, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 96, 64, 975, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 104, 88, 975, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 96, 32, 975, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 72, 48, 975, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 64, 64, 975, { .fields = { 56, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 64, 32, 1375, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, 64, 1312, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 48, 32, 1312, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 8, 8, 1250, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 8, -16, 1250, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 24, -40, 1250, { .fields = { 72, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 24, -56, 1250, { .fields = { 8, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 48, 8, 1312, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 48, -16, 1312, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 48, -40, 1312, { .fields = { 88, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 48, -64, 1312, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 88, -40, 1375, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 88, -16, 1375, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 88, 8, 1375, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 96, -48, 1375, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+/// Screen-space source sprites for mapped view 11, in batch order.
+///
+/// Retained resource slot; none of the authored room maps selects index 11.
+/// Positions are pixels from the view centre and dimensions are pixel extents; depth is
+/// an unscaled OT sorting value. Batches index elements, with no source sentinel.
+/// Keep this writable array loaded while cached packets are allocated or drawn.
+static SpriteSource _gAcropolisForkedRoadView11SpriteSources[62] = {
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 40 } }, -56, 80, 1075, { .fields = { 112, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 40 } }, -40, 80, 1062, { .fields = { 112, 120 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 40 } }, -24, 80, 1050, { .fields = { 104, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 32 } }, 0, 88, 1037, { .fields = { 88, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, 24, 88, 1025, { .fields = { 72, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 56, 96, 1012, { .fields = { 32, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 88, 96, 1000, { .fields = { 32, 208 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 16 } }, 120, 104, 987, { .fields = { 8, 88 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 128, 72, 1037, { .fields = { 120, 56 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, 128, 80, 1025, { .fields = { 16, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 128, 96, 1000, { .fields = { 24, 24 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 96, 64, 1075, { .fields = { 120, 48 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 96, 72, 1062, { .fields = { 120, 64 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, 96, 80, 1050, { .fields = { 0, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 96, 96, 1025, { .fields = { 40, 184 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, 64, 96, 1037, { .fields = { 120, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, 64, 80, 1062, { .fields = { 8, 184 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 64, 72, 1075, { .fields = { 120, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 64, 64, 1087, { .fields = { 120, 72 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 32, 64, 1100, { .fields = { 24, 248 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 32, 72, 1087, { .fields = { 56, 24 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, 32, 80, 1075, { .fields = { 0, 216 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, 32, 96, 1050, { .fields = { 120, 16 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, 32, 56, 1112, { .fields = { 56, 104 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, 16, 56, 1125, { .fields = { 40, 128 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 0, 64, 1112, { .fields = { 0, 176 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, 0, 72, 1100, { .fields = { 112, 104 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, 0, 80, 1087, { .fields = { 0, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 8 } }, 8, 96, 1062, { .fields = { 120, 8 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, -32, 64, 1125, { .fields = { 112, 112 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_896, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 8 } }, -32, 72, 1112, { .fields = { 112, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, -48, 64, 1137, { .fields = { 32, 16 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 16 } }, -32, 80, 1100, { .fields = { 0, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 8 } }, -56, 72, 1125, { .fields = { 0, 248 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, -56, 80, 1112, { .fields = { 24, 72 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, 112, 40, 925, { .fields = { 48, 72 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 40 } }, 128, 48, 950, { .fields = { 96, 40 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, 136, 32, 950, { .fields = { 32, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 40 } }, 112, 48, 937, { .fields = { 112, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 16 } }, 104, 48, 925, { .fields = { 32, 128 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 128, 40, 975, { .fields = { 64, 160 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 24 } }, 128, 64, 975, { .fields = { 72, 184 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 96, 64, 975, { .fields = { 64, 208 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 16 } }, 104, 88, 975, { .fields = { 96, 184 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 32 } }, 96, 32, 975, { .fields = { 96, 200 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, 72, 48, 975, { .fields = { 16, 144 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 64, 64, 975, { .fields = { 56, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 8, 8 } }, 64, 32, 1375, { .fields = { 96, 112 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 32 } }, 48, 64, 1312, { .fields = { 96, 152 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 32 } }, 48, 32, 1312, { .fields = { 96, 120 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 24 } }, 8, 8, 1250, { .fields = { 48, 0 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 24 } }, 8, -16, 1250, { .fields = { 56, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 24 } }, 24, -40, 1250, { .fields = { 72, 136 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 16 } }, 24, -56, 1250, { .fields = { 8, 128 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 24 } }, 48, 8, 1312, { .fields = { 56, 112 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 24 } }, 48, -16, 1312, { .fields = { 56, 56 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 24 } }, 48, -40, 1312, { .fields = { 88, 232 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 40, 24 } }, 48, -64, 1312, { .fields = { 16, 104 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 88, -40, 1375, { .fields = { 24, 48 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 32, 24 } }, 88, -16, 1375, { .fields = { 40, 136 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 24, 24 } }, 88, 8, 1375, { .fields = { 48, 80 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
+    { ACROPOLIS_FORKED_ROAD_SPRITE_PAGE_960, ACROPOLIS_FORKED_ROAD_SPRITE_OPAQUE_CLUT, { .fields = { 16, 8 } }, 96, -48, 1375, { .fields = { 96, 32 } }, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, ACROPOLIS_FORKED_ROAD_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_acropolis_forked_road_80184498[7] = {
+/// Decoded-image background and five sprite ranges for mapped view 11.
+///
+/// Retained resource slot; none of the authored room maps selects index 11.
+/// The ranges partition all 62 source elements, after a zero-count header.
+/// Ranges use source-element indices; retain the mutable list while this overlay
+/// is loaded. The final record ends the list at `SPRITE_BATCH_END`.
+static SpriteBatch _gAcropolisForkedRoadView11SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
     { 8, 27, 0, 0, { 3, 0 } },
@@ -774,18 +881,18 @@ SpriteBatch D_acropolis_forked_road_801844D0[2] = {
 };
 
 SpriteView D_acropolis_forked_road_801844E0[12] = {
-    { { .empty = D_acropolis_forked_road_80183284 }, D_acropolis_forked_road_80183284, NULL },
-    { { .elements = D_acropolis_forked_road_80183294 }, D_acropolis_forked_road_80183938, NULL },
-    { { .elements = D_acropolis_forked_road_80183998 }, D_acropolis_forked_road_80183A10, NULL },
-    { { .empty = D_acropolis_forked_road_80183A28 }, D_acropolis_forked_road_80183A28, NULL },
-    { { .elements = D_acropolis_forked_road_80183A38 }, D_acropolis_forked_road_80183AB0, NULL },
-    { { .empty = D_acropolis_forked_road_80183AC8 }, D_acropolis_forked_road_80183AC8, NULL },
-    { { .elements = D_acropolis_forked_road_80183AE8 }, D_acropolis_forked_road_80183F70, NULL },
-    { { .elements = D_acropolis_forked_road_80183AE8 }, D_acropolis_forked_road_80183F70, NULL },
-    { { .empty = D_acropolis_forked_road_80183FA0 }, D_acropolis_forked_road_80183FA0, NULL },
-    { { .empty = D_acropolis_forked_road_80183FB0 }, D_acropolis_forked_road_80183FB0, NULL },
-    { { .elements = D_acropolis_forked_road_80183FC0 }, D_acropolis_forked_road_80184498, NULL },
-    { { .elements = D_acropolis_forked_road_80183998 }, D_acropolis_forked_road_80183A10, NULL },
+    { { .empty = _gAcropolisForkedRoadView1SpriteBatches }, _gAcropolisForkedRoadView1SpriteBatches, NULL },
+    { { .elements = _gAcropolisForkedRoadView2SpriteSources }, _gAcropolisForkedRoadView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisForkedRoadViews3And12SpriteSources }, _gAcropolisForkedRoadViews3And12SpriteBatches, NULL },
+    { { .empty = _gAcropolisForkedRoadView4SpriteBatches }, _gAcropolisForkedRoadView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisForkedRoadView5SpriteSources }, _gAcropolisForkedRoadView5SpriteBatches, NULL },
+    { { .empty = _gAcropolisForkedRoadView6SpriteBatches }, _gAcropolisForkedRoadView6SpriteBatches, NULL },
+    { { .elements = _gAcropolisForkedRoadViews7And8SpriteSources }, _gAcropolisForkedRoadViews7And8SpriteBatches, NULL },
+    { { .elements = _gAcropolisForkedRoadViews7And8SpriteSources }, _gAcropolisForkedRoadViews7And8SpriteBatches, NULL },
+    { { .empty = _gAcropolisForkedRoadView9SpriteBatches }, _gAcropolisForkedRoadView9SpriteBatches, NULL },
+    { { .empty = _gAcropolisForkedRoadView10SpriteBatches }, _gAcropolisForkedRoadView10SpriteBatches, NULL },
+    { { .elements = _gAcropolisForkedRoadView11SpriteSources }, _gAcropolisForkedRoadView11SpriteBatches, NULL },
+    { { .elements = _gAcropolisForkedRoadViews3And12SpriteSources }, _gAcropolisForkedRoadViews3And12SpriteBatches, NULL },
 };
 
 /// Point lights for model shading in every view of the forked road.
@@ -821,8 +928,18 @@ static WorldCoordPointLight _gAcropolisForkedRoadPointLights[] = {
     { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3700, -3420, 1250 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3031, 3194, 3358 }, { 0, 0 } }, 10, 6500 },
 };
 
-WorldCoordRoomLights D_acropolis_forked_road_80184E70[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisForkedRoadPointLights), _gAcropolisForkedRoadPointLights, 0, NULL },
+/// Point-light collection shared by the forked road's three room entries.
+///
+/// Borrows all 24 mutable point lights; directional and cone arrays are absent.
+/// Lighting updates their view parents, composed transforms and attenuation.
+/// Keep this overlay loaded while the collection is borrowed.
+static WorldCoordRoomLights _gAcropolisForkedRoadRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisForkedRoadPointLights),
+    .pointLights           = _gAcropolisForkedRoadPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 ViewCamera D_acropolis_forked_road_80184E88[12] = {
@@ -868,33 +985,77 @@ PadScriptVibrationSegment D_acropolis_forked_road_80185070[2] = {
     { 60, 60, 1, 0 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_forked_road_80185078 = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+enum {
+    ACROPOLIS_FORKED_ROAD_SURFACE_CLASS4_WALK_CUE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
+    ACROPOLIS_FORKED_ROAD_SURFACE_CLASS4_RUN_CUE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x13,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_forked_road_80185084[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Paired footstep cue bases for forked-road surface class 4.
+///
+/// Walking and scripted jumping use type-1 entry 17; running uses entry 19.
+/// The second animation cue uses the base and the first adds one; companions
+/// add 100 after cue selection. Playback requires the loaded room's type-1 bank;
+/// the surface record borrows these bases while this overlay is loaded.
+static WorldCollisionFootstepSounds _gAcropolisForkedRoadSurfaceClass4FootstepSounds = {
+    .walk         = ACROPOLIS_FORKED_ROAD_SURFACE_CLASS4_WALK_CUE,
+    .run          = ACROPOLIS_FORKED_ROAD_SURFACE_CLASS4_RUN_CUE,
+    .scriptedJump = ACROPOLIS_FORKED_ROAD_SURFACE_CLASS4_WALK_CUE,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_forked_road_8018508C[1] = { 0 };
-
-WorldCollisionSurfaceProperties D_acropolis_forked_road_80185094[1] = { 0 };
-
-WorldCollisionSurfaceProperties D_acropolis_forked_road_8018509C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_forked_road_80185078 },
+/// Blocking, pushback-enabled policies for surface classes 0, 1, 5, 6 and 7.
+///
+/// Allows weapon impacts and supplies no footstep cues. Borrowed only while
+/// the forked-road overlay is loaded; the uninterpreted first byte stays zero.
+static WorldCollisionSurfaceProperties _gAcropolisForkedRoadDefaultSurfaceProperties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_forked_road_801850A4[8] = {
-    D_acropolis_forked_road_80185084,
-    D_acropolis_forked_road_80185084,
-    D_acropolis_forked_road_8018508C,
-    D_acropolis_forked_road_80185094,
-    D_acropolis_forked_road_8018509C,
-    D_acropolis_forked_road_80185084,
-    D_acropolis_forked_road_80185084,
-    D_acropolis_forked_road_80185084,
+/// Surface class 2's blocking and pushback policies, without impacts or footsteps.
+///
+/// Borrowed while the forked-road overlay is loaded; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gAcropolisForkedRoadSurfaceClass2Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
+};
+
+/// Surface class 3's blocking and pushback policies, without impacts or footsteps.
+///
+/// Borrowed while the forked-road overlay is loaded; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gAcropolisForkedRoadSurfaceClass3Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
+};
+
+/// Surface class 4's blocking and pushback policies, with impacts and footsteps.
+///
+/// Borrows its cue bases while this overlay is loaded; the first byte's role is unproven.
+static WorldCollisionSurfaceProperties _gAcropolisForkedRoadSurfaceClass4Properties = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gAcropolisForkedRoadSurfaceClass4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisForkedRoadSurfacePropertiesByClass[8] = {
+    &_gAcropolisForkedRoadDefaultSurfaceProperties,
+    &_gAcropolisForkedRoadDefaultSurfaceProperties,
+    &_gAcropolisForkedRoadSurfaceClass2Properties,
+    &_gAcropolisForkedRoadSurfaceClass3Properties,
+    &_gAcropolisForkedRoadSurfaceClass4Properties,
+    &_gAcropolisForkedRoadDefaultSurfaceProperties,
+    &_gAcropolisForkedRoadDefaultSurfaceProperties,
+    &_gAcropolisForkedRoadDefaultSurfaceProperties,
 };
 
 /// Copies a frame-indexed movie-path sample into the borrowed player root.
