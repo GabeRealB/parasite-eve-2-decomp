@@ -223,7 +223,7 @@ D_shelter_b6_corridor_8017F8B4 = 0x8017F8B4; // absolute:True owner=shelter_b6_c
 D_shelter_b6_corridor_8017F8B8 = 0x8017F8B8; // absolute:True owner=shelter_b6_corridor
 D_shelter_b6_corridor_8017F8BC = 0x8017F8BC; // absolute:True owner=shelter_b6_corridor
 D_shelter_b6_corridor_8017FA90 = 0x8017FA90; // absolute:True owner=shelter_b6_corridor shared=rooms
-D_shelter_b6_corridor_8017FAB4 = 0x8017FAB4; // absolute:True owner=shelter_b6_corridor shared=rooms
+D_shelter_b6_corridor_8017FAB4 = 0x8017FAB4; // absolute:True owner=shelter_b6_corridor
 D_shelter_b6_corridor_8018004C = 0x8018004C; // absolute:True owner=shelter_b6_corridor shared=rooms
 D_shelter_b6_corridor_801800E8 = 0x801800E8; // absolute:True owner=shelter_b6_corridor
 D_shelter_b6_corridor_80180100 = 0x80180100; // absolute:True owner=shelter_b6_corridor shared=rooms

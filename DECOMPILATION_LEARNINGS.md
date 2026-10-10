@@ -92954,14 +92954,14 @@ blocks the fold too, but it is not what the original was here — it is a
     switch (gGameSession->location.loc.view) {
         case 2:
         case 3: {
-            const SVECTOR* flarePoints = D_dryfield_night_motel_room_2_8017DA44;
+            const SVECTOR* flarePoints = _gDryfieldNightMotelRoom2PairedFlarePoints;
             glowDrawFlareClipped(&flarePoints[0], 1, 0x200);
             glowDrawFlareClipped(&flarePoints[1], 1, 0x240);
             break;
         }
         case 5:
         case 6: {
-            const SVECTOR* flarePoints = D_dryfield_night_motel_room_2_8017DA54;
+            const SVECTOR* flarePoints = &_gDryfieldNightMotelRoom2SingleFlarePoint;
             glowDrawFlareClipped(&flarePoints[0], 2, 0x180);
             break;
         }
