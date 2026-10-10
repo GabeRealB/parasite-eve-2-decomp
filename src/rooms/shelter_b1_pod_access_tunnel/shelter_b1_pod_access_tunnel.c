@@ -100,6 +100,35 @@ enum { SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_PENDING  = 1,
 enum { SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_B2     = 0,
        SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_GANTRY = 1 };
 
+enum {
+    SHELTER_B1_POD_ACCESS_TUNNEL_DEPARTURE_TASK_PRIORITY = 32,
+    SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_TASK_PRIORITY     = 192,
+    SHELTER_B1_POD_ACCESS_TUNNEL_PLAYER_SCENE_FIRST_CLIP = ANIMATION_BANK_BASE_SET_COUNT + 1,
+};
+
+/// Resource keys shared by this room's placement and loading tables.
+enum {
+    SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_MOSSBACK       = 11,
+    SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER        = 21,
+    SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_ROOK           = 23,
+    SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_BRUTE_MOSSBACK = 49,
+    SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_AYA_BREA       = 132,
+};
+
+/// Watcher variants pack patrol range in decimal tens and weapon choice in units.
+enum {
+    SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_BEAM0 = 0,
+    SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_BEAM1 = 1,
+    SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN   = 4,
+    SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_PATROL_BEAM0     = 10,
+};
+
+/// Rook placement-mode bit enabling patrol; the variant gives thousands of game units.
+enum { SHELTER_B1_POD_ACCESS_TUNNEL_ROOK_PATROLS = 1 };
+
+/// Pod interaction ID sent by the action quad to the room command handler.
+enum { SHELTER_B1_POD_ACCESS_TUNNEL_POD_COMMAND_USE = 1 };
+
 /// Work block of the task that scrolls one full-screen image vertically into
 /// another: after a fixed delay the seam between the two moves down the screen
 /// at a constant rate.
@@ -116,22 +145,15 @@ STATIC_ASSERT_SIZEOF(_ShelterB1PodAccessTunnelImageScrollWork, 0xC);
 
 extern TaskDesc D_actor_141000_801348D8[];
 
-/// Descriptor of the event task the message handler spawns.
-extern TaskDesc D_shelter_b1_pod_access_tunnel_801810CC;
-
 /// The room's message table.
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6];
 
-extern TaskDesc   D_shelter_b1_pod_access_tunnel_80181108[];
 extern EvsCommand D_shelter_b1_pod_access_tunnel_80181120[];
 extern TaskDesc   D_shelter_b1_pod_access_tunnel_801811C8;
-extern TaskDesc   D_shelter_b1_pod_access_tunnel_80182D2C[];
 extern EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[];
 extern EvsCommand D_shelter_b1_pod_access_tunnel_8018380C[];
-
-extern SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[];
 
 extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
@@ -158,28 +180,30 @@ static void _shelterB1PodAccessTunnelPanSceneCameraTask(Task* task);
 static void _shelterB1PodAccessTunnelImageScrollTask(Task* task);
 static void _shelterB1PodAccessTunnelGrayCaptureCountdownTask(Task* task);
 
-extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182D8C;
-extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DA0;
-extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DB4;
-extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DC8;
-extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DDC;
-extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182DF0;
-extern AnimationPlayRequest     D_shelter_b1_pod_access_tunnel_80182E04;
-extern AnimationBankCopyRequest D_shelter_b1_pod_access_tunnel_80182D70;
-extern ActorTransform           D_shelter_b1_pod_access_tunnel_80182E18;
-extern ActorTransform           D_shelter_b1_pod_access_tunnel_80182E30;
-extern ActorTransform           D_shelter_b1_pod_access_tunnel_80182E48;
-static void                     _shelterB1PodAccessTunnelStageSceneAudioStart(void);
-static void                     _shelterB1PodAccessTunnelStartScenePlayback(void);
-static void                     _shelterB1PodAccessTunnelFinishScene(void);
-static void                     _shelterB1PodAccessTunnelCancelScene(void);
-static void                     _shelterB1PodAccessTunnelStartSceneCameraPan(s32 frameCount);
-static void                     _shelterB1PodAccessTunnelStartImageScroll(s32 frameCount);
-static void                     _shelterB1PodAccessTunnelStartFlightController(void);
-static void                     _shelterB1PodAccessTunnelStartGrayCapture(s32 frameCount);
-static void                     _shelterB1PodAccessTunnelCancelRoomEffects(void);
+extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DF0;
+extern AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E04;
+extern ActorTransform       D_shelter_b1_pod_access_tunnel_80182E18;
+extern ActorTransform       D_shelter_b1_pod_access_tunnel_80182E30;
+static void                 _shelterB1PodAccessTunnelStageSceneAudioStart(void);
+static void                 _shelterB1PodAccessTunnelStartScenePlayback(void);
+static void                 _shelterB1PodAccessTunnelFinishScene(void);
+static void                 _shelterB1PodAccessTunnelCancelScene(void);
+static void                 _shelterB1PodAccessTunnelStartSceneCameraPan(s32 frameCount);
+static void                 _shelterB1PodAccessTunnelStartImageScroll(s32 frameCount);
+static void                 _shelterB1PodAccessTunnelStartFlightController(void);
+static void                 _shelterB1PodAccessTunnelStartGrayCapture(s32 frameCount);
+static void                 _shelterB1PodAccessTunnelCancelRoomEffects(void);
 
-TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Bodyless recipe for a latched CAP/sound departure followed by session reload.
+///
+/// Spawn at index 0 with unused payloads after filling the room's staged-event
+/// records. Only one staged departure may use those records at a time; keep
+/// them and the room overlay loaded until reload discards the old task list.
+static TaskDesc _gShelterB1PodAccessTunnelStagedDepartureTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_DEPARTURE_TASK_PRIORITY } },
+    .callback = roomEventStagedTask,
+    .data     = { .value = 0 },
+};
 
 TaskMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1PodAccessTunnelResolveRoomEvent },
@@ -190,9 +214,14 @@ TaskMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b1_pod_access_tunnel_80181108[2] = {
-    { { { TASK_BODY_NONE, 32 } }, _shelterB1PodAccessTunnelRideToB2Task, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, _shelterB1PodAccessTunnelTravelToGantryTask, { .value = 0 } },
+/// Bodyless travel recipes: index 0 rides to B2, index 1 travels to the gantry.
+///
+/// No terminator. Both start at state 0 with unused payloads and held player
+/// control; their CAP choices either restore control or commit a session reload.
+/// Keep this room overlay loaded through the travel task's completion.
+static TaskDesc _gShelterB1PodAccessTunnelTravelTaskDescs[2] = {
+    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_DEPARTURE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelRideToB2Task, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_DEPARTURE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelTravelToGantryTask, { .value = 0 } },
 };
 
 EvsCommand D_shelter_b1_pod_access_tunnel_80181120[7] = {
@@ -361,13 +390,25 @@ static AnimationSet _gShelterB1PodAccessTunnelAnimation05744 = {
     { NULL, _gShelterB1PodAccessTunnelAnimation05744Bank1, NULL, NULL, _gShelterB1PodAccessTunnelAnimation05744Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b1_pod_access_tunnel_80182D2C[3] = {
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1PodAccessTunnelPanSceneCameraTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1PodAccessTunnelImageScrollTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _shelterB1PodAccessTunnelGrayCaptureCountdownTask, { .value = 0 } },
+/// Bodyless entry-scene recipes: camera pan, image scroll and gray-frame countdown.
+///
+/// Indices 0..2 have no terminator. The first payload is a frame count and the
+/// second is unused: pan accepts 1..32767, scroll requires a positive count,
+/// and gray capture accepts a nonnegative count and lasts one extra tick.
+/// The gray-countdown recipe runs on the display-mode list; the others use the
+/// current list. Keep this room overlay loaded while any callback is active.
+static TaskDesc _gShelterB1PodAccessTunnelSceneTaskDescs[3] = {
+    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelPanSceneCameraTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelImageScrollTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, SHELTER_B1_POD_ACCESS_TUNNEL_SCENE_TASK_PRIORITY } }, _shelterB1PodAccessTunnelGrayCaptureCountdownTask, { .value = 0 } },
 };
 
-AnimationSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {
+/// Player entry-scene bank extension: null slot 47 followed by clips 48..54.
+///
+/// Eight set-pointer words, with no terminator; the leading NULL is a vacant
+/// bank entry. The copy request borrows the table synchronously, and playback
+/// borrows the seven clip descriptors and their data while this room is loaded.
+static AnimationSet* _gShelterB1PodAccessTunnelPlayerSceneAnimationSets[8] = {
     NULL,
     &_gShelterB1PodAccessTunnelAnimation03EF0,
     &_gShelterB1PodAccessTunnelAnimation041A4,
@@ -378,19 +419,82 @@ AnimationSet* D_shelter_b1_pod_access_tunnel_80182D50[8] = {
     &_gShelterB1PodAccessTunnelAnimation05744,
 };
 
-AnimationBankCopyRequest D_shelter_b1_pod_access_tunnel_80182D70 = { { .sets = D_shelter_b1_pod_access_tunnel_80182D50 }, ARRAY_SIZE(D_shelter_b1_pod_access_tunnel_80182D50) };
+/// Installs the eight entry-scene words in the equipped weapon's bank extension.
+///
+/// Copies slots 47..54 without changing later extension entries or starting
+/// playback. Dispatch borrows the request and source table synchronously;
+/// copied clip pointers require this room overlay to remain loaded while used.
+static AnimationBankCopyRequest _gShelterB1PodAccessTunnelPlayerSceneAnimationBankCopy = {
+    .source    = { .sets = _gShelterB1PodAccessTunnelPlayerSceneAnimationSets },
+    .wordCount = ARRAY_SIZE(_gShelterB1PodAccessTunnelPlayerSceneAnimationSets),
+};
 
 AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182D78 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
-AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182D8C = { { .index = 1 }, 48, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Entry-scene clip 48 request, interpolated over 20 frames before control returns.
+///
+/// The script resolves the equipped weapon's bank in a copy of this request;
+/// source index 1 is replaced before dispatch. Restores world collision.
+/// The extended clip data must remain loaded through playback.
+static AnimationPlayRequest _gShelterB1PodAccessTunnelPlayerSceneClip48Request = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_POD_ACCESS_TUNNEL_PLAYER_SCENE_FIRST_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DA0 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Entry-scene clip 49 request before the first gray captured-frame transition.
+///
+/// Resets playback and restores world collision. The script replaces source
+/// index 1 in a copy with the equipped weapon's bank before dispatch; the
+/// extended clip data must remain loaded through playback.
+static AnimationPlayRequest _gShelterB1PodAccessTunnelPlayerSceneClip49Request = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_POD_ACCESS_TUNNEL_PLAYER_SCENE_FIRST_CLIP + 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DB4 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Entry-scene clip 50 request when the live player replaces the scripted actor.
+///
+/// Resets playback and restores world collision. The script replaces source
+/// index 1 in a copy with the equipped weapon's bank before dispatch; the
+/// extended clip data must remain loaded through playback.
+static AnimationPlayRequest _gShelterB1PodAccessTunnelPlayerSceneClip50Request = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_POD_ACCESS_TUNNEL_PLAYER_SCENE_FIRST_CLIP + 2,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DC8 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Entry-scene clip 51 request after framebuffer blending ends.
+///
+/// Resets playback and restores world collision. The script replaces source
+/// index 1 in a copy with the equipped weapon's bank before dispatch; the
+/// extended clip data must remain loaded through playback.
+static AnimationPlayRequest _gShelterB1PodAccessTunnelPlayerSceneClip51Request = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_POD_ACCESS_TUNNEL_PLAYER_SCENE_FIRST_CLIP + 3,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DDC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Entry-scene clip 52 request at the CAP cue following clip 51.
+///
+/// Resets playback and restores world collision. The script replaces source
+/// index 1 in a copy with the equipped weapon's bank before dispatch; the
+/// extended clip data must remain loaded through playback.
+static AnimationPlayRequest _gShelterB1PodAccessTunnelPlayerSceneClip52Request = {
+    .source               = { .index = 1 },
+    .animationId          = SHELTER_B1_POD_ACCESS_TUNNEL_PLAYER_SCENE_FIRST_CLIP + 4,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
 AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182DF0 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_ENABLE };
 
@@ -400,7 +504,14 @@ ActorTransform D_shelter_b1_pod_access_tunnel_80182E18 = { { 1740, 0, -5620, 0 }
 
 ActorTransform D_shelter_b1_pod_access_tunnel_80182E30 = { { 1690, 0, -6060, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_shelter_b1_pod_access_tunnel_80182E48 = { { 2350, 0, -4800, 0 }, { 0, 0, 0, 0 } };
+/// Live-player placement shared by normal entry-scene completion and scene skip.
+///
+/// World position (2350, 0, -4800), with zero pitch, yaw and roll in 4096-unit
+/// turns. Placement dispatch consumes the record synchronously.
+static ActorTransform _gShelterB1PodAccessTunnelSceneExitPlayerTransform = {
+    .pos = { 2350, 0, -4800, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
 
 AnimationPlayRequest D_shelter_b1_pod_access_tunnel_80182E60[4] = {
     { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -447,7 +558,7 @@ ActorMotionWalkAnim D_shelter_b1_pod_access_tunnel_80182FEC = { .animationId = 1
 EvsSceneKey D_shelter_b1_pod_access_tunnel_80182FF4 = { 4, 10, 11 };
 
 EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182D70 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gShelterB1PodAccessTunnelPlayerSceneAnimationBankCopy } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
@@ -460,7 +571,7 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1PodAccessTunnelStartScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_pod_access_tunnel_80182DA0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB1PodAccessTunnelPlayerSceneClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182E30 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1PodAccessTunnelStartGrayCapture }, { .value = 12 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -510,21 +621,21 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_pod_access_tunnel_80182DB4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182E48 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB1PodAccessTunnelPlayerSceneClip50Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB1PodAccessTunnelSceneExitPlayerTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 35 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_pod_access_tunnel_80182DC8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB1PodAccessTunnelPlayerSceneClip51Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_pod_access_tunnel_80182DDC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB1PodAccessTunnelPlayerSceneClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_pod_access_tunnel_80182DF0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_pod_access_tunnel_80182D8C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gShelterB1PodAccessTunnelPlayerSceneClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -538,7 +649,7 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
 EvsCommand D_shelter_b1_pod_access_tunnel_8018380C[17] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182E48 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gShelterB1PodAccessTunnelSceneExitPlayerTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
@@ -566,11 +677,13 @@ static SVECTOR _gShelterB1PodAccessTunnelTransverseLightSegments[4][2] = {
     { { 3262, -2726, -1628, 0 }, { 2262, -2726, -1628, 0 } },
 };
 
-SVECTOR D_shelter_b1_pod_access_tunnel_801839E4[4] = {
-    { 1859, -2726, -4216, 0 },
-    { 1859, -2726, -5216, 0 },
-    { 1621, -2726, -4216, 0 },
-    { 1621, -2726, -5216, 0 },
+/// Two longitudinal glow segments, each an ordered pair of world-space endpoints.
+///
+/// Mapped view 2 draws both 1000-game-unit Z segments at Y=-2726 and
+/// X=1859/1621. The capsule drawer borrows one pair for the duration of a call.
+static SVECTOR _gShelterB1PodAccessTunnelLongitudinalLightSegments[2][2] = {
+    { { 1859, -2726, -4216, 0 }, { 1859, -2726, -5216, 0 } },
+    { { 1621, -2726, -4216, 0 }, { 1621, -2726, -5216, 0 } },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
@@ -579,12 +692,12 @@ u8* gShelterB1PodAccessTunnelRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_pod_access_tunnel_80183A18[1] = { 14 };
+ViewCount gShelterB1PodAccessTunnelRoomViewCounts[1] = { SHELTER_B1_POD_ACCESS_TUNNEL_VIEW_COUNT };
 
-DirectionWarpEntry D_shelter_b1_pod_access_tunnel_80183A1C[3] = {
-    { { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, 0x54110002, 0x54110001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 6834, 0, -1772 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 6150, 0, -2450 }, { 0, 0, 0, 0 }, 0x54110005, 0x54110004, 0x54110003, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_B2_LABORATORY },
-    { { { .word = 2048 }, 4530, 0, -1050 }, { 0, 0, 0, 0 }, { { .word = 3328 }, 5350, 0, -1750 }, { 0, 0, 0, 0 }, 0x54110007, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD },
+DirectionWarpEntry gShelterB1PodAccessTunnelWarpEntries[3] = {
+    { { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1698, 0, -6028 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 2), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 1), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 6834, 0, -1772 }, { 0, 0, 0, 0 }, { { .word = 3840 }, 6150, 0, -2450 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 5), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 4), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 3), 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_B2_LABORATORY },
+    { { { .word = 2048 }, 4530, 0, -1050 }, { 0, 0, 0, 0 }, { { .word = 3328 }, 5350, 0, -1750 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 7), DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD },
 };
 
 /// Axis-aligned collision normals in Q12 (ONE is unit length).
@@ -633,8 +746,8 @@ WorldCollisionGrid gShelterB1PodAccessTunnelCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gShelterB1PodAccessTunnelCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b1_pod_access_tunnel_80183C48[14] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4000, 0x37D3, 2550 } }, 296 },
+ViewCamera gShelterB1PodAccessTunnelViewCameras[SHELTER_B1_POD_ACCESS_TUNNEL_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -4000, 0x37D3, 2550 } }, 296 },
     { { { { -3999, 0, -882 }, { -236, 3946, 1070 }, { 850, 1096, -3853 } }, { -839, 2300, 805 } }, 230 },
     { { { { 3745, 0, -1658 }, { -128, 4083, -289 }, { 1653, 316, 3734 } }, { -769, 1450, 6475 } }, 230 },
     { { { { -824, 0, -4012 }, { 670, 4038, -137 }, { 3955, -684, -812 } }, { -759, 700, 995 } }, 225 },
@@ -884,21 +997,21 @@ WorldCoordRoomLights gShelterB1PodAccessTunnelRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_8018474C[4] = {
-    { NULL, NULL, NULL, { 1296, -1536, -3328, 0 }, { { -1936, -2016, 672, 0 }, { 1936, -2016, -672, 0 }, { -1936, 2016, 672, 0 }, { 1936, 2016, -672, 0 } }, { -1344, 0, -3872, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 1168, -1536, -3408, 0 }, { { 2080, -2016, -752, 0 }, { -2080, -2016, 752, 0 }, { 2080, 2016, -752, 0 }, { -2080, 2016, 752, 0 } }, { 1395, 0, 3860, 0 }, { 0, 0, 4096, 0 }, 2985, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3136, -1536, -1312, 0 }, { { -119, -2016, -1591, 0 }, { 109, -2016, 1584, 0 }, { -119, 2016, -1591, 0 }, { 109, 2016, 1584, 0 } }, { 4095, 0, -295, 0 }, { 0, 0, 4096, 0 }, 2560, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3265, -1504, -1567, 0 }, { { 84, -2016, 1287, 0 }, { -98, -2016, -1299, 0 }, { 84, 2016, 1287, 0 }, { -98, 2016, -1299, 0 } }, { -4094, 0, 287, 0 }, { 0, 0, 4096, 0 }, 2387, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB1PodAccessTunnelViewBoundaryTriggers[4] = {
+    { NULL, NULL, NULL, { 1296, -1536, -3328, 0 }, { { -1936, -2016, 672, 0 }, { 1936, -2016, -672, 0 }, { -1936, 2016, 672, 0 }, { 1936, 2016, -672, 0 } }, { -1344, 0, -3872, 0 }, { 0, 0, ONE, 0 }, 2873, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 1168, -1536, -3408, 0 }, { { 2080, -2016, -752, 0 }, { -2080, -2016, 752, 0 }, { 2080, 2016, -752, 0 }, { -2080, 2016, 752, 0 } }, { 1395, 0, 3860, 0 }, { 0, 0, ONE, 0 }, 2985, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3136, -1536, -1312, 0 }, { { -119, -2016, -1591, 0 }, { 109, -2016, 1584, 0 }, { -119, 2016, -1591, 0 }, { 109, 2016, 1584, 0 } }, { 4095, 0, -295, 0 }, { 0, 0, ONE, 0 }, 2560, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3265, -1504, -1567, 0 }, { { 84, -2016, 1287, 0 }, { -98, -2016, -1299, 0 }, { 84, 2016, 1287, 0 }, { -98, 2016, -1299, 0 } }, { -4094, 0, 287, 0 }, { 0, 0, ONE, 0 }, 2387, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_shelter_b1_pod_access_tunnel_8018487C[1] = {
+WorldCollisionOccluder gShelterB1PodAccessTunnelSightOccluders[1] = {
     { NULL, NULL, { 5024, -1296, -5152, 0 }, { { -2064, 2320, 2208, 0 }, { 2064, 2320, -2208, 0 }, { -2064, -2320, 2208, 0 }, { 2064, -2320, -2208, 0 } }, { 2999, 0, 2803, 0 }, 3805, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_801848B8[3] = {
-    { NULL, NULL, NULL, { 1856, -48, -6496, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, 16, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 7264, -48, -1760, 0 }, { { -704, 0, -1024, 0 }, { 704, 0, -1024, 0 }, { -704, 0, 1024, 0 }, { 704, 0, 1024, 0 } }, { 0, 4094, 0, 0 }, { -4096, 0, 0, 0 }, 1241, WORLD_COLLISION_TRIGGER_ACTION_WARP, 47, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4721, -64, -672, 0 }, { { -880, 0, -480, 0 }, { 880, 0, -480, 0 }, { -880, 0, 480, 0 }, { 880, 0, 480, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -4096, 0 }, 1001, WORLD_COLLISION_TRIGGER_ACTION_CAP, 1, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB1PodAccessTunnelActionTriggers[3] = {
+    { NULL, NULL, NULL, { 1856, -48, -6496, 0 }, { { -1024, 0, -480, 0 }, { 1024, 0, -480, 0 }, { -1024, 0, 480, 0 }, { 1024, 0, 480, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1130, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, (1 << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 7264, -48, -1760, 0 }, { { -704, 0, -1024, 0 }, { 704, 0, -1024, 0 }, { -704, 0, 1024, 0 }, { 704, 0, 1024, 0 } }, { 0, 4094, 0, 0 }, { -ONE, 0, 0, 0 }, 1241, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_R47, (2 << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4721, -64, -672, 0 }, { { -880, 0, -480, 0 }, { 880, 0, -480, 0 }, { -880, 0, 480, 0 }, { 880, 0, 480, 0 } }, { 0, 4103, 0, 0 }, { 0, 0, -ONE, 0 }, 1001, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B1_POD_ACCESS_TUNNEL_POD_COMMAND_USE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 AreaResource D_shelter_b1_pod_access_tunnel_8018499C[2] = {
@@ -906,108 +1019,176 @@ AreaResource D_shelter_b1_pod_access_tunnel_8018499C[2] = {
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_pod_access_tunnel_801849B4[2] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 2's Watcher file and spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Entry 21 loads base file 102100 and selects its single descriptor at index 0.
+/// The four matching placements borrow this table and the loaded actor package.
+static AreaResource _gShelterB1PodAccessTunnelVariant2WatcherResources[2] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .fileNumber = 21, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor102100WatcherTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_pod_access_tunnel_801849CC[2] = {
-    { 11, 11, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 3's Mossback file and spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Entry 11 loads base file 101100 and selects descriptor 0. The two matching
+/// placements borrow this table and the loaded actor package.
+static AreaResource _gShelterB1PodAccessTunnelVariant3MossbackResources[2] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_MOSSBACK, .fileNumber = 11, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor101100Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_pod_access_tunnel_801849E4[2] = {
-    { 49, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 4's Brute Mossback file and spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Entry 49 loads file 104900 and uses descriptor 0 of the Mossback interface
+/// at the same actor slot. The entry key selects the larger model and tuning;
+/// the two matching placements borrow this table and the loaded actor package.
+static AreaResource _gShelterB1PodAccessTunnelVariant4BruteMossbackResources[2] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_BRUTE_MOSSBACK, .fileNumber = 49, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor101100Tasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_pod_access_tunnel_801849FC[2] = {
-    { 23, 23, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102300RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 7's Rook GOLEM file and spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Entry 23 loads file 102300 and selects descriptor 0. Its single placement
+/// borrows this table and the actor-slot-1 Rook package through task teardown.
+static AreaResource _gShelterB1PodAccessTunnelVariant7RookResources[2] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_ROOK, .fileNumber = 23, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102300RookGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_pod_access_tunnel_80184A14[3] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { 23, 23, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor202300RookGolemTasks },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 11's Watcher and Rook GOLEM recipes, followed by AREA_PLACEMENT_END.
+///
+/// Entry 21 loads file 102100 in actor slot 1; entry 23 loads file 202300 in
+/// slot 2. Both select descriptor 0. Three Watchers and one Rook borrow this
+/// table and both loaded actor packages through their task lifetimes.
+static AreaResource _gShelterB1PodAccessTunnelVariant11WatcherRookResources[3] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .fileNumber = 21, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor102100WatcherTaskDesc },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_ROOK, .fileNumber = 23, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = gActor202300RookGolemTasks },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_shelter_b1_pod_access_tunnel_80184A38[2] = {
-    { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 21's Watcher file and spawn recipe, followed by AREA_PLACEMENT_END.
+///
+/// Entry 21 loads file 102100 and selects its single descriptor at index 0.
+/// Six matching placements borrow this table and the loaded actor package.
+static AreaResource _gShelterB1PodAccessTunnelVariant21WatcherResources[2] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .fileNumber = 21, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor102100WatcherTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_pod_access_tunnel_80184A50[2] = {
-    { 132, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 1's scripted Aya Brea placement at the world origin.
+///
+/// Entry 132 uses actor 141000, with spawn variant/mode and yaw zero. Texture
+/// relocation is page 0, CLUT row 2. Includes AREA_PLACEMENT_END; the actor
+/// borrows this record from the loaded room for its lifetime.
+static AreaPlacement _gShelterB1PodAccessTunnelVariant1AyaBreaPlacements[2] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_AYA_BREA, .variant = 0, .mode = 0, .x = 0, .y = 0, .z = 0, .yaw = 0, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_pod_access_tunnel_80184A70[5] = {
-    { 21, 0, 0, 730, -2400, -1050, 1024, 0, 0, 2, 0 },
-    { 21, 0, 0, 730, -2400, -2400, 1024, 0, 0, 2, 0 },
-    { 21, 10, 1024, 1000, -2200, -4750, 1024, 0, 0, 2, 0 },
-    { 21, 10, 1024, 2750, -2200, -4750, 3072, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 2's four elevated Watchers, in two pairs along the tunnel.
+///
+/// First pair has stationary beam-0 weapons; the second patrols in 40-tick
+/// legs with beam 0 and a quarter-turn roll. All use entry 21 and sight row 0
+/// (3000-unit acquisition range), page offset 0 and CLUT-row offset 2.
+/// World positions and yaw in 4096-unit turns can be overridden by saved poses. Includes
+/// AREA_PLACEMENT_END; spawned actors borrow records while the room is loaded.
+static AreaPlacement _gShelterB1PodAccessTunnelVariant2WatcherPlacements[5] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_BEAM0, .mode = 0, .x = 730, .y = -2400, .z = -1050, .yaw = ONE / 4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_BEAM0, .mode = 0, .x = 730, .y = -2400, .z = -2400, .yaw = ONE / 4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_PATROL_BEAM0, .mode = ONE / 4, .x = 1000, .y = -2200, .z = -4750, .yaw = ONE / 4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_PATROL_BEAM0, .mode = ONE / 4, .x = 2750, .y = -2200, .z = -4750, .yaw = 3 * ONE / 4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_pod_access_tunnel_80184AC0[3] = {
-    { 11, 1, 0, 1750, 0, -1900, 1024, 0, 0, 2, 0 },
-    { 11, 1, 0, 6950, 0, -2450, 3800, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 3's two floor-level Mossbacks near the tunnel bend and R47 door.
+///
+/// Both use entry 11, variant/mode (1, 0), actor row 0 and texture offsets
+/// (page 0, CLUT row 2). Positions are world units, yaw is 4096 units per turn;
+/// saved poses can override them. Includes AREA_PLACEMENT_END; records remain
+/// borrowed by spawned actors while the room overlay is loaded.
+static AreaPlacement _gShelterB1PodAccessTunnelVariant3MossbackPlacements[3] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_MOSSBACK, .variant = 1, .mode = 0, .x = 1750, .y = 0, .z = -1900, .yaw = ONE / 4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_MOSSBACK, .variant = 1, .mode = 0, .x = 6950, .y = 0, .z = -2450, .yaw = 3800, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_pod_access_tunnel_80184AF0[3] = {
-    { 49, 1, 0, 3500, 0, -2300, 3750, 0, 0, 2, 0 },
-    { 49, 1, 0, 1750, 0, -2500, 2048, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 4's two floor-level Brute Mossbacks near the tunnel bend.
+///
+/// Both use larger-model entry 49, variant/mode (1, 0), actor row 0 and texture
+/// offsets (page 0, CLUT row 2). Positions are world units, yaw is 4096 units
+/// per turn; saved poses can override them. Includes AREA_PLACEMENT_END;
+/// records remain borrowed by spawned actors while the room overlay is loaded.
+static AreaPlacement _gShelterB1PodAccessTunnelVariant4BruteMossbackPlacements[3] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_BRUTE_MOSSBACK, .variant = 1, .mode = 0, .x = 3500, .y = 0, .z = -2300, .yaw = 3750, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_BRUTE_MOSSBACK, .variant = 1, .mode = 0, .x = 1750, .y = 0, .z = -2500, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_pod_access_tunnel_80184B20[2] = {
-    { 23, 5, 1, 1600, 0, -1800, 1024, 0, 0, 2, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 7's single Rook GOLEM at world (1600, 0, -1800), facing a quarter-turn.
+///
+/// Entry 23 enables a 5000-game-unit patrol, selects actor row 0 and uses
+/// texture offsets (page 0, CLUT row 2). Saved poses may replace its initial transform.
+/// Includes AREA_PLACEMENT_END; the actor borrows the record while the room is loaded.
+static AreaPlacement _gShelterB1PodAccessTunnelVariant7RookPlacements[2] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_ROOK, .variant = 5, .mode = SHELTER_B1_POD_ACCESS_TUNNEL_ROOK_PATROLS, .x = 1600, .y = 0, .z = -1800, .yaw = ONE / 4, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_pod_access_tunnel_80184B40[5] = {
-    { 21, 1, 0, 1200, -2400, -700, 2048, 0, 0, 2, 3 },
-    { 21, 1, 0, 2000, -2400, -700, 2048, 0, 0, 2, 3 },
-    { 21, 1, 0, 2800, -2400, -700, 2048, 0, 0, 2, 3 },
-    { 23, 4, 1, 5700, 0, -1700, 3072, 0, 2, 4, 0 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 11's three elevated Watchers and one floor-level Rook GOLEM.
+///
+/// Watchers use stationary beam-1 weapons, zero roll and sight row 3 (4500
+/// game units), with texture offsets (0, 2). The slot-2 Rook patrols for 4000
+/// game units per leg, with row 0 and texture offsets (2, 4).
+/// Positions are world units and yaw is 4096 units per turn; saved poses can
+/// override them. Includes AREA_PLACEMENT_END; actors borrow these loaded-room records.
+static AreaPlacement _gShelterB1PodAccessTunnelVariant11WatcherRookPlacements[5] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_BEAM1, .mode = 0, .x = 1200, .y = -2400, .z = -700, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_BEAM1, .mode = 0, .x = 2000, .y = -2400, .z = -700, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_BEAM1, .mode = 0, .x = 2800, .y = -2400, .z = -700, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_ROOK, .variant = 4, .mode = SHELTER_B1_POD_ACCESS_TUNNEL_ROOK_PATROLS, .x = 5700, .y = 0, .z = -1700, .yaw = 3 * ONE / 4, .fileIdLow = 0, .texturePageOffset = 2, .clutRowOffset = 4, .rowIndex = 0 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaPlacement D_shelter_b1_pod_access_tunnel_80184B90[7] = {
-    { 21, 4, 0, 1200, -2400, -700, 2048, 0, 0, 2, 3 },
-    { 21, 4, 0, 2000, -2400, -700, 2048, 0, 0, 2, 3 },
-    { 21, 4, 0, 2800, -2400, -700, 2048, 0, 0, 2, 3 },
-    { 21, 4, 0, 1200, -1800, -700, 2048, 0, 0, 2, 3 },
-    { 21, 4, 0, 2000, -1800, -700, 2048, 0, 0, 2, 3 },
-    { 21, 4, 0, 2800, -1800, -700, 2048, 0, 0, 2, 3 },
-    { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+/// Variant 21's six Watchers in two three-wide rows at Y=-2400 and Y=-1800.
+///
+/// All use stationary gun weapons, zero roll, sight row 3 (4500 game units),
+/// a half-turn yaw and texture offsets (page 0, CLUT row 2). Positions are world units; saved poses
+/// can override the initial transforms. Includes AREA_PLACEMENT_END; actors
+/// borrow these records while this room overlay is loaded.
+static AreaPlacement _gShelterB1PodAccessTunnelVariant21WatcherPlacements[7] = {
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN, .mode = 0, .x = 1200, .y = -2400, .z = -700, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN, .mode = 0, .x = 2000, .y = -2400, .z = -700, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN, .mode = 0, .x = 2800, .y = -2400, .z = -700, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN, .mode = 0, .x = 1200, .y = -1800, .z = -700, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN, .mode = 0, .x = 2000, .y = -1800, .z = -700, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = SHELTER_B1_POD_ACCESS_TUNNEL_ENTRY_WATCHER, .variant = SHELTER_B1_POD_ACCESS_TUNNEL_WATCHER_STATIONARY_GUN, .mode = 0, .x = 2800, .y = -1800, .z = -700, .yaw = ONE / 2, .fileIdLow = 0, .texturePageOffset = 0, .clutRowOffset = 2, .rowIndex = 3 },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_shelter_b1_pod_access_tunnel_80184C00[23] = {
     { NULL, NULL },
-    { D_shelter_b1_pod_access_tunnel_80184A50, D_shelter_b1_pod_access_tunnel_8018499C },
-    { D_shelter_b1_pod_access_tunnel_80184A70, D_shelter_b1_pod_access_tunnel_801849B4 },
-    { D_shelter_b1_pod_access_tunnel_80184AC0, D_shelter_b1_pod_access_tunnel_801849CC },
-    { D_shelter_b1_pod_access_tunnel_80184AF0, D_shelter_b1_pod_access_tunnel_801849E4 },
+    { _gShelterB1PodAccessTunnelVariant1AyaBreaPlacements, D_shelter_b1_pod_access_tunnel_8018499C },
+    { _gShelterB1PodAccessTunnelVariant2WatcherPlacements, _gShelterB1PodAccessTunnelVariant2WatcherResources },
+    { _gShelterB1PodAccessTunnelVariant3MossbackPlacements, _gShelterB1PodAccessTunnelVariant3MossbackResources },
+    { _gShelterB1PodAccessTunnelVariant4BruteMossbackPlacements, _gShelterB1PodAccessTunnelVariant4BruteMossbackResources },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b1_pod_access_tunnel_80184B20, D_shelter_b1_pod_access_tunnel_801849FC },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_pod_access_tunnel_80184B40, D_shelter_b1_pod_access_tunnel_80184A14 },
+    { _gShelterB1PodAccessTunnelVariant7RookPlacements, _gShelterB1PodAccessTunnelVariant7RookResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
+    { _gShelterB1PodAccessTunnelVariant11WatcherRookPlacements, _gShelterB1PodAccessTunnelVariant11WatcherRookResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b1_pod_access_tunnel_80184B90, D_shelter_b1_pod_access_tunnel_80184A38 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { NULL, NULL },
+    { _gShelterB1PodAccessTunnelVariant21WatcherPlacements, _gShelterB1PodAccessTunnelVariant21WatcherResources },
     { NULL, NULL },
 };
 
@@ -1089,7 +1270,7 @@ static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(const RoomEventMsg* de
             if (event->flagId != EVENT_NO_FLAG) {
                 gameFlagSetNibble(event->flagId, EVENT_FLAG_LATCHED);
             }
-            taskSpawnFromTable(&D_shelter_b1_pod_access_tunnel_801810CC, 0, 0, 0);
+            taskSpawnFromTable(&_gShelterB1PodAccessTunnelStagedDepartureTaskDesc, 0, 0, 0);
             D_shelter_b1_pod_access_tunnel_80184D0C = EVENT_STARTED;
         }
         return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_HANDLED;
@@ -1134,7 +1315,7 @@ static s32 _shelterB1PodAccessTunnelResolveRoomEvent(Task* task, s32 messageId, 
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= STORY_CHAPTER_GANTRY_TRANSIT) {
             if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_GANTRY, 0, 0);
+                taskSpawnFromTable(_gShelterB1PodAccessTunnelTravelTaskDescs, SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_GANTRY, 0, 0);
             }
             return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_HANDLED;
         }
@@ -1367,7 +1548,7 @@ static s32 _shelterB1PodAccessTunnelHandleCommandMessage(Task* task, s32 message
     if (command == COMMAND_USE_POD) {
         if (gameFlagGetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE) != 0) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_B2, 0, 0);
+            taskSpawnFromTable(_gShelterB1PodAccessTunnelTravelTaskDescs, SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_B2, 0, 0);
         } else {
             gameFlagSetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE, POD_FIRST_USE_RECORDED);
             capRunCommandWithTransition(CAP_POD_FIRST_USE);
@@ -1635,7 +1816,7 @@ static void _shelterB1PodAccessTunnelStartSceneCameraPan(s32 frameCount)
 {
     enum { SCENE_CAMERA_PAN_TASK_INDEX = 0 };
 
-    taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, SCENE_CAMERA_PAN_TASK_INDEX, frameCount, 0);
+    taskSpawnFromTable(_gShelterB1PodAccessTunnelSceneTaskDescs, SCENE_CAMERA_PAN_TASK_INDEX, frameCount, 0);
 }
 
 /// Moves the pod-pan camera origin along negative camera Y for a fixed duration.
@@ -1682,11 +1863,14 @@ static void _shelterB1PodAccessTunnelStartImageScroll(s32 frameCount)
 {
     enum { IMAGE_SCROLL_TASK_INDEX = 1 };
 
-    taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, IMAGE_SCROLL_TASK_INDEX, frameCount, 0);
+    taskSpawnFromTable(_gShelterB1PodAccessTunnelSceneTaskDescs, IMAGE_SCROLL_TASK_INDEX, frameCount, 0);
 }
 
-/// The image-scroll task's three states: set-up, scroll and exit.
-static const TaskFuncTable3 D_shelter_b1_pod_access_tunnel_8017D610 = {
+/// Image-scroll handlers indexed by task state: initialize, draw and release.
+///
+/// States 0..2 have no terminator. Dispatch copies all three pointers before
+/// calling the selected handler; initialization owns work until task teardown.
+static const TaskFuncTable3 _gShelterB1PodAccessTunnelImageScrollStates = {
     { _shelterB1PodAccessTunnelInitImageScroll, _shelterB1PodAccessTunnelDrawImageScroll, taskKill },
 };
 
@@ -1700,7 +1884,7 @@ static void _shelterB1PodAccessTunnelImageScrollTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_shelter_b1_pod_access_tunnel_8017D610;
+    states = _gShelterB1PodAccessTunnelImageScrollStates;
     states.funcs[task->state](task);
 }
 
@@ -1779,7 +1963,7 @@ static void _shelterB1PodAccessTunnelStartGrayCapture(s32 frameCount)
 {
     enum { GRAY_CAPTURE_TASK_INDEX = 2U };
 
-    displayQueueModeTask(taskGetDescAt(D_shelter_b1_pod_access_tunnel_80182D2C, GRAY_CAPTURE_TASK_INDEX), frameCount, 0, STAGE_ENTRY_GRAY_CAPTURE);
+    displayQueueModeTask(taskGetDescAt(_gShelterB1PodAccessTunnelSceneTaskDescs, GRAY_CAPTURE_TASK_INDEX), frameCount, 0, STAGE_ENTRY_GRAY_CAPTURE);
 }
 
 /// Ends the gray captured-frame display mode after its countdown becomes negative.
@@ -1839,9 +2023,9 @@ void shelterB1PodAccessTunnelDrawGlowsTask(Task* task)
     mappedView = viewGetMappedIndex();
     switch (mappedView) {
         case 2: {
-            const SVECTOR* lightEndpoints = D_shelter_b1_pod_access_tunnel_801839E4;
-            _glowDrawCapsule(&lightEndpoints[0], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
-            _glowDrawCapsule(&lightEndpoints[2], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            const SVECTOR(*lightSegments)[2] = _gShelterB1PodAccessTunnelLongitudinalLightSegments;
+            _glowDrawCapsule(lightSegments[0], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
+            _glowDrawCapsule(lightSegments[1], GLOWS_RADIUS_WORLD_UNITS, GLOWS_PACKED_WHITE);
         } break;
         case 3:
         case 7: {

@@ -1553,7 +1553,7 @@ D_mist_r18_80186BFC = 0x80186BFC; // absolute:True owner=mist_r18
 
 D_mist_shooting_gallery_8018DF74 = 0x8018DF74; // absolute:True owner=mist_shooting_gallery
 
-D_neo_ark_bridge_80184A50 = 0x80184A50; // absolute:True owner=neo_ark_bridge shared=rooms
+D_neo_ark_bridge_80184A50 = 0x80184A50; // absolute:True owner=neo_ark_bridge
 
 D_neo_ark_eve_access_tunnel_801806B8 = 0x801806B8; // absolute:True owner=neo_ark_eve_access_tunnel
 

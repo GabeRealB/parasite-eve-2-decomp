@@ -23,9 +23,19 @@ enum { SHELTER_B1_POD_ACCESS_TUNNEL_VIEW_COUNT = 14 };
 /// indices. No terminator; the directory requires this room overlay to stay loaded.
 extern u8* gShelterB1PodAccessTunnelRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_pod_access_tunnel_80183A18[];
+/// Reverse-view lookup count for room 1: fourteen logical views.
+///
+/// Indexed by room minus one, with no terminator. Matches the room's identity
+/// view map; the stage-map directory borrows this count while the room is loaded.
+extern ViewCount gShelterB1PodAccessTunnelRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_pod_access_tunnel_80183A1C[];
+/// Three arrival/departure endpoints: sterilization door, R47 door and pod.
+///
+/// Indexed by warp minus one, with no terminator. Positions are world units
+/// and yaw uses 4096 units per turn; arrivals select logical views 2, 4 and 4.
+/// R47 and pod arrivals mark the B2 laboratory and pod on the map respectively.
+/// The stage-map directory borrows these records while this room is loaded.
+extern DirectionWarpEntry gShelterB1PodAccessTunnelWarpEntries[3];
 
 /// Walls, floor and ceiling of the L-shaped tunnel, indexed by a 2x2 XZ grid.
 ///
@@ -35,7 +45,13 @@ extern DirectionWarpEntry D_shelter_b1_pod_access_tunnel_80183A1C[];
 /// The descriptor and its writable pools require this room overlay to stay loaded.
 extern WorldCollisionGrid gShelterB1PodAccessTunnelCollisionGrid;
 
-extern ViewCamera D_shelter_b1_pod_access_tunnel_80183C48[];
+/// Camera records for mapped views 1..14, including the entry-scene pod pan.
+///
+/// Indexed by mapped view minus one, with no terminator. Rotations use Q12,
+/// translations are negated world origins and projection distances are pixels.
+/// Logical view 11's camera is edited by the scene pan; queued application
+/// borrows a camera until its display task runs. Keep this room overlay loaded.
+extern ViewCamera gShelterB1PodAccessTunnelViewCameras[SHELTER_B1_POD_ACCESS_TUNNEL_VIEW_COUNT];
 
 /// Sprite sources and batches for mapped views 1..14, with no clipping areas.
 ///
@@ -51,11 +67,30 @@ extern SpriteView gShelterB1PodAccessTunnelSpriteViews[SHELTER_B1_POD_ACCESS_TUN
 /// composition and attenuation queries and requires this room overlay to stay loaded.
 extern WorldCoordRoomLights gShelterB1PodAccessTunnelRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_8018474C[];
+/// Four directed camera boundaries joining mapped views 2/3 and 3/4.
+///
+/// The final quad carries WORLD_COLLISION_TRIGGER_LAST. Room setup binds the
+/// current view coordinate, links every quad and enables it; contact latches
+/// a view change only from the quad's source view. Storage stays writable and
+/// loaded until all nodes are unlinked. Positions/radii are game units, normals Q12.
+extern WorldCollisionTrigger gShelterB1PodAccessTunnelViewBoundaryTriggers[4];
 
-extern WorldCollisionOccluder D_shelter_b1_pod_access_tunnel_8018487C[];
+/// The tunnel's single line-of-sight blocking quad.
+///
+/// Its LAST marker includes the quad in the setup walk. Runtime linking and
+/// enable flags require mutable storage until unlinked; authored flag bit 0
+/// has no observed meaning. Origin/corners are room-local game units and the
+/// normal is Q12. Requires this room overlay to remain loaded while linked.
+extern WorldCollisionOccluder gShelterB1PodAccessTunnelSightOccluders[1];
 
-extern WorldCollisionTrigger D_shelter_b1_pod_access_tunnel_801848B8[];
+/// Facing-gated interactions for the sterilization door, R47 door and pod.
+///
+/// First two quads request area warps using departure slots 1/2 and destination
+/// arrival slots 2/1. The pod quad sends room command 1; its LAST flag ends the
+/// three-record setup walk. Room setup binds the view coordinate and links and
+/// enables all records. Positions/radii are game units, normals Q12; keep the
+/// writable records and this room overlay loaded until unlinked.
+extern WorldCollisionTrigger gShelterB1PodAccessTunnelActionTriggers[3];
 
 /// Collision and footstep policies indexed by room-local surface class 0..7.
 ///

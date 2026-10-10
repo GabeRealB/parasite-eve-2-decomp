@@ -810,7 +810,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b1_sleeping_quarters_80180660,
     D_shelter_b1_main_corridor_80183200,
     gShelterB1SterilizationRoomWarpEntries,
-    D_shelter_b1_pod_access_tunnel_80183A1C,
+    gShelterB1PodAccessTunnelWarpEntries,
     D_shelter_b1_control_room_80181C78,
     D_shelter_b1_access_tunnel_8017E7EC,
     D_shelter_b1_underground_parking_8018794C,
@@ -862,7 +862,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b1_sleeping_quarters_8018065C,
     D_shelter_b1_main_corridor_801831FC,
     gShelterB1SterilizationRoomViewCounts,
-    D_shelter_b1_pod_access_tunnel_80183A18,
+    gShelterB1PodAccessTunnelRoomViewCounts,
     D_shelter_b1_control_room_80181C74,
     gShelterB1AccessTunnelRoomViewCounts,
     D_shelter_b1_underground_parking_8018793C,
@@ -916,7 +916,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B144[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B154[1] = {
-    { &gShelterB1PodAccessTunnelCollisionGrid, D_shelter_b1_pod_access_tunnel_8018474C, D_shelter_b1_pod_access_tunnel_801848B8, D_shelter_b1_pod_access_tunnel_8018487C },
+    { &gShelterB1PodAccessTunnelCollisionGrid, gShelterB1PodAccessTunnelViewBoundaryTriggers, gShelterB1PodAccessTunnelActionTriggers, gShelterB1PodAccessTunnelSightOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B164[1] = {
@@ -1087,7 +1087,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     D_shelter_b1_sleeping_quarters_801810F8,
     D_shelter_b1_main_corridor_80184114,
     gShelterB1SterilizationRoomViewCameras,
-    D_shelter_b1_pod_access_tunnel_80183C48,
+    gShelterB1PodAccessTunnelViewCameras,
     gShelterB1ControlRoomViewCameras,
     gShelterB1AccessTunnelViewCameras,
     gShelterB1UndergroundParkingViewCameras,
