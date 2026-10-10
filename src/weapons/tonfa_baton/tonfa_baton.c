@@ -688,136 +688,253 @@ static AnimationSet _gTonfaBatonTurnNegativeAnimation = {
     .poseBanks         = { NULL, _gTonfaBatonTurnNegativeAnimationBank1, NULL, NULL, _gTonfaBatonTurnNegativeAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation02D48Bank1[19] = {
+/// Encoding indices for the pose banks of these tonfa baton player clips.
+enum {
+    TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
+/// Translation/rotation poses for `_gTonfaBatonTurnPositiveAnimation`.
+///
+/// XYZ use integer model coordinates; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gTonfaBatonTurnPositiveAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_02D48_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation02D48Bank4[170] = {
+/// Rotation-only poses for `_gTonfaBatonTurnPositiveAnimation`, in 1/512-turn steps.
+static const AnimationPackedRotation _gTonfaBatonTurnPositiveAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_02D48_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation02D48Records[290] = {
+/// Keyframes and control records for `_gTonfaBatonTurnPositiveAnimation`.
+///
+/// Durations count normal-rate frames; control jumps use absolute record indices.
+static const AnimationRecord _gTonfaBatonTurnPositiveAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_02D48_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation02D48Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonTurnPositiveAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonTurnPositiveAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_02D48_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation02D48 = {
-    _gTonfaBatonAnimation02D48Records,
-    _gTonfaBatonAnimation02D48Indices,
-    { NULL, _gTonfaBatonAnimation02D48Bank1, NULL, NULL, _gTonfaBatonAnimation02D48Bank4, NULL, NULL, NULL },
+/// Looping positive-direction stationary turn for the player in the tonfa baton bank.
+///
+/// Native bank slot 6; scripted turning also selects it for a nonnegative yaw delta.
+/// Supplies 19 model-part tracks. Borrows read-only, word-aligned pose banks and
+/// records for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonTurnPositiveAnimation = {
+    .records           = _gTonfaBatonTurnPositiveAnimationRecords,
+    .trackStartIndices = _gTonfaBatonTurnPositiveAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonTurnPositiveAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonTurnPositiveAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation0305CBank1[3] = {
+/// Translation/rotation poses for `_gTonfaBatonItemUseAnimation`.
+///
+/// XYZ use integer model coordinates; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gTonfaBatonItemUseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_0305C_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation0305CBank4[69] = {
+/// Rotation-only poses for `_gTonfaBatonItemUseAnimation`, in 1/512-turn steps.
+static const AnimationPackedRotation _gTonfaBatonItemUseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_0305C_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation0305CRecords[99] = {
+/// Keyframes and control records for `_gTonfaBatonItemUseAnimation`.
+///
+/// Durations count normal-rate frames; stop controls hold the final pose.
+static const AnimationRecord _gTonfaBatonItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_0305C_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation0305CIndices[20] = {
+/// Track-start record indices for `_gTonfaBatonItemUseAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_0305C_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation0305C = {
-    _gTonfaBatonAnimation0305CRecords,
-    _gTonfaBatonAnimation0305CIndices,
-    { NULL, _gTonfaBatonAnimation0305CBank1, NULL, NULL, _gTonfaBatonAnimation0305CBank4, NULL, NULL, NULL },
+/// Player item-use gesture in the tonfa baton bank.
+///
+/// Native bank slot 40 supplies 19 model-part tracks that stop on their final pose.
+/// Borrows read-only, word-aligned pose banks and records for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonItemUseAnimation = {
+    .records           = _gTonfaBatonItemUseAnimationRecords,
+    .trackStartIndices = _gTonfaBatonItemUseAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonItemUseAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonItemUseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation037B8Bank1[14] = {
+/// Translation/rotation poses for `_gTonfaBatonStairAscentAnimation`.
+///
+/// XYZ use integer model coordinates; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gTonfaBatonStairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_037B8_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation037B8Bank4[156] = {
+/// Rotation-only poses for `_gTonfaBatonStairAscentAnimation`, in 1/512-turn steps.
+static const AnimationPackedRotation _gTonfaBatonStairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_037B8_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation037B8Records[253] = {
+/// Keyframes and control records for `_gTonfaBatonStairAscentAnimation`.
+///
+/// Durations count normal-rate frames; track 1 carries the ascent footstep cues.
+/// Control jumps use absolute record indices to repeat each track.
+static const AnimationRecord _gTonfaBatonStairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_037B8_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation037B8Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonStairAscentAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonStairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_037B8_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation037B8 = {
-    _gTonfaBatonAnimation037B8Records,
-    _gTonfaBatonAnimation037B8Indices,
-    { NULL, _gTonfaBatonAnimation037B8Bank1, NULL, NULL, _gTonfaBatonAnimation037B8Bank4, NULL, NULL, NULL },
+/// Looping player stair-ascent clip in the tonfa baton bank.
+///
+/// Native bank slot 36 supplies 19 model-part tracks. Track 1's footstep cues
+/// pace ascent movement. Borrows read-only, word-aligned pose banks and records
+/// for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonStairAscentAnimation = {
+    .records           = _gTonfaBatonStairAscentAnimationRecords,
+    .trackStartIndices = _gTonfaBatonStairAscentAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonStairAscentAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonStairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation03F40Bank1[16] = {
+/// Translation/rotation poses for `_gTonfaBatonStairDescentAnimation`.
+///
+/// XYZ use integer model coordinates; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gTonfaBatonStairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_03F40_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation03F40Bank4[167] = {
+/// Rotation-only poses for `_gTonfaBatonStairDescentAnimation`, in 1/512-turn steps.
+static const AnimationPackedRotation _gTonfaBatonStairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_03F40_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation03F40Records[247] = {
+/// Keyframes and control records for `_gTonfaBatonStairDescentAnimation`.
+///
+/// Durations count normal-rate frames; track 1 carries the descent footstep cues.
+/// Control jumps use absolute record indices to repeat each track.
+static const AnimationRecord _gTonfaBatonStairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_03F40_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation03F40Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonStairDescentAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonStairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_03F40_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation03F40 = {
-    _gTonfaBatonAnimation03F40Records,
-    _gTonfaBatonAnimation03F40Indices,
-    { NULL, _gTonfaBatonAnimation03F40Bank1, NULL, NULL, _gTonfaBatonAnimation03F40Bank4, NULL, NULL, NULL },
+/// Looping player stair-descent clip in the tonfa baton bank.
+///
+/// Native bank slot 37 supplies 19 model-part tracks. Track 1's footstep cues
+/// pace descent movement. Borrows read-only, word-aligned pose banks and records
+/// for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonStairDescentAnimation = {
+    .records           = _gTonfaBatonStairDescentAnimationRecords,
+    .trackStartIndices = _gTonfaBatonStairDescentAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonStairDescentAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonStairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation04214Bank1[6] = {
+/// Translation/rotation poses for `_gTonfaBatonStairAscentFinishOddAnimation`.
+///
+/// XYZ use integer model coordinates; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gTonfaBatonStairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04214_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation04214Bank4[52] = {
+/// Rotation-only poses for `_gTonfaBatonStairAscentFinishOddAnimation`, in 1/512-turn steps.
+static const AnimationPackedRotation _gTonfaBatonStairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04214_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation04214Records[91] = {
+/// Keyframes and control records for `_gTonfaBatonStairAscentFinishOddAnimation`.
+///
+/// Durations count normal-rate frames; track 1 carries the finishing footstep cue.
+/// Stop controls hold each track's final pose.
+static const AnimationRecord _gTonfaBatonStairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04214_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation04214Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonStairAscentFinishOddAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonStairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_04214_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation04214 = {
-    _gTonfaBatonAnimation04214Records,
-    _gTonfaBatonAnimation04214Indices,
-    { NULL, _gTonfaBatonAnimation04214Bank1, NULL, NULL, _gTonfaBatonAnimation04214Bank4, NULL, NULL, NULL },
+/// Player finishing stride for a stair ascent with an odd requested step count.
+///
+/// Tonfa baton bank slot 39 supplies 19 model-part tracks that stop on their final
+/// pose, with a finishing footstep cue on track 1. Borrows read-only, word-aligned
+/// pose banks and records for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonStairAscentFinishOddAnimation = {
+    .records           = _gTonfaBatonStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gTonfaBatonStairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonStairAscentFinishOddAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonStairAscentFinishOddAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gTonfaBatonAnimation045A4Bank1[7] = {
+/// Translation/rotation poses for `_gTonfaBatonStairAscentFinishEvenAnimation`.
+///
+/// XYZ use integer model coordinates; Euler angles use 4096 units per turn.
+static const AnimationPackedPose _gTonfaBatonStairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_045A4_bank1.inc"
 };
 
-static AnimationPackedRotation _gTonfaBatonAnimation045A4Bank4[73] = {
+/// Rotation-only poses for `_gTonfaBatonStairAscentFinishEvenAnimation`, in 1/512-turn steps.
+static const AnimationPackedRotation _gTonfaBatonStairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_045A4_bank4.inc"
 };
 
-static AnimationRecord _gTonfaBatonAnimation045A4Records[114] = {
+/// Keyframes and control records for `_gTonfaBatonStairAscentFinishEvenAnimation`.
+///
+/// Durations count normal-rate frames; track 1 carries the finishing footstep cue.
+/// Stop controls hold each track's final pose.
+static const AnimationRecord _gTonfaBatonStairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_045A4_records.inc"
 };
 
-static u16 _gTonfaBatonAnimation045A4Indices[20] = {
+/// Track-start record indices for `_gTonfaBatonStairAscentFinishEvenAnimation`.
+///
+/// Entries 0..18 select model-part tracks; the last halfword is retained serialized data.
+static const u16 _gTonfaBatonStairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/tonfa_baton_animation_045A4_indices.inc"
 };
 
-static AnimationSet _gTonfaBatonAnimation045A4 = {
-    _gTonfaBatonAnimation045A4Records,
-    _gTonfaBatonAnimation045A4Indices,
-    { NULL, _gTonfaBatonAnimation045A4Bank1, NULL, NULL, _gTonfaBatonAnimation045A4Bank4, NULL, NULL, NULL },
+/// Player finishing stride for a stair ascent with an even requested step count.
+///
+/// Tonfa baton bank slot 38 supplies 19 model-part tracks that stop on their final
+/// pose, with a finishing footstep cue on track 1. Borrows read-only, word-aligned
+/// pose banks and records for the loaded package's lifetime.
+static AnimationSet _gTonfaBatonStairAscentFinishEvenAnimation = {
+    .records           = _gTonfaBatonStairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gTonfaBatonStairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [TONFA_BATON_ANIMATION_TRANSLATION_ROTATION_BANK] = _gTonfaBatonStairAscentFinishEvenAnimationBank1,
+        [TONFA_BATON_ANIMATION_PACKED_ROTATION_BANK]      = _gTonfaBatonStairAscentFinishEvenAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gTonfaBatonAnimation04A2CBank1[9] = {
@@ -1443,7 +1560,7 @@ AnimationBank D_tonfa_baton_8012BAB0 = { { {
     &_gTonfaBatonAnimation0E194,
     &_gTonfaBatonAnimation0E8C8,
     &_gTonfaBatonTurnNegativeAnimation,
-    &_gTonfaBatonAnimation02D48,
+    &_gTonfaBatonTurnPositiveAnimation,
     &_gTonfaBatonAnimation0D6F4,
     &_gTonfaBatonAnimation0D8BC,
     &_gTonfaBatonAnimation09D78,
@@ -1473,11 +1590,11 @@ AnimationBank D_tonfa_baton_8012BAB0 = { { {
     &_gTonfaBatonAnimation09014,
     &_gTonfaBatonAnimation08E3C,
     &_gTonfaBatonAnimation09014,
-    &_gTonfaBatonAnimation037B8,
-    &_gTonfaBatonAnimation03F40,
-    &_gTonfaBatonAnimation045A4,
-    &_gTonfaBatonAnimation04214,
-    &_gTonfaBatonAnimation0305C,
+    &_gTonfaBatonStairAscentAnimation,
+    &_gTonfaBatonStairDescentAnimation,
+    &_gTonfaBatonStairAscentFinishEvenAnimation,
+    &_gTonfaBatonStairAscentFinishOddAnimation,
+    &_gTonfaBatonItemUseAnimation,
     &_gTonfaBatonIdleAnimation,
     &_gTonfaBatonAnimation09578,
     &_gTonfaBatonAnimation0976C,
