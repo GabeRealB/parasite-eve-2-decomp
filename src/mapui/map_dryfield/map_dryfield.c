@@ -501,7 +501,7 @@ u16 D_map_dryfield_8017A824[29] = {
 WorldCoordRoomLighting* gMapDryfieldRoomLightingTables[38] = {
     gDryfieldGasStationRoomLighting,
     D_dryfield_main_street_80181BD4,
-    D_dryfield_general_store_8017E688,
+    gDryfieldGeneralStoreRoomLighting,
     NULL,
     gDryfieldBackStreetRoomLighting,
     D_dryfield_souvenir_shop_8017E0D4,
@@ -716,7 +716,7 @@ ViewCameraTable D_map_dryfield_8017AB60 = { D_map_dryfield_8017AAC8 };
 static u8** _gMapDryfieldAreaViewMaps[38] = {
     gDryfieldGasStationRoomViewMaps,
     D_dryfield_main_street_80181BCC,
-    D_dryfield_general_store_8017E680,
+    gDryfieldGeneralStoreRoomViewMaps,
     gDryfieldR04ViewMaps,
     gDryfieldBackStreetViewMaps,
     D_dryfield_souvenir_shop_8017E0CC,
@@ -806,7 +806,7 @@ SpriteAreaTable gMapDryfieldSpriteAreaTable = { _gMapDryfieldAreaSpriteViews };
 WorldCollisionSurfaceProperties** D_map_dryfield_8017AC9C[38] = {
     gDryfieldGasStationSurfacePropertiesByClass,
     D_dryfield_main_street_801855EC,
-    D_dryfield_general_store_801856D8,
+    gDryfieldGeneralStoreSurfacePropertiesByClass,
     D_dryfield_r04_8017E2AC,
     gDryfieldBackStreetSurfaceProperties,
     D_dryfield_souvenir_shop_8017F640,

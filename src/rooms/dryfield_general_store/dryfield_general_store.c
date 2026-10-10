@@ -100,12 +100,12 @@ extern ActorTransform           D_dryfield_general_store_8017E53C;
 extern s32                      D_dryfield_general_store_8017E560;
 static void                     _dryfieldGeneralStoreEngageBattle(s32 unusedArg);
 
-extern WorldCollisionGrid         D_dryfield_general_store_8017F238[1];
+static WorldCollisionGrid         _gDryfieldGeneralStoreCollisionGrid;
 extern WorldCollisionOccluder     D_dryfield_general_store_80184F78[4];
 extern WorldCollisionTrigger      D_dryfield_general_store_801840EC[28];
 extern WorldCollisionTrigger      D_dryfield_general_store_8018493C[21];
-extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
-extern WorldCoordRoomLights       D_dryfield_general_store_801854E8[1];
+static WorldCoordRoomAmbientEntry _gDryfieldGeneralStoreAmbientByView[17];
+static WorldCoordRoomLights       _gDryfieldGeneralStoreRoomLights;
 
 static s32  _dryfieldGeneralStoreRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32  _dryfieldGeneralStoreHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -204,17 +204,17 @@ EvsCommand D_dryfield_general_store_8017E568[11] = {
 };
 
 WorldCollisionRoomResources D_dryfield_general_store_8017E670[1] = {
-    { D_dryfield_general_store_8017F238, D_dryfield_general_store_801840EC, D_dryfield_general_store_8018493C, D_dryfield_general_store_80184F78 },
+    { &_gDryfieldGeneralStoreCollisionGrid, D_dryfield_general_store_801840EC, D_dryfield_general_store_8018493C, D_dryfield_general_store_80184F78 },
 };
 
-u8* D_dryfield_general_store_8017E680[1] = {
+u8* gDryfieldGeneralStoreRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
 ViewCount D_dryfield_general_store_8017E684[1] = { 16 };
 
-WorldCoordRoomLighting D_dryfield_general_store_8017E688[1] = {
-    { D_dryfield_general_store_801854E8, D_dryfield_general_store_80185500 },
+WorldCoordRoomLighting gDryfieldGeneralStoreRoomLighting[1] = {
+    { &_gDryfieldGeneralStoreRoomLights, _gDryfieldGeneralStoreAmbientByView },
 };
 
 DirectionWarpEntry D_dryfield_general_store_8017E690[3] = {
@@ -223,30 +223,49 @@ DirectionWarpEntry D_dryfield_general_store_8017E690[3] = {
     { { { .word = 3072 }, 8649, 0, 7411 }, { 0, 0, 0, 0 }, { { .word = 512 }, 8209, 0, 6766 }, { 0, 0, 0, 0 }, 0x5203000E, 0x5203000D, 0x52030006, 14, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldGeneralStoreCollision01C78Normals[13] = {
+/// Room-space collision normals, with `ONE` representing unit length.
+static SVECTOR _gDryfieldGeneralStoreCollisionGridNormals[13] = {
 #include "assets/dryfield_general_store_collision_01C78_normals.inc"
 };
 
-static SVECTOR _gDryfieldGeneralStoreCollision01C78Verts[137] = {
+/// Collision vertices in signed room-local game coordinates.
+static SVECTOR _gDryfieldGeneralStoreCollisionGridVerts[137] = {
 #include "assets/dryfield_general_store_collision_01C78_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldGeneralStoreCollision01C78Faces[83] = {
+/// Indexed collision triangles and quads, using room surface classes 0 and 1.
+static WorldCollisionGridFace _gDryfieldGeneralStoreCollisionGridFaces[83] = {
 #include "assets/dryfield_general_store_collision_01C78_faces.inc"
 };
 
-static s16 _gDryfieldGeneralStoreCollision01C78Cells[292] = {
+/// Signed face-index lists, each ending with `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gDryfieldGeneralStoreCollisionGridCells[292] = {
 #include "assets/dryfield_general_store_collision_01C78_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldGeneralStoreCollision01C78Cells[i])
-static s16* _gDryfieldGeneralStoreCollision01C78Table[9] = {
+#define GRID_CELL(i) (&_gDryfieldGeneralStoreCollisionGridCells[i])
+/// X-major directory of the collision grid's three-by-three cells.
+static s16* _gDryfieldGeneralStoreCollisionGridTable[9] = {
 #include "assets/dryfield_general_store_collision_01C78_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_general_store_8017F238[1] = {
-    { NULL, _gDryfieldGeneralStoreCollision01C78Normals, _gDryfieldGeneralStoreCollision01C78Verts, _gDryfieldGeneralStoreCollision01C78Faces, _gDryfieldGeneralStoreCollision01C78Table, 0, 0, 3, 3, 4000, 83 },
+/// The General Store's room collision mesh and XZ cell index.
+///
+/// Each cell is 4000 game units wide; the grid begins at the room origin.
+/// Activation binds the view coordinate; the grid and its pools live with this overlay.
+static WorldCollisionGrid _gDryfieldGeneralStoreCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldGeneralStoreCollisionGridNormals,
+    .vertices    = _gDryfieldGeneralStoreCollisionGridVerts,
+    .faces       = _gDryfieldGeneralStoreCollisionGridFaces,
+    .cellFaceIds = _gDryfieldGeneralStoreCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 0,
+    .cellCountX  = 3,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldGeneralStoreCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_general_store_8017F25C[16] = {
@@ -268,12 +287,16 @@ ViewCamera D_dryfield_general_store_8017F25C[16] = {
     { { { { 1350, 0, -3866 }, { -3231, 2250, -1128 }, { 2124, 3422, 741 } }, { -8560, 2030, -7190 } }, 257 },
 };
 
-SpriteBatch D_dryfield_general_store_8017F49C[2] = {
+/// Empty sprite batch list retaining decoded image strips for view 1.
+///
+/// The source slot retains this list's address, but supplies no source sprites.
+static SpriteBatch _gDryfieldGeneralStoreView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_8017F4AC[101] = {
+/// Texture rectangles and sorting depths for General Store view 2.
+static SpriteSource _gDryfieldGeneralStoreView2SpriteSources[101] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 0, -8, 1034, { .fields = { 120, 16 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 8, -16, 974, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 24, -40, 1162, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
@@ -377,7 +400,10 @@ SpriteSource D_dryfield_general_store_8017F4AC[101] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, 48, 16, 987, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_8017FC90[11] = {
+/// Sprite ranges covering view 2's 101 source elements over decoded image strips.
+///
+/// The leading zero-count record retains the backdrop; `SPRITE_BATCH_END` ends the list.
+static SpriteBatch _gDryfieldGeneralStoreView2SpriteBatches[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 0, 0 } },
     { 9, 10, 0, 0, { 5, 0 } },
@@ -391,7 +417,8 @@ SpriteBatch D_dryfield_general_store_8017FC90[11] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_8017FCE8[105] = {
+/// Texture rectangles and sorting depths for General Store view 3.
+static SpriteSource _gDryfieldGeneralStoreView3SpriteSources[105] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 112, 481, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, 112, 112, 388, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 8 } }, -16, 112, 487, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
@@ -499,7 +526,10 @@ SpriteSource D_dryfield_general_store_8017FCE8[105] = {
     { 142, 0x3FC0, { .fields = { 8, 16 } }, 96, 8, 1075, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_8018051C[7] = {
+/// Sprite ranges covering view 3's 105 source elements over decoded image strips.
+///
+/// The leading zero-count record retains the backdrop; `SPRITE_BATCH_END` ends the list.
+static SpriteBatch _gDryfieldGeneralStoreView3SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 0, 0 } },
     { 14, 7, 0, 0, { 3, 0 } },
@@ -509,7 +539,8 @@ SpriteBatch D_dryfield_general_store_8018051C[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80180554[85] = {
+/// Texture rectangles and sorting depths for General Store view 4.
+static SpriteSource _gDryfieldGeneralStoreView4SpriteSources[85] = {
     { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, -48, 1602, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -56, -40, 1553, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -40, -40, 1603, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
@@ -597,7 +628,10 @@ SpriteSource D_dryfield_general_store_80180554[85] = {
     { 142, 0x3FC0, { .fields = { 56, 32 } }, 104, -112, 847, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_80180BF8[9] = {
+/// Sprite ranges covering view 4's 85 source elements over decoded image strips.
+///
+/// The leading zero-count record retains the backdrop; `SPRITE_BATCH_END` ends the list.
+static SpriteBatch _gDryfieldGeneralStoreView4SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 3, 0 } },
     { 10, 3, 0, 0, { 4, 0 } },
@@ -609,7 +643,8 @@ SpriteBatch D_dryfield_general_store_80180BF8[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80180C40[71] = {
+/// Texture rectangles and sorting depths for General Store view 5.
+static SpriteSource _gDryfieldGeneralStoreView5SpriteSources[71] = {
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 48, -88, 1276, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, -88, 1356, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, -64, 1275, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
@@ -683,7 +718,10 @@ SpriteSource D_dryfield_general_store_80180C40[71] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, -64, 1648, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_801811CC[7] = {
+/// Sprite ranges covering view 5's 71 source elements over decoded image strips.
+///
+/// The leading zero-count record retains the backdrop; `SPRITE_BATCH_END` ends the list.
+static SpriteBatch _gDryfieldGeneralStoreView5SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
     { 8, 6, 0, 0, { 3, 0 } },
@@ -693,7 +731,8 @@ SpriteBatch D_dryfield_general_store_801811CC[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80181204[78] = {
+/// Texture rectangles and sorting depths for General Store view 6.
+static SpriteSource _gDryfieldGeneralStoreView6SpriteSources[78] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, -16, 1327, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, -64, 1350, { .fields = { 56, 96 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, -40, 1350, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
@@ -774,7 +813,10 @@ SpriteSource D_dryfield_general_store_80181204[78] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 88, 775, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_8018181C[5] = {
+/// Sprite ranges covering view 6's 78 source elements over decoded image strips.
+///
+/// The leading zero-count record retains the backdrop; `SPRITE_BATCH_END` ends the list.
+static SpriteBatch _gDryfieldGeneralStoreView6SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 1, 0 } },
     { 12, 40, 0, 0, { 2, 0 } },
@@ -782,7 +824,8 @@ SpriteBatch D_dryfield_general_store_8018181C[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80181844[77] = {
+/// Texture rectangles and sorting depths for General Store view 7.
+static SpriteSource _gDryfieldGeneralStoreView7SpriteSources[77] = {
     { 142, 0x3FC0, { .fields = { 8, 8 } }, 72, 96, 475, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 104, 32, 387, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 120, 32, 312, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
@@ -862,7 +905,10 @@ SpriteSource D_dryfield_general_store_80181844[77] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 80, -16, 930, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_80181E48[5] = {
+/// Sprite ranges covering view 7's 77 source elements over decoded image strips.
+///
+/// The leading zero-count record retains the backdrop; `SPRITE_BATCH_END` ends the list.
+static SpriteBatch _gDryfieldGeneralStoreView7SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 1, 0 } },
     { 22, 33, 0, 0, { 2, 0 } },
@@ -870,7 +916,8 @@ SpriteBatch D_dryfield_general_store_80181E48[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80181E70[99] = {
+/// Texture rectangles and sorting depths for General Store view 8.
+static SpriteSource _gDryfieldGeneralStoreView8SpriteSources[99] = {
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -32, -24, 1600, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, -64, -40, 1525, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -32, 1624, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
@@ -972,7 +1019,10 @@ SpriteSource D_dryfield_general_store_80181E70[99] = {
     { 143, 0x3FC0, { .fields = { 16, 40 } }, 88, -72, 1450, { .fields = { 8, 120 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_8018262C[7] = {
+/// Sprite ranges covering view 8's 99 source elements over decoded image strips.
+///
+/// The leading zero-count record retains the backdrop; `SPRITE_BATCH_END` ends the list.
+static SpriteBatch _gDryfieldGeneralStoreView8SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
     { 8, 7, 0, 0, { 3, 0 } },
@@ -982,7 +1032,8 @@ SpriteBatch D_dryfield_general_store_8018262C[7] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_general_store_80182664[90] = {
+/// Texture rectangles and sorting depths for General Store view 9.
+static SpriteSource _gDryfieldGeneralStoreView9SpriteSources[90] = {
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 8, -64, 1437, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 8, -40, 1450, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, 8, -16, 1443, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
@@ -1075,7 +1126,10 @@ SpriteSource D_dryfield_general_store_80182664[90] = {
     { 142, 0x3FC0, { .fields = { 8, 24 } }, -16, 32, 1125, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_general_store_80182D6C[6] = {
+/// Sprite ranges covering view 9's 90 source elements over decoded image strips.
+///
+/// The leading zero-count record retains the backdrop; `SPRITE_BATCH_END` ends the list.
+static SpriteBatch _gDryfieldGeneralStoreView9SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 3, 0 } },
     { 8, 31, 0, 0, { 0, 0 } },
@@ -1373,15 +1427,15 @@ SpriteBatch D_dryfield_general_store_8018401C[2] = {
 };
 
 SpriteView D_dryfield_general_store_8018402C[16] = {
-    { { .empty = D_dryfield_general_store_8017F49C }, D_dryfield_general_store_8017F49C, NULL },
-    { { .elements = D_dryfield_general_store_8017F4AC }, D_dryfield_general_store_8017FC90, NULL },
-    { { .elements = D_dryfield_general_store_8017FCE8 }, D_dryfield_general_store_8018051C, NULL },
-    { { .elements = D_dryfield_general_store_80180554 }, D_dryfield_general_store_80180BF8, NULL },
-    { { .elements = D_dryfield_general_store_80180C40 }, D_dryfield_general_store_801811CC, NULL },
-    { { .elements = D_dryfield_general_store_80181204 }, D_dryfield_general_store_8018181C, NULL },
-    { { .elements = D_dryfield_general_store_80181844 }, D_dryfield_general_store_80181E48, NULL },
-    { { .elements = D_dryfield_general_store_80181E70 }, D_dryfield_general_store_8018262C, NULL },
-    { { .elements = D_dryfield_general_store_80182664 }, D_dryfield_general_store_80182D6C, NULL },
+    { { .empty = _gDryfieldGeneralStoreView1SpriteBatches }, _gDryfieldGeneralStoreView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView2SpriteSources }, _gDryfieldGeneralStoreView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView3SpriteSources }, _gDryfieldGeneralStoreView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView4SpriteSources }, _gDryfieldGeneralStoreView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView5SpriteSources }, _gDryfieldGeneralStoreView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView6SpriteSources }, _gDryfieldGeneralStoreView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView7SpriteSources }, _gDryfieldGeneralStoreView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView8SpriteSources }, _gDryfieldGeneralStoreView8SpriteBatches, NULL },
+    { { .elements = _gDryfieldGeneralStoreView9SpriteSources }, _gDryfieldGeneralStoreView9SpriteBatches, NULL },
     { { .elements = D_dryfield_general_store_80182D9C }, D_dryfield_general_store_801833F0, NULL },
     { { .elements = D_dryfield_general_store_80183420 }, D_dryfield_general_store_80183808, NULL },
     { { .elements = D_dryfield_general_store_80183828 }, D_dryfield_general_store_80183AD0, NULL },
@@ -1453,27 +1507,41 @@ WorldCollisionOccluder D_dryfield_general_store_80184F78[4] = {
     { NULL, NULL, { 1824, -64, 1568, 0 }, { { 0, -768, 1376, 0 }, { 0, -640, -1376, 0 }, { 0, 640, 1376, 0 }, { 0, 768, -1376, 0 } }, { -4100, 0, 0, 0 }, 1572, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCoordPointLight D_dryfield_general_store_80185068[12] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1000, -1745, 900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3000, -1745, 900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6750, -1745, 900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8000, -1745, 900 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -3505, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4014, 3768 }, { 0, 0 } }, 3000, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5000, -1250, 7700 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2375, 2211, 1966 }, { 0, 0 } }, 4000, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1497, -1750, 6760 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3686, 2867 }, { 0, 0 } }, 250, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5855, -1177, 5307 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+/// Twelve point lights shading models throughout the General Store.
+///
+/// Positions and falloff radii are room game units; RGB uses 12 fractional bits.
+/// All views admit these lights. Runtime composition and attenuation keep them writable.
+static WorldCoordPointLight _gDryfieldGeneralStorePointLights[12] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1000, -1745, 900 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3000, -1745, 900 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6750, -1745, 900 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8000, -1745, 900 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -3505, 1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 4014, 3768 }, { 0, 0 } }, 3000, 10000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5000, -1250, 7700 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2375, 2211, 1966 }, { 0, 0 } }, 4000, 10000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1497, -1750, 6760 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3686, 2867 }, { 0, 0 } }, 250, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5855, -1177, 5307 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 901, 1556, 1966 }, { 0, 0 } }, 1000, 1500 },
 };
 
-WorldCoordRoomLights D_dryfield_general_store_801854E8[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_general_store_80185068), D_dryfield_general_store_80185068, 0, NULL },
+/// The room's point-light collection, with no directional or cone lights.
+static WorldCoordRoomLights _gDryfieldGeneralStoreRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldGeneralStorePointLights),
+    .pointLights           = _gDryfieldGeneralStorePointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_general_store_80185500) - 1 },
+/// Minimum ambient colours for the room's sixteen logical views.
+///
+/// Entry zero counts the following colours; each view uses its 1-based index.
+/// RGB minima use 16 units per 8-bit colour level.
+static WorldCoordRoomAmbientEntry _gDryfieldGeneralStoreAmbientByView[17] = {
+    { .viewCount = ARRAY_SIZE(_gDryfieldGeneralStoreAmbientByView) - 1 },
     { .color = { 16, 0, 0, 6 } },
     { .color = { 16, 0, 0, 6 } },
     { .color = { 16, 0, 0, 6 } },
@@ -1531,29 +1599,54 @@ AreaVariant D_dryfield_general_store_80185654[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_dryfield_general_store_801856BC = {
-    0x10000051,
-    0x10000053,
-    0x10000054,
+/// Animation cue-2 footstep bases in the loaded type-1 sound bank.
+enum {
+    DRYFIELD_GENERAL_STORE_CLASS_1_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_GENERAL_STORE_CLASS_1_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53,
+    DRYFIELD_GENERAL_STORE_CLASS_1_JUMP_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x54,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_general_store_801856C8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 1's walking, running and scripted-jump footstep requests.
+///
+/// Cue pairs are 0x51/0x52, 0x53/0x54 and 0x54/0x55 in the loaded type-1 bank;
+/// companion playback adds 100 to the selected entry. The run and jump pairs overlap.
+static WorldCollisionFootstepSounds _gDryfieldGeneralStoreClass1FootstepSounds = {
+    .walk         = DRYFIELD_GENERAL_STORE_CLASS_1_WALK_CUE_BASE,
+    .run          = DRYFIELD_GENERAL_STORE_CLASS_1_RUN_CUE_BASE,
+    .scriptedJump = DRYFIELD_GENERAL_STORE_CLASS_1_JUMP_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_general_store_801856D0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_general_store_801856BC },
+/// Silent blocking surface shared by classes 0 and 2 through 7.
+///
+/// Enables weapon impacts and collision pushback; supplies no footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldGeneralStoreSilentBlockingSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_general_store_801856D8[8] = {
-    D_dryfield_general_store_801856C8,
-    D_dryfield_general_store_801856D0,
-    D_dryfield_general_store_801856C8,
-    D_dryfield_general_store_801856C8,
-    D_dryfield_general_store_801856C8,
-    D_dryfield_general_store_801856C8,
-    D_dryfield_general_store_801856C8,
-    D_dryfield_general_store_801856C8,
+/// Class 1's blocking surface with walking, running and scripted-jump cues.
+///
+/// Enables weapon impacts and pushback. The cue record lives with this overlay.
+static WorldCollisionSurfaceProperties _gDryfieldGeneralStoreClass1SurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldGeneralStoreClass1FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldGeneralStoreSurfacePropertiesByClass[8] = {
+    &_gDryfieldGeneralStoreSilentBlockingSurface,
+    &_gDryfieldGeneralStoreClass1SurfaceProperties,
+    &_gDryfieldGeneralStoreSilentBlockingSurface,
+    &_gDryfieldGeneralStoreSilentBlockingSurface,
+    &_gDryfieldGeneralStoreSilentBlockingSurface,
+    &_gDryfieldGeneralStoreSilentBlockingSurface,
+    &_gDryfieldGeneralStoreSilentBlockingSurface,
+    &_gDryfieldGeneralStoreSilentBlockingSurface,
 };
 
 u8 gStoreSavedView = 0;
