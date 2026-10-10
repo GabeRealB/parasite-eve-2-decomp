@@ -35,6 +35,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "mapui/map_dryfield_full.h"
@@ -64,7 +65,7 @@ extern WorldCollisionGrid     D_dryfield_night_parking_lot_8017FAD0[1];
 extern WorldCollisionOccluder D_dryfield_night_parking_lot_80181330[2];
 extern WorldCollisionTrigger  D_dryfield_night_parking_lot_80180CA8[10];
 extern WorldCollisionTrigger  D_dryfield_night_parking_lot_80180FA0[12];
-extern WorldCoordRoomLights   D_dryfield_night_parking_lot_80180C90[1];
+static WorldCoordRoomLights   _gDryfieldNightParkingLotRoomLights;
 
 static AnimationPackedPose _gDryfieldNightParkingLotAnimation0166CBank1[10] = {
 #include "assets/dryfield_night_parking_lot_animation_0166C_bank1.inc"
@@ -160,9 +161,9 @@ SVECTOR D_dryfield_night_parking_lot_8017EDFC[3] = {
     { 3930, -2480, 1380, 0 },
 };
 
-WorldCoordRoomLighting D_dryfield_night_parking_lot_8017EE14[2] = {
-    { D_dryfield_night_parking_lot_80180C90, NULL },
-    { D_dryfield_night_parking_lot_80180C90, NULL },
+WorldCoordRoomLighting gDryfieldNightParkingLotRoomLighting[2] = {
+    { .lights = &_gDryfieldNightParkingLotRoomLights, .ambientTable = NULL },
+    { .lights = &_gDryfieldNightParkingLotRoomLights, .ambientTable = NULL },
 };
 
 WorldCollisionRoomResources D_dryfield_night_parking_lot_8017EE24[2] = {
@@ -170,7 +171,11 @@ WorldCollisionRoomResources D_dryfield_night_parking_lot_8017EE24[2] = {
     { D_dryfield_night_parking_lot_8017FAD0, D_dryfield_night_parking_lot_80180CA8, D_dryfield_night_parking_lot_80180FA0, D_dryfield_night_parking_lot_80181330 },
 };
 
-u8 D_dryfield_night_parking_lot_8017EE44[8] = {
+/// Room 2's seven logical views mapped to camera, image and sprite indices.
+///
+/// Views 1..7 index the first seven bytes; the retained eighth zero byte is
+/// outside the view count and is not a terminator.
+static u8 _gDryfieldNightParkingLotRoom2ViewMap[8] = {
     1,
     8,
     3,
@@ -181,9 +186,9 @@ u8 D_dryfield_night_parking_lot_8017EE44[8] = {
     0,
 };
 
-u8* D_dryfield_night_parking_lot_8017EE4C[2] = {
+u8* gDryfieldNightParkingLotViewMaps[2] = {
     gViewIdentityMap,
-    D_dryfield_night_parking_lot_8017EE44,
+    _gDryfieldNightParkingLotRoom2ViewMap,
 };
 
 ViewCount D_dryfield_night_parking_lot_8017EE54[2] = { 7, 7 };
@@ -236,182 +241,247 @@ ViewCamera D_dryfield_night_parking_lot_8017FAF4[11] = {
     { { { { 814, 0, -4014 }, { 596, 4050, 121 }, { 3969, -609, 805 } }, { -6266, 636, -2232 } }, 230 },
 };
 
-SpriteBatch D_dryfield_night_parking_lot_8017FC80[2] = {
+/// Eight-bit sprite pages at (896, 0)/(960, 0), palette rows and neutral RGB.
+enum {
+    DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE  = getTPage(1, 0, 896, 0),
+    DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE = getTPage(1, 0, 960, 0),
+    DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT        = getClut(0, 255),
+    DRYFIELD_NIGHT_PARKING_LOT_SPRITE_ALT_CLUT    = getClut(0, 256),
+    DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB = 128,
+};
+
+/// Mapped view 1's empty batch list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightParkingLotView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_parking_lot_8017FC90[10] = {
-    { 143, 0x3FC0, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 88 } }, -56, 32, 500, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 96 } }, 0, 24, 500, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 112 } }, 40, 8, 625, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 120 } }, 72, 0, 650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 80 } }, 0, -32, 2750, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 88 } }, 40, -32, 3000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 80 } }, 96, -24, 6250, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+/// Ten depth-sorted sprite rectangles for room 1's logical view 2 (mapped view 2).
+///
+/// Positions are pixels relative to the view centre; depth is an unscaled
+/// sorting value. The batch list selects all ten elements without a source
+/// terminator. The loaded overlay owns these writable source records.
+static SpriteSource _gDryfieldNightParkingLotView2SpriteSources[10] = {
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 88 } }, -56, 32, 500, { .fields = { 88, 88 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 96 } }, 0, 24, 500, { .fields = { 40, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 112 } }, 40, 8, 625, { .fields = { 96, 120 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 120 } }, 72, 0, 650, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 80 } }, 0, -32, 2750, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 88 } }, 40, -32, 3000, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 80 } }, 96, -24, 6250, { .fields = { 88, 176 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_parking_lot_8017FD58[4] = {
+/// Mapped view 2's two sprite ranges, after the zero-count background record.
+///
+/// Ranges cover elements 0..6 and 7..9; the final record ends the list.
+static SpriteBatch _gDryfieldNightParkingLotView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
-    { 7, 3, 0, 0, { 0, 0 } },
+    { 7, ARRAY_SIZE(_gDryfieldNightParkingLotView2SpriteSources) - 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_dryfield_night_parking_lot_8017FD78[2] = {
+/// Mapped view 2's pixel clip (136, 0, 182, 239), restored at sorting depth 2250.
+///
+/// Coordinates are relative to the draw buffer, before its VRAM Y offset.
+/// The second record terminates the list and emits no drawing command.
+static SpriteDrawArea _gDryfieldNightParkingLotView2SpriteDrawAreas[2] = {
     { { 136, 0, 182, 239 }, 2250 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_dryfield_night_parking_lot_8017FD8C[24] = {
-    { 142, 0x3FC0, { .fields = { 120, 8 } }, -128, 72, 625, { .fields = { 40, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 136, 8 } }, -40, 80, 625, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, 72, 88, 625, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 16, 1000, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, -96, -40, 750, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -160, -120, 625, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -112, -120, 625, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -64, -104, 625, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -32, -88, 625, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 0, -80, 625, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 16, -80, 925, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -96, 925, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 0, -56, 925, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -40, 1125, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 8, -32, 1350, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -40, 925, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, 40, -112, 925, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, 56, -120, 925, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, 56, -64, 925, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, 112, -120, 925, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, 112, -64, 925, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, 64, -8, 925, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 112, -8, 925, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, 104, 16, 925, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
+/// Twenty-four depth-sorted sprite rectangles for logical view 3 in both rooms.
+///
+/// Mapped view 3 uses all elements through its batch list. Positions are
+/// pixels relative to the view centre; depths are unscaled sorting values.
+/// The loaded overlay owns the writable records; sources have no terminator.
+static SpriteSource _gDryfieldNightParkingLotView3SpriteSources[24] = {
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 120, 8 } }, -128, 72, 625, { .fields = { 40, 16 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 136, 8 } }, -40, 80, 625, { .fields = { 56, 48 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 88, 8 } }, 72, 88, 625, { .fields = { 24, 248 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 16 } }, -112, 16, 1000, { .fields = { 8, 168 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 56 } }, -96, -40, 750, { .fields = { 80, 96 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 24 } }, -160, -120, 625, { .fields = { 120, 224 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 32 } }, -112, -120, 625, { .fields = { 32, 168 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 24 } }, -64, -104, 625, { .fields = { 40, 224 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 24 } }, -32, -88, 625, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 24 } }, 0, -80, 625, { .fields = { 96, 56 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 24 } }, 16, -80, 925, { .fields = { 40, 24 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, -96, 925, { .fields = { 80, 80 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 16 } }, 0, -56, 925, { .fields = { 120, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 8 } }, 8, -40, 1125, { .fields = { 112, 248 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 24 } }, 8, -32, 1350, { .fields = { 80, 56 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, -40, 925, { .fields = { 96, 80 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 96 } }, 40, -112, 925, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 56 } }, 56, -120, 925, { .fields = { 24, 56 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 56 } }, 56, -64, 925, { .fields = { 24, 112 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 56 } }, 112, -120, 925, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 56 } }, 112, -64, 925, { .fields = { 80, 152 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 24 } }, 64, -8, 925, { .fields = { 120, 24 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 24 } }, 112, -8, 925, { .fields = { 24, 200 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 40 } }, 104, 16, 925, { .fields = { 72, 208 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_parking_lot_8017FF6C[3] = {
+/// Mapped view 3's complete sprite range, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightParkingLotView3SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 24, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightParkingLotView3SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_parking_lot_8017FF84[16] = {
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 48, -88, 925, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 80, -80, 925, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, -72, 925, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 48 } }, -160, 72, 550, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 240 } }, -160, -120, 1000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 240 } }, -144, -120, 1000, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 224 } }, -120, -120, 1000, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 176 } }, -96, -96, 1125, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 136 } }, -80, -72, 1250, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -72, -56, 1250, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 96 } }, -88, -48, 2000, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 168 } }, -72, -112, 2000, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 32, 8, 1657, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 48 } }, 40, 8, 1470, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 56 } }, 48, 0, 1407, { .fields = { 32, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 64 } }, 64, -8, 1419, { .fields = { 48, 176 } }, 128, 128, 128, 0 },
+/// Sixteen depth-sorted sprite rectangles for logical view 4 in both rooms.
+///
+/// Mapped view 4 uses all elements through four batch ranges. The last six
+/// elements use the alternate palette. Positions are view-centred pixels;
+/// depths are unscaled sorting values. These writable sources have no terminator.
+static SpriteSource _gDryfieldNightParkingLotView4SpriteSources[16] = {
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 16 } }, 48, -88, 925, { .fields = { 96, 240 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 8 } }, 80, -80, 925, { .fields = { 48, 248 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 24 } }, 112, -72, 925, { .fields = { 32, 224 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 48 } }, -160, 72, 550, { .fields = { 88, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 240 } }, -160, -120, 1000, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 240 } }, -144, -120, 1000, { .fields = { 88, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 224 } }, -120, -120, 1000, { .fields = { 64, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 176 } }, -96, -96, 1125, { .fields = { 48, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 8, 136 } }, -80, -72, 1250, { .fields = { 16, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 24 } }, -72, -56, 1250, { .fields = { 72, 224 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_ALT_CLUT, { .fields = { 16, 96 } }, -88, -48, 2000, { .fields = { 8, 136 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_ALT_CLUT, { .fields = { 24, 168 } }, -72, -112, 2000, { .fields = { 24, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_ALT_CLUT, { .fields = { 8, 48 } }, 32, 8, 1657, { .fields = { 24, 168 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_ALT_CLUT, { .fields = { 8, 48 } }, 40, 8, 1470, { .fields = { 8, 48 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_ALT_CLUT, { .fields = { 16, 56 } }, 48, 0, 1407, { .fields = { 32, 168 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_ALT_CLUT, { .fields = { 16, 64 } }, 64, -8, 1419, { .fields = { 48, 176 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_parking_lot_801800C4[6] = {
+/// Mapped view 4's four contiguous sprite ranges and terminal record.
+///
+/// The leading zero-count record retains decoded background strips. Ranges
+/// select elements 0..3, 4..9, 10..11 and 12..15 without gaps or overlap.
+static SpriteBatch _gDryfieldNightParkingLotView4SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 3, 0 } },
     { 4, 6, 0, 0, { 0, 0 } },
     { 10, 2, 0, 0, { 2, 0 } },
-    { 12, 4, 0, 0, { 1, 0 } },
+    { 12, ARRAY_SIZE(_gDryfieldNightParkingLotView4SpriteSources) - 12, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_parking_lot_801800F4[7] = {
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, -104, 650, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 136 } }, -160, -48, 650, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -128, 88, 750, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 650, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, 40, 750, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+/// Seven depth-sorted sprite rectangles for room 1's logical view 5 (mapped view 5).
+///
+/// The batch list selects all elements. Positions are view-centred pixels;
+/// depths are unscaled sorting values. The loaded overlay owns the writable
+/// sources, which have no terminator.
+static SpriteSource _gDryfieldNightParkingLotView5SpriteSources[7] = {
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 136 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 56 } }, -144, -104, 650, { .fields = { 112, 192 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 136 } }, -160, -48, 650, { .fields = { 104, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 24 } }, -128, 88, 750, { .fields = { 64, 56 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, 88, 650, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, -136, 40, 750, { .fields = { 64, 192 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_parking_lot_80180180[3] = {
+/// Mapped view 5's complete sprite range, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightParkingLotView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightParkingLotView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_parking_lot_80180198[21] = {
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, 64, 500, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, 64, 500, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, 24, 500, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, 24, 500, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -16, 525, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -16, 500, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 80, -56, 500, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 40 } }, 120, -56, 500, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, 120, -80, 500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 16, -120, 1012, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, 16, -72, 1012, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, 16, -24, 1012, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 16, 24, 1012, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, 24, 1012, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -24, 1012, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -72, 1012, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 64, -120, 1012, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 1012, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -72, 1012, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -24, 1012, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, 24, 1012, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+/// Twenty-one depth-sorted sprite rectangles for room 1's logical view 6.
+///
+/// Mapped view 6 selects all elements through two batches. Positions are
+/// view-centred pixels; depths are unscaled sorting values. The loaded
+/// overlay owns the writable sources, which have no terminator.
+static SpriteSource _gDryfieldNightParkingLotView6SpriteSources[21] = {
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, 64, 500, { .fields = { 80, 176 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, 64, 500, { .fields = { 120, 136 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, 24, 500, { .fields = { 80, 216 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, 24, 500, { .fields = { 80, 136 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, -16, 525, { .fields = { 80, 96 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, -16, 500, { .fields = { 120, 176 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 80, -56, 500, { .fields = { 120, 216 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 40 } }, 120, -56, 500, { .fields = { 120, 96 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 24 } }, 120, -80, 500, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 16, -120, 1012, { .fields = { 80, 144 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 16, -72, 1012, { .fields = { 112, 48 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 16, -24, 1012, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 16, 24, 1012, { .fields = { 32, 48 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, 24, 1012, { .fields = { 32, 144 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -24, 1012, { .fields = { 32, 96 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -72, 1012, { .fields = { 32, 192 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 64, -120, 1012, { .fields = { 32, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -120, 1012, { .fields = { 80, 192 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -72, 1012, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, -24, 1012, { .fields = { 80, 96 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, 112, 24, 1012, { .fields = { 80, 48 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_parking_lot_8018033C[4] = {
+/// Mapped view 6's ranges 0..8 and 9..20, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightParkingLotView6SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 9, 0, 0, { 1, 0 } },
-    { 9, 12, 0, 0, { 0, 0 } },
+    { 9, ARRAY_SIZE(_gDryfieldNightParkingLotView6SpriteSources) - 9, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_parking_lot_8018035C[2] = {
+/// Room 1 logical view 7's empty sprite list, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightParkingLotView7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_parking_lot_8018036C[10] = {
-    { 143, 0x3FC0, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 88 } }, -56, 32, 500, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 96 } }, 0, 24, 500, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 112 } }, 40, 8, 625, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 120 } }, 72, 0, 650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 80 } }, 0, -32, 2750, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 88 } }, 40, -32, 3000, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 80 } }, 96, -24, 6250, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+/// Ten depth-sorted sprite rectangles for room 2's logical view 2 (mapped view 8).
+///
+/// The batch list selects all ten elements. Positions are view-centred pixels;
+/// depths are unscaled sorting values. This is separate writable storage from
+/// mapped view 2's sources, even though the initial rectangle values agree.
+static SpriteSource _gDryfieldNightParkingLotView8SpriteSources[10] = {
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 88 } }, -160, 32, 500, { .fields = { 16, 96 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 80 } }, -104, 40, 500, { .fields = { 64, 80 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 104 } }, -80, 16, 500, { .fields = { 72, 120 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 88 } }, -56, 32, 500, { .fields = { 88, 88 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 96 } }, 0, 24, 500, { .fields = { 40, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 112 } }, 40, 8, 625, { .fields = { 96, 120 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 120 } }, 72, 0, 650, { .fields = { 80, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 80 } }, 0, -32, 2750, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 88 } }, 40, -32, 3000, { .fields = { 112, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_LEFT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 56, 80 } }, 96, -24, 6250, { .fields = { 88, 176 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
 };
 
-SpriteBatch D_dryfield_night_parking_lot_80180434[4] = {
+/// Mapped view 8's ranges 0..6 and 7..9, retaining decoded background strips.
+static SpriteBatch _gDryfieldNightParkingLotView8SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
-    { 7, 3, 0, 0, { 0, 0 } },
+    { 7, ARRAY_SIZE(_gDryfieldNightParkingLotView8SpriteSources) - 7, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_dryfield_night_parking_lot_80180454[2] = {
+/// Mapped view 8's pixel clip (136, 0, 182, 239), restored at sorting depth 2250.
+///
+/// Coordinates are relative to the draw buffer, before its VRAM Y offset.
+/// The second record terminates the list and emits no drawing command.
+static SpriteDrawArea _gDryfieldNightParkingLotView8SpriteDrawAreas[2] = {
     { { 136, 0, 182, 239 }, 2250 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_dryfield_night_parking_lot_80180468[7] = {
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -144, -104, 650, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 136 } }, -160, -48, 650, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -128, 88, 750, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 88, 650, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, 40, 750, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
+/// Seven depth-sorted sprite rectangles for room 2's logical view 5 (mapped view 9).
+///
+/// The batch list selects all elements. Positions are view-centred pixels;
+/// depths are unscaled sorting values. This is separate writable storage from
+/// mapped view 5's sources, even though the initial rectangle values agree.
+static SpriteSource _gDryfieldNightParkingLotView9SpriteSources[7] = {
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 56 } }, 120, 56, 725, { .fields = { 88, 136 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 80, 24 } }, -128, -120, 650, { .fields = { 24, 32 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 16, 56 } }, -144, -104, 650, { .fields = { 112, 192 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 24, 136 } }, -160, -48, 650, { .fields = { 104, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 40, 24 } }, -128, 88, 750, { .fields = { 64, 56 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, 88, 650, { .fields = { 72, 0 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_PARKING_LOT_SPRITE_RIGHT_TPAGE, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_CLUT, { .fields = { 48, 48 } }, -136, 40, 750, { .fields = { 64, 192 } }, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_PARKING_LOT_SPRITE_NEUTRAL_RGB, 0 },
 };
 
 SpriteBatch D_dryfield_night_parking_lot_801804F4[3] = {
@@ -441,41 +511,57 @@ SpriteBatch D_dryfield_night_parking_lot_8018059C[2] = {
 };
 
 SpriteView D_dryfield_night_parking_lot_801805AC[11] = {
-    { { .empty = D_dryfield_night_parking_lot_8017FC80 }, D_dryfield_night_parking_lot_8017FC80, NULL },
-    { { .elements = D_dryfield_night_parking_lot_8017FC90 }, D_dryfield_night_parking_lot_8017FD58, D_dryfield_night_parking_lot_8017FD78 },
-    { { .elements = D_dryfield_night_parking_lot_8017FD8C }, D_dryfield_night_parking_lot_8017FF6C, NULL },
-    { { .elements = D_dryfield_night_parking_lot_8017FF84 }, D_dryfield_night_parking_lot_801800C4, NULL },
-    { { .elements = D_dryfield_night_parking_lot_801800F4 }, D_dryfield_night_parking_lot_80180180, NULL },
-    { { .elements = D_dryfield_night_parking_lot_80180198 }, D_dryfield_night_parking_lot_8018033C, NULL },
-    { { .empty = D_dryfield_night_parking_lot_8018035C }, D_dryfield_night_parking_lot_8018035C, NULL },
-    { { .elements = D_dryfield_night_parking_lot_8018036C }, D_dryfield_night_parking_lot_80180434, D_dryfield_night_parking_lot_80180454 },
-    { { .elements = D_dryfield_night_parking_lot_80180468 }, D_dryfield_night_parking_lot_801804F4, NULL },
+    { { .empty = _gDryfieldNightParkingLotView1SpriteBatches }, _gDryfieldNightParkingLotView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightParkingLotView2SpriteSources }, _gDryfieldNightParkingLotView2SpriteBatches, _gDryfieldNightParkingLotView2SpriteDrawAreas },
+    { { .elements = _gDryfieldNightParkingLotView3SpriteSources }, _gDryfieldNightParkingLotView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightParkingLotView4SpriteSources }, _gDryfieldNightParkingLotView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightParkingLotView5SpriteSources }, _gDryfieldNightParkingLotView5SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightParkingLotView6SpriteSources }, _gDryfieldNightParkingLotView6SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightParkingLotView7SpriteBatches }, _gDryfieldNightParkingLotView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightParkingLotView8SpriteSources }, _gDryfieldNightParkingLotView8SpriteBatches, _gDryfieldNightParkingLotView8SpriteDrawAreas },
+    { { .elements = _gDryfieldNightParkingLotView9SpriteSources }, D_dryfield_night_parking_lot_801804F4, NULL },
     { { .elements = D_dryfield_night_parking_lot_8018050C }, D_dryfield_night_parking_lot_80180584, NULL },
     { { .empty = D_dryfield_night_parking_lot_8018059C }, D_dryfield_night_parking_lot_8018059C, NULL },
 };
 
-WorldCoordPointLight D_dryfield_night_parking_lot_80180630[17] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, -2680, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2211, 2457, 2703 }, { 0, 0 } }, 0x186A0, 0x186A0 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8450, -1990, -5560 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1802, 1884, 1966 }, { 0, 0 } }, 3000, 5000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2970, -2190, 780 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3440, 3194 }, { 0, 0 } }, 1000, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3220, -2190, -4630 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3604, 3522, 3276 }, { 0, 0 } }, 2500, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 130, -2190, 2660 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3440, 3194 }, { 0, 0 } }, 1000, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3930, -2190, 1380 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3440, 3194 }, { 0, 0 } }, 1000, 2200 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -730, -2010, 440 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2211 }, { 0, 0 } }, 1000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3010, -1970, 2800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3850, 3440 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7290, -2010, 2980 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3031, 2949, 2539 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2760, -2010, 2980 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3031, 2949, 2539 }, { 0, 0 } }, 500, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7480, -1990, -1610 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3522, 3031 }, { 0, 0 } }, 2000, 4000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 990, -1970, 2800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3850, 3440 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4990, -1970, 2800 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3850, 3440 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7210, -1420, 3730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3850, 3440 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9250, -1420, 3730 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3850, 3440 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 640, -1520, 350 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2211 }, { 0, 0 } }, 500, 800 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1500, -1520, 350 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2211 }, { 0, 0 } }, 500, 800 },
+/// Seventeen point lights admitted in every logical view of both parking-lot rooms.
+///
+/// Local translations and falloff radii use world-coordinate units; RGB uses
+/// 12 fractional bits. Coordinate setup parents the writable transforms to the
+/// current view, and lighting queries overwrite attenuation. The room-light
+/// collection counts the whole array, with no sentinel or spare entries.
+static WorldCoordPointLight _gDryfieldNightParkingLotPointLights[17] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, -2680, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2211, 2457, 2703 }, { 0, 0 } }, 100000, 100000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -8450, -1990, -5560 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1802, 1884, 1966 }, { 0, 0 } }, 3000, 5000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -2970, -2190, 780 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3440, 3194 }, { 0, 0 } }, 1000, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3220, -2190, -4630 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3604, 3522, 3276 }, { 0, 0 } }, 2500, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 130, -2190, 2660 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3440, 3194 }, { 0, 0 } }, 1000, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3930, -2190, 1380 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3522, 3440, 3194 }, { 0, 0 } }, 1000, 2200 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -730, -2010, 440 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2211 }, { 0, 0 } }, 1000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3010, -1970, 2800 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3850, 3440 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7290, -2010, 2980 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3031, 2949, 2539 }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2760, -2010, 2980 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3031, 2949, 2539 }, { 0, 0 } }, 500, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7480, -1990, -1610 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3522, 3031 }, { 0, 0 } }, 2000, 4000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 990, -1970, 2800 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3850, 3440 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4990, -1970, 2800 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3850, 3440 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7210, -1420, 3730 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3850, 3440 }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9250, -1420, 3730 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3850, 3440 }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 640, -1520, 350 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2211 }, { 0, 0 } }, 500, 800 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1500, -1520, 350 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 2949, 2211 }, { 0, 0 } }, 500, 800 },
 };
 
-WorldCoordRoomLights D_dryfield_night_parking_lot_80180C90[1] = {
-    { 0, NULL, ARRAY_SIZE(D_dryfield_night_parking_lot_80180630), D_dryfield_night_parking_lot_80180630, 0, NULL },
+/// The point-light collection shared by both logical parking-lot rooms.
+///
+/// No directional or cone lights are supplied. The overlay owns the writable
+/// point lights; coordinate setup and shading update their transform caches
+/// and attenuation while the room is loaded.
+static WorldCoordRoomLights _gDryfieldNightParkingLotRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightParkingLotPointLights),
+    .pointLights           = _gDryfieldNightParkingLotPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_dryfield_night_parking_lot_80180CA8[10] = {
@@ -563,57 +649,110 @@ AreaVariant D_dryfield_night_parking_lot_80181438[22] = {
     { D_map_dryfield_full_8017BC08, D_dryfield_night_parking_lot_80181420 },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_parking_lot_801814E8 = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Cue-2 script bases in the loaded type-1 bank; cue 1 selects base + 1.
+enum {
+    DRYFIELD_NIGHT_PARKING_LOT_CLASS5_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x49,
+    DRYFIELD_NIGHT_PARKING_LOT_CLASS5_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x4B,
+    DRYFIELD_NIGHT_PARKING_LOT_CLASS2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3D,
+    DRYFIELD_NIGHT_PARKING_LOT_CLASS2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3F,
+    DRYFIELD_NIGHT_PARKING_LOT_CLASS3_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x51,
+    DRYFIELD_NIGHT_PARKING_LOT_CLASS3_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x53,
+    DRYFIELD_NIGHT_PARKING_LOT_CLASS3_JUMP_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x55,
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_parking_lot_801814F4 = {
-    0x1000003D,
-    0x1000003F,
-    0x1000003D,
+/// Walk/run footstep pairs for classes 5 and 6; scripted jumps use the walk pair.
+///
+/// Cue 1 adds one to the cue-2 base; companion playback adds 100. Surface
+/// records borrow these requests while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldNightParkingLotClass5FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_PARKING_LOT_CLASS5_WALK_SOUND,
+    .run          = DRYFIELD_NIGHT_PARKING_LOT_CLASS5_RUN_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_PARKING_LOT_CLASS5_WALK_SOUND,
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_parking_lot_80181500 = {
-    0x10000051,
-    0x10000053,
-    0x10000055,
+/// Class 2's walk/run footstep pairs; scripted jumps use the walk pair.
+///
+/// Cue 1 adds one to the cue-2 base; companion playback adds 100. Surface
+/// records borrow these requests while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldNightParkingLotClass2FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_PARKING_LOT_CLASS2_WALK_SOUND,
+    .run          = DRYFIELD_NIGHT_PARKING_LOT_CLASS2_RUN_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_PARKING_LOT_CLASS2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_parking_lot_8018150C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 3's separate walk, run and scripted-jump footstep pairs.
+///
+/// Cue 1 adds one to the cue-2 base; companion playback adds 100. Surface
+/// records borrow these requests while the room overlay is loaded.
+static WorldCollisionFootstepSounds _gDryfieldNightParkingLotClass3FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_PARKING_LOT_CLASS3_WALK_SOUND,
+    .run          = DRYFIELD_NIGHT_PARKING_LOT_CLASS3_RUN_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_PARKING_LOT_CLASS3_JUMP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_parking_lot_80181514[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_parking_lot_801814E8 },
+/// Blocking policy shared by classes 0, 4 and 7, without surface footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightParkingLotSilentBlockingSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_parking_lot_8018151C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_parking_lot_801814F4 },
+/// Class 5's blocking policy and borrowed walk/run footstep pairs.
+static WorldCollisionSurfaceProperties _gDryfieldNightParkingLotClass5Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightParkingLotClass5FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_parking_lot_80181524[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_parking_lot_80181500 },
+/// Class 2's blocking policy and borrowed walk/run footstep pairs.
+static WorldCollisionSurfaceProperties _gDryfieldNightParkingLotClass2Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightParkingLotClass2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_parking_lot_8018152C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 3's blocking policy and borrowed walk/run/scripted-jump footstep pairs.
+static WorldCollisionSurfaceProperties _gDryfieldNightParkingLotClass3Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightParkingLotClass3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_parking_lot_80181534[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_parking_lot_801814E8 },
+/// Class 1's probe-pass policy, with pushback but no weapon impacts or footsteps.
+static WorldCollisionSurfaceProperties _gDryfieldNightParkingLotProbePassThroughSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_parking_lot_8018153C[8] = {
-    D_dryfield_night_parking_lot_8018150C,
-    D_dryfield_night_parking_lot_8018152C,
-    D_dryfield_night_parking_lot_8018151C,
-    D_dryfield_night_parking_lot_80181524,
-    D_dryfield_night_parking_lot_8018150C,
-    D_dryfield_night_parking_lot_80181514,
-    D_dryfield_night_parking_lot_80181534,
-    D_dryfield_night_parking_lot_8018150C,
+/// Class 6's blocking policy, borrowing the same footstep pairs as class 5.
+static WorldCollisionSurfaceProperties _gDryfieldNightParkingLotClass6Surface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightParkingLotClass5FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightParkingLotSurfacePropertiesByClass[8] = {
+    &_gDryfieldNightParkingLotSilentBlockingSurface,
+    &_gDryfieldNightParkingLotProbePassThroughSurface,
+    &_gDryfieldNightParkingLotClass2Surface,
+    &_gDryfieldNightParkingLotClass3Surface,
+    &_gDryfieldNightParkingLotSilentBlockingSurface,
+    &_gDryfieldNightParkingLotClass5Surface,
+    &_gDryfieldNightParkingLotClass6Surface,
+    &_gDryfieldNightParkingLotSilentBlockingSurface,
 };
 
 void dryfieldNightParkingLotDrawGlowsTask(Task* task)
