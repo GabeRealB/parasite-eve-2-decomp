@@ -46,6 +46,8 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
+#include "main/sound_types.h"
 #include "main/stage.h"
 #include "main/task.h"
 #include "main/task_types.h"
@@ -108,7 +110,6 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_ShelterB6CorridorStorage51B0, 8);
 
 extern _ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
-extern s32                           D_shelter_b6_corridor_801851B8;
 
 // Indexed views below share one contiguous table.
 extern AnimationPlayRequest     D_shelter_b6_corridor_8017F27C;
@@ -263,175 +264,252 @@ EvsCommand D_shelter_b6_corridor_8017F684[18] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-SVECTOR D_shelter_b6_corridor_8017F834[16] = {
-    { 2000, -3250, 1450, 0 },
-    { 2000, -400, 1450, 0 },
-    { 4000, -3250, 1450, 0 },
-    { 4000, -400, 1450, 0 },
-    { 6000, -3250, 1450, 0 },
-    { 6000, -400, 1450, 0 },
-    { 8000, -3250, 1450, 0 },
-    { 8000, -400, 1450, 0 },
-    { 2000, -3250, -1450, 0 },
-    { 2000, -400, -1450, 0 },
-    { 4000, -3250, -1450, 0 },
-    { 4000, -400, -1450, 0 },
-    { 6000, -3250, -1450, 0 },
-    { 6000, -400, -1450, 0 },
-    { 8000, -3250, -1450, 0 },
-    { 8000, -400, -1450, 0 },
+/// World-space endpoints of four vertical capsule lights on each corridor wall.
+///
+/// Wall 0 is at Z=1450, wall 1 at Z=-1450; each row stores consecutive
+/// top/bottom pairs in increasing X order. Four-point draws stay within a row.
+static SVECTOR _gShelterB6CorridorWallLightEndpoints[2][8] = {
+    {
+        { 2000, -3250, 1450, 0 },
+        { 2000, -400, 1450, 0 },
+        { 4000, -3250, 1450, 0 },
+        { 4000, -400, 1450, 0 },
+        { 6000, -3250, 1450, 0 },
+        { 6000, -400, 1450, 0 },
+        { 8000, -3250, 1450, 0 },
+        { 8000, -400, 1450, 0 },
+    },
+    {
+        { 2000, -3250, -1450, 0 },
+        { 2000, -400, -1450, 0 },
+        { 4000, -3250, -1450, 0 },
+        { 4000, -400, -1450, 0 },
+        { 6000, -3250, -1450, 0 },
+        { 6000, -400, -1450, 0 },
+        { 8000, -3250, -1450, 0 },
+        { 8000, -400, -1450, 0 },
+    },
 };
 
-u8* D_shelter_b6_corridor_8017F8B4[1] = {
+u8* gShelterB6CorridorViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b6_corridor_8017F8B8[1] = { 5 };
+ViewCount gShelterB6CorridorViewCounts[1] = { SHELTER_B6_CORRIDOR_VIEW_COUNT };
 
-DirectionWarpEntry D_shelter_b6_corridor_8017F8BC[2] = {
-    { { { .word = 1024 }, 430, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 430, 0, 0 }, { 0, 0, 0, 0 }, 0x55180001, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 8400, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8400, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, 0x55180003, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+/// Sound-script requests carried by the corridor's two warp endpoints.
+enum {
+    SHELTER_B6_CORRIDOR_ELEVATOR_ARRIVAL_SOUND   = SOUND_AREA(5, GAME_AREA_SHELTER_B6_CORRIDOR, 1),
+    SHELTER_B6_CORRIDOR_TRAINING_DEPARTURE_SOUND = SOUND_AREA(5, GAME_AREA_SHELTER_B6_CORRIDOR, 3),
 };
 
-static SVECTOR _gShelterB6CorridorCollision024D0Normals[6] = {
+DirectionWarpEntry gShelterB6CorridorWarpEntries[2] = {
+    { { { .word = ONE / 4 }, 430, 0, 0 }, { 0, 0, 0, 0 }, { { .word = ONE / 4 }, 430, 0, 0 }, { 0, 0, 0, 0 }, SHELTER_B6_CORRIDOR_ELEVATOR_ARRIVAL_SOUND, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3 * ONE / 4 }, 8400, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 3 * ONE / 4 }, 8400, 0, 0 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, SHELTER_B6_CORRIDOR_TRAINING_DEPARTURE_SOUND, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+};
+
+/// Grid-local unit normals of the corridor mesh, with 4096 per unit.
+static SVECTOR _gShelterB6CorridorCollisionGridNormals[6] = {
 #include "assets/shelter_b6_corridor_collision_024D0_normals.inc"
 };
 
-static SVECTOR _gShelterB6CorridorCollision024D0Verts[12] = {
+/// Corridor mesh vertices in signed game-coordinate units.
+static SVECTOR _gShelterB6CorridorCollisionGridVerts[12] = {
 #include "assets/shelter_b6_corridor_collision_024D0_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB6CorridorCollision024D0Faces[12] = {
+/// Corridor triangles and quads indexing the vertex, normal and surface tables.
+static WorldCollisionGridFace _gShelterB6CorridorCollisionGridFaces[12] = {
 #include "assets/shelter_b6_corridor_collision_024D0_faces.inc"
 };
 
-static s16 _gShelterB6CorridorCollision024D0Cells[28] = {
+/// Signed face-index storage for three cell lists, each ending with -1.
+///
+/// The directory selects starts 0, 10 and 18; entry 17 is retained without
+/// a directory reference. Its role is unproven.
+static s16 _gShelterB6CorridorCollisionGridCells[28] = {
 #include "assets/shelter_b6_corridor_collision_024D0_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB6CorridorCollision024D0Cells[i])
-static s16* _gShelterB6CorridorCollision024D0Table[3] = {
+#define GRID_CELL(i) (&_gShelterB6CorridorCollisionGridCells[i])
+/// X-major cell directory borrowing the three lists at element offsets 0, 10 and 18.
+static s16* _gShelterB6CorridorCollisionGridTable[3] = {
 #include "assets/shelter_b6_corridor_collision_024D0_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b6_corridor_8017FA90 = { NULL, _gShelterB6CorridorCollision024D0Normals, _gShelterB6CorridorCollision024D0Verts, _gShelterB6CorridorCollision024D0Faces, _gShelterB6CorridorCollision024D0Table, 0, 1350, 3, 1, 4000, 12 };
+WorldCollisionGrid gShelterB6CorridorCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB6CorridorCollisionGridNormals,
+    .vertices    = _gShelterB6CorridorCollisionGridVerts,
+    .faces       = _gShelterB6CorridorCollisionGridFaces,
+    .cellFaceIds = _gShelterB6CorridorCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 1350,
+    .cellCountX  = ARRAY_SIZE(_gShelterB6CorridorCollisionGridTable),
+    .cellCountZ  = 1,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB6CorridorCollisionGridFaces),
+};
 
-ViewCamera D_shelter_b6_corridor_8017FAB4[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -4500, 0x61A8, 0 } }, 680 },
+ViewCamera gShelterB6CorridorViewCameras[SHELTER_B6_CORRIDOR_VIEW_COUNT] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -4500, 25000, 0 } }, 680 },
     { { { { 715, 0, 4033 }, { 264, 4087, -46 }, { -4024, 268, 713 } }, { -7040, 1470, 560 } }, 230 },
     { { { { 682, 0, -4038 }, { -252, 4087, -42 }, { 4030, 256, 681 } }, { -1740, 1470, 560 } }, 230 },
     { { { { 955, 0, 3982 }, { -1522, 3784, 365 }, { -3680, -1565, 883 } }, { -3190, 170, 810 } }, 230 },
-    { { { { 0, 0, -4096 }, { -860, 4004, 0 }, { 4004, 860, 0 } }, { -6235, 1350, 0 } }, 329 },
+    { { { { 0, 0, -ONE }, { -860, 4004, 0 }, { 4004, 860, 0 } }, { -6235, 1350, 0 } }, 329 },
 };
 
-SpriteBatch D_shelter_b6_corridor_8017FB68[2] = {
+/// Empty view-1 drawing list retaining the decoded background and a terminal record.
+static SpriteBatch _gShelterB6CorridorView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b6_corridor_8017FB78[35] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 48, 32, 1246, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -120, 906, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -88, 1012, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -56, 1009, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, -24, 1100, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 80, 8, 1037, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 80, 40, 1007, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -112, 1025, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -80, 1170, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -48, 1167, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -16, 1162, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, 16, 1162, { .fields = { 88, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -96, 1174, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -72, 1278, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -48, 1287, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, -24, 1296, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 0, 1303, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 24, 1288, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, -88, 1256, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -120, 615, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -80, 586, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -40, 591, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 0, 605, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 40, 614, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, 80, 556, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -120, 649, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -80, 656, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -40, 662, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 0, 661, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 40, 660, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -144, 80, 598, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 16, 672, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 40, 677, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -136, 64, 672, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 72, 643, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+/// GPU encodings and neutral modulation for the two destroyed-scenery sprite views.
+enum {
+    SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE  = getTPage(1, 0, 960, 0), // 8-bit texture page, blend mode 0
+    SHELTER_B6_CORRIDOR_SPRITE_CLUT          = getClut(0, 255),
+    SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR = 128,
 };
 
-SpriteBatch D_shelter_b6_corridor_8017FE34[4] = {
+/// View-2 destroyed scenery: 19 rectangles for part slot 0, then 16 for slot 1.
+///
+/// Positions and sizes are pixels about the view centre; depths sort the
+/// rectangles against scene geometry. Texture and palette addresses are encoded GPU values.
+static SpriteSource _gShelterB6CorridorView2SpriteSources[35] = {
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 8 } }, 48, 32, 1246, { .fields = { 104, 72 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, -120, 906, { .fields = { 88, 96 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, -88, 1012, { .fields = { 88, 128 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, -56, 1009, { .fields = { 88, 64 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, -24, 1100, { .fields = { 88, 0 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 80, 8, 1037, { .fields = { 88, 32 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 16 } }, 80, 40, 1007, { .fields = { 64, 64 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, -112, 1025, { .fields = { 72, 0 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, -80, 1170, { .fields = { 72, 32 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, -48, 1167, { .fields = { 88, 224 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, -16, 1162, { .fields = { 88, 160 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, 64, 16, 1162, { .fields = { 88, 192 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, -96, 1174, { .fields = { 80, 112 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, -72, 1278, { .fields = { 80, 136 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, -48, 1287, { .fields = { 80, 64 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, -24, 1296, { .fields = { 80, 88 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, 56, 0, 1303, { .fields = { 80, 208 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 16 } }, 56, 24, 1288, { .fields = { 112, 240 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 16 } }, 48, -88, 1256, { .fields = { 104, 240 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, -120, 615, { .fields = { 104, 80 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, -80, 586, { .fields = { 104, 120 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, -40, 591, { .fields = { 104, 0 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, 0, 605, { .fields = { 104, 200 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, 40, 614, { .fields = { 104, 160 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, 80, 556, { .fields = { 112, 40 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, -120, 649, { .fields = { 120, 0 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, -80, 656, { .fields = { 120, 80 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, -40, 662, { .fields = { 120, 160 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, 0, 661, { .fields = { 120, 120 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 40 } }, -144, 40, 660, { .fields = { 120, 200 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, -144, 80, 598, { .fields = { 80, 184 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, -136, 16, 672, { .fields = { 80, 160 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, -136, 40, 677, { .fields = { 80, 232 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 32 } }, -136, 64, 672, { .fields = { 104, 40 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 16 } }, -128, 72, 643, { .fields = { 120, 240 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+};
+
+/// Sprite counts of the first destroyed-part group in each populated view.
+enum {
+    SHELTER_B6_CORRIDOR_VIEW2_PART0_SPRITE_COUNT = 19,
+    SHELTER_B6_CORRIDOR_VIEW3_PART2_SPRITE_COUNT = 11,
+};
+
+/// View-2 background selector, part-0 and part-1 ranges, then the batch terminator.
+///
+/// The controller hides both groups on setup and shows each destroyed part.
+/// The retained {1, 0} bytes of the first group have no established consumer.
+static SpriteBatch _gShelterB6CorridorView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 19, 0, 0, { 1, 0 } },
-    { 19, 16, 0, 0, { 0, 0 } },
+    { 0, SHELTER_B6_CORRIDOR_VIEW2_PART0_SPRITE_COUNT, 0, 0, { 1, 0 } },
+    { SHELTER_B6_CORRIDOR_VIEW2_PART0_SPRITE_COUNT, ARRAY_SIZE(_gShelterB6CorridorView2SpriteSources) - SHELTER_B6_CORRIDOR_VIEW2_PART0_SPRITE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b6_corridor_8017FE54[22] = {
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -104, 1199, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -72, 1396, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -40, 1450, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -64, -8, 1382, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 24, 1363, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -96, 1422, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -80, 1503, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, -56, 1564, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, -32, 1581, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -48, -8, 1590, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 16, 1563, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 120, -120, 745, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 120, -80, 745, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 120, -40, 702, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, -120, 830, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, -80, 926, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 104, -40, 895, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 0, 822, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 112, 40, 799, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 0, 951, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 32, 944, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, -120, 927, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
+/// View-3 destroyed scenery: 11 rectangles for part slot 2, then 11 for slot 1.
+///
+/// Positions and sizes are pixels about the view centre; depths sort the
+/// rectangles against scene geometry. Texture and palette addresses are encoded GPU values.
+static SpriteSource _gShelterB6CorridorView3SpriteSources[22] = {
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, -64, -104, 1199, { .fields = { 96, 144 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, -64, -72, 1396, { .fields = { 96, 112 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, -64, -40, 1450, { .fields = { 96, 80 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 32 } }, -64, -8, 1382, { .fields = { 96, 176 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 16 } }, -64, 24, 1363, { .fields = { 96, 240 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 16 } }, -48, -96, 1422, { .fields = { 112, 240 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 24 } }, -48, -80, 1503, { .fields = { 80, 56 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, -48, -56, 1564, { .fields = { 88, 32 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, -48, -32, 1581, { .fields = { 88, 104 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 24 } }, -48, -8, 1590, { .fields = { 88, 80 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 16 } }, -48, 16, 1563, { .fields = { 88, 128 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, 120, -120, 745, { .fields = { 96, 0 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, 120, -80, 745, { .fields = { 112, 200 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, 120, -40, 702, { .fields = { 112, 160 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, 104, -120, 830, { .fields = { 112, 0 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, 104, -80, 926, { .fields = { 112, 40 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, 104, -40, 895, { .fields = { 112, 80 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, 0, 822, { .fields = { 96, 40 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 16, 40 } }, 112, 40, 799, { .fields = { 112, 120 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 32 } }, 104, 0, 951, { .fields = { 88, 0 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 32 } }, 104, 32, 944, { .fields = { 104, 208 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B6_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B6_CORRIDOR_SPRITE_CLUT, { .fields = { 8, 32 } }, 96, -120, 927, { .fields = { 96, 208 } }, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B6_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b6_corridor_8018000C[4] = {
+/// View-3 background selector, part-2 and part-1 ranges, then the batch terminator.
+///
+/// The controller hides both groups on setup and shows each destroyed part.
+/// The retained {1, 0} bytes of the first group have no established consumer.
+static SpriteBatch _gShelterB6CorridorView3SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 1, 0 } },
-    { 11, 11, 0, 0, { 0, 0 } },
+    { 0, SHELTER_B6_CORRIDOR_VIEW3_PART2_SPRITE_COUNT, 0, 0, { 1, 0 } },
+    { SHELTER_B6_CORRIDOR_VIEW3_PART2_SPRITE_COUNT, ARRAY_SIZE(_gShelterB6CorridorView3SpriteSources) - SHELTER_B6_CORRIDOR_VIEW3_PART2_SPRITE_COUNT, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b6_corridor_8018002C[2] = {
+/// Empty view-4 drawing list retaining the decoded background and a terminal record.
+static SpriteBatch _gShelterB6CorridorView4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b6_corridor_8018003C[2] = {
+/// Empty view-5 drawing list retaining the decoded background and a terminal record.
+static SpriteBatch _gShelterB6CorridorView5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b6_corridor_8018004C[5] = {
-    { { .empty = D_shelter_b6_corridor_8017FB68 }, D_shelter_b6_corridor_8017FB68, NULL },
-    { { .elements = D_shelter_b6_corridor_8017FB78 }, D_shelter_b6_corridor_8017FE34, NULL },
-    { { .elements = D_shelter_b6_corridor_8017FE54 }, D_shelter_b6_corridor_8018000C, NULL },
-    { { .empty = D_shelter_b6_corridor_8018002C }, D_shelter_b6_corridor_8018002C, NULL },
-    { { .empty = D_shelter_b6_corridor_8018003C }, D_shelter_b6_corridor_8018003C, NULL },
+SpriteView gShelterB6CorridorSpriteViews[SHELTER_B6_CORRIDOR_VIEW_COUNT] = {
+    { { .empty = _gShelterB6CorridorView1SpriteBatches }, _gShelterB6CorridorView1SpriteBatches, NULL },
+    { { .elements = _gShelterB6CorridorView2SpriteSources }, _gShelterB6CorridorView2SpriteBatches, NULL },
+    { { .elements = _gShelterB6CorridorView3SpriteSources }, _gShelterB6CorridorView3SpriteBatches, NULL },
+    { { .empty = _gShelterB6CorridorView4SpriteBatches }, _gShelterB6CorridorView4SpriteBatches, NULL },
+    { { .empty = _gShelterB6CorridorView5SpriteBatches }, _gShelterB6CorridorView5SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b6_corridor_80180088[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4600, -2750, -50 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 5000, 0x2710 },
+/// White point light at (4600, -2750, -50), in world game-coordinate units.
+///
+/// Full strength through radius 5000, fading to zero at radius 10000, in every
+/// view. Room setup and shading mutate its coordinate and attenuation cache.
+static WorldCoordPointLight _gShelterB6CorridorRoomPointLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4600, -2750, -50 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 5000, 10000 },
 };
 
-WorldCoordRoomLights D_shelter_b6_corridor_801800E8 = { 0, NULL, ARRAY_SIZE(D_shelter_b6_corridor_80180088), D_shelter_b6_corridor_80180088, 0, NULL };
+WorldCoordRoomLights gShelterB6CorridorRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB6CorridorRoomPointLights),
+    .pointLights           = _gShelterB6CorridorRoomPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
-WorldCollisionTrigger D_shelter_b6_corridor_80180100[6] = {
+WorldCollisionTrigger gShelterB6CorridorViewBoundaryTriggers[6] = {
     { NULL, NULL, NULL, { 4576, -2065, 96, 0 }, { { 0, -2528, 2144, 0 }, { 0, -2528, -2144, 0 }, { 0, 2528, 2144, 0 }, { 0, 2528, -2144, 0 } }, { -4112, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3308, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 4384, -2177, 128, 0 }, { { 0, -2480, -2256, 0 }, { 0, -2480, 2256, 0 }, { 0, 2480, -2256, 0 }, { 0, 2480, 2256, 0 } }, { 4110, 0, 0, 0 }, { 0, 0, 4096, 0 }, 3347, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 1245, -1952, 924, 0 }, { { -571, -2528, 1161, 0 }, { 572, -2528, -1161, 0 }, { -571, 2528, 1161, 0 }, { 572, 2528, -1161, 0 } }, { -3684, 0, -1813, 0 }, { 0, 0, 4096, 0 }, 2839, 0, 4, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -440,7 +518,11 @@ WorldCollisionTrigger D_shelter_b6_corridor_80180100[6] = {
     { NULL, NULL, NULL, { 1439, -2016, -1409, 0 }, { { -222, -2480, -1327, 0 }, { 223, -2480, 1327, 0 }, { -222, 2480, -1327, 0 }, { 223, 2480, 1327, 0 } }, { 4050, 0, -680, 0 }, { 0, 0, 4096, 0 }, 2816, 0, 2, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b6_corridor_801802C8[5] = {
+/// Resources for the masked Eve walker, Mossback, Eve-part controller and battle body.
+///
+/// The default layout's four placement entry IDs select these descriptors;
+/// AREA_PLACEMENT_END terminates the table. Overlays are loaded before task recipes run.
+static AreaResource _gShelterB6CorridorAreaResources[5] = {
     { 131, 505, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor350500MaskedEveReverseWalkTaskDesc },
     { 49, 49, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor101100Tasks },
     { 52, 52, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor205200ControllerPartTasks },
@@ -450,7 +532,7 @@ AreaResource D_shelter_b6_corridor_801802C8[5] = {
 
 AreaVariant D_shelter_b6_corridor_80180304[13] = {
     { NULL, NULL },
-    { D_map_neo_ark_8017C0F0, D_shelter_b6_corridor_801802C8 },
+    { D_map_neo_ark_8017C0F0, _gShelterB6CorridorAreaResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -464,16 +546,25 @@ AreaVariant D_shelter_b6_corridor_80180304[13] = {
     { NULL, NULL },
 };
 
-WorldCollisionTrigger D_shelter_b6_corridor_8018036C[5] = {
-    { NULL, NULL, NULL, { 512, -48, 0, 0 }, { { -512, 0, -1024, 0 }, { 512, 0, -1024, 0 }, { -512, 0, 1024, 0 }, { 512, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { 4096, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8512, -48, 0, 0 }, { { -512, 0, -1024, 0 }, { 512, 0, -1024, 0 }, { -512, 0, 1024, 0 }, { 512, 0, 1024, 0 } }, { 0, 4096, 0, 0 }, { -4096, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 2752, -64, 704, 0 }, { { -1056, 0, -608, 0 }, { 1056, 0, -608, 0 }, { -1056, 0, 608, 0 }, { 1056, 0, 608, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, -4096, 0 }, 1214, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 4384, -64, -688, 0 }, { { -1056, 0, -688, 0 }, { 1056, 0, -688, 0 }, { -1056, 0, 688, 0 }, { 1056, 0, 688, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, 4096, 0 }, 1254, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6720, -64, 688, 0 }, { { -1056, 0, -656, 0 }, { 1056, 0, -656, 0 }, { -1056, 0, 656, 0 }, { 1056, 0, 656, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 1241, WORLD_COLLISION_TRIGGER_ACTION_CAP, 4, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Warp keys pack the corridor's departure slot above the destination's arrival slot.
+enum {
+    SHELTER_B6_CORRIDOR_ELEVATOR_WARP_KEY         = (1 << 4) | 1,
+    SHELTER_B6_CORRIDOR_TRAINING_WARP_KEY         = (2 << 4) | 1,
+    SHELTER_B6_CORRIDOR_PART0_INTERACTION_COMMAND = 2,
+    SHELTER_B6_CORRIDOR_PART1_INTERACTION_COMMAND = 3,
+    SHELTER_B6_CORRIDOR_PART2_INTERACTION_COMMAND = 4,
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b6_corridor_801804E8[6] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b6_corridor_801804E8) - 1 },
+WorldCollisionTrigger gShelterB6CorridorActionTriggers[5] = {
+    { NULL, NULL, NULL, { 512, -48, 0, 0 }, { { -512, 0, -1024, 0 }, { 512, 0, -1024, 0 }, { -512, 0, 1024, 0 }, { 512, 0, 1024, 0 } }, { 0, ONE, 0, 0 }, { ONE, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_EVE_ELEVATOR, SHELTER_B6_CORRIDOR_ELEVATOR_WARP_KEY, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8512, -48, 0, 0 }, { { -512, 0, -1024, 0 }, { 512, 0, -1024, 0 }, { -512, 0, 1024, 0 }, { 512, 0, 1024, 0 } }, { 0, ONE, 0, 0 }, { -ONE, 0, 0, 0 }, 1144, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B6_TRAINING_ROOM, SHELTER_B6_CORRIDOR_TRAINING_WARP_KEY, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 2752, -64, 704, 0 }, { { -1056, 0, -608, 0 }, { 1056, 0, -608, 0 }, { -1056, 0, 608, 0 }, { 1056, 0, 608, 0 } }, { 0, 4115, 0, 0 }, { 0, 0, -ONE, 0 }, 1214, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_CORRIDOR_PART0_INTERACTION_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 4384, -64, -688, 0 }, { { -1056, 0, -688, 0 }, { 1056, 0, -688, 0 }, { -1056, 0, 688, 0 }, { 1056, 0, 688, 0 } }, { 0, 4107, 0, 0 }, { 0, 0, ONE, 0 }, 1254, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_CORRIDOR_PART1_INTERACTION_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6720, -64, 688, 0 }, { { -1056, 0, -656, 0 }, { 1056, 0, -656, 0 }, { -1056, 0, 656, 0 }, { 1056, 0, 656, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -ONE, 0 }, 1241, WORLD_COLLISION_TRIGGER_ACTION_CAP, SHELTER_B6_CORRIDOR_PART2_INTERACTION_COMMAND, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+};
+
+WorldCoordRoomAmbientEntry gShelterB6CorridorRoomAmbientByView[SHELTER_B6_CORRIDOR_VIEW_COUNT + 1] = {
+    { .viewCount = ARRAY_SIZE(gShelterB6CorridorRoomAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 392, 437, 278, 400 } },
     { .color = { 393, 435, 277, 399 } },
@@ -481,39 +572,70 @@ WorldCoordRoomAmbientEntry D_shelter_b6_corridor_801804E8[6] = {
     { .color = { 16, 16, 16, 16 } },
 };
 
-WorldCollisionFootstepSounds D_shelter_b6_corridor_80180518 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Cue-2 footstep requests; cue 1 adds one to select the paired script entry.
+enum {
+    SHELTER_B6_CORRIDOR_SURFACE1_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B6_CORRIDOR_SURFACE1_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
+    SHELTER_B6_CORRIDOR_SURFACE2_WALK_SOUND = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B6_CORRIDOR_SURFACE2_RUN_SOUND  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-WorldCollisionFootstepSounds D_shelter_b6_corridor_80180524 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Footstep cue bases for surface class 1, the corridor's central floor strip.
+///
+/// Walking and scripted jumps share a pair; running selects a separate pair
+/// in the currently loaded type-1 sound bank. Surface properties borrow this record.
+static WorldCollisionFootstepSounds _gShelterB6CorridorSurface1FootstepSounds = {
+    .walk         = SHELTER_B6_CORRIDOR_SURFACE1_WALK_SOUND,
+    .run          = SHELTER_B6_CORRIDOR_SURFACE1_RUN_SOUND,
+    .scriptedJump = SHELTER_B6_CORRIDOR_SURFACE1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_corridor_80180530[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Footstep cue bases for surface class 2, the corridor's two side floor strips.
+///
+/// Walking and scripted jumps share a pair; running selects a separate pair
+/// in the currently loaded type-1 sound bank. Surface properties borrow this record.
+static WorldCollisionFootstepSounds _gShelterB6CorridorSurface2FootstepSounds = {
+    .walk         = SHELTER_B6_CORRIDOR_SURFACE2_WALK_SOUND,
+    .run          = SHELTER_B6_CORRIDOR_SURFACE2_RUN_SOUND,
+    .scriptedJump = SHELTER_B6_CORRIDOR_SURFACE2_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_corridor_80180538[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_corridor_80180518 },
+/// Blocking, impact-enabled, pushback-enabled policy without footstep cues for classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gShelterB6CorridorDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b6_corridor_80180540[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b6_corridor_80180524 },
+/// Blocking, impact-enabled, pushback-enabled central floor policy with surface-1 footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB6CorridorSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB6CorridorSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b6_corridor_80180548[8] = {
-    D_shelter_b6_corridor_80180530,
-    D_shelter_b6_corridor_80180538,
-    D_shelter_b6_corridor_80180540,
-    D_shelter_b6_corridor_80180530,
-    D_shelter_b6_corridor_80180530,
-    D_shelter_b6_corridor_80180530,
-    D_shelter_b6_corridor_80180530,
-    D_shelter_b6_corridor_80180530,
+/// Blocking, impact-enabled, pushback-enabled side floor policy with surface-2 footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB6CorridorSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB6CorridorSurface2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB6CorridorSurfaceProperties[8] = {
+    &_gShelterB6CorridorDefaultSurfaceProperties,
+    &_gShelterB6CorridorSurface1Properties,
+    &_gShelterB6CorridorSurface2Properties,
+    &_gShelterB6CorridorDefaultSurfaceProperties,
+    &_gShelterB6CorridorDefaultSurfaceProperties,
+    &_gShelterB6CorridorDefaultSurfaceProperties,
+    &_gShelterB6CorridorDefaultSurfaceProperties,
+    &_gShelterB6CorridorDefaultSurfaceProperties,
 };
 
 ScreenWaveCtx* gScreenWaveCtx = NULL;
@@ -527,7 +649,11 @@ _ShelterB6CorridorScreenWaveGrid gScreenWaveGrid = { { 0 }, { 0 } };
 
 _ShelterB6CorridorStorage51B0 D_shelter_b6_corridor_801851B0;
 
-s32 D_shelter_b6_corridor_801851B8;
+/// Serial of the newest player-hit glow to start running in this room.
+///
+/// Each starting instance increments and caches this value; superseded
+/// instances retire. The room's wall-glow task resets it on its first tick.
+static s32 _gShelterB6CorridorPlayerHitGlowGeneration;
 
 static void _shelterB6CorridorInitRoom(Task* task);
 static void _shelterB6CorridorSetImageMaskMode(Task* unusedTask);
@@ -784,25 +910,25 @@ void shelterB6CorridorDrawViewGlowsTask(Task* task)
     u8 mappedViewIndex;
 
     if (task->state == SHELTER_B6_CORRIDOR_GLOWS_START) {
-        D_shelter_b6_corridor_801851B8 = 0;
-        task->state                    = SHELTER_B6_CORRIDOR_GLOWS_ACTIVE;
+        _gShelterB6CorridorPlayerHitGlowGeneration = 0;
+        task->state                                = SHELTER_B6_CORRIDOR_GLOWS_ACTIVE;
     }
 
     // Draw only the wall-light endpoint pairs visible from this camera.
     mappedViewIndex = viewGetMappedIndex();
     switch (mappedViewIndex) {
         case 2:
-            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F834[0], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
-            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F834[8], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _shelterB6CorridorDrawGlowPair(&_gShelterB6CorridorWallLightEndpoints[0][0], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _shelterB6CorridorDrawGlowPair(&_gShelterB6CorridorWallLightEndpoints[1][0], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
             break;
         case 3:
-            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F834[2], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[6], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
-            _shelterB6CorridorDrawGlowPair(&D_shelter_b6_corridor_8017F834[10], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[14], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _shelterB6CorridorDrawGlowPair(&_gShelterB6CorridorWallLightEndpoints[0][2], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _glowDrawCapsule(&_gShelterB6CorridorWallLightEndpoints[0][6], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _shelterB6CorridorDrawGlowPair(&_gShelterB6CorridorWallLightEndpoints[1][2], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _glowDrawCapsule(&_gShelterB6CorridorWallLightEndpoints[1][6], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b6_corridor_8017F834[8], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
+            _glowDrawCapsule(&_gShelterB6CorridorWallLightEndpoints[1][0], SHELTER_B6_CORRIDOR_GLOW_RADIUS_SCALE, SHELTER_B6_CORRIDOR_GLOW_COLOR);
             break;
     }
 }
@@ -897,11 +1023,11 @@ void shelterB6CorridorPlayerHitGlowTask(Task* task)
     if (task->state == SHELTER_B6_CORRIDOR_HIT_GLOW_START) {
         work->scale = SHELTER_B6_CORRIDOR_HIT_GLOW_INITIAL_BRIGHTNESS;
         work->angle = SHELTER_B6_CORRIDOR_HIT_GLOW_INITIAL_RADIUS;
-        D_shelter_b6_corridor_801851B8++;
+        _gShelterB6CorridorPlayerHitGlowGeneration++;
         task->state           = SHELTER_B6_CORRIDOR_HIT_GLOW_ACTIVE;
-        task->spawnArg1.value = D_shelter_b6_corridor_801851B8;
+        task->spawnArg1.value = _gShelterB6CorridorPlayerHitGlowGeneration;
     }
-    if (task->spawnArg1.value != D_shelter_b6_corridor_801851B8) {
+    if (task->spawnArg1.value != _gShelterB6CorridorPlayerHitGlowGeneration) {
         effectKillTask(work, task);
         return;
     }
