@@ -714,136 +714,190 @@ static AnimationSet _gM4a1OtherBodyHitReactionAnimation = {
     .poseBanks         = { NULL, _gM4a1OtherBodyHitReactionAnimationBank1, NULL, NULL, _gM4a1OtherBodyHitReactionAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation05D68Bank1[18] = {
+/// Death translation/rotation keyframes in integer model units and 1/4096 turns.
+///
+/// Read-only clip payloads retain their serialized positions in .data.
+static const AnimationPackedPose _gM4a1DeathAnimationBank1[18] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_05D68_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation05D68Bank4[184] = {
+/// Death rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1DeathAnimationBank4[184] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_05D68_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation05D68Records[239] = {
+/// Death keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1DeathAnimationRecords[239] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_05D68_records.inc"
 };
 
-static u16 _gM4a1Animation05D68Indices[20] = {
+/// Death record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1DeathAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_05D68_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation05D68 = {
-    _gM4a1Animation05D68Records,
-    _gM4a1Animation05D68Indices,
-    { NULL, _gM4a1Animation05D68Bank1, NULL, NULL, _gM4a1Animation05D68Bank4, NULL, NULL, NULL },
+/// Player-rig death clip in M4A1-family bank entry 18.
+///
+/// Played at zero HP with stopped movement and turning; its final poses hold.
+/// Nineteen tracks borrow the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1DeathAnimation = {
+    .records           = _gM4a1DeathAnimationRecords,
+    .trackStartIndices = _gM4a1DeathAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1DeathAnimationBank1, NULL, NULL, _gM4a1DeathAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation07000Bank1[29] = {
+/// Healthy idle translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1HealthyIdleAnimationBank1[29] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_07000_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation07000Bank4[450] = {
+/// Healthy idle rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1HealthyIdleAnimationBank4[450] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_07000_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation07000Records[633] = {
+/// Healthy idle keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1HealthyIdleAnimationRecords[633] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_07000_records.inc"
 };
 
-static u16 _gM4a1Animation07000Indices[20] = {
+/// Healthy idle record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1HealthyIdleAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_07000_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation07000 = {
-    _gM4a1Animation07000Records,
-    _gM4a1Animation07000Indices,
-    { NULL, _gM4a1Animation07000Bank1, NULL, NULL, _gM4a1Animation07000Bank4, NULL, NULL, NULL },
+/// Player-rig healthy idle loop in M4A1-family bank entry 23.
+///
+/// Selected after 300 direction-free idle ticks when HP exceeds half maximum HP.
+/// Nineteen tracks borrow the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1HealthyIdleAnimation = {
+    .records           = _gM4a1HealthyIdleAnimationRecords,
+    .trackStartIndices = _gM4a1HealthyIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1HealthyIdleAnimationBank1, NULL, NULL, _gM4a1HealthyIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation07B78Bank1[12] = {
+/// Critical idle translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1CriticalIdleAnimationBank1[12] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_07B78_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation07B78Bank4[266] = {
+/// Critical idle rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1CriticalIdleAnimationBank4[266] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_07B78_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation07B78Records[412] = {
+/// Critical idle keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1CriticalIdleAnimationRecords[412] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_07B78_records.inc"
 };
 
-static u16 _gM4a1Animation07B78Indices[20] = {
+/// Critical idle record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1CriticalIdleAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_07B78_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation07B78 = {
-    _gM4a1Animation07B78Records,
-    _gM4a1Animation07B78Indices,
-    { NULL, _gM4a1Animation07B78Bank1, NULL, NULL, _gM4a1Animation07B78Bank4, NULL, NULL, NULL },
+/// Player-rig critical-health idle loop in M4A1-family bank entry 25.
+///
+/// Selected after 300 direction-free idle ticks at or below quarter maximum HP.
+/// Also used during paralysis. Nineteen tracks borrow the loaded M4A1-family
+/// overlay throughout playback.
+static AnimationSet _gM4a1CriticalIdleAnimation = {
+    .records           = _gM4a1CriticalIdleAnimationRecords,
+    .trackStartIndices = _gM4a1CriticalIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1CriticalIdleAnimationBank1, NULL, NULL, _gM4a1CriticalIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation08294Bank1[9] = {
+/// Injured idle translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1InjuredIdleAnimationBank1[9] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_08294_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation08294Bank4[144] = {
+/// Injured idle rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1InjuredIdleAnimationBank4[144] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_08294_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation08294Records[264] = {
+/// Injured idle keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1InjuredIdleAnimationRecords[264] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_08294_records.inc"
 };
 
-static u16 _gM4a1Animation08294Indices[20] = {
+/// Injured idle record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1InjuredIdleAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_08294_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation08294 = {
-    _gM4a1Animation08294Records,
-    _gM4a1Animation08294Indices,
-    { NULL, _gM4a1Animation08294Bank1, NULL, NULL, _gM4a1Animation08294Bank4, NULL, NULL, NULL },
+/// Player-rig injured idle loop in M4A1-family bank entry 24.
+///
+/// Selected after 300 direction-free idle ticks above quarter maximum HP and
+/// at or below half maximum HP. Nineteen tracks borrow the loaded M4A1-family
+/// overlay throughout playback.
+static AnimationSet _gM4a1InjuredIdleAnimation = {
+    .records           = _gM4a1InjuredIdleAnimationRecords,
+    .trackStartIndices = _gM4a1InjuredIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1InjuredIdleAnimationBank1, NULL, NULL, _gM4a1InjuredIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation08714Bank1[6] = {
+/// Event-entry translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1EventEntryAnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_08714_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation08714Bank4[107] = {
+/// Event-entry rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1EventEntryAnimationBank4[107] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_08714_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation08714Records[143] = {
+/// Event-entry keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1EventEntryAnimationRecords[143] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_08714_records.inc"
 };
 
-static u16 _gM4a1Animation08714Indices[20] = {
+/// Event-entry record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1EventEntryAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_08714_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation08714 = {
-    _gM4a1Animation08714Records,
-    _gM4a1Animation08714Indices,
-    { NULL, _gM4a1Animation08714Bank1, NULL, NULL, _gM4a1Animation08714Bank4, NULL, NULL, NULL },
+/// Player-rig scripted-event entry clip in M4A1-family bank entries 32 and 34.
+///
+/// A zero stored presentation selector plays entry 32 before a scripted interaction;
+/// its final poses hold until further playback is requested. Nineteen tracks
+/// borrow the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1EventEntryAnimation = {
+    .records           = _gM4a1EventEntryAnimationRecords,
+    .trackStartIndices = _gM4a1EventEntryAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1EventEntryAnimationBank1, NULL, NULL, _gM4a1EventEntryAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation088ECBank1[3] = {
+/// Event-exit translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1EventExitAnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_088EC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation088ECBank4[32] = {
+/// Event-exit rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1EventExitAnimationBank4[32] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_088EC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation088ECRecords[57] = {
+/// Event-exit keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1EventExitAnimationRecords[57] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_088EC_records.inc"
 };
 
-static u16 _gM4a1Animation088ECIndices[20] = {
+/// Event-exit record starts for tracks 0..18; the final serialized halfword is unused.
+static const u16 _gM4a1EventExitAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_088EC_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation088EC = {
-    _gM4a1Animation088ECRecords,
-    _gM4a1Animation088ECIndices,
-    { NULL, _gM4a1Animation088ECBank1, NULL, NULL, _gM4a1Animation088ECBank4, NULL, NULL, NULL },
+/// Player-rig scripted-event exit clip in M4A1-family bank entries 33 and 35.
+///
+/// A nonzero stored presentation selector plays entry 33 after a scripted interaction,
+/// before ordinary control resumes. Nineteen tracks borrow the loaded
+/// M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1EventExitAnimation = {
+    .records           = _gM4a1EventExitAnimationRecords,
+    .trackStartIndices = _gM4a1EventExitAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1EventExitAnimationBank1, NULL, NULL, _gM4a1EventExitAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1Animation08E50Bank1[11] = {
@@ -1151,24 +1205,24 @@ AnimationBank D_m4a1_8012B9E4 = { { {
     &_gM4a1Animation0B894,
     &_gM4a1Part4HitReactionAnimation,
     &_gM4a1OtherBodyHitReactionAnimation,
-    &_gM4a1Animation05D68,
+    &_gM4a1DeathAnimation,
     &_gM4a1UnarmedWalkAnimation,
     &_gM4a1Animation0B894,
     &_gM4a1IdleAnimation,
     &_gM4a1IdleAnimation,
-    &_gM4a1Animation07000,
-    &_gM4a1Animation08294,
-    &_gM4a1Animation07B78,
+    &_gM4a1HealthyIdleAnimation,
+    &_gM4a1InjuredIdleAnimation,
+    &_gM4a1CriticalIdleAnimation,
     &_gM4a1ParasiteEnergyReleaseFamily0Animation,
     &_gM4a1ParasiteEnergyChargeFamily0Animation,
     &_gM4a1ParasiteEnergyCastFamily0Animation,
     &_gM4a1ParasiteEnergyReleaseFamily1Animation,
     &_gM4a1ParasiteEnergyChargeFamily1Animation,
     &_gM4a1ParasiteEnergyCastFamily1Animation,
-    &_gM4a1Animation08714,
-    &_gM4a1Animation088EC,
-    &_gM4a1Animation08714,
-    &_gM4a1Animation088EC,
+    &_gM4a1EventEntryAnimation,
+    &_gM4a1EventExitAnimation,
+    &_gM4a1EventEntryAnimation,
+    &_gM4a1EventExitAnimation,
     &_gM4a1StairAscentAnimation,
     &_gM4a1StairDescentAnimation,
     &_gM4a1StairAscentFinishEvenAnimation,
