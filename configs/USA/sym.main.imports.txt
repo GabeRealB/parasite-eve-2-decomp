@@ -210,7 +210,7 @@ gKyle800102KyleMadiganHandLeftFirstPair = 0x8016DBD0; // absolute:True owner=kyl
 gKyle800101KyleMadiganGun = 0x8016DC60; // absolute:True owner=kyle_800101
 gKyle800103KyleMadiganM950 = 0x8016DE3C; // absolute:True owner=kyle_800103
 gKyle800102KyleMadiganHandLeft = 0x8016E0C0; // absolute:True owner=kyle_800102
-D_kyle_800104_8016E568 = 0x8016E568; // absolute:True owner=kyle_800104
+gKyle800104KyleMadiganGun = 0x8016E568; // absolute:True owner=kyle_800104
 gKyle800102KyleMadiganMm1 = 0x8016E93C; // absolute:True owner=kyle_800102
 gKyle800102Mm1GrenadeShell = 0x801775A8; // absolute:True owner=kyle_800102
 acropolisFountainClimbTask = 0x8017DCD4; // type:func absolute:True owner=acropolis_fountain
