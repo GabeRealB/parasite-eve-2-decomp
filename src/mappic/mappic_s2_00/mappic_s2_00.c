@@ -34,32 +34,37 @@ TmdSource gMappicS200MotelRoom6Shape = {
     .stream           = _gMappicS200MotelRoom6ShapeStream,
 };
 
-static TmdBone _gMappicS200Model0011CSkeleton[1] = {
+/// Identity transform and self-parented root for the motel balcony shape.
+static TmdBone _gMappicS200MotelBalconyShapeSkeleton[] = {
 #include "assets/mappic_s2_00_model_0011C_skeleton.inc"
 };
 
-static u32 _gMappicS200Model0011CPartVerts[1] = {
+/// Vertex count of the motel balcony shape's sole part (twelve vertices).
+static u32 _gMappicS200MotelBalconyShapePartVerts[] = {
 #include "assets/mappic_s2_00_model_0011C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS200Model0011CVerts[12] = {
+/// Motel balcony fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS200MotelBalconyShapeVerts[] = {
 #include "assets/mappic_s2_00_model_0011C_verts.inc"
 };
 
-static u32 _gMappicS200Model0011CStream[27] = {
+/// Two unlit triangles and four unlit quads, followed by two group ends and the stream end.
+///
+/// Each face stores packed u16 vertex byte offsets and a colour word. The map
+/// uses the geometry to draw textured fills and ignores the stored colours.
+static u32 _gMappicS200MotelBalconyShapeStream[] = {
 #include "assets/mappic_s2_00_model_0011C_stream.inc"
 };
 
-TmdSource D_mappic_s2_00_8012F0B8 = {
-    0,
-    136,
-    0,
-    1,
-    _gMappicS200Model0011CPartVerts,
-    _gMappicS200Model0011CVerts,
-    &_gMappicS200Model0011CVerts[12],
-    _gMappicS200Model0011CSkeleton,
-    _gMappicS200Model0011CStream,
+TmdSource gMappicS200MotelBalconyShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 4 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS200MotelBalconyShapeSkeleton),
+    .partVertexCounts = _gMappicS200MotelBalconyShapePartVerts,
+    .verts            = _gMappicS200MotelBalconyShapeVerts,
+    .normals          = &_gMappicS200MotelBalconyShapeVerts[ARRAY_SIZE(_gMappicS200MotelBalconyShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS200MotelBalconyShapeSkeleton,
+    .stream           = _gMappicS200MotelBalconyShapeStream,
 };
 
 static TmdBone _gMappicS200MappicS202Model00C4800218Skeleton[1] = {

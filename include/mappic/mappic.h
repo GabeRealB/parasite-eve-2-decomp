@@ -45,7 +45,13 @@ extern TmdSource D_mappic_s1_02_8012EFA0;
 /// keep the mappic_s2_00 package loaded while these are used.
 extern TmdSource gMappicS200MotelRoom6Shape;
 
-extern TmdSource D_mappic_s2_00_8012F0B8;
+/// Motel balcony's area-fill mesh on page 1 of the daytime Dryfield map.
+///
+/// Twelve vertices in the model X/Z plane form two triangles and four quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep the mappic_s2_00 package loaded while these are used.
+extern TmdSource gMappicS200MotelBalconyShape;
 
 extern TmdSource D_mappic_s2_00_8012F148;
 
@@ -171,7 +177,13 @@ extern TmdSource D_mappic_s3_00_8012EFF4;
 
 extern TmdSource D_mappic_s3_00_8012F084;
 
-extern TmdSource D_mappic_s3_00_8012F19C;
+/// Motel balcony's area-fill mesh on page 1 of the nighttime Dryfield map.
+///
+/// Twelve vertices in the model X/Z plane form two triangles and four quads;
+/// the map scales them by 1495/4096 and maps Z to inverted screen Y.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep the mappic_s3_00 package loaded while these are used.
+extern TmdSource gMappicS300MotelBalconyShape;
 
 /// Motel room 6's area-fill quad on page 1 of the nighttime Dryfield map.
 ///

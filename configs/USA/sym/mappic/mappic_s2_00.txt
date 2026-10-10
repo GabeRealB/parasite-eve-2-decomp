@@ -1,1 +1,2 @@
 // Overlay-local symbols for mappic_s2_00 (file 30200).
+gMappicS200MotelBalconyShape = 0x8012f0b8;

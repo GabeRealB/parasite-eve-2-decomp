@@ -60,32 +60,37 @@ TmdSource D_mappic_s3_00_8012F084 = {
     _gMappicS300MappicS202Model00C48002A8Stream,
 };
 
-static TmdBone _gMappicS300MappicS200Model0011CSkeleton[1] = {
+/// Identity transform and self-parented root for the motel balcony shape.
+static TmdBone _gMappicS300MotelBalconyShapeSkeleton[] = {
 #include "assets/mappic_s2_00_model_0011C_skeleton.inc"
 };
 
-static u32 _gMappicS300MappicS200Model0011CPartVerts[1] = {
+/// Vertex count of the motel balcony shape's sole part (twelve vertices).
+static u32 _gMappicS300MotelBalconyShapePartVerts[] = {
 #include "assets/mappic_s2_00_model_0011C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS300MappicS200Model0011CVerts[12] = {
+/// Motel balcony fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS300MotelBalconyShapeVerts[] = {
 #include "assets/mappic_s2_00_model_0011C_verts.inc"
 };
 
-static u32 _gMappicS300MappicS200Model0011CStream[27] = {
+/// Two unlit triangles and four unlit quads, followed by two group ends and the stream end.
+///
+/// Each face stores packed u16 vertex byte offsets and a colour word. The map
+/// uses the geometry to draw textured fills and ignores the stored colours.
+static u32 _gMappicS300MotelBalconyShapeStream[] = {
 #include "assets/mappic_s2_00_model_0011C_stream.inc"
 };
 
-TmdSource D_mappic_s3_00_8012F19C = {
-    0,
-    136,
-    0,
-    1,
-    _gMappicS300MappicS200Model0011CPartVerts,
-    _gMappicS300MappicS200Model0011CVerts,
-    &_gMappicS300MappicS200Model0011CVerts[12],
-    _gMappicS300MappicS200Model0011CSkeleton,
-    _gMappicS300MappicS200Model0011CStream,
+TmdSource gMappicS300MotelBalconyShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F3) + 4 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS300MotelBalconyShapeSkeleton),
+    .partVertexCounts = _gMappicS300MotelBalconyShapePartVerts,
+    .verts            = _gMappicS300MotelBalconyShapeVerts,
+    .normals          = &_gMappicS300MotelBalconyShapeVerts[ARRAY_SIZE(_gMappicS300MotelBalconyShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS300MotelBalconyShapeSkeleton,
+    .stream           = _gMappicS300MotelBalconyShapeStream,
 };
 
 /// Identity transform and self-parented root for the Motel room 6 shape.
