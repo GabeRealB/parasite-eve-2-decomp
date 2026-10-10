@@ -97109,12 +97109,12 @@ The C has to match that arithmetic. Indexing the complete array keeps all four
 addresses related, allowing GCC to choose element 4 as its base register:
 
 ```c
-SVECTOR D_dryfield_night_back_street_8018034C[10];
+static SVECTOR _gDryfieldNightBackStreetGlowPoints[10];
 
-    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[4], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
-    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[5], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
-    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[0], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
-    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[2], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
+    _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[4], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+    _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[5], 0, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+    _glowDrawShaft(&_gDryfieldNightBackStreetGlowPoints[0], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
+    _glowDrawShaft(&_gDryfieldNightBackStreetGlowPoints[2], DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
 ```
 
 A negative displacement does not require a negative C index: GCC CSEs

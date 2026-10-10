@@ -16,19 +16,50 @@ extern AreaVariant D_dryfield_night_back_street_80181518[22];
 // dryfield_night_back_street
 extern WorldCollisionRoomResources D_dryfield_night_back_street_801803AC[];
 
-extern WorldCoordRoomLighting D_dryfield_night_back_street_801803BC[];
+/// Night Back Street room 1's six point lights and ambient minima for five views.
+///
+/// Night Dryfield area 5 indexes this array by room minus one. Light coordinates
+/// and attenuation remain writable; ambient colours use 16 units per 8-bit
+/// colour level. Borrow these resources only while this room overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldNightBackStreetRoomLighting[1];
 
-extern u8* D_dryfield_night_back_street_801803C4[];
+/// Night Back Street room 1's mapping from logical views to camera/image/sprite slots.
+///
+/// The sole room entry borrows gameplay's `gViewIdentityMap`: views 1..5 map
+/// to slots 1..5. Its capacity is independent of this room's five-view limit.
+/// The directory lives with this overlay; the byte map lives with gameplay.
+extern u8* gDryfieldNightBackStreetViewMaps[1];
 
-extern ViewCount D_dryfield_night_back_street_801803C8[];
+/// Night Back Street room 1's five logical views, bounding reverse-map searches.
+///
+/// Indexed by room minus one. The signed halfword counts map elements;
+/// the stage directory borrows this storage while the room overlay is loaded.
+extern ViewCount gDryfieldNightBackStreetRoomViewCounts[1];
 
 extern DirectionWarpEntry D_dryfield_night_back_street_801803CC[];
 
-extern ViewCamera D_dryfield_night_back_street_80180B58[];
+/// Night Back Street's five mapped-view cameras, indexed by view minus one.
+///
+/// Rotation uses 4096 per unit, translation is the negated camera origin in
+/// game units, and projection distance is pixels. Keep the room overlay loaded
+/// until queued camera application has copied the selected record.
+extern ViewCamera gDryfieldNightBackStreetViewCameras[5];
 
-extern SpriteView D_dryfield_night_back_street_80180D34[];
+/// Night Back Street's five mapped-view sprite descriptors, indexed by view minus one.
+///
+/// Views 1..3 have empty batches; views 4/5 each select five source rectangles.
+/// Every view retains decoded background strips and has no clipping list.
+/// Writable descriptors and their lists are borrowed while this overlay is loaded.
+extern SpriteView gDryfieldNightBackStreetSpriteViews[5];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_back_street_8018161C[];
+/// Night Back Street's collision and footstep policies for surface classes 0..7.
+///
+/// Class 1 blocks probes and permits weapon impacts with footstep cues; class 2
+/// passes probes and suppresses impacts with the same cues. Classes 0 and 3..7
+/// block probes and permit impacts without footsteps. All classes apply pushback.
+/// The mesh uses classes 0..2; setup caches all eight. Borrowed policies and
+/// sounds remain live only while this room overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightBackStreetSurfacePropertiesByClass[8];
 
 /// Runs the night back street's charging pink flash, peak screen tint and fading star.
 ///

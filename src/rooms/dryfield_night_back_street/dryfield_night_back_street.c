@@ -65,11 +65,11 @@ static s32 _dryfieldNightBackStreetRejectKeyItemUse(Task* task, s32 messageId, s
 static s32 _dryfieldNightBackStreetIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 executionMode);
 static s32 _dryfieldNightBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
-extern WorldCollisionGrid         D_dryfield_night_back_street_80180B34[1];
-extern WorldCollisionTrigger      D_dryfield_night_back_street_80180D70[6];
+static WorldCollisionGrid         _gDryfieldNightBackStreetCollisionGrid;
+static WorldCollisionTrigger      _gDryfieldNightBackStreetViewBoundaries[6];
 extern WorldCollisionTrigger      D_dryfield_night_back_street_80180F38[10];
-extern WorldCoordRoomAmbientEntry D_dryfield_night_back_street_801815C8[6];
-extern WorldCoordRoomLights       D_dryfield_night_back_street_80181470[1];
+static WorldCoordRoomAmbientEntry _gDryfieldNightBackStreetAmbientByView[6];
+static WorldCoordRoomLights       _gDryfieldNightBackStreetRoomLights;
 
 TaskMessageEntry D_dryfield_night_back_street_80180324[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveBackStreet },
@@ -79,7 +79,13 @@ TaskMessageEntry D_dryfield_night_back_street_80180324[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_dryfield_night_back_street_8018034C[10] = {
+/// World-space shaft endpoints and flare positions for the night back street.
+///
+/// Integer game-coordinate units. Points 0/1 and 2/3 form the two shafts in
+/// views 2/3; 4/5 are those views' texture-0 flares. Points 6/7 are view 3's
+/// texture-1 flares, and 8/9 are the texture-1 flares shared by views 4/5.
+/// Drawing borrows the points while this overlay is loaded.
+static SVECTOR _gDryfieldNightBackStreetGlowPoints[10] = {
     { -9920, -2300, 5110, 0 },
     { -9920, -2300, 3900, 0 },
     { -9850, -2330, 5110, 0 },
@@ -95,18 +101,18 @@ SVECTOR D_dryfield_night_back_street_8018034C[10] = {
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
 WorldCollisionRoomResources D_dryfield_night_back_street_801803AC[1] = {
-    { D_dryfield_night_back_street_80180B34, D_dryfield_night_back_street_80180D70, D_dryfield_night_back_street_80180F38, NULL },
+    { &_gDryfieldNightBackStreetCollisionGrid, _gDryfieldNightBackStreetViewBoundaries, D_dryfield_night_back_street_80180F38, NULL },
 };
 
-WorldCoordRoomLighting D_dryfield_night_back_street_801803BC[1] = {
-    { D_dryfield_night_back_street_80181470, D_dryfield_night_back_street_801815C8 },
+WorldCoordRoomLighting gDryfieldNightBackStreetRoomLighting[1] = {
+    { .lights = &_gDryfieldNightBackStreetRoomLights, .ambientTable = _gDryfieldNightBackStreetAmbientByView },
 };
 
-u8* D_dryfield_night_back_street_801803C4[1] = {
+u8* gDryfieldNightBackStreetViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_night_back_street_801803C8[1] = { 5 };
+ViewCount gDryfieldNightBackStreetRoomViewCounts[1] = { ARRAY_SIZE(gDryfieldNightBackStreetViewCameras) };
 
 DirectionWarpEntry D_dryfield_night_back_street_801803CC[4] = {
     { { { .word = 1024 }, -9597, 0, 4667 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -8696, 0, 5479 }, { 0, 0, 0, 0 }, 0x53050002, 0x53050001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, 470 },
@@ -115,56 +121,94 @@ DirectionWarpEntry D_dryfield_night_back_street_801803CC[4] = {
     { { { .word = 2048 }, 9463, 2, 5532 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 9800, 2, 4668 }, { 0, 0, 0, 0 }, 0x53050002, 0x53050001, 0x53050005, 5, DIRECTION_WARP_FLAG_NONE, 467 },
 };
 
-static SVECTOR _gDryfieldNightBackStreetCollision03574Normals[19] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gDryfieldNightBackStreetCollisionGridNormals[19] = {
 #include "assets/dryfield_night_back_street_collision_03574_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightBackStreetCollision03574Verts[72] = {
+/// Collision-mesh vertices in signed integer game-coordinate units.
+static SVECTOR _gDryfieldNightBackStreetCollisionGridVerts[72] = {
 #include "assets/dryfield_night_back_street_collision_03574_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightBackStreetCollision03574Faces[32] = {
+/// Indexed collision quads selecting room-local surface classes 0..2.
+static WorldCollisionGridFace _gDryfieldNightBackStreetCollisionGridFaces[32] = {
 #include "assets/dryfield_night_back_street_collision_03574_faces.inc"
 };
 
-static s16 _gDryfieldNightBackStreetCollision03574Cells[224] = {
+/// Packed signed face-index lists for the grid cells, each ending with -1.
+static s16 _gDryfieldNightBackStreetCollisionGridCells[224] = {
 #include "assets/dryfield_night_back_street_collision_03574_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightBackStreetCollision03574Cells[i])
-static s16* _gDryfieldNightBackStreetCollision03574Table[28] = {
+// Generated offsets count halfword elements in this grid's face-list pool.
+#define GRID_CELL(i) (&_gDryfieldNightBackStreetCollisionGridCells[i])
+/// X-major pointers into the face-list pool for the 7 by 4 collision grid.
+static s16* _gDryfieldNightBackStreetCollisionGridTable[28] = {
 #include "assets/dryfield_night_back_street_collision_03574_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_back_street_80180B34[1] = {
-    { NULL, _gDryfieldNightBackStreetCollision03574Normals, _gDryfieldNightBackStreetCollision03574Verts, _gDryfieldNightBackStreetCollision03574Faces, _gDryfieldNightBackStreetCollision03574Table, 0x2AFE, 100, 7, 4, 4000, 32 },
+/// The night back street's collision mesh and 7 by 4 XZ cell index.
+///
+/// Cells span 4000 game units from origin (-11006, -100) on XZ. Setup binds
+/// the writable descriptor to the current view. Keep this overlay loaded
+/// while the descriptor, mesh pools and cell lists are borrowed.
+static WorldCollisionGrid _gDryfieldNightBackStreetCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightBackStreetCollisionGridNormals,
+    .vertices    = _gDryfieldNightBackStreetCollisionGridVerts,
+    .faces       = _gDryfieldNightBackStreetCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightBackStreetCollisionGridTable,
+    .xBias       = 0x2AFE,
+    .zBias       = 100,
+    .cellCountX  = 7,
+    .cellCountZ  = 4,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightBackStreetCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_back_street_80180B58[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -850, 0x7148, -4850 } }, 329 },
+ViewCamera gDryfieldNightBackStreetViewCameras[5] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -850, 0x7148, -4850 } }, 329 },
     { { { { 696, 0, 4036 }, { -1070, 3949, 184 }, { -3892, -1085, 671 } }, { 4016, 385, -4128 } }, 230 },
     { { { { 681, 0, 4038 }, { 402, 4075, -67 }, { -4018, 408, 677 } }, { -2416, 1408, -4201 } }, 257 },
     { { { { 615, 0, -4049 }, { -873, 3999, -132 }, { 3954, 883, 600 } }, { 2448, 1600, -4230 } }, 230 },
     { { { { 173, 0, -4092 }, { -1464, 3824, -62 }, { 3821, 1465, 162 } }, { -2046, 2454, -4167 } }, 257 },
 };
 
-SpriteBatch D_dryfield_night_back_street_80180C0C[2] = {
+/// View 1's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count batch precedes the terminator; its address also fills the
+/// view's empty source slot. Writable storage lives with this room overlay.
+static SpriteBatch _gDryfieldNightBackStreetView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_back_street_80180C1C[2] = {
+/// View 2's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count batch precedes the terminator; its address also fills the
+/// view's empty source slot. Writable storage lives with this room overlay.
+static SpriteBatch _gDryfieldNightBackStreetView2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_back_street_80180C2C[2] = {
+/// View 3's empty sprite list, retaining decoded background strips.
+///
+/// The zero-count batch precedes the terminator; its address also fills the
+/// view's empty source slot. Writable storage lives with this room overlay.
+static SpriteBatch _gDryfieldNightBackStreetView3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_back_street_80180C3C[5] = {
+/// View 4's five textured foreground rectangles and sorting depths.
+///
+/// Positions and dimensions are pixels relative to the view centre; UVs are
+/// texels and depths use the renderer's unscaled sorting domain. The batch
+/// selects every element; writable source storage lives with this overlay.
+static SpriteSource _gDryfieldNightBackStreetView4SpriteSources[5] = {
     { 143, 0x3FC0, { .fields = { 8, 96 } }, 64, -64, 1295, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 104 } }, 72, -72, 1258, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 152 } }, 80, -72, 1125, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
@@ -172,13 +216,22 @@ SpriteSource D_dryfield_night_back_street_80180C3C[5] = {
     { 143, 0x3FC0, { .fields = { 40, 216 } }, 120, -96, 785, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_back_street_80180CA0[3] = {
+/// View 4's background-strip selector and complete foreground-sprite range.
+///
+/// A zero-count first batch retains the background, followed by the five
+/// source elements and the terminator. Writable storage lives with this overlay.
+static SpriteBatch _gDryfieldNightBackStreetView4SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightBackStreetView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_back_street_80180CB8[5] = {
+/// View 5's five textured foreground rectangles and sorting depths.
+///
+/// Positions and dimensions are pixels relative to the view centre; UVs are
+/// texels and depths use the renderer's unscaled sorting domain. The batch
+/// selects every element; writable source storage lives with this overlay.
+static SpriteSource _gDryfieldNightBackStreetView5SpriteSources[5] = {
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, -16, 1714, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, -16, 1680, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 8 } }, 72, -24, 1678, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
@@ -186,21 +239,31 @@ SpriteSource D_dryfield_night_back_street_80180CB8[5] = {
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -8, 1663, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_back_street_80180D1C[3] = {
+/// View 5's background-strip selector and complete foreground-sprite range.
+///
+/// A zero-count first batch retains the background, followed by the five
+/// source elements and the terminator. Writable storage lives with this overlay.
+static SpriteBatch _gDryfieldNightBackStreetView5SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 5, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightBackStreetView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_back_street_80180D34[5] = {
-    { { .empty = D_dryfield_night_back_street_80180C0C }, D_dryfield_night_back_street_80180C0C, NULL },
-    { { .empty = D_dryfield_night_back_street_80180C1C }, D_dryfield_night_back_street_80180C1C, NULL },
-    { { .empty = D_dryfield_night_back_street_80180C2C }, D_dryfield_night_back_street_80180C2C, NULL },
-    { { .elements = D_dryfield_night_back_street_80180C3C }, D_dryfield_night_back_street_80180CA0, NULL },
-    { { .elements = D_dryfield_night_back_street_80180CB8 }, D_dryfield_night_back_street_80180D1C, NULL },
+SpriteView gDryfieldNightBackStreetSpriteViews[5] = {
+    { { .empty = _gDryfieldNightBackStreetView1SpriteBatches }, _gDryfieldNightBackStreetView1SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightBackStreetView2SpriteBatches }, _gDryfieldNightBackStreetView2SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightBackStreetView3SpriteBatches }, _gDryfieldNightBackStreetView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightBackStreetView4SpriteSources }, _gDryfieldNightBackStreetView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightBackStreetView5SpriteSources }, _gDryfieldNightBackStreetView5SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_dryfield_night_back_street_80180D70[6] = {
+/// Directed camera boundaries between views 2/3, 3/4 and 4/5.
+///
+/// Each pair covers both crossing directions. The final LAST-marked quad is
+/// included when setup links the array and binds its view coordinate. Positions
+/// and radii use game units; normals use 4096 per unit. Keep storage loaded
+/// until the runtime trigger list is cleared.
+static WorldCollisionTrigger _gDryfieldNightBackStreetViewBoundaries[6] = {
     { NULL, NULL, NULL, { -6272, -3296, 4752, 0 }, { { 0, -4320, -1584, 0 }, { 0, -4320, 1584, 0 }, { 0, 4320, -1584, 0 }, { 0, 4320, 1584, 0 } }, { 4099, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4579, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -5888, -3504, 4672, 0 }, { { 0, -4528, 1584, 0 }, { 0, -4528, -1584, 0 }, { 0, 4528, 1584, 0 }, { 0, 4528, -1584, 0 } }, { -4098, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4775, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -192, -4160, 4576, 0 }, { { -236, -5184, 1562, 0 }, { 228, -5184, -1572, 0 }, { -236, 5184, 1562, 0 }, { 228, 5184, -1572, 0 } }, { -4054, 0, -601, 0 }, { 0, 0, 4096, 0 }, 5418, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -335,48 +398,76 @@ static WorldCoordPointLight _gDryfieldNightBackStreetPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_night_back_street_80181470[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldNightBackStreetPointLights), _gDryfieldNightBackStreetPointLights, 0, NULL },
+/// The night back street's six point lights, with no directional or cone lights.
+///
+/// Model-light queries borrow this collection independently of the view.
+/// Coordinates and attenuation in its point-light array remain writable;
+/// neither collection nor light pointers may outlive the loaded room overlay.
+static WorldCoordRoomLights _gDryfieldNightBackStreetRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightBackStreetPointLights),
+    .pointLights           = _gDryfieldNightBackStreetPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-AreaResource D_dryfield_night_back_street_80181488[2] = {
+/// Variant 1's scorpion file and spawning recipe, followed by the resource terminator.
+///
+/// Placement ID 25 selects actor-slot-1 file 25 and task descriptor 0.
+/// The room table and actor overlay must stay loaded while loading or spawning.
+static AreaResource _gDryfieldNightBackStreetVariant1Resources[2] = {
     { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_back_street_801814A0[3] = {
+/// Variant 3's Desert Chaser and Mind Suckler resource recipes and terminator.
+///
+/// Placement IDs 1/15 select files 1/15 in actor slots 4/3, respectively,
+/// each using descriptor 0. Borrow the room and actor overlays while spawning.
+static AreaResource _gDryfieldNightBackStreetVariant3Resources[3] = {
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_back_street_801814C4[3] = {
+/// Variant 4's Desert Chaser and Moth resource recipes and terminator.
+///
+/// Placement IDs 1/8 select files 1/7 in actor slots 4/3, respectively,
+/// each using descriptor 0. Borrow the room and actor overlays while spawning.
+static AreaResource _gDryfieldNightBackStreetVariant4Resources[3] = {
     { 1, 1, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor00100DesertChaserTaskDesc },
     { 8, 7, AREA_RESOURCE_FILE_GROUP_BASE_30, 0, { 0, 0 }, &gActor300700MothTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_back_street_801814E8[2] = {
+/// Variant 7's Rook Golem file and spawning recipe, followed by the resource terminator.
+///
+/// Placement ID 57 selects actor-slot-1 file 57 and task descriptor 0.
+/// The room table and actor overlay must stay loaded while loading or spawning.
+static AreaResource _gDryfieldNightBackStreetVariant7Resources[2] = {
     { 57, 57, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_dryfield_night_back_street_80181500[2] = {
+/// Variant 21's Bat file and spawning recipe, followed by the resource terminator.
+///
+/// Placement ID 37 selects actor-slot-1 file 37 and task descriptor 0.
+/// The room table and actor overlay must stay loaded while loading or spawning.
+static AreaResource _gDryfieldNightBackStreetVariant21Resources[2] = {
     { 37, 37, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
 AreaVariant D_dryfield_night_back_street_80181518[22] = {
     { NULL, NULL },
-    { D_map_dryfield_full_8017B048, D_dryfield_night_back_street_80181488 },
+    { D_map_dryfield_full_8017B048, _gDryfieldNightBackStreetVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B0B8, D_dryfield_night_back_street_801814A0 },
-    { D_map_dryfield_full_8017B128, D_dryfield_night_back_street_801814C4 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_map_dryfield_full_8017B1A8, D_dryfield_night_back_street_801814E8 },
+    { D_map_dryfield_full_8017B0B8, _gDryfieldNightBackStreetVariant3Resources },
+    { D_map_dryfield_full_8017B128, _gDryfieldNightBackStreetVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
+    { D_map_dryfield_full_8017B1A8, _gDryfieldNightBackStreetVariant7Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
@@ -388,11 +479,18 @@ AreaVariant D_dryfield_night_back_street_80181518[22] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_full_8017B1C8, D_dryfield_night_back_street_80181500 },
+    { NULL, NULL },
+    { NULL, NULL },
+    { D_map_dryfield_full_8017B1C8, _gDryfieldNightBackStreetVariant21Resources },
 };
 
-WorldCoordRoomAmbientEntry D_dryfield_night_back_street_801815C8[6] = {
-    { .viewCount = ARRAY_SIZE(D_dryfield_night_back_street_801815C8) - 1 },
+/// Minimum ambient RGB levels for the night back street's five views.
+///
+/// Entry zero holds the view count; entries 1..5 hold RGB and stored luma in
+/// units of 1/16 of an 8-bit colour level. Lighting reads this overlay-owned
+/// table without modifying it; pointers must not survive unloading the room.
+static WorldCoordRoomAmbientEntry _gDryfieldNightBackStreetAmbientByView[6] = {
+    { .viewCount = ARRAY_SIZE(_gDryfieldNightBackStreetAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 618, 618, 615, 617 } },
     { .color = { 616, 618, 617, 617 } },
@@ -400,33 +498,68 @@ WorldCoordRoomAmbientEntry D_dryfield_night_back_street_801815C8[6] = {
     { .color = { 616, 617, 617, 616 } },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_back_street_801815F8 = {
-    0x1000001D,
-    0x1000001F,
-    0x1000001D,
+// Type-1 sound requests select entries in the current area bank.
+enum {
+    DRYFIELD_NIGHT_BACK_STREET_WALK_FOOTSTEP_SOUND = 0x1000001D,
+    DRYFIELD_NIGHT_BACK_STREET_RUN_FOOTSTEP_SOUND  = 0x1000001F,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_back_street_80181604[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump cue bases for surface classes 1/2.
+///
+/// Walking and jumps use base 29; running uses base 31. Animation cue 1 adds
+/// one and companions add 100. Surface policies borrow this table while the
+/// room overlay is loaded; playback also requires the current sound bank.
+static WorldCollisionFootstepSounds _gDryfieldNightBackStreetFootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_BACK_STREET_WALK_FOOTSTEP_SOUND,
+    .run          = DRYFIELD_NIGHT_BACK_STREET_RUN_FOOTSTEP_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_BACK_STREET_WALK_FOOTSTEP_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_back_street_8018160C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_back_street_801815F8 },
+/// Classes 0 and 3..7: blocked probes, enabled weapon impacts and silent footsteps.
+///
+/// Applies pushback. The first byte retains its authored zero; its role is
+/// unproven. The class table borrows this record while the room is loaded.
+static WorldCollisionSurfaceProperties _gDryfieldNightBackStreetBlockingSilentSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_back_street_80181614[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_back_street_801815F8 },
+/// Class 1: blocked probes, enabled weapon impacts and walking/running footstep cues.
+///
+/// Applies pushback. The first byte retains its authored zero; its role is
+/// unproven. Both policy and borrowed sound table live with this room overlay.
+static WorldCollisionSurfaceProperties _gDryfieldNightBackStreetBlockingFootstepSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightBackStreetFootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_back_street_8018161C[8] = {
-    D_dryfield_night_back_street_80181604,
-    D_dryfield_night_back_street_8018160C,
-    D_dryfield_night_back_street_80181614,
-    D_dryfield_night_back_street_80181604,
-    D_dryfield_night_back_street_80181604,
-    D_dryfield_night_back_street_80181604,
-    D_dryfield_night_back_street_80181604,
-    D_dryfield_night_back_street_80181604,
+/// Class 2: probe passage and suppressed weapon impacts, with walking/running cues.
+///
+/// Applies pushback independently of probe passage. The first byte's role is
+/// unproven and its zero is retained. Policy and sounds live with this overlay.
+static WorldCollisionSurfaceProperties _gDryfieldNightBackStreetPassThroughFootstepSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightBackStreetFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightBackStreetSurfacePropertiesByClass[8] = {
+    &_gDryfieldNightBackStreetBlockingSilentSurface,
+    &_gDryfieldNightBackStreetBlockingFootstepSurface,
+    &_gDryfieldNightBackStreetPassThroughFootstepSurface,
+    &_gDryfieldNightBackStreetBlockingSilentSurface,
+    &_gDryfieldNightBackStreetBlockingSilentSurface,
+    &_gDryfieldNightBackStreetBlockingSilentSurface,
+    &_gDryfieldNightBackStreetBlockingSilentSurface,
+    &_gDryfieldNightBackStreetBlockingSilentSurface,
 };
 
 static void _dryfieldNightBackStreetInitRoomTask(Task* task);
@@ -507,19 +640,25 @@ static inline void _dryfieldNightBackStreetDrawView2Glows(void)
     };
 
     // Each shaft borrows its start point and the next point as its two ends.
-    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FIRST_FLARE_POINT],
+    _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FIRST_FLARE_POINT],
                    DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FLARE_TEXTURE, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
-    _glowDrawFlare(&D_dryfield_night_back_street_8018034C[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_SECOND_FLARE_POINT],
+    _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_SECOND_FLARE_POINT],
                    DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FLARE_TEXTURE, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
-    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FIRST_SHAFT_START],
+    _glowDrawShaft(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_FIRST_SHAFT_START],
                    DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
-    _glowDrawShaft(&D_dryfield_night_back_street_8018034C[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_SECOND_SHAFT_START],
+    _glowDrawShaft(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_2_SECOND_SHAFT_START],
                    DRYFIELD_NIGHT_BACK_STREET_SHAFT_RADIUS_SCALE);
 }
 
 void dryfieldNightBackStreetDrawGlowsTask(Task* task)
 {
     enum { DRYFIELD_NIGHT_BACK_STREET_EFFECTS_INITIALIZE = 0 };
+    enum {
+        DRYFIELD_NIGHT_BACK_STREET_VIEW_3_FIRST_FLARE_POINT    = 6,
+        DRYFIELD_NIGHT_BACK_STREET_VIEW_3_SECOND_FLARE_POINT   = 7,
+        DRYFIELD_NIGHT_BACK_STREET_VIEW_4_5_FIRST_FLARE_POINT  = 8,
+        DRYFIELD_NIGHT_BACK_STREET_VIEW_4_5_SECOND_FLARE_POINT = 9,
+    };
 
     if (task->state == DRYFIELD_NIGHT_BACK_STREET_EFFECTS_INITIALIZE) {
         gRoomEffectFlashId      = EFFECT_DRYFIELD_NIGHT_BACK_STREET_FLASH;
@@ -530,16 +669,16 @@ void dryfieldNightBackStreetDrawGlowsTask(Task* task)
     // View 3 includes view 2's lights; the first four points are paired shaft ends.
     switch (gGameSession->location.loc.view) {
         case 3:
-            _glowDrawFlare(&D_dryfield_night_back_street_8018034C[6], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_dryfield_night_back_street_8018034C[7], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_3_FIRST_FLARE_POINT], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_3_SECOND_FLARE_POINT], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
             /* fallthrough */
         case 2:
             _dryfieldNightBackStreetDrawView2Glows();
             break;
         case 4:
         case 5:
-            _glowDrawFlare(&D_dryfield_night_back_street_8018034C[8], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_dryfield_night_back_street_8018034C[9], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_4_5_FIRST_FLARE_POINT], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gDryfieldNightBackStreetGlowPoints[DRYFIELD_NIGHT_BACK_STREET_VIEW_4_5_SECOND_FLARE_POINT], 1, DRYFIELD_NIGHT_BACK_STREET_FLARE_RADIUS_SCALE);
             break;
     }
 }

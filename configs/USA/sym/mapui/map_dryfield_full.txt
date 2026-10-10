@@ -32,13 +32,13 @@ D_dryfield_night_general_store_80184278 = 0x80184278; // absolute:True owner=dry
 D_dryfield_night_general_store_80185894 = 0x80185894; // absolute:True owner=dryfield_night_general_store
 dryfieldNightBackStreetRoomTask = 0x8017D788; // type:func absolute:True owner=dryfield_night_back_street
 D_dryfield_night_back_street_801803AC = 0x801803AC; // absolute:True owner=dryfield_night_back_street
-D_dryfield_night_back_street_801803BC = 0x801803BC; // absolute:True owner=dryfield_night_back_street
-D_dryfield_night_back_street_801803C4 = 0x801803C4; // absolute:True owner=dryfield_night_back_street
-D_dryfield_night_back_street_801803C8 = 0x801803C8; // absolute:True owner=dryfield_night_back_street shared=rooms
+gDryfieldNightBackStreetRoomLighting = 0x801803BC; // absolute:True owner=dryfield_night_back_street
+gDryfieldNightBackStreetViewMaps = 0x801803C4; // absolute:True owner=dryfield_night_back_street
+gDryfieldNightBackStreetRoomViewCounts = 0x801803C8; // absolute:True owner=dryfield_night_back_street shared=rooms
 D_dryfield_night_back_street_801803CC = 0x801803CC; // absolute:True owner=dryfield_night_back_street shared=rooms
-D_dryfield_night_back_street_80180B58 = 0x80180B58; // absolute:True owner=dryfield_night_back_street shared=rooms
-D_dryfield_night_back_street_80180D34 = 0x80180D34; // absolute:True owner=dryfield_night_back_street
-D_dryfield_night_back_street_8018161C = 0x8018161C; // absolute:True owner=dryfield_night_back_street shared=rooms
+gDryfieldNightBackStreetViewCameras = 0x80180B58; // absolute:True owner=dryfield_night_back_street shared=rooms
+gDryfieldNightBackStreetSpriteViews = 0x80180D34; // absolute:True owner=dryfield_night_back_street
+gDryfieldNightBackStreetSurfacePropertiesByClass = 0x8018161C; // absolute:True owner=dryfield_night_back_street shared=rooms
 dryfieldNightSouvenirShopRoomTask = 0x8017D65C; // type:func absolute:True owner=dryfield_night_souvenir_shop shared=rooms
 D_dryfield_night_souvenir_shop_8017E0E4 = 0x8017E0E4; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
 D_dryfield_night_souvenir_shop_8017E0EC = 0x8017E0EC; // absolute:True owner=dryfield_night_souvenir_shop shared=rooms
