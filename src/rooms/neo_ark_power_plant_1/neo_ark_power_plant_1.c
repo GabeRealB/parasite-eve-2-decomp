@@ -143,7 +143,7 @@ static void _neoArkPowerPlant1UpdateRoom(Task* unusedTask)
                         gameFlagSetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_1, 0);
                         areaApplySavedUpdates(D_neo_ark_power_plant_1_80181C00);
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = NEO_ARK_POWER_PLANT_1_CLEAR_SCENE_EVENT;
-                        evsStartScriptWithSkip(D_neo_ark_power_plant_1_8017EB7C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_power_plant_1_8017EDBC);
+                        evsStartScriptWithSkip(gNeoArkPowerPlant1GeneratorClearScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, gNeoArkPowerPlant1GeneratorClearSkipScript);
                     }
                 }
             }
@@ -153,15 +153,15 @@ static void _neoArkPowerPlant1UpdateRoom(Task* unusedTask)
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_0FB, 1);
         gGameSession->battleResetPending            = 0;
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
-        evsStartScript(D_neo_ark_power_plant_1_8017EEE4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+        evsStartScript(gNeoArkPowerPlant1BattleEntryScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     // Delay sound changes until the saved and active views settle.
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0)) {
-        D_neo_ark_power_plant_1_8017F01C = NEO_ARK_POWER_PLANT_1_VIEW_SOUND_DELAY_FRAMES;
+        gNeoArkPowerPlant1ViewSoundDelayFrames = NEO_ARK_POWER_PLANT_1_VIEW_SOUND_DELAY_FRAMES;
         return;
     }
-    if (D_neo_ark_power_plant_1_8017F01C != 0) {
-        if (--D_neo_ark_power_plant_1_8017F01C == 0) {
+    if (gNeoArkPowerPlant1ViewSoundDelayFrames != 0) {
+        if (--gNeoArkPowerPlant1ViewSoundDelayFrames == 0) {
             if (gGameSession->location.loc.view == NEO_ARK_POWER_PLANT_1_GENERATOR_SOUND_VIEW) {
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, NEO_ARK_POWER_PLANT_1_GENERATOR_SOUND_SCRIPT), 0, 0);
                 return;
@@ -267,7 +267,7 @@ static void _neoArkPowerPlant1InitializeRoom(Task* task)
     enum { NEO_ARK_POWER_PLANT_1_SKIP_ENDING_MUSIC_VARIANT = 1,
            NEO_ARK_POWER_PLANT_1_BATTLE_RESET_REQUESTED    = 1 };
 
-    task->msgTable = D_neo_ark_power_plant_1_8017EB18;
+    task->msgTable = gNeoArkPowerPlant1RoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == NEO_ARK_POWER_PLANT_1_SKIP_ENDING_MUSIC_VARIANT) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;

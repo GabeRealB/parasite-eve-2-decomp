@@ -10,15 +10,38 @@
 
 #include "main/task_types.h"
 
-extern TaskMessageEntry D_neo_ark_power_plant_1_8017EB18[5];
+/// Room-controller routes for transitions, key items, interactions and CAP commands.
+///
+/// Four handlers and a TASK_MESSAGE_TABLE_END marker. The live room task borrows
+/// this table and its callbacks while the overlay remains loaded.
+extern TaskMessageEntry gNeoArkPowerPlant1RoomMessages[5];
 
-extern EvsCommand D_neo_ark_power_plant_1_8017EB7C[24];
+/// Generator-clear presentation, including CAP cues, vibration and the two release waits.
+///
+/// Starts after placed actor 0 reports defeat. Twenty-four instructions include
+/// END; the interpreter borrows this table and its payloads through completion.
+/// Skipping is disabled before the final view and battle-exit restoration.
+extern EvsCommand gNeoArkPowerPlant1GeneratorClearScript[24];
 
-extern EvsCommand D_neo_ark_power_plant_1_8017EDBC[10];
+/// Skip path that restores the view and player, stops vibration and releases both generator waits.
+///
+/// Ten instructions include END. Used only while the generator-clear scene's
+/// skip target remains armed; table and payloads belong to the loaded room.
+extern EvsCommand gNeoArkPowerPlant1GeneratorClearSkipScript[10];
 
-extern EvsCommand D_neo_ark_power_plant_1_8017EEE4[13];
+/// One-shot view-3 battle entry: place the player, play the room clip and engage combat.
+///
+/// Thirteen instructions include END. Installs extended clip 47 in the equipped
+/// bank, plays the room clip, then resumes player control. The retained half-rate
+/// request precedes playback, which resets the player rate to normal.
+/// The interpreter and player borrow the room's tables and animation resources.
+extern EvsCommand gNeoArkPowerPlant1BattleEntryScript[13];
 
-extern s32 D_neo_ark_power_plant_1_8017F01C;
+/// Room ticks remaining before changing the view-7 sound (0 unarmed).
+///
+/// Saved/active view mismatch arms four after this plant clears and while the
+/// second remains uncleared. Predecrement to zero starts or stops area script 10.
+extern s32 gNeoArkPowerPlant1ViewSoundDelayFrames;
 
 /// Surface class 4's walking, running and scripted-jump footstep cue bases.
 ///

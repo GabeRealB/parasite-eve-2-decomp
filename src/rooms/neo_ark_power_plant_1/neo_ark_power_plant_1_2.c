@@ -14,13 +14,16 @@
 
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
+#include "gameplay/captions.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
+#include "gameplay/display.h"
 #include "gameplay/evs.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
+#include "gameplay/player_actor.h"
 #include "gameplay/room.h"
 #include "gameplay/room_effects.h"
 #include "gameplay/scene.h"
@@ -38,6 +41,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/task_types.h"
 
 #include "mapui/map_neo_ark.h"
@@ -45,17 +49,41 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
-extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
-
 static WorldCollisionGrid     _gNeoArkPowerPlant1CollisionGrid;
-extern WorldCollisionOccluder D_neo_ark_power_plant_1_80181B60[1];
-extern WorldCollisionTrigger  D_neo_ark_power_plant_1_8018155C[10];
-extern WorldCollisionTrigger  D_neo_ark_power_plant_1_80181854[7];
+static WorldCollisionOccluder _gNeoArkPowerPlant1SightOccluders[1];
+static WorldCollisionTrigger  _gNeoArkPowerPlant1ViewBoundaryTriggers[10];
+static WorldCollisionTrigger  _gNeoArkPowerPlant1ActionTriggers[7];
 static WorldCoordRoomLights   _gNeoArkPowerPlant1RoomLights;
 
-extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40;
-extern AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC;
+/// Player clips, generator release commands and CAP slots used by this room's events.
+enum {
+    NEO_ARK_POWER_PLANT_1_PLAYER_IDLE_CLIP              = 1,
+    NEO_ARK_POWER_PLANT_1_PLAYER_BATTLE_ENTRY_CLIP      = ANIMATION_BANK_BASE_SET_COUNT,
+    NEO_ARK_POWER_PLANT_1_GENERATOR_RELEASE_DEATH       = 1,
+    NEO_ARK_POWER_PLANT_1_GENERATOR_RELEASE_BATTLE_EXIT = 2,
+    NEO_ARK_POWER_PLANT_1_GENERATOR_PLACEMENT           = 0,
+    NEO_ARK_POWER_PLANT_1_GENERATOR_CLEAR_CAP           = 1,
+    NEO_ARK_POWER_PLANT_1_BATTLE_ENTRY_CAP              = 4,
+    NEO_ARK_POWER_PLANT_1_BATTLE_ENTRY_RATE             = ANIMATION_RATE_ONE / 2,
+    NEO_ARK_POWER_PLANT_1_EXTENSION_COPY_WORDS          = 2,
+};
+
+/// Segment indices and the restart step of the generator-clear vibration script.
+enum {
+    NEO_ARK_POWER_PLANT_1_VIBRATION_RAMP_SEGMENT = 0,
+    NEO_ARK_POWER_PLANT_1_VIBRATION_HOLD_SEGMENT = 1,
+    NEO_ARK_POWER_PLANT_1_VIBRATION_RESTART_STEP = 0,
+};
+
+/// Action-trigger parameters: Shrine warp slots and room-selected CAP dialogue.
+enum {
+    NEO_ARK_POWER_PLANT_1_SHRINE_WARP_SLOTS                    = (1 << 4) | 1,
+    NEO_ARK_POWER_PLANT_1_COMMAND_CHECK_PLANT                  = 2,
+    NEO_ARK_POWER_PLANT_1_COMMAND_CHECK_GENERATOR              = 3,
+    NEO_ARK_POWER_PLANT_1_COMMAND_CHECK_SECOND_PLANT           = 9,
+    NEO_ARK_POWER_PLANT_1_COMMAND_CHECK_SECOND_PLANT_ALTERNATE = 12,
+    NEO_ARK_POWER_PLANT_1_DIRECT_CAP_COMMAND                   = 8,
+};
 
 static AnimationSet _gNeoArkPowerPlant1Animation01530;
 
@@ -81,7 +109,7 @@ static AnimationSet _gNeoArkPowerPlant1Animation01530 = {
     { NULL, _gNeoArkPowerPlant1Animation01530Bank1, NULL, NULL, _gNeoArkPowerPlant1Animation01530Bank4, NULL, NULL, NULL },
 };
 
-TaskMessageEntry D_neo_ark_power_plant_1_8017EB18[5] = {
+TaskMessageEntry gNeoArkPowerPlant1RoomMessages[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, neoArkPowerPlant1ResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, neoArkPowerPlant1RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, neoArkPowerPlant1IgnoreRoomAction },
@@ -89,106 +117,162 @@ TaskMessageEntry D_neo_ark_power_plant_1_8017EB18[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-AnimationPlayRequest D_neo_ark_power_plant_1_8017EB40 = { { .index = 1 }, 1, ANIMATION_BLEND_INTERPOLATE, 20, ANIMATION_WORLD_COLLISION_ENABLE };
+/// Equipped-bank idle clip with a 20-frame pose blend and world collision enabled.
+///
+/// The event interpreter overwrites the source selector in a local copy.
+static AnimationPlayRequest _gNeoArkPowerPlant1PlayerIdleAnimation = {
+    .source               = { .index = 1 },
+    .animationId          = NEO_ARK_POWER_PLANT_1_PLAYER_IDLE_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 20,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
 
-ActorCommand D_neo_ark_power_plant_1_8017EB54 = { { .loc = { 5, 16 } }, 1 };
+/// Releases the placed Proto Generator's death wait at the clear scene's CAP cue.
+///
+/// The retained Power Plant 2 context tag is ignored by the generator receiver.
+static ActorCommand _gNeoArkPowerPlant1ReleaseGeneratorDeath = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2 } },
+    .command = NEO_ARK_POWER_PLANT_1_GENERATOR_RELEASE_DEATH,
+};
 
-ActorCommand D_neo_ark_power_plant_1_8017EB58 = { { .loc = { 5, 16 } }, 2 };
+/// Releases the generator's battle-exit wait after the clear scene restores the view.
+///
+/// The retained Power Plant 2 context tag is ignored by the generator receiver.
+static ActorCommand _gNeoArkPowerPlant1ReleaseGeneratorBattleExit = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2 } },
+    .command = NEO_ARK_POWER_PLANT_1_GENERATOR_RELEASE_BATTLE_EXIT,
+};
 
-ActorCommand D_neo_ark_power_plant_1_8017EB5C = { { .loc = { 5, 16 } }, 3 };
+/// Releases both generator waits when the clear scene is skipped.
+///
+/// The retained Power Plant 2 context tag is ignored by the generator receiver.
+static ActorCommand _gNeoArkPowerPlant1ReleaseGeneratorOnSkip = {
+    .context = { .loc = { GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_2 } },
+    .command = NEO_ARK_POWER_PLANT_1_GENERATOR_RELEASE_DEATH | NEO_ARK_POWER_PLANT_1_GENERATOR_RELEASE_BATTLE_EXIT,
+};
 
-PadScriptCmd D_neo_ark_power_plant_1_8017EB60[5] = {
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, 0) },
+/// Generator-clear vibration: repeated two-frame binary pulses and four-frame ramps.
+///
+/// Both lanes use steps 0..4 and segments 0..1, then STOP. The spawned task
+/// borrows both room-owned arrays until completion or scene-skip teardown.
+static PadScriptCmd _gNeoArkPowerPlant1GeneratorClearVibrationCommands[5] = {
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, NEO_ARK_POWER_PLANT_1_VIBRATION_HOLD_SEGMENT), PAD_SCRIPT_COMMAND(PAD_SCRIPT_PLAY, NEO_ARK_POWER_PLANT_1_VIBRATION_RAMP_SEGMENT) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 1), PAD_SCRIPT_COMMAND(PAD_SCRIPT_WAIT, 5) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 40), PAD_SCRIPT_COMMAND(PAD_SCRIPT_LOOP, 15) },
-    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, 0) },
+    { PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, NEO_ARK_POWER_PLANT_1_VIBRATION_RESTART_STEP), PAD_SCRIPT_COMMAND(PAD_SCRIPT_JUMP, NEO_ARK_POWER_PLANT_1_VIBRATION_RESTART_STEP) },
     { PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0), PAD_SCRIPT_COMMAND(PAD_SCRIPT_STOP, 0) }
 };
 
-PadScriptVibrationSegment D_neo_ark_power_plant_1_8017EB74[2] = {
-    { 236, 77, 4, 1 },
-    { 0, 0, 2, 0 },
-};
-
-EvsCommand D_neo_ark_power_plant_1_8017EB7C[24] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = neoArkPowerPlant1PrepareGeneratorClearScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_power_plant_1_8017EB40 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55110006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55110007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_neo_ark_power_plant_1_8017EB60 }, { .vibrationSegments = D_neo_ark_power_plant_1_8017EB74 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_1_8017EB54 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_1_8017EB58 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-EvsCommand D_neo_ark_power_plant_1_8017EDBC[10] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = neoArkPowerPlant1StopSkippedSceneVibration }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_1_8017EB5C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { .opcode = EVENT_SCRIPT_OPCODE_END },
-};
-
-AnimationPlayRequest D_neo_ark_power_plant_1_8017EEAC = { { .index = 1 }, 47, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_ENABLE };
-
-/// Player clip for extended id 47.
+/// Variable-motor ramp (236 to 77 over four frames) and two-frame binary hold.
 ///
-/// One of the room's event scripts sends the player the copy request and then
-/// plays the clip; the room's other play request selects a base-bank clip.
-/// `D_neo_ark_power_plant_1_8017EEC4` copies two words starting here into the
-/// player's bank, which is one word past the end of this array: the read runs
-/// on through the first word of `D_neo_ark_power_plant_1_8017EEC4`, that
-/// request's own source pointer. That overrun is the original's and is kept as
-/// it is: the request carries a literal count larger than the table, while the
-/// table was stored with only its own entries. Id 48, which receives the source
-/// pointer, is never played.
-AnimationSet* D_neo_ark_power_plant_1_8017EEC0[1] = { &_gNeoArkPowerPlant1Animation01530 };
+/// Indices 0 and 1 are selected by the vibration commands; field_3 is retained
+/// as stored and has no interpreter read. The task borrows these room records.
+static PadScriptVibrationSegment _gNeoArkPowerPlant1GeneratorClearVibrationSegments[2] = {
+    { .startIntensity = 236, .endIntensity = 77, .durationFrames = 4, .field_3 = 1 },
+    { .startIntensity = 0, .endIntensity = 0, .durationFrames = 2, .field_3 = 0 },
+};
 
-// Installs the player's clip; the count is two, not the one entry of its source.
-AnimationBankCopyRequest D_neo_ark_power_plant_1_8017EEC4 = { { .sets = D_neo_ark_power_plant_1_8017EEC0 }, 2 };
-
-ActorTransform D_neo_ark_power_plant_1_8017EECC = { { 4800, 2, -0x2A94, 0 }, { 0, 0, 0, 0 } };
-
-EvsCommand D_neo_ark_power_plant_1_8017EEE4[13] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_neo_ark_power_plant_1_8017EEC4 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_power_plant_1_8017EECC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1021 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_power_plant_1_8017EEAC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_power_plant_1_8017EB40 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+EvsCommand gNeoArkPowerPlant1GeneratorClearScript[24] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = neoArkPowerPlant1PrepareGeneratorClearScene } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_CAP_CONTROL }, .operand2 = { .value = CAP_CONTROL_MESSAGE_START }, .operand3 = { .value = NEO_ARK_POWER_PLANT_1_GENERATOR_CLEAR_CAP } },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &_gNeoArkPowerPlant1PlayerIdleAnimation } },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, .operand0 = { .value = SCREEN_FADE_SUBTRACT }, .operand1 = { .value = 30 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE } },
+    { .opcode = EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 6) } },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SOUND, .operand0 = { .value = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 7) } },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_VIBRATION, .operand0 = { .padCommands = _gNeoArkPowerPlant1GeneratorClearVibrationCommands }, .operand1 = { .vibrationSegments = _gNeoArkPowerPlant1GeneratorClearVibrationSegments } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = NEO_ARK_POWER_PLANT_1_GENERATOR_PLACEMENT }, .operand2 = { .value = ACTOR_COMMAND_MESSAGE_APPLY }, .operand3 = { .message = { .command = &_gNeoArkPowerPlant1ReleaseGeneratorDeath } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, .operand0 = { .value = SCREEN_FADE_SUBTRACT }, .operand1 = { .value = 30 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 30 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, .operand0 = { .commands = NULL } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_SET_MODEL_DRAW }, .operand3 = { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO } },
+    { .opcode = EVENT_SCRIPT_OPCODE_RESTORE_VIEW },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = NEO_ARK_POWER_PLANT_1_GENERATOR_PLACEMENT }, .operand2 = { .value = ACTOR_COMMAND_MESSAGE_APPLY }, .operand3 = { .message = { .command = &_gNeoArkPowerPlant1ReleaseGeneratorBattleExit } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 30 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, .operand3 = { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-s32 D_neo_ark_power_plant_1_8017F01C = 0;
+EvsCommand gNeoArkPowerPlant1GeneratorClearSkipScript[10] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, .operand0 = { .value = SCREEN_FADE_SUBTRACT } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 8 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CLEANUP_SCENE },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callbackNoArg = neoArkPowerPlant1StopSkippedSceneVibration } },
+    { .opcode = EVENT_SCRIPT_OPCODE_RESTORE_VIEW },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_SCENE }, .operand1 = { .value = NEO_ARK_POWER_PLANT_1_GENERATOR_PLACEMENT }, .operand2 = { .value = ACTOR_COMMAND_MESSAGE_APPLY }, .operand3 = { .message = { .command = &_gNeoArkPowerPlant1ReleaseGeneratorOnSkip } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 8 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, .operand3 = { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT } },
+    { .opcode = EVENT_SCRIPT_OPCODE_END },
+};
 
-SVECTOR D_neo_ark_power_plant_1_8017F020[52] = {
+/// Room-supplied battle-entry clip at extended id 47, with an eight-frame blend.
+///
+/// Requires the bank-extension copy first. The event interpreter resolves the
+/// equipped bank in a local copy and leaves this request intact.
+static AnimationPlayRequest _gNeoArkPowerPlant1PlayerBattleEntryAnimation = {
+    .source               = { .index = 1 },
+    .animationId          = NEO_ARK_POWER_PLANT_1_PLAYER_BATTLE_ENTRY_CLIP,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = 8,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE,
+};
+
+/// Player's room-supplied clip at animation-bank extension id 47.
+///
+/// The original two-word bank copy reads this pointer and one word beyond the
+/// table: the following copy request's source address. That second word lands
+/// at id 48 and is not a clip. Keep this table and the request adjacent; the
+/// clip data stays borrowed through player playback. This room plays only id 47.
+static AnimationSet* _gNeoArkPowerPlant1PlayerAnimationBankExtension[1] = {
+    &_gNeoArkPowerPlant1Animation01530,
+};
+
+/// Installs the battle-entry clip and the adjacent source-address word in the player bank.
+///
+/// The retained two-word count reads one word beyond the one-entry source table;
+/// the count word itself is outside the copy. Both records belong to this room.
+static AnimationBankCopyRequest _gNeoArkPowerPlant1PlayerAnimationBankCopyRequest = {
+    .source    = { .sets = _gNeoArkPowerPlant1PlayerAnimationBankExtension },
+    .wordCount = NEO_ARK_POWER_PLANT_1_EXTENSION_COPY_WORDS,
+};
+
+/// Player's battle-entry placement in whole room coordinates, with zero Euler angles.
+static ActorTransform _gNeoArkPowerPlant1PlayerBattleEntryTransform = {
+    .pos = { 4800, 2, -0x2A94, 0 },
+    .rot = { 0, 0, 0, 0 },
+};
+
+EvsCommand gNeoArkPowerPlant1BattleEntryScript[13] = {
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_CAP_CONTROL }, .operand2 = { .value = CAP_CONTROL_MESSAGE_START }, .operand3 = { .value = NEO_ARK_POWER_PLANT_1_BATTLE_ENTRY_CAP } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, .operand3 = { .message = { .animationBankCopy = &_gNeoArkPowerPlant1PlayerAnimationBankCopyRequest } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_PLACE }, .operand3 = { .message = { .transform = &_gNeoArkPowerPlant1PlayerBattleEntryTransform } } },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_SET_RATE }, .operand3 = { .value = NEO_ARK_POWER_PLANT_1_BATTLE_ENTRY_RATE } },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &_gNeoArkPowerPlant1PlayerBattleEntryAnimation } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 50 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE },
+    { .opcode = EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = ANIMATION_MESSAGE_PLAY }, .operand3 = { .animation = &_gNeoArkPowerPlant1PlayerIdleAnimation } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES, .operand0 = { .value = 20 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_CALLBACK, .operand0 = { .callback = sceneEngageBattle }, .operand1 = { .value = 1 } },
+    { .opcode = EVENT_SCRIPT_OPCODE_WAIT_FRAMES },
+    { .opcode = EVENT_SCRIPT_OPCODE_SEND_MESSAGE, .operand0 = { .value = GAME_TASK_SLOT_PLAYER }, .operand2 = { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, .operand3 = { .value = PLAYER_ACTOR_END_SCRIPTED_DEFAULT } },
+    { .opcode = EVENT_SCRIPT_OPCODE_END },
+};
+
+s32 gNeoArkPowerPlant1ViewSoundDelayFrames = 0;
+
+/// Fixed world-space centres of the light discs selected by mapped views 2..8.
+///
+/// The drawer selects only indices 0..51. Coordinates are signed whole game
+/// units; these points are separate from the room's model-shading point lights.
+static const SVECTOR _gNeoArkPowerPlant1LightGlowPositions[52] __attribute__((section(".data"))) = {
     { 200, -15, -3375, 0 },
     { 1300, -15, -3375, 0 },
     { 200, -15, -4125, 0 },
@@ -243,10 +327,14 @@ SVECTOR D_neo_ark_power_plant_1_8017F020[52] = {
     { 7250, -4250, -9740, 0 },
 };
 
-SVECTOR D_neo_ark_power_plant_1_8017F1C0 = { 2015, -1080, -4500, 0 };
+/// Stable world-space centre shared by the generator glow and its destruction flashes.
+///
+/// Whole game-coordinate units. Spawned flashes retain this borrowed address;
+/// the room must stay loaded until they finish. The effect interface takes writable storage.
+static SVECTOR _gNeoArkPowerPlant1GeneratorGlowPosition = { 2015, -1080, -4500, 0 };
 
-WorldCollisionRoomResources D_neo_ark_power_plant_1_8017F1C8[1] = {
-    { &_gNeoArkPowerPlant1CollisionGrid, D_neo_ark_power_plant_1_8018155C, D_neo_ark_power_plant_1_80181854, D_neo_ark_power_plant_1_80181B60 },
+WorldCollisionRoomResources gNeoArkPowerPlant1CollisionRooms[1] = {
+    { .grid = &_gNeoArkPowerPlant1CollisionGrid, .viewBoundaryTriggers = _gNeoArkPowerPlant1ViewBoundaryTriggers, .actionTriggers = _gNeoArkPowerPlant1ActionTriggers, .occluders = _gNeoArkPowerPlant1SightOccluders },
 };
 
 WorldCoordRoomLighting gNeoArkPowerPlant1RoomLighting[1] = {
@@ -257,10 +345,19 @@ u8* gNeoArkPowerPlant1ViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_neo_ark_power_plant_1_8017F1E4[1] = { 9 };
+ViewCount gNeoArkPowerPlant1ViewCounts[1] = { 9 };
 
-DirectionWarpEntry D_neo_ark_power_plant_1_8017F1E8[1] = {
-    { { { .word = 3072 }, 8680, 0, -0x2904 }, { 0, 0, 0, 0 }, { { .word = 3072 }, 8680, 0, -0x2904 }, { 0, 0, 0, 0 }, 0x55110002, 0x55110001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHRINE },
+DirectionWarpEntry gNeoArkPowerPlant1WarpEntries[1] = {
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 8680, 0, -0x2904 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 8680, 0, -0x2904 },
+        .arrivalSound   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 2),
+        .departureSound = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 1),
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = GAME_FLAG_MAP_MARK_SHRINE,
+    },
 };
 
 /// Point lights for model shading throughout Power Plant 1, active in every view.
@@ -714,27 +811,36 @@ SpriteView gNeoArkPowerPlant1SpriteViews[9] = {
     { { .empty = _gNeoArkPowerPlant1View9SpriteBatches }, _gNeoArkPowerPlant1View9SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_neo_ark_power_plant_1_8018155C[10] = {
-    { NULL, NULL, NULL, { 7775, -1440, -0x2A92, 0 }, { { 2378, -1904, -824, 0 }, { -2377, -1904, 825, 0 }, { 2378, 1904, -824, 0 }, { -2377, 1904, 825, 0 } }, { 1345, 0, 3880, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7838, -1440, -0x2A22, 0 }, { { -2377, -1904, 825, 0 }, { 2378, -1904, -824, 0 }, { -2377, 1904, 825, 0 }, { 2378, 1904, -824, 0 } }, { -1347, 0, -3882, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4416, -1376, -0x2C41, 0 }, { { -24, -1904, 2517, 0 }, { 25, -1904, -2516, 0 }, { -24, 1904, 2517, 0 }, { 25, 1904, -2516, 0 } }, { -4109, 0, -41, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 4255, -1376, -0x2C22, 0 }, { { 25, -1904, -2516, 0 }, { -24, -1904, 2517, 0 }, { 25, 1904, -2516, 0 }, { -24, 1904, 2517, 0 } }, { 4107, 0, 39, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 638, -1408, -0x2D02, 0 }, { { 1762, -1904, 1797, 0 }, { -1762, -1904, -1796, 0 }, { 1762, 1904, 1797, 0 }, { -1762, 1904, -1796, 0 } }, { -2934, 0, 2876, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 639, -1440, -0x2C42, 0 }, { { -1762, -1904, -1796, 0 }, { 1762, -1904, 1797, 0 }, { -1762, 1904, -1796, 0 }, { 1762, 1904, 1797, 0 } }, { 2932, 0, -2877, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 607, -1440, -8418, 0 }, { { 2516, -1904, 25, 0 }, { -2516, -1904, -24, 0 }, { 2516, 1904, 25, 0 }, { -2516, 1904, -24, 0 } }, { -41, 0, 4106, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 575, -1376, -8290, 0 }, { { -2516, -1904, -24, 0 }, { 2516, -1904, 25, 0 }, { -2516, 1904, -24, 0 }, { 2516, 1904, 25, 0 } }, { 39, 0, -4108, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 574, -1440, -5571, 0 }, { { -2516, -1904, 11, 0 }, { 2516, -1904, -10, 0 }, { -2516, 1904, 11, 0 }, { 2516, 1904, -10, 0 } }, { -18, 0, -4108, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 574, -1312, -5761, 0 }, { { 2517, -1904, 17, 0 }, { -2516, -1904, -17, 0 }, { 2517, 1904, 17, 0 }, { -2516, 1904, -17, 0 } }, { -29, 0, 4107, 0 }, { 0, 0, 4096, 0 }, 3145, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Ten mutable quads linking views 2 through 7 in both directions.
+///
+/// The final quad is included before LAST ends setup. Origins and corners use
+/// room coordinates; normals use ONE per unit. Room setup binds the view transform.
+static WorldCollisionTrigger _gNeoArkPowerPlant1ViewBoundaryTriggers[10] = {
+    { NULL, NULL, NULL, { 7775, -1440, -0x2A92, 0 }, { { 2378, -1904, -824, 0 }, { -2377, -1904, 825, 0 }, { 2378, 1904, -824, 0 }, { -2377, 1904, 825, 0 } }, { 1345, 0, 3880, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7838, -1440, -0x2A22, 0 }, { { -2377, -1904, 825, 0 }, { 2378, -1904, -824, 0 }, { -2377, 1904, 825, 0 }, { 2378, 1904, -824, 0 } }, { -1347, 0, -3882, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4416, -1376, -0x2C41, 0 }, { { -24, -1904, 2517, 0 }, { 25, -1904, -2516, 0 }, { -24, 1904, 2517, 0 }, { 25, 1904, -2516, 0 } }, { -4109, 0, -41, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 4255, -1376, -0x2C22, 0 }, { { 25, -1904, -2516, 0 }, { -24, -1904, 2517, 0 }, { 25, 1904, -2516, 0 }, { -24, 1904, 2517, 0 } }, { 4107, 0, 39, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 638, -1408, -0x2D02, 0 }, { { 1762, -1904, 1797, 0 }, { -1762, -1904, -1796, 0 }, { 1762, 1904, 1797, 0 }, { -1762, 1904, -1796, 0 } }, { -2934, 0, 2876, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 5, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 639, -1440, -0x2C42, 0 }, { { -1762, -1904, -1796, 0 }, { 1762, -1904, 1797, 0 }, { -1762, 1904, -1796, 0 }, { 1762, 1904, 1797, 0 } }, { 2932, 0, -2877, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 4, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 607, -1440, -8418, 0 }, { { 2516, -1904, 25, 0 }, { -2516, -1904, -24, 0 }, { 2516, 1904, 25, 0 }, { -2516, 1904, -24, 0 } }, { -41, 0, 4106, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 6, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 575, -1376, -8290, 0 }, { { -2516, -1904, -24, 0 }, { 2516, -1904, 25, 0 }, { -2516, 1904, -24, 0 }, { 2516, 1904, 25, 0 } }, { 39, 0, -4108, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 5, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 574, -1440, -5571, 0 }, { { -2516, -1904, 11, 0 }, { 2516, -1904, -10, 0 }, { -2516, 1904, 11, 0 }, { 2516, 1904, -10, 0 } }, { -18, 0, -4108, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 6, 7, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 574, -1312, -5761, 0 }, { { 2517, -1904, 17, 0 }, { -2516, -1904, -17, 0 }, { 2517, 1904, 17, 0 }, { -2516, 1904, -17, 0 } }, { -29, 0, 4107, 0 }, { 0, 0, ONE, 0 }, 3145, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_neo_ark_power_plant_1_80181854[7] = {
-    { NULL, NULL, NULL, { 8656, -62, -0x2860, 0 }, { { -400, 0, -544, 0 }, { 400, 0, -544, 0 }, { -400, 0, 544, 0 }, { 400, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 674, WORLD_COLLISION_TRIGGER_ACTION_WARP, 21, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1120, -64, -4096, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { -4096, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, 3, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 1024, -64, -8256, 0 }, { { -400, 0, -3008, 0 }, { 400, 0, -3008, 0 }, { -400, 0, 3008, 0 }, { 400, 0, 3008, 0 } }, { 0, 4102, 0, 0 }, { -4096, 0, 0, 0 }, 3029, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3968, -64, -0x2A90, 0 }, { { -3280, 0, -368, 0 }, { 3280, 0, -368, 0 }, { -3280, 0, 368, 0 }, { 3280, 0, 368, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, -4096, 0 }, 3298, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 752, -64, -3408, 0 }, { { -800, 0, -368, 0 }, { 800, 0, -368, 0 }, { -800, 0, 368, 0 }, { 800, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -4096, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_CAP, 12, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 8304, -64, -8576, 0 }, { { -720, 0, -368, 0 }, { 720, 0, -368, 0 }, { -720, 0, 368, 0 }, { 720, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, 9, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 6816, -64, -8544, 0 }, { { -720, 0, -368, 0 }, { 720, 0, -368, 0 }, { -720, 0, 368, 0 }, { 720, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -4096, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+/// Shrine exit, five room-selected CAP interactions and direct CAP command 8.
+///
+/// Seven facing quads, including the LAST entry. Exit selectors use warp slot
+/// 1 at each end. Room coordinates and ONE-scaled normals; runtime links and
+/// contact latches stay mutable until the room's collision resources are unlinked.
+static WorldCollisionTrigger _gNeoArkPowerPlant1ActionTriggers[7] = {
+    { NULL, NULL, NULL, { 8656, -62, -0x2860, 0 }, { { -400, 0, -544, 0 }, { 400, 0, -544, 0 }, { -400, 0, 544, 0 }, { 400, 0, 544, 0 } }, { 0, 4102, 0, 0 }, { -ONE, 0, 0, 0 }, 674, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_NEO_ARK_SHRINE, NEO_ARK_POWER_PLANT_1_SHRINE_WARP_SLOTS, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1120, -64, -4096, 0 }, { { -400, 0, -1024, 0 }, { 400, 0, -1024, 0 }, { -400, 0, 1024, 0 }, { 400, 0, 1024, 0 } }, { 0, 4098, 0, 0 }, { -ONE, 0, 0, 0 }, 1093, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_POWER_PLANT_1_COMMAND_CHECK_GENERATOR, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 1024, -64, -8256, 0 }, { { -400, 0, -3008, 0 }, { 400, 0, -3008, 0 }, { -400, 0, 3008, 0 }, { 400, 0, 3008, 0 } }, { 0, 4102, 0, 0 }, { -ONE, 0, 0, 0 }, 3029, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_POWER_PLANT_1_COMMAND_CHECK_PLANT, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3968, -64, -0x2A90, 0 }, { { -3280, 0, -368, 0 }, { 3280, 0, -368, 0 }, { -3280, 0, 368, 0 }, { 3280, 0, 368, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, -ONE, 0 }, 3298, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_POWER_PLANT_1_COMMAND_CHECK_PLANT, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 752, -64, -3408, 0 }, { { -800, 0, -368, 0 }, { 800, 0, -368, 0 }, { -800, 0, 368, 0 }, { 800, 0, 368, 0 } }, { 0, 4106, 0, 0 }, { 0, 0, -ONE, 0 }, 879, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_POWER_PLANT_1_COMMAND_CHECK_SECOND_PLANT_ALTERNATE, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 8304, -64, -8576, 0 }, { { -720, 0, -368, 0 }, { 720, 0, -368, 0 }, { -720, 0, 368, 0 }, { 720, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ONE, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_POWER_PLANT_1_COMMAND_CHECK_SECOND_PLANT, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 6816, -64, -8544, 0 }, { { -720, 0, -368, 0 }, { 720, 0, -368, 0 }, { -720, 0, 368, 0 }, { 720, 0, 368, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, -ONE, 0 }, 807, WORLD_COLLISION_TRIGGER_ACTION_CAP, NEO_ARK_POWER_PLANT_1_DIRECT_CAP_COMMAND, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Variant 1's Proto Generator and Watcher files and spawn descriptors.
@@ -752,39 +858,53 @@ static AreaResource _gNeoArkPowerPlant1Variant2Resources[2] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_power_plant_1_80181AA4[2] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 3's Black Beetle file and spawn recipe, keyed by placement entry 38.
+///
+/// One resource and an AREA_PLACEMENT_END marker; borrowed during loading and spawning.
+static AreaResource _gNeoArkPowerPlant1Variant3Resources[2] = {
+    { .entryId = 38, .fileNumber = 38, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103800BlackBeetleTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_power_plant_1_80181ABC[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 38, 38, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203800BlackBeetleTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 4's Scorpion and Black Beetle files and body-task recipes.
+///
+/// Entry IDs 25 and 38 match the placements; file groups select actor slots 1
+/// and 2. The third entry terminates the borrowed resource list.
+static AreaResource _gNeoArkPowerPlant1Variant4Resources[3] = {
+    { .entryId = 25, .fileNumber = 25, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = gActor102500Tasks },
+    { .entryId = 38, .fileNumber = 38, .fileGroupIndex = AREA_RESOURCE_FILE_GROUP_BASE_20, .taskIndex = 0, .taskTable = &gActor203800BlackBeetleTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaResource D_neo_ark_power_plant_1_80181AE0[2] = {
-    { 38, 38, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor103800BlackBeetleTaskDesc },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+/// Variant 11's Black Beetle file and spawn recipe, keyed by placement entry 38.
+///
+/// One resource and an AREA_PLACEMENT_END marker; borrowed during loading and spawning.
+static AreaResource _gNeoArkPowerPlant1Variant11Resources[2] = {
+    { .entryId = 38, .fileNumber = 38, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = 0, .taskTable = &gActor103800BlackBeetleTaskDesc },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 AreaVariant D_neo_ark_power_plant_1_80181AF8[13] = {
     { NULL, NULL },
     { D_map_neo_ark_8017B8D0, _gNeoArkPowerPlant1Variant1Resources },
     { D_map_neo_ark_8017B950, _gNeoArkPowerPlant1Variant2Resources },
-    { D_map_neo_ark_8017B9E0, D_neo_ark_power_plant_1_80181AA4 },
-    { D_map_neo_ark_8017BA60, D_neo_ark_power_plant_1_80181ABC },
+    { D_map_neo_ark_8017B9E0, _gNeoArkPowerPlant1Variant3Resources },
+    { D_map_neo_ark_8017BA60, _gNeoArkPowerPlant1Variant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_neo_ark_8017BB00, D_neo_ark_power_plant_1_80181AE0 },
+    { D_map_neo_ark_8017BB00, _gNeoArkPowerPlant1Variant11Resources },
     { NULL, NULL },
 };
 
-WorldCollisionOccluder D_neo_ark_power_plant_1_80181B60[1] = {
+/// Single room-space line-of-sight quad, including the LAST setup marker.
+///
+/// Room owns mutable list links and enable bits. Geometry uses whole room units
+/// and ONE-scaled normals; the stored low flag bit has no observed interpretation.
+static WorldCollisionOccluder _gNeoArkPowerPlant1SightOccluders[1] = {
     { NULL, NULL, { 2080, -2432, -5472, 0 }, { { 384, 3456, 2880, 0 }, { -384, 3456, -2880, 0 }, { 384, -3456, 2880, 0 }, { -384, -3456, -2880, 0 } }, { 4075, 0, -544, 0 }, 4492, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
@@ -829,11 +949,11 @@ static inline void _neoArkPowerPlant1DrawGeneratorGlow(void)
         if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (((gRandomLcgState >> 16) & NEO_ARK_POWER_PLANT_1_GENERATOR_FLASH_CHANCE_MASK) == 0) {
-                effectSpawn(EFFECT_FLASH_BURST, NULL, NEO_ARK_POWER_PLANT_1_GENERATOR_FLASH_BASE_SIZE, &D_neo_ark_power_plant_1_8017F1C0);
+                effectSpawn(EFFECT_FLASH_BURST, NULL, NEO_ARK_POWER_PLANT_1_GENERATOR_FLASH_BASE_SIZE, &_gNeoArkPowerPlant1GeneratorGlowPosition);
             }
         }
     } else {
-        glowDrawDisc(&D_neo_ark_power_plant_1_8017F1C0, NEO_ARK_POWER_PLANT_1_GENERATOR_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GENERATOR_GLOW_RGB444);
+        glowDrawDisc(&_gNeoArkPowerPlant1GeneratorGlowPosition, NEO_ARK_POWER_PLANT_1_GENERATOR_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GENERATOR_GLOW_RGB444);
     }
 }
 
@@ -853,110 +973,110 @@ void neoArkPowerPlant1DrawLightGlowsTask(Task* unusedTask)
     // The low byte selects a fixed, in-bounds set of world-space emitters.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[32], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[35], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[36], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[37], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[38], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[39], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[40], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[41], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[30], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[32], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[35], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[36], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[37], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[38], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[39], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[40], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[41], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
             break;
         case 3:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[51], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[26], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[27], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[28], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[29], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[31], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[32], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[33], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[34], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[35], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[36], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[37], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[39], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[41], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[51], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[26], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[27], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[28], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[29], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[30], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[31], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[32], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[33], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[34], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[35], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[36], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[37], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[39], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[41], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
             break;
         case 4:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[45], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[46], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[48], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[49], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[16], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[17], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[18], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[19], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[20], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[21], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[22], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[23], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[24], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[25], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[26], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[27], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[28], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[29], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[42], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[45], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[46], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[48], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[49], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[16], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[17], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[18], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[19], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[20], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[21], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[22], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[23], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[24], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[25], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[26], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[27], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[28], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[29], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[30], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
             break;
         case 5:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[48], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[49], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[12], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[13], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[14], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[15], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[16], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[17], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[18], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[19], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[20], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[21], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[22], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[23], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[24], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[25], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[48], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[49], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[12], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[13], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[14], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[15], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[16], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[17], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[18], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[19], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[20], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[21], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[22], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[23], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[24], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[25], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
             break;
         case 6:
             _neoArkPowerPlant1DrawGeneratorGlow();
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[43], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[0], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[1], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[2], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[3], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[4], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[5], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[6], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[7], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[8], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[9], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[10], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[11], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[12], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[13], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[14], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[15], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[42], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[43], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[0], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[1], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[2], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[3], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[4], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[5], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[6], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[7], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[8], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[9], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[10], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[11], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[12], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[13], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[14], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[15], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
             break;
         case 7:
             _neoArkPowerPlant1DrawGeneratorGlow();
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[0], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[1], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[2], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[3], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[4], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[5], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[0], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[1], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[2], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[3], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[4], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[5], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
             break;
         case 8:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[43], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[44], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[45], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[46], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[47], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[42], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[43], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[44], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[45], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[46], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&_gNeoArkPowerPlant1LightGlowPositions[47], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
             break;
     }
 }

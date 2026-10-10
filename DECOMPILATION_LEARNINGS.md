@@ -92326,8 +92326,8 @@ difference:
 
 ```
 +li    a0,7        (ours, before the symbol)
- lui   v0,%hi(D_neo_ark_power_plant_1_8017EB18)
- addiu v0,v0,%lo(D_neo_ark_power_plant_1_8017EB18)
+ lui   v0,%hi(gNeoArkPowerPlant1RoomMessages)
+ addiu v0,v0,%lo(gNeoArkPowerPlant1RoomMessages)
 -li    a1,7        (target, after it)
 ```
 

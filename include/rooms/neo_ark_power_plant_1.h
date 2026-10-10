@@ -13,8 +13,11 @@
 
 extern AreaVariant D_neo_ark_power_plant_1_80181AF8[13];
 
-// neo_ark_power_plant_1
-extern WorldCollisionRoomResources D_neo_ark_power_plant_1_8017F1C8[];
+/// Room 1's collision grid, view boundaries, interactions and sight-blocking quad.
+///
+/// The Neo Ark map borrows this one-room directory while the room is loaded.
+/// Setup links and mutates its triggers and occluder; they must remain loaded until unlinked.
+extern WorldCollisionRoomResources gNeoArkPowerPlant1CollisionRooms[1];
 
 /// Power Plant 1's room-1 point-light collection and default ambient-light selection.
 ///
@@ -28,9 +31,18 @@ extern WorldCoordRoomLighting gNeoArkPowerPlant1RoomLighting[1];
 /// The room owns this directory; the mapped bytes belong to loaded gameplay.
 extern u8* gNeoArkPowerPlant1ViewMaps[1];
 
-extern ViewCount D_neo_ark_power_plant_1_8017F1E4[];
+/// Room 1's nine logical views, bounding reverse searches of its identity map.
+///
+/// One signed halfword count, indexed by room minus one. The map borrows it
+/// while this overlay is loaded; there is no sentinel entry.
+extern ViewCount gNeoArkPowerPlant1ViewCounts[1];
 
-extern DirectionWarpEntry D_neo_ark_power_plant_1_8017F1E8[];
+/// Power Plant 1's sole arrival/departure endpoint, at room view 2.
+///
+/// Both actors arrive at the same room position facing yaw 3072 (4096 per turn).
+/// Area scripts 2 and 1 sound on arrival and departure; blocked departures are
+/// silent. Later arrivals set the Shrine map marker. Borrowed while the room is loaded.
+extern DirectionWarpEntry gNeoArkPowerPlant1WarpEntries[1];
 
 /// Cameras for Power Plant 1's mapped views 1..9, indexed by view minus one.
 ///
