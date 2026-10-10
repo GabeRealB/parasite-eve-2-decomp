@@ -20,6 +20,7 @@
 #include "main/gfx.h"
 #include "main/scratch.h"
 #include "main/session.h"
+#include "main/sound_types.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -42,7 +43,7 @@ static RoomFxShade _gRoomVisualEffectsGlowDiscShades[2];
 
 #include "../../shared/room_visual_effects_disc_data.inc.c"
 
-u8* D_shelter_b2_breeding_room_8018055C[1] = {
+u8* gShelterB2BreedingRoomRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -53,29 +54,47 @@ DirectionWarpEntry D_shelter_b2_breeding_room_80180564[2] = {
     { { { .word = 2048 }, 0x2E9E, 0, 5960 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 0x2E9E, 0, 5960 }, { 0, 0, 0, 0 }, 0x54200002, 0x54200001, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gShelterB2BreedingRoomCollision03B34Normals[27] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gShelterB2BreedingRoomCollisionGridNormals[27] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_normals.inc"
 };
 
-static SVECTOR _gShelterB2BreedingRoomCollision03B34Verts[129] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gShelterB2BreedingRoomCollisionGridVerts[129] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB2BreedingRoomCollision03B34Faces[75] = {
+/// Indexed collision faces carrying room-local surface classes 0..4.
+static WorldCollisionGridFace _gShelterB2BreedingRoomCollisionGridFaces[75] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_faces.inc"
 };
 
-static s16 _gShelterB2BreedingRoomCollision03B34Cells[326] = {
+/// Packed cell face-index lists, each ending with `WORLD_COLLISION_GRID_CELL_END`.
+static s16 _gShelterB2BreedingRoomCollisionGridCells[326] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2BreedingRoomCollision03B34Cells[i])
-static s16* _gShelterB2BreedingRoomCollision03B34Table[12] = {
+// The generated table supplies in-bounds offsets into this room's cell lists.
+#define GRID_CELL(i) (&_gShelterB2BreedingRoomCollisionGridCells[i])
+/// Twelve cell-list pointers in X-major order, with three Z cells per X row.
+static s16* _gShelterB2BreedingRoomCollisionGridTable[12] = {
 #include "assets/shelter_b2_breeding_room_collision_03B34_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_breeding_room_801810F4 = { NULL, _gShelterB2BreedingRoomCollision03B34Normals, _gShelterB2BreedingRoomCollision03B34Verts, _gShelterB2BreedingRoomCollision03B34Faces, _gShelterB2BreedingRoomCollision03B34Table, 890, 2602, 4, 3, 4000, 75 };
+WorldCollisionGrid gShelterB2BreedingRoomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB2BreedingRoomCollisionGridNormals,
+    .vertices    = _gShelterB2BreedingRoomCollisionGridVerts,
+    .faces       = _gShelterB2BreedingRoomCollisionGridFaces,
+    .cellFaceIds = _gShelterB2BreedingRoomCollisionGridTable,
+    .xBias       = 890,
+    .zBias       = 2602,
+    .cellCountX  = 4,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB2BreedingRoomCollisionGridFaces),
+};
 
 ViewCamera D_shelter_b2_breeding_room_80181118[10] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -6200, 0x7530, -1480 } }, 564 },
@@ -90,12 +109,22 @@ ViewCamera D_shelter_b2_breeding_room_80181118[10] = {
     { { { { 3949, 0, 1087 }, { 713, 3090, -2591 }, { -820, 2687, 2979 } }, { -2556, 1291, -4594 } }, 505 },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_80181280[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Empty sprite batches for mapped view 1, retaining decoded background strips.
+///
+/// The zero-count header supplies no sources; the following sentinel ends the
+/// list. Its address is also retained in the view's unused source slot.
+static SpriteBatch _gShelterB2BreedingRoomView1SpriteBatches[2] = {
+    { .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b2_breeding_room_80181290[20] = {
+/// Texture rectangles and sorting depths for mapped view 2's room sprites.
+///
+/// Positions and sizes are pixels, UVs are texels and depths are unscaled OT
+/// sorting values. RGB 128 is neutral modulation.
+/// Every rectangle uses opaque emission.
+/// The paired batch list indexes all 20 elements; storage lives with the room.
+static SpriteSource _gShelterB2BreedingRoomView2SpriteSources[20] = {
     { 143, 0x3FC0, { .fields = { 64, 88 } }, -160, -120, 550, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 72, 72 } }, -96, -120, 550, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 64, 24 } }, -104, 96, 400, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
@@ -118,14 +147,25 @@ SpriteSource D_shelter_b2_breeding_room_80181290[20] = {
     { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, -32, 1048, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_80181420[4] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 1, 0 } },
-    { 4, 16, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped view 2's 20 depth-sorted sprites.
+///
+/// The zero-count header retains decoded background strips. The remaining
+/// ranges cover the complete source array and end with `SPRITE_BATCH_END`;
+/// hidden and excluded flags start clear. The trailing bytes' role is unproven.
+static SpriteBatch _gShelterB2BreedingRoomView2SpriteBatches[4] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 4, .field_6 = { 1, 0 } },
+    { .firstSprite = 4, .spriteCount = ARRAY_SIZE(_gShelterB2BreedingRoomView2SpriteSources) - 4, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b2_breeding_room_80181440[39] = {
+/// Texture rectangles and sorting depths for mapped view 3's room sprites.
+///
+/// Positions and sizes are pixels, UVs are texels and depths are unscaled OT
+/// sorting values. RGB 128 is neutral modulation.
+/// Every rectangle uses opaque emission.
+/// The paired batch list indexes all 39 elements; storage lives with the room.
+static SpriteSource _gShelterB2BreedingRoomView3SpriteSources[39] = {
     { 142, 0x3FC0, { .fields = { 8, 24 } }, 40, 40, 781, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 24 } }, 48, 40, 763, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, 0, 1019, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
@@ -167,19 +207,30 @@ SpriteSource D_shelter_b2_breeding_room_80181440[39] = {
     { 142, 0x3FC0, { .fields = { 32, 80 } }, -96, 0, 1500, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_8018174C[9] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 12, 0, 0, { 3, 0 } },
-    { 12, 2, 0, 0, { 4, 0 } },
-    { 14, 4, 0, 0, { 1, 0 } },
-    { 18, 3, 0, 0, { 5, 0 } },
-    { 21, 7, 0, 0, { 0, 0 } },
-    { 28, 5, 0, 0, { 6, 0 } },
-    { 33, 6, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped view 3's 39 depth-sorted sprites.
+///
+/// The zero-count header retains decoded background strips. The remaining
+/// ranges cover the complete source array and end with `SPRITE_BATCH_END`;
+/// hidden and excluded flags start clear. The trailing bytes' role is unproven.
+static SpriteBatch _gShelterB2BreedingRoomView3SpriteBatches[9] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 12, .field_6 = { 3, 0 } },
+    { .firstSprite = 12, .spriteCount = 2, .field_6 = { 4, 0 } },
+    { .firstSprite = 14, .spriteCount = 4, .field_6 = { 1, 0 } },
+    { .firstSprite = 18, .spriteCount = 3, .field_6 = { 5, 0 } },
+    { .firstSprite = 21, .spriteCount = 7, .field_6 = { 0, 0 } },
+    { .firstSprite = 28, .spriteCount = 5, .field_6 = { 6, 0 } },
+    { .firstSprite = 33, .spriteCount = ARRAY_SIZE(_gShelterB2BreedingRoomView3SpriteSources) - 33, .field_6 = { 2, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b2_breeding_room_80181794[10] = {
+/// Texture rectangles and sorting depths for mapped view 4's room sprites.
+///
+/// Positions and sizes are pixels, UVs are texels and depths are unscaled OT
+/// sorting values. RGB 128 is neutral modulation.
+/// Every rectangle uses opaque emission.
+/// The paired batch list indexes all 10 elements; storage lives with the room.
+static SpriteSource _gShelterB2BreedingRoomView4SpriteSources[10] = {
     { 143, 0x3FC0, { .fields = { 16, 192 } }, 112, -104, 671, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 104 } }, 128, -120, 608, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 120 } }, 128, -16, 581, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
@@ -192,15 +243,26 @@ SpriteSource D_shelter_b2_breeding_room_80181794[10] = {
     { 143, 0x3FC0, { .fields = { 24, 80 } }, -88, -112, 560, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_8018185C[5] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 3, 0, 0, { 1, 0 } },
-    { 3, 3, 0, 0, { 2, 0 } },
-    { 6, 4, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped view 4's 10 depth-sorted sprites.
+///
+/// The zero-count header retains decoded background strips. The remaining
+/// ranges cover the complete source array and end with `SPRITE_BATCH_END`;
+/// hidden and excluded flags start clear. The trailing bytes' role is unproven.
+static SpriteBatch _gShelterB2BreedingRoomView4SpriteBatches[5] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 3, .field_6 = { 1, 0 } },
+    { .firstSprite = 3, .spriteCount = 3, .field_6 = { 2, 0 } },
+    { .firstSprite = 6, .spriteCount = ARRAY_SIZE(_gShelterB2BreedingRoomView4SpriteSources) - 6, .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b2_breeding_room_80181884[69] = {
+/// Texture rectangles and sorting depths for mapped view 5's room sprites.
+///
+/// Positions and sizes are pixels, UVs are texels and depths are unscaled OT
+/// sorting values. RGB 128 is neutral modulation.
+/// 18 rectangles use semitransparent emission; the remainder are opaque.
+/// The paired batch list indexes all 69 elements; storage lives with the room.
+static SpriteSource _gShelterB2BreedingRoomView5SpriteSources[69] = {
     { 143, 0x3FC0, { .fields = { 8, 16 } }, 48, 48, 1080, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 16 } }, 56, 48, 1130, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, -120, 484, { .fields = { 8, 88 } }, 128, 128, 128, 0 },
@@ -272,17 +334,28 @@ SpriteSource D_shelter_b2_breeding_room_80181884[69] = {
     { 143, 0x4000, { .fields = { 8, 56 } }, -120, 24, 753, { .fields = { 120, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_80181DE8[7] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 2, 0, 0, { 0, 0 } },
-    { 2, 33, 0, 0, { 3, 0 } },
-    { 35, 10, 0, 0, { 2, 0 } },
-    { 45, 6, 0, 0, { 4, 0 } },
-    { 51, 18, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped view 5's 69 depth-sorted sprites.
+///
+/// The zero-count header retains decoded background strips. The remaining
+/// ranges cover the complete source array and end with `SPRITE_BATCH_END`;
+/// hidden and excluded flags start clear. The trailing bytes' role is unproven.
+static SpriteBatch _gShelterB2BreedingRoomView5SpriteBatches[7] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 2, .field_6 = { 0, 0 } },
+    { .firstSprite = 2, .spriteCount = 33, .field_6 = { 3, 0 } },
+    { .firstSprite = 35, .spriteCount = 10, .field_6 = { 2, 0 } },
+    { .firstSprite = 45, .spriteCount = 6, .field_6 = { 4, 0 } },
+    { .firstSprite = 51, .spriteCount = ARRAY_SIZE(_gShelterB2BreedingRoomView5SpriteSources) - 51, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b2_breeding_room_80181E20[77] = {
+/// Texture rectangles and sorting depths for mapped view 6's room sprites.
+///
+/// Positions and sizes are pixels, UVs are texels and depths are unscaled OT
+/// sorting values. RGB 128 is neutral modulation.
+/// 11 rectangles use semitransparent emission; the remainder are opaque.
+/// The paired batch list indexes all 77 elements; storage lives with the room.
+static SpriteSource _gShelterB2BreedingRoomView6SpriteSources[77] = {
     { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 16, 1338, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 16, 24 } }, -56, 16, 1238, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 24, 8 } }, -80, 16, 1075, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
@@ -362,21 +435,32 @@ SpriteSource D_shelter_b2_breeding_room_80181E20[77] = {
     { 143, 0x4000, { .fields = { 8, 40 } }, 136, 48, 565, { .fields = { 48, 96 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_80182424[11] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 7, 0, 0, { 0, 0 } },
-    { 7, 5, 0, 0, { 5, 0 } },
-    { 12, 37, 0, 0, { 4, 0 } },
-    { 49, 4, 0, 0, { 6, 0 } },
-    { 53, 3, 0, 0, { 1, 0 } },
-    { 56, 1, 0, 0, { 7, 0 } },
-    { 57, 4, 0, 0, { 3, 0 } },
-    { 61, 5, 0, 0, { 8, 0 } },
-    { 66, 11, 0, 0, { 2, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped view 6's 77 depth-sorted sprites.
+///
+/// The zero-count header retains decoded background strips. The remaining
+/// ranges cover the complete source array and end with `SPRITE_BATCH_END`;
+/// hidden and excluded flags start clear. The trailing bytes' role is unproven.
+static SpriteBatch _gShelterB2BreedingRoomView6SpriteBatches[11] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 7, .field_6 = { 0, 0 } },
+    { .firstSprite = 7, .spriteCount = 5, .field_6 = { 5, 0 } },
+    { .firstSprite = 12, .spriteCount = 37, .field_6 = { 4, 0 } },
+    { .firstSprite = 49, .spriteCount = 4, .field_6 = { 6, 0 } },
+    { .firstSprite = 53, .spriteCount = 3, .field_6 = { 1, 0 } },
+    { .firstSprite = 56, .spriteCount = 1, .field_6 = { 7, 0 } },
+    { .firstSprite = 57, .spriteCount = 4, .field_6 = { 3, 0 } },
+    { .firstSprite = 61, .spriteCount = 5, .field_6 = { 8, 0 } },
+    { .firstSprite = 66, .spriteCount = ARRAY_SIZE(_gShelterB2BreedingRoomView6SpriteSources) - 66, .field_6 = { 2, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b2_breeding_room_8018247C[59] = {
+/// Texture rectangles and sorting depths for mapped view 7's room sprites.
+///
+/// Positions and sizes are pixels, UVs are texels and depths are unscaled OT
+/// sorting values. RGB 128 is neutral modulation.
+/// 13 rectangles use semitransparent emission; the remainder are opaque.
+/// The paired batch list indexes all 59 elements; storage lives with the room.
+static SpriteSource _gShelterB2BreedingRoomView7SpriteSources[59] = {
     { 142, 0x3FC0, { .fields = { 40, 32 } }, -160, -120, 657, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 40, 32 } }, -120, -120, 639, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 24 } }, -80, -120, 654, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
@@ -438,14 +522,19 @@ SpriteSource D_shelter_b2_breeding_room_8018247C[59] = {
     { 142, 0x4000, { .fields = { 24, 32 } }, 56, -32, 1103, { .fields = { 72, 32 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
 };
 
-SpriteBatch D_shelter_b2_breeding_room_80182918[7] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 24, 0, 0, { 0, 0 } },
-    { 24, 5, 0, 0, { 3, 0 } },
-    { 29, 9, 0, 0, { 2, 0 } },
-    { 38, 8, 0, 0, { 4, 0 } },
-    { 46, 13, 0, 0, { 1, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Source ranges for mapped view 7's 59 depth-sorted sprites.
+///
+/// The zero-count header retains decoded background strips. The remaining
+/// ranges cover the complete source array and end with `SPRITE_BATCH_END`;
+/// hidden and excluded flags start clear. The trailing bytes' role is unproven.
+static SpriteBatch _gShelterB2BreedingRoomView7SpriteBatches[7] = {
+    { .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = 24, .field_6 = { 0, 0 } },
+    { .firstSprite = 24, .spriteCount = 5, .field_6 = { 3, 0 } },
+    { .firstSprite = 29, .spriteCount = 9, .field_6 = { 2, 0 } },
+    { .firstSprite = 38, .spriteCount = 8, .field_6 = { 4, 0 } },
+    { .firstSprite = 46, .spriteCount = ARRAY_SIZE(_gShelterB2BreedingRoomView7SpriteSources) - 46, .field_6 = { 1, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteSource D_shelter_b2_breeding_room_80182950[19] = {
@@ -607,31 +696,42 @@ SpriteBatch D_shelter_b2_breeding_room_801833C4[2] = {
 };
 
 SpriteView D_shelter_b2_breeding_room_801833D4[10] = {
-    { { .empty = D_shelter_b2_breeding_room_80181280 }, D_shelter_b2_breeding_room_80181280, NULL },
-    { { .elements = D_shelter_b2_breeding_room_80181290 }, D_shelter_b2_breeding_room_80181420, NULL },
-    { { .elements = D_shelter_b2_breeding_room_80181440 }, D_shelter_b2_breeding_room_8018174C, NULL },
-    { { .elements = D_shelter_b2_breeding_room_80181794 }, D_shelter_b2_breeding_room_8018185C, NULL },
-    { { .elements = D_shelter_b2_breeding_room_80181884 }, D_shelter_b2_breeding_room_80181DE8, NULL },
-    { { .elements = D_shelter_b2_breeding_room_80181E20 }, D_shelter_b2_breeding_room_80182424, NULL },
-    { { .elements = D_shelter_b2_breeding_room_8018247C }, D_shelter_b2_breeding_room_80182918, NULL },
+    { { .empty = _gShelterB2BreedingRoomView1SpriteBatches }, _gShelterB2BreedingRoomView1SpriteBatches, NULL },
+    { { .elements = _gShelterB2BreedingRoomView2SpriteSources }, _gShelterB2BreedingRoomView2SpriteBatches, NULL },
+    { { .elements = _gShelterB2BreedingRoomView3SpriteSources }, _gShelterB2BreedingRoomView3SpriteBatches, NULL },
+    { { .elements = _gShelterB2BreedingRoomView4SpriteSources }, _gShelterB2BreedingRoomView4SpriteBatches, NULL },
+    { { .elements = _gShelterB2BreedingRoomView5SpriteSources }, _gShelterB2BreedingRoomView5SpriteBatches, NULL },
+    { { .elements = _gShelterB2BreedingRoomView6SpriteSources }, _gShelterB2BreedingRoomView6SpriteBatches, NULL },
+    { { .elements = _gShelterB2BreedingRoomView7SpriteSources }, _gShelterB2BreedingRoomView7SpriteBatches, NULL },
     { { .elements = D_shelter_b2_breeding_room_80182950 }, D_shelter_b2_breeding_room_80182ACC, NULL },
     { { .elements = D_shelter_b2_breeding_room_80182AF4 }, D_shelter_b2_breeding_room_8018338C, NULL },
     { { .empty = D_shelter_b2_breeding_room_801833C4 }, D_shelter_b2_breeding_room_801833C4, NULL },
 };
 
-WorldCoordPointLight D_shelter_b2_breeding_room_8018344C[9] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1950, -1548, -1250 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1000, 2341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2D96, -1808, 6220 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 3415, 2703 }, { 0, 0 } }, 0, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2AF8, -1528, 1150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3537, 2405 }, { 0, 0 } }, 700, 3002 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6970, -1588, 1150 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3537, 2405 }, { 0, 0 } }, 700, 3041 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9660, -1970, 5310 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 1800, 4222 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2890, -2010, 3610 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 0, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2060, -1970, 1110 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 0, 2900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5760, -1769, 4690 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 0, 3041 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -100, -2090, -1141 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 3090, 2703 }, { 0, 0 } }, 0, 1600 },
+/// Nine room-owned point lights with world-unit positions and radii and Q12 RGB.
+///
+/// All views admit them. Coordinate composition and lighting queries mutate
+/// their transforms and attenuation while the room overlay remains loaded.
+static WorldCoordPointLight _gShelterB2BreedingRoomPointLights[9] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1950, -1548, -1250 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1000, 2341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2D96, -1808, 6220 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 3415, 2703 }, { 0, 0 } }, 0, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2AF8, -1528, 1150 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3537, 2405 }, { 0, 0 } }, 700, 3002 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6970, -1588, 1150 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3686, 3537, 2405 }, { 0, 0 } }, 700, 3041 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9660, -1970, 5310 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 1800, 4222 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2890, -2010, 3610 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 0, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2060, -1970, 1110 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 0, 2900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5760, -1769, 4690 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, 0, 3041 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -100, -2090, -1141 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 3090, 2703 }, { 0, 0 } }, 0, 1600 },
 };
 
-WorldCoordRoomLights D_shelter_b2_breeding_room_801837AC = { 0, NULL, ARRAY_SIZE(D_shelter_b2_breeding_room_8018344C), D_shelter_b2_breeding_room_8018344C, 0, NULL };
+WorldCoordRoomLights gShelterB2BreedingRoomRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB2BreedingRoomPointLights),
+    .pointLights           = _gShelterB2BreedingRoomPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b2_breeding_room_801837C4[14] = {
     { NULL, NULL, NULL, { 2176, -1664, -671, 0 }, { { -1552, -3136, 1808, 0 }, { 1552, -3136, -1808, 0 }, { -1552, 3136, 1808, 0 }, { 1552, 3136, -1808, 0 } }, { -3108, 0, -2668, 0 }, { 0, 0, 4096, 0 }, 3932, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -795,8 +895,8 @@ WorldCollisionTrigger D_shelter_b2_breeding_room_80183F9C[22] = {
     { NULL, NULL, NULL, { 9888, -64, 1952, 0 }, { { -464, 0, -672, 0 }, { 464, 0, -672, 0 }, { -464, 0, 672, 0 }, { 464, 0, 672, 0 } }, { 0, 4101, 0, 0 }, { 4095, 0, 0, 0 }, 814, WORLD_COLLISION_TRIGGER_ACTION_CAP, 20, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCoordRoomAmbientEntry D_shelter_b2_breeding_room_80184624[11] = {
-    { .viewCount = ARRAY_SIZE(D_shelter_b2_breeding_room_80184624) - 1 },
+WorldCoordRoomAmbientEntry gShelterB2BreedingRoomAmbientByView[11] = {
+    { .viewCount = ARRAY_SIZE(gShelterB2BreedingRoomAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 450, 437, 475, 446 } },
     { .color = { 300, 300, 300, 300 } },
@@ -817,53 +917,115 @@ WorldCollisionOccluder D_shelter_b2_breeding_room_8018467C[5] = {
     { NULL, NULL, { 0x30A0, -1152, 2880, 0 }, { { 1111, 2688, -29, 0 }, { -1110, 2688, 29, 0 }, { 1111, -2688, -29, 0 }, { -1110, -2688, 29, 0 } }, { -109, 0, -4108, 0 }, 2907, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_breeding_room_801847A8 = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Cue-2 entry bases in the loaded type-1 bank; cue 1 adds one, companions add 100.
+enum {
+    SHELTER_B2_BREEDING_ROOM_SURFACE_1_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2D,
+    SHELTER_B2_BREEDING_ROOM_SURFACE_1_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2F,
+    SHELTER_B2_BREEDING_ROOM_SURFACE_3_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x59,
+    SHELTER_B2_BREEDING_ROOM_SURFACE_3_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5B,
+    SHELTER_B2_BREEDING_ROOM_SURFACE_4_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5D,
+    SHELTER_B2_BREEDING_ROOM_SURFACE_4_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x5F,
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_breeding_room_801847B4 = {
-    0x10000059,
-    0x1000005B,
-    0x10000059,
+/// Walking, running and scripted-jump footstep cues for surface class 1.
+///
+/// Scripted jumps reuse walking cues. The surface record borrows these cue-2
+/// bases from the loaded room; cue 1 adds one and companion playback adds 100.
+static WorldCollisionFootstepSounds _gShelterB2BreedingRoomSurface1FootstepSounds = {
+    .walk         = SHELTER_B2_BREEDING_ROOM_SURFACE_1_WALK_CUE_BASE,
+    .run          = SHELTER_B2_BREEDING_ROOM_SURFACE_1_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_BREEDING_ROOM_SURFACE_1_WALK_CUE_BASE,
 };
 
-WorldCollisionFootstepSounds D_shelter_b2_breeding_room_801847C0 = {
-    0x1000005D,
-    0x1000005F,
-    0x1000005D,
+/// Walking, running and scripted-jump footstep cues for surface class 3.
+///
+/// Scripted jumps reuse walking cues. The surface record borrows these cue-2
+/// bases from the loaded room; cue 1 adds one and companion playback adds 100.
+static WorldCollisionFootstepSounds _gShelterB2BreedingRoomSurface3FootstepSounds = {
+    .walk         = SHELTER_B2_BREEDING_ROOM_SURFACE_3_WALK_CUE_BASE,
+    .run          = SHELTER_B2_BREEDING_ROOM_SURFACE_3_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_BREEDING_ROOM_SURFACE_3_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847CC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Walking, running and scripted-jump footstep cues for surface class 4.
+///
+/// Scripted jumps reuse walking cues. The surface record borrows these cue-2
+/// bases from the loaded room; cue 1 adds one and companion playback adds 100.
+static WorldCollisionFootstepSounds _gShelterB2BreedingRoomSurface4FootstepSounds = {
+    .walk         = SHELTER_B2_BREEDING_ROOM_SURFACE_4_WALK_CUE_BASE,
+    .run          = SHELTER_B2_BREEDING_ROOM_SURFACE_4_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B2_BREEDING_ROOM_SURFACE_4_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847D4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_breeding_room_801847A8 },
+/// Silent, probe-blocking surface policy shared by classes 0 and 5..7.
+///
+/// Weapon impacts and pushback are enabled. The leading byte's role is
+/// unproven; retain its stored zero. The class directory borrows this record.
+static WorldCollisionSurfaceProperties _gShelterB2BreedingRoomSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847DC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class-1 probe-blocking surface policy with weapon impacts, pushback and footsteps.
+///
+/// The leading byte's role is unproven; retain its stored zero. The directory
+/// and borrowed footstep cues require the room overlay to remain loaded.
+static WorldCollisionSurfaceProperties _gShelterB2BreedingRoomSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2BreedingRoomSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847E4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_breeding_room_801847B4 },
+/// Class-2 probe-passing surface policy with pushback, no weapon impacts or footsteps.
+///
+/// The leading byte's role is unproven; retain its stored zero. The class
+/// directory borrows this room-owned record while the overlay remains loaded.
+static WorldCollisionSurfaceProperties _gShelterB2BreedingRoomSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b2_breeding_room_801847EC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b2_breeding_room_801847C0 },
+/// Class-3 probe-blocking surface policy with weapon impacts, pushback and footsteps.
+///
+/// The leading byte's role is unproven; retain its stored zero. The directory
+/// and borrowed footstep cues require the room overlay to remain loaded.
+static WorldCollisionSurfaceProperties _gShelterB2BreedingRoomSurface3Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2BreedingRoomSurface3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b2_breeding_room_801847F4[8] = {
-    D_shelter_b2_breeding_room_801847CC,
-    D_shelter_b2_breeding_room_801847D4,
-    D_shelter_b2_breeding_room_801847DC,
-    D_shelter_b2_breeding_room_801847E4,
-    D_shelter_b2_breeding_room_801847EC,
-    D_shelter_b2_breeding_room_801847CC,
-    D_shelter_b2_breeding_room_801847CC,
-    D_shelter_b2_breeding_room_801847CC,
+/// Class-4 probe-blocking surface policy with weapon impacts, pushback and footsteps.
+///
+/// The leading byte's role is unproven; retain its stored zero. The directory
+/// and borrowed footstep cues require the room overlay to remain loaded.
+static WorldCollisionSurfaceProperties _gShelterB2BreedingRoomSurface4Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB2BreedingRoomSurface4FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB2BreedingRoomSurfacePropertiesByClass[8] = {
+    &_gShelterB2BreedingRoomSilentSurfaceProperties,
+    &_gShelterB2BreedingRoomSurface1Properties,
+    &_gShelterB2BreedingRoomSurface2Properties,
+    &_gShelterB2BreedingRoomSurface3Properties,
+    &_gShelterB2BreedingRoomSurface4Properties,
+    &_gShelterB2BreedingRoomSilentSurfaceProperties,
+    &_gShelterB2BreedingRoomSilentSurfaceProperties,
+    &_gShelterB2BreedingRoomSilentSurfaceProperties,
 };
 
 void shelterB2BreedingRoomRoomVisualEffectsGlowDiscTask(Task* task)

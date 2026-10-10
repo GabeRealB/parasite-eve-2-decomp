@@ -15,30 +15,57 @@
 
 extern TmdSource gShelterB2BreedingRoomModel02E04;
 
-// shelter_b2_breeding_room
-extern u8* D_shelter_b2_breeding_room_8018055C[];
+/// The breeding room's one-room directory of logical-view maps.
+///
+/// Room 1 borrows `gViewIdentityMap`: views 1..10 select the same 1-based
+/// camera, image and sprite indices. There is no terminator. Keep the room
+/// and gameplay overlays loaded while borrowing this directory and its map.
+extern u8* gShelterB2BreedingRoomRoomViewMaps[1];
 
 extern ViewCount D_shelter_b2_breeding_room_80180560[];
 
 extern DirectionWarpEntry D_shelter_b2_breeding_room_80180564[];
 
-extern WorldCollisionGrid D_shelter_b2_breeding_room_801810F4;
+/// The breeding room's collision mesh and XZ cell index.
+///
+/// Contains 75 faces in a 4-by-3 grid of 4000-unit square cells, with grid
+/// origin (-890, -2602) in room XZ coordinates. Vertices use room units and normals
+/// use 4096 for unit length. Activation binds the mutable descriptor to the
+/// view coordinate. Its private mesh pools and cell lists live with the room.
+extern WorldCollisionGrid gShelterB2BreedingRoomCollisionGrid;
 
 extern ViewCamera D_shelter_b2_breeding_room_80181118[];
 
 extern SpriteView D_shelter_b2_breeding_room_801833D4[];
 
-extern WorldCoordRoomLights D_shelter_b2_breeding_room_801837AC;
+/// The breeding room's nine authored point lights, without directional or cone lights.
+///
+/// All contribute in every logical view. Position and falloff radii use world
+/// units; RGB intensity uses 4096 for full strength. Coordinate updates and
+/// lighting queries mutate the private light array's transforms and attenuation.
+/// Keep the collection and its array loaded while borrowing them.
+extern WorldCoordRoomLights gShelterB2BreedingRoomRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b2_breeding_room_801837C4[];
 
 extern WorldCollisionTrigger D_shelter_b2_breeding_room_80183F9C[];
 
-extern WorldCoordRoomAmbientEntry D_shelter_b2_breeding_room_80184624[];
+/// Ambient-light minima for the breeding room: a count header and ten view colours.
+///
+/// Entry zero holds the count; logical views 1..10 index colours directly.
+/// RGB minima use 16 units per 8-bit colour level. Views beyond the count use
+/// gameplay's default minima. The table remains live with the room overlay.
+extern WorldCoordRoomAmbientEntry gShelterB2BreedingRoomAmbientByView[11];
 
 extern WorldCollisionOccluder D_shelter_b2_breeding_room_8018467C[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b2_breeding_room_801847F4[];
+/// Collision policies and footstep cues for the breeding room's surface classes 0..7.
+///
+/// Every class applies pushback. Class 2 passes probes and suppresses weapon
+/// impacts; all other classes block probes and allow impacts. Classes 1, 3 and
+/// 4 have distinct footstep cues; classes 0 and 5..7 share a silent record.
+/// There is no terminator. The directory and private records live with the room.
+extern WorldCollisionSurfaceProperties* gShelterB2BreedingRoomSurfacePropertiesByClass[8];
 
 extern AreaVariant D_shelter_b2_breeding_room_80183EEC[22];
 

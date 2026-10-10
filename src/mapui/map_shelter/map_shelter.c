@@ -684,7 +684,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AE44[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE4C[1] = {
-    { &D_shelter_b2_breeding_room_801837AC, D_shelter_b2_breeding_room_80184624 },
+    { &gShelterB2BreedingRoomRoomLights, gShelterB2BreedingRoomAmbientByView },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE54[1] = {
@@ -968,7 +968,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B214[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B224[1] = {
-    { &D_shelter_b2_breeding_room_801810F4, D_shelter_b2_breeding_room_801837C4, D_shelter_b2_breeding_room_80183F9C, D_shelter_b2_breeding_room_8018467C },
+    { &gShelterB2BreedingRoomCollisionGrid, D_shelter_b2_breeding_room_801837C4, D_shelter_b2_breeding_room_80183F9C, D_shelter_b2_breeding_room_8018467C },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B234[1] = {
@@ -1160,7 +1160,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     D_shelter_b2_operating_room_80180BC8,
     D_shelter_b2_north_maintenance_walkway_80183C5C,
     D_shelter_b2_laboratory_80182C08,
-    D_shelter_b2_breeding_room_8018055C,
+    gShelterB2BreedingRoomRoomViewMaps,
     D_shelter_b2_main_corridor_801830CC,
     D_shelter_b2_septic_tank_8018356C,
     D_shelter_b2_pod_access_tunnel_80183E24,
@@ -1272,7 +1272,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_shelter_b2_operating_room_801841F4,
     D_shelter_b2_north_maintenance_walkway_80186360,
     D_shelter_b2_laboratory_80186468,
-    D_shelter_b2_breeding_room_801847F4,
+    gShelterB2BreedingRoomSurfacePropertiesByClass,
     D_shelter_b2_main_corridor_80189624,
     D_shelter_b2_septic_tank_80187014,
     gShelterB2PodAccessTunnelSurfacePropertiesByClass,
