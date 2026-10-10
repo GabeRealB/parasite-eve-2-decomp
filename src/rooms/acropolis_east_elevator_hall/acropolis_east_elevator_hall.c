@@ -653,7 +653,7 @@ static AreaResource _gAcropolisEastElevatorHallAreaResources[] = {
 
 AreaVariant D_acropolis_east_elevator_hall_80186C50[3] = {
     { NULL, NULL },
-    { D_map_akropolis_8017ACDC, _gAcropolisEastElevatorHallAreaResources },
+    { gMapAkropolisEastElevatorHallVariant1Placements, _gAcropolisEastElevatorHallAreaResources },
     { NULL, NULL },
 };
 

@@ -1313,16 +1313,16 @@ static AreaResource _gAcropolisPatioVariant10ActorResources[] = {
 
 AreaVariant D_acropolis_patio_80184A90[12] = {
     { NULL, NULL },
-    { D_map_akropolis_8017ACFC, _gAcropolisPatioVariant1ActorResources },
-    { D_map_akropolis_8017AD2C, _gAcropolisPatioVariant2ActorResources },
-    { D_map_akropolis_8017AD7C, _gAcropolisPatioVariant3ActorResources },
-    { D_map_akropolis_8017ADEC, _gAcropolisPatioVariant4ActorResources },
-    { D_map_akropolis_8017AE3C, _gAcropolisPatioVariant5ActorResources },
+    { gMapAkropolisPatioVariant1Placements, _gAcropolisPatioVariant1ActorResources },
+    { gMapAkropolisPatioVariant2Placements, _gAcropolisPatioVariant2ActorResources },
+    { gMapAkropolisPatioVariant3Placements, _gAcropolisPatioVariant3ActorResources },
+    { gMapAkropolisPatioVariant4Placements, _gAcropolisPatioVariant4ActorResources },
+    { gMapAkropolisPatioVariant5Placements, _gAcropolisPatioVariant5ActorResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017AE6C, _gAcropolisPatioVariant10ActorResources },
+    { gMapAkropolisPatioVariant10Placements, _gAcropolisPatioVariant10ActorResources },
     { NULL, NULL },
 };
 

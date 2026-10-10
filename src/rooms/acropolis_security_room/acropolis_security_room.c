@@ -808,7 +808,7 @@ static AreaResource _gAcropolisSecurityRoomActorResources[3] = {
 
 AreaVariant D_acropolis_security_room_80184088[4] = {
     { NULL, NULL },
-    { D_map_akropolis_8017B01C, _gAcropolisSecurityRoomActorResources },
+    { gMapAkropolisSecurityRoomVariant1Placements, _gAcropolisSecurityRoomActorResources },
     { NULL, NULL },
     { NULL, NULL },
 };

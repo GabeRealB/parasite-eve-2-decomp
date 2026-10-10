@@ -47,10 +47,10 @@ _gAcropolisHallwayModel023C0Stream = 0x8017F980; // size:0xA8 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 gActor300700RatTaskDesc = 0x801693AC; // absolute:True owner=actor_300700
-D_map_akropolis_8017B04C = 0x8017B04C; // absolute:True owner=map_akropolis
-D_map_akropolis_8017B0DC = 0x8017B0DC; // absolute:True owner=map_akropolis
-D_map_akropolis_8017B0FC = 0x8017B0FC; // absolute:True owner=map_akropolis
-D_map_akropolis_8017B11C = 0x8017B11C; // absolute:True owner=map_akropolis
+gMapAkropolisHallwayVariant1Placements = 0x8017B04C; // absolute:True owner=map_akropolis
+gMapAkropolisHallwayVariant2Placements = 0x8017B0DC; // absolute:True owner=map_akropolis
+gMapAkropolisHallwayVariant3Placements = 0x8017B0FC; // absolute:True owner=map_akropolis
+gMapAkropolisHallwayVariant4Placements = 0x8017B11C; // absolute:True owner=map_akropolis
 
 acropolisHallwayEffectControlTask84 = 0x8017D828; // type:func
 _actorContactApplyGridPushback = 0x8017D830; // type:func

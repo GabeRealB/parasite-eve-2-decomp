@@ -508,7 +508,7 @@ static AreaResource _gAcropolisSquareVariant1Resources[2] = {
 
 AreaVariant D_acropolis_square_80185E50[3] = {
     { NULL, NULL },
-    { D_map_akropolis_8017ACBC, _gAcropolisSquareVariant1Resources },
+    { gMapAkropolisSquareVariant1Placements, _gAcropolisSquareVariant1Resources },
     { NULL, NULL },
 };
 

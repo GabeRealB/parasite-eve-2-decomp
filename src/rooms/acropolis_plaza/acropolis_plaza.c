@@ -1795,7 +1795,7 @@ AreaResource D_acropolis_plaza_8019936C[3] = {
 
 AreaVariant D_acropolis_plaza_80199390[3] = {
     { NULL, NULL },
-    { D_map_akropolis_8017AFEC, D_acropolis_plaza_8019936C },
+    { gMapAkropolisPlazaVariant1Placements, D_acropolis_plaza_8019936C },
     { NULL, NULL },
 };
 

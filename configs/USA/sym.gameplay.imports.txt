@@ -377,7 +377,7 @@ gMapDryfieldRoomTaskDescriptors = 0x8017A6A4; // absolute:True owner=map_dryfiel
 gMapDryfieldFullRoomTaskDescriptors = 0x8017A5AC; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017AB30 = 0x8017AB30; // absolute:True owner=map_shelter
 D_map_neo_ark_8017A804 = 0x8017A804; // absolute:True owner=map_neo_ark
-D_map_akropolis_8017AC14 = 0x8017AC14; // absolute:True owner=map_akropolis
+gMapAkropolisViewCameraTable = 0x8017AC14; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AB60 = 0x8017AB60; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017AA74 = 0x8017AA74; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017B480 = 0x8017B480; // absolute:True owner=map_shelter
@@ -392,7 +392,7 @@ gMapDryfieldViewIndexTable = 0x8017ABFC; // absolute:True owner=map_dryfield
 gMapDryfieldFullViewIndexTable = 0x8017AB10; // absolute:True owner=map_dryfield_full
 gMapShelterViewIndexTable = 0x8017B548; // absolute:True owner=map_shelter
 gMapNeoArkViewIndexTable = 0x8017ADB0; // absolute:True owner=map_neo_ark
-D_map_akropolis_8017AB1C = 0x8017AB1C; // absolute:True owner=map_akropolis
+gMapAkropolisSpriteAreaTable = 0x8017AB1C; // absolute:True owner=map_akropolis
 gMapDryfieldSpriteAreaTable = 0x8017AC98; // absolute:True owner=map_dryfield
 gMapDryfieldFullSpriteAreaTable = 0x8017ABAC; // absolute:True owner=map_dryfield_full
 gMapShelterSpriteAreaTable = 0x8017B610; // absolute:True owner=map_shelter shared=mapui
@@ -420,7 +420,7 @@ gMapNeoArkSurfacePropertiesByArea = 0x8017AE3C; // absolute:True owner=map_neo_a
 D_acropolis_bridge_8019004C = 0x8019004C; // absolute:True owner=acropolis_bridge
 D_mist_parking_801951B4 = 0x801951B4; // absolute:True owner=mist_parking
 D_dryfield_night_gas_station_80190624 = 0x80190624; // absolute:True owner=dryfield_night_gas_station
-D_map_akropolis_8017A7FC = 0x8017A7FC; // absolute:True owner=map_akropolis
+gMapAkropolisObjectRooms = 0x8017A7FC; // absolute:True owner=map_akropolis
 gMapDryfieldObjectRooms = 0x8017A564; // absolute:True owner=map_dryfield
 gMapDryfieldFullObjectRooms = 0x8017A46C; // absolute:True owner=map_dryfield_full
 D_map_shelter_8017A998 = 0x8017A998; // absolute:True owner=map_shelter

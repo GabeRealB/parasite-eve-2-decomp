@@ -250,10 +250,10 @@ static AreaResource _gAcropolisHallwayVariant4Resources[3] = {
 
 AreaVariant D_acropolis_hallway_8017EA3C[13] = {
     { NULL, NULL },
-    { D_map_akropolis_8017B04C, _gAcropolisHallwayVariant1Resources },
-    { D_map_akropolis_8017B0DC, _gAcropolisHallwayVariant2Resources },
-    { D_map_akropolis_8017B0FC, _gAcropolisHallwayVariant3Resources },
-    { D_map_akropolis_8017B11C, _gAcropolisHallwayVariant4Resources },
+    { gMapAkropolisHallwayVariant1Placements, _gAcropolisHallwayVariant1Resources },
+    { gMapAkropolisHallwayVariant2Placements, _gAcropolisHallwayVariant2Resources },
+    { gMapAkropolisHallwayVariant3Placements, _gAcropolisHallwayVariant3Resources },
+    { gMapAkropolisHallwayVariant4Placements, _gAcropolisHallwayVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

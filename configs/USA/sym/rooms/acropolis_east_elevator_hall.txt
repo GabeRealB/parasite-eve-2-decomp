@@ -78,7 +78,7 @@ _gAcropolisEastElevatorHallClass1SurfaceProperties = 0x80187B6C; // size:0x8 def
 gAcropolisEastElevatorHallSurfacePropertiesByClass = 0x80187B74; // size:0x20 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor110300ViewFigureTasks = 0x8013A06C; // absolute:True owner=actor_110300
-D_map_akropolis_8017ACDC = 0x8017ACDC; // absolute:True owner=map_akropolis
+gMapAkropolisEastElevatorHallVariant1Placements = 0x8017ACDC; // absolute:True owner=map_akropolis
 
 acropolisEastElevatorHallReflectionsAndBeaconsTask = 0x8017F5B4; // type:func
 

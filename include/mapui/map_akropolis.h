@@ -84,8 +84,17 @@ extern MenuMapIcon D_map_akropolis_8017A38C[];
 /// This stage's `Gp_MapNameTables` entry: the room names, indexed by room - 1.
 extern MenuMapAreaName D_map_akropolis_8017A3BC[];
 
-/// This stage's `Gp_Bit2Banks` room table, ended by `AREA_OBJECT_ROOM_END`.
-extern AreaObjectRoom D_map_akropolis_8017A7FC[];
+/// Placed-object state and spawn directory for Acropolis and MIST areas 0..20.
+///
+/// Indexed directly by area ID; NULL slots contain no placed objects. Slot 21
+/// is `AREA_OBJECT_ROOM_END`, not an area entry. Flag initialization walks the
+/// directory through that terminator; spawning selects a populated area slot.
+/// Place lists belong to this map overlay; spawn recipes may borrow models and
+/// callbacks from the selected room overlay. Keep both loaded while in use.
+/// Flag-index publication requires an index listed in a place list: its search
+/// uses a different terminator and cannot safely handle a miss in this
+/// directory.
+extern AreaObjectRoom gMapAkropolisObjectRooms[GAME_AREA_MIST_SHOOTING_GALLERY + 2];
 
 /// This stage's `D_8010FABC` entry: the task each room starts, keyed by
 /// `GP_TASK_LOC_KEY` and ended by flags of 0xFFFF.
@@ -104,13 +113,27 @@ extern WorldCoordRoomLighting* gMapAkropolisAreaRoomLightingTables[GAME_AREA_MIS
 
 extern WorldCollisionStageResources D_map_akropolis_8017AAC8;
 
-extern SpriteAreaTable D_map_akropolis_8017AB1C;
+/// Sprite-view directory for Acropolis and MIST areas 1..20.
+///
+/// Indexed by area - 1, independently of room and placement variant. There is
+/// no terminator or area-21 entry. The mapped 1-based view index selects an
+/// area's sprite descriptor at index minus one; its source/batch/clipping lists
+/// stay borrowed from the room overlay. Both map and selected room overlays
+/// must remain loaded during lookup.
+extern SpriteAreaTable gMapAkropolisSpriteAreaTable;
 
 extern DirectionWarpEntry* D_map_akropolis_8017AB20[];
 
 extern ViewCountTable D_map_akropolis_8017ABC0;
 
-extern ViewCameraTable D_map_akropolis_8017AC14;
+/// Camera directory for Acropolis and MIST areas 1..20.
+///
+/// Indexed by area - 1, independently of room and placement variant. There is
+/// no terminator or area-21 entry. The mapped 1-based view index selects a
+/// camera at index minus one. Camera transforms and projection distances stay
+/// borrowed from the room overlay. Both map and selected room overlays must
+/// remain loaded during lookup.
+extern ViewCameraTable gMapAkropolisViewCameraTable;
 
 /// Logical-view mapping directory for Acropolis and MIST areas 1..20.
 ///
@@ -128,53 +151,199 @@ extern ViewIndexTable gMapAkropolisViewIndexTable;
 /// tables remain borrowed for that overlay's lifetime.
 extern WorldCollisionSurfaceProperties** gMapAkropolisSurfacePropertiesByArea[GAME_AREA_MIST_SHOOTING_GALLERY];
 
-/// Area placement lists, each ended by an entry id of 0xFF. The rooms' area
-/// records point at them, one list per location.
-extern AreaPlacement D_map_akropolis_8017ACBC[];
+/// One Grinning Stranger for the Square opening layout.
+///
+/// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisSquareVariant1Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017ACDC[];
+/// One camera-parented view figure for East elevator hall variant 1.
+///
+/// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisEastElevatorHallVariant1Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017ACFC[];
+/// One SWAT member and one dormant Grinning Stranger for Patio variant 1.
+///
+/// Entry 107 selects SWAT; entry 19 uses dormant selector 4 and default tuning.
+/// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisPatioVariant1Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017AD2C[];
+/// Two scripted Grinning Strangers and two dormant Grinning Strangers for Patio
+/// variant 2.
+///
+/// Entry 10 is scripted and ignores its stored selectors; entry 19 uses dormant
+/// selector 4 and first tuning 2. XYZ use world units; yaw uses 4096 units per
+/// turn. `fileIdLow` is zero (base resources). The extent includes
+/// `AREA_PLACEMENT_END`; keep the map overlay loaded while actors borrow
+/// records.
+extern AreaPlacement gMapAkropolisPatioVariant2Placements[5];
 
-extern AreaPlacement D_map_akropolis_8017AD7C[];
+/// Three Moths and three Rats for Patio variant 3.
+///
+/// Entry keys 7/8 select separate recipes in the same actor package. Rat tuning
+/// row 1 and Moth tuning row 0 are within their eight-row tables. XYZ use world
+/// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
+/// The extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
+/// actors borrow records.
+extern AreaPlacement gMapAkropolisPatioVariant3Placements[7];
 
-extern AreaPlacement D_map_akropolis_8017ADEC[];
+/// Two dormant Strangers and two Moths for Patio variant 4.
+///
+/// Entry 10 uses dormant selector 4; entry 8 uses Moth tuning row 1 of eight.
+/// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisPatioVariant4Placements[5];
 
-extern AreaPlacement D_map_akropolis_8017AE3C[];
+/// Two Strangers for Patio variant 5.
+///
+/// XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisPatioVariant5Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017AE6C[];
+/// Two unmatched stored placements for Patio variant 10.
+///
+/// Entry 9 has no matching recipe in this variant's empty resource list.
+/// Neither record spawns an actor or requests an additional file; stored
+/// selectors are retained without a proven actor interpretation. XYZ use world
+/// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
+/// The extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
+/// actors borrow records.
+extern AreaPlacement gMapAkropolisPatioVariant10Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017AE9C[];
+/// Stranger, woman and Rupert placements for the Cafeteria opening scene.
+///
+/// Entry 10 starts hidden or restored (selector 1) with largest movement
+/// tuning; entry keys 29/102 select the scripted woman and Rupert. XYZ use
+/// world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisCafeteriaVariant1Placements[4];
 
-extern AreaPlacement D_map_akropolis_8017AEDC[];
+/// Stranger, scripted Grinning Stranger and Rupert placements for the Cafeteria
+/// battle scene.
+///
+/// Entry 10 starts hidden or restored (selector 1) with largest movement
+/// tuning; entry keys 19/102 select the scripted battle form and Rupert. XYZ
+/// use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisCafeteriaVariant2Placements[4];
 
-extern AreaPlacement D_map_akropolis_8017AF1C[];
+/// One dormant stalking Odd Stranger for Cafeteria variant 3.
+///
+/// Variant 0x14 combines stalking with dormant selector 4. Mode 2 selects the
+/// actor's first combat-tuning row. XYZ use world units; yaw uses 4096 units per
+/// turn. `fileIdLow` is zero (base resources). The extent includes
+/// `AREA_PLACEMENT_END`; keep the map overlay loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisCafeteriaVariant3Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017AF3C[];
+/// Two stalking Odd Strangers for Cafeteria variant 4.
+///
+/// Variants 0x14/0x10 combine stalking with dormant/patrol opening states.
+/// Mode 2 selects the first combat-tuning row for both actors. XYZ use world
+/// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
+/// The extent includes `AREA_PLACEMENT_END`; keep the
+/// map overlay loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisCafeteriaVariant4Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017AF6C[];
+/// Three patrolling and two idle Bone Sucklers for Cafeteria variant 5.
+///
+/// Entry 12 uses variant 0 for patrol and 1 for idle; modes and tuning rows are
+/// zero. XYZ use world units; yaw uses 4096 units per turn. `fileIdLow` is zero
+/// (base resources). The extent includes `AREA_PLACEMENT_END`; keep the map
+/// overlay loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisCafeteriaVariant5Placements[6];
 
-extern AreaPlacement D_map_akropolis_8017AFCC[];
+/// One patrolling Rook GOLEM for Cafeteria variant 7.
+///
+/// Entry 57 uses patrol mode 1 and variant 3 for a 3000-world-unit patrol. XYZ
+/// use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisCafeteriaVariant7Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017AFEC[];
+/// Two police-officer placements for Plaza variant 1.
+///
+/// Entry keys 109/108 select officers 2/1. Low file components 2/1 request
+/// their additional resources; their root placements are borrowed by model
+/// swaps. XYZ use world units; yaw uses 4096 units per turn. The extent
+/// includes `AREA_PLACEMENT_END`; keep the map overlay loaded while actors
+/// borrow records.
+extern AreaPlacement gMapAkropolisPlazaVariant1Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B01C[];
+/// Rupert and SWAT placements for Security room variant 1.
+///
+/// Entry keys 102/110 select Rupert/SWAT, independent of entry 110's meaning in
+/// the East elevator hall. XYZ use world units; yaw uses 4096 units per turn.
+/// `fileIdLow` is zero (base resources). The extent includes
+/// `AREA_PLACEMENT_END`; keep the map overlay loaded while actors borrow
+/// records.
+extern AreaPlacement gMapAkropolisSecurityRoomVariant1Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B04C[];
+/// Eight Rats for Hallway variant 1.
+///
+/// Entry 7 uses Rat tuning row 0 of eight. XYZ use world units; yaw uses 4096
+/// units per turn. `fileIdLow` is zero (base resources). The extent includes
+/// `AREA_PLACEMENT_END`; keep the map overlay loaded while actors borrow
+/// records.
+extern AreaPlacement gMapAkropolisHallwayVariant1Placements[9];
 
-extern AreaPlacement D_map_akropolis_8017B0DC[];
+/// One stalking Odd Stranger for Hallway variant 2.
+///
+/// Variant 0x10 enables stalking. Mode 0 selects default combat tuning. XYZ use
+/// world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisHallwayVariant2Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017B0FC[];
+/// One stalking Odd Stranger for Hallway variant 3.
+///
+/// Variant 0x10 enables stalking. This distinct layout retains the same
+/// placement bytes as variant 2; mode 0 selects default combat tuning. XYZ use
+/// world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisHallwayVariant3Placements[2];
 
-extern AreaPlacement D_map_akropolis_8017B11C[];
+/// One stalking Odd Stranger and four Rats for Hallway variant 4.
+///
+/// The Stranger uses stalking selector 0x10 and first tuning 2. Rats use tuning
+/// row 1 of eight, with separate texture-page and CLUT offsets. XYZ use world
+/// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
+/// The extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
+/// actors borrow records.
+extern AreaPlacement gMapAkropolisHallwayVariant4Placements[6];
 
-extern AreaPlacement D_map_akropolis_8017B17C[];
+/// Two Mossbacks for Fountain variant 2.
+///
+/// Entry 11 uses ordinary Mossback awareness selector 0. XYZ use world units;
+/// yaw uses 4096 units per turn. `fileIdLow` is zero (base resources). The
+/// extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
+/// actors borrow records.
+extern AreaPlacement gMapAkropolisFountainVariant2Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B1AC[];
+/// Two large Mossbacks for Fountain variant 7.
+///
+/// Entry 49 selects the large Mossback recipe with awareness selector 0. XYZ
+/// use world units; yaw uses 4096 units per turn. `fileIdLow` is zero (base
+/// resources). The extent includes `AREA_PLACEMENT_END`; keep the map overlay
+/// loaded while actors borrow records.
+extern AreaPlacement gMapAkropolisFountainVariant7Placements[3];
 
-extern AreaPlacement D_map_akropolis_8017B1DC[];
+/// One dormant Grinning Stranger for Forked road variant 2.
+///
+/// Entry 19 uses dormant selector 4 and default pursuit tuning. XYZ use world
+/// units; yaw uses 4096 units per turn. `fileIdLow` is zero (base resources).
+/// The extent includes `AREA_PLACEMENT_END`; keep the map overlay loaded while
+/// actors borrow records.
+extern AreaPlacement gMapAkropolisForkedRoadVariant2Placements[2];
 
 /// One Stranger and three Rats for forked-road variant 3.
 ///

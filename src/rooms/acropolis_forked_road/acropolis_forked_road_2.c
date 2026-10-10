@@ -600,7 +600,7 @@ static AreaResource _gAcropolisForkedRoadVariant22Resources[5] = {
 AreaVariant D_acropolis_forked_road_801831C4[24] = {
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_akropolis_8017B1DC, _gAcropolisForkedRoadVariant2Resources },
+    { gMapAkropolisForkedRoadVariant2Placements, _gAcropolisForkedRoadVariant2Resources },
     { gMapAkropolisForkedRoadVariant3Placements, _gAcropolisForkedRoadVariant3Resources },
     { gMapAkropolisForkedRoadVariant4Placements, _gAcropolisForkedRoadVariant4Resources },
     { NULL, NULL },

@@ -267,7 +267,7 @@ _gAcropolisPlazaClass1FootstepSounds = 0x80199F0C; // size:0xC defined:True
 _gAcropolisPlazaDefaultSurfaceProperties = 0x80199F18; // size:0x8 defined:True
 _gAcropolisPlazaClass1SurfaceProperties = 0x80199F20; // size:0x8 defined:True
 gAcropolisPlazaSurfacePropertiesByClass = 0x80199F28; // size:0x20 defined:True
-D_map_akropolis_8017AFEC = 0x8017AFEC; // absolute:True owner=map_akropolis
+gMapAkropolisPlazaVariant1Placements = 0x8017AFEC; // absolute:True owner=map_akropolis
 
 acropolisPlazaSpawnAmbientLightsTask = 0x8018251C; // type:func
 

@@ -24,7 +24,7 @@
 
 DR_STP D_80114C50;
 
-ViewCameraTable* Gp_ViewTables[5] = { &D_map_akropolis_8017AC14, &D_map_dryfield_8017AB60, &D_map_dryfield_full_8017AA74, &D_map_shelter_8017B480, &D_map_neo_ark_8017AD28 };
+ViewCameraTable* Gp_ViewTables[5] = { &gMapAkropolisViewCameraTable, &D_map_dryfield_8017AB60, &D_map_dryfield_full_8017AA74, &D_map_shelter_8017B480, &D_map_neo_ark_8017AD28 };
 
 /// Uploads the current mapped view's retained image, retrying every incomplete result.
 ///

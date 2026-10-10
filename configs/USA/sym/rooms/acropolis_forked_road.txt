@@ -86,7 +86,7 @@ gActor401000StrangerTaskDesc = 0x80155004; // absolute:True owner=actor_401000
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 gActor300700RatTaskDesc = 0x801693AC; // absolute:True owner=actor_300700
 gActor301900GrinningStrangerTaskDesc = 0x80179120; // absolute:True owner=actor_301900
-D_map_akropolis_8017B1DC = 0x8017B1DC; // absolute:True owner=map_akropolis
+gMapAkropolisForkedRoadVariant2Placements = 0x8017B1DC; // absolute:True owner=map_akropolis
 gMapAkropolisForkedRoadVariant3Placements = 0x8017B1FC; // absolute:True owner=map_akropolis
 gMapAkropolisForkedRoadVariant4Placements = 0x8017B24C; // absolute:True owner=map_akropolis
 gMapAkropolisForkedRoadVariant7Placements = 0x8017B29C; // absolute:True owner=map_akropolis
