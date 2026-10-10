@@ -14,70 +14,6 @@
 #include "main/wipsys.h"
 
 /* Item names and descriptions shared by the inventory tables. */
-extern const u8 D_800946D0[];
-
-extern const u8 D_80094710[];
-
-extern const u8 D_80094744[];
-
-extern const u8 D_80094774[];
-
-extern const u8 D_800947A8[];
-
-extern const u8 D_800947C8[];
-
-extern const u8 D_800947E4[];
-
-extern const u8 D_80094804[];
-
-extern const u8 D_80094834[];
-
-extern const u8 D_80094864[];
-
-extern const u8 D_8009489C[];
-
-extern const u8 D_800948C4[];
-
-extern const u8 D_800948EC[];
-
-extern const u8 D_8009491C[];
-
-extern const u8 D_8009495C[];
-
-extern const u8 D_80094994[];
-
-extern const u8 D_800949D4[];
-
-extern const u8 D_80094A10[];
-
-extern const u8 D_80094A4C[];
-
-extern const u8 D_80094A88[];
-
-extern const u8 D_80094AF8[];
-
-extern const u8 D_80094B70[];
-
-extern const u8 D_80094BEC[];
-
-extern const u8 D_80094C5C[];
-
-extern const u8 D_80094CC4[];
-
-extern const u8 D_80094D34[];
-
-extern const u8 D_80094DA8[];
-
-extern const u8 D_80094E18[];
-
-extern const u8 D_80094E84[];
-
-extern const u8 D_80094EF0[];
-
-extern const u8 D_80094F38[];
-
-extern const u8 D_80094FAC[];
-
 extern const u8 D_80095000[];
 
 extern const u8 D_8009506C[];
@@ -688,38 +624,422 @@ static const u8 _gItemApobiosisLevel2TextFields[] =
     "\n"
     "\n";
 
-const u8 D_800946D0[]   = "Apobiosis\nParalyzes all enemies\nin the surrounding area.\n\n\n\n";
-const u8 D_80094710[]   = "Metabolism\nRestores normal\nstatus over time.\n\n\n\n";
-const u8 D_80094744[]   = "Metabolism\nRapidly restores\nnormal status.\n\n\n\n";
-const u8 D_80094774[]   = "Metabolism\nInstantly restores\nnormal status.\n\n\n\n";
-const u8 D_800947A8[]   = "Healing\nHeals a little HP.\n\n\n\n\n";
-const u8 D_800947C8[]   = "Healing\nHeals some HP.\n\n\n\n\n";
-const u8 D_800947E4[]   = "Healing\nHeals a lot of HP.\n\n\n\n\n";
-const u8 D_80094804[]   = "Lifedrain\nDrains HP from\nadjacent targets.\n\n\n\n";
-const u8 D_80094834[]   = "Lifedrain\nDrains HP from\nnearby targets.\n\n\n\n";
-const u8 D_80094864[]   = "Lifedrain\nDrains HP from all\nsurrounding targets.\n\n\n\n";
-const u8 D_8009489C[]   = "Antibody\nReduces physical\ndamage.\n\n\n\n";
-const u8 D_800948C4[]   = "Antibody\nWards off physical\ndamage.\n\n\n\n";
-const u8 D_800948EC[]   = "Antibody\nGreatly reduces\nphysical damage.\n\n\n\n";
-const u8 D_8009491C[]   = "Energyshot\nRaises bullets' kinetic\nenergy & penetration.\n\n\n\n";
-const u8 D_8009495C[]   = "Energyshot\nRaises bullets' kinetic\nenergy & impact.\n\n\n\n";
-const u8 D_80094994[]   = "Energyshot\nRaises bullets' kinetic\nenergy & killing power.\n\n\n\n";
-const u8 D_800949D4[]   = "Energyball\nCreates a circling orb\nthat repels attacks.\n\n\n\n";
-const u8 D_80094A10[]   = "Energyball\nCreates 2 circling orbs\nthat repel attacks.\n\n\n\n";
-const u8 D_80094A4C[]   = "Energyball\nCreates a ring of orbs\nthat attack targets.\n\n\n\n";
-const u8 D_80094A88[]   = "Skull Crystal\nSkull-shaped S. American crystal.\nAttach this and see what happens.\nCrystal\nA carved crystal.\n\n";
-const u8 D_80094AF8[]   = "Medicine Wheel\nNative American wall ornament.\nAttach this and see what happens.\nWoven Ring\nA hand-made wall ornament.\n\n";
-const u8 D_80094B70[]   = "Holy Water\nSmall bottle labeled \"Holy Water.\"\nAttach this and see what happens.\nBottle\nA small bottle filled with liquid.\n\n";
-const u8 D_80094BEC[]   = "Ofuda\nCharm with Japanese lettering.\nAttach this and see what happens.\nCharm\nThere's some Japanese on this.\n\n";
-const u8 D_80094C5C[]   = "Flare\nDisposable self-defense weapon.\nUse to blind surrounding enemies.\nSmall Box\nA small metal box.\n\n";
-const u8 D_80094CC4[]   = "Pepper Spray\nDisposable self-defense weapon.\nUse to stun surrounding enemies.\nSpray Can\nA small spray can.\n\n";
-const u8 D_80094D34[]   = "Protein Capsule\nProtein compound medicine capsule.\nFull HP recovery.  Max HP +5.\nCapsule\nSome sort of capsule.\n\n";
-const u8 D_80094DA8[]   = "Ringer's Solution\nBlood substitute.\nRestores HP and MP to max.\nVinyl Pack\nA vinyl pack filled with liquid.\n\n";
-const u8 D_80094E18[]   = "Eau de Toilette\nDisposable eau de toilette spray.\nScent releases latent powers.\nBottle\nA small bottle.\n\n";
-const u8 D_80094E84[]   = "Hunter Goggles\nSpecial filtered goggles.\nAttach to prevent blindness.\nGoggles\nThese are colored goggles.\n\n";
-const u8 D_80094EF0[]   = "GPS\nMilitary global positioning system.\nIncludes a motion detector.\n\n\n\n";
-const u8 D_80094F38[]   = "Combat Light\nDisposable defense weapon.\nBlinds enemies in front of you.\nKey Chain\nA light and a key chain in one!\n\n";
-const u8 D_80094FAC[]   = "Hammer\nHigh-voltage stun gun.\nCustom M4A1 attachment.\nStun Gun\nAn electric prod.\n\n";
+/// Catalogue name and descriptions for Apobiosis level 3.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemApobiosisLevel3TextFields[] =
+    "Apobiosis\n"
+    "Paralyzes all enemies\n"
+    "in the surrounding area.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Metabolism level 1.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemMetabolismLevel1TextFields[] =
+    "Metabolism\n"
+    "Restores normal\n"
+    "status over time.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Metabolism level 2.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemMetabolismLevel2TextFields[] =
+    "Metabolism\n"
+    "Rapidly restores\n"
+    "normal status.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Metabolism level 3.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemMetabolismLevel3TextFields[] =
+    "Metabolism\n"
+    "Instantly restores\n"
+    "normal status.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Healing level 1.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemHealingLevel1TextFields[] =
+    "Healing\n"
+    "Heals a little HP.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Healing level 2.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemHealingLevel2TextFields[] =
+    "Healing\n"
+    "Heals some HP.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Healing level 3.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemHealingLevel3TextFields[] =
+    "Healing\n"
+    "Heals a lot of HP.\n"
+    "\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Lifedrain level 1.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemLifedrainLevel1TextFields[] =
+    "Lifedrain\n"
+    "Drains HP from\n"
+    "adjacent targets.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Lifedrain level 2.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemLifedrainLevel2TextFields[] =
+    "Lifedrain\n"
+    "Drains HP from\n"
+    "nearby targets.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Lifedrain level 3.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemLifedrainLevel3TextFields[] =
+    "Lifedrain\n"
+    "Drains HP from all\n"
+    "surrounding targets.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Antibody level 1.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemAntibodyLevel1TextFields[] =
+    "Antibody\n"
+    "Reduces physical\n"
+    "damage.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Antibody level 2.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemAntibodyLevel2TextFields[] =
+    "Antibody\n"
+    "Wards off physical\n"
+    "damage.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Antibody level 3.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemAntibodyLevel3TextFields[] =
+    "Antibody\n"
+    "Greatly reduces\n"
+    "physical damage.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Energyshot level 1.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemEnergyshotLevel1TextFields[] =
+    "Energyshot\n"
+    "Raises bullets' kinetic\n"
+    "energy & penetration.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Energyshot level 2.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemEnergyshotLevel2TextFields[] =
+    "Energyshot\n"
+    "Raises bullets' kinetic\n"
+    "energy & impact.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Energyshot level 3.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemEnergyshotLevel3TextFields[] =
+    "Energyshot\n"
+    "Raises bullets' kinetic\n"
+    "energy & killing power.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Energyball level 1.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemEnergyballLevel1TextFields[] =
+    "Energyball\n"
+    "Creates a circling orb\n"
+    "that repels attacks.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Energyball level 2.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemEnergyballLevel2TextFields[] =
+    "Energyball\n"
+    "Creates 2 circling orbs\n"
+    "that repel attacks.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Energyball level 3.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemEnergyballLevel3TextFields[] =
+    "Energyball\n"
+    "Creates a ring of orbs\n"
+    "that attack targets.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Skull Crystal.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemSkullCrystalTextFields[] =
+    "Skull Crystal\n"
+    "Skull-shaped S. American crystal.\n"
+    "Attach this and see what happens.\n"
+    "Crystal\n"
+    "A carved crystal.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Medicine Wheel.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemMedicineWheelTextFields[] =
+    "Medicine Wheel\n"
+    "Native American wall ornament.\n"
+    "Attach this and see what happens.\n"
+    "Woven Ring\n"
+    "A hand-made wall ornament.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Holy Water.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemHolyWaterTextFields[] =
+    "Holy Water\n"
+    "Small bottle labeled \"Holy Water.\"\n"
+    "Attach this and see what happens.\n"
+    "Bottle\n"
+    "A small bottle filled with liquid.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Ofuda.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemOfudaTextFields[] =
+    "Ofuda\n"
+    "Charm with Japanese lettering.\n"
+    "Attach this and see what happens.\n"
+    "Charm\n"
+    "There's some Japanese on this.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Flare.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemFlareTextFields[] =
+    "Flare\n"
+    "Disposable self-defense weapon.\n"
+    "Use to blind surrounding enemies.\n"
+    "Small Box\n"
+    "A small metal box.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Pepper Spray.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemPepperSprayTextFields[] =
+    "Pepper Spray\n"
+    "Disposable self-defense weapon.\n"
+    "Use to stun surrounding enemies.\n"
+    "Spray Can\n"
+    "A small spray can.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Protein Capsule.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemProteinCapsuleTextFields[] =
+    "Protein Capsule\n"
+    "Protein compound medicine capsule.\n"
+    "Full HP recovery.  Max HP +5.\n"
+    "Capsule\n"
+    "Some sort of capsule.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Ringer's Solution.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemRingersSolutionTextFields[] =
+    "Ringer's Solution\n"
+    "Blood substitute.\n"
+    "Restores HP and MP to max.\n"
+    "Vinyl Pack\n"
+    "A vinyl pack filled with liquid.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Eau de Toilette.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemEauDeToiletteTextFields[] =
+    "Eau de Toilette\n"
+    "Disposable eau de toilette spray.\n"
+    "Scent releases latent powers.\n"
+    "Bottle\n"
+    "A small bottle.\n"
+    "\n";
+
+/// Catalogue name and descriptions for Hunter Goggles.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemHunterGogglesTextFields[] =
+    "Hunter Goggles\n"
+    "Special filtered goggles.\n"
+    "Attach to prevent blindness.\n"
+    "Goggles\n"
+    "These are colored goggles.\n"
+    "\n";
+
+/// Catalogue name and descriptions for GPS.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first; the unidentified form is empty.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemGpsTextFields[] =
+    "GPS\n"
+    "Military global positioning system.\n"
+    "Includes a motion detector.\n"
+    "\n"
+    "\n"
+    "\n";
+
+/// Catalogue name and descriptions for Combat Light.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemCombatLightTextFields[] =
+    "Combat Light\n"
+    "Disposable defense weapon.\n"
+    "Blinds enemies in front of you.\n"
+    "Key Chain\n"
+    "A light and a key chain in one!\n"
+    "\n";
+
+/// Catalogue name and descriptions for Hammer.
+///
+/// Six newline-delimited fields: name and two description lines per form.
+/// Identified text comes first, followed by the unidentified form.
+/// The final NUL ends the stream. Storage lives with the gameplay image.
+static const u8 _gItemHammerTextFields[] =
+    "Hammer\n"
+    "High-voltage stun gun.\n"
+    "Custom M4A1 attachment.\n"
+    "Stun Gun\n"
+    "An electric prod.\n"
+    "\n";
+
 const u8 D_80095000[]   = "Pyke\nSmall portable flamethrower.\nCustom M4A1 attachment.\nIgnition Device\nSome sort of ignition device.\n\n";
 const u8 D_8009506C[]   = "Javelin\nSmall laser gun.\nCustom M4A1 attachment.\nLaser Attachment\nSome sort of weapon attachment.\n\n";
 const u8 D_800950D0[]   = "M203\n40mm grenade launcher.\nCustom M4A1 attachment.\nGrenade Launcher\nA grenade launcher attachment.\n\n";
@@ -859,41 +1179,41 @@ ItemDesc Gp_ItemDescs[] = {
     { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemPlasmaLevel3TextFields },
     { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemApobiosisLevel1TextFields },
     { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemApobiosisLevel2TextFields },
-    { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800946D0 },
-    { 500, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094710 },
-    { 1250, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094744 },
-    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094774 },
-    { 750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800947A8 },
-    { 1750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800947C8 },
-    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800947E4 },
-    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094804 },
-    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094834 },
-    { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094864 },
-    { 500, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009489C },
-    { 1250, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800948C4 },
-    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800948EC },
-    { 750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009491C },
-    { 1750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_8009495C },
-    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094994 },
-    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_800949D4 },
-    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094A10 },
-    { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, D_80094A4C },
+    { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemApobiosisLevel3TextFields },
+    { 500, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemMetabolismLevel1TextFields },
+    { 1250, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemMetabolismLevel2TextFields },
+    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemMetabolismLevel3TextFields },
+    { 750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemHealingLevel1TextFields },
+    { 1750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemHealingLevel2TextFields },
+    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemHealingLevel3TextFields },
+    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemLifedrainLevel1TextFields },
+    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemLifedrainLevel2TextFields },
+    { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemLifedrainLevel3TextFields },
+    { 500, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemAntibodyLevel1TextFields },
+    { 1250, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemAntibodyLevel2TextFields },
+    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemAntibodyLevel3TextFields },
+    { 750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemEnergyshotLevel1TextFields },
+    { 1750, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemEnergyshotLevel2TextFields },
+    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemEnergyshotLevel3TextFields },
+    { 3000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemEnergyballLevel1TextFields },
+    { 4000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemEnergyballLevel2TextFields },
+    { 5000, 0, ITEM_FLAG_NO_ATTACHMENT | 0x8, _gItemEnergyballLevel3TextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
     { 0, 0, 0x00, _gItemEmptyTextFields },
-    { 5000, 0, 0x00, D_80094A88 },
-    { 27800, 0, 0x00, D_80094AF8 },
-    { 5000, 0, 0x00, D_80094B70 },
-    { 5000, 0, 0x00, D_80094BEC },
-    { 150, 0, 0x00, D_80094C5C },
-    { 100, 0, 0x00, D_80094CC4 },
-    { 10000, 1, 0x00, D_80094D34 },
-    { 200, 1, 0x00, D_80094DA8 },
-    { 190, 1, 0x00, D_80094E18 },
-    { 1000, 0, 0x00, D_80094E84 },
-    { 1000, 0, ITEM_FLAG_NO_DISCARD | 0x8, D_80094EF0 },
-    { 60, 0, 0x00, D_80094F38 },
-    { 3720, 0, ITEM_FLAG_NO_ATTACHMENT, D_80094FAC },
+    { 5000, 0, 0x00, _gItemSkullCrystalTextFields },
+    { 27800, 0, 0x00, _gItemMedicineWheelTextFields },
+    { 5000, 0, 0x00, _gItemHolyWaterTextFields },
+    { 5000, 0, 0x00, _gItemOfudaTextFields },
+    { 150, 0, 0x00, _gItemFlareTextFields },
+    { 100, 0, 0x00, _gItemPepperSprayTextFields },
+    { 10000, 1, 0x00, _gItemProteinCapsuleTextFields },
+    { 200, 1, 0x00, _gItemRingersSolutionTextFields },
+    { 190, 1, 0x00, _gItemEauDeToiletteTextFields },
+    { 1000, 0, 0x00, _gItemHunterGogglesTextFields },
+    { 1000, 0, ITEM_FLAG_NO_DISCARD | 0x8, _gItemGpsTextFields },
+    { 60, 0, 0x00, _gItemCombatLightTextFields },
+    { 3720, 0, ITEM_FLAG_NO_ATTACHMENT, _gItemHammerTextFields },
     { 5180, 0, ITEM_FLAG_NO_ATTACHMENT, D_80095000 },
     { 7500, 0, ITEM_FLAG_NO_ATTACHMENT, D_8009506C },
     { 2130, 0, ITEM_FLAG_NO_ATTACHMENT, D_800950D0 },
