@@ -446,7 +446,7 @@ AreaRecord D_8010CC94[39] = {
     { D_dryfield_r08_80180B88, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[33].state },
     { D_dryfield_dilapidated_house_80189938, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[6].state },
     { NULL, NULL },
-    { D_dryfield_motel_room_1_801814DC, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
+    { gDryfieldMotelRoom1PlacementVariants, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[7].state },
     { D_dryfield_motel_room_2_80180410, &gGameFlagDryfieldBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[8].state },
     { NULL, NULL },
     { NULL, NULL },

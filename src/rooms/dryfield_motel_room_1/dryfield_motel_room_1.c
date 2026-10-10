@@ -76,7 +76,7 @@ static s32 _dryfieldMotelRoom1HandleRoomAction(Task* unusedTask, s32 unusedMessa
 
     if (gGameSession->location.loc.variant == DRYFIELD_MOTEL_ROOM_1_OPENING_VARIANT && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0 && request->actionId == DRYFIELD_MOTEL_ROOM_1_ACTION_OPENING) {
         gameFlagSetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN, 1);
-        taskSpawnFromTable(&D_dryfield_motel_room_1_8017E478, DRYFIELD_MOTEL_ROOM_1_OPENING_TASK, 0, 0);
+        taskSpawnFromTable(&gDryfieldMotelRoom1OpeningEventTaskDesc, DRYFIELD_MOTEL_ROOM_1_OPENING_TASK, 0, 0);
     }
     return 0;
 }

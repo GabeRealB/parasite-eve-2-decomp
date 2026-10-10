@@ -11,10 +11,24 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_motel_room_1_801814DC[13];
+/// Actor layouts and loading recipes for daytime motel room 1 (Dryfield area 11).
+///
+/// Index directly by placement variant in 0..12; 1, 2, 3, 7 and 10 are populated.
+/// Variant 1 is empty; 2 has Bone Sucklers and an Odd Stranger; 3 has staged
+/// and combat Bone Sucklers; 7 has Blood Sucklers and an Odd Stranger; 10 has
+/// two staged and two combat Bone Sucklers at one shared initial transform.
+/// Placements for 1, 2, 3 and 7 belong to the loaded Dryfield map; variant 10
+/// and all resource recipes belong to this room overlay. Both owners must stay
+/// loaded through loading, spawning and the lives of actors borrowing placements.
+extern AreaVariant gDryfieldMotelRoom1PlacementVariants[13];
 
-// dryfield_motel_room_1
-extern WorldCollisionRoomResources D_dryfield_motel_room_1_8017E484[];
+/// Collision resources shared by motel room 1's two room entries.
+///
+/// Index by room minus one (rooms 1 and 2). Both entries borrow the same grid,
+/// eight view boundaries, eight action triggers and single sight occluder.
+/// Binding mutates those resources; keep this overlay loaded until the grid
+/// is retired and all trigger and occluder links have been cleared.
+extern WorldCollisionRoomResources gDryfieldMotelRoom1RoomCollisionResources[2];
 
 /// Motel room 1's two room entries sharing one logical-to-resource view map.
 ///
@@ -23,7 +37,12 @@ extern WorldCollisionRoomResources D_dryfield_motel_room_1_8017E484[];
 /// The directory and writable byte map are borrowed from this loaded overlay.
 extern u8* gDryfieldMotelRoom1RoomViewMaps[2];
 
-extern ViewCount D_dryfield_motel_room_1_8017E4B8[];
+/// Nine logical views searched in each of motel room 1's two room entries.
+///
+/// Signed-halfword counts indexed by room minus one (rooms 1 and 2), with no
+/// terminator. Both limit reverse lookup to the first nine bytes of the shared
+/// logical-view map. Borrow only while this overlay remains loaded.
+extern ViewCount gDryfieldMotelRoom1RoomViewCounts[2];
 
 /// Motel room 1's two room lighting entries with the same five point lights.
 ///
@@ -33,11 +52,31 @@ extern ViewCount D_dryfield_motel_room_1_8017E4B8[];
 /// Keep this overlay loaded while borrowing the records and their light array.
 extern WorldCoordRoomLighting gDryfieldMotelRoom1RoomLighting[2];
 
-extern DirectionWarpEntry D_dryfield_motel_room_1_8017E4CC[];
+/// The single motel room 1 warp endpoint, selected by warp ID 1.
+///
+/// Player and companion arrive at world (4369, 0, 3388), yaw 3/4 turn, in
+/// logical view 2. Arrival/departure use room-bank sound entries 2/1; blocked
+/// departure is silent. No spawn/fade options are set; arrival marks nibble
+/// 487 visited. The entry has no terminator and is borrowed while this overlay
+/// is loaded; transition consumers copy the complete record.
+extern DirectionWarpEntry gDryfieldMotelRoom1WarpEntries[1];
 
-extern ViewCamera D_dryfield_motel_room_1_8017EAE0[];
+/// Nine cameras selected by motel room 1's mapped resource index minus one.
+///
+/// Logical views 1..9 map to indices 1, 9, 8, 4, 5, 6, 7, 3 and 2. Rotation
+/// has 12 fractional bits; translation is the negated world camera origin and
+/// projection distance is in pixels. Keep the records loaded until queued
+/// camera application completes; the array has no terminator.
+extern ViewCamera gDryfieldMotelRoom1ViewCameras[9];
 
-extern SpriteView D_dryfield_motel_room_1_80180C90[];
+/// Nine sprite-view descriptors selected by mapped resource index minus one.
+///
+/// Logical views 1..9 map to indices 1, 9, 8, 4, 5, 6, 7, 3 and 2. Mapped
+/// views 1..3 have no source sprites and retain their terminal batch addresses
+/// in `sources.empty`; views 4..9 borrow source arrays through `sources.elements`.
+/// All draw-area lists are NULL. Keep this overlay loaded while borrowing the
+/// mutable sources and batches; the descriptor array has no terminator.
+extern SpriteView gDryfieldMotelRoom1SpriteViews[9];
 
 /// Motel room 1's collision and footstep policies for surface classes 0..7.
 ///

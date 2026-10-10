@@ -1445,7 +1445,7 @@ D_dryfield_main_street_80184F20 = 0x80184F20; // absolute:True owner=dryfield_ma
 
 D_dryfield_motel_balcony_80186220 = 0x80186220; // absolute:True owner=dryfield_motel_balcony
 
-D_dryfield_motel_room_1_801814DC = 0x801814DC; // absolute:True owner=dryfield_motel_room_1
+gDryfieldMotelRoom1PlacementVariants = 0x801814DC; // absolute:True owner=dryfield_motel_room_1
 
 D_dryfield_motel_room_2_80180410 = 0x80180410; // absolute:True owner=dryfield_motel_room_2
 

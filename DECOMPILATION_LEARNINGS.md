@@ -90376,8 +90376,8 @@ Inputs: `base.i`
 pointers and the target reads
 
 ```
-lui   s0,%hi(D_dryfield_motel_room_1_8017E130)
-addiu s0,s0,%lo(D_dryfield_motel_room_1_8017E130)
+lui   s0,%hi(_gDryfieldMotelRoom1EnemyCombatPlacements)
+addiu s0,s0,%lo(_gDryfieldMotelRoom1EnemyCombatPlacements)
 move  a2,s0            # first call
 ...
 addiu a2,s0,0x18       # second call, same base
@@ -90397,9 +90397,9 @@ already uses for the 0x7D4 placement payload the two calls carry - check
 `room_common.h` and the `actors_shared_*` headers before declaring a new one.
 
 ```c
-extern ActorTransform D_dryfield_motel_room_1_8017E130[2];
-taskMessageDispatch(work->enemySucklerTasks[0], 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[0], 0);
-taskMessageDispatch(work->enemySucklerTasks[1], 0x7D4, (s32)&D_dryfield_motel_room_1_8017E130[1], 0);
+static ActorTransform _gDryfieldMotelRoom1EnemyCombatPlacements[2];
+taskMessageDispatch(work->enemySucklerTasks[0], 0x7D4, (s32)&_gDryfieldMotelRoom1EnemyCombatPlacements[0], 0);
+taskMessageDispatch(work->enemySucklerTasks[1], 0x7D4, (s32)&_gDryfieldMotelRoom1EnemyCombatPlacements[1], 0);
 ```
 
 The function's other half is the 4-byte stack payload of "m2c's scalar stack
