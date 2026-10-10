@@ -18,11 +18,21 @@ extern AreaVariant D_dryfield_motel_room_6_80186764[12];
 // dryfield_motel_room_6
 extern WorldCollisionRoomResources D_dryfield_motel_room_6_80182D98[];
 
-extern u8* D_dryfield_motel_room_6_80182DA8[];
+/// Logical-view maps for daytime motel room 6's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..12 select the same
+/// camera, image and sprite indices. The directory has no terminator and
+/// remains valid only while this room overlay is loaded.
+extern u8* gDryfieldMotelRoom6RoomViewMaps[1];
 
 extern ViewCount D_dryfield_motel_room_6_80182DAC[];
 
-extern WorldCoordRoomLighting D_dryfield_motel_room_6_80182DB0[];
+/// Authored lights and per-view ambient minima for daytime motel room 6.
+///
+/// Room 1 borrows mutable point/cone lights and ambient entries for views
+/// 1..12. The collection, transforms and ambient table belong to this overlay
+/// and must remain loaded while queried or composed.
+extern WorldCoordRoomLighting gDryfieldMotelRoom6RoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_motel_room_6_80182DB8[];
 
@@ -30,7 +40,13 @@ extern ViewCamera D_dryfield_motel_room_6_80183840[];
 
 extern SpriteView D_dryfield_motel_room_6_801856CC[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_6_80186808[];
+/// Collision policies and footstep cues for daytime motel room 6's surface classes.
+///
+/// Indexed directly by class 0..7, without a terminator. All classes block
+/// probes, allow weapon impacts and apply pushback. Classes 1..3 select
+/// distinct cue records; classes 0 and 4..7 share a record with no footsteps.
+/// The directory and borrowed records stay valid while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldMotelRoom6SurfacePropertiesByClass[8];
 
 /// Updates daytime motel room 6's telephone save and statistics menu.
 ///
