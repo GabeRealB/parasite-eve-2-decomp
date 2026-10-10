@@ -3,7 +3,13 @@
 
 #include "types.h"
 
-extern u8 D_acropolis_fountain_80183BB0;
+/// Arrival warp latched for the deferred departure to patio room 3.
+///
+/// An executing transition request stores its full unsigned warp byte before
+/// spawning departure; the reload copies it into the live save. The pending
+/// departure requires one writer and a valid patio endpoint (1..4). The latch
+/// is retained after consumption and belongs to the loaded fountain overlay.
+extern u8 gAcropolisFountainPatioArrivalWarp;
 
 extern u8 D_acropolis_fountain_80183BB1;
 

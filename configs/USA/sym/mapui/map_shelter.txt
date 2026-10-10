@@ -45,7 +45,7 @@ gMineGorgeRoomLighting = 0x8017E7A8; // absolute:True owner=mine_gorge
 gMineGorgeRoomCollisionResources = 0x8017E7B8; // absolute:True owner=mine_gorge shared=rooms
 gMineGorgeRoomViewMaps = 0x8017E7E4; // absolute:True owner=mine_gorge shared=rooms
 gMineGorgeRoomViewCounts = 0x8017E7EC; // absolute:True owner=mine_gorge shared=rooms
-gMineGorgeWarpEntries = 0x8017E7F0; // absolute:True owner=mine_gorge shared=rooms
+gMineGorgeWarpEntries = 0x8017E7F0; // absolute:True owner=mine_gorge
 gMineGorgeViewCameras = 0x8017FA14; // absolute:True owner=mine_gorge
 gMineGorgeSpriteViews = 0x801827F8; // absolute:True owner=mine_gorge shared=rooms
 gMineGorgeSurfacePropertiesByClass = 0x80183644; // absolute:True owner=mine_gorge shared=rooms
@@ -64,7 +64,7 @@ gMineForkedTunnelModel01B48 = 0x801807B4; // absolute:True owner=mine_forked_tun
 gMineForkedTunnelRoomLighting = 0x80183634; // absolute:True owner=mine_forked_tunnel shared=rooms
 gMineForkedTunnelRoomCollisionResources = 0x8018363C; // absolute:True owner=mine_forked_tunnel shared=rooms
 gMineForkedTunnelRoomViewMaps = 0x8018364C; // absolute:True owner=mine_forked_tunnel shared=rooms
-gMineForkedTunnelRoomViewCounts = 0x80183650; // absolute:True owner=mine_forked_tunnel shared=rooms
+gMineForkedTunnelRoomViewCounts = 0x80183650; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelWarpEntries = 0x80183654; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelViewCameras = 0x80183D94; // absolute:True owner=mine_forked_tunnel
 gMineForkedTunnelSpriteViews = 0x80184D64; // absolute:True owner=mine_forked_tunnel

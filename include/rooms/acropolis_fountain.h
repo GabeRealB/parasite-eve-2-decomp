@@ -11,16 +11,24 @@
 
 #include "main/task_types.h"
 
-/// Room-directory and surface-class extents exported by the fountain overlay.
+/// Resource-directory extents exported by the fountain overlay.
 enum {
     ACROPOLIS_FOUNTAIN_ROOM_COUNT          = 2,
-    ACROPOLIS_FOUNTAIN_SURFACE_CLASS_COUNT = 8
+    ACROPOLIS_FOUNTAIN_SURFACE_CLASS_COUNT = 8,
+    ACROPOLIS_FOUNTAIN_WARP_COUNT          = 5,
+    ACROPOLIS_FOUNTAIN_SPRITE_VIEW_COUNT   = 22,
+    ACROPOLIS_FOUNTAIN_CAMERA_COUNT        = 21
 };
 
 extern AreaVariant D_acropolis_fountain_8017FC9C[11];
 
-// acropolis_fountain
-extern WorldCollisionRoomResources D_acropolis_fountain_8017E814[];
+/// Collision resources for fountain rooms 1 and 2, indexed by room - 1.
+///
+/// Both entries borrow the same mutable grid, twelve view boundaries and nine
+/// action triggers; neither supplies sight occluders. Setup binds and enables
+/// the triggers through each array's LAST record. Keep the fountain overlay
+/// loaded while the grid is active or any of its triggers remain linked.
+extern WorldCollisionRoomResources gAcropolisFountainRoomCollisionResources[ACROPOLIS_FOUNTAIN_ROOM_COUNT];
 
 /// Logical-view maps for the fountain's two room indices, selected at room - 1.
 ///
@@ -31,7 +39,12 @@ extern WorldCollisionRoomResources D_acropolis_fountain_8017E814[];
 /// loaded while borrowing them; mapped indices require corresponding resources.
 extern u8* gAcropolisFountainViewMaps[ACROPOLIS_FOUNTAIN_ROOM_COUNT];
 
-extern ViewCount D_acropolis_fountain_8017E854[];
+/// Signed logical-view search counts for rooms 1 and 2, indexed by room - 1.
+///
+/// Each reverse lookup searches 22 map bytes. These counts describe logical
+/// slots, independently of the map capacities and the 21-camera resource extent.
+/// Neither entry is a terminator; the fountain overlay owns both halfwords.
+extern ViewCount gAcropolisFountainViewCounts[ACROPOLIS_FOUNTAIN_ROOM_COUNT];
 
 /// Lighting descriptors for both fountain room indices, selected at room - 1.
 ///
@@ -40,11 +53,35 @@ extern ViewCount D_acropolis_fountain_8017E854[];
 /// to remain loaded while lighting binds or queries them.
 extern WorldCoordRoomLighting gAcropolisFountainRoomLightingTable[ACROPOLIS_FOUNTAIN_ROOM_COUNT];
 
-extern DirectionWarpEntry D_acropolis_fountain_8017E868[];
+/// Five fountain arrival/departure endpoints, indexed by warp ID 1..5 minus one.
+///
+/// Endpoints 1..3 face the patio, forked-road and hallway doors and select
+/// logical views 2, 6 and 3. Endpoints 4 and 5 repeat the latter placements with
+/// initial view 17. Player and companion placements agree; all endpoints have
+/// door sounds, no blocked sound and no departure flags. Only endpoints 1..3
+/// set map markers. There is no terminator; keep the overlay loaded while
+/// resolving or copying an endpoint.
+extern DirectionWarpEntry gAcropolisFountainWarpEntries[ACROPOLIS_FOUNTAIN_WARP_COUNT];
 
-extern SpriteView D_acropolis_fountain_8018375C[];
+/// Sprite resources for mapped indices 1..22, indexed by mapped view - 1.
+///
+/// Every batch list keeps decoded background strips; no view supplies clipping.
+/// Views 7 and 15 share sources and batches. Views 1, 2, 9, 10, 16, 18, 19, 21
+/// and 22 have no source sprites and retain the batch address in `sources.empty`.
+/// Other views select bounded source ranges ending with `SPRITE_BATCH_END`.
+/// The descriptors and their mutable arrays are borrowed from this overlay and
+/// must remain loaded during packet allocation and drawing.
+extern SpriteView gAcropolisFountainSpriteViews[ACROPOLIS_FOUNTAIN_SPRITE_VIEW_COUNT];
 
-extern ViewCamera D_acropolis_fountain_80183864[];
+/// Cameras for mapped indices 1..21, indexed by mapped camera - 1.
+///
+/// Rotations use 4096 per unit, translations are negated world origins in game
+/// units, and projection distances are pixels. Index 1 is the plan camera;
+/// indices 10..15 provide alternate records for indices 2..7. The table has no
+/// terminator and supplies no camera for mapped index 22 despite the view maps'
+/// retained slot. Camera callers must select 1..21 and keep the overlay loaded
+/// until a queued camera request has copied its record.
+extern ViewCamera gAcropolisFountainViewCameras[ACROPOLIS_FOUNTAIN_CAMERA_COUNT];
 
 /// Collision policies and footstep cues indexed by fountain surface class 0..7.
 ///
