@@ -93282,7 +93282,7 @@ Inputs: `base_2.i`
 ## Distinct-looking data symbols can be indices into one array (mineTunnelDrawViewFlaresTask, 2026-09-16)
 
 The seed for this room effect tick read the target's `%hi`/`%lo` pairs as four
-separate anchor arrays -- `D_mine_tunnel_8017E12C`, `_E134`, `_E13C`, `_E14C` --
+separate anchor arrays -- `_gMineTunnelFlareWorldPoints`, `_E134`, `_E13C`, `_E14C` --
 which the data asm appears to confirm, because splat emits a `dlabel` for each.
 Written that way the function stalled at 98.129% with exactly one difference,
 in view 5:
@@ -93321,9 +93321,9 @@ array gives exactly that second use: the base address is CSE'd once
 `(lo_sum (high FOO) FOO)` to FOO. This is necessary so we can add in an offset"
 -- folds the base register plus the index back into one constant address.
 
-Rewriting the switch against `D_mine_tunnel_8017E12C[k]` matched the whole
+Rewriting the switch against `_gMineTunnelFlareWorldPoints[k]` matched the whole
 function; the remaining object-diff lines are symbol *names* only
-(`%lo(D_mine_tunnel_8017E12C+0x10)` and `%lo(D_mine_tunnel_8017E13C)` assemble
+(`%lo(_gMineTunnelFlareWorldPoints+0x10)` and `%lo(D_mine_tunnel_8017E13C)` assemble
 to the same 16 bits), so the scratch score read 99.339% on a function whose
 bytes are identical. Read the instruction words, or finish with the unscoped
 build, before treating a residual symbol-name diff as a real mismatch.

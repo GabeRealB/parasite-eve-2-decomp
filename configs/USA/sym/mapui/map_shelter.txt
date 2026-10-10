@@ -32,14 +32,14 @@ D_mine_tunnel_entrance_8017E0E4 = 0x8017E0E4; // absolute:True owner=mine_tunnel
 D_mine_tunnel_entrance_8017EA4C = 0x8017EA4C; // absolute:True owner=mine_tunnel_entrance
 D_mine_tunnel_entrance_8017F3E8 = 0x8017F3E8; // absolute:True owner=mine_tunnel_entrance
 mineTunnelRoomTask = 0x8017D77C; // type:func absolute:True owner=mine_tunnel shared=rooms
-D_mine_tunnel_8017E154 = 0x8017E154; // absolute:True owner=mine_tunnel
+gMineTunnelRoomLighting = 0x8017E154; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E15C = 0x8017E15C; // absolute:True owner=mine_tunnel
-D_mine_tunnel_8017E16C = 0x8017E16C; // absolute:True owner=mine_tunnel
+gMineTunnelRoomViewMaps = 0x8017E16C; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E170 = 0x8017E170; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E174 = 0x8017E174; // absolute:True owner=mine_tunnel
-D_mine_tunnel_8017E890 = 0x8017E890; // absolute:True owner=mine_tunnel
-D_mine_tunnel_8017F9A4 = 0x8017F9A4; // absolute:True owner=mine_tunnel
-D_mine_tunnel_8018032C = 0x8018032C; // absolute:True owner=mine_tunnel shared=rooms
+gMineTunnelViewCameras = 0x8017E890; // absolute:True owner=mine_tunnel
+gMineTunnelSpriteViews = 0x8017F9A4; // absolute:True owner=mine_tunnel
+gMineTunnelSurfaceProperties = 0x8018032C; // absolute:True owner=mine_tunnel shared=rooms
 mineGorgeRoomTask = 0x8017D9A0; // type:func absolute:True owner=mine_gorge shared=rooms
 gMineGorgeRoomLighting = 0x8017E7A8; // absolute:True owner=mine_gorge
 D_mine_gorge_8017E7B8 = 0x8017E7B8; // absolute:True owner=mine_gorge shared=rooms
@@ -198,7 +198,7 @@ gShelterB1AccessTunnelRoomLights = 0x8017FA1C; // absolute:True owner=shelter_b1
 D_shelter_b1_access_tunnel_8017FA34 = 0x8017FA34; // absolute:True owner=shelter_b1_access_tunnel
 D_shelter_b1_access_tunnel_8017FBFC = 0x8017FBFC; // absolute:True owner=shelter_b1_access_tunnel
 D_shelter_b1_access_tunnel_8017FD2C = 0x8017FD2C; // absolute:True owner=shelter_b1_access_tunnel shared=rooms
-gShelterB1AccessTunnelSurfacePropertiesByClass = 0x8017FF24; // absolute:True owner=shelter_b1_access_tunnel shared=rooms
+gShelterB1AccessTunnelSurfacePropertiesByClass = 0x8017FF24; // absolute:True owner=shelter_b1_access_tunnel
 shelterB1UndergroundParkingRoomTask = 0x801838B4; // type:func absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_801877B4 = 0x801877B4; // absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_801877F4 = 0x801877F4; // absolute:True owner=shelter_b1_underground_parking shared=rooms

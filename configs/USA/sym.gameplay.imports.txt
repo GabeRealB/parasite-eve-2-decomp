@@ -1403,7 +1403,7 @@ D_acropolis_forked_road_801831C4 = 0x801831C4; // absolute:True owner=acropolis_
 
 D_acropolis_fountain_8017FC9C = 0x8017FC9C; // absolute:True owner=acropolis_fountain
 
-D_acropolis_hallway_8017EA3C = 0x8017EA3C; // absolute:True owner=acropolis_hallway shared=rooms
+D_acropolis_hallway_8017EA3C = 0x8017EA3C; // absolute:True owner=acropolis_hallway
 
 D_acropolis_helicopter_landing_pad_801861E8 = 0x801861E8; // absolute:True owner=acropolis_helicopter_landing_pad
 

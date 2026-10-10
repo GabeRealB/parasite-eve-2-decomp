@@ -27,27 +27,23 @@
 #include "main/display_types.h"
 #include "main/gfx.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-/// The tunnel's five light anchors, one `SVECTOR` each in one run; each view
-/// draws a subset of them.
-
-// Indexed views below share one contiguous table.
-extern WorldCollisionGrid         D_mine_tunnel_8017E86C[1];
+static WorldCollisionGrid         _gMineTunnelCollisionGrid;
 extern WorldCollisionOccluder     D_mine_tunnel_8018025C[3];
 extern WorldCollisionTrigger      D_mine_tunnel_8017FBD8[6];
 extern WorldCollisionTrigger      D_mine_tunnel_8017FDA0[4];
-extern WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6];
-extern WorldCoordRoomLights       D_mine_tunnel_8017FBC0[1];
+static WorldCoordRoomAmbientEntry _gMineTunnelAmbientByView[6];
+static WorldCoordRoomLights       _gMineTunnelRoomLights;
 
-extern SpriteBatch  D_mine_tunnel_8017E944[2];
-extern SpriteBatch  D_mine_tunnel_8017EA1C[4];
-extern SpriteSource D_mine_tunnel_8017E954[10];
-
-SVECTOR D_mine_tunnel_8017E12C[5] = {
+/// Five flare centres in signed world-coordinate units, selected by mapped view.
+///
+/// Indices 0..4 form one contiguous table; the overlay owns their storage.
+static SVECTOR _gMineTunnelFlareWorldPoints[5] = {
     { 11650, -1730, 3690, 0 },
     { 4690, -1700, 3570, 0 },
     { 15320, -1740, 300, 0 },
@@ -55,15 +51,15 @@ SVECTOR D_mine_tunnel_8017E12C[5] = {
     { 1170, -1820, 400, 0 },
 };
 
-WorldCoordRoomLighting D_mine_tunnel_8017E154[1] = {
-    { D_mine_tunnel_8017FBC0, D_mine_tunnel_8018022C },
+WorldCoordRoomLighting gMineTunnelRoomLighting[1] = {
+    { &_gMineTunnelRoomLights, _gMineTunnelAmbientByView },
 };
 
 WorldCollisionRoomResources D_mine_tunnel_8017E15C[1] = {
-    { D_mine_tunnel_8017E86C, D_mine_tunnel_8017FBD8, D_mine_tunnel_8017FDA0, D_mine_tunnel_8018025C },
+    { &_gMineTunnelCollisionGrid, D_mine_tunnel_8017FBD8, D_mine_tunnel_8017FDA0, D_mine_tunnel_8018025C },
 };
 
-u8* D_mine_tunnel_8017E16C[1] = {
+u8* gMineTunnelRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -74,120 +70,169 @@ DirectionWarpEntry D_mine_tunnel_8017E174[2] = {
     { { { .word = 1024 }, 500, 0, 1630 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 500, 0, 1630 }, { 0, 0, 0, 0 }, 0x54040004, 0x54040003, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gMineTunnelCollision012ACNormals[29] = {
+/// Dimensions of the tunnel collision index, in cells.
+enum {
+    MINE_TUNNEL_COLLISION_CELL_COUNT_X = 5,
+    MINE_TUNNEL_COLLISION_CELL_COUNT_Z = 2,
+};
+
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gMineTunnelCollisionGridNormals[29] = {
 #include "assets/mine_tunnel_collision_012AC_normals.inc"
 };
 
-static SVECTOR _gMineTunnelCollision012ACVerts[80] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gMineTunnelCollisionGridVerts[80] = {
 #include "assets/mine_tunnel_collision_012AC_verts.inc"
 };
 
-static WorldCollisionGridFace _gMineTunnelCollision012ACFaces[37] = {
+/// Indexed tunnel collision faces; surface class 1 is the floor, class 0 the rest.
+static WorldCollisionGridFace _gMineTunnelCollisionGridFaces[37] = {
 #include "assets/mine_tunnel_collision_012AC_faces.inc"
 };
 
-static s16 _gMineTunnelCollision012ACCells[158] = {
+/// Ten concatenated face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+///
+/// The serialized run retains zero words between some lists; cell pointers
+/// select their starts independently.
+static s16 _gMineTunnelCollisionGridCells[158] = {
 #include "assets/mine_tunnel_collision_012AC_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gMineTunnelCollision012ACCells[i])
-static s16* _gMineTunnelCollision012ACTable[10] = {
+// The generated table requires GRID_CELL to resolve a signed-element offset.
+#define GRID_CELL(i) (&_gMineTunnelCollisionGridCells[i])
+/// X-major starts of the grid's 5 by 2 cell lists, with Z as the inner index.
+static s16* _gMineTunnelCollisionGridTable[MINE_TUNNEL_COLLISION_CELL_COUNT_X * MINE_TUNNEL_COLLISION_CELL_COUNT_Z] = {
 #include "assets/mine_tunnel_collision_012AC_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_mine_tunnel_8017E86C[1] = {
-    { NULL, _gMineTunnelCollision012ACNormals, _gMineTunnelCollision012ACVerts, _gMineTunnelCollision012ACFaces, _gMineTunnelCollision012ACTable, 1000, 1000, 5, 2, 4000, 37 },
+/// The tunnel's room-space collision mesh and 4000-unit square-cell index.
+///
+/// Covers X [-1000, 19000) and Z [-1000, 7000); activation borrows the view
+/// coordinate. The descriptor and all pools stay writable while loaded.
+static WorldCollisionGrid _gMineTunnelCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gMineTunnelCollisionGridNormals,
+    .vertices    = _gMineTunnelCollisionGridVerts,
+    .faces       = _gMineTunnelCollisionGridFaces,
+    .cellFaceIds = _gMineTunnelCollisionGridTable,
+    .xBias       = 1000,
+    .zBias       = 1000,
+    .cellCountX  = MINE_TUNNEL_COLLISION_CELL_COUNT_X,
+    .cellCountZ  = MINE_TUNNEL_COLLISION_CELL_COUNT_Z,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gMineTunnelCollisionGridFaces),
 };
 
-ViewCamera D_mine_tunnel_8017E890[5] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -8000, 0x4330, -2000 } }, 289 },
+ViewCamera gMineTunnelViewCameras[5] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -8000, 0x4330, -2000 } }, 289 },
     { { { { 611, 0, -4050 }, { 102, 4094, 15 }, { 4048, -103, 611 } }, { -0x2E18, 900, -1000 } }, 246 },
     { { { { 1296, 0, 3885 }, { 1147, 3913, -382 }, { -3712, 1209, 1238 } }, { -0x3FAC, 1700, -500 } }, 246 },
     { { { { 1051, 0, -3958 }, { -1321, 3860, -351 }, { 3731, 1367, 991 } }, { -1921, 2345, -438 } }, 289 },
     { { { { 1074, 0, 3952 }, { 1078, 3940, -293 }, { -3802, 1117, 1033 } }, { -7838, 2262, -891 } }, 257 },
 };
 
-SpriteBatch D_mine_tunnel_8017E944[2] = {
+/// Texture encodings for the tunnel's opaque 8-bit view sprites.
+enum {
+    MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0 = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1 = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    MINE_TUNNEL_SPRITE_PALETTE        = getClut(0, 255),
+    MINE_TUNNEL_SPRITE_NEUTRAL_COLOR  = 128,
+};
+
+/// Empty view-1 sprite list; the zero first count keeps decoded background strips.
+///
+/// Its address also occupies the view's unused source slot; it is never read
+/// as SpriteSource elements.
+static SpriteBatch _gMineTunnelView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_tunnel_8017E954[10] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -144, -120, 577, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 104, 532, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, -120, 594, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -160, -48, 596, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -160, 24, 595, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 144, -120, 435, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 144, -40, 437, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, 144, 40, 439, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 72, 0, 973, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 72, 32, 973, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+/// Ten view-2 texture rectangles, positioned in pixels relative to the view centre.
+static SpriteSource _gMineTunnelView2SpriteSources[10] = {
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, -144, -120, 577, { .fields = { 120, 248 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, -160, 104, 532, { .fields = { 120, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 72 } }, -160, -120, 594, { .fields = { 96, 152 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 72 } }, -160, -48, 596, { .fields = { 96, 80 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 80 } }, -160, 24, 595, { .fields = { 112, 80 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 80 } }, 144, -120, 435, { .fields = { 112, 160 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 80 } }, 144, -40, 437, { .fields = { 96, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 80 } }, 144, 40, 439, { .fields = { 112, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 32 } }, 72, 0, 973, { .fields = { 80, 224 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 40 } }, 72, 32, 973, { .fields = { 56, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_tunnel_8017EA1C[4] = {
+/// View-2 source ranges [0,8) and [8,10), after the background-strip selector.
+///
+/// SPRITE_BATCH_END terminates the list; hidden and skipCachedPackets start clear.
+static SpriteBatch _gMineTunnelView2SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 1, 0 } },
     { 8, 2, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_tunnel_8017EA3C[51] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -112, -120, 577, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 72 } }, -160, -120, 580, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 32 } }, 96, -120, 693, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, 104, -88, 702, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 32 } }, 96, -56, 730, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 96, -24, 764, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 88, 16, 802, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 104, 56, 781, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -112, 16, 667, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -112, 64, 650, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -120, -48, 617, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 24 } }, -160, -48, 600, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -144, -24, 600, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -128, 16, 612, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 32 } }, -120, -120, 1406, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -120, -88, 1380, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -112, -72, 1425, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -112, -40, 1476, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -104, -8, 1487, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -80, -120, 1391, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -32, -120, 1432, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 0, -120, 1569, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 8, -96, 1553, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 32 } }, 8, -64, 1613, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 8, -32, 1670, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -120, 821, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 0, 1184, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 72, -16, 1130, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 80, -24, 1021, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, -120, 1090, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, -16, 966, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, -72, 1112, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, -120, 1009, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, -64, 1006, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, -8, 856, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 104, -120, 784, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -160, -80, 195, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, -120, 195, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, -48, 195, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -104, -48, 1137, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -88, -32, 1133, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -32, -40, 1271, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, -88, -48, 1281, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 8 } }, -32, -48, 1274, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -56, -40, 1201, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, -48, 1367, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, -48, -64, 2082, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -24, -64, 1977, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -88, -64, 2706, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -96, -56, 2886, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -72, -56, 2742, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
+/// Fifty-one view-3 texture rectangles with pixel positions and unscaled OT depths.
+static SpriteSource _gMineTunnelView3SpriteSources[51] = {
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, -112, -120, 577, { .fields = { 40, 88 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 48, 72 } }, -160, -120, 580, { .fields = { 80, 104 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 64, 32 } }, 96, -120, 693, { .fields = { 96, 208 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 48, 32 } }, 104, -88, 702, { .fields = { 96, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 56, 32 } }, 96, -56, 730, { .fields = { 96, 104 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 48, 40 } }, 96, -24, 764, { .fields = { 16, 136 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 48, 40 } }, 88, 16, 802, { .fields = { 32, 192 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, 104, 56, 781, { .fields = { 120, 32 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 48 } }, -112, 16, 667, { .fields = { 64, 144 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 32 } }, -112, 64, 650, { .fields = { 24, 104 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 64 } }, -120, -48, 617, { .fields = { 104, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 24 } }, -160, -48, 600, { .fields = { 80, 136 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 40 } }, -144, -24, 600, { .fields = { 48, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 32 } }, -128, 16, 612, { .fields = { 104, 64 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 32 } }, -120, -120, 1406, { .fields = { 112, 40 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, -120, -88, 1380, { .fields = { 104, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, -112, -72, 1425, { .fields = { 8, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, -112, -40, 1476, { .fields = { 24, 40 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 8 } }, -104, -8, 1487, { .fields = { 104, 96 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 48, 8 } }, -80, -120, 1391, { .fields = { 88, 200 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 16 } }, -32, -120, 1432, { .fields = { 88, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 24 } }, 0, -120, 1569, { .fields = { 72, 232 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, 8, -96, 1553, { .fields = { 120, 136 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, 8, -64, 1613, { .fields = { 112, 168 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 24 } }, 8, -32, 1670, { .fields = { 48, 232 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, 80, -120, 821, { .fields = { 32, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 16 } }, 64, 0, 1184, { .fields = { 40, 72 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 48 } }, 72, -16, 1130, { .fields = { 80, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 64 } }, 80, -24, 1021, { .fields = { 104, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 48 } }, 88, -120, 1090, { .fields = { 72, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 56 } }, 88, -16, 966, { .fields = { 96, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 56 } }, 88, -72, 1112, { .fields = { 88, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 56 } }, 96, -120, 1009, { .fields = { 96, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 56 } }, 96, -64, 1006, { .fields = { 80, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 56 } }, 96, -8, 856, { .fields = { 88, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 104 } }, 104, -120, 784, { .fields = { 120, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 32 } }, -160, -80, 195, { .fields = { 0, 72 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 40 } }, -160, -120, 195, { .fields = { 16, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 8 } }, -152, -48, 195, { .fields = { 32, 232 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 64 } }, -104, -48, 1137, { .fields = { 112, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 48 } }, -88, -32, 1133, { .fields = { 48, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 48 } }, -32, -40, 1271, { .fields = { 64, 96 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 16 } }, -88, -48, 1281, { .fields = { 120, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 8 } }, -32, -48, 1274, { .fields = { 112, 96 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 48 } }, -56, -40, 1201, { .fields = { 80, 56 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -56, -48, 1367, { .fields = { 48, 40 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 24 } }, -48, -64, 2082, { .fields = { 104, 72 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 40 } }, -24, -64, 1977, { .fields = { 40, 96 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, -88, -64, 2706, { .fields = { 80, 224 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, -96, -56, 2886, { .fields = { 24, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, -72, -56, 2742, { .fields = { 40, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_tunnel_8017EE38[9] = {
+/// Seven view-3 source ranges covering [0,51), after the background-strip selector.
+///
+/// SPRITE_BATCH_END terminates the list; hidden and skipCachedPackets start clear.
+static SpriteBatch _gMineTunnelView3SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 3, 0 } },
     { 14, 11, 0, 0, { 4, 0 } },
@@ -199,73 +244,77 @@ SpriteBatch D_mine_tunnel_8017EE38[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_tunnel_8017EE80[63] = {
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -64, 2988, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, -64, 3024, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -88, 2910, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 16, -88, 2961, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 8, -112, 2701, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, -112, 2676, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 32, -112, 2742, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, -120, 1750, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -32, -120, 1988, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -32, -96, 2022, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -32, -72, 2088, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 0, -120, 1889, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 24, -120, 1839, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 48, -120, 1793, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 72, -120, 1750, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -96, 1783, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -72, 1800, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, -48, 1875, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 72, 32, 1065, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 88, 24, 1050, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, -80, 1384, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 32, -56, 2339, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 40, -56, 2220, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, -56, 2226, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 32, -64, 2350, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, -64, 2357, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -40, -32, 1472, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -40, 0, 1482, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -40, -48, 1739, { .fields = { 120, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -40, -40, 1645, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 48, 808, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 112, 755, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -72, 56, 794, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -56, 64, 679, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -56, 96, 737, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, 72, 683, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, 96, 747, { .fields = { 24, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -16, 80, 646, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 0, 88, 581, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, 96, 625, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 32, 104, 588, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 96, 614, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 72, 80, 667, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, 56, 679, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -56, 40, 794, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -40, 32, 792, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, 16, 880, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -8, 24, 842, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 16, 32, 792, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 40, 40, 751, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, 48, 709, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 80, 56, 675, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, 80, 717, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, -24, 40, 732, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -40, 56, 751, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 0, 72, 669, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -16, 72, 697, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 16, 48, 692, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 32, 80, 614, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 16, 80, 640, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 40, 56, 675, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 56, 64, 660, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 56, 80, 609, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+/// Sixty-three view-4 texture rectangles with pixel positions and unscaled OT depths.
+static SpriteSource _gMineTunnelView4SpriteSources[63] = {
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, 8, -64, 2988, { .fields = { 48, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, 16, -64, 3024, { .fields = { 48, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, 8, -88, 2910, { .fields = { 40, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, 16, -88, 2961, { .fields = { 40, 128 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, 8, -112, 2701, { .fields = { 40, 200 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 16 } }, 24, -112, 2676, { .fields = { 32, 56 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 8 } }, 32, -112, 2742, { .fields = { 0, 144 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, 104, -120, 1750, { .fields = { 104, 248 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 24 } }, -32, -120, 1988, { .fields = { 32, 152 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 24 } }, -32, -96, 2022, { .fields = { 48, 224 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, -32, -72, 2088, { .fields = { 88, 112 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, 0, -120, 1889, { .fields = { 72, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, 24, -120, 1839, { .fields = { 8, 112 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, 48, -120, 1793, { .fields = { 8, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 24 } }, 72, -120, 1750, { .fields = { 56, 56 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 24 } }, 80, -96, 1783, { .fields = { 48, 80 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 24 } }, 80, -72, 1800, { .fields = { 64, 112 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 40 } }, 80, -48, 1875, { .fields = { 112, 136 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 40 } }, 72, 32, 1065, { .fields = { 112, 216 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 48 } }, 88, 24, 1050, { .fields = { 104, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, 88, -80, 1384, { .fields = { 56, 104 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 32 } }, 32, -56, 2339, { .fields = { 96, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, 40, -56, 2220, { .fields = { 80, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, 64, -56, 2226, { .fields = { 72, 208 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, 32, -64, 2350, { .fields = { 64, 136 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 8 } }, 56, -64, 2357, { .fields = { 0, 160 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 48, 32 } }, -40, -32, 1472, { .fields = { 64, 144 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 16 } }, -40, 0, 1482, { .fields = { 0, 24 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 8 } }, -40, -48, 1739, { .fields = { 120, 16 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_0, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 48, 8 } }, -40, -40, 1645, { .fields = { 112, 152 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, -64, 48, 808, { .fields = { 96, 208 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, -64, 112, 755, { .fields = { 96, 248 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 48 } }, -72, 56, 794, { .fields = { 112, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 32 } }, -56, 64, 679, { .fields = { 80, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, -56, 96, 737, { .fields = { 32, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 24 } }, -40, 72, 683, { .fields = { 56, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 24 } }, -40, 96, 747, { .fields = { 24, 72 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 40 } }, -16, 80, 646, { .fields = { 104, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 32 } }, 0, 88, 581, { .fields = { 96, 216 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, 16, 96, 625, { .fields = { 40, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, 32, 104, 588, { .fields = { 16, 192 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, 56, 96, 614, { .fields = { 40, 104 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 40 } }, 72, 80, 667, { .fields = { 112, 96 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 16 } }, 96, 56, 679, { .fields = { 32, 112 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, -56, 40, 794, { .fields = { 48, 128 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, -40, 32, 792, { .fields = { 56, 200 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, -24, 16, 880, { .fields = { 56, 24 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, -8, 24, 842, { .fields = { 8, 56 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, 16, 32, 792, { .fields = { 16, 128 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 40, 40, 751, { .fields = { 24, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, 56, 48, 709, { .fields = { 24, 224 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, 80, 56, 675, { .fields = { 40, 24 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 40 } }, 88, 80, 717, { .fields = { 120, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 32 } }, -24, 40, 732, { .fields = { 72, 80 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, -40, 56, 751, { .fields = { 24, 96 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 0, 72, 669, { .fields = { 24, 40 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 8 } }, -16, 72, 697, { .fields = { 56, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, 16, 48, 692, { .fields = { 88, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 24 } }, 32, 80, 614, { .fields = { 56, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 16, 80, 640, { .fields = { 24, 208 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, 40, 56, 675, { .fields = { 72, 32 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, 56, 64, 660, { .fields = { 24, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 56, 80, 609, { .fields = { 88, 32 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_tunnel_8017F36C[9] = {
+/// Seven view-4 source ranges covering [0,63), after the background-strip selector.
+///
+/// SPRITE_BATCH_END terminates the list; hidden and skipCachedPackets start clear.
+static SpriteBatch _gMineTunnelView4SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 3, 0 } },
     { 7, 11, 0, 0, { 4, 0 } },
@@ -277,84 +326,88 @@ SpriteBatch D_mine_tunnel_8017F36C[9] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mine_tunnel_8017F3B4[74] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -120, 1212, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, 8, 1336, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -128, -40, 1274, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -128, -80, 1237, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -136, -120, 1197, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -104, -112, 1232, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -56, -112, 1289, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -8, -112, 1346, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 32, -112, 1408, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, -72, 1457, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, -40, 1510, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, -8, 1566, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -120, -24, 1318, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 32, 1179, { .fields = { 40, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 56, 863, { .fields = { 40, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 128, 72, 934, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 88, 934, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 56, 16, 1325, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 64, 40, 1210, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 40, 1130, { .fields = { 40, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, 16, 1338, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 72, -16, 1314, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, -16, 1319, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 0, 1241, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 88, -16, 1219, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 88, 16, 1256, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 152, 16, 846, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 136, 24, 859, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 40, 897, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 120, 56, 929, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 112, 72, 964, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 128, 80, 900, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 136, 56, 903, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 40, 860, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -120, 40, 852, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -128, 32, 906, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 16, 1028, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -112, 24, 938, { .fields = { 16, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -80, 24, 1013, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -56, 24, 921, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -32, 24, 980, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 32, 877, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, 40, 778, { .fields = { 88, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 40, 789, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 32, 866, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -88, 32, 866, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 80, 886, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -96, 80, 899, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -80, 80, 899, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -88, 96, 853, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -104, 96, 865, { .fields = { 24, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 104, 843, { .fields = { 24, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -88, 64, 992, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 64, 953, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 48, 856, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 72, 877, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -8, 32, 885, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 64, 872, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 0, 32, 975, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 56, 963, { .fields = { 56, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -24, 56, 783, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -24, 88, 810, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 104, 837, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -64, 96, 837, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -64, 56, 990, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 80, 899, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -48, 80, 899, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -32, 32, 867, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, 40, 769, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, 40, 843, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -88, 40, 801, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 40, 819, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -88, 48, 1018, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, 48, 946, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+/// Seventy-four view-5 texture rectangles with pixel positions and unscaled OT depths.
+static SpriteSource _gMineTunnelView5SpriteSources[74] = {
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, -104, -120, 1212, { .fields = { 40, 216 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, -120, 8, 1336, { .fields = { 80, 144 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 16 } }, -128, -40, 1274, { .fields = { 24, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 40 } }, -128, -80, 1237, { .fields = { 104, 80 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 40 } }, -136, -120, 1197, { .fields = { 96, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 48, 24 } }, -104, -112, 1232, { .fields = { 40, 120 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 48, 24 } }, -56, -112, 1289, { .fields = { 32, 24 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 24 } }, -8, -112, 1346, { .fields = { 48, 96 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 40 } }, 32, -112, 1408, { .fields = { 96, 40 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, 32, -72, 1457, { .fields = { 80, 208 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, 32, -40, 1510, { .fields = { 80, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, 32, -8, 1566, { .fields = { 104, 160 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 32 } }, -120, -24, 1318, { .fields = { 104, 192 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, 72, 32, 1179, { .fields = { 40, 208 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, 152, 56, 863, { .fields = { 40, 232 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, 128, 72, 934, { .fields = { 40, 224 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, 120, 88, 934, { .fields = { 104, 152 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, 56, 16, 1325, { .fields = { 64, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 16 } }, 64, 40, 1210, { .fields = { 48, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 72, 40, 1130, { .fields = { 40, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 16 } }, 72, 16, 1338, { .fields = { 48, 144 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 32 } }, 72, -16, 1314, { .fields = { 112, 120 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 16 } }, 80, -16, 1319, { .fields = { 56, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 40 } }, 80, 0, 1241, { .fields = { 120, 120 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 32 } }, 88, -16, 1219, { .fields = { 104, 120 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 32 } }, 88, 16, 1256, { .fields = { 104, 224 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, 152, 16, 846, { .fields = { 88, 72 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 136, 24, 859, { .fields = { 48, 160 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 128, 40, 897, { .fields = { 48, 192 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 120, 56, 929, { .fields = { 48, 224 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 112, 72, 964, { .fields = { 48, 208 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 128, 80, 900, { .fields = { 32, 96 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, 136, 56, 903, { .fields = { 80, 24 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, 144, 40, 860, { .fields = { 32, 144 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 8 } }, -120, 40, 852, { .fields = { 112, 152 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 32 } }, -128, 32, 906, { .fields = { 96, 112 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -80, 16, 1028, { .fields = { 24, 168 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 8 } }, -112, 24, 938, { .fields = { 16, 200 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -80, 24, 1013, { .fields = { 24, 192 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -56, 24, 921, { .fields = { 16, 184 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -32, 24, 980, { .fields = { 16, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 8 } }, -120, 32, 877, { .fields = { 8, 208 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, -48, 40, 778, { .fields = { 88, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, -64, 40, 789, { .fields = { 64, 176 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 32, 8 } }, -64, 32, 866, { .fields = { 8, 136 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -88, 32, 866, { .fields = { 16, 56 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, -112, 80, 886, { .fields = { 64, 224 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, -96, 80, 899, { .fields = { 64, 192 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, -80, 80, 899, { .fields = { 64, 208 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -88, 96, 853, { .fields = { 16, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 8 } }, -104, 96, 865, { .fields = { 24, 128 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 8 } }, -56, 104, 843, { .fields = { 24, 120 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, -88, 64, 992, { .fields = { 64, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, -112, 64, 953, { .fields = { 48, 72 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, -120, 48, 856, { .fields = { 80, 72 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, -120, 72, 877, { .fields = { 88, 120 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 32 } }, -8, 32, 885, { .fields = { 96, 80 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, -8, 64, 872, { .fields = { 72, 72 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 24 } }, 0, 32, 975, { .fields = { 88, 96 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 16 } }, 0, 56, 963, { .fields = { 56, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 32 } }, -24, 56, 783, { .fields = { 112, 224 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 24 } }, -24, 88, 810, { .fields = { 80, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 8 } }, -40, 104, 837, { .fields = { 48, 64 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 8 } }, -64, 96, 837, { .fields = { 8, 160 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 40, 24 } }, -64, 56, 990, { .fields = { 56, 0 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, -64, 80, 899, { .fields = { 64, 160 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, -48, 80, 899, { .fields = { 56, 144 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -32, 32, 867, { .fields = { 48, 88 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 16, 16 } }, -32, 40, 769, { .fields = { 32, 64 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 8, 16 } }, -16, 40, 843, { .fields = { 40, 48 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -88, 40, 801, { .fields = { 24, 112 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 8 } }, -112, 40, 819, { .fields = { 32, 16 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, -88, 48, 1018, { .fields = { 24, 80 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
+    { MINE_TUNNEL_SPRITE_TEXTURE_PAGE_1, MINE_TUNNEL_SPRITE_PALETTE, { .fields = { 24, 16 } }, -112, 48, 946, { .fields = { 40, 240 } }, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, MINE_TUNNEL_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_mine_tunnel_8017F97C[5] = {
+/// View-5 source ranges [0,13), [13,34) and [34,74), retaining background strips.
+///
+/// SPRITE_BATCH_END terminates the list; hidden and skipCachedPackets start clear.
+static SpriteBatch _gMineTunnelView5SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 21, 0, 0, { 2, 0 } },
@@ -362,24 +415,34 @@ SpriteBatch D_mine_tunnel_8017F97C[5] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mine_tunnel_8017F9A4[5] = {
-    { { .empty = D_mine_tunnel_8017E944 }, D_mine_tunnel_8017E944, NULL },
-    { { .elements = D_mine_tunnel_8017E954 }, D_mine_tunnel_8017EA1C, NULL },
-    { { .elements = D_mine_tunnel_8017EA3C }, D_mine_tunnel_8017EE38, NULL },
-    { { .elements = D_mine_tunnel_8017EE80 }, D_mine_tunnel_8017F36C, NULL },
-    { { .elements = D_mine_tunnel_8017F3B4 }, D_mine_tunnel_8017F97C, NULL },
+SpriteView gMineTunnelSpriteViews[5] = {
+    { { .empty = _gMineTunnelView1SpriteBatches }, _gMineTunnelView1SpriteBatches, NULL },
+    { { .elements = _gMineTunnelView2SpriteSources }, _gMineTunnelView2SpriteBatches, NULL },
+    { { .elements = _gMineTunnelView3SpriteSources }, _gMineTunnelView3SpriteBatches, NULL },
+    { { .elements = _gMineTunnelView4SpriteSources }, _gMineTunnelView4SpriteBatches, NULL },
+    { { .elements = _gMineTunnelView5SpriteSources }, _gMineTunnelView5SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_mine_tunnel_8017F9E0[5] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2DDC, -2000, 3420 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 600, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8040, -2000, 400 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2539 }, { 0, 0 } }, 1000, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4720, -2000, 3590 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3358, 2293 }, { 0, 0 } }, 1000, 3600 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1600, -2000, 1040 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2621 }, { 0, 0 } }, 1000, 3400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x398A, -2000, 60 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 3440, 2457 }, { 0, 0 } }, 600, 3000 },
+/// Five authored point lights admitted in every view, with Q12 RGB intensities.
+///
+/// Positions and inner/outer falloff radii use world units. Activation sets
+/// each transform's borrowed parent; shading updates its attenuation.
+static WorldCoordPointLight _gMineTunnelPointLights[5] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2DDC, -2000, 3420 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 600, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8040, -2000, 400 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2539 }, { 0, 0 } }, 1000, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4720, -2000, 3590 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3358, 2293 }, { 0, 0 } }, 1000, 3600 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1600, -2000, 1040 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2621 }, { 0, 0 } }, 1000, 3400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x398A, -2000, 60 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 3440, 2457 }, { 0, 0 } }, 600, 3000 },
 };
 
-WorldCoordRoomLights D_mine_tunnel_8017FBC0[1] = {
-    { 0, NULL, ARRAY_SIZE(D_mine_tunnel_8017F9E0), D_mine_tunnel_8017F9E0, 0, NULL },
+/// The tunnel's authored light collection: five point lights, no directional or cone lights.
+static WorldCoordRoomLights _gMineTunnelRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gMineTunnelPointLights),
+    .pointLights           = _gMineTunnelPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_mine_tunnel_8017FBD8[6] = {
@@ -398,31 +461,44 @@ WorldCollisionTrigger D_mine_tunnel_8017FDA0[4] = {
     { NULL, NULL, NULL, { 4255, -64, 3336, 0 }, { { -2527, 0, 88, 0 }, { -127, 0, -936, 0 }, { -32, 0, 792, 0 }, { 2689, 0, 56, 0 } }, { 0, 4111, 0, 0 }, { 0, 0, -4096, 0 }, 2684, WORLD_COLLISION_TRIGGER_ACTION_CAP, 2, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_mine_tunnel_8017FED0[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
+/// Resource keys equal their decimal actor file numbers in these variant lists.
+enum {
+    MINE_TUNNEL_RESOURCE_SCAVENGER    = 16,
+    MINE_TUNNEL_RESOURCE_ACTOR_102500 = 25,
+    MINE_TUNNEL_RESOURCE_BAT          = 37,
+    MINE_TUNNEL_RESOURCE_MIND_SUCKLER = 15,
+};
+
+/// Scavenger task and file recipe for placement variant 1, ending at AREA_PLACEMENT_END.
+static AreaResource _gMineTunnelVariant1Resources[2] = {
+    { MINE_TUNNEL_RESOURCE_SCAVENGER, MINE_TUNNEL_RESOURCE_SCAVENGER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_tunnel_8017FEE8[2] = {
-    { 16, 16, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
+/// Scavenger task and file recipe for placement variant 2, ending at AREA_PLACEMENT_END.
+static AreaResource _gMineTunnelVariant2Resources[2] = {
+    { MINE_TUNNEL_RESOURCE_SCAVENGER, MINE_TUNNEL_RESOURCE_SCAVENGER, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor101600ScavengerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_tunnel_8017FF00[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203700BatTaskDesc },
+/// Actor-102500 and bat recipes for placement variant 3, ending at AREA_PLACEMENT_END.
+static AreaResource _gMineTunnelVariant3Resources[3] = {
+    { MINE_TUNNEL_RESOURCE_ACTOR_102500, MINE_TUNNEL_RESOURCE_ACTOR_102500, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { MINE_TUNNEL_RESOURCE_BAT, MINE_TUNNEL_RESOURCE_BAT, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_tunnel_8017FF24[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 15, 15, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
+/// Actor-102500 and Mind Suckler recipes for variant 4, ending at AREA_PLACEMENT_END.
+static AreaResource _gMineTunnelVariant4Resources[3] = {
+    { MINE_TUNNEL_RESOURCE_ACTOR_102500, MINE_TUNNEL_RESOURCE_ACTOR_102500, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { MINE_TUNNEL_RESOURCE_MIND_SUCKLER, MINE_TUNNEL_RESOURCE_MIND_SUCKLER, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor01500MindSucklerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_mine_tunnel_8017FF48[3] = {
-    { 25, 25, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
-    { 37, 37, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203700BatTaskDesc },
+/// Actor-102500 and bat recipes for placement variant 11, ending at AREA_PLACEMENT_END.
+static AreaResource _gMineTunnelVariant11Resources[3] = {
+    { MINE_TUNNEL_RESOURCE_ACTOR_102500, MINE_TUNNEL_RESOURCE_ACTOR_102500, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor102500Tasks },
+    { MINE_TUNNEL_RESOURCE_BAT, MINE_TUNNEL_RESOURCE_BAT, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, &gActor203700BatTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
@@ -481,21 +557,24 @@ AreaPlacement D_mine_tunnel_8018015C[7] = {
 
 AreaVariant D_mine_tunnel_801801CC[12] = {
     { NULL, NULL },
-    { D_mine_tunnel_8017FF6C, D_mine_tunnel_8017FED0 },
-    { D_mine_tunnel_8017FFCC, D_mine_tunnel_8017FEE8 },
-    { D_mine_tunnel_8018002C, D_mine_tunnel_8017FF00 },
-    { D_mine_tunnel_801800DC, D_mine_tunnel_8017FF24 },
+    { D_mine_tunnel_8017FF6C, _gMineTunnelVariant1Resources },
+    { D_mine_tunnel_8017FFCC, _gMineTunnelVariant2Resources },
+    { D_mine_tunnel_8018002C, _gMineTunnelVariant3Resources },
+    { D_mine_tunnel_801800DC, _gMineTunnelVariant4Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_mine_tunnel_8018015C, D_mine_tunnel_8017FF48 },
+    { D_mine_tunnel_8018015C, _gMineTunnelVariant11Resources },
 };
 
-WorldCoordRoomAmbientEntry D_mine_tunnel_8018022C[6] = {
-    { .viewCount = ARRAY_SIZE(D_mine_tunnel_8018022C) - 1 },
+/// Header and five logical-view ambient minima, at 16 units per 8-bit colour level.
+///
+/// Entry zero holds the view count; entries 1..5 hold RGB and stored weighted luma.
+static WorldCoordRoomAmbientEntry _gMineTunnelAmbientByView[6] = {
+    { .viewCount = ARRAY_SIZE(_gMineTunnelAmbientByView) - 1 },
     { .color = { 16, 16, 16, 16 } },
     { .color = { 500, 450, 400, 462 } },
     { .color = { 580, 530, 500, 545 } },
@@ -509,29 +588,48 @@ WorldCollisionOccluder D_mine_tunnel_8018025C[3] = {
     { NULL, NULL, { 0x2C80, 0, 640, 0 }, { { -392, -1024, 946, 0 }, { 391, -1024, -946, 0 }, { -392, 1024, 946, 0 }, { 391, 1024, -946, 0 } }, { -3784, 0, -1568, 0 }, 1448, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
-WorldCollisionFootstepSounds D_mine_tunnel_80180310 = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Type-1 footstep requests resolve against the currently loaded sound bank.
+enum {
+    MINE_TUNNEL_FLOOR_WALK_CUE_2 = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x49,
+    MINE_TUNNEL_FLOOR_RUN_CUE_2  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x4B,
 };
 
-WorldCollisionSurfaceProperties D_mine_tunnel_8018031C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Floor cue-2 bases in the loaded sound bank; cue 1 adds one, companions add 100.
+///
+/// Scripted jumps share the walking pair; running selects the next pair.
+static WorldCollisionFootstepSounds _gMineTunnelFloorFootstepSounds = {
+    .walk         = MINE_TUNNEL_FLOOR_WALK_CUE_2,
+    .run          = MINE_TUNNEL_FLOOR_RUN_CUE_2,
+    .scriptedJump = MINE_TUNNEL_FLOOR_WALK_CUE_2,
 };
 
-WorldCollisionSurfaceProperties D_mine_tunnel_80180324[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_mine_tunnel_80180310 },
+/// Blocking surfaces with pushback and weapon impacts, without floor footstep cues.
+static WorldCollisionSurfaceProperties _gMineTunnelSolidSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties* D_mine_tunnel_8018032C[8] = {
-    D_mine_tunnel_8018031C,
-    D_mine_tunnel_80180324,
-    D_mine_tunnel_8018031C,
-    D_mine_tunnel_8018031C,
-    D_mine_tunnel_8018031C,
-    D_mine_tunnel_8018031C,
-    D_mine_tunnel_8018031C,
-    D_mine_tunnel_8018031C,
+/// Blocking floor with pushback, weapon impacts and the tunnel's footstep cues.
+static WorldCollisionSurfaceProperties _gMineTunnelFloorSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gMineTunnelFloorFootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gMineTunnelSurfaceProperties[8] = {
+    &_gMineTunnelSolidSurfaceProperties,
+    &_gMineTunnelFloorSurfaceProperties,
+    &_gMineTunnelSolidSurfaceProperties,
+    &_gMineTunnelSolidSurfaceProperties,
+    &_gMineTunnelSolidSurfaceProperties,
+    &_gMineTunnelSolidSurfaceProperties,
+    &_gMineTunnelSolidSurfaceProperties,
+    &_gMineTunnelSolidSurfaceProperties,
 };
 
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -550,22 +648,22 @@ void mineTunnelDrawViewFlaresTask(Task* unusedTask)
 
     switch (mappedViewIndex) {
         case 2:
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[2], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 3:
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[0], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[1], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[3], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[4], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[0], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[1], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[2], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[3], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[4], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 4:
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[2], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[3], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[2], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[3], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         case 5:
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[1], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
-            _glowDrawFlare(&D_mine_tunnel_8017E12C[4], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[1], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
+            _glowDrawFlare(&_gMineTunnelFlareWorldPoints[4], MINE_TUNNEL_FLARE_TEXTURE_INDEX, MINE_TUNNEL_FLARE_RADIUS_SCALE);
             break;
         // The empty sixth case preserves the original five-entry jump table.
         case 6:

@@ -13,22 +13,43 @@
 
 extern AreaVariant D_mine_tunnel_801801CC[12];
 
-// mine_tunnel
-extern WorldCoordRoomLighting D_mine_tunnel_8017E154[];
+/// Light collection and per-view ambient minima for the tunnel's single room.
+///
+/// Indexed by room - 1. The shelter map borrows this array and its writable
+/// light records only while the tunnel overlay is loaded.
+extern WorldCoordRoomLighting gMineTunnelRoomLighting[1];
 
 extern WorldCollisionRoomResources D_mine_tunnel_8017E15C[];
 
-extern u8* D_mine_tunnel_8017E16C[];
+/// Logical-view mapping for the tunnel's single room, indexed by room - 1.
+///
+/// Borrows gameplay's `gViewIdentityMap`; logical views 1..5 map unchanged to
+/// the five camera and sprite slots. The room directory lives with this overlay.
+extern u8* gMineTunnelRoomViewMaps[1];
 
 extern ViewCount D_mine_tunnel_8017E170[];
 
 extern DirectionWarpEntry D_mine_tunnel_8017E174[];
 
-extern ViewCamera D_mine_tunnel_8017E890[];
+/// Five tunnel cameras, indexed by the mapped 1-based view minus one.
+///
+/// Rotation uses 4096 per unit, translation is the negated world-space origin,
+/// and projection distances are pixels. Records must remain loaded until applied.
+extern ViewCamera gMineTunnelViewCameras[5];
 
-extern SpriteView D_mine_tunnel_8017F9A4[];
+/// Sprite sources and batches for mapped tunnel views 1..5, indexed at view - 1.
+///
+/// View 1 has no source sprites; the other views have 10, 51, 63 and 74.
+/// Every view retains decoded background strips and has no clipping-area list.
+/// The descriptors and their mutable lists are borrowed while the overlay is loaded.
+extern SpriteView gMineTunnelSpriteViews[5];
 
-extern WorldCollisionSurfaceProperties* D_mine_tunnel_8018032C[];
+/// Tunnel collision policies for surface classes 0..7, with footstep cues on class 1.
+///
+/// All classes block probes, allow weapon impacts and apply pushback. Class 1
+/// is the floor; the other slots share a record without footstep cues.
+/// The shelter map borrows the table and records while this overlay is loaded.
+extern WorldCollisionSurfaceProperties* gMineTunnelSurfaceProperties[8];
 
 /// Draws the mine tunnel's flickering light flares for the current mapped view.
 ///
