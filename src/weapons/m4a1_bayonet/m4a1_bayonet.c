@@ -332,136 +332,212 @@ static AnimationSet _gM4a1BayonetPositiveTurnAnimation = {
     .poseBanks         = { NULL, _gM4a1BayonetPositiveTurnAnimationBank1, NULL, NULL, _gM4a1BayonetPositiveTurnAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation0346CBank1[3] = {
+/// Pose-bank indices selected by the player clips' keyframe encodings.
+enum {
+    M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK = 1,
+    M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK      = 4,
+};
+
+/// Item-use translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetItemUseAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0346C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation0346CBank4[69] = {
+/// Item-use packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetItemUseAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0346C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation0346CRecords[99] = {
+/// Item-use keyframe durations in normal-rate frames, pose-word offsets and stop controls.
+static const AnimationRecord _gM4a1BayonetItemUseAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0346C_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation0346CIndices[20] = {
+/// Nineteen item-use track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetItemUseAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_0346C_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation0346C = {
-    _gM4a1BayonetAnimation0346CRecords,
-    _gM4a1BayonetAnimation0346CIndices,
-    { NULL, _gM4a1BayonetAnimation0346CBank1, NULL, NULL, _gM4a1BayonetAnimation0346CBank4, NULL, NULL, NULL },
+/// Scripted item-use gesture in M4A1 Bayonet player bank slot 40.
+///
+/// All nineteen tracks stop at their last pose. Playback uses child tracks 1..18;
+/// the read-only records, indices and poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetItemUseAnimation = {
+    .records           = _gM4a1BayonetItemUseAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetItemUseAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetItemUseAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetItemUseAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation03BC8Bank1[14] = {
+/// Stair-ascent translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetStairAscentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_03BC8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation03BC8Bank4[156] = {
+/// Stair-ascent packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetStairAscentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_03BC8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation03BC8Records[253] = {
+/// Stair-ascent keyframes, footstep cues and loop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1BayonetStairAscentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_03BC8_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation03BC8Indices[20] = {
+/// Nineteen stair-ascent track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetStairAscentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_03BC8_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation03BC8 = {
-    _gM4a1BayonetAnimation03BC8Records,
-    _gM4a1BayonetAnimation03BC8Indices,
-    { NULL, _gM4a1BayonetAnimation03BC8Bank1, NULL, NULL, _gM4a1BayonetAnimation03BC8Bank4, NULL, NULL, NULL },
+/// Repeating scripted stair ascent in M4A1 Bayonet player bank slot 36.
+///
+/// Nineteen tracks loop; track 1's footstep cues gate the scripted strides.
+/// The read-only records, indices and poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetStairAscentAnimation = {
+    .records           = _gM4a1BayonetStairAscentAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetStairAscentAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetStairAscentAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetStairAscentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation04350Bank1[16] = {
+/// Stair-descent translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetStairDescentAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04350_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation04350Bank4[167] = {
+/// Stair-descent packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetStairDescentAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04350_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation04350Records[247] = {
+/// Stair-descent keyframes, footstep cues and loop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1BayonetStairDescentAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04350_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation04350Indices[20] = {
+/// Nineteen stair-descent track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetStairDescentAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04350_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation04350 = {
-    _gM4a1BayonetAnimation04350Records,
-    _gM4a1BayonetAnimation04350Indices,
-    { NULL, _gM4a1BayonetAnimation04350Bank1, NULL, NULL, _gM4a1BayonetAnimation04350Bank4, NULL, NULL, NULL },
+/// Repeating scripted stair descent in M4A1 Bayonet player bank slot 37.
+///
+/// Nineteen tracks loop; track 1's footstep cues gate the scripted strides.
+/// The read-only records, indices and poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetStairDescentAnimation = {
+    .records           = _gM4a1BayonetStairDescentAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetStairDescentAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetStairDescentAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetStairDescentAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation04624Bank1[6] = {
+/// Odd-flight ascent-finish translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetStairAscentFinishOddAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04624_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation04624Bank4[52] = {
+/// Odd-flight ascent-finish packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetStairAscentFinishOddAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04624_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation04624Records[91] = {
+/// Odd-flight ascent-finish keyframes, footstep cue and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1BayonetStairAscentFinishOddAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04624_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation04624Indices[20] = {
+/// Nineteen odd-flight ascent-finish track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetStairAscentFinishOddAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04624_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation04624 = {
-    _gM4a1BayonetAnimation04624Records,
-    _gM4a1BayonetAnimation04624Indices,
-    { NULL, _gM4a1BayonetAnimation04624Bank1, NULL, NULL, _gM4a1BayonetAnimation04624Bank4, NULL, NULL, NULL },
+/// Final ascent stride for an odd-length stair flight in M4A1 Bayonet bank slot 39.
+///
+/// The initial stair count selects this stopping clip, with a three-frame blend.
+/// Track 1 carries the final footstep cue; all nineteen tracks stop at their last pose.
+/// The read-only records, indices and poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetStairAscentFinishOddAnimation = {
+    .records           = _gM4a1BayonetStairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetStairAscentFinishOddAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetStairAscentFinishOddAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetStairAscentFinishOddAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation049B4Bank1[7] = {
+/// Even-flight ascent-finish translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetStairAscentFinishEvenAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_049B4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation049B4Bank4[73] = {
+/// Even-flight ascent-finish packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetStairAscentFinishEvenAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_049B4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation049B4Records[114] = {
+/// Even-flight ascent-finish keyframes, footstep cue and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1BayonetStairAscentFinishEvenAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_049B4_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation049B4Indices[20] = {
+/// Nineteen even-flight ascent-finish track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetStairAscentFinishEvenAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_049B4_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation049B4 = {
-    _gM4a1BayonetAnimation049B4Records,
-    _gM4a1BayonetAnimation049B4Indices,
-    { NULL, _gM4a1BayonetAnimation049B4Bank1, NULL, NULL, _gM4a1BayonetAnimation049B4Bank4, NULL, NULL, NULL },
+/// Final ascent stride for an even-length stair flight in M4A1 Bayonet bank slot 38.
+///
+/// The initial stair count selects this stopping clip, with a three-frame blend.
+/// Track 1 carries the final footstep cue; all nineteen tracks stop at their last pose.
+/// The read-only records, indices and poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetStairAscentFinishEvenAnimation = {
+    .records           = _gM4a1BayonetStairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetStairAscentFinishEvenAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetStairAscentFinishEvenAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetStairAscentFinishEvenAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation04E3CBank1[9] = {
+/// Family-0 PE release translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetParasiteEnergyReleaseFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04E3C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation04E3CBank4[104] = {
+/// Family-0 PE release packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetParasiteEnergyReleaseFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04E3C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation04E3CRecords[139] = {
+/// Family-0 PE release keyframe durations in normal-rate frames, pose-word offsets and stop controls.
+static const AnimationRecord _gM4a1BayonetParasiteEnergyReleaseFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04E3C_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation04E3CIndices[20] = {
+/// Nineteen family-0 PE release track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetParasiteEnergyReleaseFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_04E3C_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation04E3C = {
-    _gM4a1BayonetAnimation04E3CRecords,
-    _gM4a1BayonetAnimation04E3CIndices,
-    { NULL, _gM4a1BayonetAnimation04E3CBank1, NULL, NULL, _gM4a1BayonetAnimation04E3CBank4, NULL, NULL, NULL },
+/// Parasite Energy release for clip family 0 in M4A1 Bayonet player bank slot 26.
+///
+/// Plays as the attachment countdown begins, before the charge and cast clips.
+/// Family 0 also serves item attachments whose tens digit is 1. All nineteen
+/// tracks stop at their last pose; the read-only records, indices and poses
+/// must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetParasiteEnergyReleaseFamily0Animation = {
+    .records           = _gM4a1BayonetParasiteEnergyReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1BayonetParasiteEnergyReleaseFamily0AnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetParasiteEnergyReleaseFamily0AnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetParasiteEnergyReleaseFamily0AnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1BayonetAnimation05038Bank1[3] = {
@@ -1085,7 +1161,7 @@ AnimationBank D_m4a1_bayonet_8012D25C = { { {
     &_gM4a1BayonetAnimation07B38,
     &_gM4a1BayonetAnimation08DCC,
     &_gM4a1BayonetAnimation086B0,
-    &_gM4a1BayonetAnimation04E3C,
+    &_gM4a1BayonetParasiteEnergyReleaseFamily0Animation,
     &_gM4a1BayonetAnimation05038,
     &_gM4a1BayonetAnimation05310,
     &_gM4a1BayonetAnimation055B4,
@@ -1095,11 +1171,11 @@ AnimationBank D_m4a1_bayonet_8012D25C = { { {
     &_gM4a1BayonetAnimation09424,
     &_gM4a1BayonetAnimation0924C,
     &_gM4a1BayonetAnimation09424,
-    &_gM4a1BayonetAnimation03BC8,
-    &_gM4a1BayonetAnimation04350,
-    &_gM4a1BayonetAnimation049B4,
-    &_gM4a1BayonetAnimation04624,
-    &_gM4a1BayonetAnimation0346C,
+    &_gM4a1BayonetStairAscentAnimation,
+    &_gM4a1BayonetStairDescentAnimation,
+    &_gM4a1BayonetStairAscentFinishEvenAnimation,
+    &_gM4a1BayonetStairAscentFinishOddAnimation,
+    &_gM4a1BayonetItemUseAnimation,
     &_gM4a1BayonetIdleAnimation,
     &_gM4a1BayonetAnimation09988,
     &_gM4a1BayonetAnimation09B7C,
