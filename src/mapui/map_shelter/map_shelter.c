@@ -696,7 +696,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AE5C[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE64[1] = {
-    { &D_shelter_r36_8017F6DC, NULL },
+    { &gShelterR36RoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AE6C[1] = {
@@ -980,7 +980,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B244[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B254[1] = {
-    { &D_shelter_r36_8017EAB0, D_shelter_r36_8017F6F4, NULL, NULL },
+    { &gShelterR36FloorCollisionGrid, D_shelter_r36_8017F6F4, NULL, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B264[1] = {
@@ -1164,7 +1164,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB2MainCorridorViewMaps,
     gShelterB2SepticTankViewMaps,
     gShelterB2PodAccessTunnelRoomViewMaps,
-    D_shelter_r36_8017E9BC,
+    gShelterR36RoomViewMaps,
     D_shelter_r37_8017D6F8,
     gShelter1fHeliportS4RoomViewMaps,
     gShelterB3DumpingHoleViewMaps,
@@ -1276,7 +1276,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB2MainCorridorSurfacePropertiesByClass,
     gShelterB2SepticTankSurfacePropertiesByClass,
     gShelterB2PodAccessTunnelSurfacePropertiesByClass,
-    D_shelter_r36_8017FAE4,
+    gShelterR36SurfacePropertiesByClass,
     D_shelter_r37_8017DED8,
     gShelter1fHeliportS4SurfacePropertiesByClass,
     gShelterB3DumpingHoleSurfacePropertiesByClass,
