@@ -34,6 +34,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -43,97 +44,125 @@
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/glow_draw.h"
 
-extern SVECTOR D_dryfield_night_r08_8018056C[];
+/// Authored beam endpoint pairs and the two rows of glow positions in room space.
+typedef struct {
+    SVECTOR beamEndpoints[5][2]; // Pairs 0..3 are green beams; pair 4 is red, in integer world units
+    SVECTOR flareRows[2][7];     // Rows 0/1 have negative/positive X; entries 3..6 are drawn flare centres
+} _DryfieldNightR08GlowPlacements;
+STATIC_ASSERT_SIZEOF(_DryfieldNightR08GlowPlacements, 0xC0);
 
-extern WorldCollisionGrid   D_dryfield_night_r08_80181474[1];
-extern WorldCoordRoomLights D_dryfield_night_r08_8018189C[1];
+static WorldCollisionGrid   _gDryfieldNightR08CollisionGrid;
+static WorldCoordRoomLights _gDryfieldNightR08RoomLights;
 
-SVECTOR D_dryfield_night_r08_8018056C[8] = {
-    { -667, -1910, -0x4A3D, 0 },
-    { -667, -1910, -0x45ED, 0 },
-    { -667, -1910, -0x4309, 0 },
-    { -667, -1910, -0x3EB4, 0 },
-    { 668, -1910, -0x4A3D, 0 },
-    { 668, -1910, -0x45ED, 0 },
-    { 668, -1910, -0x4309, 0 },
-    { 668, -1910, -0x3EB4, 0 },
+/// Four white-beam endpoint pairs used by views 2 and 5, in integer world units.
+static SVECTOR _gDryfieldNightR08WhiteBeamEndpoints[4][2] = {
+    { { -667, -1910, -0x4A3D, 0 }, { -667, -1910, -0x45ED, 0 } },
+    { { -667, -1910, -0x4309, 0 }, { -667, -1910, -0x3EB4, 0 } },
+    { { 668, -1910, -0x4A3D, 0 }, { 668, -1910, -0x45ED, 0 } },
+    { { 668, -1910, -0x4309, 0 }, { 668, -1910, -0x3EB4, 0 } },
 };
 
-// Indexed views below share one contiguous table.
-SVECTOR D_dryfield_night_r08_801805AC[24] = {
-    { -3246, -2265, -10632, 0 },
-    { -3246, -2265, -9370, 0 },
-    { -3246, -2265, -2620, 0 },
-    { -3246, -2265, -1381, 0 },
-    { 3260, -2265, -10632, 0 },
-    { 3260, -2265, -9370, 0 },
-    { 3260, -2265, -2620, 0 },
-    { 3260, -2265, -1381, 0 },
-    { -365, -2226, -180, 0 },
-    { 365, -2226, -180, 0 },
-    { -1293, -4768, -13478, 0 },
-    { -1293, -4768, -11488, 0 },
-    { -1293, -4768, -9483, 0 },
-    { -1293, -4768, -7483, 0 },
-    { -1293, -4768, -5483, 0 },
-    { -1293, -4768, -3483, 0 },
-    { -1293, -4768, -1483, 0 },
-    { 1293, -4768, -13478, 0 },
-    { 1293, -4768, -11488, 0 },
-    { 1293, -4768, -9483, 0 },
-    { 1293, -4768, -7483, 0 },
-    { 1293, -4768, -5483, 0 },
-    { 1293, -4768, -3483, 0 },
-    { 1293, -4768, -1483, 0 },
+/// Fixed green/red beams and flare-row positions selected by views 3, 4 and 6..9.
+///
+/// Each row retains three leading positions that no current drawer uses; their
+/// original role is unproven. All positions use integer world units.
+static _DryfieldNightR08GlowPlacements _gDryfieldNightR08GlowPlacements = {
+    {
+        { { -3246, -2265, -10632, 0 }, { -3246, -2265, -9370, 0 } },
+        { { -3246, -2265, -2620, 0 }, { -3246, -2265, -1381, 0 } },
+        { { 3260, -2265, -10632, 0 }, { 3260, -2265, -9370, 0 } },
+        { { 3260, -2265, -2620, 0 }, { 3260, -2265, -1381, 0 } },
+        { { -365, -2226, -180, 0 }, { 365, -2226, -180, 0 } },
+    },
+    {
+        {
+            { -1293, -4768, -13478, 0 },
+            { -1293, -4768, -11488, 0 },
+            { -1293, -4768, -9483, 0 },
+            { -1293, -4768, -7483, 0 },
+            { -1293, -4768, -5483, 0 },
+            { -1293, -4768, -3483, 0 },
+            { -1293, -4768, -1483, 0 },
+        },
+        {
+            { 1293, -4768, -13478, 0 },
+            { 1293, -4768, -11488, 0 },
+            { 1293, -4768, -9483, 0 },
+            { 1293, -4768, -7483, 0 },
+            { 1293, -4768, -5483, 0 },
+            { 1293, -4768, -3483, 0 },
+            { 1293, -4768, -1483, 0 },
+        },
+    },
 };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCoordRoomLighting D_dryfield_night_r08_8018067C[1] = {
-    { D_dryfield_night_r08_8018189C, NULL },
+WorldCoordRoomLighting gDryfieldNightR08RoomLighting[1] = {
+    { &_gDryfieldNightR08RoomLights, NULL },
 };
 
-WorldCollisionRoomResources D_dryfield_night_r08_80180684[1] = {
-    { D_dryfield_night_r08_80181474, NULL, NULL, NULL },
+WorldCollisionRoomResources gDryfieldNightR08RoomCollisionResources[1] = {
+    { &_gDryfieldNightR08CollisionGrid, NULL, NULL, NULL },
 };
 
-u8* D_dryfield_night_r08_80180694[1] = {
+u8* gDryfieldNightR08ViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_dryfield_night_r08_80180698[1] = { 9 };
+ViewCount gDryfieldNightR08ViewCounts[1] = { ARRAY_SIZE(gDryfieldNightR08ViewCameras) };
 
 DirectionWarpEntry D_dryfield_night_r08_8018069C[1] = {
     { { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0, 0, -0x4650 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 1, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldNightR08Collision03EB4Normals[34] = {
+/// Grid-local face normals, with 4096 representing unit length.
+static SVECTOR _gDryfieldNightR08CollisionGridNormals[34] = {
 #include "assets/dryfield_night_r08_collision_03EB4_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightR08Collision03EB4Verts[172] = {
+/// Grid-local vertices in signed integer world units.
+static SVECTOR _gDryfieldNightR08CollisionGridVerts[172] = {
 #include "assets/dryfield_night_r08_collision_03EB4_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightR08Collision03EB4Faces[82] = {
+/// Indexed collision faces using surface classes 0, 1 and 2.
+static WorldCollisionGridFace _gDryfieldNightR08CollisionGridFaces[82] = {
 #include "assets/dryfield_night_r08_collision_03EB4_faces.inc"
 };
 
-static s16 _gDryfieldNightR08Collision03EB4Cells[392] = {
+/// Signed face-index lists ending in -1; retained inter-list halfwords are unused.
+static s16 _gDryfieldNightR08CollisionGridCells[392] = {
 #include "assets/dryfield_night_r08_collision_03EB4_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightR08Collision03EB4Cells[i])
-static s16* _gDryfieldNightR08Collision03EB4Table[18] = {
+/// Asset-initializer binding: a halfword index selects a cell list in this grid.
+#define GRID_CELL(i) (&_gDryfieldNightR08CollisionGridCells[i])
+/// X-major pointers to the 3 by 6 grid's face-index lists.
+static s16* _gDryfieldNightR08CollisionGridTable[18] = {
 #include "assets/dryfield_night_r08_collision_03EB4_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_r08_80181474[1] = {
-    { NULL, _gDryfieldNightR08Collision03EB4Normals, _gDryfieldNightR08Collision03EB4Verts, _gDryfieldNightR08Collision03EB4Faces, _gDryfieldNightR08Collision03EB4Table, 5398, 0x4D03, 3, 6, 4000, 82 },
+/// Room 8's collision mesh and 3 by 6 XZ index of 4000-unit square cells.
+///
+/// The origin is (-5398, -19715) in room XZ; activation supplies the view
+/// coordinate. The mesh and cell lists remain writable while the room is loaded.
+static WorldCollisionGrid _gDryfieldNightR08CollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightR08CollisionGridNormals,
+    .vertices    = _gDryfieldNightR08CollisionGridVerts,
+    .faces       = _gDryfieldNightR08CollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightR08CollisionGridTable,
+    .xBias       = 5398,
+    .zBias       = 19715,
+    .cellCountX  = 3,
+    .cellCountZ  = 6,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightR08CollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_r08_80181498[9] = {
+ViewCamera gDryfieldNightR08ViewCameras[9] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5EE9, 8000 } }, 230 },
     { { { { -4086, 0, 279 }, { 19, 4085, 285 }, { -278, 286, -4076 } }, { -92, 1285, 0x2769 } }, 380 },
     { { { { 4017, 0, -798 }, { -146, 4026, -738 }, { 784, 752, 3949 } }, { 853, 1783, 0x391E } }, 148 },
@@ -145,84 +174,113 @@ ViewCamera D_dryfield_night_r08_80181498[9] = {
     { { { { 3903, 0, -1241 }, { -46, 4093, -147 }, { 1240, 154, 3900 } }, { 530, 1231, 0x2C30 } }, 329 },
 };
 
-SpriteBatch D_dryfield_night_r08_801815DC[2] = {
+/// View 1's empty sprite list, retaining decoded background strips and its end record.
+static SpriteBatch _gDryfieldNightR08View1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_r08_801815EC[2] = {
+/// View 2's empty sprite list, retaining decoded background strips and its end record.
+static SpriteBatch _gDryfieldNightR08View2SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_r08_801815FC[2] = {
+/// View 3's empty sprite list, retaining decoded background strips and its end record.
+static SpriteBatch _gDryfieldNightR08View3SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_r08_8018160C[2] = {
+/// View 4's empty sprite list, retaining decoded background strips and its end record.
+static SpriteBatch _gDryfieldNightR08View4SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_r08_8018161C[2] = {
+/// View 5's empty sprite list, retaining decoded background strips and its end record.
+static SpriteBatch _gDryfieldNightR08View5SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_r08_8018162C[9] = {
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, -96, 500, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -160, -40, 500, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -160, 0, 500, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, -136, 48, 500, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, -80, 48, 500, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 32 } }, -24, 48, 500, { .fields = { 56, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, 48, 450, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 48, 56, 412, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 72, 56, 375, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+/// GPU texture and neutral RGB modulation for view 6's opaque 8-bit sprite overlays.
+enum {
+    DRYFIELD_NIGHT_R08_SPRITE_TPAGE       = getTPage(1, 0, 960, 0),
+    DRYFIELD_NIGHT_R08_SPRITE_CLUT        = getClut(0, 255),
+    DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB = 128
 };
 
-SpriteBatch D_dryfield_night_r08_801816E0[3] = {
+/// Nine view-6 overlay rectangles in screen pixels, with authored OT sorting depths.
+///
+/// Sources stay writable for sprite setup; their batch covers every element.
+static SpriteSource _gDryfieldNightR08View6SpriteSources[9] = {
+    { DRYFIELD_NIGHT_R08_SPRITE_TPAGE, DRYFIELD_NIGHT_R08_SPRITE_CLUT, { .fields = { 16, 56 } }, -160, -96, 500, { .fields = { 112, 80 } }, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_R08_SPRITE_TPAGE, DRYFIELD_NIGHT_R08_SPRITE_CLUT, { .fields = { 16, 40 } }, -160, -40, 500, { .fields = { 112, 216 } }, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_R08_SPRITE_TPAGE, DRYFIELD_NIGHT_R08_SPRITE_CLUT, { .fields = { 24, 80 } }, -160, 0, 500, { .fields = { 104, 0 } }, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_R08_SPRITE_TPAGE, DRYFIELD_NIGHT_R08_SPRITE_CLUT, { .fields = { 56, 32 } }, -136, 48, 500, { .fields = { 56, 112 } }, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_R08_SPRITE_TPAGE, DRYFIELD_NIGHT_R08_SPRITE_CLUT, { .fields = { 56, 32 } }, -80, 48, 500, { .fields = { 56, 144 } }, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_R08_SPRITE_TPAGE, DRYFIELD_NIGHT_R08_SPRITE_CLUT, { .fields = { 56, 32 } }, -24, 48, 500, { .fields = { 56, 216 } }, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_R08_SPRITE_TPAGE, DRYFIELD_NIGHT_R08_SPRITE_CLUT, { .fields = { 16, 40 } }, 32, 48, 450, { .fields = { 112, 136 } }, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_R08_SPRITE_TPAGE, DRYFIELD_NIGHT_R08_SPRITE_CLUT, { .fields = { 24, 32 } }, 48, 56, 412, { .fields = { 88, 80 } }, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, 0 },
+    { DRYFIELD_NIGHT_R08_SPRITE_TPAGE, DRYFIELD_NIGHT_R08_SPRITE_CLUT, { .fields = { 40, 40 } }, 72, 56, 375, { .fields = { 88, 176 } }, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, DRYFIELD_NIGHT_R08_SPRITE_NEUTRAL_RGB, 0 },
+};
+
+/// View 6's background-strip selector, complete nine-sprite range and end record.
+static SpriteBatch _gDryfieldNightR08View6SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gDryfieldNightR08View6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_r08_801816F8[2] = {
+/// View 7's empty sprite list, retaining decoded background strips and its end record.
+static SpriteBatch _gDryfieldNightR08View7SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_r08_80181708[2] = {
+/// View 8's empty sprite list, retaining decoded background strips and its end record.
+static SpriteBatch _gDryfieldNightR08View8SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_r08_80181718[2] = {
+/// View 9's empty sprite list, retaining decoded background strips and its end record.
+static SpriteBatch _gDryfieldNightR08View9SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_dryfield_night_r08_80181728[9] = {
-    { { .empty = D_dryfield_night_r08_801815DC }, D_dryfield_night_r08_801815DC, NULL },
-    { { .empty = D_dryfield_night_r08_801815EC }, D_dryfield_night_r08_801815EC, NULL },
-    { { .empty = D_dryfield_night_r08_801815FC }, D_dryfield_night_r08_801815FC, NULL },
-    { { .empty = D_dryfield_night_r08_8018160C }, D_dryfield_night_r08_8018160C, NULL },
-    { { .empty = D_dryfield_night_r08_8018161C }, D_dryfield_night_r08_8018161C, NULL },
-    { { .elements = D_dryfield_night_r08_8018162C }, D_dryfield_night_r08_801816E0, NULL },
-    { { .empty = D_dryfield_night_r08_801816F8 }, D_dryfield_night_r08_801816F8, NULL },
-    { { .empty = D_dryfield_night_r08_80181708 }, D_dryfield_night_r08_80181708, NULL },
-    { { .empty = D_dryfield_night_r08_80181718 }, D_dryfield_night_r08_80181718, NULL },
+SpriteView gDryfieldNightR08SpriteViews[9] = {
+    { { .empty = _gDryfieldNightR08View1SpriteBatches }, _gDryfieldNightR08View1SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightR08View2SpriteBatches }, _gDryfieldNightR08View2SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightR08View3SpriteBatches }, _gDryfieldNightR08View3SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightR08View4SpriteBatches }, _gDryfieldNightR08View4SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightR08View5SpriteBatches }, _gDryfieldNightR08View5SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightR08View6SpriteSources }, _gDryfieldNightR08View6SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightR08View7SpriteBatches }, _gDryfieldNightR08View7SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightR08View8SpriteBatches }, _gDryfieldNightR08View8SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightR08View9SpriteBatches }, _gDryfieldNightR08View9SpriteBatches, NULL },
 };
 
-WorldCoordLight D_dryfield_night_r08_80181794[3] = {
+/// Three all-view directional lights for model shading, with Q12 RGB intensities.
+///
+/// Their translation vectors supply directions in room coordinates; room setup
+/// binds the transforms to the view, and lighting queries overwrite attenuation.
+static WorldCoordLight _gDryfieldNightR08DirectionalLights[3] = {
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -2582, 402, 6341 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 5324, 5324, 5324 }, { 0, 0 } },
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CC5, -2046, -6920 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 8192, 8192, 8192 }, { 0, 0 } },
     { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2899, 1476, -7757 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 6144, 6144, 6144 }, { 0, 0 } },
 };
 
-WorldCoordRoomLights D_dryfield_night_r08_8018189C[1] = {
-    { ARRAY_SIZE(D_dryfield_night_r08_80181794), D_dryfield_night_r08_80181794, 0, NULL, 0, NULL },
+/// Room 8's three directional lights; it has no authored point or cone lights.
+static WorldCoordRoomLights _gDryfieldNightR08RoomLights = {
+    ARRAY_SIZE(_gDryfieldNightR08DirectionalLights),
+    _gDryfieldNightR08DirectionalLights,
+    0,
+    NULL,
+    0,
+    NULL,
 };
 
 AreaResource D_dryfield_night_r08_801818B4[3] = {
@@ -245,37 +303,64 @@ AreaVariant D_dryfield_night_r08_801818D8[11] = {
     { NULL, NULL },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_r08_80181930 = {
-    0x10000045,
-    0x10000047,
-    0x10000045,
+/// Type-1 cue-2 bases; cue 1 adds one and companion playback adds 100.
+enum {
+    DRYFIELD_NIGHT_R08_FOOTSTEP_WALK_SCRIPT = SOUND_SCRIPT_REQUEST_TYPE_1 | 69,
+    DRYFIELD_NIGHT_R08_FOOTSTEP_RUN_SCRIPT  = SOUND_SCRIPT_REQUEST_TYPE_1 | 71
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_r08_8018193C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface-class-6 footstep requests; scripted jumps share the walking cue pair.
+static WorldCollisionFootstepSounds _gDryfieldNightR08FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_R08_FOOTSTEP_WALK_SCRIPT,
+    .run          = DRYFIELD_NIGHT_R08_FOOTSTEP_RUN_SCRIPT,
+    .scriptedJump = DRYFIELD_NIGHT_R08_FOOTSTEP_WALK_SCRIPT,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_r08_80181944[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Blocking, weapon-impact-enabled policy for classes 0..3 and 7, with no footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightR08BlockingSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_r08_8018194C[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Class 4's separate blocking policy, with weapon impacts and no footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightR08Class4BlockingSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_r08_80181954[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_r08_80181930 },
+/// Class 5 passes probes and disables weapon impacts, while retaining contact pushback.
+static WorldCollisionSurfaceProperties _gDryfieldNightR08ProbePassSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_PASS_PROBES,
+    WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    NULL,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_r08_8018195C[8] = {
-    D_dryfield_night_r08_8018193C,
-    D_dryfield_night_r08_8018193C,
-    D_dryfield_night_r08_8018193C,
-    D_dryfield_night_r08_8018193C,
-    D_dryfield_night_r08_80181944,
-    D_dryfield_night_r08_8018194C,
-    D_dryfield_night_r08_80181954,
-    D_dryfield_night_r08_8018193C,
+/// Class 6 blocks probes, permits weapon impacts and supplies paired footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightR08BlockingFootstepSurface = {
+    0,
+    WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    &_gDryfieldNightR08FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightR08SurfacePropertiesByClass[8] = {
+    &_gDryfieldNightR08BlockingSurface,
+    &_gDryfieldNightR08BlockingSurface,
+    &_gDryfieldNightR08BlockingSurface,
+    &_gDryfieldNightR08BlockingSurface,
+    &_gDryfieldNightR08Class4BlockingSurface,
+    &_gDryfieldNightR08ProbePassSurface,
+    &_gDryfieldNightR08BlockingFootstepSurface,
+    &_gDryfieldNightR08BlockingSurface,
 };
 
 static void _glowDrawBeam(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
@@ -319,13 +404,13 @@ static inline void _dryfieldNightR08DrawFlareRow(const SVECTOR worldPoints[4])
 static inline void _dryfieldNightR08DrawMainFlares(void)
 {
     enum {
-        DRYFIELD_NIGHT_R08_MAIN_FLARE_NEGATIVE_X_START = 13,
-        DRYFIELD_NIGHT_R08_MAIN_FLARE_POSITIVE_X_START = 20
+        DRYFIELD_NIGHT_R08_MAIN_FLARE_NEGATIVE_X_START = 3,
+        DRYFIELD_NIGHT_R08_MAIN_FLARE_POSITIVE_X_START = 3
     };
 
     // Submit the negative-X row before the positive-X row to retain packet order.
-    _dryfieldNightR08DrawFlareRow(&D_dryfield_night_r08_801805AC[DRYFIELD_NIGHT_R08_MAIN_FLARE_NEGATIVE_X_START]);
-    _dryfieldNightR08DrawFlareRow(&D_dryfield_night_r08_801805AC[DRYFIELD_NIGHT_R08_MAIN_FLARE_POSITIVE_X_START]);
+    _dryfieldNightR08DrawFlareRow(&_gDryfieldNightR08GlowPlacements.flareRows[0][DRYFIELD_NIGHT_R08_MAIN_FLARE_NEGATIVE_X_START]);
+    _dryfieldNightR08DrawFlareRow(&_gDryfieldNightR08GlowPlacements.flareRows[1][DRYFIELD_NIGHT_R08_MAIN_FLARE_POSITIVE_X_START]);
 }
 
 void dryfieldNightR08DrawGlowsTask(Task* task)
@@ -349,48 +434,48 @@ void dryfieldNightR08DrawGlowsTask(Task* task)
     // Each beam borrows a consecutive endpoint pair; flare points are single entries.
     switch (gGameSession->location.loc.view) {
         case 3:
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[1], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[3], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
             _dryfieldNightR08DrawMainFlares();
             break;
         case 2:
         case 5:
-            _glowDrawBeam(&D_dryfield_night_r08_8018056C[0], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_WHITE);
-            _glowDrawBeam(&D_dryfield_night_r08_8018056C[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_WHITE);
-            _glowDrawBeam(&D_dryfield_night_r08_8018056C[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_WHITE);
-            _glowDrawBeam(&D_dryfield_night_r08_8018056C[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_WHITE);
+            _glowDrawBeam(_gDryfieldNightR08WhiteBeamEndpoints[0], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_WHITE);
+            _glowDrawBeam(_gDryfieldNightR08WhiteBeamEndpoints[1], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_WHITE);
+            _glowDrawBeam(_gDryfieldNightR08WhiteBeamEndpoints[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_WHITE);
+            _glowDrawBeam(_gDryfieldNightR08WhiteBeamEndpoints[3], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_WHITE);
             break;
         case 4:
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[16], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[22], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[23], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[1], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[3], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            glowDrawFlareClipped(&_gDryfieldNightR08GlowPlacements.flareRows[0][6], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&_gDryfieldNightR08GlowPlacements.flareRows[1][5], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&_gDryfieldNightR08GlowPlacements.flareRows[1][6], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
             break;
         case 6:
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[0], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[0], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[1], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[3], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
             _dryfieldNightR08DrawMainFlares();
             break;
         case 7:
-            _glowDrawBeam(D_dryfield_night_r08_801805AC, DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[0], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_GREEN);
             break;
         case 8:
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[2], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[3], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
             _dryfieldNightR08DrawMainFlares();
             break;
         case 9:
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[6], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
-            _glowDrawBeam(&D_dryfield_night_r08_801805AC[8], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[16], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
-            glowDrawFlareClipped(&D_dryfield_night_r08_801805AC[23], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[3], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, 0, DRYFIELD_NIGHT_R08_BEAM_GREEN);
+            _glowDrawBeam(_gDryfieldNightR08GlowPlacements.beamEndpoints[4], DRYFIELD_NIGHT_R08_BEAM_RADIUS_SCALE, GLOW_HALF_TURN, DRYFIELD_NIGHT_R08_BEAM_RED);
+            glowDrawFlareClipped(&_gDryfieldNightR08GlowPlacements.flareRows[0][6], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
+            glowDrawFlareClipped(&_gDryfieldNightR08GlowPlacements.flareRows[1][6], DRYFIELD_NIGHT_R08_FLARE_TEXTURE_COLUMN, DRYFIELD_NIGHT_R08_FLARE_RADIUS_SCALE);
             break;
     }
 }

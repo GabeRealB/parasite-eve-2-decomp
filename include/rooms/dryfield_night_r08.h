@@ -13,22 +13,52 @@
 
 extern AreaVariant D_dryfield_night_r08_801818D8[11];
 
-// dryfield_night_r08
-extern WorldCoordRoomLighting D_dryfield_night_r08_8018067C[];
+/// Room 8's lighting descriptor, selected by room - 1 (room 1 only).
+///
+/// Borrows three all-view directional lights and uses the default ambient minima.
+/// The room overlay and mutable lights must stay loaded while lighting is queried.
+extern WorldCoordRoomLighting gDryfieldNightR08RoomLighting[1];
 
-extern WorldCollisionRoomResources D_dryfield_night_r08_80180684[];
+/// Room 8's collision resources, selected by room - 1 (room 1 only).
+///
+/// Supplies the room mesh without view-boundary triggers, action triggers or
+/// sight occluders. All borrowed storage remains live while this overlay is loaded.
+extern WorldCollisionRoomResources gDryfieldNightR08RoomCollisionResources[1];
 
-extern u8* D_dryfield_night_r08_80180694[];
+/// Room 8's logical-view maps, selected by room - 1 (room 1 only).
+///
+/// Borrows gameplay's identity map: logical views 1..9 select matching camera,
+/// image and sprite indices. Gameplay and this room overlay must remain loaded.
+extern u8* gDryfieldNightR08ViewMaps[1];
 
-extern ViewCount D_dryfield_night_r08_80180698[];
+/// Room 8's reverse-lookup limit of nine logical views, selected by room - 1.
+///
+/// The only room slot is room 1. This signed element count limits map searches;
+/// it does not describe the shared identity map's full capacity.
+extern ViewCount gDryfieldNightR08ViewCounts[1];
 
 extern DirectionWarpEntry D_dryfield_night_r08_8018069C[];
 
-extern ViewCamera D_dryfield_night_r08_80181498[];
+/// Room 8's nine cameras, selected by the mapped 1-based view index minus one.
+///
+/// Matrices rotate world coordinates with 4096 representing unity and store
+/// negated origins in world units; projection distances are pixels. Records
+/// must remain loaded until a queued camera application has consumed them.
+extern ViewCamera gDryfieldNightR08ViewCameras[9];
 
-extern SpriteView D_dryfield_night_r08_80181728[];
+/// Room 8's nine sprite descriptors, selected by mapped view index minus one.
+///
+/// Every view retains decoded background strips; view 6 adds nine sprites.
+/// No view supplies draw-area clips. Descriptors and mutable sources/batches
+/// borrow the loaded room overlay's lifetime.
+extern SpriteView gDryfieldNightR08SpriteViews[9];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_r08_8018195C[];
+/// Room 8's collision and footstep policies, indexed by surface class 0..7.
+///
+/// Classes 0..4 and 7 block probes and allow weapon impacts; class 5 passes
+/// probes and disables those impacts; class 6 blocks and supplies footstep cues.
+/// Every class applies contact pushback. Entries borrow this overlay's storage.
+extern WorldCollisionSurfaceProperties* gDryfieldNightR08SurfacePropertiesByClass[8];
 
 /// Selects night room 8's enemy effects and draws the current view's beams and flares.
 ///
