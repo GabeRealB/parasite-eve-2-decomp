@@ -16,13 +16,22 @@ room with one area id, both address the same slot (include/main/gameflag_types.h
 `GameFlagDryfieldBank`). A record naming either stage is therefore listed under
 both rooms, marked "(shared slot)" on the one the record does not name.
 
-This reads the C text: a list still in assembly, and a variant written by
-code rather than a list, are not shown. It lists the records, not when the
-list is applied - read the code that names the list for that.
+Every record is read from the bytes of the image that holds its list; no C
+initialiser is parsed. C supplies one thing: a declaration `AreaApplyRec NAME[...]`
+says that NAME is such a list, and gives the file and line to cite. NAME's
+address and image come from the splat symbol maps, by name lookup, and the list
+runs to the record whose stage is 0xFF - the test `areaApplySavedUpdates` makes
+(src/gameplay/direction_facing.c). A renamed list or a rewritten initialiser
+changes names and citations, never a value.
+
+A list no C declaration names, and a variant written by code rather than a
+list, are not shown. It lists the records, not when the list is applied - read
+the code that names the list for that. What could not be read is in `problems()`.
 """
 from __future__ import annotations
 
 import re
+import struct
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -31,59 +40,126 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from asset_data import TREE  # noqa: E402
 
-LIST = re.compile(r"\bAreaApplyRec\s+(\w+)\s*\[[^\]]*\]\s*=\s*\{")
-RECORD = re.compile(r"\{\s*([\w]+)\s*,\s*([\w]+)\s*,\s*([\w]+)\s*,\s*([\w| ]+?)\s*\}")
-STAGES = {"GAME_STAGE_ACROPOLIS": 1, "GAME_STAGE_DRYFIELD": 2, "GAME_STAGE_DRYFIELD_NIGHT": 3, "GAME_STAGE_MINE_SHELTER": 4, "GAME_STAGE_SHELTER_NEO_ARK": 5}
+STAGES = (1, 2, 3, 4, 5)         # GameLocationKey.stage of the five stages with room folders
+LIST_END = 0xFF                  # AreaApplyRec.stage that ends a list (AREA_APPLY_END, include/gameplay/area_flags.h)
+RECORD_SIZE = 4                  # AreaApplyRec { u8 stage, area, variant, policy } (STATIC_ASSERT_SIZEOF there)
+DRYFIELD_TWIN = {2: 3, 3: 2}     # the day and night stages share saved area slots
+
+# The executable is not a package: a PS-X EXE whose header gives the load address at 0x18 and whose image starts at
+# 0x800 (configs/USA/main.yaml: target_path, and the header segment it cuts first).
+MAIN_EXE = "assets/USA/main.exe"
+
+# The one thing taken from C: that a name is declared as an array of AreaApplyRec. Group 1 is set on an `extern`.
+DECLARED = re.compile(r"^[ \t]*((?:extern\b[ \t]*)?)(?:(?:static|const)\b[ \t]*)*AreaApplyRec[ \t]+(\w+)[ \t]*\[", re.M)
+SOURCES = (("src", "*.c"), ("src", "*.h"), ("include", "*.h"))
+
+_lists: list[dict] | None = None
+_problems: list[str] = []
 
 
 def rooms() -> dict[tuple[int, int], str]:
     """(stage, area) -> room folder name; an area is a folder's disc id / 100."""
-    return {(stage, v["id"] // 100): name for stage in STAGES.values() for name, v in TREE[stage]["folders"].items()}
+    return {(stage, v["id"] // 100): name for stage in STAGES for name, v in TREE[stage]["folders"].items()}
 
 
-def number(text: str, names: dict[str, int]) -> int | None:
-    text = text.strip()
-    if text in names:
-        return names[text]
-    try:
-        return int(text, 0)
-    except ValueError:
-        return None
+def declarations() -> dict[str, tuple[str, int]]:
+    """list name -> (file, line) of its `AreaApplyRec name[...]` declaration; a definition is preferred to an extern."""
+    import asset_journal        # late, as room_scene below: both import this module
+
+    found: dict[str, tuple[bool, str, int]] = {}
+    for top, pattern in SOURCES:
+        for path in sorted((ROOT / top).rglob(pattern)):
+            if "AreaApplyRec" not in path.read_text(encoding="utf-8", errors="replace"):
+                continue
+            text = asset_journal.code_of(path)
+            for m in DECLARED.finditer(text):
+                extern, name = bool(m[1]), m[2]
+                if name not in found or (found[name][0] and not extern):
+                    found[name] = (extern, path.relative_to(ROOT).as_posix(), text.count("\n", 0, m.start(2)) + 1)
+    return {name: (rel, line) for name, (_extern, rel, line) in found.items()}
+
+
+def lists() -> list[dict]:
+    """Every declared list, read from its image: owner, symbol, address, file, line, how its length was settled
+    (`length`) and `records` as (stage, area, variant, policy) byte tuples, the terminator left out."""
+    global _lists
+    if _lists is not None:
+        return _lists
+    import room_scene
+
+    project = room_scene.Project()
+    defined: dict[str, list[tuple[str, int]]] = defaultdict(list)      # name -> the images whose own map places it
+    for owner, symbols in project.maps.own.items():
+        for address, name in symbols.names.items():
+            defined[name].append((owner, address))
+
+    def image(owner: str) -> tuple[bytes | None, int]:
+        if owner == "main":
+            path = ROOT / MAIN_EXE
+            raw = path.read_bytes() if path.exists() else None
+            return (raw[0x800:], struct.unpack_from("<I", raw, 0x18)[0]) if raw else (None, 0)
+        return project.package(owner), project.load_of.get(owner, 0)
+
+    out: list[dict] = []
+    _problems.clear()
+    for name, (rel, line) in sorted(declarations().items()):
+        if name not in defined:
+            _problems.append(f"{name} ({rel}:{line}): no symbol map places it, so its address is unknown")
+            continue
+        for owner, address in sorted(defined[name]):
+            data, load = image(owner)
+            if data is None:
+                _problems.append(f"{name} ({rel}:{line}): the image of {owner} is not extracted")
+                continue
+            span, how = project.extent(owner, address) if owner != "main" else (project.maps.find(owner, address)[2], "symbol size")
+            limit = min(len(data) - (address - load), span if span is not None else len(data))
+            found, ended = [], False
+            for off in range(address - load, address - load + limit - RECORD_SIZE + 1, RECORD_SIZE):
+                record = struct.unpack_from("<4B", data, off)
+                if record[0] == LIST_END:
+                    ended = True
+                    break
+                found.append(record)
+            if not ended:
+                # The game would walk on into the next object; what that object holds is not this list's to claim.
+                _problems.append(f"{name} at 0x{address:08X} in {owner}: no terminator within its {limit} bytes ({how}); "
+                                 f"the {len(found)} records inside it are listed")
+            elif span is not None and how == "symbol size" and (len(found) + 1) * RECORD_SIZE != span:
+                _problems.append(f"{name} at 0x{address:08X} in {owner}: ends after {len(found) + 1} records, its symbol holds {span // RECORD_SIZE}")
+            out.append({"owner": owner, "symbol": name, "address": address, "file": rel, "line": line,
+                        "length": "terminator" if ended else how, "records": found})
+    _lists = out
+    return out
+
+
+def problems() -> list[str]:
+    """What `lists()` could not read, or read with a doubt."""
+    lists()
+    return list(_problems)
 
 
 def records():
-    """(overlay, file, line, list symbol, target room or (stage, area), variant, policy text) for every stored record."""
+    """(overlay, file, line, list symbol, target room or (stage, area), variant, policy text) for every stored record.
+
+    `line` is the list's declaration; `policy text` is the policy byte as `0xNN`, with " (shared slot)" appended on
+    the copy listed under the other Dryfield stage's room."""
     known = rooms()
-    areas = {f"GAME_AREA_{name.upper()}": area for (_, area), name in known.items()}
-    for path in sorted((ROOT / "src").rglob("*.c")):
-        text = path.read_text(encoding="utf-8", errors="replace")
-        if "AreaApplyRec" not in text:
-            continue
-        lines, current = text.splitlines(), None
-        for n, line in enumerate(lines, 1):
-            start = LIST.search(line)
-            if start:
-                current = start[1]
-            if current is None:
-                continue
-            for stage, area, variant, policy in RECORD.findall(line[start.end() - 1:] if start else line):
-                s, a, v = number(stage, STAGES), number(area, areas), number(variant, {})
-                if s is None or s == 255 or stage == "AREA_APPLY_END":
-                    continue
-                value = v if v is not None else variant
-                yield path.parent.name, path.relative_to(ROOT), n, current, known.get((s, a), (s, a)), value, policy
-                twin = known.get(({2: 3, 3: 2}.get(s), a))
-                if twin:
-                    yield path.parent.name, path.relative_to(ROOT), n, current, twin, value, policy + " (shared slot)"
-            if line.rstrip().endswith("};"):
-                current = None
+    for entry in lists():
+        for stage, area, variant, policy in entry["records"]:
+            text = f"0x{policy:02X}"
+            yield entry["owner"], Path(entry["file"]), entry["line"], entry["symbol"], known.get((stage, area), (stage, area)), variant, text
+            twin = known.get((DRYFIELD_TWIN.get(stage), area))
+            if twin:
+                yield entry["owner"], Path(entry["file"]), entry["line"], entry["symbol"], twin, variant, text + " (shared slot)"
 
 
-def modes(policy: str) -> str:
+def modes(policy: str | int) -> str:
     """The save modes a record's policy byte accepts (high nibble, `AREA_APPLY_MODE_*`) and its map mark."""
-    shared = " (shared slot)" if policy.endswith("(shared slot)") else ""
-    value = number(policy.removesuffix("(shared slot)").strip(), {})
-    if value is None:
+    text = str(policy)
+    shared = " (shared slot)" if text.endswith("(shared slot)") else ""
+    try:
+        value = int(text.removesuffix("(shared slot)").strip(), 0)
+    except ValueError:
         return f"policy {policy}"
     who = {0x00: "every mode", 0x10: "Replay and Scavenger modes only", 0x20: "Bounty and Nightmare modes only"}.get(value & 0xF0, f"mode nibble {value >> 4:#x}")
     return f"{who}, map mark {'set' if value & 0x0F else 'cleared'}{shared}"
@@ -102,7 +178,9 @@ def main() -> int:
         for variant, overlay, path, line, symbol, policy in sorted(by_room[room], key=str):
             print(f"  variant {variant}  stored by {overlay}  {path}:{line}  {symbol}  {modes(policy)}")
     if not by_room:
-        print("no AreaApplyRec list in the C sources stores a variant for " + (target or "that selection") + "; it keeps its default unless code writes one")
+        print("no declared AreaApplyRec list stores a variant for " + (target or "that selection") + "; it keeps its default unless code writes one")
+    for problem in problems():
+        print("unresolved: " + problem, file=sys.stderr)
     return 0
 
 
