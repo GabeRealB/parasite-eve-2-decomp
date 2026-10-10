@@ -13,12 +13,21 @@
 
 extern AreaVariant D_dryfield_night_junk_yard_801843F0[22];
 
-// dryfield_night_junk_yard
-extern WorldCoordRoomLighting D_dryfield_night_junk_yard_80180784[];
+/// Lighting for nighttime junk-yard rooms 1 and 2, indexed by room ID minus one.
+///
+/// Both borrow the same seven-point-light collection and use the default
+/// ambient minima. The map overlay exports these descriptors to gameplay;
+/// keep the junk-yard overlay loaded while its lighting is in use.
+extern WorldCoordRoomLighting gDryfieldNightJunkYardRoomLighting[2];
 
 extern WorldCollisionRoomResources D_dryfield_night_junk_yard_80180794[];
 
-extern u8* D_dryfield_night_junk_yard_801807C0[];
+/// Logical-view maps for nighttime junk-yard rooms 1 and 2, indexed by room ID minus one.
+///
+/// Room 1 borrows gameplay's identity map; room 2 remaps logical views 1..10
+/// to camera/image/sprite indices 1..10. Index each map at logical view minus
+/// one. The maps and their directory must remain loaded while in use.
+extern u8* gDryfieldNightJunkYardViewMaps[2];
 
 extern ViewCount D_dryfield_night_junk_yard_801807C8[];
 
@@ -28,7 +37,13 @@ extern ViewCamera D_dryfield_night_junk_yard_801811DC[];
 
 extern SpriteView D_dryfield_night_junk_yard_80183700[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_night_junk_yard_801844C4[];
+/// Collision and footstep policies for junk-yard surface classes 0..7.
+///
+/// Class 1 supplies walk/run/jump cues and blocks probes; class 2 passes probes
+/// and ignores weapon impacts. Classes 0 and 3..7 block probes without footstep
+/// cues. All apply pushback. The map overlay borrows the table and its records
+/// while the junk-yard overlay remains loaded.
+extern WorldCollisionSurfaceProperties* gDryfieldNightJunkYardSurfacePropertiesByClass[8];
 
 /// Shows or hides the junk-yard encounter's sprite batch in mapped view 7.
 ///

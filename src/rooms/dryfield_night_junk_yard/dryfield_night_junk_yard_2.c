@@ -55,11 +55,11 @@ enum {
 extern SVECTOR D_dryfield_night_junk_yard_8018073C[];
 extern SVECTOR D_dryfield_night_junk_yard_80180754[];
 
-extern WorldCollisionGrid     D_dryfield_night_junk_yard_801811B8[1];
+static WorldCollisionGrid     _gDryfieldNightJunkYardCollisionGrid;
 extern WorldCollisionOccluder D_dryfield_night_junk_yard_80184318[1];
 extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183778[10];
 extern WorldCollisionTrigger  D_dryfield_night_junk_yard_80183D28[20];
-extern WorldCoordRoomLights   D_dryfield_night_junk_yard_80183D10[1];
+static WorldCoordRoomLights   _gDryfieldNightJunkYardRoomLights;
 
 SVECTOR D_dryfield_night_junk_yard_8018073C[3] = {
     { 4021, -2596, 348, 0 },
@@ -76,17 +76,22 @@ SVECTOR D_dryfield_night_junk_yard_80180754[4] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-WorldCoordRoomLighting D_dryfield_night_junk_yard_80180784[2] = {
-    { D_dryfield_night_junk_yard_80183D10, NULL },
-    { D_dryfield_night_junk_yard_80183D10, NULL },
+WorldCoordRoomLighting gDryfieldNightJunkYardRoomLighting[2] = {
+    { .lights = &_gDryfieldNightJunkYardRoomLights, .ambientTable = NULL },
+    { .lights = &_gDryfieldNightJunkYardRoomLights, .ambientTable = NULL },
 };
 
 WorldCollisionRoomResources D_dryfield_night_junk_yard_80180794[2] = {
-    { D_dryfield_night_junk_yard_801811B8, D_dryfield_night_junk_yard_80183778, D_dryfield_night_junk_yard_80183D28, D_dryfield_night_junk_yard_80184318 },
-    { D_dryfield_night_junk_yard_801811B8, D_dryfield_night_junk_yard_80183778, D_dryfield_night_junk_yard_80183D28, D_dryfield_night_junk_yard_80184318 },
+    { &_gDryfieldNightJunkYardCollisionGrid, D_dryfield_night_junk_yard_80183778, D_dryfield_night_junk_yard_80183D28, D_dryfield_night_junk_yard_80184318 },
+    { &_gDryfieldNightJunkYardCollisionGrid, D_dryfield_night_junk_yard_80183778, D_dryfield_night_junk_yard_80183D28, D_dryfield_night_junk_yard_80184318 },
 };
 
-u8 D_dryfield_night_junk_yard_801807B4[12] = {
+/// Room 2's logical-view to camera/image/sprite index mapping.
+///
+/// Logical views 1..10 index bytes 0..9 and map to resource indices 1..10.
+/// The two retained zero bytes have no established use and are outside the
+/// reverse-search count. The room directory borrows this mutable array.
+static u8 _gDryfieldNightJunkYardRoom2ViewMap[] = {
     1,
     8,
     3,
@@ -101,9 +106,9 @@ u8 D_dryfield_night_junk_yard_801807B4[12] = {
     0,
 };
 
-u8* D_dryfield_night_junk_yard_801807C0[2] = {
+u8* gDryfieldNightJunkYardViewMaps[2] = {
     gViewIdentityMap,
-    D_dryfield_night_junk_yard_801807B4,
+    _gDryfieldNightJunkYardRoom2ViewMap,
 };
 
 ViewCount D_dryfield_night_junk_yard_801807C8[2] = { 10, 10 };
@@ -114,30 +119,53 @@ DirectionWarpEntry D_dryfield_night_junk_yard_801807CC[3] = {
     { { { .word = 0 }, 1859, 4, 672 }, { 0, 0, 0, 0 }, { { .word = 0 }, 1859, 4, 672 }, { 0, 0, 0, 0 }, 0x531A0006, 0x531A0005, DIRECTION_WARP_SOUND_NONE, 3, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
-static SVECTOR _gDryfieldNightJunkYardCollision03BF8Normals[38] = {
+/// Unit-scale room-space normals for the junk-yard collision grid (4096 = 1.0).
+static SVECTOR _gDryfieldNightJunkYardCollisionGridNormals[] = {
 #include "assets/dryfield_night_junk_yard_collision_03BF8_normals.inc"
 };
 
-static SVECTOR _gDryfieldNightJunkYardCollision03BF8Verts[113] = {
+/// Collision-grid vertices in signed room-coordinate units.
+static SVECTOR _gDryfieldNightJunkYardCollisionGridVerts[] = {
 #include "assets/dryfield_night_junk_yard_collision_03BF8_verts.inc"
 };
 
-static WorldCollisionGridFace _gDryfieldNightJunkYardCollision03BF8Faces[54] = {
+/// Indexed grid faces selecting junk-yard surface classes 0, 1 and 2.
+static WorldCollisionGridFace _gDryfieldNightJunkYardCollisionGridFaces[] = {
 #include "assets/dryfield_night_junk_yard_collision_03BF8_faces.inc"
 };
 
-static s16 _gDryfieldNightJunkYardCollision03BF8Cells[230] = {
+/// Serialized face-index lists, each ending at WORLD_COLLISION_GRID_CELL_END.
+///
+/// Cell pointers select the list starts; retained words between lists are not
+/// additional face entries in the preceding list.
+static s16 _gDryfieldNightJunkYardCollisionGridCells[] = {
 #include "assets/dryfield_night_junk_yard_collision_03BF8_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gDryfieldNightJunkYardCollision03BF8Cells[i])
-static s16* _gDryfieldNightJunkYardCollision03BF8Table[14] = {
+#define GRID_CELL(i) (&_gDryfieldNightJunkYardCollisionGridCells[i])
+/// X-major cell directory for the collision grid's seven-by-two XZ cells.
+static s16* _gDryfieldNightJunkYardCollisionGridTable[] = {
 #include "assets/dryfield_night_junk_yard_collision_03BF8_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_dryfield_night_junk_yard_801811B8[1] = {
-    { NULL, _gDryfieldNightJunkYardCollision03BF8Normals, _gDryfieldNightJunkYardCollision03BF8Verts, _gDryfieldNightJunkYardCollision03BF8Faces, _gDryfieldNightJunkYardCollision03BF8Table, 2400, 610, 7, 2, 4000, 54 },
+/// Shared collision mesh and spatial index for junk-yard rooms 1 and 2.
+///
+/// Covers seven by two cells of side 4000 in room-coordinate units, starting
+/// at X = -2400, Z = -610. Activation binds the view coordinate; the descriptor
+/// and its mutable pools must remain loaded while the grid is active.
+static WorldCollisionGrid _gDryfieldNightJunkYardCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gDryfieldNightJunkYardCollisionGridNormals,
+    .vertices    = _gDryfieldNightJunkYardCollisionGridVerts,
+    .faces       = _gDryfieldNightJunkYardCollisionGridFaces,
+    .cellFaceIds = _gDryfieldNightJunkYardCollisionGridTable,
+    .xBias       = 2400,
+    .zBias       = 610,
+    .cellCountX  = 7,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gDryfieldNightJunkYardCollisionGridFaces),
 };
 
 ViewCamera D_dryfield_night_junk_yard_801811DC[11] = {
@@ -154,12 +182,21 @@ ViewCamera D_dryfield_night_junk_yard_801811DC[11] = {
     { { { { 1162, 0, 3927 }, { 1136, 3920, -336 }, { -3759, 1185, 1113 } }, { -0x4970, 2301, -1670 } }, 269 },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_80181368[2] = {
+/// Empty sprite list for mapped junk-yard view 1, retaining the decoded background.
+///
+/// The zero-count first record selects image strips; SPRITE_BATCH_END then ends
+/// the list without reading the retained source-slot pointer as sprite data.
+static SpriteBatch _gDryfieldNightJunkYardView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_junk_yard_80181378[30] = {
+/// Authored sprite rectangles and sorting depths for mapped junk-yard view 2.
+///
+/// The view's batches cover all 30 elements. Positions and sizes are pixels;
+/// depth is the unscaled OT sorting value. The view descriptor borrows this
+/// mutable array while the room overlay is loaded.
+static SpriteSource _gDryfieldNightJunkYardView2SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 32, 128 } }, -40, -104, 3066, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 64 } }, 24, -72, 6500, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 40, 120 } }, 56, -112, 5000, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
@@ -192,17 +229,26 @@ SpriteSource D_dryfield_night_junk_yard_80181378[30] = {
     { 143, 0x3FC0, { .fields = { 64, 144 } }, 96, -120, 3500, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_801815D0[7] = {
+/// Sprite ranges for mapped junk-yard view 2, over its complete source array.
+///
+/// The zero-count first record keeps the decoded background; SPRITE_BATCH_END
+/// terminates the list. Starts and counts are in source elements.
+static SpriteBatch _gDryfieldNightJunkYardView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 0, 0 } },
     { 3, 14, 0, 0, { 3, 0 } },
     { 17, 3, 0, 0, { 2, 0 } },
     { 20, 4, 0, 0, { 4, 0 } },
-    { 24, 6, 0, 0, { 1, 0 } },
+    { 24, ARRAY_SIZE(_gDryfieldNightJunkYardView2SpriteSources) - 24, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_junk_yard_80181608[58] = {
+/// Authored sprite rectangles and sorting depths for mapped junk-yard view 3.
+///
+/// The view's batches cover all 58 elements. Positions and sizes are pixels;
+/// depth is the unscaled OT sorting value. The view descriptor borrows this
+/// mutable array while the room overlay is loaded.
+static SpriteSource _gDryfieldNightJunkYardView3SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 88, 24 } }, -104, -80, 1516, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -104, 0, 1538, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 40 } }, -56, 0, 1522, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
@@ -263,15 +309,24 @@ SpriteSource D_dryfield_night_junk_yard_80181608[58] = {
     { 143, 0x3FC0, { .fields = { 32, 32 } }, -136, 48, 1200, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_80181A90[5] = {
+/// Sprite ranges for mapped junk-yard view 3, over its complete source array.
+///
+/// The zero-count first record keeps the decoded background; SPRITE_BATCH_END
+/// terminates the list. Starts and counts are in source elements.
+static SpriteBatch _gDryfieldNightJunkYardView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 1, 0 } },
     { 7, 3, 0, 0, { 2, 0 } },
-    { 10, 48, 0, 0, { 0, 0 } },
+    { 10, ARRAY_SIZE(_gDryfieldNightJunkYardView3SpriteSources) - 10, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_junk_yard_80181AB8[25] = {
+/// Authored sprite rectangles and sorting depths for mapped junk-yard view 4.
+///
+/// The view's batches cover all 25 elements. Positions and sizes are pixels;
+/// depth is the unscaled OT sorting value. The view descriptor borrows this
+/// mutable array while the room overlay is loaded.
+static SpriteSource _gDryfieldNightJunkYardView4SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -64, -16, 2084, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -56, 0, 2125, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 32, 8 } }, -80, 16, 2042, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
@@ -299,15 +354,24 @@ SpriteSource D_dryfield_night_junk_yard_80181AB8[25] = {
     { 143, 0x3FC0, { .fields = { 48, 48 } }, 112, -120, 2500, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_80181CAC[5] = {
+/// Sprite ranges for mapped junk-yard view 4, over its complete source array.
+///
+/// The zero-count first record keeps the decoded background; SPRITE_BATCH_END
+/// terminates the list. Starts and counts are in source elements.
+static SpriteBatch _gDryfieldNightJunkYardView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 1, 0 } },
     { 11, 7, 0, 0, { 2, 0 } },
-    { 18, 7, 0, 0, { 0, 0 } },
+    { 18, ARRAY_SIZE(_gDryfieldNightJunkYardView4SpriteSources) - 18, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_junk_yard_80181CD4[97] = {
+/// Authored sprite rectangles and sorting depths for mapped junk-yard view 5.
+///
+/// The view's batches cover all 97 elements. Positions and sizes are pixels;
+/// depth is the unscaled OT sorting value. The view descriptor borrows this
+/// mutable array while the room overlay is loaded.
+static SpriteSource _gDryfieldNightJunkYardView5SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 16, -112, 8250, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 88 } }, -96, -48, 1825, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 72 } }, -96, -120, 1825, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
@@ -407,7 +471,11 @@ SpriteSource D_dryfield_night_junk_yard_80181CD4[97] = {
     { 143, 0x3FC0, { .fields = { 40, 64 } }, -80, -72, 2583, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_80182468[12] = {
+/// Sprite ranges for mapped junk-yard view 5, over its complete source array.
+///
+/// The zero-count first record keeps the decoded background; SPRITE_BATCH_END
+/// terminates the list. Starts and counts are in source elements.
+static SpriteBatch _gDryfieldNightJunkYardView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 6, 0 } },
     { 5, 1, 0, 0, { 1, 0 } },
@@ -418,16 +486,25 @@ SpriteBatch D_dryfield_night_junk_yard_80182468[12] = {
     { 74, 10, 0, 0, { 9, 0 } },
     { 84, 8, 0, 0, { 4, 0 } },
     { 92, 4, 0, 0, { 7, 0 } },
-    { 96, 1, 0, 0, { 3, 0 } },
+    { 96, ARRAY_SIZE(_gDryfieldNightJunkYardView5SpriteSources) - 96, 0, 0, { 3, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_801824C8[2] = {
+/// Empty sprite list for mapped junk-yard view 6, retaining the decoded background.
+///
+/// The zero-count first record selects image strips; SPRITE_BATCH_END then ends
+/// the list without reading the retained source-slot pointer as sprite data.
+static SpriteBatch _gDryfieldNightJunkYardView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_junk_yard_801824D8[64] = {
+/// Authored sprite rectangles and sorting depths for mapped junk-yard view 7.
+///
+/// The view's batches cover all 64 elements. Positions and sizes are pixels;
+/// depth is the unscaled OT sorting value. The view descriptor borrows this
+/// mutable array while the room overlay is loaded.
+static SpriteSource _gDryfieldNightJunkYardView7SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 32, 56 } }, -56, -88, 4064, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, -32, 2340, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 24 } }, 16, -32, 2312, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
@@ -494,17 +571,27 @@ SpriteSource D_dryfield_night_junk_yard_801824D8[64] = {
     { 142, 0x4000, { .fields = { 120, 16 } }, -160, 104, 395, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_801829D8[7] = {
+/// Sprite ranges for mapped junk-yard view 7, over its complete source array.
+///
+/// The zero-count first record keeps the decoded background; SPRITE_BATCH_END
+/// terminates the list. Starts and counts are in source elements.
+/// Batch 5 selects elements 45..63, hidden when the encounter event has been seen.
+static SpriteBatch _gDryfieldNightJunkYardView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 0, 0 } },
     { 15, 8, 0, 0, { 3, 0 } },
     { 23, 17, 0, 0, { 2, 0 } },
     { 40, 5, 0, 0, { 4, 0 } },
-    { 45, 19, 0, 0, { 1, 0 } },
+    { 45, ARRAY_SIZE(_gDryfieldNightJunkYardView7SpriteSources) - 45, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_junk_yard_80182A10[34] = {
+/// Authored sprite rectangles and sorting depths for mapped junk-yard view 8.
+///
+/// The view's batches cover all 34 elements. Positions and sizes are pixels;
+/// depth is the unscaled OT sorting value. The view descriptor borrows this
+/// mutable array while the room overlay is loaded.
+static SpriteSource _gDryfieldNightJunkYardView8SpriteSources[] = {
     { 142, 0x3FC0, { .fields = { 32, 32 } }, -40, -8, 3066, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 16, 96 } }, -40, -104, 3066, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 64 } }, 24, -72, 6500, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
@@ -541,17 +628,26 @@ SpriteSource D_dryfield_night_junk_yard_80182A10[34] = {
     { 143, 0x3FC0, { .fields = { 64, 96 } }, 96, 24, 3500, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_80182CB8[7] = {
+/// Sprite ranges for mapped junk-yard view 8, over its complete source array.
+///
+/// The zero-count first record keeps the decoded background; SPRITE_BATCH_END
+/// terminates the list. Starts and counts are in source elements.
+static SpriteBatch _gDryfieldNightJunkYardView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 0, 0 } },
     { 7, 14, 0, 0, { 3, 0 } },
     { 21, 3, 0, 0, { 2, 0 } },
     { 24, 4, 0, 0, { 4, 0 } },
-    { 28, 6, 0, 0, { 1, 0 } },
+    { 28, ARRAY_SIZE(_gDryfieldNightJunkYardView8SpriteSources) - 28, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_junk_yard_80182CF0[25] = {
+/// Authored sprite rectangles and sorting depths for mapped junk-yard view 9.
+///
+/// The view's batches cover all 25 elements. Positions and sizes are pixels;
+/// depth is the unscaled OT sorting value. The view descriptor borrows this
+/// mutable array while the room overlay is loaded.
+static SpriteSource _gDryfieldNightJunkYardView9SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 16, 80 } }, -80, -120, 2069, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 24, 16 } }, -80, -40, 2069, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 24 } }, -72, -24, 2101, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
@@ -579,15 +675,24 @@ SpriteSource D_dryfield_night_junk_yard_80182CF0[25] = {
     { 143, 0x3FC0, { .fields = { 48, 56 } }, 112, -72, 2500, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_dryfield_night_junk_yard_80182EE4[5] = {
+/// Sprite ranges for mapped junk-yard view 9, over its complete source array.
+///
+/// The zero-count first record keeps the decoded background; SPRITE_BATCH_END
+/// terminates the list. Starts and counts are in source elements.
+static SpriteBatch _gDryfieldNightJunkYardView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 11, 0, 0, { 1, 0 } },
     { 11, 7, 0, 0, { 2, 0 } },
-    { 18, 7, 0, 0, { 0, 0 } },
+    { 18, ARRAY_SIZE(_gDryfieldNightJunkYardView9SpriteSources) - 18, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_dryfield_night_junk_yard_80182F0C[97] = {
+/// Authored sprite rectangles and sorting depths for mapped junk-yard view 10.
+///
+/// The view's batches cover all 97 elements. Positions and sizes are pixels;
+/// depth is the unscaled OT sorting value. The view descriptor borrows this
+/// mutable array while the room overlay is loaded.
+static SpriteSource _gDryfieldNightJunkYardView10SpriteSources[] = {
     { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -48, 2676, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
     { 142, 0x3FC0, { .fields = { 8, 40 } }, 56, -48, 2513, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
     { 143, 0x3FC0, { .fields = { 8, 56 } }, 64, -56, 2167, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
@@ -703,16 +808,16 @@ SpriteBatch D_dryfield_night_junk_yard_801836A0[12] = {
 };
 
 SpriteView D_dryfield_night_junk_yard_80183700[10] = {
-    { { .empty = D_dryfield_night_junk_yard_80181368 }, D_dryfield_night_junk_yard_80181368, NULL },
-    { { .elements = D_dryfield_night_junk_yard_80181378 }, D_dryfield_night_junk_yard_801815D0, NULL },
-    { { .elements = D_dryfield_night_junk_yard_80181608 }, D_dryfield_night_junk_yard_80181A90, NULL },
-    { { .elements = D_dryfield_night_junk_yard_80181AB8 }, D_dryfield_night_junk_yard_80181CAC, NULL },
-    { { .elements = D_dryfield_night_junk_yard_80181CD4 }, D_dryfield_night_junk_yard_80182468, NULL },
-    { { .empty = D_dryfield_night_junk_yard_801824C8 }, D_dryfield_night_junk_yard_801824C8, NULL },
-    { { .elements = D_dryfield_night_junk_yard_801824D8 }, D_dryfield_night_junk_yard_801829D8, NULL },
-    { { .elements = D_dryfield_night_junk_yard_80182A10 }, D_dryfield_night_junk_yard_80182CB8, NULL },
-    { { .elements = D_dryfield_night_junk_yard_80182CF0 }, D_dryfield_night_junk_yard_80182EE4, NULL },
-    { { .elements = D_dryfield_night_junk_yard_80182F0C }, D_dryfield_night_junk_yard_801836A0, NULL },
+    { { .empty = _gDryfieldNightJunkYardView1SpriteBatches }, _gDryfieldNightJunkYardView1SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightJunkYardView2SpriteSources }, _gDryfieldNightJunkYardView2SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightJunkYardView3SpriteSources }, _gDryfieldNightJunkYardView3SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightJunkYardView4SpriteSources }, _gDryfieldNightJunkYardView4SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightJunkYardView5SpriteSources }, _gDryfieldNightJunkYardView5SpriteBatches, NULL },
+    { { .empty = _gDryfieldNightJunkYardView6SpriteBatches }, _gDryfieldNightJunkYardView6SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightJunkYardView7SpriteSources }, _gDryfieldNightJunkYardView7SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightJunkYardView8SpriteSources }, _gDryfieldNightJunkYardView8SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightJunkYardView9SpriteSources }, _gDryfieldNightJunkYardView9SpriteBatches, NULL },
+    { { .elements = _gDryfieldNightJunkYardView10SpriteSources }, D_dryfield_night_junk_yard_801836A0, NULL },
 };
 
 WorldCollisionTrigger D_dryfield_night_junk_yard_80183778[10] = {
@@ -855,8 +960,17 @@ static WorldCoordPointLight _gDryfieldNightJunkYardPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_dryfield_night_junk_yard_80183D10[1] = {
-    { 0, NULL, ARRAY_SIZE(_gDryfieldNightJunkYardPointLights), _gDryfieldNightJunkYardPointLights, 0, NULL },
+/// Authored light collection shared by junk-yard rooms 1 and 2.
+///
+/// Borrows all seven mutable point lights, with no directional or cone lights.
+/// The collection and its point-light array live with the loaded room overlay.
+static WorldCoordRoomLights _gDryfieldNightJunkYardRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gDryfieldNightJunkYardPointLights),
+    .pointLights           = _gDryfieldNightJunkYardPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
 WorldCollisionTrigger D_dryfield_night_junk_yard_80183D28[20] = {
@@ -939,33 +1053,55 @@ AreaVariant D_dryfield_night_junk_yard_801843F0[22] = {
     { D_map_dryfield_full_8017C8E8, D_dryfield_night_junk_yard_801843CC },
 };
 
-WorldCollisionFootstepSounds D_dryfield_night_junk_yard_801844A0 = {
-    0x10000049,
-    0x1000004B,
-    0x10000049,
+/// Type-1 sound-script cue-2 bases in the currently loaded sound bank.
+enum {
+    DRYFIELD_NIGHT_JUNK_YARD_SURFACE_1_WALK_SOUND = 0x10000049,
+    DRYFIELD_NIGHT_JUNK_YARD_SURFACE_1_RUN_SOUND  = 0x1000004B
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_junk_yard_801844AC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 1's footstep cues; scripted jumps reuse the walking pair.
+static WorldCollisionFootstepSounds _gDryfieldNightJunkYardSurface1FootstepSounds = {
+    .walk         = DRYFIELD_NIGHT_JUNK_YARD_SURFACE_1_WALK_SOUND,
+    .run          = DRYFIELD_NIGHT_JUNK_YARD_SURFACE_1_RUN_SOUND,
+    .scriptedJump = DRYFIELD_NIGHT_JUNK_YARD_SURFACE_1_WALK_SOUND,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_junk_yard_801844B4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_dryfield_night_junk_yard_801844A0 },
+/// Blocking, impact-enabled policy without footstep cues for classes 0 and 3..7.
+static WorldCollisionSurfaceProperties _gDryfieldNightJunkYardSilentSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_dryfield_night_junk_yard_801844BC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 1 blocks probes, allows weapon impacts and supplies footstep cues.
+static WorldCollisionSurfaceProperties _gDryfieldNightJunkYardSurface1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gDryfieldNightJunkYardSurface1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_dryfield_night_junk_yard_801844C4[8] = {
-    D_dryfield_night_junk_yard_801844AC,
-    D_dryfield_night_junk_yard_801844B4,
-    D_dryfield_night_junk_yard_801844BC,
-    D_dryfield_night_junk_yard_801844AC,
-    D_dryfield_night_junk_yard_801844AC,
-    D_dryfield_night_junk_yard_801844AC,
-    D_dryfield_night_junk_yard_801844AC,
-    D_dryfield_night_junk_yard_801844AC,
+/// Surface class 2 passes probes and ignores weapon impacts while applying pushback.
+static WorldCollisionSurfaceProperties _gDryfieldNightJunkYardSurface2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
+};
+
+WorldCollisionSurfaceProperties* gDryfieldNightJunkYardSurfacePropertiesByClass[8] = {
+    &_gDryfieldNightJunkYardSilentSurfaceProperties,
+    &_gDryfieldNightJunkYardSurface1Properties,
+    &_gDryfieldNightJunkYardSurface2Properties,
+    &_gDryfieldNightJunkYardSilentSurfaceProperties,
+    &_gDryfieldNightJunkYardSilentSurfaceProperties,
+    &_gDryfieldNightJunkYardSilentSurfaceProperties,
+    &_gDryfieldNightJunkYardSilentSurfaceProperties,
+    &_gDryfieldNightJunkYardSilentSurfaceProperties,
 };
 
 /// Draws the grey capsule and two large flares shared by junk yard views 5, 7 and 10.
