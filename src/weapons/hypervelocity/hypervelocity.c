@@ -9,7 +9,7 @@
 #include "common.h"
 #include "gte.h"
 
-#include "hypervelocity_private.h"
+static s16 _gHypervelocityConeTextureFrameOffsets[16];
 
 #include "gameplay/display.h"
 #include "gameplay/actor.h"
@@ -138,9 +138,11 @@ typedef struct {
 } _HypervelocityRoundBody;
 STATIC_ASSERT_SIZEOF(_HypervelocityRoundBody, 0x38);
 
-/// Translation of the round's own coordinate frame inside its parent frame
-/// (the muzzle), `(0, 0x240, 0x80)`.
-static SVECTOR D_hypervelocity_8011FB74 = { 0, 0x240, 0x80, 0 };
+/// Charge-effect muzzle position in the weapon root's local game coordinates.
+///
+/// The persistent effect uses this translation for its glow, point light and
+/// round launch. The fourth halfword is unused by coordinate placement.
+static SVECTOR _gHypervelocityMuzzleOffset = { 0, 0x240, 0x80, 0 };
 
 /// Low-nibble model component selector and charge-driven motions in spawnArg1.
 enum {
@@ -226,9 +228,9 @@ void hypervelocityChargeEffectTask(Task* task)
         case HYPERVELOCITY_CHARGE_EFFECT_INIT:
             muzzleCoord->parent = effectWork->parent;
             gfxSetRotIdentity(&muzzleCoord->coord);
-            muzzleCoord->coord.t[0]   = D_hypervelocity_8011FB74.vx;
-            muzzleCoord->coord.t[1]   = D_hypervelocity_8011FB74.vy;
-            muzzleCoord->coord.t[2]   = D_hypervelocity_8011FB74.vz;
+            muzzleCoord->coord.t[0]   = _gHypervelocityMuzzleOffset.vx;
+            muzzleCoord->coord.t[1]   = _gHypervelocityMuzzleOffset.vy;
+            muzzleCoord->coord.t[2]   = _gHypervelocityMuzzleOffset.vz;
             muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             task->state               = HYPERVELOCITY_CHARGE_EFFECT_IDLE;
             /* fallthrough */
@@ -452,9 +454,9 @@ void hypervelocityRoundTask(Task* task)
             gte_ldv0(&effectWork->move);
             gte_rtv0();
             gte_stsv(&effectWork->move);
-            for (jitterIndex = 0; jitterIndex < ARRAY_SIZE(D_hypervelocity_8012EF0C); jitterIndex++) {
-                gRandomLcgState                       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                D_hypervelocity_8012EF0C[jitterIndex] = (gRandomLcgState >> 16) & HYPERVELOCITY_ROUND_JITTER_MASK;
+            for (jitterIndex = 0; jitterIndex < ARRAY_SIZE(_gHypervelocityConeTextureFrameOffsets); jitterIndex++) {
+                gRandomLcgState                                     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                _gHypervelocityConeTextureFrameOffsets[jitterIndex] = (gRandomLcgState >> 16) & HYPERVELOCITY_ROUND_JITTER_MASK;
             }
             effectWork->scale                = HYPERVELOCITY_ROUND_BRIGHTNESS;
             effectWork->angle                = HYPERVELOCITY_ROUND_VISUAL_RADIUS;
@@ -567,7 +569,7 @@ void hypervelocityRoundTask(Task* task)
 #define JET_CONE_CLUT         0x42C1
 #define JET_CONE_RIM_SHORT    0x600
 #define JET_CONE_RIM_LONG     0x800
-#define JET_CONE_FRAME_JITTER D_hypervelocity_8012EF0C
+#define JET_CONE_FRAME_JITTER _gHypervelocityConeTextureFrameOffsets
 #include "../../shared/jet_cone_draw.inc.c"
 
 /// Packed additive beam-flame page: 4-bit indexed texels at VRAM X=576 words, Y=0 scanlines.
@@ -705,7 +707,7 @@ static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames
             setSemiTrans(wall, 1);
             wall->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
             wall->clut  = getClut(16, 267);
-            textureU    = (s16)((D_hypervelocity_8012EF0C[cornerIndex] + ageFrames) % HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_FRAME_COUNT) * HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE;
+            textureU    = (s16)((_gHypervelocityConeTextureFrameOffsets[cornerIndex] + ageFrames) % HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_FRAME_COUNT) * HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE;
             wall->u0    = textureU;
             wall->v0    = HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_TOP_V;
             wall->u1    = textureU + HYPERVELOCITY_DISCHARGE_CONE_TEXTURE_CELL_SIZE - 1;
@@ -1117,144 +1119,188 @@ void hypervelocityAttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BLOCK(_HypervelocityRecoilScratch);
 }
 
-static TmdBone _gHypervelocityModel02C9CSkeleton[1] = {
+/// Initial identity transform of the Hypervelocity weapon root's single part.
+static TmdBone _gHypervelocityRootModelSkeleton[] = {
 #include "assets/hypervelocity_model_02C9C_skeleton.inc"
 };
 
-static u32 _gHypervelocityModel02C9CPartVerts[1] = {
+/// Vertex counts in part order for `gHypervelocityRootModel`.
+static u32 _gHypervelocityRootModelPartVerts[] = {
 #include "assets/hypervelocity_model_02C9C_partVerts.inc"
 };
 
-static SVECTOR _gHypervelocityModel02C9CVerts[50] = {
+/// Hypervelocity weapon-root vertices in integer part-local coordinates.
+static SVECTOR _gHypervelocityRootModelVerts[] = {
 #include "assets/hypervelocity_model_02C9C_verts.inc"
 };
 
-static SVECTOR _gHypervelocityModel02C9CNormals[37] = {
+/// Hypervelocity weapon-root lighting normals, with twelve fractional bits.
+static SVECTOR _gHypervelocityRootModelNormals[] = {
 #include "assets/hypervelocity_model_02C9C_normals.inc"
 };
 
-static u32 _gHypervelocityModel02C9CStream[295] = {
+/// Writable commands for the root model's FT4, two GT3s and 38 GT4s.
+///
+/// Model creation replaces the commands' handler slots in place.
+static u32 _gHypervelocityRootModelStream[] = {
 #include "assets/hypervelocity_model_02C9C_stream.inc"
 };
 
-TmdSource D_hypervelocity_801202F8 = {
-    0,
-    2096,
-    0,
-    1,
-    _gHypervelocityModel02C9CPartVerts,
-    _gHypervelocityModel02C9CVerts,
-    _gHypervelocityModel02C9CNormals,
-    _gHypervelocityModel02C9CSkeleton,
-    _gHypervelocityModel02C9CStream,
+TmdSource gHypervelocityRootModel = {
+    .handlersResolved    = 0,
+    .bufferHalfBytes     = sizeof(POLY_FT4) + 2 * sizeof(POLY_GT3) + 38 * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gHypervelocityRootModelSkeleton),
+    .partVertexCounts    = _gHypervelocityRootModelPartVerts,
+    .verts               = _gHypervelocityRootModelVerts,
+    .normals             = _gHypervelocityRootModelNormals,
+    .skeleton            = _gHypervelocityRootModelSkeleton,
+    .stream              = _gHypervelocityRootModelStream,
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityRootModelPartVerts) == ARRAY_SIZE(_gHypervelocityRootModelSkeleton), hypervelocity_root_model_part_counts);
 
-static TmdBone _gHypervelocityModel03284Skeleton[1] = {
+/// Initial identity transform of the Hypervelocity slide's single part.
+static TmdBone _gHypervelocitySlideModelSkeleton[] = {
 #include "assets/hypervelocity_model_03284_skeleton.inc"
 };
 
-static u32 _gHypervelocityModel03284PartVerts[1] = {
+/// Vertex counts in part order for `gHypervelocitySlideModel`.
+static u32 _gHypervelocitySlideModelPartVerts[] = {
 #include "assets/hypervelocity_model_03284_partVerts.inc"
 };
 
-static SVECTOR _gHypervelocityModel03284Verts[16] = {
+/// Hypervelocity slide vertices in integer part-local coordinates.
+static SVECTOR _gHypervelocitySlideModelVerts[] = {
 #include "assets/hypervelocity_model_03284_verts.inc"
 };
 
-static SVECTOR _gHypervelocityModel03284Normals[16] = {
+/// Hypervelocity slide lighting normals, with twelve fractional bits.
+static SVECTOR _gHypervelocitySlideModelNormals[] = {
 #include "assets/hypervelocity_model_03284_normals.inc"
 };
 
-static u32 _gHypervelocityModel03284Stream[104] = {
+/// Writable commands for the slide model's fourteen GT4s.
+///
+/// Model creation replaces the commands' handler slots in place.
+static u32 _gHypervelocitySlideModelStream[] = {
 #include "assets/hypervelocity_model_03284_stream.inc"
 };
 
-TmdSource D_hypervelocity_801205E4 = {
-    0,
-    728,
-    0,
-    1,
-    _gHypervelocityModel03284PartVerts,
-    _gHypervelocityModel03284Verts,
-    _gHypervelocityModel03284Normals,
-    _gHypervelocityModel03284Skeleton,
-    _gHypervelocityModel03284Stream,
+TmdSource gHypervelocitySlideModel = {
+    .handlersResolved    = 0,
+    .bufferHalfBytes     = 14 * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gHypervelocitySlideModelSkeleton),
+    .partVertexCounts    = _gHypervelocitySlideModelPartVerts,
+    .verts               = _gHypervelocitySlideModelVerts,
+    .normals             = _gHypervelocitySlideModelNormals,
+    .skeleton            = _gHypervelocitySlideModelSkeleton,
+    .stream              = _gHypervelocitySlideModelStream,
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocitySlideModelPartVerts) == ARRAY_SIZE(_gHypervelocitySlideModelSkeleton), hypervelocity_slide_model_part_counts);
 
-static TmdBone _gHypervelocityModel03550Skeleton[1] = {
+/// Initial identity transform of the Hypervelocity hinge's single part.
+static TmdBone _gHypervelocityHingeModelSkeleton[] = {
 #include "assets/hypervelocity_model_03550_skeleton.inc"
 };
 
-static u32 _gHypervelocityModel03550PartVerts[1] = {
+/// Vertex counts in part order for `gHypervelocityHingeModel`.
+static u32 _gHypervelocityHingeModelPartVerts[] = {
 #include "assets/hypervelocity_model_03550_partVerts.inc"
 };
 
-static SVECTOR _gHypervelocityModel03550Verts[12] = {
+/// Hypervelocity hinged-component vertices in integer part-local coordinates.
+static SVECTOR _gHypervelocityHingeModelVerts[] = {
 #include "assets/hypervelocity_model_03550_verts.inc"
 };
 
-static SVECTOR _gHypervelocityModel03550Normals[16] = {
+/// Hypervelocity hinged-component lighting normals, with twelve fractional bits.
+static SVECTOR _gHypervelocityHingeModelNormals[] = {
 #include "assets/hypervelocity_model_03550_normals.inc"
 };
 
-static u32 _gHypervelocityModel03550Stream[84] = {
+/// Writable commands for the hinge model's FT4 and ten GT4s.
+///
+/// Model creation replaces the commands' handler slots in place.
+static u32 _gHypervelocityHingeModelStream[] = {
 #include "assets/hypervelocity_model_03550_stream.inc"
 };
 
-TmdSource D_hypervelocity_80120860 = {
-    0,
-    560,
-    0,
-    1,
-    _gHypervelocityModel03550PartVerts,
-    _gHypervelocityModel03550Verts,
-    _gHypervelocityModel03550Normals,
-    _gHypervelocityModel03550Skeleton,
-    _gHypervelocityModel03550Stream,
+TmdSource gHypervelocityHingeModel = {
+    .handlersResolved    = 0,
+    .bufferHalfBytes     = sizeof(POLY_FT4) + 10 * sizeof(POLY_GT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gHypervelocityHingeModelSkeleton),
+    .partVertexCounts    = _gHypervelocityHingeModelPartVerts,
+    .verts               = _gHypervelocityHingeModelVerts,
+    .normals             = _gHypervelocityHingeModelNormals,
+    .skeleton            = _gHypervelocityHingeModelSkeleton,
+    .stream              = _gHypervelocityHingeModelStream,
 };
+STATIC_ASSERT(ARRAY_SIZE(_gHypervelocityHingeModelPartVerts) == ARRAY_SIZE(_gHypervelocityHingeModelSkeleton), hypervelocity_hinge_model_part_counts);
 
-static AnimationPackedPose _gHypervelocityAnimation03854Bank1[2] = {
+/// Idle track encoding-1 poses: local translations and 1/4096-turn Euler angles.
+static AnimationPackedPose _gHypervelocityIdleAnimationBank1[] = {
 #include "assets/hypervelocity_animation_03854_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation03854Bank4[8] = {
+/// Idle track encoding-4 rotations, packed in eight-unit angular steps.
+static AnimationPackedRotation _gHypervelocityIdleAnimationBank4[] = {
 #include "assets/hypervelocity_animation_03854_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation03854Records[76] = {
+/// Idle keyframes and loop controls, addressed by absolute record indices.
+static AnimationRecord _gHypervelocityIdleAnimationRecords[] = {
 #include "assets/hypervelocity_animation_03854_records.inc"
 };
 
-static u16 _gHypervelocityAnimation03854Indices[20] = {
+/// Part-track starts in `_gHypervelocityIdleAnimationRecords`.
+static u16 _gHypervelocityIdleAnimationIndices[] = {
 #include "assets/hypervelocity_animation_03854_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation03854 = {
-    _gHypervelocityAnimation03854Records,
-    _gHypervelocityAnimation03854Indices,
-    { NULL, _gHypervelocityAnimation03854Bank1, NULL, NULL, _gHypervelocityAnimation03854Bank4, NULL, NULL, NULL },
+/// Standing pose of the player using the Hypervelocity animation bank.
+///
+/// Set 1 supplies ordinary idle; bank slots 21, 22 and 41 reuse the same set.
+/// Each part holds a fixed pose through a two-frame loop. Track starts and
+/// pose offsets refer to the accompanying private arrays;
+/// all remain loaded while player animation slots borrow them.
+static AnimationSet _gHypervelocityIdleAnimation = {
+    .records           = _gHypervelocityIdleAnimationRecords,
+    .trackStartIndices = _gHypervelocityIdleAnimationIndices,
+    .poseBanks         = { [1] = _gHypervelocityIdleAnimationBank1, [4] = _gHypervelocityIdleAnimationBank4 },
 };
 
-static AnimationPackedPose _gHypervelocityAnimation03EF8Bank1[12] = {
+/// Unarmed-walk encoding-1 poses: local translations and 1/4096-turn Euler angles.
+static AnimationPackedPose _gHypervelocityUnarmedWalkAnimationBank1[] = {
 #include "assets/hypervelocity_animation_03EF8_bank1.inc"
 };
 
-static AnimationPackedRotation _gHypervelocityAnimation03EF8Bank4[151] = {
+/// Unarmed-walk encoding-4 rotations, packed in eight-unit angular steps.
+static AnimationPackedRotation _gHypervelocityUnarmedWalkAnimationBank4[] = {
 #include "assets/hypervelocity_animation_03EF8_bank4.inc"
 };
 
-static AnimationRecord _gHypervelocityAnimation03EF8Records[218] = {
+/// Unarmed-walk keyframes, cues and loop controls in normal-rate frames.
+static AnimationRecord _gHypervelocityUnarmedWalkAnimationRecords[] = {
 #include "assets/hypervelocity_animation_03EF8_records.inc"
 };
 
-static u16 _gHypervelocityAnimation03EF8Indices[20] = {
+/// Part-track starts in `_gHypervelocityUnarmedWalkAnimationRecords`.
+static u16 _gHypervelocityUnarmedWalkAnimationIndices[] = {
 #include "assets/hypervelocity_animation_03EF8_indices.inc"
 };
 
-static AnimationSet _gHypervelocityAnimation03EF8 = {
-    _gHypervelocityAnimation03EF8Records,
-    _gHypervelocityAnimation03EF8Indices,
-    { NULL, _gHypervelocityAnimation03EF8Bank1, NULL, NULL, _gHypervelocityAnimation03EF8Bank4, NULL, NULL, NULL },
+/// Player walk used when no held-weapon model is present in equipment slot 1.
+///
+/// Set 19 in the Hypervelocity bank supplies the player's child animation slots.
+/// Moving part tracks repeat 29-frame loops after their initial keyframes;
+/// fixed tracks hold a two-frame loop. Track starts and pose offsets remain
+/// within this set's private arrays, which must stay loaded during playback.
+static AnimationSet _gHypervelocityUnarmedWalkAnimation = {
+    .records           = _gHypervelocityUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gHypervelocityUnarmedWalkAnimationIndices,
+    .poseBanks         = { [1] = _gHypervelocityUnarmedWalkAnimationBank1, [4] = _gHypervelocityUnarmedWalkAnimationBank4 },
 };
 
 static AnimationPackedPose _gHypervelocityAnimation047D0Bank1[19] = {
@@ -2073,7 +2119,7 @@ static AnimationSet _gHypervelocityAnimation11BE8 = {
 
 AnimationBank D_hypervelocity_8012EDD0 = { { {
     NULL,
-    &_gHypervelocityAnimation03854,
+    &_gHypervelocityIdleAnimation,
     &_gHypervelocityAnimation10A50,
     &_gHypervelocityAnimation111F0,
     &_gHypervelocityAnimation11BE8,
@@ -2091,10 +2137,10 @@ AnimationBank D_hypervelocity_8012EDD0 = { { {
     &_gHypervelocityAnimation084F8,
     &_gHypervelocityAnimation08818,
     &_gHypervelocityAnimation08FDC,
-    &_gHypervelocityAnimation03EF8,
+    &_gHypervelocityUnarmedWalkAnimation,
     &_gHypervelocityAnimation0DB10,
-    &_gHypervelocityAnimation03854,
-    &_gHypervelocityAnimation03854,
+    &_gHypervelocityIdleAnimation,
+    &_gHypervelocityIdleAnimation,
     &_gHypervelocityAnimation0A274,
     &_gHypervelocityAnimation0B508,
     &_gHypervelocityAnimation0ADEC,
@@ -2113,7 +2159,7 @@ AnimationBank D_hypervelocity_8012EDD0 = { { {
     &_gHypervelocityAnimation070F0,
     &_gHypervelocityAnimation06D60,
     &_gHypervelocityAnimation05BA8,
-    &_gHypervelocityAnimation03854,
+    &_gHypervelocityIdleAnimation,
     &_gHypervelocityAnimation0C0C4,
     &_gHypervelocityAnimation0C2B8,
     &_gHypervelocityAnimation0C738,
@@ -2153,4 +2199,12 @@ AnimationBank D_hypervelocity_8012EDD0 = { { {
     NULL,
 } } };
 
-s16 D_hypervelocity_8012EF0C[16] = { 0 };
+/// Shared texture phases of the Hypervelocity trail segments and discharge walls.
+///
+/// Round initialization rewrites all sixteen signed halfwords with LCG values
+/// 0..255. Both jet tails use every entry; discharge walls reuse entries 0 and 1.
+/// Drawers select one of six 40-texel cells by (offset + active age) modulo six.
+/// The table belongs to the loaded overlay, so firing another round also changes
+/// any still-live discharge cones' phases. Initial zero values are valid phases.
+static s16 _gHypervelocityConeTextureFrameOffsets[EFFECT_BAND_SEGMENT_COUNT] = { 0 };
+STATIC_ASSERT(HYPERVELOCITY_DISCHARGE_CONE_WALL_COUNT <= ARRAY_SIZE(_gHypervelocityConeTextureFrameOffsets), hypervelocity_cone_wall_frame_offsets);

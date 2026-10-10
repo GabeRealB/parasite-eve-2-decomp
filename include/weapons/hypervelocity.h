@@ -2,6 +2,31 @@
 #define INCLUDE_WEAPONS_HYPERVELOCITY_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Root body of the player's held Hypervelocity, supplied by bank-7 descriptor 0x55.
+///
+/// One part owns 50 vertices and 37 lighting normals. Its writable source and
+/// command stream stay in the loaded weapon overlay while any model borrows them;
+/// creation resolves draw handlers in place. Each primitive-buffer half holds
+/// one FT4, two GT3s and 38 GT4s. The root parents the charging slide and hinge.
+extern TmdSource gHypervelocityRootModel;
+
+/// Sliding Hypervelocity component, supplied by bank-7 descriptor 0x70.
+///
+/// One part owns sixteen vertices and sixteen lighting normals; each primitive
+/// buffer half holds fourteen GT4s. Its task translates along the root's local
+/// Y axis during charging. The writable source and stream remain loaded while
+/// its model borrows them; creation resolves draw handlers in place.
+extern TmdSource gHypervelocitySlideModel;
+
+/// Hinged Hypervelocity component, supplied by bank-7 descriptor 0x74.
+///
+/// One part owns twelve vertices and sixteen lighting normals; each primitive
+/// buffer half holds one FT4 and ten GT4s. Its task pitches about local X as the
+/// second charge stage opens it. The writable source and stream remain loaded
+/// while its model borrows them; creation resolves draw handlers in place.
+extern TmdSource gHypervelocityHingeModel;
 
 /// Expands and fades one of the hypervelocity round's discharge cones.
 ///

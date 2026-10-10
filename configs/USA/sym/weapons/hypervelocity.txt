@@ -1,6 +1,6 @@
-D_hypervelocity_801202F8 = 0x801202F8; // model named by a task descriptor
-D_hypervelocity_801205E4 = 0x801205E4; // model named by a task descriptor
-D_hypervelocity_80120860 = 0x80120860; // model named by a task descriptor
+gHypervelocityRootModel = 0x801202F8; // model named by a task descriptor
+gHypervelocitySlideModel = 0x801205E4; // model named by a task descriptor
+gHypervelocityHingeModel = 0x80120860; // model named by a task descriptor
 
 hypervelocityDischargeConeTask = 0x8011F270; // type:func
 
@@ -20,3 +20,5 @@ _hypervelocityUpdateModelPose = 0x8011f374; // type:func
 hypervelocityAttackState = 0x8011f724; // type:func
 _hypervelocityInitWeaponModel = 0x8011f570; // type:func
 hypervelocityWeaponModelTask = 0x8011f6c0; // type:func
+_gHypervelocityMuzzleOffset = 0x8011fb74;
+_gHypervelocityConeTextureFrameOffsets = 0x8012ef0c;
