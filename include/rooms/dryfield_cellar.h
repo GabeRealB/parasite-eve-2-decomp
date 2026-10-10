@@ -16,11 +16,22 @@ extern AreaVariant D_dryfield_cellar_80180ACC[12];
 // dryfield_cellar
 extern WorldCollisionRoomResources D_dryfield_cellar_8017DBDC[];
 
-extern u8* D_dryfield_cellar_8017DC04[];
+/// Logical-view maps for cellar rooms 1 and 2, indexed by room minus one.
+///
+/// Room 1 borrows the gameplay identity map for 11 views; room 2 maps its six
+/// views to camera/image/sprite slots 1, 7, 8, 9, 10 and 11. Entries are
+/// unsigned 1-based indices, with no terminator. Keep gameplay and the room
+/// overlay loaded while borrowing these maps.
+extern u8* gDryfieldCellarRoomViewMaps[2];
 
 extern ViewCount D_dryfield_cellar_8017DC0C[];
 
-extern WorldCoordRoomLighting D_dryfield_cellar_8017DC10[];
+/// Lighting for cellar rooms 1 and 2, indexed by room minus one.
+///
+/// Each room borrows five point lights contributing in every view: warm in
+/// room 1 and dim blue in room 2. Both use the default ambient minima.
+/// Light arrays remain writable and valid only while the room overlay is loaded.
+extern WorldCoordRoomLighting gDryfieldCellarRoomLighting[2];
 
 extern DirectionWarpEntry D_dryfield_cellar_8017DC20[];
 
@@ -28,7 +39,12 @@ extern ViewCamera D_dryfield_cellar_8017DF78[];
 
 extern SpriteView D_dryfield_cellar_8017FE40[];
 
-extern WorldCollisionSurfaceProperties* D_dryfield_cellar_80180B40[];
+/// Cellar collision and footstep properties, indexed by surface class 0..7.
+///
+/// All classes borrow one blocking surface record with weapon impacts and
+/// pushback enabled and the same footstep bases. Keep the room overlay loaded
+/// while using this directory or its borrowed records; it has no terminator.
+extern WorldCollisionSurfaceProperties* gDryfieldCellarSurfacePropertiesByClass[8];
 
 /// Draws the cellar's switch-gated pair of flickering flares each frame.
 ///
