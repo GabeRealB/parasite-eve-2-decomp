@@ -154,10 +154,19 @@ extern TmdSource gKyle800102KyleMadiganHandLeft;
 
 extern TmdSource D_kyle_800104_8016E568;
 
-extern TmdSource D_kyle_800102_8016E93C;
+/// Kyle Madigan's one-part MM1 launcher for companion resource variant 2.
+///
+/// Parent its root to the companion's left-hand model. Its root supplies the
+/// coordinate frame for muzzle effects and shell launch offsets.
+/// Borrows this package's geometry and writable command stream;
+/// keep the package loaded until every model using this source is released.
+extern TmdSource gKyle800102KyleMadiganMm1;
 
-/// A model argument that points into the zeroed tail of kyle_800102, where the
-/// disc image holds no model record.
-extern TmdSource D_kyle_800102_801775A8;
+/// Grenade-shell model fired by Kyle Madigan's MM1 launcher.
+///
+/// Launch parents its single root to the weapon's coordinate frame, then
+/// reparents it to the world. Borrows this package's geometry and writable
+/// command stream; keep the package loaded until every shell model is released.
+extern TmdSource gKyle800102Mm1GrenadeShell;
 
 #endif // INCLUDE_KYLE_KYLE_H
