@@ -19,7 +19,13 @@ extern TmdSource gAya10200FirstPairHand0Model;
 /// geometry. Its mutability and lifetime follow `gAya10200FirstPairHand0Model`.
 extern TmdSource gAya10200SecondPairHand0Model;
 
-extern TmdSource D_aya_10200_801164C0;
+/// One-part hand model for variant 3's first pair, attachment slot 1 at body joint 8.
+///
+/// Pair selector 0 chooses this source. Creation copies its read-only initial
+/// pose and resolves draw-handler slots in its writable stream. Objects borrow
+/// the record, geometry and stream; keep the package loaded until all referring
+/// models are released and queued GPU draws finish.
+extern TmdSource gAya10200FirstPairHand1Model;
 
 extern TmdSource D_aya_10200_80116900;
 
@@ -37,7 +43,13 @@ extern TmdSource gAya10500FirstPairHand0Model;
 /// geometry. Its mutability and lifetime follow `gAya10500FirstPairHand0Model`.
 extern TmdSource gAya10500SecondPairHand0Model;
 
-extern TmdSource D_aya_10500_801164C0;
+/// One-part hand model for variant 4's first pair, attachment slot 1 at body joint 8.
+///
+/// Pair selector 0 chooses this source. Creation copies its read-only initial
+/// pose and resolves draw-handler slots in its writable stream. Objects borrow
+/// the record, geometry and stream; keep the package loaded until all referring
+/// models are released and queued GPU draws finish.
+extern TmdSource gAya10500FirstPairHand1Model;
 
 extern TmdSource D_aya_10500_80116900;
 

@@ -100,36 +100,45 @@ TmdSource gAya10200SecondPairHand0Model = {
     .stream              = _gAya10200SecondPairHand0ModelStream,
 };
 
-static TmdBone _gAya10200Model00A5CSkeleton[1] = {
+/// Initial local transform and self-parented root for first-pair hand slot 1.
+///
+/// Read-only source tables retain their serialized positions in the data section.
+static const TmdBone _gAya10200FirstPairHand1ModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_00A5C_skeleton.inc"
 };
 
-static u32 _gAya10200Model00A5CPartVerts[1] = {
+/// Vertex count of the hand's sole part: 27.
+static const u32 _gAya10200FirstPairHand1ModelPartVerts[ARRAY_SIZE(_gAya10200FirstPairHand1ModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/aya_10200_model_00A5C_partVerts.inc"
 };
 
-static SVECTOR _gAya10200Model00A5CVerts[27] = {
+/// Writable first-pair hand-1 vertices in integer coordinates local to the wrist.
+static SVECTOR _gAya10200FirstPairHand1ModelVerts[27] = {
 #include "assets/aya_10200_model_00A5C_verts.inc"
 };
 
-static SVECTOR _gAya10200Model00A5CNormals[27] = {
+/// Writable part-local lighting normals with twelve fractional bits and independent indices.
+static SVECTOR _gAya10200FirstPairHand1ModelNormals[27] = {
 #include "assets/aya_10200_model_00A5C_normals.inc"
 };
 
-static u32 _gAya10200Model00A5CStream[189] = {
+/// Writable commands for two textured triangles and 24 textured quads, ending in `TMD_STREAM_END`.
+///
+/// First model creation resolves each command's draw-handler slot in place.
+static u32 _gAya10200FirstPairHand1ModelStream[189] = {
 #include "assets/aya_10200_model_00A5C_stream.inc"
 };
 
-TmdSource D_aya_10200_801164C0 = {
-    0,
-    1328,
-    0,
-    1,
-    _gAya10200Model00A5CPartVerts,
-    _gAya10200Model00A5CVerts,
-    _gAya10200Model00A5CNormals,
-    _gAya10200Model00A5CSkeleton,
-    _gAya10200Model00A5CStream,
+TmdSource gAya10200FirstPairHand1Model = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (24 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gAya10200FirstPairHand1ModelSkeleton),
+    .partVertexCounts    = _gAya10200FirstPairHand1ModelPartVerts,
+    .verts               = _gAya10200FirstPairHand1ModelVerts,
+    .normals             = _gAya10200FirstPairHand1ModelNormals,
+    .skeleton            = _gAya10200FirstPairHand1ModelSkeleton,
+    .stream              = _gAya10200FirstPairHand1ModelStream,
 };
 
 static TmdBone _gAya10200Model00F0CSkeleton[1] = {
