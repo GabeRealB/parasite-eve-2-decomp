@@ -24,7 +24,7 @@ D_acropolis_bridge_80188EB4 = 0x80188EB4; // size:0x6 defined:True
 D_acropolis_bridge_80188EBC = 0x80188EBC; // size:0x270 defined:True
 D_acropolis_bridge_8018912C = 0x8018912C; // size:0x108 defined:True
 gAcropolisBridgeRoomLightingTable = 0x80189A8C; // size:0x10 defined:True
-D_acropolis_bridge_80188E28 = 0x80188E28; // size:0x24 defined:True
+_gAcropolisBridgeTranslucentPlaneModel = 0x80188E28; // size:0x24 defined:True
 D_acropolis_bridge_80188E4C = 0x80188E4C; // size:0x30 defined:True
 D_acropolis_bridge_80188E7C = 0x80188E7C; // size:0x24 defined:True
 D_acropolis_bridge_80189A9C = 0x80189A9C; // size:0x18 defined:True
@@ -74,10 +74,10 @@ D_acropolis_bridge_80190B8C = 0x80190B8C; // size:0x18 defined:True
 D_map_akropolis_8017BC7C = 0x8017BC7C; // absolute:True owner=map_akropolis
 D_map_akropolis_8017BCEC = 0x8017BCEC; // absolute:True owner=map_akropolis
 D_map_akropolis_8017BCFC = 0x8017BCFC; // absolute:True owner=map_akropolis
-_gAcropolisBridgeModel0AD9CSkeleton = 0x80187DDC; // size:0x24 defined:True
-_gAcropolisBridgeModel0AD9CPartVerts = 0x80187E00; // size:0x4 defined:True
-_gAcropolisBridgeModel0AD9CVerts = 0x80187E04; // size:0x558 defined:True
-_gAcropolisBridgeModel0AD9CStream = 0x8018835C; // size:0xACC defined:True
+_gAcropolisBridgeTranslucentPlaneModelSkeleton = 0x80187DDC; // size:0x24 defined:True
+_gAcropolisBridgeTranslucentPlaneModelPartVerts = 0x80187E00; // size:0x4 defined:True
+_gAcropolisBridgeTranslucentPlaneModelVerts = 0x80187E04; // size:0x558 defined:True
+_gAcropolisBridgeTranslucentPlaneModelStream = 0x8018835C; // size:0xACC defined:True
 D_acropolis_bridge_80190BA4 = 0x80190BA4; // size:0x18 defined:True
 D_acropolis_bridge_80190BBC = 0x80190BBC; // size:0x18 defined:True
 D_acropolis_bridge_80190BD4 = 0x80190BD4; // size:0x14 defined:True

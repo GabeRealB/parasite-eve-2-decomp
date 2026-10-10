@@ -492,17 +492,13 @@ extern PadScriptVibrationSegment D_acropolis_bridge_80190BD4[5];
 static void                      _acropolisBridgePrepareArrivalScene(void);
 static void                      _acropolisBridgeSelectArrivalSpriteFrame(s32 frame);
 
-static SVECTOR _gAcropolisBridgeModel0AD9CVerts[171];
-static TmdBone _gAcropolisBridgeModel0AD9CSkeleton[1];
-static u32     _gAcropolisBridgeModel0AD9CPartVerts[1];
-static u32     _gAcropolisBridgeModel0AD9CStream[691];
-static s32     _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-static s32     _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-static s32     _acropolisBridgeHandleKeypadCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedArg);
-static s32     _acropolisBridgeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
-static s32     _acropolisBridgeIgnoreSoundCommand(Task* task, s32 messageId, s32 soundId, s32 unusedArg);
-static void    _acropolisBridgeModelTask(Task* task);
-static void    _acropolisBridgeKeypadSequenceTask(Task* task);
+static s32  _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _acropolisBridgeHandleKeypadCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedArg);
+static s32  _acropolisBridgeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32  _acropolisBridgeIgnoreSoundCommand(Task* task, s32 messageId, s32 soundId, s32 unusedArg);
+static void _acropolisBridgeModelTask(Task* task);
+static void _acropolisBridgeKeypadSequenceTask(Task* task);
 
 /// Storage of the one-entry task descriptor table the bridge enemy spawns from.
 ///
@@ -535,24 +531,46 @@ static void _acropolisBridgeEnemyDeathEffect(Task* task);
 static void _acropolisBridgeEnemyInactive(Task* task);
 static void _acropolisBridgeEnemyTask(Task* task);
 
-static TmdBone _gAcropolisBridgeModel0AD9CSkeleton[1] = {
+/// Initial identity transform of the translucent plane's only part.
+static const TmdBone _gAcropolisBridgeTranslucentPlaneModelSkeleton[] SECTION(".data") = {
 #include "assets/acropolis_bridge_model_0AD9C_skeleton.inc"
 };
 
-static u32 _gAcropolisBridgeModel0AD9CPartVerts[1] = {
+/// Vertex count of the translucent plane's single part.
+static const u32 _gAcropolisBridgeTranslucentPlaneModelPartVerts[] SECTION(".data") = {
 #include "assets/acropolis_bridge_model_0AD9C_partVerts.inc"
 };
 
-static SVECTOR _gAcropolisBridgeModel0AD9CVerts[171] = {
+/// Translucent plane vertices in integer part-local coordinates, all at Y zero.
+static SVECTOR _gAcropolisBridgeTranslucentPlaneModelVerts[] = {
 #include "assets/acropolis_bridge_model_0AD9C_verts.inc"
 };
 
-static u32 _gAcropolisBridgeModel0AD9CStream[691] = {
+/// Semi-transparent textured quads; model creation resolves the draw slots in place.
+static u32 _gAcropolisBridgeTranslucentPlaneModelStream[] = {
 #include "assets/acropolis_bridge_model_0AD9C_stream.inc"
 };
 
-TmdSource D_acropolis_bridge_80188E28[1] = {
-    { 0, 5480, 0, 1, _gAcropolisBridgeModel0AD9CPartVerts, _gAcropolisBridgeModel0AD9CVerts, &_gAcropolisBridgeModel0AD9CVerts[171], _gAcropolisBridgeModel0AD9CSkeleton, _gAcropolisBridgeModel0AD9CStream },
+/// Number of directly transformed FT4 packets in each plane primitive-buffer half.
+enum { ACROPOLIS_BRIDGE_TRANSLUCENT_PLANE_QUAD_COUNT = 137 };
+
+/// Fixed horizontal translucent plane drawn by the bridge room's model task.
+///
+/// The single part is placed at world (-9200, 300, -2800) and hidden in mapped
+/// views 8..10. Each buffer half holds 137 directly transformed `POLY_FT4`
+/// packets. Instances borrow this source and its writable stream until teardown;
+/// keep the bridge overlay loaded. The stream never reads normals; the unused
+/// pointer retains the image's one-past-vertices address.
+static TmdSource _gAcropolisBridgeTranslucentPlaneModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = ACROPOLIS_BRIDGE_TRANSLUCENT_PLANE_QUAD_COUNT * sizeof(POLY_FT4),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gAcropolisBridgeTranslucentPlaneModelSkeleton),
+    .partVertexCounts    = _gAcropolisBridgeTranslucentPlaneModelPartVerts,
+    .verts               = _gAcropolisBridgeTranslucentPlaneModelVerts,
+    .normals             = &_gAcropolisBridgeTranslucentPlaneModelVerts[ARRAY_SIZE(_gAcropolisBridgeTranslucentPlaneModelVerts)],
+    .skeleton            = _gAcropolisBridgeTranslucentPlaneModelSkeleton,
+    .stream              = _gAcropolisBridgeTranslucentPlaneModelStream,
 };
 
 TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
@@ -565,7 +583,7 @@ TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
 };
 
 TaskDesc D_acropolis_bridge_80188E7C[3] = {
-    { { { TASK_BODY_TMD, 192 } }, _acropolisBridgeModelTask, { .model = D_acropolis_bridge_80188E28 } },
+    { { { TASK_BODY_TMD, 192 } }, _acropolisBridgeModelTask, { .model = &_gAcropolisBridgeTranslucentPlaneModel } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisBridgeKeypadSequenceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
