@@ -345,136 +345,187 @@ static AnimationSet _gM4a1ItemUseAnimation = {
     .poseBanks         = { NULL, _gM4a1ItemUseAnimationBank1, NULL, NULL, _gM4a1ItemUseAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation03090Bank1[14] = {
+/// Stair-ascent translation/rotation keyframes in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1StairAscentAnimationBank1[14] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03090_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation03090Bank4[156] = {
+/// Stair-ascent rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1StairAscentAnimationBank4[156] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03090_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation03090Records[253] = {
+/// Stair-ascent keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1StairAscentAnimationRecords[253] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03090_records.inc"
 };
 
-static u16 _gM4a1Animation03090Indices[20] = {
+/// Stair-ascent record starts for tracks 0..18, followed by a retained exporter halfword.
+static const u16 _gM4a1StairAscentAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03090_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation03090 = {
-    _gM4a1Animation03090Records,
-    _gM4a1Animation03090Indices,
-    { NULL, _gM4a1Animation03090Bank1, NULL, NULL, _gM4a1Animation03090Bank4, NULL, NULL, NULL },
+/// Player-rig stair ascent loop in M4A1-family bank entry 36.
+///
+/// Nineteen tracks; slot-1 footstep cues gate the scripted stair strides.
+/// Keep the selected M4A1-family overlay loaded throughout playback.
+static AnimationSet _gM4a1StairAscentAnimation = {
+    .records           = _gM4a1StairAscentAnimationRecords,
+    .trackStartIndices = _gM4a1StairAscentAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1StairAscentAnimationBank1, NULL, NULL, _gM4a1StairAscentAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation03818Bank1[16] = {
+/// Stair-descent translation/rotation keyframes in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1StairDescentAnimationBank1[16] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03818_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation03818Bank4[167] = {
+/// Stair-descent rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1StairDescentAnimationBank4[167] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03818_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation03818Records[247] = {
+/// Stair-descent keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1StairDescentAnimationRecords[247] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03818_records.inc"
 };
 
-static u16 _gM4a1Animation03818Indices[20] = {
+/// Stair-descent record starts for tracks 0..18, followed by a retained exporter halfword.
+static const u16 _gM4a1StairDescentAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03818_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation03818 = {
-    _gM4a1Animation03818Records,
-    _gM4a1Animation03818Indices,
-    { NULL, _gM4a1Animation03818Bank1, NULL, NULL, _gM4a1Animation03818Bank4, NULL, NULL, NULL },
+/// Player-rig stair descent loop in M4A1-family bank entry 37.
+///
+/// Nineteen tracks; slot-1 footstep cues gate the scripted stair strides.
+/// Keep the selected M4A1-family overlay loaded throughout playback.
+static AnimationSet _gM4a1StairDescentAnimation = {
+    .records           = _gM4a1StairDescentAnimationRecords,
+    .trackStartIndices = _gM4a1StairDescentAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1StairDescentAnimationBank1, NULL, NULL, _gM4a1StairDescentAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation03AECBank1[6] = {
+/// Odd-count stair-finish translation/rotation keyframes in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1StairAscentFinishOddAnimationBank1[6] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03AEC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation03AECBank4[52] = {
+/// Odd-count stair-finish rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1StairAscentFinishOddAnimationBank4[52] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03AEC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation03AECRecords[91] = {
+/// Odd-count stair-finish keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1StairAscentFinishOddAnimationRecords[91] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03AEC_records.inc"
 };
 
-static u16 _gM4a1Animation03AECIndices[20] = {
+/// Odd-count stair-finish record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1StairAscentFinishOddAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03AEC_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation03AEC = {
-    _gM4a1Animation03AECRecords,
-    _gM4a1Animation03AECIndices,
-    { NULL, _gM4a1Animation03AECBank1, NULL, NULL, _gM4a1Animation03AECBank4, NULL, NULL, NULL },
+/// Player-rig stair-ascent finish after an odd step count, in M4A1-family bank entry 39.
+///
+/// Selected by the initial stair count, before returning to the idle pose.
+/// Nineteen tracks borrowing the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1StairAscentFinishOddAnimation = {
+    .records           = _gM4a1StairAscentFinishOddAnimationRecords,
+    .trackStartIndices = _gM4a1StairAscentFinishOddAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1StairAscentFinishOddAnimationBank1, NULL, NULL, _gM4a1StairAscentFinishOddAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation03E7CBank1[7] = {
+/// Even-count stair-finish translation/rotation keyframes in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1StairAscentFinishEvenAnimationBank1[7] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03E7C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation03E7CBank4[73] = {
+/// Even-count stair-finish rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1StairAscentFinishEvenAnimationBank4[73] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03E7C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation03E7CRecords[114] = {
+/// Even-count stair-finish keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1StairAscentFinishEvenAnimationRecords[114] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03E7C_records.inc"
 };
 
-static u16 _gM4a1Animation03E7CIndices[20] = {
+/// Even-count stair-finish record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1StairAscentFinishEvenAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_03E7C_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation03E7C = {
-    _gM4a1Animation03E7CRecords,
-    _gM4a1Animation03E7CIndices,
-    { NULL, _gM4a1Animation03E7CBank1, NULL, NULL, _gM4a1Animation03E7CBank4, NULL, NULL, NULL },
+/// Player-rig stair-ascent finish after an even step count, in M4A1-family bank entry 38.
+///
+/// Selected by the initial stair count, before returning to the idle pose.
+/// Nineteen tracks borrowing the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1StairAscentFinishEvenAnimation = {
+    .records           = _gM4a1StairAscentFinishEvenAnimationRecords,
+    .trackStartIndices = _gM4a1StairAscentFinishEvenAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1StairAscentFinishEvenAnimationBank1, NULL, NULL, _gM4a1StairAscentFinishEvenAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation04304Bank1[9] = {
+/// PE family-0 release translation/rotation keyframes in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1ParasiteEnergyReleaseFamily0AnimationBank1[9] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04304_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation04304Bank4[104] = {
+/// PE family-0 release rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1ParasiteEnergyReleaseFamily0AnimationBank4[104] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04304_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation04304Records[139] = {
+/// PE family-0 release keyframes and stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1ParasiteEnergyReleaseFamily0AnimationRecords[139] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04304_records.inc"
 };
 
-static u16 _gM4a1Animation04304Indices[20] = {
+/// PE family-0 release record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1ParasiteEnergyReleaseFamily0AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04304_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation04304 = {
-    _gM4a1Animation04304Records,
-    _gM4a1Animation04304Indices,
-    { NULL, _gM4a1Animation04304Bank1, NULL, NULL, _gM4a1Animation04304Bank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-0 release gesture in M4A1-family bank entry 26.
+///
+/// Starts the release/charge/cast sequence while the attachment countdown begins.
+/// Family 0 covers spell IDs 300..600 with tens digit other than 3, and item IDs
+/// at least 601 with tens digit 1. Nineteen tracks borrow the loaded overlay
+/// throughout playback.
+static AnimationSet _gM4a1ParasiteEnergyReleaseFamily0Animation = {
+    .records           = _gM4a1ParasiteEnergyReleaseFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1ParasiteEnergyReleaseFamily0AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1ParasiteEnergyReleaseFamily0AnimationBank1, NULL, NULL, _gM4a1ParasiteEnergyReleaseFamily0AnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation04500Bank1[3] = {
+/// PE family-0 charge translation/rotation keyframes in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1ParasiteEnergyChargeFamily0AnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04500_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation04500Bank4[22] = {
+/// PE family-0 charge rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1ParasiteEnergyChargeFamily0AnimationBank4[22] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04500_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation04500Records[76] = {
+/// PE family-0 charge keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1ParasiteEnergyChargeFamily0AnimationRecords[76] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04500_records.inc"
 };
 
-static u16 _gM4a1Animation04500Indices[20] = {
+/// PE family-0 charge record starts for tracks 0..18, then a retained exporter halfword.
+static const u16 _gM4a1ParasiteEnergyChargeFamily0AnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_04500_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation04500 = {
-    _gM4a1Animation04500Records,
-    _gM4a1Animation04500Indices,
-    { NULL, _gM4a1Animation04500Bank1, NULL, NULL, _gM4a1Animation04500Bank4, NULL, NULL, NULL },
+/// Player-rig Parasite Energy family-0 charge loop in M4A1-family bank entry 27.
+///
+/// Runs after `_gM4a1ParasiteEnergyReleaseFamily0Animation` until the attachment
+/// countdown reaches zero and the cast starts, unless the action is cancelled.
+/// Nineteen tracks borrowing the loaded M4A1-family overlay throughout playback.
+static AnimationSet _gM4a1ParasiteEnergyChargeFamily0Animation = {
+    .records           = _gM4a1ParasiteEnergyChargeFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1ParasiteEnergyChargeFamily0AnimationIndices,
+    .poseBanks         = { NULL, _gM4a1ParasiteEnergyChargeFamily0AnimationBank1, NULL, NULL, _gM4a1ParasiteEnergyChargeFamily0AnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1Animation047D8Bank1[6] = {
@@ -1054,8 +1105,8 @@ AnimationBank D_m4a1_8012B9E4 = { { {
     &_gM4a1Animation07000,
     &_gM4a1Animation08294,
     &_gM4a1Animation07B78,
-    &_gM4a1Animation04304,
-    &_gM4a1Animation04500,
+    &_gM4a1ParasiteEnergyReleaseFamily0Animation,
+    &_gM4a1ParasiteEnergyChargeFamily0Animation,
     &_gM4a1Animation047D8,
     &_gM4a1Animation04A7C,
     &_gM4a1Animation04C7C,
@@ -1064,10 +1115,10 @@ AnimationBank D_m4a1_8012B9E4 = { { {
     &_gM4a1Animation088EC,
     &_gM4a1Animation08714,
     &_gM4a1Animation088EC,
-    &_gM4a1Animation03090,
-    &_gM4a1Animation03818,
-    &_gM4a1Animation03E7C,
-    &_gM4a1Animation03AEC,
+    &_gM4a1StairAscentAnimation,
+    &_gM4a1StairDescentAnimation,
+    &_gM4a1StairAscentFinishEvenAnimation,
+    &_gM4a1StairAscentFinishOddAnimation,
     &_gM4a1ItemUseAnimation,
     &_gM4a1IdleAnimation,
     &_gM4a1Animation08E50,
