@@ -10,22 +10,57 @@
 
 #include "main/task_types.h"
 
-// shelter_1f_guardroom
-extern WorldCollisionRoomResources D_shelter_1f_guardroom_8017DA78[];
+/// Collision resources for the guardroom's single room, indexed by room ID minus one.
+///
+/// Borrows the mutable grid and terminated trigger lists while this overlay is
+/// loaded. There are no sight occluders; unlink the triggers before unloading.
+extern WorldCollisionRoomResources gShelter1fGuardroomRoomCollisionResources[1];
 
-extern WorldCoordRoomLighting D_shelter_1f_guardroom_8017DA88[];
+/// Point lights and per-view ambient minima for the guardroom's single room.
+///
+/// Indexed by room ID minus one. Light transforms remain writable and all
+/// referenced storage is borrowed only while the guardroom overlay is loaded.
+extern WorldCoordRoomLighting gShelter1fGuardroomRoomLighting[1];
 
-extern u8* D_shelter_1f_guardroom_8017DA90[];
+/// Logical-view maps for the guardroom's single room, indexed by room ID minus one.
+///
+/// Borrows `gViewIdentityMap`: views 1..3 select camera, image and sprite slots
+/// 1..3. The gameplay map has greater capacity than this room's view count.
+extern u8* gShelter1fGuardroomViewMaps[1];
 
-extern ViewCount D_shelter_1f_guardroom_8017DA94[];
+/// Logical-view search counts for the guardroom's single room.
+///
+/// Indexed by room ID minus one; its three views use the identity mapping.
+extern ViewCount gShelter1fGuardroomRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_1f_guardroom_8017DA98[];
+/// The guardroom's arrival endpoint from the vehicular airlock.
+///
+/// Warp ID 1 selects index 0, placing the player and companion at the doorway
+/// in view 2. Supplies arrival and departure sounds, with no blocked sound or
+/// map marker. The map directory borrows it while this overlay is loaded.
+extern DirectionWarpEntry gShelter1fGuardroomWarpEntries[1];
 
-extern ViewCamera D_shelter_1f_guardroom_8017DC14[];
+/// Cameras for guardroom views 1..3, indexed by mapped view minus one.
+///
+/// View 1 looks down at the room; views 2 and 3 cover the doorway and bulwark
+/// control. Rotations use `ONE` per unit, translations negate world-space camera
+/// origins, and projection distances are pixels. Borrow only while loaded.
+extern ViewCamera gShelter1fGuardroomViewCameras[3];
 
-extern SpriteView D_shelter_1f_guardroom_8017DCE0[];
+/// Sprite resources for guardroom views 1..3, indexed by mapped view minus one.
+///
+/// All views retain the decoded background. Only view 3 has source sprites:
+/// batch 1 contains the two-sprite unlocked-bulwark overlay and its mutable
+/// visibility flag. No view clips drawing; borrow the tables only while loaded.
+extern SpriteView gShelter1fGuardroomSpriteViews[3];
 
-extern WorldCollisionSurfaceProperties* D_shelter_1f_guardroom_8017DFF4[];
+/// Guardroom collision policies indexed by surface class 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Class 1 is the grid's floor and has footstep cues; class 0 covers walls and
+/// ceiling. Classes 2..7 retain the same silent policy as class 0. Records are
+/// borrowed only while this overlay is loaded; the table has no terminator.
+extern WorldCollisionSurfaceProperties* gShelter1fGuardroomSurfaceProperties[8];
 
 /// Runs the Shelter 1F Guardroom room controller for one tick.
 ///
