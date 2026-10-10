@@ -69,10 +69,6 @@
 #define ROOM_EVENT_REQ gRoomEventReq.request
 #include "../../shared/room_events.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b1_main_corridor_80185D44[4];
-
 /// The event the gate last accepted: the message that triggered it, whose
 /// `msgId`, `field_2` and `field_3` name the area, warp and room the event
 /// task finally loads, and the request whose CAP command and sounds it runs.
@@ -84,23 +80,12 @@ extern TaskDesc gRoomEventTaskDesc;
 
 /// The event the message handler last started: the message that triggered it,
 /// the flag saying one was latched and its task spawned, and the event record.
-/// `D_shelter_b1_main_corridor_80183098` spawns that event's task,
+/// `_gShelterB1MainCorridorStagedEventTaskDesc` spawns that event's task,
 /// `roomEventStagedTask`.
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
-extern TaskDesc         D_shelter_b1_main_corridor_80183098;
 /// Spawn argument the event task hands to task 0x31.
 extern RoomFadeStorage gRoomEventFade;
-
-/// The room's message table, which its tasks answer from.
-extern TaskMessageEntry D_shelter_b1_main_corridor_801830A4[];
-
-/// Points the per-view drawing places its capsules and sprites at.
-extern SVECTOR D_shelter_b1_main_corridor_801830D4[];
-extern SVECTOR D_shelter_b1_main_corridor_80183114[];
-extern SVECTOR D_shelter_b1_main_corridor_80183124[];
-extern SVECTOR D_shelter_b1_main_corridor_80183134[];
-extern SVECTOR D_shelter_b1_main_corridor_80183144[];
 
 /// Per-colour shift amounts the flash effect's brightness is scaled down by,
 /// one row per colour its spawner can pick.
@@ -119,9 +104,18 @@ enum { SHELTER_B1_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b1_main_corridor_80183098 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+/// Spawn recipe for the corridor's deferred CAP, sound and room-reload controller.
+///
+/// No coordinate body or descriptor data; execution priority is 32. The controller
+/// borrows the singleton transition and event snapshots until the room reloads.
+static TaskDesc _gShelterB1MainCorridorStagedEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
-TaskMessageEntry D_shelter_b1_main_corridor_801830A4[6] = {
+/// Room-message routes for transitions, key items, direction actions, commands and sounds.
+///
+/// The receiver borrows this six-record list through teardown. Only transitions
+/// and sound cues perform work; `TASK_MESSAGE_TABLE_END` ends the list. Payload
+/// types follow each message's contract rather than one shared pointer type.
+static TaskMessageEntry _gShelterB1MainCorridorRoomMessages[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1MainCorridorResolveRoomTransition },
     { SHELTER_B1_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM, _shelterB1MainCorridorRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1MainCorridorIgnoreRoomAction },
@@ -130,7 +124,11 @@ TaskMessageEntry D_shelter_b1_main_corridor_801830A4[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-SVECTOR D_shelter_b1_main_corridor_801830D4[8] = {
+/// Four white-beam endpoint pairs in signed world-coordinate units.
+///
+/// Mapped views 2 and 3 draw the first two pairs on the negative-X side. The
+/// remaining two pairs mirror them at positive X and have no drawing consumer.
+static SVECTOR _gShelterB1MainCorridorEntryBeamPoints[8] = {
     { -667, -1910, -0x4A3D, 0 },
     { -667, -1910, -0x45ED, 0 },
     { -667, -1910, -0x4309, 0 },
@@ -141,22 +139,19 @@ SVECTOR D_shelter_b1_main_corridor_801830D4[8] = {
     { 668, -1910, -0x3EB4, 0 },
 };
 
-SVECTOR D_shelter_b1_main_corridor_80183114[2] = {
+/// World-space beam endpoints and flare centres for mapped corridor views 4..10.
+///
+/// Points 0..7 form four green beam pairs, and 8..9 form a red beam pair.
+/// Points 10..16 and 17..23 are the negative- and positive-X flare rows.
+/// View 4 draws row entries 0..1; view 7 draws entries 5..6. Coordinates are
+/// signed game units; the fourth halfword is unused by the drawers.
+static SVECTOR _gShelterB1MainCorridorViewLightPoints[24] = {
     { -3246, -2265, -0x2988, 0 },
     { -3246, -2265, -9370, 0 },
-};
-
-SVECTOR D_shelter_b1_main_corridor_80183124[2] = {
     { -3246, -2265, -2620, 0 },
     { -3246, -2265, -1381, 0 },
-};
-
-SVECTOR D_shelter_b1_main_corridor_80183134[2] = {
     { 3260, -2265, -0x2988, 0 },
     { 3260, -2265, -9370, 0 },
-};
-
-SVECTOR D_shelter_b1_main_corridor_80183144[18] = {
     { 3260, -2265, -2620, 0 },
     { 3260, -2265, -1381, 0 },
     { -365, -2226, -180, 0 },
@@ -199,15 +194,27 @@ u8* gShelterB1MainCorridorRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
-ViewCount D_shelter_b1_main_corridor_801831FC[1] = { 10 };
+ViewCount gShelterB1MainCorridorRoomViewCounts[1] = { ARRAY_SIZE(gShelterB1MainCorridorViewCameras) };
 
-DirectionWarpEntry D_shelter_b1_main_corridor_80183200[6] = {
-    { { { .word = 0 }, 0, 0, -0x4A38 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1CD },
-    { { { .word = 1024 }, -3467, 0, -0x2745 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 3510, 0, -0x2729 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 1024 }, -3500, 0, -1940 }, { 0, 0, 0, 0 }, { { .word = 1024 }, -3500, 0, -1940 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, 0x540F000D, 10, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_R47_1C6 },
-    { { { .word = 3072 }, 3500, 0, -1940 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 2048 }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, 0x540F0002, 0x540F0001, DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+enum {
+    SHELTER_B1_MAIN_CORRIDOR_WARP_ARRIVAL_SCRIPT    = 2,
+    SHELTER_B1_MAIN_CORRIDOR_WARP_DEPARTURE_SCRIPT  = 1,
+    SHELTER_B1_MAIN_CORRIDOR_WARP_BLOCKED_SCRIPT    = 13,
+    SHELTER_B1_MAIN_CORRIDOR_WARP_ELEVATOR_HALL     = 1,
+    SHELTER_B1_MAIN_CORRIDOR_WARP_CONTROL_ACCESS    = 2,
+    SHELTER_B1_MAIN_CORRIDOR_WARP_ARMORY            = 3,
+    SHELTER_B1_MAIN_CORRIDOR_WARP_TRANSFER_TUNNEL   = 4,
+    SHELTER_B1_MAIN_CORRIDOR_WARP_SLEEPING_QUARTERS = 5,
+    SHELTER_B1_MAIN_CORRIDOR_WARP_STERILIZATION     = 6,
+};
+
+DirectionWarpEntry gShelterB1MainCorridorWarpEntries[6] = {
+    { { { .word = 0 }, 0, 0, -0x4A38 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_ARRIVAL_SCRIPT), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_DEPARTURE_SCRIPT), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_1CD },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -3467, 0, -0x2745 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_ARRIVAL_SCRIPT), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_DEPARTURE_SCRIPT), DIRECTION_WARP_SOUND_NONE, 6, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 3510, 0, -0x2729 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_ARRIVAL_SCRIPT), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_DEPARTURE_SCRIPT), DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -3500, 0, -1940 }, { 0, 0, 0, 0 }, { { .word = ACTOR_TRANSFORM_ANGLE_TURN / 4 }, -3500, 0, -1940 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_ARRIVAL_SCRIPT), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_DEPARTURE_SCRIPT), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_BLOCKED_SCRIPT), 10, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_SHELTER_R47_1C6 },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4 }, 3500, 0, -1940 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_ARRIVAL_SCRIPT), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_DEPARTURE_SCRIPT), DIRECTION_WARP_SOUND_NONE, 9, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, 0, 0, 0 }, { 0, 0, 0, 0 }, { { .word = 0 }, 10, 0, -390 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_ARRIVAL_SCRIPT), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_MAIN_CORRIDOR, SHELTER_B1_MAIN_CORRIDOR_WARP_DEPARTURE_SCRIPT), DIRECTION_WARP_SOUND_NONE, 8, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
 };
 
 enum {
@@ -257,7 +264,7 @@ WorldCollisionGrid gShelterB1MainCorridorCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gShelterB1MainCorridorCollisionGridFaces),
 };
 
-ViewCamera D_shelter_b1_main_corridor_80184114[10] = {
+ViewCamera gShelterB1MainCorridorViewCameras[10] = {
     { { { { 4095, 0, 0 }, { 0, 0, -4096 }, { 0, 4095, 0 } }, { 0, 0x5EE9, 8000 } }, 230 },
     { { { { -4024, 0, 762 }, { 150, 4015, 794 }, { -747, 808, -3945 } }, { -721, 1939, 0x2F2F } }, 275 },
     { { { { -3981, 0, 962 }, { 213, 3993, 882 }, { -938, 908, -3882 } }, { -784, 2080, 8975 } }, 275 },
@@ -597,13 +604,17 @@ static SpriteSource _gShelterB1MainCorridorView10SpriteSources[20] = {
     { SHELTER_B1_MAIN_CORRIDOR_SPRITE_TEXTURE_PAGE, SHELTER_B1_MAIN_CORRIDOR_SPRITE_CLUT, { .fields = { 24, 32 } }, -160, -72, 704, { .fields = { 104, 0 } }, SHELTER_B1_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B1_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, SHELTER_B1_MAIN_CORRIDOR_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_main_corridor_80185110[3] = {
+/// Mapped view 10's complete sprite range, retaining the decoded background.
+///
+/// The empty first record selects background strips, the second includes every
+/// source, and SPRITE_BATCH_END ends the list; all three records are retained.
+static SpriteBatch _gShelterB1MainCorridorView10SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 20, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB1MainCorridorView10SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b1_main_corridor_80185128[10] = {
+SpriteView gShelterB1MainCorridorSpriteViews[10] = {
     { { .empty = _gShelterB1MainCorridorView1SpriteBatches }, _gShelterB1MainCorridorView1SpriteBatches, NULL },
     { { .empty = _gShelterB1MainCorridorView2SpriteBatches }, _gShelterB1MainCorridorView2SpriteBatches, NULL },
     { { .empty = _gShelterB1MainCorridorView3SpriteBatches }, _gShelterB1MainCorridorView3SpriteBatches, NULL },
@@ -613,7 +624,7 @@ SpriteView D_shelter_b1_main_corridor_80185128[10] = {
     { { .elements = _gShelterB1MainCorridorView7SpriteSources }, _gShelterB1MainCorridorView7SpriteBatches, _gShelterB1MainCorridorView7SpriteDrawAreas },
     { { .elements = _gShelterB1MainCorridorView8SpriteSources }, _gShelterB1MainCorridorView8SpriteBatches, NULL },
     { { .elements = _gShelterB1MainCorridorView9SpriteSources }, _gShelterB1MainCorridorView9SpriteBatches, NULL },
-    { { .elements = _gShelterB1MainCorridorView10SpriteSources }, D_shelter_b1_main_corridor_80185110, NULL },
+    { { .elements = _gShelterB1MainCorridorView10SpriteSources }, _gShelterB1MainCorridorView10SpriteBatches, NULL },
 };
 
 /// Six world-space point lights accepted in every view, with mutable composition and attenuation.
@@ -637,7 +648,7 @@ WorldCoordRoomLights gShelterB1MainCorridorRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCollisionTrigger D_shelter_b1_main_corridor_801853F8[16] = {
+WorldCollisionTrigger gShelterB1MainCorridorViewBoundaries[16] = {
     { NULL, NULL, NULL, { 64, -1568, -0x2EE0, 0 }, { { -2316, -3712, 337, 0 }, { 2305, -3712, -348, 0 }, { -2316, 3712, 337, 0 }, { 2305, 3712, -348, 0 } }, { -603, 0, -4063, 0 }, { 0, 0, 4096, 0 }, 4374, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -32, -1696, -0x2F5D, 0 }, { { 2562, -3712, -382, 0 }, { -2565, -3712, 379, 0 }, { 2562, 3712, -382, 0 }, { -2565, 3712, 379, 0 } }, { 601, 0, 4055, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { 128, -1568, -7200, 0 }, { { 2592, -3712, 128, 0 }, { -2592, -3712, -128, 0 }, { 2592, 3712, 128, 0 }, { -2592, 3712, -128, 0 } }, { -203, 0, 4100, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 7, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -656,98 +667,136 @@ WorldCollisionTrigger D_shelter_b1_main_corridor_801853F8[16] = {
     { NULL, NULL, NULL, { 0, -1696, -0x3D21, 0 }, { { 2538, -3712, -511, 0 }, { -2546, -3712, 502, 0 }, { 2538, 3712, -511, 0 }, { -2546, 3712, 502, 0 } }, { 801, 0, 4021, 0 }, { 0, 0, 4096, 0 }, 4521, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_main_corridor_801858B8[6] = {
-    { NULL, NULL, NULL, { 0, -48, -0x4990, 0 }, { { -1024, 0, -560, 0 }, { 1024, 0, -560, 0 }, { -1024, 0, 560, 0 }, { 1024, 0, 560, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 9, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3488, -48, -9984, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 25, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3456, -48, -9952, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 13, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -3456, -48, -2016, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 24, 65, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 3456, -48, -2048, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 14, 81, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0, -48, 0, 0 }, { { -1024, 0, -560, 0 }, { 1024, 0, -560, 0 }, { -1024, 0, 560, 0 }, { 1024, 0, 560, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, -4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, 16, 97, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB1MainCorridorWarpTriggers[6] = {
+    { NULL, NULL, NULL, { 0, -48, -0x4990, 0 }, { { -1024, 0, -560, 0 }, { 1024, 0, -560, 0 }, { -1024, 0, 560, 0 }, { 1024, 0, 560, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ELEVATOR_HALL, (SHELTER_B1_MAIN_CORRIDOR_WARP_ELEVATOR_HALL << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3488, -48, -9984, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_CONTROL_ROOM_ACCESS_TUNNEL, (SHELTER_B1_MAIN_CORRIDOR_WARP_CONTROL_ACCESS << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3456, -48, -9952, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_ARMORY, (SHELTER_B1_MAIN_CORRIDOR_WARP_ARMORY << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -3456, -48, -2016, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { 4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, (SHELTER_B1_MAIN_CORRIDOR_WARP_TRANSFER_TUNNEL << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 3456, -48, -2048, 0 }, { { 560, 0, -1024, 0 }, { 560, 0, 1024, 0 }, { -560, 0, -1024, 0 }, { -560, 0, 1024, 0 } }, { 0, 4110, 0, 0 }, { -4096, 0, 0, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_SLEEPING_QUARTERS, (SHELTER_B1_MAIN_CORRIDOR_WARP_SLEEPING_QUARTERS << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0, -48, 0, 0 }, { { -1024, 0, -560, 0 }, { 1024, 0, -560, 0 }, { -1024, 0, 560, 0 }, { 1024, 0, 560, 0 } }, { 0, 4110, 0, 0 }, { 0, 0, -4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, (SHELTER_B1_MAIN_CORRIDOR_WARP_STERILIZATION << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-AreaResource D_shelter_b1_main_corridor_80185A80[3] = {
+/// Watcher and actor-201100 resources for the default corridor layout.
+///
+/// Entry IDs match this variant's placements; task index 0 selects each recipe.
+/// AREA_PLACEMENT_END terminates the list. Keep the room and selected actor
+/// overlays loaded while loading or spawning from these borrowed records.
+static AreaResource _gShelterB1MainCorridorVariant1Resources[3] = {
     { 21, 21, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, &gActor102100WatcherTaskDesc },
     { 11, 11, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor201100Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_main_corridor_80185AA4[2] = {
+/// Zebra Stalker resource for corridor variant 2.
+///
+/// Entry IDs match this variant's placements; task index 0 selects each recipe.
+/// AREA_PLACEMENT_END terminates the list. Keep the room and selected actor
+/// overlays loaded while loading or spawning from these borrowed records.
+static AreaResource _gShelterB1MainCorridorVariant2Resources[2] = {
     { 6, 6, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor400600ZebraStalkerTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_main_corridor_80185ABC[2] = {
+/// Actor 100300 resource for corridor variant 3.
+///
+/// Entry IDs match this variant's placements; task index 0 selects each recipe.
+/// AREA_PLACEMENT_END terminates the list. Keep the room and selected actor
+/// overlays loaded while loading or spawning from these borrowed records.
+static AreaResource _gShelterB1MainCorridorVariant3Resources[2] = {
     { 3, 3, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor100300Tasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_main_corridor_80185AD4[2] = {
+/// Knight GOLEM resource for corridor variant 7.
+///
+/// Entry IDs match this variant's placements; task index 0 selects each recipe.
+/// AREA_PLACEMENT_END terminates the list. Keep the room and selected actor
+/// overlays loaded while loading or spawning from these borrowed records.
+static AreaResource _gShelterB1MainCorridorVariant7Resources[2] = {
     { 22, 22, AREA_RESOURCE_FILE_GROUP_BASE_40, 0, { 0, 0 }, &gActor402200GolemTaskDesc },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaResource D_shelter_b1_main_corridor_80185AEC[3] = {
+/// Pawn and Rook GOLEM resources for corridor variant 11.
+///
+/// Entry IDs match this variant's placements; task index 0 selects each recipe.
+/// AREA_PLACEMENT_END terminates the list. Keep the room and selected actor
+/// overlays loaded while loading or spawning from these borrowed records.
+static AreaResource _gShelterB1MainCorridorVariant11Resources[3] = {
     { 56, 56, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor105600PawnGolemTasks },
     { 57, 57, AREA_RESOURCE_FILE_GROUP_BASE_20, 0, { 0, 0 }, gActor05700RookGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };
 
-AreaPlacement D_shelter_b1_main_corridor_80185B10[6] = {
-    { 21, 34, 2048, -3600, -1750, -7800, 1024, 0, 0, 2, 2 },
+/// Five placements for the default corridor layout: three Watchers and two actor-201100 instances.
+///
+/// AREA_PLACEMENT_END terminates the list. Positions are signed world units,
+/// yaw uses 4096 units per turn, and variant/mode/row select actor-specific
+/// behavior. Watcher variants 34 and 4 select patrol range 3/0 and weapon 4;
+/// mode supplies placement roll (2048 or 0), and sight rows are 2 or 3.
+/// The two actor-201100 placements use high-half spawn behavior 1. Spawned
+/// actors borrow these records while the room stays loaded.
+static AreaPlacement _gShelterB1MainCorridorVariant1Placements[6] = {
+    { 21, 34, 2048, -3600, -1750, -7800, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0, 2, 2 },
     { 21, 4, 0, 1100, -2100, -0x3C8C, 0, 0, 0, 2, 3 },
     { 21, 4, 0, -1100, -2100, -0x3C8C, 0, 0, 0, 2, 3 },
-    { 11, 1, 0, 0, 0, -2000, 2048, 0, 2, 4, 0 },
+    { 11, 1, 0, 0, 0, -2000, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 2, 4, 0 },
     { 11, 1, 0, 0, 0, -0x2710, 0, 0, 2, 4, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_main_corridor_80185B70[4] = {
+/// Three Zebra Stalker placements for corridor variant 2.
+///
+/// AREA_PLACEMENT_END terminates the list. Positions are signed world units,
+/// yaw uses 4096 units per turn. Mode 1 retains entrance kind 0 (plain), with
+/// tuning row 0. Spawned actors borrow these records while the room stays loaded.
+static AreaPlacement _gShelterB1MainCorridorVariant2Placements[4] = {
     { 6, 0, 1, 0, 0, -4000, 0, 0, 0, 2, 0 },
-    { 6, 0, 1, 0, 0, -8500, 2048, 0, 0, 2, 0 },
-    { 6, 0, 1, 0, 0, -0x38A4, 2048, 0, 0, 2, 0 },
+    { 6, 0, 1, 0, 0, -8500, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
+    { 6, 0, 1, 0, 0, -0x38A4, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_main_corridor_80185BB0[3] = {
-    { 3, 0, 0, 0, 0, -3000, 2048, 0, 0, 2, 0 },
+/// Two actor 100300 placements for corridor variant 3.
+///
+/// AREA_PLACEMENT_END terminates the list. Positions are signed world units,
+/// yaw uses 4096 units per turn. Modes 0 and 1 select separate room patrol
+/// routes, and variant 0 permits lock-on. Spawned actors borrow these records
+/// while the room stays loaded.
+static AreaPlacement _gShelterB1MainCorridorVariant3Placements[3] = {
+    { 3, 0, 0, 0, 0, -3000, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
     { 3, 0, 1, 0, 0, -0x2710, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_main_corridor_80185BE0[2] = {
+/// One Knight GOLEM placement for corridor variant 7.
+///
+/// AREA_PLACEMENT_END terminates the list. Positions are signed world units,
+/// yaw uses 4096 units per turn, and variant/mode/row select actor-specific
+/// behavior. Spawned actors borrow these records while the room stays loaded.
+static AreaPlacement _gShelterB1MainCorridorVariant7Placements[2] = {
     { 22, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaPlacement D_shelter_b1_main_corridor_80185C00[3] = {
-    { 56, 6, 1, 0, 0, -2000, 2048, 0, 0, 2, 0 },
-    { 57, 4, 1, -2000, 0, -0x2710, 1024, 0, 3, 5, 0 },
+/// One Pawn and one Rook GOLEM placement for corridor variant 11.
+///
+/// AREA_PLACEMENT_END terminates the list. Positions are signed world units,
+/// yaw uses 4096 units per turn. Mode 1 enables patrols; variants 6 and 4
+/// set leg lengths of 6000 and 4000 units. Spawned actors borrow these records
+/// while the room stays loaded.
+static AreaPlacement _gShelterB1MainCorridorVariant11Placements[3] = {
+    { 56, 6, 1, 0, 0, -2000, ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0, 2, 0 },
+    { 57, 4, 1, -2000, 0, -0x2710, ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 3, 5, 0 },
     { AREA_PLACEMENT_END, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 };
 
-AreaVariant D_shelter_b1_main_corridor_80185C30[22] = {
-    { NULL, NULL },
-    { D_shelter_b1_main_corridor_80185B10, D_shelter_b1_main_corridor_80185A80 },
-    { D_shelter_b1_main_corridor_80185B70, D_shelter_b1_main_corridor_80185AA4 },
-    { D_shelter_b1_main_corridor_80185BB0, D_shelter_b1_main_corridor_80185ABC },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_main_corridor_80185BE0, D_shelter_b1_main_corridor_80185AD4 },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { D_shelter_b1_main_corridor_80185C00, D_shelter_b1_main_corridor_80185AEC },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
-    { NULL, NULL },
+AreaVariant gShelterB1MainCorridorAreaVariants[22] = {
+    [1]  = { _gShelterB1MainCorridorVariant1Placements, _gShelterB1MainCorridorVariant1Resources },
+    [2]  = { _gShelterB1MainCorridorVariant2Placements, _gShelterB1MainCorridorVariant2Resources },
+    [3]  = { _gShelterB1MainCorridorVariant3Placements, _gShelterB1MainCorridorVariant3Resources },
+    [7]  = { _gShelterB1MainCorridorVariant7Placements, _gShelterB1MainCorridorVariant7Resources },
+    [11] = { _gShelterB1MainCorridorVariant11Placements, _gShelterB1MainCorridorVariant11Resources },
 };
 
 enum {
@@ -813,12 +862,13 @@ RoomEventStartStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_b1_main_corridor_80185D44[4] = {
-    0,
-    7,
-    132,
-    0,
-};
+/// Whether the latest staged-departure check attempted to spawn its controller.
+///
+/// Each check clears `eventStarted` (0 no, 1 attempted), including queries and
+/// already-seen events. Spawn failure also leaves it set; it is not a task-
+/// lifetime flag. The trailing initialized bytes have no recovered access,
+/// and their role and grouping are unproven.
+static RoomEventActiveBytes _gShelterB1MainCorridorStagedEventStart = { 0, { 7, 132, 0 } };
 
 RoomEventReqStorage gRoomEventReq;
 
@@ -850,7 +900,7 @@ static __inline__ s32 _shelterB1MainCorridorStartEvent(const RoomEventMsg* trans
         ROOM_EVENT_ELIGIBLE     = 2
     };
 
-    D_shelter_b1_main_corridor_80185D44[0] = ROOM_EVENT_NOT_STARTED;
+    _gShelterB1MainCorridorStagedEventStart.eventStarted = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *transition;
@@ -858,8 +908,8 @@ static __inline__ s32 _shelterB1MainCorridorStartEvent(const RoomEventMsg* trans
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
-            taskSpawnFromTable(&D_shelter_b1_main_corridor_80183098, 0, 0, 0);
-            D_shelter_b1_main_corridor_80185D44[0] = ROOM_EVENT_STARTED;
+            taskSpawnFromTable(&_gShelterB1MainCorridorStagedEventTaskDesc, 0, 0, 0);
+            _gShelterB1MainCorridorStagedEventStart.eventStarted = ROOM_EVENT_STARTED;
         }
         return ROOM_EVENT_ELIGIBLE;
     }
@@ -995,7 +1045,7 @@ static s32 _shelterB1MainCorridorHandleSoundMessage(Task* task, s32 messageId, s
 /// Borrows the message table and publishes the live task in `GAME_TASK_SLOT_ROOM`.
 static void _shelterB1MainCorridorInitRoomTask(Task* task)
 {
-    task->msgTable = D_shelter_b1_main_corridor_801830A4;
+    task->msgTable = _gShelterB1MainCorridorRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -1005,8 +1055,11 @@ static void _shelterB1MainCorridorMessageTaskIdle(Task* task)
 {
 }
 
-/// States of the room's message task: install the message table, idle, die.
-static const TaskFuncTable3 D_shelter_b1_main_corridor_8017D5F0 = {
+/// Room-receiver states indexed by `Task::state`: 0 register, 1 idle, 2 release.
+///
+/// The dispatcher copies all three callbacks before selecting a state; requires
+/// state 0..2 and the room overlay to remain loaded through dispatch.
+static const TaskFuncTable3 _gShelterB1MainCorridorRoomTaskStates = {
     { _shelterB1MainCorridorInitRoomTask, _shelterB1MainCorridorMessageTaskIdle, taskKill },
 };
 
@@ -1014,7 +1067,7 @@ void shelterB1MainCorridorRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_main_corridor_8017D5F0;
+    stateHandlers = _gShelterB1MainCorridorRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -1064,18 +1117,18 @@ void shelterB1MainCorridorDrawViewLightsTask(Task* task)
     }
 
     // Each view selects fixed world-space endpoint pairs and flare centres.
-    // Some offsets continue through the neighboring point declarations.
+    // Views 7 and 8 start at point 2; all offsets remain within the common table.
     switch (viewGetMappedIndex() & VIEW_INDEX_MASK) {
         case 2:
         case 3: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_main_corridor_801830D4;
+            lightPoints = _gShelterB1MainCorridorEntryBeamPoints;
             _shelterB1MainCorridorDrawBeamPair(lightPoints, BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_WHITE);
             break;
         }
         case 4: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_main_corridor_80183114;
+            lightPoints = _gShelterB1MainCorridorViewLightPoints;
             _glowDrawBeam(&lightPoints[0], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
             _glowDrawBeam(&lightPoints[4], BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
             glowDrawFlareClipped(&lightPoints[10], FLARE_TEXTURE_COLUMN, FLARE_RADIUS_SCALE);
@@ -1085,14 +1138,14 @@ void shelterB1MainCorridorDrawViewLightsTask(Task* task)
             break;
         }
         case 5:
-            _glowDrawBeam(D_shelter_b1_main_corridor_80183134, BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
+            _glowDrawBeam(&_gShelterB1MainCorridorViewLightPoints[4], BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
             break;
         case 6:
-            _glowDrawBeam(D_shelter_b1_main_corridor_80183114, BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
+            _glowDrawBeam(_gShelterB1MainCorridorViewLightPoints, BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
             break;
         case 7: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_main_corridor_80183124;
+            lightPoints = &_gShelterB1MainCorridorViewLightPoints[2];
             _glowDrawBeam(&lightPoints[0], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
             _glowDrawBeam(&lightPoints[4], BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
             _glowDrawBeam(&lightPoints[6], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_RED);
@@ -1104,16 +1157,16 @@ void shelterB1MainCorridorDrawViewLightsTask(Task* task)
         }
         case 8: {
             const SVECTOR* lightPoints;
-            lightPoints = D_shelter_b1_main_corridor_80183124;
+            lightPoints = &_gShelterB1MainCorridorViewLightPoints[2];
             _glowDrawBeam(&lightPoints[0], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
             _glowDrawBeam(&lightPoints[6], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_RED);
             break;
         }
         case 9:
-            _glowDrawBeam(D_shelter_b1_main_corridor_80183144, BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
+            _glowDrawBeam(&_gShelterB1MainCorridorViewLightPoints[6], BEAM_RADIUS_SCALE, 0, BEAM_GREEN);
             break;
         case 10:
-            _glowDrawBeam(D_shelter_b1_main_corridor_80183124, BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
+            _glowDrawBeam(&_gShelterB1MainCorridorViewLightPoints[2], BEAM_RADIUS_SCALE, GLOW_HALF_TURN, BEAM_GREEN);
             break;
     }
 }

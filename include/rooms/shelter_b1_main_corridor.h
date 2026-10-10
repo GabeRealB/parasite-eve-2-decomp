@@ -12,7 +12,13 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_shelter_b1_main_corridor_80185C30[22];
+/// Saved placement variants 0..21 for the Shelter B1 main corridor.
+///
+/// Variant 1 is the default; 2, 3, 7 and 11 select alternate actor layouts.
+/// Every other slot has NULL lists, including variant 21's empty corridor.
+/// Gameplay borrows the selected placement/resource lists, so keep this room
+/// overlay loaded while loading, spawning or using its placement records.
+extern AreaVariant gShelterB1MainCorridorAreaVariants[22];
 
 /// Logical-view maps for the corridor's single room.
 ///
@@ -21,9 +27,20 @@ extern AreaVariant D_shelter_b1_main_corridor_80185C30[22];
 /// keep this room overlay and gameplay loaded while using it.
 extern u8* gShelterB1MainCorridorRoomViewMaps[1];
 
-extern ViewCount D_shelter_b1_main_corridor_801831FC[];
+/// Ten logical views in the corridor's single room, indexed by room ID minus one.
+///
+/// Limits reverse searches of the room's identity view map; no terminator.
+/// The Shelter map borrows this signed-halfword count while the room is loaded.
+extern ViewCount gShelterB1MainCorridorRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_main_corridor_80183200[];
+/// Six departure and arrival endpoints, indexed by 1-based warp slot minus one.
+///
+/// Slots 1..6 lead to the elevator hall, control-room access tunnel, armory,
+/// transfer tunnel, sleeping quarters and sterilization room. Each stores
+/// player/companion world placements, arrival view and sounds; slot 4 also
+/// supplies the locked-door sound. There is no terminator. The Shelter map
+/// borrows the table; keep this room loaded until the complete entry is copied.
+extern DirectionWarpEntry gShelterB1MainCorridorWarpEntries[6];
 
 /// The corridor's room-space collision mesh and 3-by-6 XZ cell index.
 ///
@@ -33,9 +50,20 @@ extern DirectionWarpEntry D_shelter_b1_main_corridor_80183200[];
 /// coordinate; keep this overlay loaded while the grid and its pools are active.
 extern WorldCollisionGrid gShelterB1MainCorridorCollisionGrid;
 
-extern ViewCamera D_shelter_b1_main_corridor_80184114[];
+/// Cameras for mapped corridor views 1..10, indexed by mapped view minus one.
+///
+/// Matrices use 4096 per unit and negated origins in signed world coordinates;
+/// projection distances are pixels. No terminator. The map and queued camera
+/// task borrow these records until application, so the room must stay loaded.
+extern ViewCamera gShelterB1MainCorridorViewCameras[10];
 
-extern SpriteView D_shelter_b1_main_corridor_80185128[];
+/// Sprite resources for mapped corridor views 1..10, indexed by mapped view minus one.
+///
+/// Views 1..3 retain empty lists and decoded backdrops. Views 4..10 select
+/// complete sprite-source ranges; views 4 and 7 also select depth clips.
+/// The map borrows this mutable table and its lists while the room is loaded;
+/// cached packets require the records through initialization and drawing.
+extern SpriteView gShelterB1MainCorridorSpriteViews[10];
 
 /// Six point lights shading models throughout the corridor's views.
 ///
@@ -44,9 +72,23 @@ extern SpriteView D_shelter_b1_main_corridor_80185128[];
 /// transforms and attenuation, so the record and room overlay must remain live.
 extern WorldCoordRoomLights gShelterB1MainCorridorRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b1_main_corridor_801853F8[];
+/// Sixteen directed view-change quads for the corridor's single room.
+///
+/// Source/destination view bytes are 1-based views 2..10. The final live quad
+/// carries WORLD_COLLISION_TRIGGER_LAST. Positions and radii are game units,
+/// normals use 4096 per unit. Gameplay binds and links the mutable records;
+/// keep the room loaded until they are unlinked.
+extern WorldCollisionTrigger gShelterB1MainCorridorViewBoundaries[16];
 
-extern WorldCollisionTrigger D_shelter_b1_main_corridor_801858B8[];
+/// Six facing-gated door quads requesting departures from the corridor.
+///
+/// In warp-slot order: elevator hall, control-room access tunnel, armory,
+/// transfer tunnel, sleeping quarters and sterilization room. Each packs its
+/// departure slot in the high nibble and destination arrival slot in the low
+/// nibble; the final live quad carries WORLD_COLLISION_TRIGGER_LAST. Positions
+/// and radii are game units, normals use 4096 per unit. Gameplay binds and
+/// links the mutable records; keep the room loaded until they are unlinked.
+extern WorldCollisionTrigger gShelterB1MainCorridorWarpTriggers[6];
 
 /// Collision policies and footstep cues indexed by room-local surface class 0..7.
 ///

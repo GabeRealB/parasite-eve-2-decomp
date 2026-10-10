@@ -930,7 +930,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     D_shelter_b1_north_maintenance_walkway_80184B88,
     D_shelter_b1_armory_80182588,
     D_shelter_b1_sleeping_quarters_80180660,
-    D_shelter_b1_main_corridor_80183200,
+    gShelterB1MainCorridorWarpEntries,
     gShelterB1SterilizationRoomWarpEntries,
     gShelterB1PodAccessTunnelWarpEntries,
     D_shelter_b1_control_room_80181C78,
@@ -982,7 +982,7 @@ static ViewCount* D_map_shelter_8017B04C[49] = {
     D_shelter_b1_north_maintenance_walkway_80184B84,
     D_shelter_b1_armory_80182584,
     D_shelter_b1_sleeping_quarters_8018065C,
-    D_shelter_b1_main_corridor_801831FC,
+    gShelterB1MainCorridorRoomViewCounts,
     gShelterB1SterilizationRoomViewCounts,
     gShelterB1PodAccessTunnelRoomViewCounts,
     D_shelter_b1_control_room_80181C74,
@@ -1034,7 +1034,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B134[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B144[1] = {
-    { &gShelterB1MainCorridorCollisionGrid, D_shelter_b1_main_corridor_801853F8, D_shelter_b1_main_corridor_801858B8, NULL },
+    { &gShelterB1MainCorridorCollisionGrid, gShelterB1MainCorridorViewBoundaries, gShelterB1MainCorridorWarpTriggers, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B154[1] = {
@@ -1207,7 +1207,7 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
     gShelterB1NorthMaintenanceWalkwayViewCameras,
     D_shelter_b1_armory_80182EF4,
     D_shelter_b1_sleeping_quarters_801810F8,
-    D_shelter_b1_main_corridor_80184114,
+    gShelterB1MainCorridorViewCameras,
     gShelterB1SterilizationRoomViewCameras,
     gShelterB1PodAccessTunnelViewCameras,
     gShelterB1ControlRoomViewCameras,
@@ -1323,7 +1323,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB1NorthMaintenanceWalkwaySpriteViews,
     gShelterB1ArmorySpriteViews,
     D_shelter_b1_sleeping_quarters_80182E70,
-    D_shelter_b1_main_corridor_80185128,
+    gShelterB1MainCorridorSpriteViews,
     gShelterB1SterilizationRoomSpriteViews,
     gShelterB1PodAccessTunnelSpriteViews,
     gShelterB1ControlRoomSpriteViews,
