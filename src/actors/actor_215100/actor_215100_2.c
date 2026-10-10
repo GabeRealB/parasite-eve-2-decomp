@@ -2578,7 +2578,7 @@ void actor215100GalleryExitDecisionTask(Task* task)
             gActor215100GalleryTrainingActive = 0;
             mistShootingGallerySetTrainingBarrierLowered(1);
             gActor215100GalleryExitInputBlocked = 1;
-            taskCallExit(D_mist_shooting_gallery_8018E0C4);
+            taskCallExit(gMistShootingGalleryControllerTask);
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
@@ -2622,7 +2622,7 @@ void actor215100GalleryAbortDecisionTask(Task* task)
                 break;
             }
             if (capGetVariantKey() == ACTOR_215100_GALLERY_ABORT_REPLY_STOP) {
-                taskCallExit(D_mist_shooting_gallery_8018E0C4);
+                taskCallExit(gMistShootingGalleryControllerTask);
                 task->state++;
             } else {
                 taskKill(task);
@@ -2807,11 +2807,10 @@ static void _actor215100GalleryRedFlashLoopTask(Task* task)
 {
     enum {
         ACTOR_215100_GALLERY_RED_FLASH_PERIOD_TICKS = 48,
-        ACTOR_215100_GALLERY_RED_FLASH_TASK         = 1,
     };
 
     if (task->killCountdown % ACTOR_215100_GALLERY_RED_FLASH_PERIOD_TICKS == 0) {
-        taskSpawnFromTable(D_mist_shooting_gallery_801856B8, ACTOR_215100_GALLERY_RED_FLASH_TASK, 0, 0);
+        taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_RED_FLASH, 0, 0);
     }
     task->killCountdown = task->killCountdown + 1;
 }

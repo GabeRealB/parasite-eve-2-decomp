@@ -16,9 +16,29 @@
 /// to the loaded gallery overlay; borrowed pointers must not outlive it.
 extern WorldCollisionGrid gMistShootingGalleryCollisionGrid;
 
-extern WorldCollisionTrigger D_mist_shooting_gallery_8018BDE8[28];
+/// Directed view-boundary quads for the gallery's mapped views 1..18.
+///
+/// Source/destination pairs occupy 28 records, including the LAST-marked final
+/// boundary. Origins, corner offsets and radii use game units; normals use
+/// 4096 per unit. Room binding supplies coordinates and mutable list links.
+/// Storage must stay loaded until the active boundary list is cleared.
+extern WorldCollisionTrigger gMistShootingGalleryViewBoundaryTriggers[28];
 
-extern WorldCollisionTrigger D_mist_shooting_gallery_8018C638[21];
+/// Room-action IDs shared by the gallery trigger data and room-message handler.
+enum {
+    MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU = 1,
+    MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE   = 2,
+    MIST_SHOOTING_GALLERY_ACTION_TRAINING_POINT   = 3,
+    MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT      = 4,
+};
+
+/// Gallery interaction quads for warps, CAP commands and room-action points.
+///
+/// All 21 records are live, including the LAST-marked final quad. Room binding
+/// supplies coordinates, links and enabled state; collision and action dispatch
+/// update hit latches. Positions/radii use game units and normals use 4096 per
+/// unit. The loaded gallery owns the storage until its action list is cleared.
+extern WorldCollisionTrigger gMistShootingGalleryActionTriggers[21];
 
 /// Default gallery room lighting: fourteen point lights contributing in every view.
 ///
@@ -28,7 +48,13 @@ extern WorldCollisionTrigger D_mist_shooting_gallery_8018C638[21];
 /// outlive the overlay. Coordinate updates and shading queries modify the lights.
 extern WorldCoordRoomLights gMistShootingGalleryDefaultRoomLights;
 
-extern WorldCoordRoomLights D_mist_shooting_gallery_8018DF38;
+/// Alternate gallery shading collection: one directional, 18 point and 15 cone lights.
+///
+/// Selected by the nonzero lighting option, independently of the shared ambient
+/// table. The gallery owns the record and mutable arrays: coordinate updates
+/// compose their transforms and shading queries write attenuation. Borrowed
+/// pointers remain valid only while the room overlay is loaded.
+extern WorldCoordRoomLights gMistShootingGalleryAlternateRoomLights;
 
 /// Number of per-view colour entries in the gallery's ambient-light table.
 ///
@@ -43,9 +69,19 @@ enum { MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT = 18 };
 /// share this table. Borrowed pointers are valid only while the overlay is loaded.
 extern const WorldCoordRoomAmbientEntry gMistShootingGalleryViewAmbientTable[MIST_SHOOTING_GALLERY_AMBIENT_VIEW_COUNT + 1];
 
-extern s32 D_mist_shooting_gallery_8018E0BC;
+/// Unspent EXP captured before the carryover menu changes the selected run mode.
+///
+/// Captured only after SELECT is created; STATUS previews its scaled value and
+/// confirmation writes the same conversion to the player. Valid for that display
+/// session while the gallery is loaded; stored separately from the changing live balance.
+extern s32 gMistShootingGalleryUnscaledExp;
 
-extern s32 D_mist_shooting_gallery_8018E0C0;
+/// Spendable BP captured before the carryover menu changes the selected run mode.
+///
+/// Captured alongside `gMistShootingGalleryUnscaledExp`; STATUS and confirmation
+/// scale this unchanged snapshot for the selected mode during the display session.
+/// It belongs to the loaded gallery overlay, independently of the live BP balance.
+extern s32 gMistShootingGalleryUnscaledBp;
 
 /// Returns the bonus BP earned by a score in the active gallery course.
 ///

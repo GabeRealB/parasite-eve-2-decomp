@@ -50871,12 +50871,12 @@ state and then spawn a record:
 
 ```c
 work->phase++;                                  /* mem/s store, varying base */
-spawn = &D_mist_shooting_gallery_80186900[work->spawnIndex];
+spawn = &_gMistShootingGalleryCourse0WaveScriptRefs[work->spawnIndex];
 _mistShootingGallerySpawnTarget(controller, spawn);
 work->spawnIndex++;
 ```
 
-With `extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900;` the
+With a scalar `_MistShootingGallerySpawn* _gMistShootingGalleryCourse0WaveScriptRefs` the
 `lw %lo(...)` is a fixed-address scalar MEM, so `true_dependence` clears every
 edge between it and the `work->` traffic. The address chain (`lh`, two `sll`,
 two `addu`, the `lw`) then has the longest path to the `jal` and sched1 hoists
@@ -50887,12 +50887,12 @@ of from `addiu`, so the second arm loses its own `lhu`/`addiu` copy and the
 whole function comes out one instruction short (96.5%, `regs`/`insert`/`delete`
 all non-zero).
 
-Declaring the global as the array it is restores the dependence and the source
+Declaring the pointer slot as a one-element array restores the dependence and the source
 order, and 100% follows with no other change:
 
 ```c
-extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
-spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
+static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse0WaveScriptRefs[1];
+spawn = &_gMistShootingGalleryCourse0WaveScriptRefs[0][work->spawnIndex];
 ```
 
 Two things this measurement adds to the store-side entry:
@@ -50905,12 +50905,11 @@ Two things this measurement adds to the store-side entry:
   clobber is not volatile and has no scheduling effect at all — it scored exactly
   the same as no barrier. When the fix has to keep a later instruction free to
   move above the store, only the aggregate declaration works.
-* **Consecutive same-typed globals are the hint.** `0x80186900`, `0x80186904`,
-  `0x80186908`, `0x8018690C`, `0x80186910` are five course wave-script pointers;
-  neighbours at exactly `sizeof(T)` apart mean the array bound is a true
-  statement, not a codegen trick. Sibling functions may already reference the
-  later elements by their own addresses — that keeps linking, so the array form
-  can be introduced for one element at a time.
+* **Consecutive same-typed globals suggest a shape to investigate.** `0x80186900`,
+  `0x80186904`, `0x80186908`, `0x8018690C`, `0x80186910` are five course wave-script
+  pointers, but adjacency alone does not establish one five-element array. Each
+  course selects its own pointer; the current declaration gives only the first
+  slot a one-element array, preserving the measured load ordering.
 
 The register-allocation half of the same function is the mirror of "Early
 `return ret;` inflates `ret`'s ref count": `work` (105 refs / 330 insns) beat

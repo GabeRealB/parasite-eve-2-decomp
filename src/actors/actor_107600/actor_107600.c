@@ -1518,7 +1518,7 @@ static void _actor107600UpdateTarget(Task* task)
             break;
     }
     if (work->mountBehaviour != ACTOR_107600_MOUNT_FIXED) {
-        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->targetLockMask = worldTargetGetActorLockMask(&enemy->node);
+        ((MistShootingGalleryWork*)gMistShootingGalleryControllerTask->work)->targetLockMask = worldTargetGetActorLockMask(&enemy->node);
     }
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     _actor107600UpdateTargetRotation(task);
@@ -1660,8 +1660,8 @@ static void _actor107600UpdateActiveTarget(Task* task)
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_TARGET_ATTACK, soundPan, (s8)worldCoordGetOriginAudioDepth(playerHitCoord));
                 if (playerActor->mode != GAME_ACTOR_MODE_DAMAGE) {
                     if (gPlayerStatus.hp <= ACTOR_107600_TARGET_PLAYER_DAMAGE) {
-                        ((MistShootingGalleryWork*)D_mist_shooting_gallery_8018E0C4->work)->lethalHit = 1;
-                        playerActor->pendingDamage                                                    = 0;
+                        ((MistShootingGalleryWork*)gMistShootingGalleryControllerTask->work)->lethalHit = 1;
+                        playerActor->pendingDamage                                                      = 0;
                     } else {
                         playerActor->pendingDamage = ACTOR_107600_TARGET_PLAYER_DAMAGE;
                     }
@@ -1822,7 +1822,7 @@ static void _actor107600TumbleDestroyedTarget(Task* task)
     Enemy*                   enemy     = task->spawnArg2.pointer;
     TmdObject*               model     = task->extra.tmd;
     GfxCoord*                rootCoord = model->coords;
-    MistShootingGalleryWork* gallery   = D_mist_shooting_gallery_8018E0C4->work;
+    MistShootingGalleryWork* gallery   = gMistShootingGalleryControllerTask->work;
     VECTOR*                  hitDirection;
     s32                      targetKind;
     s32                      soundId;

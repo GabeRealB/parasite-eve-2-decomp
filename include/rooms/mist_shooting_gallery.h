@@ -23,7 +23,7 @@
 /// from its countdown through its target waves to the result panel.
 ///
 /// The controller allocates it zeroed and publishes its task as
-/// `D_mist_shooting_gallery_8018E0C4`, through which the targets it spawns and
+/// `gMistShootingGalleryControllerTask`, through which the targets it spawns and
 /// the RESULT panel reach it. Times are in frames at 30 per second. The block
 /// lives as long as the controller task.
 typedef struct {
@@ -46,11 +46,31 @@ typedef struct {
 } MistShootingGalleryWork;
 STATIC_ASSERT_SIZEOF(MistShootingGalleryWork, 0x24);
 
-extern Task* D_mist_shooting_gallery_8018E0C4;
+/// Borrowed task of the most recently initialized gallery course controller.
+///
+/// Published after successful work allocation. Its `work` is a
+/// `MistShootingGalleryWork` owned by the task; targets, result panels and score
+/// queries require it to remain live. The pointer is not cleared on teardown
+/// and must not be used afterwards. The gallery and target overlays stay loaded
+/// throughout the course, including its result display.
+extern Task* gMistShootingGalleryControllerTask;
 
 extern TaskDesc D_mist_shooting_gallery_80185384[3];
 
-extern TaskDesc D_mist_shooting_gallery_801856B8[2];
+/// Indices in `gMistShootingGalleryTaskDescs`; these are descriptor slots, not states.
+enum {
+    MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER = 0,
+    MIST_SHOOTING_GALLERY_TASK_RED_FLASH         = 1,
+    MIST_SHOOTING_GALLERY_TASK_COUNT             = 2,
+};
+
+/// Course-controller and red-screen-flash task descriptors for the loaded gallery.
+///
+/// Both tasks have no body and run at priority 192. The controller takes course
+/// 0..4 in the low nibble of its first spawn argument; the flash ignores the
+/// incoming arguments and owns no work. Spawning reads a descriptor immediately;
+/// its callback code must remain loaded until the task exits.
+extern TaskDesc gMistShootingGalleryTaskDescs[MIST_SHOOTING_GALLERY_TASK_COUNT];
 
 extern AreaVariant D_mist_shooting_gallery_8018DF74[12];
 
@@ -87,9 +107,25 @@ extern WorldCoordRoomLighting gMistShootingGalleryRoomLightingTable[1];
 
 extern DirectionWarpEntry D_mist_shooting_gallery_801853C8[];
 
-extern ViewCamera D_mist_shooting_gallery_8018998C[];
+/// Extent of the gallery's mapped camera and sprite-view resource arrays.
+enum { MIST_SHOOTING_GALLERY_MAPPED_VIEW_COUNT = 18 };
 
-extern SpriteView D_mist_shooting_gallery_8018BD10[];
+/// Cameras for mapped gallery views 1..18, stored at mapped index minus one.
+///
+/// No terminator. Rotation coefficients have 12 fractional bits; translation
+/// is the negated camera origin in world units, and projection distance is in
+/// pixels. The Acropolis map directory borrows this array while the gallery is
+/// loaded; queued camera application requires the selected record to stay live.
+extern ViewCamera gMistShootingGalleryViewCameras[MIST_SHOOTING_GALLERY_MAPPED_VIEW_COUNT];
+
+/// Sprite resources for mapped gallery views 1..18, stored at index minus one.
+///
+/// No terminator. Each view borrows a `SPRITE_BATCH_END`-terminated list and optional
+/// source elements; all draw-area pointers are NULL. Empty views retain their
+/// batch address in `sources.empty`, which is never read as source elements.
+/// The Acropolis map directory and renderer borrow the writable records and
+/// their arrays only while the gallery overlay remains loaded.
+extern SpriteView gMistShootingGallerySpriteViews[MIST_SHOOTING_GALLERY_MAPPED_VIEW_COUNT];
 
 /// Collision and footstep properties indexed by the gallery's surface class (0..7).
 ///

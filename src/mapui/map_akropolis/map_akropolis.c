@@ -895,7 +895,7 @@ static SpriteView* D_map_akropolis_8017AACC[20] = {
     gAcropolisWestElevatorHallSpriteViews,
     gMistR18SpriteViews,
     gMistParkingSpriteViews,
-    D_mist_shooting_gallery_8018BD10,
+    gMistShootingGallerySpriteViews,
 };
 
 SpriteAreaTable D_map_akropolis_8017AB1C = { D_map_akropolis_8017AACC };
@@ -968,7 +968,7 @@ static ViewCamera* D_map_akropolis_8017ABC4[20] = {
     gAcropolisWestElevatorHallViewCameras,
     gMistR18ViewCameras,
     gMistParkingViewCameras,
-    D_mist_shooting_gallery_8018998C,
+    gMistShootingGalleryViewCameras,
 };
 
 ViewCameraTable D_map_akropolis_8017AC14 = { D_map_akropolis_8017ABC4 };

@@ -857,7 +857,7 @@ TaskDesc D_mist_shooting_gallery_80185384[3] = {
 };
 
 WorldCollisionRoomResources D_mist_shooting_gallery_801853A8[1] = {
-    { &gMistShootingGalleryCollisionGrid, D_mist_shooting_gallery_8018BDE8, D_mist_shooting_gallery_8018C638, NULL },
+    { &gMistShootingGalleryCollisionGrid, gMistShootingGalleryViewBoundaryTriggers, gMistShootingGalleryActionTriggers, NULL },
 };
 
 u8* gMistShootingGalleryViewMaps[1] = {
@@ -1201,7 +1201,7 @@ static void _mistShootingGalleryResultPanelTask(Task* task)
     rowCount     = 0;
     totalScore   = 0;
     object       = task->spawnArg2.pointer;
-    work         = D_mist_shooting_gallery_8018E0C4->work;
+    work         = gMistShootingGalleryControllerTask->work;
     contentInset = object->panel.contentLeft.signedValue + 2;
     rowY         = object->panel.contentTop.signedValue + 0x17;
     {
@@ -1606,13 +1606,13 @@ static void _mistShootingGalleryModeStatusPanelTask(Task* task)
     textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), valueColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     rowY           = contentTop + 0x2D;
-    displayedValue = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
+    displayedValue = _mistShootingGalleryScaleReward(gMistShootingGalleryUnscaledExp);
 
     MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(expCaption, "EXP");
     textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
     rowY          += 0xF;
-    displayedValue = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);
+    displayedValue = _mistShootingGalleryScaleReward(gMistShootingGalleryUnscaledBp);
 
     MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(bpCaption, "BP");
     textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -1749,8 +1749,8 @@ static void _mistShootingGalleryCarryoverModeSessionTask(Task* task)
         object = uiSpawnObject(&D_mist_shooting_gallery_80185060, 0, 1, 1, NULL);
         if (object != NULL) {
             // Capture before the row callback starts changing the selected run mode.
-            D_mist_shooting_gallery_8018E0C0 = player->bp;
-            D_mist_shooting_gallery_8018E0BC = player->exp;
+            gMistShootingGalleryUnscaledBp  = player->bp;
+            gMistShootingGalleryUnscaledExp = player->exp;
             displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
             task->spawnArg2.pointer = object;
             task->state             = task->state + 1;
@@ -1764,8 +1764,8 @@ static void _mistShootingGalleryCarryoverModeSessionTask(Task* task)
             equipmentRecalculateMaxMp();
 
             // Commit the same conversion the STATUS child has been previewing.
-            player->exp = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
-            player->bp  = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);
+            player->exp = _mistShootingGalleryScaleReward(gMistShootingGalleryUnscaledExp);
+            player->bp  = _mistShootingGalleryScaleReward(gMistShootingGalleryUnscaledBp);
             equipmentRestoreHpMp();
             task->state = task->state + 1;
         }
@@ -1866,7 +1866,7 @@ static void _mistShootingGalleryInitRoomTask(Task* task)
     }
     _mistShootingGallerySetStoryBarrierLowered(storyBarrierLowered);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == MIST_SHOOTING_GALLERY_DEMO_SCENE) {
-        taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, 0, 0);
+        taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER, 0, 0);
     } else if (gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_CARRYOVER_WARP) {
         taskSpawnFromTable(gActor215100GalleryTaskDescs, ACTOR_215100_GALLERY_INTRO_TASK, 0, 0);
     }
@@ -2061,12 +2061,8 @@ static s32 _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 comm
 static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     enum {
-        MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU = 1,
-        MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE   = 2,
-        MIST_SHOOTING_GALLERY_ACTION_TRAINING_POINT   = 3,
-        MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT      = 4,
-        MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS      = 10,
-        MIST_SHOOTING_GALLERY_STORY_OBJECTIVE         = 59,
+        MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS = 10,
+        MIST_SHOOTING_GALLERY_STORY_OBJECTIVE    = 59,
     };
     if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (gActor215100GalleryTrainingActive == 0)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -2674,7 +2670,7 @@ void mistShootingGallerySelectRoomLights(s16 useAlternate)
         gMistShootingGalleryRoomLightingTable[0].lights = &gMistShootingGalleryDefaultRoomLights;
         return;
     }
-    gMistShootingGalleryRoomLightingTable[0].lights = &D_mist_shooting_gallery_8018DF38;
+    gMistShootingGalleryRoomLightingTable[0].lights = &gMistShootingGalleryAlternateRoomLights;
 }
 
 void mistShootingGalleryDrawLightGlowsTask(Task* unused)

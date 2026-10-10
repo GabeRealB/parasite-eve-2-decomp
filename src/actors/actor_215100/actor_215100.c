@@ -396,7 +396,7 @@ void actor215100GalleryTrainingMenuTask(Task* task)
             break;
         case ACTOR_215100_MENU_SPAWN_TRAINING:
             gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_REEQUIP_WEAPON);
-            taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, gActor215100GallerySelectedCourseLevel - 1, 0);
+            taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER, gActor215100GallerySelectedCourseLevel - 1, 0);
             gActor215100GalleryExitInputBlocked = 1;
             taskKill(task);
             break;

@@ -381,9 +381,9 @@ mistShootingGallerySignalAction = 0x80184954; // type:func absolute:True owner=m
 
 D_mist_shooting_gallery_80185384 = 0x80185384; // absolute:True owner=mist_shooting_gallery
 
-D_mist_shooting_gallery_801856B8 = 0x801856B8; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryTaskDescs = 0x801856B8; // absolute:True owner=mist_shooting_gallery
 
-D_mist_shooting_gallery_8018E0C4 = 0x8018E0C4; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryControllerTask = 0x8018E0C4; // absolute:True owner=mist_shooting_gallery
 
 mistShootingGalleryPrepareTrainingLoadout = 0x8017DCAC; // type:func absolute:True owner=mist_shooting_gallery
 

@@ -89,7 +89,7 @@ D_actor_107600_80134F80 = 0x80134F80; // size:0x4 defined:True
 D_actor_107600_80134F84 = 0x80134F84; // size:0x10 defined:True
 D_actor_107600_80134F94 = 0x80134F94; // size:0xE4 defined:True
 
-D_mist_shooting_gallery_8018E0C4 = 0x8018E0C4; // absolute:True owner=mist_shooting_gallery
+gMistShootingGalleryControllerTask = 0x8018E0C4; // absolute:True owner=mist_shooting_gallery
 _actor107600UpdateStandingMountPath = 0x80132160; // type:func
 _actor107600UpdateHangingMountPath = 0x80132514; // type:func
 _actor107600RetireMount = 0x80132a7c; // type:func

@@ -1,7 +1,7 @@
 #include "types.h"
 
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
-s32 D_mist_shooting_gallery_8018E0C0;
+s32 gMistShootingGalleryUnscaledBp;
 
 #include "rooms/mist_shooting_gallery.h"
 
@@ -106,29 +106,16 @@ typedef struct {
 } _MistShootingGallerySpawn;
 STATIC_ASSERT_SIZEOF(_MistShootingGallerySpawn, 0xC);
 
-extern TaskDesc D_mist_shooting_gallery_801856D0;
 extern TaskDesc D_actor_107600_80134F94[];
-/// The wave script the round loop walks: a run of records sharing
-/// `frame` is spawned together, `MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR` waits
-/// for the current wave to clear and `MIST_SHOOTING_GALLERY_SPAWN_END` stops
-/// the script.
-extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186904;
 /// The second course's wave script, walked exactly like
-/// `D_mist_shooting_gallery_80186904` but by the bonus-round state machine.
+/// `_gMistShootingGalleryCourse1WaveScriptRef` but by the bonus-round state machine.
 extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186910;
 /// The first bonus course's wave script, walked exactly like
-/// `D_mist_shooting_gallery_80186904` but by the bonus-round state machine.
+/// `_gMistShootingGalleryCourse1WaveScriptRef` but by the bonus-round state machine.
 extern _MistShootingGallerySpawn* D_mist_shooting_gallery_8018690C;
 /// The second bonus course's wave script, walked exactly like
-/// `D_mist_shooting_gallery_80186904` but by the bonus-round state machine.
+/// `_gMistShootingGalleryCourse1WaveScriptRef` but by the bonus-round state machine.
 extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186908;
-/// The five course wave scripts as the one array they are: element 0 is the
-/// bonus course's script, and elements 1..4 are the same pointers the round
-/// scripts above reach by their own addresses (`0x80186904` .. `0x80186910`).
-/// The array type is what `_mistShootingGalleryRunCourse0` needs - an
-/// array element counts as a struct reference to GCC 2.8.1's alias analysis,
-/// so the load is ordered against the `work->phase` store that precedes it.
-extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 static void                       _mistShootingGalleryExitCourse(Task* task);
 static void                       _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
 static u16                        _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
@@ -145,17 +132,19 @@ static void                       _mistShootingGalleryRunCourse4(Task* controlle
 static void                       _mistShootingGalleryFinishCourse(Task* controller);
 static void                       _mistShootingGalleryRunCourse(Task* controller);
 
-/// The gallery controller task's three-state table, run from a stack copy by
-/// `_mistShootingGalleryCourseTask`: the setup tick
-/// `_mistShootingGalleryInitCourse`, the round runner
-/// `_mistShootingGalleryRunCourse`, then
-/// `_mistShootingGalleryFinishCourse`.
-static const TaskFuncTable3 D_mist_shooting_gallery_8017DB80 = {
+/// Controller state handlers: 0 initialize, 1 run the course, 2 finish and show results.
+///
+/// Copied by value before dispatch; the selector is `Task.state` in 0..2.
+/// Entries borrow code in the loaded gallery overlay and receive the live task.
+static const TaskFuncTable3 _gMistShootingGalleryControllerStates = {
     { _mistShootingGalleryInitCourse, _mistShootingGalleryRunCourse, _mistShootingGalleryFinishCourse },
 };
 
-/// The five round scripts, indexed by `MistShootingGalleryWork::course`.
-static const TaskFuncTable5 D_mist_shooting_gallery_8017DB8C = {
+/// Course handlers indexed by the controller work's zero-based course, 0..4.
+///
+/// Copied by value before dispatch. Every entry receives the live initialized
+/// controller; the gallery overlay must remain loaded throughout playback.
+static const TaskFuncTable5 _gMistShootingGalleryCourseHandlers = {
     {
         _mistShootingGalleryRunCourse0,
         _mistShootingGalleryRunCourse1,
@@ -175,14 +164,24 @@ enum {
     MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS = PAD_BUTTON_START | PAD_BUTTON_CIRCLE | PAD_BUTTON_CROSS | PAD_BUTTON_SQUARE,
 };
 
-TaskDesc D_mist_shooting_gallery_801856B8[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCourseTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryRedFlashTask, { .value = 0 } },
+TaskDesc gMistShootingGalleryTaskDescs[MIST_SHOOTING_GALLERY_TASK_COUNT] = {
+    [MIST_SHOOTING_GALLERY_TASK_COURSE_CONTROLLER] = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCourseTask, { .value = 0 } },
+    [MIST_SHOOTING_GALLERY_TASK_RED_FLASH]         = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryRedFlashTask, { .value = 0 } },
 };
 
-TaskDesc D_mist_shooting_gallery_801856D0 = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCaptionModeTask, { .value = 0 } };
+/// Modal caption task descriptor, with no body and priority 192.
+///
+/// Its first spawn argument is the button-dismissal mask. The display queue
+/// borrows the descriptor until spawning; caption resources and the callback's
+/// gallery overlay must remain loaded until the mode closes. No work is owned.
+static TaskDesc _gMistShootingGalleryCaptionModeTaskDesc = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCaptionModeTask, { .value = 0 } };
 
-_MistShootingGallerySpawn D_mist_shooting_gallery_801856DC[60] = {
+/// Twelve individually introduced targets followed by finite timed waves.
+///
+/// The 60 initialized records belong to the loaded gallery and are borrowed
+/// without edits. The sequence includes clear markers and a final END marker.
+/// Frame keys count active script ticks at 30 Hz; positions use world units.
+static _MistShootingGallerySpawn _gMistShootingGalleryCourse0WaveScript[] = {
     { 0, 0x000A, 0x0000, 0, 0, 3000 },
     { 0, 0x000A, 0x0000, 0, 0, 4500 },
     { 0, 0x000A, 0x0700, 0, 0, 1500 },
@@ -245,7 +244,12 @@ _MistShootingGallerySpawn D_mist_shooting_gallery_801856DC[60] = {
     { MIST_SHOOTING_GALLERY_SPAWN_END, 0, 0, 0, 0, 0 },
 };
 
-_MistShootingGallerySpawn D_mist_shooting_gallery_801859AC[66] = {
+/// Finite timed waves for course 1.
+///
+/// The 66 initialized records belong to the loaded gallery and are borrowed
+/// without edits. The sequence includes clear markers and a final END marker.
+/// Frame keys count active script ticks at 30 Hz; positions use world units.
+static _MistShootingGallerySpawn _gMistShootingGalleryCourse1WaveScript[] = {
     { 64, 0x000A, 0x0002, 6000, 0, 4500 },
     { 64, 0x000A, 0x0004, 6000, 0, 1500 },
     { 144, 0x000A, 0x0009, -1500, 0, 6000 },
@@ -314,7 +318,13 @@ _MistShootingGallerySpawn D_mist_shooting_gallery_801859AC[66] = {
     { MIST_SHOOTING_GALLERY_SPAWN_END, 0, 0, 0, 0, 0 },
 };
 
-_MistShootingGallerySpawn D_mist_shooting_gallery_80185CC4[75] = {
+/// Three introductory targets followed by course 2's repeating suffix.
+///
+/// The 75 initialized records belong to the loaded gallery and are borrowed
+/// without edits. Repeats from record 14 at frame 240 through the final clear at record 73;
+/// record 74 is END.
+/// Frame keys count active script ticks at 30 Hz; positions use world units.
+static _MistShootingGallerySpawn _gMistShootingGalleryCourse2WaveScript[] = {
     { 0, 0x0002, 0x4000, 7500, 0, 4500 },
     { 0, 0x0003, 0x4000, 7500, 0, 1500 },
     { 0, 0x0001, 0x4000, 0x2EE0, 0, 3000 },
@@ -392,7 +402,13 @@ _MistShootingGallerySpawn D_mist_shooting_gallery_80185CC4[75] = {
     { MIST_SHOOTING_GALLERY_SPAWN_END, 0, 0, 0, 0, 0 },
 };
 
-_MistShootingGallerySpawn D_mist_shooting_gallery_80186048[106] = {
+/// Two introductory targets followed by course 3's repeating suffix.
+///
+/// The 106 initialized records belong to the loaded gallery and are borrowed
+/// without edits. Repeats from record 9 at frame 144 through the final clear at record 104;
+/// record 105 is END.
+/// Frame keys count active script ticks at 30 Hz; positions use world units.
+static _MistShootingGallerySpawn _gMistShootingGalleryCourse3WaveScript[] = {
     { 0, 0x0005, 0x0000, 7500, 0, 4500 },
     { 0, 0x0005, 0x0000, 7500, 0, 1500 },
     { MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR, 0, 0, 0, 0, 0 },
@@ -501,7 +517,13 @@ _MistShootingGallerySpawn D_mist_shooting_gallery_80186048[106] = {
     { MIST_SHOOTING_GALLERY_SPAWN_END, 0, 0, 0, 0, 0 },
 };
 
-_MistShootingGallerySpawn D_mist_shooting_gallery_80186540[80] = {
+/// Initial waves followed by course 4's repeating suffix.
+///
+/// The 80 initialized records belong to the loaded gallery and are borrowed
+/// without edits. Repeats from record 11 at frame 688 through the final clear at record 78;
+/// record 79 is END.
+/// Frame keys count active script ticks at 30 Hz; positions use world units.
+static _MistShootingGallerySpawn _gMistShootingGalleryCourse4WaveScript[] = {
     { 128, 0x0003, 0x3028, 0x2EE0, 0, 6000 },
     { 192, 0x0003, 0x3029, 0x2EE0, 0, 0 },
     { 272, 0x0000, 0x3003, 6000, 0, 3000 },
@@ -584,17 +606,26 @@ _MistShootingGallerySpawn D_mist_shooting_gallery_80186540[80] = {
     { MIST_SHOOTING_GALLERY_SPAWN_END, 0, 0, 0, 0, 0 },
 };
 
-_MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[1] = {
-    D_mist_shooting_gallery_801856DC,
+/// One pointer slot selecting course 0's finite wave script.
+///
+/// Only index 0 is valid. The course borrows the script for its lifetime; this
+/// slot is separate from the neighbouring course pointers. The one-element
+/// array preserves ordering of its load against controller phase stores.
+static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse0WaveScriptRefs[1] = {
+    _gMistShootingGalleryCourse0WaveScript,
 };
 
-_MistShootingGallerySpawn* D_mist_shooting_gallery_80186904 = D_mist_shooting_gallery_801859AC;
+/// Borrowed script pointer for course 1's finite target waves.
+///
+/// Refers to the complete 66-record script, including clear and end markers;
+/// both the slot and records remain live while the gallery overlay is loaded.
+static const _MistShootingGallerySpawn* _gMistShootingGalleryCourse1WaveScriptRef = _gMistShootingGalleryCourse1WaveScript;
 
-_MistShootingGallerySpawn* D_mist_shooting_gallery_80186908 = D_mist_shooting_gallery_80185CC4;
+_MistShootingGallerySpawn* D_mist_shooting_gallery_80186908 = _gMistShootingGalleryCourse2WaveScript;
 
-_MistShootingGallerySpawn* D_mist_shooting_gallery_8018690C = D_mist_shooting_gallery_80186048;
+_MistShootingGallerySpawn* D_mist_shooting_gallery_8018690C = _gMistShootingGalleryCourse3WaveScript;
 
-_MistShootingGallerySpawn* D_mist_shooting_gallery_80186910 = D_mist_shooting_gallery_80186540;
+_MistShootingGallerySpawn* D_mist_shooting_gallery_80186910 = _gMistShootingGalleryCourse4WaveScript;
 
 static TmdBone _gMistShootingGalleryModel093FCSkeleton[1] = {
 #include "assets/mist_shooting_gallery_model_093FC_skeleton.inc"
@@ -1246,7 +1277,7 @@ WorldCollisionGrid gMistShootingGalleryCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gMistShootingGalleryCollisionGridFaces),
 };
 
-ViewCamera D_mist_shooting_gallery_8018998C[18] = {
+ViewCamera gMistShootingGalleryViewCameras[MIST_SHOOTING_GALLERY_MAPPED_VIEW_COUNT] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -500, 0x7530, 0 } }, 289 },
     { { { { 4063, 0, 515 }, { 11, 4094, -90 }, { -515, 91, 4062 } }, { 0x29EB, 949, -759 } }, 257 },
     { { { { -4053, 0, 589 }, { 15, 4094, 103 }, { -589, 104, -4051 } }, { 0x299F, 949, -5070 } }, 257 },
@@ -1601,315 +1632,376 @@ static SpriteSource _gMistShootingGalleryView13SpriteSources[] = {
     { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 112 } }, 144, -120, 850, { .fields = { 88, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018A854[3] = {
+/// Sprite batch list for mapped gallery view 13.
+///
+/// The zero-count first record requests the decoded background image.
+/// Selects one range covering all twelve sources.
+/// `SPRITE_BATCH_END` terminates without contributing sprites. Runtime batch
+/// state stays writable while the gallery overlay is loaded.
+static SpriteBatch _gMistShootingGalleryView13SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, ARRAY_SIZE(_gMistShootingGalleryView13SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018A86C[29] = {
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -160, 88, 500, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -144, 88, 500, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -128, 88, 500, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -112, 88, 500, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -96, 88, 500, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -80, 88, 500, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -64, 88, 500, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -48, 80, 500, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -32, 80, 500, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -16, 80, 500, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 0, 88, 500, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, 88, 500, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 32, 88, 500, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 48, 88, 500, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 88, 500, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 80, 88, 500, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 96, 88, 500, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 112, 88, 500, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 128, 88, 500, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 88, 500, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -24, -16, 4500, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -8, -16, 4500, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 8, -16, 4500, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -72, -24, 3312, { .fields = { 112, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -56, -24, 3587, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -48, -24, 3587, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 40, -24, 3587, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 48, -24, 3587, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 56, -24, 3312, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped gallery view 14.
+///
+/// The 29 elements have no terminator; batches select in-bounds source ranges.
+/// Positions and dimensions are pixels relative to the view centre; depth is
+/// the unscaled OT sorting value.
+/// Writable source storage belongs to the loaded gallery overlay.
+static SpriteSource _gMistShootingGalleryView14SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -160, 88, 500, { .fields = { 80, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -144, 88, 500, { .fields = { 80, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -128, 88, 500, { .fields = { 80, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -112, 88, 500, { .fields = { 64, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -96, 88, 500, { .fields = { 64, 120 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -80, 88, 500, { .fields = { 64, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -64, 88, 500, { .fields = { 64, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -48, 80, 500, { .fields = { 96, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -32, 80, 500, { .fields = { 96, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -16, 80, 500, { .fields = { 96, 208 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 0, 88, 500, { .fields = { 80, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 16, 88, 500, { .fields = { 80, 120 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 32, 88, 500, { .fields = { 80, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 48, 88, 500, { .fields = { 80, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 64, 88, 500, { .fields = { 80, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 80, 88, 500, { .fields = { 80, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 96, 88, 500, { .fields = { 64, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 112, 88, 500, { .fields = { 64, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 128, 88, 500, { .fields = { 64, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 144, 88, 500, { .fields = { 80, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -24, -16, 4500, { .fields = { 96, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -8, -16, 4500, { .fields = { 96, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 8, -16, 4500, { .fields = { 96, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -72, -24, 3312, { .fields = { 112, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -56, -24, 3587, { .fields = { 120, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -48, -24, 3587, { .fields = { 112, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 40, -24, 3587, { .fields = { 112, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 48, -24, 3587, { .fields = { 120, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 56, -24, 3312, { .fields = { 112, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018AAB0[5] = {
+/// Sprite batch list for mapped gallery view 14.
+///
+/// The zero-count first record requests the decoded background image.
+/// Selects ranges [0, 20), [20, 23) and [23, 29).
+/// `SPRITE_BATCH_END` terminates without contributing sprites. Runtime batch
+/// state stays writable while the gallery overlay is loaded.
+static SpriteBatch _gMistShootingGalleryView14SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 20, 0, 0, { 1, 0 } },
     { 20, 3, 0, 0, { 2, 0 } },
-    { 23, 6, 0, 0, { 0, 0 } },
+    { 23, ARRAY_SIZE(_gMistShootingGalleryView14SpriteSources) - 23, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018AAD8[164] = {
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 0, -32, 1875, { .fields = { 32, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 16, -32, 1875, { .fields = { 24, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 32, -32, 1875, { .fields = { 40, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 48, -32, 1875, { .fields = { 40, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 64, -32, 1875, { .fields = { 8, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 80, -32, 1875, { .fields = { 0, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x3FC0, { .fields = { 16, 72 } }, 96, -32, 1875, { .fields = { 120, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 112, -32, 1875, { .fields = { 24, 144 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 128, -32, 1875, { .fields = { 16, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 144, -32, 1875, { .fields = { 8, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -128, 64, 1194, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -120, 64, 1847, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -112, 64, 1847, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -104, 64, 1847, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -96, 64, 1847, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -88, 64, 1847, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -80, 64, 1847, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -72, 64, 1847, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -64, 64, 1845, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -56, 64, 1847, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -48, 64, 1847, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -40, 64, 1847, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -32, 64, 1847, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -24, 64, 1847, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -16, 64, 1847, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -8, 64, 1847, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 0, 64, 1847, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 8, 64, 1847, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -128, 72, 1194, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -120, 72, 1847, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -112, 72, 1847, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -104, 72, 1847, { .fields = { 104, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -96, 72, 1847, { .fields = { 104, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -88, 72, 1847, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -80, 72, 1847, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -72, 72, 1847, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -64, 72, 1845, { .fields = { 104, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -56, 72, 1847, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -48, 72, 1847, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -40, 72, 1847, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -32, 72, 1847, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -24, 72, 1847, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -16, 72, 1847, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -8, 72, 1847, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 0, 72, 1847, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 8, 72, 1847, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -128, 80, 1194, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -120, 80, 1847, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -112, 80, 1847, { .fields = { 88, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -104, 80, 1847, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -96, 80, 1847, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -88, 80, 1847, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -80, 80, 1847, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -72, 80, 1847, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -64, 80, 1845, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -56, 80, 1847, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -48, 80, 1847, { .fields = { 88, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -40, 80, 1846, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -32, 80, 1846, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -24, 80, 1846, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -16, 80, 1846, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -8, 80, 1846, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 0, 80, 1846, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 8, 80, 1847, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -128, 88, 1097, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -120, 88, 1098, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -112, 88, 1101, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -104, 88, 1104, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -96, 88, 1105, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -88, 88, 1105, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -80, 88, 1105, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -72, 88, 1105, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -64, 88, 1105, { .fields = { 96, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -56, 88, 1105, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -48, 88, 1105, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -40, 88, 1105, { .fields = { 88, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -32, 88, 1105, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -24, 88, 1105, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -16, 88, 1105, { .fields = { 88, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -8, 88, 1107, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 0, 88, 1107, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 8, 88, 1105, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -128, 96, 1117, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -120, 96, 1117, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -112, 96, 1850, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -104, 96, 1850, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -96, 96, 1850, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -88, 96, 1850, { .fields = { 16, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -80, 96, 1850, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -72, 96, 1850, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -64, 96, 1845, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -56, 96, 1850, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -48, 96, 1850, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -40, 96, 1850, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -32, 96, 1850, { .fields = { 112, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -24, 96, 1850, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -16, 96, 1850, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -8, 96, 1850, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 0, 96, 1850, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, 8, 96, 1850, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -128, 104, 1194, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -120, 104, 1850, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -112, 104, 1850, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -104, 104, 1850, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -96, 104, 1850, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -88, 104, 1850, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -80, 104, 1850, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -72, 104, 1850, { .fields = { 40, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 8 } }, -64, 104, 1845, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -56, 104, 1850, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -48, 104, 1850, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -40, 104, 1850, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -32, 104, 1850, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -24, 104, 1850, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -16, 104, 1850, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -8, 104, 1850, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 0, 104, 1850, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 8, 104, 1850, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -128, 112, 1194, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -120, 112, 1847, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -112, 112, 1847, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -104, 112, 1847, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -96, 112, 1847, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -88, 112, 1847, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -80, 112, 1847, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -72, 112, 1847, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -64, 112, 1845, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -56, 112, 1846, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -48, 112, 1846, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -40, 112, 1846, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -32, 112, 1846, { .fields = { 112, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -24, 112, 1846, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -16, 112, 1846, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, -8, 112, 1846, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 0, 112, 1846, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 8, 8 } }, 8, 112, 1846, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 104 } }, 16, 16, 1850, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 88 } }, 32, 32, 1850, { .fields = { 80, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 88 } }, 48, 32, 1850, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 88 } }, 64, 32, 1850, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 88 } }, 80, 32, 1850, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 80 } }, 96, 40, 1850, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 88 } }, 112, 32, 1850, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -104, 80, 250, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, -88, 80, 250, { .fields = { 120, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, -72, 80, 250, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, -56, 80, 250, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -40, 80, 250, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 24 } }, -24, 80, 250, { .fields = { 8, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, -8, 80, 250, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, 8, 80, 250, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 24, 72, 250, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 40, 72, 250, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, 56, 80, 250, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, 72, 80, 250, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 16, 24 } }, 88, 80, 250, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 32 } }, 104, 72, 250, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 112, 104, 250, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 96 } }, 120, -56, 250, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 80 } }, 120, 40, 250, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 96 } }, 128, -56, 250, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 80 } }, 128, 40, 250, { .fields = { 72, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 96 } }, 144, -56, 250, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 80 } }, 144, 40, 250, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped gallery view 15.
+///
+/// The 164 elements have no terminator; batches select in-bounds source ranges.
+/// Positions and dimensions are pixels relative to the view centre; depth is
+/// the unscaled OT sorting value.
+/// The first ten elements use semitransparent blending.
+/// Writable source storage belongs to the loaded gallery overlay.
+static SpriteSource _gMistShootingGalleryView15SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 0, -32, 1875, { .fields = { 32, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 16, -32, 1875, { .fields = { 24, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 32, -32, 1875, { .fields = { 40, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 48, -32, 1875, { .fields = { 40, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 64, -32, 1875, { .fields = { 8, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 80, -32, 1875, { .fields = { 0, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 255), { .fields = { 16, 72 } }, 96, -32, 1875, { .fields = { 120, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 112, -32, 1875, { .fields = { 24, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 128, -32, 1875, { .fields = { 16, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 144, -32, 1875, { .fields = { 8, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -128, 64, 1194, { .fields = { 96, 56 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -120, 64, 1847, { .fields = { 96, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -112, 64, 1847, { .fields = { 96, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -104, 64, 1847, { .fields = { 96, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -96, 64, 1847, { .fields = { 96, 40 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -88, 64, 1847, { .fields = { 96, 16 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, 64, 1847, { .fields = { 96, 8 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -72, 64, 1847, { .fields = { 96, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -64, 64, 1845, { .fields = { 96, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -56, 64, 1847, { .fields = { 96, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -48, 64, 1847, { .fields = { 96, 120 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -40, 64, 1847, { .fields = { 96, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -32, 64, 1847, { .fields = { 96, 136 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -24, 64, 1847, { .fields = { 96, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -16, 64, 1847, { .fields = { 96, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -8, 64, 1847, { .fields = { 96, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 0, 64, 1847, { .fields = { 96, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 8, 64, 1847, { .fields = { 96, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -128, 72, 1194, { .fields = { 104, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -120, 72, 1847, { .fields = { 104, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -112, 72, 1847, { .fields = { 104, 184 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -104, 72, 1847, { .fields = { 104, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -96, 72, 1847, { .fields = { 104, 152 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -88, 72, 1847, { .fields = { 104, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, 72, 1847, { .fields = { 104, 120 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -72, 72, 1847, { .fields = { 104, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -64, 72, 1845, { .fields = { 104, 136 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -56, 72, 1847, { .fields = { 104, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -48, 72, 1847, { .fields = { 104, 232 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -40, 72, 1847, { .fields = { 96, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -32, 72, 1847, { .fields = { 104, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -24, 72, 1847, { .fields = { 104, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -16, 72, 1847, { .fields = { 104, 200 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -8, 72, 1847, { .fields = { 104, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 0, 72, 1847, { .fields = { 104, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 8, 72, 1847, { .fields = { 104, 208 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -128, 80, 1194, { .fields = { 96, 152 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -120, 80, 1847, { .fields = { 88, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -112, 80, 1847, { .fields = { 88, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -104, 80, 1847, { .fields = { 88, 120 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -96, 80, 1847, { .fields = { 88, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -88, 80, 1847, { .fields = { 88, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, 80, 1847, { .fields = { 88, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -72, 80, 1847, { .fields = { 88, 56 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -64, 80, 1845, { .fields = { 88, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -56, 80, 1847, { .fields = { 88, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -48, 80, 1847, { .fields = { 88, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -40, 80, 1846, { .fields = { 88, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -32, 80, 1846, { .fields = { 88, 184 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -24, 80, 1846, { .fields = { 88, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -16, 80, 1846, { .fields = { 88, 136 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -8, 80, 1846, { .fields = { 88, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 0, 80, 1846, { .fields = { 88, 152 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 8, 80, 1847, { .fields = { 88, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -128, 88, 1097, { .fields = { 88, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -120, 88, 1098, { .fields = { 96, 208 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -112, 88, 1101, { .fields = { 96, 200 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -104, 88, 1104, { .fields = { 96, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -96, 88, 1105, { .fields = { 96, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -88, 88, 1105, { .fields = { 96, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, 88, 1105, { .fields = { 96, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -72, 88, 1105, { .fields = { 96, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -64, 88, 1105, { .fields = { 96, 184 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -56, 88, 1105, { .fields = { 96, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -48, 88, 1105, { .fields = { 88, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -40, 88, 1105, { .fields = { 88, 16 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -32, 88, 1105, { .fields = { 88, 40 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -24, 88, 1105, { .fields = { 88, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -16, 88, 1105, { .fields = { 88, 8 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -8, 88, 1107, { .fields = { 96, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 0, 88, 1107, { .fields = { 96, 232 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 8, 88, 1105, { .fields = { 88, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -128, 96, 1117, { .fields = { 96, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -120, 96, 1117, { .fields = { 8, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -112, 96, 1850, { .fields = { 0, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -104, 96, 1850, { .fields = { 0, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -96, 96, 1850, { .fields = { 16, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -88, 96, 1850, { .fields = { 16, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, 96, 1850, { .fields = { 8, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -72, 96, 1850, { .fields = { 120, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -64, 96, 1845, { .fields = { 112, 40 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -56, 96, 1850, { .fields = { 112, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -48, 96, 1850, { .fields = { 112, 56 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -40, 96, 1850, { .fields = { 120, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -32, 96, 1850, { .fields = { 112, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -24, 96, 1850, { .fields = { 112, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -16, 96, 1850, { .fields = { 48, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -8, 96, 1850, { .fields = { 40, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, 0, 96, 1850, { .fields = { 40, 152 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, 8, 96, 1850, { .fields = { 96, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -128, 104, 1194, { .fields = { 56, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -120, 104, 1850, { .fields = { 48, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -112, 104, 1850, { .fields = { 40, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -104, 104, 1850, { .fields = { 32, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -96, 104, 1850, { .fields = { 24, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -88, 104, 1850, { .fields = { 24, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, 104, 1850, { .fields = { 40, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -72, 104, 1850, { .fields = { 40, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, -64, 104, 1845, { .fields = { 32, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -56, 104, 1850, { .fields = { 112, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -48, 104, 1850, { .fields = { 104, 40 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -40, 104, 1850, { .fields = { 104, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -32, 104, 1850, { .fields = { 104, 56 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -24, 104, 1850, { .fields = { 112, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -16, 104, 1850, { .fields = { 104, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -8, 104, 1850, { .fields = { 104, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 0, 104, 1850, { .fields = { 104, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 8, 104, 1850, { .fields = { 104, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -128, 112, 1194, { .fields = { 104, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -120, 112, 1847, { .fields = { 104, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -112, 112, 1847, { .fields = { 104, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -104, 112, 1847, { .fields = { 104, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -96, 112, 1847, { .fields = { 104, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -88, 112, 1847, { .fields = { 112, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -80, 112, 1847, { .fields = { 112, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -72, 112, 1847, { .fields = { 112, 184 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -64, 112, 1845, { .fields = { 112, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -56, 112, 1846, { .fields = { 112, 152 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -48, 112, 1846, { .fields = { 112, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -40, 112, 1846, { .fields = { 112, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -32, 112, 1846, { .fields = { 112, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -24, 112, 1846, { .fields = { 112, 232 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -16, 112, 1846, { .fields = { 112, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, -8, 112, 1846, { .fields = { 112, 200 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 0, 112, 1846, { .fields = { 112, 208 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 8, 8 } }, 8, 112, 1846, { .fields = { 112, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 104 } }, 16, 16, 1850, { .fields = { 112, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 88 } }, 32, 32, 1850, { .fields = { 80, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 88 } }, 48, 32, 1850, { .fields = { 88, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 88 } }, 64, 32, 1850, { .fields = { 56, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 88 } }, 80, 32, 1850, { .fields = { 64, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 80 } }, 96, 40, 1850, { .fields = { 56, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 88 } }, 112, 32, 1850, { .fields = { 72, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -104, 80, 250, { .fields = { 112, 232 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, -88, 80, 250, { .fields = { 120, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, -72, 80, 250, { .fields = { 120, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, -56, 80, 250, { .fields = { 120, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -40, 80, 250, { .fields = { 24, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 24 } }, -24, 80, 250, { .fields = { 8, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, -8, 80, 250, { .fields = { 112, 120 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, 8, 80, 250, { .fields = { 104, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, 24, 72, 250, { .fields = { 96, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, 40, 72, 250, { .fields = { 112, 200 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, 56, 80, 250, { .fields = { 112, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, 72, 80, 250, { .fields = { 120, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 896, 0), getClut(0, 256), { .fields = { 16, 24 } }, 88, 80, 250, { .fields = { 112, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 32 } }, 104, 72, 250, { .fields = { 96, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 16 } }, 112, 104, 250, { .fields = { 48, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 96 } }, 120, -56, 250, { .fields = { 104, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 80 } }, 120, 40, 250, { .fields = { 88, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 96 } }, 128, -56, 250, { .fields = { 96, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 80 } }, 128, 40, 250, { .fields = { 72, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 96 } }, 144, -56, 250, { .fields = { 112, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 16, 80 } }, 144, 40, 250, { .fields = { 48, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018B7A8[5] = {
+/// Sprite batch list for mapped gallery view 15.
+///
+/// The zero-count first record requests the decoded background image.
+/// Selects ranges [0, 10), [10, 143) and [143, 164).
+/// `SPRITE_BATCH_END` terminates without contributing sprites. Runtime batch
+/// state stays writable while the gallery overlay is loaded.
+static SpriteBatch _gMistShootingGalleryView15SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 1, 0 } },
     { 10, 133, 0, 0, { 2, 0 } },
-    { 143, 21, 0, 0, { 0, 0 } },
+    { 143, ARRAY_SIZE(_gMistShootingGalleryView15SpriteSources) - 143, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018B7D0[58] = {
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, -24, 1285, { .fields = { 80, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, -16, 1204, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, -8, 1907, { .fields = { 56, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -144, 0, 879, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 8, 834, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 16, 1331, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -112, 24, 1159, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 32, 1119, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 40, 1030, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -80, 48, 978, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 56, 917, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 64, 925, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, 72, 879, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 80, 765, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, 88, 727, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -8, 96, 693, { .fields = { 56, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 104, 661, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 16, 112, 633, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 0, 1205, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 8, 882, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -144, 24, 833, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 32, 837, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 40, 1040, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -112, 48, 945, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 56, 878, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 64, 853, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -80, 72, 927, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 80, 765, { .fields = { 64, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 88, 727, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -40, 96, 693, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 104, 661, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -16, 112, 633, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 16, 830, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 24, 827, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 32, 829, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 40, 833, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -144, 48, 838, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 56, 843, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 64, 847, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -112, 72, 800, { .fields = { 96, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 80, 764, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 88, 727, { .fields = { 96, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -72, 96, 693, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 104, 661, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, 112, 633, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -160, 48, 829, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 56, 833, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -160, 64, 836, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -160, 72, 815, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -160, 80, 773, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 88, 683, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -128, 88, 727, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -160, 96, 699, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -112, 96, 693, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -160, 104, 621, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, -112, 104, 661, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -160, 112, 594, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -104, 112, 633, { .fields = { 72, 152 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped gallery view 16.
+///
+/// The 58 elements have no terminator; batches select in-bounds source ranges.
+/// Positions and dimensions are pixels relative to the view centre; depth is
+/// the unscaled OT sorting value.
+/// Writable source storage belongs to the loaded gallery overlay.
+static SpriteSource _gMistShootingGalleryView16SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -160, -24, 1285, { .fields = { 80, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, -16, 1204, { .fields = { 72, 16 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, -8, 1907, { .fields = { 56, 8 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -144, 0, 879, { .fields = { 64, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -136, 8, 834, { .fields = { 64, 56 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -120, 16, 1331, { .fields = { 64, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -112, 24, 1159, { .fields = { 64, 40 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -104, 32, 1119, { .fields = { 96, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -88, 40, 1030, { .fields = { 96, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -80, 48, 978, { .fields = { 96, 232 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -64, 56, 917, { .fields = { 80, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -56, 64, 925, { .fields = { 64, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -48, 72, 879, { .fields = { 72, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -32, 80, 765, { .fields = { 80, 184 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -24, 88, 727, { .fields = { 64, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -8, 96, 693, { .fields = { 56, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 0, 104, 661, { .fields = { 56, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 16, 112, 633, { .fields = { 64, 248 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -160, 0, 1205, { .fields = { 72, 120 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, 8, 882, { .fields = { 56, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -144, 24, 833, { .fields = { 56, 200 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -136, 32, 837, { .fields = { 56, 136 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -120, 40, 1040, { .fields = { 64, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -112, 48, 945, { .fields = { 64, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -96, 56, 878, { .fields = { 64, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -88, 64, 853, { .fields = { 64, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -80, 72, 927, { .fields = { 64, 240 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -64, 80, 765, { .fields = { 64, 232 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -56, 88, 727, { .fields = { 64, 208 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -40, 96, 693, { .fields = { 96, 72 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -32, 104, 661, { .fields = { 96, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -16, 112, 633, { .fields = { 96, 56 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 16, 830, { .fields = { 88, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -160, 24, 827, { .fields = { 112, 104 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, 32, 829, { .fields = { 104, 96 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 40, 833, { .fields = { 88, 88 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -144, 48, 838, { .fields = { 96, 16 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -128, 56, 843, { .fields = { 96, 8 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -120, 64, 847, { .fields = { 96, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -112, 72, 800, { .fields = { 96, 24 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -96, 80, 764, { .fields = { 96, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -88, 88, 727, { .fields = { 96, 40 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -72, 96, 693, { .fields = { 96, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -64, 104, 661, { .fields = { 96, 112 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -48, 112, 633, { .fields = { 96, 192 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -160, 48, 829, { .fields = { 112, 184 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, 56, 833, { .fields = { 96, 176 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -160, 64, 836, { .fields = { 88, 200 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -160, 72, 815, { .fields = { 80, 224 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 64, 8 } }, -160, 80, 773, { .fields = { 64, 216 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, 88, 683, { .fields = { 96, 208 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -128, 88, 727, { .fields = { 88, 136 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -160, 96, 699, { .fields = { 80, 128 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -112, 96, 693, { .fields = { 88, 120 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -160, 104, 621, { .fields = { 80, 144 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, -112, 104, 661, { .fields = { 80, 168 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -160, 112, 594, { .fields = { 72, 160 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -104, 112, 633, { .fields = { 72, 152 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018BC58[3] = {
+/// Sprite batch list for mapped gallery view 16.
+///
+/// The zero-count first record requests the decoded background image.
+/// Selects one range covering all 58 sources.
+/// `SPRITE_BATCH_END` terminates without contributing sprites. Runtime batch
+/// state stays writable while the gallery overlay is loaded.
+static SpriteBatch _gMistShootingGalleryView16SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 58, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistShootingGalleryView16SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_mist_shooting_gallery_8018BC70[6] = {
-    { 143, 0x4000, { .fields = { 8, 8 } }, 88, 32, 1375, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 16 } }, -120, 16, 1375, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 56, 16 } }, -72, 0, 1375, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 56, 16 } }, -72, 16, 1375, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 56, 16 } }, -16, 16, 1375, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 56, 16 } }, 40, 16, 1375, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for mapped gallery view 17.
+///
+/// The 6 elements have no terminator; batches select in-bounds source ranges.
+/// Positions and dimensions are pixels relative to the view centre; depth is
+/// the unscaled OT sorting value.
+/// Writable source storage belongs to the loaded gallery overlay.
+static SpriteSource _gMistShootingGalleryView17SpriteSources[] = {
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 8, 8 } }, 88, 32, 1375, { .fields = { 120, 80 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 48, 16 } }, -120, 16, 1375, { .fields = { 80, 0 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 56, 16 } }, -72, 0, 1375, { .fields = { 72, 16 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 56, 16 } }, -72, 16, 1375, { .fields = { 72, 32 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 56, 16 } }, -16, 16, 1375, { .fields = { 72, 48 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
+    { getTPage(1, GPU_BLEND_AVERAGE, 960, 0), getClut(0, 256), { .fields = { 56, 16 } }, 40, 16, 1375, { .fields = { 72, 64 } }, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_NEUTRAL_RGB, MIST_SHOOTING_GALLERY_SPRITE_OPAQUE },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018BCE8[3] = {
+/// Sprite batch list for mapped gallery view 17.
+///
+/// The zero-count first record requests the decoded background image.
+/// Selects one range covering all six sources.
+/// `SPRITE_BATCH_END` terminates without contributing sprites. Runtime batch
+/// state stays writable while the gallery overlay is loaded.
+static SpriteBatch _gMistShootingGalleryView17SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 6, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gMistShootingGalleryView17SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_mist_shooting_gallery_8018BD00[2] = {
+/// Sprite batch list for mapped gallery view 18.
+///
+/// The zero-count first record requests the decoded background image.
+/// No sources are selected; the source slot retains this list's address.
+/// `SPRITE_BATCH_END` terminates without contributing sprites. Runtime batch
+/// state stays writable while the gallery overlay is loaded.
+static SpriteBatch _gMistShootingGalleryView18SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_mist_shooting_gallery_8018BD10[18] = {
+SpriteView gMistShootingGallerySpriteViews[MIST_SHOOTING_GALLERY_MAPPED_VIEW_COUNT] = {
     { { .empty = _gMistShootingGalleryView1SpriteBatches }, _gMistShootingGalleryView1SpriteBatches, NULL },
     { { .empty = _gMistShootingGalleryView2SpriteBatches }, _gMistShootingGalleryView2SpriteBatches, NULL },
     { { .empty = _gMistShootingGalleryView3SpriteBatches }, _gMistShootingGalleryView3SpriteBatches, NULL },
@@ -1922,15 +2014,15 @@ SpriteView D_mist_shooting_gallery_8018BD10[18] = {
     { { .elements = _gMistShootingGalleryView10SpriteSources }, _gMistShootingGalleryView10SpriteBatches, NULL },
     { { .elements = _gMistShootingGalleryView11SpriteSources }, _gMistShootingGalleryView11SpriteBatches, NULL },
     { { .elements = _gMistShootingGalleryView12SpriteSources }, _gMistShootingGalleryView12SpriteBatches, NULL },
-    { { .elements = _gMistShootingGalleryView13SpriteSources }, D_mist_shooting_gallery_8018A854, NULL },
-    { { .elements = D_mist_shooting_gallery_8018A86C }, D_mist_shooting_gallery_8018AAB0, NULL },
-    { { .elements = D_mist_shooting_gallery_8018AAD8 }, D_mist_shooting_gallery_8018B7A8, NULL },
-    { { .elements = D_mist_shooting_gallery_8018B7D0 }, D_mist_shooting_gallery_8018BC58, NULL },
-    { { .elements = D_mist_shooting_gallery_8018BC70 }, D_mist_shooting_gallery_8018BCE8, NULL },
-    { { .empty = D_mist_shooting_gallery_8018BD00 }, D_mist_shooting_gallery_8018BD00, NULL },
+    { { .elements = _gMistShootingGalleryView13SpriteSources }, _gMistShootingGalleryView13SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView14SpriteSources }, _gMistShootingGalleryView14SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView15SpriteSources }, _gMistShootingGalleryView15SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView16SpriteSources }, _gMistShootingGalleryView16SpriteBatches, NULL },
+    { { .elements = _gMistShootingGalleryView17SpriteSources }, _gMistShootingGalleryView17SpriteBatches, NULL },
+    { { .empty = _gMistShootingGalleryView18SpriteBatches }, _gMistShootingGalleryView18SpriteBatches, NULL },
 };
 
-WorldCollisionTrigger D_mist_shooting_gallery_8018BDE8[28] = {
+WorldCollisionTrigger gMistShootingGalleryViewBoundaryTriggers[28] = {
     { NULL, NULL, NULL, { -0x2B61, -2016, 3103, 0 }, { { -2935, -3232, -228, 0 }, { 2935, -3232, 229, 0 }, { -2935, 3232, -228, 0 }, { 2935, 3232, 229, 0 } }, { 318, 0, -4092, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -0x2B21, -1984, 3007, 0 }, { { 2939, -3232, 183, 0 }, { -2938, -3232, -183, 0 }, { 2939, 3232, 183, 0 }, { -2938, 3232, -183, 0 } }, { -256, 0, 4095, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
     { NULL, NULL, NULL, { -0x2F47, -1696, -1767, 0 }, { { 2806, -3232, 891, 0 }, { -2806, -3232, -891, 0 }, { 2806, 3232, 891, 0 }, { -2806, 3232, -891, 0 } }, { -1243, 0, 3911, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -1961,16 +2053,16 @@ WorldCollisionTrigger D_mist_shooting_gallery_8018BDE8[28] = {
     { NULL, NULL, NULL, { -2787, -1632, 6272, 0 }, { { -1285, -3232, 3138, 0 }, { 1282, -3232, -3141, 0 }, { -1285, 3232, 3138, 0 }, { 1282, 3232, -3141, 0 } }, { -3797, 0, -1553, 0 }, { 0, 0, 4096, 0 }, 4664, 0, 18, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_mist_shooting_gallery_8018C638[21] = {
-    { NULL, NULL, NULL, { -0x2E7B, -64, 5421, 0 }, { { -444, 0, -595, 0 }, { 453, 0, -597, 0 }, { -453, 0, 598, 0 }, { 445, 0, 596, 0 } }, { 0, 4111, 0, 0 }, { 4093, 0, 86, 0 }, 749, WORLD_COLLISION_TRIGGER_ACTION_WARP, 19, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -9697, -48, -2929, 0 }, { { -419, 0, -538, 0 }, { 414, 0, -528, 0 }, { -413, 0, 528, 0 }, { 421, 0, 538, 0 } }, { 0, 4097, 0, 0 }, { -4093, 0, -86, 0 }, 680, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 36, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7955, -48, -1633, 0 }, { { -759, 0, 356, 0 }, { -759, 0, -352, 0 }, { 755, 0, 350, 0 }, { 765, 0, -351, 0 } }, { 0, 4111, 0, 0 }, { -72, 0, -4095, 0 }, 839, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 86, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7920, -48, -784, 0 }, { { -698, 0, 388, 0 }, { -688, 0, -381, 0 }, { 688, 0, 382, 0 }, { 698, 0, -388, 0 } }, { 0, 4096, 0, 0 }, { 315, 0, 4082, 0 }, 796, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 101, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -8784, -48, -2912, 0 }, { { -467, 0, -778, 0 }, { 462, 0, -768, 0 }, { -461, 0, 768, 0 }, { 469, 0, 778, 0 } }, { 0, 4105, 0, 0 }, { 4092, 0, -115, 0 }, 907, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 66, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -6146, -64, 3023, 0 }, { { -1586, 0, -1011, 0 }, { -337, 0, -1013, 0 }, { -1579, 0, 1014, 0 }, { -336, 0, 1012, 0 } }, { 0, 4116, 0, 0 }, { -4093, 0, 114, 0 }, 1876, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x27F2, -64, 3999, 0 }, { { -680, 0, -675, 0 }, { 671, 0, -677, 0 }, { -667, 0, 678, 0 }, { 677, 0, 676, 0 } }, { 0, 4097, 0, 0 }, { 86, 0, -4093, 0 }, 957, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9424, -64, 2944, 0 }, { { -680, 0, -1059, 0 }, { 671, 0, -1060, 0 }, { -667, 0, 1062, 0 }, { 677, 0, 1060, 0 } }, { 0, 4099, 0, 0 }, { -4093, 0, -86, 0 }, 1254, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 3, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x2AB0, -64, -1, 0 }, { { -1540, 0, -867, 0 }, { 1501, 0, -869, 0 }, { -1501, 0, 870, 0 }, { 1541, 0, 868, 0 } }, { 0, 4103, 0, 0 }, { 4093, 0, 86, 0 }, 1764, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, 4, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
+WorldCollisionTrigger gMistShootingGalleryActionTriggers[21] = {
+    { NULL, NULL, NULL, { -0x2E7B, -64, 5421, 0 }, { { -444, 0, -595, 0 }, { 453, 0, -597, 0 }, { -453, 0, 598, 0 }, { 445, 0, 596, 0 } }, { 0, 4111, 0, 0 }, { 4093, 0, 86, 0 }, 749, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MIST_PARKING, 17, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -9697, -48, -2929, 0 }, { { -419, 0, -538, 0 }, { 414, 0, -528, 0 }, { -413, 0, 528, 0 }, { 421, 0, 538, 0 } }, { 0, 4097, 0, 0 }, { -4093, 0, -86, 0 }, 680, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MIST_SHOOTING_GALLERY, 36, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7955, -48, -1633, 0 }, { { -759, 0, 356, 0 }, { -759, 0, -352, 0 }, { 755, 0, 350, 0 }, { 765, 0, -351, 0 } }, { 0, 4111, 0, 0 }, { -72, 0, -4095, 0 }, 839, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MIST_SHOOTING_GALLERY, 86, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -7920, -48, -784, 0 }, { { -698, 0, 388, 0 }, { -688, 0, -381, 0 }, { 688, 0, 382, 0 }, { 698, 0, -388, 0 } }, { 0, 4096, 0, 0 }, { 315, 0, 4082, 0 }, 796, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MIST_SHOOTING_GALLERY, 101, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -8784, -48, -2912, 0 }, { { -467, 0, -778, 0 }, { 462, 0, -768, 0 }, { -461, 0, 768, 0 }, { 469, 0, 778, 0 } }, { 0, 4105, 0, 0 }, { 4092, 0, -115, 0 }, 907, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_MIST_SHOOTING_GALLERY, 66, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -6146, -64, 3023, 0 }, { { -1586, 0, -1011, 0 }, { -337, 0, -1013, 0 }, { -1579, 0, 1014, 0 }, { -336, 0, 1012, 0 } }, { 0, 4116, 0, 0 }, { -4093, 0, 114, 0 }, 1876, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU, 0, WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x27F2, -64, 3999, 0 }, { { -680, 0, -675, 0 }, { 671, 0, -677, 0 }, { -667, 0, 678, 0 }, { 677, 0, 676, 0 } }, { 0, 4097, 0, 0 }, { 86, 0, -4093, 0 }, 957, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9424, -64, 2944, 0 }, { { -680, 0, -1059, 0 }, { 671, 0, -1060, 0 }, { -667, 0, 1062, 0 }, { 677, 0, 1060, 0 } }, { 0, 4099, 0, 0 }, { -4093, 0, -86, 0 }, 1254, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MIST_SHOOTING_GALLERY_ACTION_TRAINING_POINT, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x2AB0, -64, -1, 0 }, { { -1540, 0, -867, 0 }, { 1501, 0, -869, 0 }, { -1501, 0, 870, 0 }, { 1541, 0, 868, 0 } }, { 0, 4103, 0, 0 }, { 4093, 0, 86, 0 }, 1764, WORLD_COLLISION_TRIGGER_ACTION_ROOM | WORLD_COLLISION_TRIGGER_AUTOMATIC, MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT, 0, WORLD_COLLISION_TRIGGER_QUAD, 0 },
     { NULL, NULL, NULL, { -8192, -64, 3056, 0 }, { { -440, 0, -2931, 0 }, { 431, 0, -2933, 0 }, { -427, 0, 2934, 0 }, { 437, 0, 2932, 0 } }, { 0, 4114, 0, 0 }, { 4093, 0, 86, 0 }, 2963, WORLD_COLLISION_TRIGGER_ACTION_CAP, 18, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -7888, -64, 5824, 0 }, { { -755, 0, -458, 0 }, { 750, 0, -448, 0 }, { -749, 0, 448, 0 }, { 757, 0, 458, 0 } }, { 0, 4107, 0, 0 }, { -115, 0, -4092, 0 }, 884, WORLD_COLLISION_TRIGGER_ACTION_CAP, 19, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -5184, -64, -3216, 0 }, { { -490, 0, 1220, 0 }, { -480, 0, -1213, 0 }, { 480, 0, 1214, 0 }, { 490, 0, -1220, 0 } }, { 0, 4095, 0, 0 }, { -4093, 0, 115, 0 }, 1311, WORLD_COLLISION_TRIGGER_ACTION_CAP, 34, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
@@ -1980,9 +2072,9 @@ WorldCollisionTrigger D_mist_shooting_gallery_8018C638[21] = {
     { NULL, NULL, NULL, { -0x2B10, -64, 5760, 0 }, { { -1004, 0, -355, 0 }, { 1013, 0, -357, 0 }, { -1013, 0, 358, 0 }, { 1005, 0, 356, 0 } }, { 0, 4100, 0, 0 }, { 86, 0, -4093, 0 }, 1070, WORLD_COLLISION_TRIGGER_ACTION_CAP, 8, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -0x2DC0, -64, -992, 0 }, { { -352, 0, -2275, 0 }, { 359, 0, -2277, 0 }, { -355, 0, 2278, 0 }, { 351, 0, 2276, 0 } }, { 0, 4099, 0, 0 }, { 4093, 0, 86, 0 }, 2304, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -0x2DC0, -64, 2688, 0 }, { { -352, 0, -1251, 0 }, { 359, 0, -1253, 0 }, { -355, 0, 1254, 0 }, { 351, 0, 1252, 0 } }, { 0, 4106, 0, 0 }, { 4093, 0, 86, 0 }, 1299, WORLD_COLLISION_TRIGGER_ACTION_CAP, 5, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -0x29C0, -64, 4128, 0 }, { { -680, 0, -675, 0 }, { 671, 0, -677, 0 }, { -667, 0, 678, 0 }, { 677, 0, 676, 0 } }, { 0, 4097, 0, 0 }, { -3826, 0, -1460, 0 }, 957, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 2, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { -0x29C0, -64, 4128, 0 }, { { -680, 0, -675, 0 }, { 671, 0, -677, 0 }, { -667, 0, 678, 0 }, { 677, 0, 676, 0 } }, { 0, 4097, 0, 0 }, { -3826, 0, -1460, 0 }, 957, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
     { NULL, NULL, NULL, { -0x2860, -64, 4096, 0 }, { { -352, 0, -1987, 0 }, { 359, 0, -1989, 0 }, { -355, 0, 1990, 0 }, { 351, 0, 1988, 0 } }, { 0, 4099, 0, 0 }, { -4093, 0, -86, 0 }, 2019, WORLD_COLLISION_TRIGGER_ACTION_CAP, 6, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { -7104, -64, 3040, 0 }, { { -626, 0, -1011, 0 }, { 623, 0, -1013, 0 }, { -619, 0, 1014, 0 }, { 624, 0, 1012, 0 } }, { 0, 4116, 0, 0 }, { -4085, 0, -288, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_ROOM, 1, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+    { NULL, NULL, NULL, { -7104, -64, 3040, 0 }, { { -626, 0, -1011, 0 }, { 623, 0, -1013, 0 }, { -619, 0, 1014, 0 }, { 624, 0, 1012, 0 } }, { 0, 4116, 0, 0 }, { -4085, 0, -288, 0 }, 1187, WORLD_COLLISION_TRIGGER_ACTION_ROOM, MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU, 0, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
 /// Point lights for the gallery's default room lighting, contributing in every view.
@@ -2199,50 +2291,75 @@ WorldCoordRoomLights gMistShootingGalleryDefaultRoomLights = {
     .coneLights            = NULL,
 };
 
-WorldCoordLight D_mist_shooting_gallery_8018D1CC[1] = {
-    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -5655, -10, 0 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } },
+/// One directional source for alternate gallery model shading.
+///
+/// Translation supplies the light direction; RGB and matrix coefficients
+/// have 12 fractional bits. Every source contributes in all views.
+/// The loaded gallery owns these mutable records; coordinate updates and shading
+/// queries rebuild transforms and write attenuation.
+static WorldCoordLight _gMistShootingGalleryAlternateDirectionalLights[] = {
+    { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -5655, -10, 0 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } },
 };
 
-WorldCoordPointLight D_mist_shooting_gallery_8018D224[18] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2AF8, -1500, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1400, 2400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9400, -1950, 1850 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9400, -1950, 3070 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9400, -1950, 4235 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9400, -1950, 5470 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -8000, -1500, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -6215, -1500, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7505, -2000, 295 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -2000, 5500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2AF8, -1500, 2000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1400, 2400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3000, -2000, 500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2AF8, -1500, -1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1400, 2400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x290E, -1500, -3000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1400, 2400 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7505, -1500, 495 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7505, -1500, 2740 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7505, -1500, 5000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9400, -1950, -545 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 1000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9400, -1950, 650 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 4096 }, { 0, 0 } }, 500, 1000 },
+/// Eighteen point sources for alternate gallery model shading.
+///
+/// Positions and falloff radii use world units; RGB and matrix coefficients
+/// have 12 fractional bits. Every source contributes in all views.
+/// The loaded gallery owns these mutable records; coordinate updates and shading
+/// queries rebuild transforms and write attenuation.
+static WorldCoordPointLight _gMistShootingGalleryAlternatePointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2AF8, -1500, 5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1400, 2400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9400, -1950, 1850 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9400, -1950, 3070 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9400, -1950, 4235 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9400, -1950, 5470 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -8000, -1500, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -6215, -1500, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3276, 3276, 3276 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7505, -2000, 295 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -2000, 5500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2AF8, -1500, 2000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1400, 2400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3000, -2000, 500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2048, 2048, 2048 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2AF8, -1500, -1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1400, 2400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x290E, -1500, -3000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1400, 2400 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7505, -1500, 495 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7505, -1500, 2740 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7505, -1500, 5000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9400, -1950, -545 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 1000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9400, -1950, 650 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, ONE }, { 0, 0 } }, 500, 1000 },
 };
 
-WorldCoordSpotLight D_mist_shooting_gallery_8018D8E4[15] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2D05, -2750, 590 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2867, 2457 }, { 0, 0 } }, { -2247, 3424, 53, 0 }, 3000, 4000, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -455, -2715, -770 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { 1297, 3504, 1677, 0 }, 3000, 4000, 682 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4980, -2715, -195 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -349, 3719, 1678, 0 }, 3000, 4000, 682 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7835, -2715, 260 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { 211, 3966, 1000, 0 }, 3000, 4000, 682 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7835, -2715, 5720 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { 183, 3830, -1439, 0 }, 3000, 4000, 682 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4870, -2715, 6185 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -567, 3666, -1735, 0 }, 3000, 4000, 682 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2D05, -2750, -465 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2867, 2457 }, { 0, 0 } }, { -2247, 3424, 53, 0 }, 3000, 4000, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -350, -2715, 6725 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { 1164, 3572, -1631, 0 }, 3000, 4000, 682 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x311A, -2715, -375 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -1170, 3874, 627, 0 }, 3000, 4000, 568 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x311A, -2715, 6370 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -1164, 3856, -738, 0 }, 3000, 4000, 568 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x31EC, -2715, 2995 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -691, 4037, 0, 0 }, 3000, 4000, 455 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2D05, -2750, -1495 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2867, 2457 }, { 0, 0 } }, { -2247, 3424, 53, 0 }, 3000, 4000, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2D05, -2750, -2880 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2867, 2457 }, { 0, 0 } }, { -2247, 3424, 53, 0 }, 3000, 4000, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2BD9, -2750, -3470 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2867, 2457 }, { 0, 0 } }, { 380, 2861, -2906, 0 }, 3000, 4000, 341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -9910, -2750, -3470 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 2867, 2457 }, { 0, 0 } }, { -939, 2797, -2840, 0 }, 3000, 4000, 341 },
+/// Fifteen cone sources for alternate gallery model shading.
+///
+/// Positions and falloff radii use world units; axes have length about ONE.
+/// RGB has 12 fractional bits and cone openings use 4096 units per turn. Every source contributes in all views.
+/// The loaded gallery owns these mutable records; coordinate updates and shading
+/// queries rebuild transforms and write attenuation.
+static WorldCoordSpotLight _gMistShootingGalleryAlternateConeLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2D05, -2750, 590 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2867, 2457 }, { 0, 0 } }, { -2247, 3424, 53, 0 }, 3000, 4000, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -455, -2715, -770 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { 1297, 3504, 1677, 0 }, 3000, 4000, 682 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4980, -2715, -195 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -349, 3719, 1678, 0 }, 3000, 4000, 682 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7835, -2715, 260 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { 211, 3966, 1000, 0 }, 3000, 4000, 682 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7835, -2715, 5720 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { 183, 3830, -1439, 0 }, 3000, 4000, 682 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4870, -2715, 6185 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -567, 3666, -1735, 0 }, 3000, 4000, 682 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2D05, -2750, -465 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2867, 2457 }, { 0, 0 } }, { -2247, 3424, 53, 0 }, 3000, 4000, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -350, -2715, 6725 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { 1164, 3572, -1631, 0 }, 3000, 4000, 682 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x311A, -2715, -375 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -1170, 3874, 627, 0 }, 3000, 4000, 568 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x311A, -2715, 6370 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -1164, 3856, -738, 0 }, 3000, 4000, 568 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x31EC, -2715, 2995 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2867, 2867, 2867 }, { 0, 0 } }, { -691, 4037, 0, 0 }, 3000, 4000, 455 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2D05, -2750, -1495 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2867, 2457 }, { 0, 0 } }, { -2247, 3424, 53, 0 }, 3000, 4000, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2D05, -2750, -2880 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2867, 2457 }, { 0, 0 } }, { -2247, 3424, 53, 0 }, 3000, 4000, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2BD9, -2750, -3470 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2867, 2457 }, { 0, 0 } }, { 380, 2861, -2906, 0 }, 3000, 4000, 341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -9910, -2750, -3470 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, 2867, 2457 }, { 0, 0 } }, { -939, 2797, -2840, 0 }, 3000, 4000, 341 },
 };
 
-WorldCoordRoomLights D_mist_shooting_gallery_8018DF38 = { ARRAY_SIZE(D_mist_shooting_gallery_8018D1CC), D_mist_shooting_gallery_8018D1CC, ARRAY_SIZE(D_mist_shooting_gallery_8018D224), D_mist_shooting_gallery_8018D224, ARRAY_SIZE(D_mist_shooting_gallery_8018D8E4), D_mist_shooting_gallery_8018D8E4 };
+WorldCoordRoomLights gMistShootingGalleryAlternateRoomLights = {
+    .directionalLightCount = ARRAY_SIZE(_gMistShootingGalleryAlternateDirectionalLights),
+    .directionalLights     = _gMistShootingGalleryAlternateDirectionalLights,
+    .pointLightCount       = ARRAY_SIZE(_gMistShootingGalleryAlternatePointLights),
+    .pointLights           = _gMistShootingGalleryAlternatePointLights,
+    .coneLightCount        = ARRAY_SIZE(_gMistShootingGalleryAlternateConeLights),
+    .coneLights            = _gMistShootingGalleryAlternateConeLights,
+};
 
 AreaResource D_mist_shooting_gallery_8018DF50[3] = {
     { 76, 76, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, D_actor_107600_80134F94 },
@@ -2354,9 +2471,9 @@ WorldCollisionSurfaceProperties* gMistShootingGallerySurfacePropertiesByClass[8]
     &_gMistShootingGallerySilentSurfaceProperties,
 };
 
-s32 D_mist_shooting_gallery_8018E0BC = 0;
+s32 gMistShootingGalleryUnscaledExp = 0;
 
-Task* D_mist_shooting_gallery_8018E0C4;
+Task* gMistShootingGalleryControllerTask;
 
 void mistShootingGalleryTracerTask(Task* task)
 {
@@ -2486,8 +2603,8 @@ static void _mistShootingGalleryInitCourse(Task* controller)
         return;
     }
 
-    D_mist_shooting_gallery_8018E0C4 = controller;
-    controller->exitCallback         = _mistShootingGalleryExitCourse;
+    gMistShootingGalleryControllerTask = controller;
+    controller->exitCallback           = _mistShootingGalleryExitCourse;
     controller->state++;
     work->course = controller->spawnArg1.value & MIST_SHOOTING_GALLERY_COURSE_ARGUMENT_MASK;
     work->clockX = MIST_SHOOTING_GALLERY_CLOCK_INITIAL_X;
@@ -2560,22 +2677,22 @@ static void _mistShootingGalleryRunCourse0(Task* controller)
         MIST_SHOOTING_GALLERY_COURSE_0_M93R_SELECTION                = 2,
         MIST_SHOOTING_GALLERY_COURSE_0_M93R_MIN_PRIMARY_LOAD         = 4,
     };
-    MistShootingGalleryWork*   work;
-    _MistShootingGallerySpawn* spawn;
-    s32                        minimumPrimaryLoad;
-    s32                        buttonLayout;
-    u16                        introFramesLeft;
-    u16                        layoutFramesLeft;
-    u16                        readyFramesBeforeDecrement;
-    u16                        firstTargetFramesLeft;
-    u16                        secondTargetFramesLeft;
-    u16                        instructionsFramesLeft;
-    u16                        seedFramesLeft;
-    u16                        waveInstructionsFramesLeft;
-    u16                        spawnFrame;
-    u16                        scriptFrame;
-    u16                        resumePhase;
-    u8                         captionKey;
+    MistShootingGalleryWork*         work;
+    const _MistShootingGallerySpawn* spawn;
+    s32                              minimumPrimaryLoad;
+    s32                              buttonLayout;
+    u16                              introFramesLeft;
+    u16                              layoutFramesLeft;
+    u16                              readyFramesBeforeDecrement;
+    u16                              firstTargetFramesLeft;
+    u16                              secondTargetFramesLeft;
+    u16                              instructionsFramesLeft;
+    u16                              seedFramesLeft;
+    u16                              waveInstructionsFramesLeft;
+    u16                              spawnFrame;
+    u16                              scriptFrame;
+    u16                              resumePhase;
+    u8                               captionKey;
 
     work         = controller->work;
     buttonLayout = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
@@ -2621,7 +2738,7 @@ static void _mistShootingGalleryRunCourse0(Task* controller)
             if ((s32)(readyFramesBeforeDecrement << 16) <= 0) {
                 work->timer = MIST_SHOOTING_GALLERY_COURSE_0_TARGET_DELAY_TICKS;
                 work->phase++;
-                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_RED_FLASH, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             }
             break;
@@ -2631,7 +2748,7 @@ static void _mistShootingGalleryRunCourse0(Task* controller)
             work->timer           = firstTargetFramesLeft;
             if ((s32)(firstTargetFramesLeft << 16) <= 0) {
                 work->phase++;
-                spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
+                spawn = &_gMistShootingGalleryCourse0WaveScriptRefs[0][work->spawnIndex];
                 _mistShootingGallerySpawnTarget(controller, spawn);
                 work->spawnIndex++;
             }
@@ -2653,7 +2770,7 @@ static void _mistShootingGalleryRunCourse0(Task* controller)
                 if ((s32)(secondTargetFramesLeft << 16) <= 0) {
                     work->timer = MIST_SHOOTING_GALLERY_COURSE_0_LONG_DELAY_TICKS;
                     work->phase++;
-                    spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
+                    spawn = &_gMistShootingGalleryCourse0WaveScriptRefs[0][work->spawnIndex];
                     _mistShootingGallerySpawnTarget(controller, spawn);
                     work->spawnIndex++;
                 }
@@ -2669,7 +2786,7 @@ static void _mistShootingGalleryRunCourse0(Task* controller)
             break;
         case MIST_SHOOTING_GALLERY_COURSE_0_SINGLE_TARGETS:
             if (work->liveTargets == 0) {
-                spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
+                spawn = &_gMistShootingGalleryCourse0WaveScriptRefs[0][work->spawnIndex];
                 _mistShootingGallerySpawnTarget(controller, spawn);
                 work->spawnIndex++;
                 if (work->spawnIndex == MIST_SHOOTING_GALLERY_COURSE_0_SINGLE_TARGET_END_INDEX) {
@@ -2687,7 +2804,7 @@ static void _mistShootingGalleryRunCourse0(Task* controller)
             seedFramesLeft = work->timer - 1;
             work->timer    = seedFramesLeft;
             if ((s32)(seedFramesLeft << 16) <= 0) {
-                spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
+                spawn = &_gMistShootingGalleryCourse0WaveScriptRefs[0][work->spawnIndex];
                 _mistShootingGallerySpawnTarget(controller, spawn);
                 work->spawnIndex++;
                 if (work->spawnIndex == MIST_SHOOTING_GALLERY_COURSE_0_SEED_TARGET_END_INDEX) {
@@ -2714,7 +2831,7 @@ static void _mistShootingGalleryRunCourse0(Task* controller)
             displayReleaseMenuHold();
         // Hold at clear markers and at the finite script end until timeout.
         case MIST_SHOOTING_GALLERY_COURSE_0_WAVES:
-            spawn      = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
+            spawn      = &_gMistShootingGalleryCourse0WaveScriptRefs[0][work->spawnIndex];
             spawnFrame = spawn->frame;
             if (spawnFrame != MIST_SHOOTING_GALLERY_SPAWN_END) {
                 if (spawnFrame != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
@@ -2866,7 +2983,7 @@ static void _mistShootingGalleryRunCourse1(Task* controller)
             if ((s32)(readyFramesBeforeDecrement << 16) <= 0) {
                 work->timer = MIST_SHOOTING_GALLERY_COURSE_1_START_DELAY_TICKS;
                 work->phase++;
-                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_RED_FLASH, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 sceneEngageBattle(1);
                 return;
@@ -2882,7 +2999,7 @@ static void _mistShootingGalleryRunCourse1(Task* controller)
             displayReleaseMenuHold();
             /* fallthrough */
         case MIST_SHOOTING_GALLERY_COURSE_1_WAVES:
-            _mistShootingGalleryStepFiniteWaves(controller, work, D_mist_shooting_gallery_80186904);
+            _mistShootingGalleryStepFiniteWaves(controller, work, _gMistShootingGalleryCourse1WaveScriptRef);
             _mistShootingGalleryDrawCountdownClock(work);
             if (_mistShootingGalleryTickCourseClock(work) == 0) {
                 work->phase = MIST_SHOOTING_GALLERY_COURSE_1_INITIALIZE;
@@ -2961,7 +3078,7 @@ static void _mistShootingGalleryRunCourse2(Task* controller)
         MIST_SHOOTING_GALLERY_COURSE_2_STEP_DELAY_FRAMES        = 15,
         MIST_SHOOTING_GALLERY_COURSE_2_TARGET_SETTLE_FRAMES     = 60,
         MIST_SHOOTING_GALLERY_COURSE_2_HANDOFF_VIEW             = 18,
-        MIST_SHOOTING_GALLERY_COURSE_2_LOOP_RESTART_THRESHOLD   = 73,
+        MIST_SHOOTING_GALLERY_COURSE_2_LOOP_RESTART_THRESHOLD   = ARRAY_SIZE(_gMistShootingGalleryCourse2WaveScript) - 2,
         MIST_SHOOTING_GALLERY_COURSE_2_LOOP_START_INDEX         = 14,
         MIST_SHOOTING_GALLERY_COURSE_2_LOOP_START_FRAME         = 240,
         MIST_SHOOTING_GALLERY_COURSE_2_INITIAL_TARGET_COUNT     = 3,
@@ -3104,7 +3221,7 @@ static void _mistShootingGalleryRunCourse2(Task* controller)
             if ((s32)(timerBeforeDecrement << 16) <= 0) {
                 work->timer = MIST_SHOOTING_GALLERY_COURSE_2_ROUND_START_DELAY_FRAMES;
                 work->phase++;
-                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_RED_FLASH, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             }
             break;
@@ -3147,7 +3264,7 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
         MIST_SHOOTING_GALLERY_COURSE_3_STEP_DELAY_FRAMES      = 15,
         MIST_SHOOTING_GALLERY_COURSE_3_TARGET_SETTLE_FRAMES   = 60,
         MIST_SHOOTING_GALLERY_COURSE_3_HANDOFF_VIEW           = 18,
-        MIST_SHOOTING_GALLERY_COURSE_3_LOOP_RESTART_THRESHOLD = 104,
+        MIST_SHOOTING_GALLERY_COURSE_3_LOOP_RESTART_THRESHOLD = ARRAY_SIZE(_gMistShootingGalleryCourse3WaveScript) - 2,
         MIST_SHOOTING_GALLERY_COURSE_3_LOOP_START_INDEX       = 9,
         MIST_SHOOTING_GALLERY_COURSE_3_LOOP_START_FRAME       = 144,
         MIST_SHOOTING_GALLERY_COURSE_3_INITIAL_TARGET_COUNT   = 2,
@@ -3212,7 +3329,7 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
             if (work->actionTriggered != 0) {
                 work->timer = MIST_SHOOTING_GALLERY_COURSE_3_READY_DELAY_FRAMES;
                 work->phase++;
-                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_RED_FLASH, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 sceneEngageBattle(1);
             }
@@ -3356,7 +3473,7 @@ static void _mistShootingGalleryRunCourse4(Task* controller)
         MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_LAST_KEY            = 18,
         MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_CAPTION_DELAY_TICKS = 3,
         MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_RELEASE_DELAY_TICKS = 4,
-        MIST_SHOOTING_GALLERY_COURSE_4_LOOP_RESTART_THRESHOLD     = 78,
+        MIST_SHOOTING_GALLERY_COURSE_4_LOOP_RESTART_THRESHOLD     = ARRAY_SIZE(_gMistShootingGalleryCourse4WaveScript) - 2,
         MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_INDEX           = 11,
         MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_FRAME           = 688,
     };
@@ -3427,7 +3544,7 @@ static void _mistShootingGalleryRunCourse4(Task* controller)
             if ((s32)(framesLeft << 16) <= 0) {
                 work->timer = MIST_SHOOTING_GALLERY_COURSE_4_START_DELAY_TICKS;
                 work->phase++;
-                taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+                taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_RED_FLASH, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
                 gAttachmentState.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
                 sceneEngageBattle(1);
@@ -3537,7 +3654,7 @@ static void _mistShootingGalleryFinishCourse(Task* controller)
             }
             work->timer = MIST_SHOOTING_GALLERY_FINISH_FLASH_TICKS;
             work->phase++;
-            taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
+            taskSpawnFromTable(gMistShootingGalleryTaskDescs, MIST_SHOOTING_GALLERY_TASK_RED_FLASH, 0, 0);
             sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             return;
         case MIST_SHOOTING_GALLERY_FINISH_FLASH:
@@ -3573,7 +3690,7 @@ s32 mistShootingGalleryGetBonusBp(s32 score)
         MIST_SHOOTING_GALLERY_BONUS_BP_HIGH   = 300,
     };
 
-    const MistShootingGalleryWork* work    = D_mist_shooting_gallery_8018E0C4->work;
+    const MistShootingGalleryWork* work    = gMistShootingGalleryControllerTask->work;
     s32                            bonusBp = MIST_SHOOTING_GALLERY_BONUS_BP_NONE;
 
     switch (work->course) {
@@ -3770,7 +3887,7 @@ void mistShootingGallerySpawnDemoTarget(void)
 
 void mistShootingGallerySignalAction(void)
 {
-    MistShootingGalleryWork* work = D_mist_shooting_gallery_8018E0C4->work;
+    MistShootingGalleryWork* work = gMistShootingGalleryControllerTask->work;
 
     work->actionTriggered = 1;
 }
@@ -3782,7 +3899,7 @@ s32 mistShootingGalleryQualifiesForPrize(s32 bonusBp)
         MIST_SHOOTING_GALLERY_BASIC_PRIZE_BP              = 200,
         MIST_SHOOTING_GALLERY_ADVANCED_PRIZE_BP           = 300,
     };
-    MistShootingGalleryWork* work      = D_mist_shooting_gallery_8018E0C4->work;
+    MistShootingGalleryWork* work      = gMistShootingGalleryControllerTask->work;
     s32                      qualifies = 0;
 
     if (work->course < MIST_SHOOTING_GALLERY_FIRST_ADVANCED_PRIZE_COURSE) {
@@ -3802,7 +3919,7 @@ static void _mistShootingGalleryCourseTask(Task* task)
 {
     TaskFuncTable3 states;
 
-    states = D_mist_shooting_gallery_8017DB80;
+    states = _gMistShootingGalleryControllerStates;
     states.funcs[task->state](task);
 }
 
@@ -3813,7 +3930,7 @@ static void _mistShootingGalleryCourseTask(Task* task)
 static void _mistShootingGalleryRunCourse(Task* controller)
 {
     MistShootingGalleryWork* work   = controller->work;
-    TaskFuncTable5           rounds = D_mist_shooting_gallery_8017DB8C;
+    TaskFuncTable5           rounds = _gMistShootingGalleryCourseHandlers;
 
     rounds.funcs[work->course](controller);
 }
@@ -3902,7 +4019,7 @@ static void _mistShootingGalleryShowCaption(s16 commandIndex, s16 captionKey, s1
     enum { MIST_SHOOTING_GALLERY_CAPTION_BOTTOM_BASELINE_Y = 208 };
 
     actor215100CapCaptionSelectRecord(commandIndex, captionKey, MIST_SHOOTING_GALLERY_CAPTION_BOTTOM_BASELINE_Y);
-    displayQueueModeTask(&D_mist_shooting_gallery_801856D0, dismissButtons, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(&_gMistShootingGalleryCaptionModeTaskDesc, dismissButtons, 0, STAGE_ENTRY_RELOAD);
 }
 
 /// Displays the selected caption until a button press closes its display mode.
