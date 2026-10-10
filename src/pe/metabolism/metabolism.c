@@ -50,20 +50,27 @@ typedef struct {
 } _MetabolismLevelTuning;
 STATIC_ASSERT_SIZEOF(_MetabolismLevelTuning, 8);
 
-/// Per-level tuning for the metabolism drain, one row per PE level 1-3,
-/// weakest first.
-static _MetabolismLevelTuning D_metabolism_8012FB54[] = {
-    { 0x0008, 0x0080, 0x0020, 0x0400 },
-    { 0x000C, 0x00B0, 0x0030, 0x0500 },
-    { 0x0010, 0x00E0, 0x0040, 0x0600 },
+enum { METABOLISM_MAX_CAST_WEDGES = 16 };
+
+/// Metabolism cast geometry, brightness and sparkle tuning for PE levels 1..3.
+///
+/// Row `level - 1` selects radial growth and limits, and 8, 12 or
+/// `METABOLISM_MAX_CAST_WEDGES` fan wedges.
+static _MetabolismLevelTuning _gMetabolismLevelTuning[] = {
+    { 8, 0x0080, 0x0020, 0x0400 },
+    { 12, 0x00B0, 0x0030, 0x0500 },
+    { METABOLISM_MAX_CAST_WEDGES, 0x00E0, 0x0040, 0x0600 },
 };
 
-/// The `sndEvtRequestScriptStart` id for each `D_metabolism_8012FB54` row.
-static s32 D_metabolism_8012FB6C[] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
+/// Metabolism startup sound-script selectors, indexed by PE level minus one (0..2).
+static s32 _gMetabolismCastSoundScripts[ARRAY_SIZE(_gMetabolismLevelTuning)] = { 0xE01F0001, 0xE0220001, 0xE0250001 };
 
-/// Scratch angles for the fan, one per wedge: `(i << 10)` plus a 10-bit
-/// random offset, seeded by state 0 and drawn by `_metabolismDrawFanWedge`.
-static s16 D_metabolism_8012FB78[16];
+/// Retained Metabolism fan-wedge bearings, in 4096 angle units per turn.
+///
+/// Startup replaces the active 8/12/16-entry prefix with `i * 1024` plus
+/// random offsets 0..1023. Growing and fading draws reuse every active bearing.
+/// Capacity is the largest level's wedge count; a later cast replaces it.
+static s16 _gMetabolismFanWedgeBearings[METABOLISM_MAX_CAST_WEDGES];
 
 static void _metabolismDrawFanWedge(const GfxCoord* coord, s16 radius, s16 bearing, s16 brightness);
 
@@ -110,16 +117,16 @@ static inline void _metabolismDrawGlow(const GfxCoord* coord, const EffectWork* 
 /// levelIndex is a side-effect-free 0..2 expression and wedgeIndex a writable
 /// scalar local; both are evaluated repeatedly. Captures the level tuning,
 /// complete sixteen-angle table and shared LCG; 4096 angle units form a turn.
-#define METABOLISM_SEED_FAN_BEARINGS(levelIndex, wedgeIndex)                                                                        \
-    {                                                                                                                               \
-        enum { METABOLISM_WEDGE_JITTER_MASK = 0x3FF };                                                                              \
-        s32 bearingRoll;                                                                                                            \
-                                                                                                                                    \
-        for ((wedgeIndex) = 0; (wedgeIndex) < D_metabolism_8012FB54[((levelIndex))].wedgeCount; (wedgeIndex)++) {                   \
-            bearingRoll                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                   \
-            D_metabolism_8012FB78[(wedgeIndex)] = ((wedgeIndex) << 10) + (((u32)bearingRoll >> 16) & METABOLISM_WEDGE_JITTER_MASK); \
-            gRandomLcgState                     = bearingRoll;                                                                      \
-        }                                                                                                                           \
+#define METABOLISM_SEED_FAN_BEARINGS(levelIndex, wedgeIndex)                                                                               \
+    {                                                                                                                                      \
+        enum { METABOLISM_WEDGE_JITTER_MASK = 0x3FF };                                                                                     \
+        s32 bearingRoll;                                                                                                                   \
+                                                                                                                                           \
+        for ((wedgeIndex) = 0; (wedgeIndex) < _gMetabolismLevelTuning[((levelIndex))].wedgeCount; (wedgeIndex)++) {                        \
+            bearingRoll                                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                   \
+            _gMetabolismFanWedgeBearings[(wedgeIndex)] = ((wedgeIndex) << 10) + (((u32)bearingRoll >> 16) & METABOLISM_WEDGE_JITTER_MASK); \
+            gRandomLcgState                            = bearingRoll;                                                                      \
+        }                                                                                                                                  \
     }
 
 void metabolismCastTask(Task* task)
@@ -168,17 +175,17 @@ void metabolismCastTask(Task* task)
             METABOLISM_SEED_FAN_BEARINGS(effect->index, particleIndex);
             gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             pan                     = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_metabolism_8012FB6C[effect->index], pan,
+            sndEvtRequestScriptStart(_gMetabolismCastSoundScripts[effect->index], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
         case METABOLISM_STATE_GROWING:
             actorRenderComposeCoord(coord);
             brightness = effect->scale;
-            if (brightness < D_metabolism_8012FB54[effect->index].brightnessLimit) {
+            if (brightness < _gMetabolismLevelTuning[effect->index].brightnessLimit) {
                 brightness += METABOLISM_BRIGHTNESS_STEP;
             }
             effect->scale = brightness;
-            effect->angle = effect->angle + D_metabolism_8012FB54[effect->index].radiusStep;
+            effect->angle = effect->angle + _gMetabolismLevelTuning[effect->index].radiusStep;
             {
                 s32 bearingRoll;
                 s32 yawRoll;
@@ -200,30 +207,30 @@ void metabolismCastTask(Task* task)
                     effect->move.vz = 0;
                     effect->move.vy = verticalProduct >> METABOLISM_TRIG_FRACTION_BITS;
                     spawned         = effectSpawn(EFFECT_METABOLISM_SPARKLE, coord,
-                                                  (s32)D_metabolism_8012FB54[effect->index].radiusLimit,
+                                                  (s32)_gMetabolismLevelTuning[effect->index].radiusLimit,
                                                   &effect->move);
                     if (spawned != NULL) {
                         taskReparent(task, spawned->task);
                     }
                 }
             }
-            if (effect->angle >= D_metabolism_8012FB54[effect->index].radiusLimit) {
+            if (effect->angle >= _gMetabolismLevelTuning[effect->index].radiusLimit) {
                 task->state = METABOLISM_STATE_FADING;
             }
-            for (particleIndex = 0; particleIndex < D_metabolism_8012FB54[effect->index].wedgeCount; particleIndex++) {
-                _metabolismDrawFanWedge(coord, effect->angle, D_metabolism_8012FB78[particleIndex],
+            for (particleIndex = 0; particleIndex < _gMetabolismLevelTuning[effect->index].wedgeCount; particleIndex++) {
+                _metabolismDrawFanWedge(coord, effect->angle, _gMetabolismFanWedgeBearings[particleIndex],
                                         effect->scale);
             }
             _metabolismDrawGlow(coord, effect);
             return;
         case METABOLISM_STATE_FADING:
             actorRenderComposeCoord(coord);
-            for (particleIndex = 0; particleIndex < D_metabolism_8012FB54[effect->index].wedgeCount; particleIndex++) {
-                _metabolismDrawFanWedge(coord, effect->angle, D_metabolism_8012FB78[particleIndex],
+            for (particleIndex = 0; particleIndex < _gMetabolismLevelTuning[effect->index].wedgeCount; particleIndex++) {
+                _metabolismDrawFanWedge(coord, effect->angle, _gMetabolismFanWedgeBearings[particleIndex],
                                         effect->scale);
             }
             effect->scale = effect->scale - METABOLISM_BRIGHTNESS_STEP;
-            effect->angle = effect->angle + D_metabolism_8012FB54[effect->index].radiusStep;
+            effect->angle = effect->angle + _gMetabolismLevelTuning[effect->index].radiusStep;
             if (effect->scale < METABOLISM_FADE_END_BRIGHTNESS) {
                 task->state = METABOLISM_STATE_RELEASE;
             }

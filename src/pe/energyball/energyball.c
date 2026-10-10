@@ -83,10 +83,19 @@ enum {
 static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16 brightness);
 static void _energyballDrawChargeBand(const GfxCoord* coord, s16 halfHeight, s16 brightness);
 
-/// The energy ball's sound-script ids. Only the first three are read, indexed by
-/// the cast's level: the cast starts its entry with `sndEvtRequestScriptStart` and
-/// later passes the same id to `sndEvtRequestScriptStop`.
-static s32 D_energyball_8013117C[] = {
+enum {
+    ENERGYBALL_PE_LEVEL_COUNT       = 3,
+    ENERGYBALL_LOOP_SOUND_START     = 0,
+    ENERGYBALL_IMPACT_SOUND_START   = ENERGYBALL_PE_LEVEL_COUNT,
+    ENERGYBALL_SOUND_SELECTOR_COUNT = 2 * ENERGYBALL_PE_LEVEL_COUNT,
+};
+
+/// Energy Ball loop and impact sound-script selectors for PE levels 1..3.
+///
+/// Entries 0..2 supply the loop started when no ball is active and stopped
+/// when the last ball ends; entries 3..5 supply the hit cue. Each group is
+/// addressed by its start index plus PE level minus one (0..2).
+static s32 _gEnergyballSoundScripts[ENERGYBALL_SOUND_SELECTOR_COUNT] = {
     0xE02B0002,
     0xE02E0002,
     0xE0310002,
@@ -95,31 +104,35 @@ static s32 D_energyball_8013117C[] = {
     0xE0310001,
 };
 
-/// Per-level size tuning for the ball, one row per PE level 1-3, weakest
-/// first.
-static _EnergyballLevelTuning D_energyball_80131194[] = {
+/// Energy Ball size and upward distance step for PE levels 1..3.
+///
+/// Row `level - 1` supplies the size reached before flight, the size change per
+/// charging/bursting/fading tick, and the upward charging step in coordinate units.
+static _EnergyballLevelTuning _gEnergyballLevelTuning[ENERGYBALL_PE_LEVEL_COUNT] = {
     { 0x0400, 0x0040 },
     { 0x0480, 0x0048 },
     { 0x0500, 0x0050 },
 };
 
-/// Sixteen 8-bit draws from `gRandomLcgState`, refilled once per cast by
-/// `energyballCastTask` and consumed by the GTE pass in
-/// `_energyballDrawChargeBand` as the per-vertex jitter of the ball's surface.
-static s16 D_energyball_801311A0[16];
+/// Retained texture-frame offsets for Energy Ball's charging-band segments.
+///
+/// A cast replaces all sixteen offsets with random values 0..255. Each segment
+/// adds its offset to the display animation frame modulo six to choose a texture
+/// cell; these values do not displace geometry. All balls share this storage.
+static s16 _gEnergyballChargeBandFrameOffsets[EFFECT_BAND_SEGMENT_COUNT];
 
 /// Seeds all sixteen charge-band phases in LCG order.
 ///
 /// segmentIndex and phaseRoll are writable scalar locals, evaluated repeatedly.
 /// Captures the shared LCG and the complete charge-band phase table; no validation.
-#define ENERGYBALL_SEED_CHARGE_BAND_PHASES(segmentIndex, phaseRoll)                                                 \
-    {                                                                                                               \
-        enum { ENERGYBALL_PHASE_JITTER_MASK = 0xFF };                                                               \
-        for ((segmentIndex) = 0; (segmentIndex) < ARRAY_SIZE(D_energyball_801311A0); (segmentIndex)++) {            \
-            (phaseRoll)                           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
-            D_energyball_801311A0[(segmentIndex)] = ((u32)(phaseRoll) >> 16) & ENERGYBALL_PHASE_JITTER_MASK;        \
-            gRandomLcgState                       = (phaseRoll);                                                    \
-        }                                                                                                           \
+#define ENERGYBALL_SEED_CHARGE_BAND_PHASES(segmentIndex, phaseRoll)                                                              \
+    {                                                                                                                            \
+        enum { ENERGYBALL_PHASE_JITTER_MASK = 0xFF };                                                                            \
+        for ((segmentIndex) = 0; (segmentIndex) < ARRAY_SIZE(_gEnergyballChargeBandFrameOffsets); (segmentIndex)++) {            \
+            (phaseRoll)                                        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
+            _gEnergyballChargeBandFrameOffsets[(segmentIndex)] = ((u32)(phaseRoll) >> 16) & ENERGYBALL_PHASE_JITTER_MASK;        \
+            gRandomLcgState                                    = (phaseRoll);                                                    \
+        }                                                                                                                        \
     }
 
 void energyballCastTask(Task* task)
@@ -151,7 +164,7 @@ void energyballCastTask(Task* task)
                 gEnergyBallInFlightCount = 0;
             }
             if (gEnergyBallInFlightCount == 0) {
-                sndEvtRequestScriptStart(D_energyball_8013117C[effect->index], 0, 0);
+                sndEvtRequestScriptStart(_gEnergyballSoundScripts[effect->index + ENERGYBALL_LOOP_SOUND_START], 0, 0);
             }
             ENERGYBALL_SEED_CHARGE_BAND_PHASES(ballIndex, jitterRoll);
             for (ballIndex = 0; ballIndex < effect->index + 1; ballIndex++) {
@@ -213,7 +226,6 @@ void energyballProjectileTask(Task* task)
         ENERGYBALL_LIGHT_JITTER_MASK       = 0x700,
         ENERGYBALL_VELOCITY_SCALE_STEP     = 0x180,
         ENERGYBALL_VELOCITY_SCALE_BASE     = 0xA00,
-        ENERGYBALL_IMPACT_SOUND_OFFSET     = 3,
     };
     EffectWork*                    effect;
     GfxCoord*                      coord;
@@ -243,7 +255,7 @@ void energyballProjectileTask(Task* task)
             if (gEnergyBallInFlightCount > 0) {
                 gEnergyBallInFlightCount -= 1;
                 if (gEnergyBallInFlightCount == 0) {
-                    sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                    sndEvtRequestScriptStop(_gEnergyballSoundScripts[effect->index + ENERGYBALL_LOOP_SOUND_START], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 }
             }
             if (task->state != ENERGYBALL_STATE_INITIALIZE) {
@@ -274,7 +286,7 @@ void energyballProjectileTask(Task* task)
             effect->index             = (gAttachmentState.attachId % 10) - 1;
             effect->move.vx           = 0;
             gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            effect->move.vy           = -D_energyball_80131194[effect->index].sizeStep;
+            effect->move.vy           = -_gEnergyballLevelTuning[effect->index].sizeStep;
             effect->move.vz           = 0;
             effect->angle             = 0;
             effect->period            = (gRandomLcgState >> 16) & ENERGYBALL_RANDOM_DIRECTION_MASK;
@@ -285,8 +297,8 @@ void energyballProjectileTask(Task* task)
             /* fallthrough */
         case ENERGYBALL_STATE_CHARGING:
             // Charge upward before arming the pair-test sphere at full size.
-            if (effect->angle < D_energyball_80131194[effect->index].fullSize) {
-                effect->angle = effect->angle + D_energyball_80131194[effect->index].sizeStep;
+            if (effect->angle < _gEnergyballLevelTuning[effect->index].fullSize) {
+                effect->angle = effect->angle + _gEnergyballLevelTuning[effect->index].sizeStep;
                 _energyballAdvanceProjectileCoord(coord, effect);
             } else {
                 actorRenderComposeCoord(coord);
@@ -315,7 +327,7 @@ void energyballProjectileTask(Task* task)
                 gte_gpf12();
                 gte_stsv(flightVelocity);
                 effect->pos.vx = 0;
-                effect->pos.vy = -D_energyball_80131194[effect->index].sizeStep;
+                effect->pos.vy = -_gEnergyballLevelTuning[effect->index].sizeStep;
                 effect->pos.vz = 0;
             }
             lightSlot->framesLeft    = ENERGYBALL_LIGHT_HOLD_FRAMES;
@@ -336,16 +348,16 @@ void energyballProjectileTask(Task* task)
                 _groundGlowDraw(&groundCoord, effect->angle);
             }
             // Keep the charging cylinder at its launch height while the ball rises.
-            coord->workm.t[1] += D_energyball_80131194[effect->index].sizeStep * effect->age;
+            coord->workm.t[1] += _gEnergyballLevelTuning[effect->index].sizeStep * effect->age;
             _energyballDrawChargeBand(coord, effect->angle,
-                                      (D_energyball_80131194[effect->index].fullSize - effect->angle) / 5);
-            coord->workm.t[1] -= D_energyball_80131194[effect->index].sizeStep * effect->age;
+                                      (_gEnergyballLevelTuning[effect->index].fullSize - effect->angle) / 5);
+            coord->workm.t[1] -= _gEnergyballLevelTuning[effect->index].sizeStep * effect->age;
             if ((u16)(gAttachmentState.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
                 if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
-                            sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                            sndEvtRequestScriptStop(_gEnergyballSoundScripts[effect->index + ENERGYBALL_LOOP_SOUND_START], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         }
                     }
                     worldCollisionUnlinkBody(&collision->body);
@@ -407,7 +419,7 @@ void energyballProjectileTask(Task* task)
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
-                            sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                            sndEvtRequestScriptStop(_gEnergyballSoundScripts[effect->index + ENERGYBALL_LOOP_SOUND_START], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         }
                     }
                     worldCollisionUnlinkBody(&collision->body);
@@ -428,10 +440,10 @@ void energyballProjectileTask(Task* task)
                 if (spawned != NULL) {
                     taskReparent(task, spawned->task);
                 }
-                soundScripts = D_energyball_8013117C;
-                sndEvtRequestScriptStart(soundScripts[effect->index + ENERGYBALL_IMPACT_SOUND_OFFSET], 0, 0);
+                soundScripts = _gEnergyballSoundScripts;
+                sndEvtRequestScriptStart(soundScripts[effect->index + ENERGYBALL_IMPACT_SOUND_START], 0, 0);
                 worldCollisionUnlinkBody(&collision->body);
-                effect->angle = D_energyball_80131194[effect->index].fullSize;
+                effect->angle = _gEnergyballLevelTuning[effect->index].fullSize;
                 task->state   = ENERGYBALL_STATE_BURSTING;
                 return;
             }
@@ -448,23 +460,23 @@ void energyballProjectileTask(Task* task)
             _spriteQuadDrawFlicker(coord, effect->age, effect->angle, effect->period);
             _energyballDrawGlowDisc(coord, effect->angle, effect->scale >> 2);
             _energyballDrawGlowDisc(coord, (u16)effect->angle * 2, effect->scale >> 2);
-            effect->angle += D_energyball_80131194[effect->index].sizeStep;
+            effect->angle += _gEnergyballLevelTuning[effect->index].sizeStep;
             if (((u16)(gAttachmentState.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
                 ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                        sndEvtRequestScriptStop(_gEnergyballSoundScripts[effect->index + ENERGYBALL_LOOP_SOUND_START], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
                 effectKillTask(effect, task);
                 return;
             }
-            if (D_energyball_80131194[effect->index].fullSize * 2 < effect->angle) {
+            if (_gEnergyballLevelTuning[effect->index].fullSize * 2 < effect->angle) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                        sndEvtRequestScriptStop(_gEnergyballSoundScripts[effect->index + ENERGYBALL_LOOP_SOUND_START], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
                 effectKillTask(effect, task);
@@ -476,23 +488,23 @@ void energyballProjectileTask(Task* task)
             _spriteQuadDrawFlicker(coord, effect->age, effect->angle, effect->period);
             _energyballDrawGlowDisc(coord, effect->angle, effect->scale >> 2);
             _energyballDrawGlowDisc(coord, (u16)effect->angle * 2, effect->scale >> 2);
-            effect->angle -= D_energyball_80131194[effect->index].sizeStep;
+            effect->angle -= _gEnergyballLevelTuning[effect->index].sizeStep;
             if (((u16)(gAttachmentState.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
                 ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                        sndEvtRequestScriptStop(_gEnergyballSoundScripts[effect->index + ENERGYBALL_LOOP_SOUND_START], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
                 effectKillTask(effect, task);
                 return;
             }
-            if (effect->angle < D_energyball_80131194[effect->index].sizeStep) {
+            if (effect->angle < _gEnergyballLevelTuning[effect->index].sizeStep) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                        sndEvtRequestScriptStop(_gEnergyballSoundScripts[effect->index + ENERGYBALL_LOOP_SOUND_START], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
                 effectKillTask(effect, task);
@@ -600,20 +612,20 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
 /// All input arguments are side-effect-free locals, used repeatedly; textureFrame
 /// is a writable s16 lvalue. Captures display animation frame and the package phase table.
 /// The scoped next-segment temporary is private to the expansion.
-#define ENERGYBALL_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame)                                                               \
-    {                                                                                                                                      \
-        enum { ENERGYBALL_BAND_FRAME_COUNT = 6 };                                                                                          \
-        s32 nextSegmentIndex;                                                                                                              \
-                                                                                                                                           \
-        gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                     \
-        gte_rtps();                                                                                                                        \
-        (textureFrame) = (u32)(D_energyball_801311A0[(segmentIndex)] + gDisplayState.animFrame) % ENERGYBALL_BAND_FRAME_COUNT;             \
-        gte_stsxy(&(scratch)->sxy0);                                                                                                       \
-        nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                         \
-        gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]); \
-        gte_rtpt();                                                                                                                        \
-        gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                  \
-        gte_stflg(&(scratch)->projectionFlags);                                                                                            \
+#define ENERGYBALL_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame)                                                                \
+    {                                                                                                                                       \
+        enum { ENERGYBALL_BAND_FRAME_COUNT = 6 };                                                                                           \
+        s32 nextSegmentIndex;                                                                                                               \
+                                                                                                                                            \
+        gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                      \
+        gte_rtps();                                                                                                                         \
+        (textureFrame) = (u32)(_gEnergyballChargeBandFrameOffsets[(segmentIndex)] + gDisplayState.animFrame) % ENERGYBALL_BAND_FRAME_COUNT; \
+        gte_stsxy(&(scratch)->sxy0);                                                                                                        \
+        nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                          \
+        gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]);  \
+        gte_rtpt();                                                                                                                         \
+        gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                   \
+        gte_stflg(&(scratch)->projectionFlags);                                                                                             \
     }
 
 /// Draws the charging ball's textured cylinder between two local-XZ rims.

@@ -3,3 +3,6 @@ metabolismSparkleTask = 0x8012F5A0; // type:func
 
 metabolismCastTask = 0x8012EF34; // type:func
 _metabolismDrawFanWedge = 0x8012f840; // type:func
+_gMetabolismLevelTuning = 0x8012fb54;
+_gMetabolismCastSoundScripts = 0x8012fb6c;
+_gMetabolismFanWedgeBearings = 0x8012fb78;

@@ -67,20 +67,23 @@ static void _combustionDrawSmallFlame(const GfxCoord* coord, s16 animationFrame,
 static void _combustionDrawEmber(const GfxCoord* coord, s32 animationFrame, s16 sizeFactor);
 static void _combustionDrawLargeFlame(const GfxCoord* coord, s16 animationFrame, s16 sizeFactor);
 
-/// Per-level tuning for the combustion flame, one row per PE level 1-3,
-/// weakest first.
-static _CombustionLevelTuning D_combustion_80130980[] = {
-    { 0x0060, 0x0120, 0x0007, 0x0015 },
-    { 0x0055, 0x0187, 0x0008, 0x0017 },
-    { 0x004C, 0x01F3, 0x0009, 0x0019 },
+/// Combustion flame placement and emitter timing for PE levels 1..3.
+///
+/// Row `level - 1` supplies local-coordinate distance steps and tick counts.
+static _CombustionLevelTuning _gCombustionLevelTuning[] = {
+    { 0x0060, 0x0120, 7, 21 },
+    { 0x0055, 0x0187, 8, 23 },
+    { 0x004C, 0x01F3, 9, 25 },
 };
 
-/// The `sndEvtRequestScriptStart` id for each `D_combustion_80130980` row.
-static s32 D_combustion_80130998[] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
+/// Combustion ignition sound-script selectors, indexed by PE level minus one (0..2).
+static s32 _gCombustionIgnitionSoundScripts[ARRAY_SIZE(_gCombustionLevelTuning)] = { 0xE00C0002, 0xE00F0002, 0xE0120002 };
 
-/// The effect coordinate's world Y at ignition, saved by
-/// `combustionFlameEmitterTask` before it re-bases the coordinate on the player.
-static s32 D_combustion_801309A4 = 0;
+/// Last emitter's composed spawn Y before placement relative to the player.
+///
+/// Stored in signed game-coordinate units at ignition. Retained package
+/// storage has no reader in the current implementation and no established use.
+static s32 _gCombustionSpawnComposedY = 0;
 
 /// Places one Combustion emitter above the player and yaws it toward its side.
 ///
@@ -134,11 +137,11 @@ void combustionFlameEmitterTask(Task* task)
                 task->spawnArg1.value = 1;
             }
             // Save the spawn height before placing the line in the player's frame.
-            D_combustion_801309A4 = coord->workm.t[1];
+            _gCombustionSpawnComposedY = coord->workm.t[1];
             _combustionPlaceEmitterCoord(coord, task);
             work->move.vz = COMBUSTION_EMITTER_INITIAL_REACH;
             pan           = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_combustion_80130998[(u16)(gAttachmentState.attachId % 10) - 1], pan,
+            sndEvtRequestScriptStart(_gCombustionIgnitionSoundScripts[(u16)(gAttachmentState.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             rgb[0] = COMBUSTION_IGNITION_RED;
             rgb[1] = COMBUSTION_IGNITION_GREEN;
@@ -146,7 +149,7 @@ void combustionFlameEmitterTask(Task* task)
             effectDrawScreenTint(rgb, GPU_BLEND_ADD);
             task->state = COMBUSTION_EMITTER_STATE_EMITTING;
             work->index = gAttachmentState.attachId % 10 - 1;
-            padScriptSpawnVariableMotorRamp(D_combustion_80130980[work->index].emitterFrames, COMBUSTION_EMITTER_MOTOR_START, COMBUSTION_EMITTER_MOTOR_END);
+            padScriptSpawnVariableMotorRamp(_gCombustionLevelTuning[work->index].emitterFrames, COMBUSTION_EMITTER_MOTOR_START, COMBUSTION_EMITTER_MOTOR_END);
             /* fallthrough */
         case COMBUSTION_EMITTER_STATE_EMITTING:
             actorRenderComposeCoord(coord);
@@ -155,13 +158,13 @@ void combustionFlameEmitterTask(Task* task)
                 return;
             }
             // move is the next flame's local placement, rather than this task's velocity.
-            work->move.vy = work->move.vy + D_combustion_80130980[work->index].flameDropStep;
-            work->move.vz = work->move.vz + D_combustion_80130980[work->index].flameReachStep;
+            work->move.vy = work->move.vy + _gCombustionLevelTuning[work->index].flameDropStep;
+            work->move.vz = work->move.vz + _gCombustionLevelTuning[work->index].flameReachStep;
             spawned       = effectSpawn((EFFECT_COMBUSTION_FLAME | EFFECT_SPAWN_UNLIMITED), coord, (s32)(work->age), &work->move);
             if (spawned != NULL) {
                 taskReparent(task, spawned->task);
             }
-            if (D_combustion_80130980[work->index].narrowFlameFrames < work->age) {
+            if (_gCombustionLevelTuning[work->index].narrowFlameFrames < work->age) {
                 gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 task->state             = COMBUSTION_EMITTER_STATE_UNWINDING;
                 return;
@@ -170,7 +173,7 @@ void combustionFlameEmitterTask(Task* task)
         case COMBUSTION_EMITTER_STATE_UNWINDING:
             actorRenderComposeCoord(coord);
             if ((gAttachmentState.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) ||
-                (work->age > D_combustion_80130980[work->index].emitterFrames)) {
+                (work->age > _gCombustionLevelTuning[work->index].emitterFrames)) {
                 effectKillTask(work, task);
                 return;
             }
@@ -247,7 +250,7 @@ void combustionFlameTask(Task* task)
             work->age         = ((u32)phaseRng >> 16) & COMBUSTION_FLAME_INITIAL_AGE_MASK;
             work->scale       = task->spawnArg1.value * COMBUSTION_FLAME_SIZE_STEP + COMBUSTION_FLAME_SIZE_BASE;
             work->index       = gAttachmentState.attachId % 10 - 1;
-            narrowFlameFrames = D_combustion_80130980[work->index].narrowFlameFrames;
+            narrowFlameFrames = _gCombustionLevelTuning[work->index].narrowFlameFrames;
             gRandomLcgState   = phaseRng;
             if (narrowFlameFrames < task->spawnArg1.value) {
                 task->state = COMBUSTION_FLAME_STATE_WIDE;

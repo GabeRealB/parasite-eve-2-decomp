@@ -34,22 +34,27 @@
 
 static void _plasmaDrawRingBand(const EffectWork* effect, const GfxCoord* coord, s32 bandIndex);
 
-/// Per-level geometry for the plasma ring: rows are PE levels 1-3.
-/// `baseRadius` is the inner radius, `lift` the height above the caster,
-/// `spread` how far the ring grows before it breaks up.
-static EffectBandShape D_plasma_8012FF34[] = {
+/// Shapes of the three concurrent Plasma bands, ordered by increasing base radius.
+///
+/// All three rows are drawn at every PE level. Distances use local coordinate
+/// units: base radius is added to radial growth, lift to animated upper-rim
+/// height, and spread to the upper rim's extra radius.
+static EffectBandShape _gPlasmaBandShapes[] = {
     { 0x0100, 0x0800, 0x0200 },
     { 0x0200, 0x0600, 0x0300 },
     { 0x0300, 0x0400, 0x0400 },
 };
 
-/// The `sndEvtRequestScriptStart` id for each `D_plasma_8012FF34` row.
+/// The `sndEvtRequestScriptStart` id for each PE level 1..3.
 static s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
 
-/// Three 16-entry columns of per-wedge jitter. `plasmaCastTask` fills
-/// them with LCG bytes when the ring spawns; `_plasmaDrawRingBand` reads
-/// column `bandIndex` to pick each wedge's texture.
-static s16 D_plasma_8012FF54[3][16] = { 0 };
+/// Retained texture-frame offsets for each Plasma band's sixteen segments.
+///
+/// The first index is the shape row (0..2), the second the segment (0..15).
+/// Startup replaces all 48 offsets with random values 0..255 in segment-first
+/// order. Each segment adds its offset to the effect age modulo six to select
+/// a texture cell. A later cast replaces this shared package storage.
+static s16 _gPlasmaBandFrameOffsets[ARRAY_SIZE(_gPlasmaBandShapes)][EFFECT_BAND_SEGMENT_COUNT] = { 0 };
 
 /// Seeds the three Plasma texture-phase columns in per-segment LCG order.
 ///
@@ -64,14 +69,14 @@ static inline void _plasmaSeedBandPhases(void)
     enum { PLASMA_PHASE_JITTER_MASK = 0xFF };
     segmentIndex = 0;
     do {
-        gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        D_plasma_8012FF54[0][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
-        gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        D_plasma_8012FF54[1][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
-        gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        D_plasma_8012FF54[2][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
+        gRandomLcgState                           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        _gPlasmaBandFrameOffsets[0][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
+        gRandomLcgState                           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        _gPlasmaBandFrameOffsets[1][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
+        gRandomLcgState                           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        _gPlasmaBandFrameOffsets[2][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
         segmentIndex++;
-    } while (segmentIndex < ARRAY_SIZE(D_plasma_8012FF54[0]));
+    } while (segmentIndex < ARRAY_SIZE(_gPlasmaBandFrameOffsets[0]));
 }
 
 void plasmaCastTask(Task* task)
@@ -235,7 +240,7 @@ void plasmaCastTask(Task* task)
                                                                                                                                            \
         gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                     \
         gte_rtps();                                                                                                                        \
-        (textureFrame) = (D_plasma_8012FF54[(bandIndex)][(segmentIndex)] + (effect)->age) % PLASMA_BAND_FRAME_COUNT;                       \
+        (textureFrame) = (_gPlasmaBandFrameOffsets[(bandIndex)][(segmentIndex)] + (effect)->age) % PLASMA_BAND_FRAME_COUNT;                \
         gte_stsxy(&(scratch)->sxy0);                                                                                                       \
         nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                         \
         gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]); \
@@ -279,7 +284,7 @@ static void _plasmaDrawRingBand(const EffectWork* effect, const GfxCoord* coord,
     u16                heightBits;
     u16                heightOffsetBits;
 
-    shape            = &D_plasma_8012FF34[bandIndex];
+    shape            = &_gPlasmaBandShapes[bandIndex];
     heightOffsetBits = effect->period;
     bottomRadius     = effect->angle;
     heightBits       = heightOffsetBits + shape->lift;

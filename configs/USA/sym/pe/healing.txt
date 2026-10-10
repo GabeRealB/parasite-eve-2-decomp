@@ -5,3 +5,5 @@ healingSparkleTask = 0x8012F5E4; // type:func
 
 healingAuraTask = 0x8012EF34; // type:func
 _healingDrawSparkle = 0x8012f7fc; // type:func
+_gHealingLevelTuning = 0x8012fc1c;
+_gHealingCastSoundScripts = 0x8012fc34;

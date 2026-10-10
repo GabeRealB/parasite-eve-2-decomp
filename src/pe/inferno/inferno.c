@@ -95,17 +95,18 @@ typedef struct {
 } _InfernoFanScratch;
 STATIC_ASSERT_SIZEOF(_InfernoFanScratch, 0x70);
 
-/// The two fan shapes the inferno wall sweeps through.
-static EffectBandShape D_inferno_801304E4[] = {
+/// Shapes of the Inferno fan's rising and constant-lift bands.
+///
+/// Indexed in `INFERNO_FAN_*_BAND` order, matching the texture-phase columns.
+/// Distances use local coordinate units: base radius, upper-rim lift and added
+/// spread. The rising band adds animated height to its lift; the other does not.
+static EffectBandShape _gInfernoFanBandShapes[INFERNO_FAN_BAND_COUNT] = {
     { 0x0100, 0x0800, 0x0200 },
     { 0x0200, 0x0600, 0x0300 },
 };
 
-/// The `sndEvtRequestScriptStart` id the inferno cast plays, indexed by
-/// the cast's level, `gAttachmentState.attachId % 10 - 1`.
-/// The same index also picks the state `infernoCastTask` advances to,
-/// which is why the three ids and the three state chains run in step.
-static s32 D_inferno_801304F0[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
+/// Inferno startup sound-script selectors, indexed by PE level minus one (0..2).
+static s32 _gInfernoCastSoundScripts[] = { 0xE0100001, 0xE0130001, 0xE00D0001 };
 
 /// Q12 trigonometry and the six 40-by-40 cells of the fan's additive 4-bit texture.
 enum {
@@ -239,7 +240,7 @@ void infernoCastTask(Task* task)
             work->scale = INFERNO_CAST_INITIAL_RADIUS;
             work->angle = INFERNO_CAST_MAX_BRIGHTNESS;
             pan         = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_inferno_801304F0[(u16)(gAttachmentState.attachId % 10) - 1], pan,
+            sndEvtRequestScriptStart(_gInfernoCastSoundScripts[(u16)(gAttachmentState.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             // The PE level chooses one of three state chains, starting at 1, 5 or 9.
             task->state = ((u16)(gAttachmentState.attachId % 10) - 1) * INFERNO_CAST_LEVEL_STATE_STRIDE + INFERNO_CAST_STATE_LEVEL_ONE;
@@ -537,7 +538,7 @@ static void _infernoDrawRisingFanBand(const EffectWork* work, const GfxCoord* co
     u16                    lift;
     u16                    textureCell;
 
-    shapes       = D_inferno_801304E4;
+    shapes       = _gInfernoFanBandShapes;
     shape        = &shapes[bandIndex];
     lift         = work->period + shape->lift;
     baseRadius   = work->angle + shape->baseRadius;
@@ -609,7 +610,7 @@ static void _infernoDrawConstantLiftFanBand(const EffectWork* work, const GfxCoo
     u16                    lift;
     u16                    textureCell;
 
-    shapes       = D_inferno_801304E4;
+    shapes       = _gInfernoFanBandShapes;
     shape        = &shapes[bandIndex];
     baseRadius   = work->angle + shape->baseRadius;
     liftedRadius = shape->spread + (baseRadius + work->step);

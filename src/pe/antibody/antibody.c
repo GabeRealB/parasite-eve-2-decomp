@@ -57,17 +57,20 @@ typedef struct {
 } _AntibodyLevelTuning;
 STATIC_ASSERT_SIZEOF(_AntibodyLevelTuning, 0xE);
 
-/// Per-level tuning for the antibody motes, one row per PE level 1-3,
-/// weakest first.
-static _AntibodyLevelTuning D_antibody_80130BD4[] = {
-    { 0x0008, 0x0090, 0x0005, 0x0200, 0x0080, 0x0600, 0x0008 },
-    { 0x000C, 0x00C0, 0x0006, 0x0300, 0x0100, 0x0700, 0x0006 },
-    { 0x0010, 0x00F0, 0x0007, 0x0400, 0x0180, 0x0800, 0x0004 },
+enum { ANTIBODY_MAX_CAST_WEDGES = 16 };
+
+/// Antibody cast geometry, growth and mote tuning for PE levels 1..3.
+///
+/// Row `level - 1` supplies both the cast and its motes; wedge counts are
+/// 8, 12 and `ANTIBODY_MAX_CAST_WEDGES`.
+static _AntibodyLevelTuning _gAntibodyLevelTuning[] = {
+    { 8, 0x0090, 5, 0x0200, 0x0080, 0x0600, 8 },
+    { 12, 0x00C0, 6, 0x0300, 0x0100, 0x0700, 6 },
+    { ANTIBODY_MAX_CAST_WEDGES, 0x00F0, 7, 0x0400, 0x0180, 0x0800, 4 },
 };
 
-/// The `sndEvtRequestScriptStart` id for each `D_antibody_80130BD4` row, played
-/// once when `antibodyCastTask` seeds the cast.
-static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
+/// Antibody startup sound-script selectors, indexed by PE level minus one (0..2).
+static s32 _gAntibodyCastSoundScripts[ARRAY_SIZE(_gAntibodyLevelTuning)] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
 /// Antibody mote instance of `spriteQuadDraw`.
 ///
@@ -76,10 +79,12 @@ static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 static void spriteQuadDrawMote(const GfxCoord* pos, s16 frame, s16 size, s16 angle);
 static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 widthScale);
 
-/// Sixteen wedge yaws, refilled once per cast by `antibodyCastTask`.
-/// Entry `i` is `i * (0x1000 / wedgeCount)` plus a 9-bit `gRandomLcgState` draw;
-/// states 1 and 2 pass one yaw per frame to `glowDrawWedge`.
-static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+/// Retained Antibody cast-wedge yaws, in 4096 angle units per turn.
+///
+/// Startup replaces the active 8/12/16-entry prefix with evenly spaced yaws
+/// plus random offsets 0..511. Every growing or fading draw uses that prefix.
+/// Capacity is the largest level's wedge count; a later cast replaces it.
+static s16 _gAntibodyWedgeYaws[ANTIBODY_MAX_CAST_WEDGES] = { 0 };
 
 /// Sets the Antibody cast's parent-space Y for drawing or mote placement.
 ///
@@ -144,24 +149,24 @@ void antibodyCastTask(Task* task)
                 task->state                  = ANTIBODY_CAST_STATE_GROWING;
                 work->index                  = (gAttachmentState.attachId % ANTIBODY_CAST_LEVEL_ID_RADIX) - 1;
                 wedgeIndex                   = 0;
-                if (D_antibody_80130BD4[work->index].wedgeCount > 0) {
+                if (_gAntibodyLevelTuning[work->index].wedgeCount > 0) {
                     do {
                         s16* wedgeYaws;
                         s32  baseYaw;
                         s32  yawRng;
 
-                        wedgeYaws             = D_antibody_80130C0C;
-                        baseYaw               = wedgeIndex * (ANTIBODY_CAST_FULL_TURN / D_antibody_80130BD4[work->index].wedgeCount);
+                        wedgeYaws             = _gAntibodyWedgeYaws;
+                        baseYaw               = wedgeIndex * (ANTIBODY_CAST_FULL_TURN / _gAntibodyLevelTuning[work->index].wedgeCount);
                         yawRng                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         wedgeYaws[wedgeIndex] = baseYaw + (((u32)yawRng >> 16) & ANTIBODY_CAST_WEDGE_YAW_JITTER_MASK);
                         gRandomLcgState       = yawRng;
-                    } while (++wedgeIndex < D_antibody_80130BD4[work->index].wedgeCount);
+                    } while (++wedgeIndex < _gAntibodyLevelTuning[work->index].wedgeCount);
                 }
                 {
                     s32 pan;
 
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(D_antibody_80130C00[work->index], pan,
+                    sndEvtRequestScriptStart(_gAntibodyCastSoundScripts[work->index], pan,
                                              (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 return;
@@ -178,7 +183,7 @@ void antibodyCastTask(Task* task)
                 s16         wedgeCount;
 
                 // Draw the growing rings above the caster, then spawn motes at its origin.
-                tuningTable = D_antibody_80130BD4;
+                tuningTable = _gAntibodyLevelTuning;
                 work->scale = work->scale + tuningTable[work->index].scaleStep;
                 rgb[0]      = (u8)work->scale;
                 rgb[1]      = (u8)work->scale;
@@ -198,7 +203,7 @@ void antibodyCastTask(Task* task)
                 if (wedgeCount > 0) {
                     wedgeTuningTable = tuningTable;
 
-                    wedgeYawCursor = D_antibody_80130C0C;
+                    wedgeYawCursor = _gAntibodyWedgeYaws;
                     do {
                         glowDrawWedge(coord, (s16)(work->scale * 6), *wedgeYawCursor, rgb);
                         wedgeYawCursor += 1;
@@ -206,7 +211,7 @@ void antibodyCastTask(Task* task)
                 }
                 _antibodySetCastHeight(coord, 0);
                 if (work->age < ANTIBODY_CAST_MOTE_BURST_END_AGE) {
-                    if ((work->age % D_antibody_80130BD4[work->index].moteSpawnInterval) == ANTIBODY_CAST_MOTE_BURST_PHASE) {
+                    if ((work->age % _gAntibodyLevelTuning[work->index].moteSpawnInterval) == ANTIBODY_CAST_MOTE_BURST_PHASE) {
                         burstBaseYaw = 0;
                         do {
                             moteRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -214,8 +219,8 @@ void antibodyCastTask(Task* task)
                             gRandomLcgState = moteRng;
                             work->angle     = moteYaw;
                             work->move.vx =
-                                (D_antibody_80130BD4[work->index].moteSpawnRadius * rsin(moteYaw)) >> ANTIBODY_CAST_TRIG_SHIFT;
-                            work->move.vz = (D_antibody_80130BD4[work->index].moteSpawnRadius *
+                                (_gAntibodyLevelTuning[work->index].moteSpawnRadius * rsin(moteYaw)) >> ANTIBODY_CAST_TRIG_SHIFT;
+                            work->move.vz = (_gAntibodyLevelTuning[work->index].moteSpawnRadius *
                                              rcos(work->angle)) >>
                                             ANTIBODY_CAST_TRIG_SHIFT;
                             moteWork = effectSpawn(EFFECT_ANTIBODY_MOTE, coord, 0, &work->move);
@@ -226,7 +231,7 @@ void antibodyCastTask(Task* task)
                         } while (burstBaseYaw < ANTIBODY_CAST_FULL_TURN);
                     }
                 }
-                if (work->scale > D_antibody_80130BD4[work->index].scaleLimit) {
+                if (work->scale > _gAntibodyLevelTuning[work->index].scaleLimit) {
                     effectSpawn((EFFECT_ANTIBODY_AURA | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
                     work->period = work->scale;
                     task->state  = ANTIBODY_CAST_STATE_FADING;
@@ -249,7 +254,7 @@ void antibodyCastTask(Task* task)
                 rgb[1]      = (u8)work->scale;
                 rgb[2]      = work->scale >> 1;
                 _antibodySetCastHeight(coord, ANTIBODY_CAST_RING_LOCAL_Y);
-                tuningTable = D_antibody_80130BD4;
+                tuningTable = _gAntibodyLevelTuning;
                 effectDrawGouraudDisc(coord, (s16)(tuningTable[work->index].scaleLimit * 4), rgb);
                 effectDrawGouraudDisc(coord, (s16)(tuningTable[work->index].scaleLimit * 8), rgb);
                 effectDrawGouraudDisc(coord, (s16)(tuningTable[work->index].scaleLimit * 0xC), rgb);
@@ -263,11 +268,11 @@ void antibodyCastTask(Task* task)
                     effectDrawOuterGlowBand(coord, (s16)(work->period * 8), ANTIBODY_CAST_OUTER_BAND_HEIGHT, rgb);
                 }
                 wedgeIndex = 0;
-                wedgeCount = D_antibody_80130BD4[work->index].wedgeCount;
+                wedgeCount = _gAntibodyLevelTuning[work->index].wedgeCount;
                 if (wedgeCount > 0) {
-                    wedgeTuningTable = D_antibody_80130BD4;
+                    wedgeTuningTable = _gAntibodyLevelTuning;
 
-                    wedgeYawCursor = D_antibody_80130C0C;
+                    wedgeYawCursor = _gAntibodyWedgeYaws;
                     do {
                         glowDrawWedge(coord, (s16)(work->period * 6), *wedgeYawCursor, rgb);
                         wedgeYawCursor += 1;
@@ -313,23 +318,23 @@ void antibodyMoteTask(Task* task)
     /// Local random values belong to each expansion; store size before drawing
     /// the angle. A single statement with no control flow into its caller;
     /// defined only for this function and undefined immediately after its body.
-#define ANTIBODY_MOTE_REROLL_APPEARANCE(sizeMultiplier)                                                \
-    do {                                                                                               \
-        s32 rerollRng;                                                                                 \
-        s32 sizeRng;                                                                                   \
-        s32 angleRng;                                                                                  \
-                                                                                                       \
-        rerollRng       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;              \
-        gRandomLcgState = rerollRng;                                                                   \
-        if ((((u32)rerollRng >> 16) & ANTIBODY_MOTE_REROLL_MASK) == 0) {                               \
-            sizeRng         = rerollRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                \
-            gRandomLcgState = sizeRng;                                                                 \
-            work->scale     = D_antibody_80130BD4[work->index].moteRerollSizeBase * (sizeMultiplier) + \
-                          (((u32)sizeRng >> 16) & ANTIBODY_MOTE_SIZE_JITTER_MASK);                     \
-            angleRng        = sizeRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                  \
-            gRandomLcgState = angleRng;                                                                \
-            work->angle     = ((u32)angleRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;                        \
-        }                                                                                              \
+#define ANTIBODY_MOTE_REROLL_APPEARANCE(sizeMultiplier)                                                  \
+    do {                                                                                                 \
+        s32 rerollRng;                                                                                   \
+        s32 sizeRng;                                                                                     \
+        s32 angleRng;                                                                                    \
+                                                                                                         \
+        rerollRng       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                \
+        gRandomLcgState = rerollRng;                                                                     \
+        if ((((u32)rerollRng >> 16) & ANTIBODY_MOTE_REROLL_MASK) == 0) {                                 \
+            sizeRng         = rerollRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                  \
+            gRandomLcgState = sizeRng;                                                                   \
+            work->scale     = _gAntibodyLevelTuning[work->index].moteRerollSizeBase * (sizeMultiplier) + \
+                          (((u32)sizeRng >> 16) & ANTIBODY_MOTE_SIZE_JITTER_MASK);                       \
+            angleRng        = sizeRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                    \
+            gRandomLcgState = angleRng;                                                                  \
+            work->angle     = ((u32)angleRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;                          \
+        }                                                                                                \
     } while (0)
 
     work                = task->spawnArg2.pointer;
@@ -357,7 +362,7 @@ void antibodyMoteTask(Task* task)
             gRandomLcgState = seedRng;
             levelIndex      = gAttachmentState.attachId % 10 - 1;
             work->index     = levelIndex;
-            work->scale     = D_antibody_80130BD4[levelIndex].moteSpawnSize;
+            work->scale     = _gAntibodyLevelTuning[levelIndex].moteSpawnSize;
             work->angle     = ((u32)seedRng >> 16) & ANTIBODY_MOTE_ANGLE_MASK;
             /* fallthrough */
         case ANTIBODY_MOTE_CONVERGE:

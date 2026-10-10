@@ -52,28 +52,36 @@ typedef struct {
 } _EnergyshotLevelTuning;
 STATIC_ASSERT_SIZEOF(_EnergyshotLevelTuning, 8);
 
-/// Per-level tuning for the energy shot: rows are PE levels 1-3.
-static _EnergyshotLevelTuning D_energyshot_801300E4[] = {
-    { 0x0008, 0x0090, 0x0005, 0x0400 },
-    { 0x000C, 0x00C0, 0x0006, 0x0500 },
-    { 0x0010, 0x00F0, 0x0007, 0x0600 },
+enum { ENERGYSHOT_MAX_CAST_WEDGES = 16 };
+
+/// Energy Shot disc, wedge, beam and spark tuning for PE levels 1..3.
+///
+/// Row `level - 1` selects growth, brightness and heights, and 8, 12 or
+/// `ENERGYSHOT_MAX_CAST_WEDGES` wedges.
+static _EnergyshotLevelTuning _gEnergyshotLevelTuning[] = {
+    { 8, 0x0090, 5, 0x0400 },
+    { 12, 0x00C0, 6, 0x0500 },
+    { ENERGYSHOT_MAX_CAST_WEDGES, 0x00F0, 7, 0x0600 },
 };
 
-/// The `sndEvtRequestScriptStart` id for each `D_energyshot_801300E4` row.
-static s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
+/// Energy Shot startup sound-script selectors, indexed by PE level minus one (0..2).
+static s32 _gEnergyshotCastSoundScripts[ARRAY_SIZE(_gEnergyshotLevelTuning)] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
 static void _energyshotDrawBeamBand(const GfxCoord* coord, s16 radiusGrowth, s16 height, const u8* rgb);
 
-/// Sixteen per-vertex texture-frame offsets, refilled once per cast by
-/// `energyshotCastTask` and consumed by the GTE pass in
-/// `_energyshotDrawBeamBand`, where each is added to `gDisplayState.animFrame`
-/// and reduced mod 6 to pick one of the six 0x28-wide frames of the beam
-/// texture.
-static s16 D_energyshot_80130108[16];
-/// Sixteen wedge yaws, refilled once per cast by `energyshotCastTask`
-/// from `gRandomLcgState`. Entry `i` is `i * (0x1000 / wedgeCount)` plus a 9-bit LCG
-/// draw. States 1 and 2 pass one yaw per frame to `glowDrawWedge`.
-static s16 D_energyshot_80130128[16];
+/// Retained texture-frame offsets for Energy Shot's beam-band segments.
+///
+/// Startup replaces all sixteen offsets with random values 0..255. Each segment
+/// adds its offset to the display animation frame modulo six to choose a texture
+/// cell. The cast's beams share these offsets; a later cast replaces them.
+static s16 _gEnergyshotBeamBandFrameOffsets[EFFECT_BAND_SEGMENT_COUNT];
+
+/// Retained Energy Shot cast-wedge yaws, in 4096 angle units per turn.
+///
+/// Startup replaces the active 8/12/16-entry prefix with evenly spaced yaws
+/// plus random offsets 0..511. Every growing or fading draw uses that prefix.
+/// Capacity is the largest level's wedge count; a later cast replaces it.
+static s16 _gEnergyshotWedgeYaws[ENERGYSHOT_MAX_CAST_WEDGES];
 
 /// Draws the cast's 8/12/16 wedges at the current composed height.
 ///
@@ -91,7 +99,7 @@ static s16 D_energyshot_80130128[16];
         wedgeCount   = (levelTuning)[(work)->index].wedgeCount;                      \
         if (wedgeCount > 0) {                                                        \
             wedgeTuning = (levelTuning);                                             \
-            wedgeYaw    = D_energyshot_80130128;                                     \
+            wedgeYaw    = _gEnergyshotWedgeYaws;                                     \
             do {                                                                     \
                 glowDrawWedge((coord), (s16)((radiusGrowth) * 6), *wedgeYaw, (rgb)); \
                 wedgeYaw += 1;                                                       \
@@ -151,7 +159,7 @@ void energyshotCastTask(Task* task)
                 {
                     s16* texturePhase;
 
-                    texturePhase = D_energyshot_80130108;
+                    texturePhase = _gEnergyshotBeamBandFrameOffsets;
                     do {
                         s32 randomState;
 
@@ -160,13 +168,13 @@ void energyshotCastTask(Task* task)
                         *texturePhase   = ((u32)randomState >> 16) & ENERGYSHOT_CAST_TEXTURE_PHASE_MASK;
                         texturePhase   += 1;
                         gRandomLcgState = randomState;
-                    } while (segmentIndex < ARRAY_SIZE(D_energyshot_80130108));
+                    } while (segmentIndex < ARRAY_SIZE(_gEnergyshotBeamBandFrameOffsets));
                 }
                 segmentIndex = 0;
                 {
                     _EnergyshotLevelTuning* levelTuning;
 
-                    levelTuning = D_energyshot_801300E4;
+                    levelTuning = _gEnergyshotLevelTuning;
                     wedgeCount  = levelTuning[work->index].wedgeCount;
                     levelIndex  = work->index;
                     if (wedgeCount > 0) {
@@ -174,12 +182,12 @@ void energyshotCastTask(Task* task)
                             s32 baseYaw;
                             s32 randomState;
 
-                            baseYaw                             = segmentIndex * (ENERGYSHOT_CAST_ANGLE_TURN / D_energyshot_801300E4[(s16)levelIndex].wedgeCount);
+                            baseYaw                             = segmentIndex * (ENERGYSHOT_CAST_ANGLE_TURN / _gEnergyshotLevelTuning[(s16)levelIndex].wedgeCount);
                             randomState                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            D_energyshot_80130128[segmentIndex] = baseYaw + (((u32)randomState >> 16) & ENERGYSHOT_CAST_YAW_JITTER_MASK);
+                            _gEnergyshotWedgeYaws[segmentIndex] = baseYaw + (((u32)randomState >> 16) & ENERGYSHOT_CAST_YAW_JITTER_MASK);
                             segmentIndex                       += 1;
                             gRandomLcgState                     = randomState;
-                            wedgeCount                          = D_energyshot_801300E4[work->index].wedgeCount;
+                            wedgeCount                          = _gEnergyshotLevelTuning[work->index].wedgeCount;
                             levelIndex                          = work->index;
                         } while (segmentIndex < wedgeCount);
                     }
@@ -188,7 +196,7 @@ void energyshotCastTask(Task* task)
                     s32 pan;
 
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(D_energyshot_801300FC[work->index], pan,
+                    sndEvtRequestScriptStart(_gEnergyshotCastSoundScripts[work->index], pan,
                                              (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 return;
@@ -199,7 +207,7 @@ void energyshotCastTask(Task* task)
                 s32                     randomState;
                 s16                     spawnYaw;
 
-                levelTuning = D_energyshot_801300E4;
+                levelTuning = _gEnergyshotLevelTuning;
                 work->scale = work->scale + levelTuning[work->index].scaleStep;
                 rgb[0]      = (u8)work->scale;
                 rgb[1]      = work->scale >> 1;
@@ -218,27 +226,27 @@ void energyshotCastTask(Task* task)
                 actorRenderComposeCoord(coord);
                 if (work->index != 0) {
                     if (work->index == ENERGYSHOT_CAST_LEVEL_THREE_INDEX) {
-                        ringHeight = D_energyshot_801300E4[2].ringHeight;
+                        ringHeight = _gEnergyshotLevelTuning[2].ringHeight;
                         _energyshotDrawBeamBand(coord, (s16)(work->scale * 8), ringHeight >> 1, rgb);
                     }
                     _energyshotDrawBeamBand(
                         coord, (s16)(work->scale * 4),
-                        D_energyshot_801300E4[work->index].ringHeight * 2, rgb);
+                        _gEnergyshotLevelTuning[work->index].ringHeight * 2, rgb);
                 }
                 _energyshotDrawBeamBand(
                     coord, (s16)(work->scale * 6),
-                    D_energyshot_801300E4[work->index].ringHeight - ENERGYSHOT_CAST_BEAM_HEIGHT_SHORTFALL, rgb);
+                    _gEnergyshotLevelTuning[work->index].ringHeight - ENERGYSHOT_CAST_BEAM_HEIGHT_SHORTFALL, rgb);
                 randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 spawnYaw        = ((u32)randomState >> 16) & ENERGYSHOT_CAST_SPARK_ANGLE_MASK;
                 gRandomLcgState = randomState;
                 work->angle     = spawnYaw;
                 work->move.vx   = (u32)(rsin(spawnYaw) * work->scale * 3) >> ENERGYSHOT_CAST_SPARK_RADIUS_SHIFT;
                 work->move.vz   = (u32)(rcos(work->angle) * work->scale * 3) >> ENERGYSHOT_CAST_SPARK_RADIUS_SHIFT;
-                ringHeight      = D_energyshot_801300E4[work->index].ringHeight;
+                ringHeight      = _gEnergyshotLevelTuning[work->index].ringHeight;
                 effectSpawn(EFFECT_RISING_ENERGY_SPARK, coord,
                             ringHeight | ENERGYSHOT_CAST_SPARK_RANDOM_PALETTE,
                             &work->move);
-                if (D_energyshot_801300E4[work->index].scaleLimit < work->scale) {
+                if (_gEnergyshotLevelTuning[work->index].scaleLimit < work->scale) {
                     effectSpawn((EFFECT_ENERGY_SHOT_AURA | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
                     work->period = work->scale;
                     task->state  = ENERGYSHOT_CAST_STATE_FADING;
@@ -257,7 +265,7 @@ void energyshotCastTask(Task* task)
                 rgb[0]              = (u8)work->scale;
                 rgb[1]              = work->scale >> 1;
                 rgb[2]              = (u8)work->scale;
-                levelTuning         = D_energyshot_801300E4;
+                levelTuning         = _gEnergyshotLevelTuning;
                 ringHeight          = levelTuning[work->index].ringHeight;
                 coord->coord.t[1]   = -ringHeight;
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -273,19 +281,19 @@ void energyshotCastTask(Task* task)
                 if (work->index != 0) {
                     if (work->index == ENERGYSHOT_CAST_LEVEL_THREE_INDEX) {
                         work->period =
-                            work->period + D_energyshot_801300E4[2].scaleStep;
+                            work->period + _gEnergyshotLevelTuning[2].scaleStep;
                         _energyshotDrawBeamBand(
                             coord, (s16)(work->period * 8),
-                            (s16)D_energyshot_801300E4[work->index].ringHeight >> 1,
+                            (s16)_gEnergyshotLevelTuning[work->index].ringHeight >> 1,
                             rgb);
                     }
                     _energyshotDrawBeamBand(
                         coord, (s16)(work->period * 4),
-                        D_energyshot_801300E4[work->index].ringHeight * 2, rgb);
+                        _gEnergyshotLevelTuning[work->index].ringHeight * 2, rgb);
                 }
                 _energyshotDrawBeamBand(
                     coord, (s16)(work->period * 6),
-                    D_energyshot_801300E4[work->index].ringHeight - ENERGYSHOT_CAST_BEAM_HEIGHT_SHORTFALL, rgb);
+                    _gEnergyshotLevelTuning[work->index].ringHeight - ENERGYSHOT_CAST_BEAM_HEIGHT_SHORTFALL, rgb);
                 return;
             }
         }
@@ -315,7 +323,7 @@ void energyshotCastTask(Task* task)
                                                                                                                                            \
         gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                     \
         gte_rtps();                                                                                                                        \
-        (textureFrame) = (u32)(D_energyshot_80130108[(segmentIndex)] + gDisplayState.animFrame) % ENERGYSHOT_BAND_FRAME_COUNT;             \
+        (textureFrame) = (u32)(_gEnergyshotBeamBandFrameOffsets[(segmentIndex)] + gDisplayState.animFrame) % ENERGYSHOT_BAND_FRAME_COUNT;  \
         gte_stsxy(&(scratch)->sxy0);                                                                                                       \
         nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                         \
         gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]); \

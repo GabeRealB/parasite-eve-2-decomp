@@ -5550,7 +5550,7 @@ emitting form when it is not. `_apobiosisDrawShardStrip` is the example.
 
 `func_pyrokinesis_80131784` is that function with three constants swapped:
 rim 0x200/0x480 instead of 0x600/0x800, clut 0x4282 instead of 0x42C1, and
-the jitter table `D_pyrokinesis_80131DFC`. Geometry, the `rimSize`/`hubSize`
+the jitter table `_gPyrokinesisConeFrameOffsets`. Geometry, the `rimSize`/`hubSize`
 latch into `rimRad`/`hubRad`, `rot = &coord->workm`, and
 `op = &topRing[i] + EFFECT_BAND_SEGMENT_COUNT` copy verbatim.
 
@@ -62069,8 +62069,8 @@ The final combustion tick check compiles from either spelling to
 `slt v0,<row>,<counter>`, but the operands are *loaded* in source order:
 
 ```c
-if (D_combustion_80130980[mem->field_20].field_6 < mem->field_22)  /* lh row, then lh counter */
-if (mem->field_22 > D_combustion_80130980[mem->field_20].field_6)  /* lh counter, then lh row */
+if (_gCombustionLevelTuning[mem->index].emitterFrames < mem->age)  /* lh row, then lh counter */
+if (mem->age > _gCombustionLevelTuning[mem->index].emitterFrames)  /* lh counter, then lh row */
 ```
 
 GCC canonicalises the comparison but not the two `lh`s feeding it, so when the
@@ -62454,7 +62454,7 @@ intermediate value is that reference, so put it where it belongs:
 ```c
 rng2          = rng1 * 5 + 0x71357911;
 gRandomLcgState   = rng2;
-work->scale   = D_antibody_80130BD4[work->index].moteRerollSizeBase + (((u32)rng2 >> 16) & 0x1FF);
+work->scale   = _gAntibodyLevelTuning[work->index].moteRerollSizeBase + (((u32)rng2 >> 16) & 0x1FF);
 rng3          = rng2 * 5 + 0x71357911;
 gRandomLcgState   = rng3;
 work->angle   = ((u32)rng3 >> 16) & 0xFFF;
@@ -62611,8 +62611,8 @@ regroup.
 ```
 lui   a0, 0x1f80          # the scratch head address
 ori   a0, a0, 0x3fc
-lui   v0, %hi(D_inferno_801304E4)
-addiu v0, v0, %lo(D_inferno_801304E4)
+lui   v0, %hi(_gInfernoFanBandShapes)
+addiu v0, v0, %lo(_gInfernoFanBandShapes)
 sw    a2, 0x58(sp)
 sll   v1, a2, 0x1         # bandIndex * 6
 addu  v1, v1, a2
@@ -62620,7 +62620,7 @@ sll   v1, v1, 0x1
 addu  v1, v1, v0
 ```
 
-`shape = &D_inferno_801304E4[bandIndex];` gets the final `addu` right but emits the
+`shape = &_gInfernoFanBandShapes[bandIndex];` gets the final `addu` right but emits the
 `lui`/`addiu` pair *after* the `sll`/`addu`/`sll` chain, because `fold` sorts a
 `PLUS_EXPR`'s operands by complexity and an `ADDR_EXPR` of a static is the
 simpler one, so it ends up as op1 and is expanded second. `sched2` then has no
@@ -62630,7 +62630,7 @@ the address stay put. That was the whole remaining diff at 99.67%.
 Staging the base in its own local first fixes the order:
 
 ```c
-shapes = D_inferno_801304E4;
+shapes = _gInfernoFanBandShapes;
 shape = &shapes[bandIndex];
 ```
 
@@ -62816,9 +62816,9 @@ twice), so the only lever is the span. Hoisting the *second* element's index out
 of its subscript, into a plain local computed before the second LCG step,
 
 ```c
-secondaryAngleIndex = ringIndex + D_apobiosis_80130B5C[work->index].radiusStep;
+secondaryAngleIndex = ringIndex + _gApobiosisLevelParams[work->index].radiusStep;
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-D_apobiosis_80130B80[secondaryAngleIndex] -= (((u32)gRandomLcgState >> 16) & 0xFF) - 0x80;
+_gApobiosisStripAngles[secondaryAngleIndex] -= (((u32)gRandomLcgState >> 16) & 0xFF) - 0x80;
 ```
 
 moves seven insns of address arithmetic ahead of `rngB`'s definition. `rngB`'s
@@ -63083,12 +63083,12 @@ do {
     s32  baseYaw;
     s32  yawRng;
 
-    wedgeYaws = D_antibody_80130C0C;                       /* %hi movable first */
-    baseYaw  = wedgeIndex * (0x1000 / D_antibody_80130BD4[work->index].wedgeCount);
+    wedgeYaws = _gAntibodyWedgeYaws;                       /* %hi movable first */
+    baseYaw  = wedgeIndex * (0x1000 / _gAntibodyLevelTuning[work->index].wedgeCount);
     yawRng = gRandomLcgState * 5 + 0x71357911;              /* now the last movable */
     wedgeYaws[wedgeIndex]      = baseYaw + (((u32)yawRng >> 16) & 0x1FF);
     gRandomLcgState = yawRng;
-} while (++wedgeIndex < D_antibody_80130BD4[work->index].wedgeCount);
+} while (++wedgeIndex < _gAntibodyLevelTuning[work->index].wedgeCount);
 ```
 
 This is not the walking dest pointer the `(&global)[i]` entry warns about:
@@ -63121,7 +63121,7 @@ lh    v1,0x20(s1)               sll   v1,a0,0x10
 nop                             sra   v1,v1,0x10
 ```
 
-**Fix.** Drop the locals and write `D_antibody_80130BD4[work->index]` at
+**Fix.** Drop the locals and write `_gAntibodyLevelTuning[work->index]` at
 every use, including the `do { } while` condition. The store into the loop's
 own output array invalidates the CSE entry for the `work->index` load, so
 GCC reloads it once per iteration and the loop-carried copy disappears — which
@@ -63561,8 +63561,8 @@ lui   a2, %hi(gRandomLcgState)   ; movable
 lui   a3, 0x7135             ; movable
 ori   a3, a3, 0x7911         ;   (the LCG constant)
 move  t0, a1                 ; movable: the table address, used by the exit test
-lui   v0, %hi(D_lifedrain_80130AEC)   ; giv init, emitted last
-addiu a1, v0, %lo(D_lifedrain_80130AEC)
+lui   v0, %hi(_gLifedrainWedgeYaws)   ; giv init, emitted last
+addiu a1, v0, %lo(_gLifedrainWedgeYaws)
 ```
 
 so *both* the table copy and the walking pointer are compiler-derived, and the
@@ -63571,12 +63571,12 @@ source indexes the array and re-reads the global:
 ```c
 do {
     rng                     = gRandomLcgState * 5 + 0x71357911;
-    D_lifedrain_80130AEC[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
+    _gLifedrainWedgeYaws[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
     gRandomLcgState             = rng;
-} while (++i < D_lifedrain_80130AB4[work->index].wedgeCount);
+} while (++i < _gLifedrainLevelTuning[work->index].wedgeCount);
 ```
 
-Writing the idiomatic `tuning = D_lifedrain_80130AB4; wedgeYaw = D_lifedrain_80130AEC;`
+Writing the idiomatic `tuning = _gLifedrainLevelTuning; wedgeYaw = _gLifedrainWedgeYaws;`
 pair instead puts both in the first band, ahead of the movables — 99.7% with
 `reorder=3` and every register already correct.
 
@@ -63800,7 +63800,7 @@ variable terms keep their *source* order. `arr[col][i]` is `base + col*32 + i*2`
 to get `i*2` first, add `i` to the base first and index the result by the row:
 
 ```c
-textureFrame = (D_plasma_8012FF54[bandIndex][segmentIndex] + effect->age) % 6;
+textureFrame = (_gPlasmaBandFrameOffsets[bandIndex][segmentIndex] + effect->age) % 6;
 ```
 
 Same instructions, same `addu` operands, 100%. This is the array-index cousin

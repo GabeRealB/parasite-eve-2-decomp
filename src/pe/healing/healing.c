@@ -51,17 +51,18 @@ typedef struct {
 } _HealingLevelTuning;
 STATIC_ASSERT_SIZEOF(_HealingLevelTuning, 8);
 
-/// Per-level tuning for the healing aura: rows are PE levels 1-3, selected by
-/// `index`. `brightness` is the brightness ceiling, `radiusStep` the per-tick
-/// growth and spin, `radiusLimit` the radius the ring grows to before it fades.
-static _HealingLevelTuning D_healing_8012FC1C[] = {
+/// Healing aura and sparkle visual tuning for PE levels 1..3.
+///
+/// Row `level - 1` supplies brightness, radial growth and the growth limit;
+/// the aura keeps its row in `EffectWork::index`, sparkles in `EffectWork::step`.
+static _HealingLevelTuning _gHealingLevelTuning[] = {
     { 0x0008, 0x0080, 0x0040, 0x0400 },
     { 0x000C, 0x00B0, 0x0048, 0x0500 },
     { 0x0010, 0x00E0, 0x0050, 0x0600 },
 };
 
-/// The `sndEvtRequestScriptStart` id for each `D_healing_8012FC1C` row.
-static s32 D_healing_8012FC34[] = { 0xE0200001, 0xE0230001, 0xE0260001 };
+/// Healing startup sound-script selectors, indexed by PE level minus one (0..2).
+static s32 _gHealingCastSoundScripts[ARRAY_SIZE(_gHealingLevelTuning)] = { 0xE0200001, 0xE0230001, 0xE0260001 };
 
 static void _healingDrawSparkle(const GfxCoord* coord, s16 frame, s16 sizeFactor, s16 brightness);
 
@@ -154,17 +155,17 @@ void healingAuraTask(Task* task)
             work->angle        = HEALING_AURA_INITIAL_RADIUS;
             attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
             pan                = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_healing_8012FC34[work->index], pan,
+            sndEvtRequestScriptStart(_gHealingCastSoundScripts[work->index], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
         case HEALING_AURA_STATE_GROWING:
             brightness = work->scale;
-            if (brightness < D_healing_8012FC1C[work->index].brightness) {
+            if (brightness < _gHealingLevelTuning[work->index].brightness) {
                 brightness += HEALING_AURA_BRIGHTNESS_STEP;
             }
             work->scale = brightness;
-            work->angle = work->angle + D_healing_8012FC1C[work->index].radiusStep;
-            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[work->index].radiusStep * 2), 0);
+            work->angle = work->angle + _gHealingLevelTuning[work->index].radiusStep;
+            gfxRotMatrixY(&coord->coord, -(_gHealingLevelTuning[work->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             // Scatter the next child in the spinning aura's local frame.
@@ -178,29 +179,29 @@ void healingAuraTask(Task* task)
             gRandomLcgState = randomState;
             work->move.vy   = verticalProduct >> HEALING_AURA_TRIG_FRACTION_BITS;
             work->move.vz   = (rsin(((u32)randomState >> 16) & HEALING_AURA_ANGLE_MASK) * work->move.vx) >> HEALING_AURA_TRIG_FRACTION_BITS;
-            spawned         = effectSpawn(EFFECT_HEALING_SPARKLE, coord, (s32)D_healing_8012FC1C[work->index].radiusLimit,
+            spawned         = effectSpawn(EFFECT_HEALING_SPARKLE, coord, (s32)_gHealingLevelTuning[work->index].radiusLimit,
                                           &work->move);
             if (spawned != NULL) {
                 taskReparent(task, spawned->task);
             }
-            if (work->angle >= D_healing_8012FC1C[work->index].radiusLimit) {
+            if (work->angle >= _gHealingLevelTuning[work->index].radiusLimit) {
                 task->state = HEALING_AURA_STATE_FADING;
             }
             _healingDrawGlow(coord, work);
             return;
         case HEALING_AURA_STATE_FADING:
-            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[work->index].radiusStep * 2), 0);
+            gfxRotMatrixY(&coord->coord, -(_gHealingLevelTuning[work->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             work->scale = work->scale - HEALING_AURA_BRIGHTNESS_STEP;
-            work->angle = work->angle + D_healing_8012FC1C[work->index].radiusStep;
+            work->angle = work->angle + _gHealingLevelTuning[work->index].radiusStep;
             if (work->scale < HEALING_AURA_FADE_END_BRIGHTNESS) {
                 task->state = HEALING_AURA_STATE_HOLDING;
             }
             _healingDrawGlow(coord, work);
             return;
         case HEALING_AURA_STATE_HOLDING:
-            gfxRotMatrixY(&coord->coord, -(D_healing_8012FC1C[work->index].radiusStep * 2), 0);
+            gfxRotMatrixY(&coord->coord, -(_gHealingLevelTuning[work->index].radiusStep * 2), 0);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
             work->period = work->period + 1;
@@ -270,7 +271,7 @@ void healingSparkleTask(Task* task)
         task->state   = HEALING_SPARKLE_STATE_RISING;
         levelIndex    = (gAttachmentState.attachId % 10U) - 1;
         work->step    = levelIndex;
-        work->scale   = D_healing_8012FC1C[levelIndex].brightness;
+        work->scale   = _gHealingLevelTuning[levelIndex].brightness;
         work->angle   = (u16)task->spawnArg1.value & HEALING_SPARKLE_SIZE_MASK;
     }
     // Initialization moves too; fading and child emission occur only on draw ticks.
@@ -279,7 +280,7 @@ void healingSparkleTask(Task* task)
         if (work->age & 1) {
             work->index = work->index + 1;
             if (work->age >= HEALING_SPARKLE_FADE_START_AGE) {
-                work->scale = work->scale - (D_healing_8012FC1C[work->step].brightness >> 4);
+                work->scale = work->scale - (_gHealingLevelTuning[work->step].brightness >> 4);
             }
             if (work->step < HEALING_SPARKLE_GLOW_LEVEL_INDEX) {
                 effectDrawModulatedBillboard(coord, work->index, work->angle,

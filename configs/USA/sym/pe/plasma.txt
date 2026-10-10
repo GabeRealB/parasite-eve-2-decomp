@@ -4,3 +4,5 @@ gPlasmaId = 0x8012ef30;
 plasmaCastTask = 0x8012EF34; // type:func
 _glowDrawHalo = 0x8012FB10; // type:func
 _plasmaDrawRingBand = 0x8012f568; // type:func
+_gPlasmaBandShapes = 0x8012ff34;
+_gPlasmaBandFrameOffsets = 0x8012ff54;

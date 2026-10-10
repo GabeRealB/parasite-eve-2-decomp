@@ -8,3 +8,6 @@ _spriteQuadDrawFlicker = 0x8013035C; // type:func
 _groundGlowDraw = 0x801307D4; // type:func
 _energyballDrawGlowDisc = 0x8012ffd0; // type:func
 _energyballDrawChargeBand = 0x80130b54; // type:func
+_gEnergyballSoundScripts = 0x8013117c;
+_gEnergyballLevelTuning = 0x80131194;
+_gEnergyballChargeBandFrameOffsets = 0x801311a0;

@@ -11,3 +11,6 @@ _spriteQuadDrawFlicker = 0x80130184; // type:func
 _combustionDrawSmallFlame = 0x8012f5ec; // type:func
 _combustionDrawEmber = 0x8012ff0c; // type:func
 _combustionDrawLargeFlame = 0x801305f8; // type:func
+_gCombustionLevelTuning = 0x80130980;
+_gCombustionIgnitionSoundScripts = 0x80130998;
+_gCombustionSpawnComposedY = 0x801309a4;

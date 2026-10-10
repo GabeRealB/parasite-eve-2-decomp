@@ -82,9 +82,13 @@ static s32 D_pyrokinesis_80131DD8[] = {
     0xE0110004,
 };
 
-/// Per-flame jitter of the cone, one 8-bit LCG roll each, re-rolled as a block
-/// when the cast starts.
-static s16 D_pyrokinesis_80131DFC[16] = { 0 };
+/// Retained texture-frame offsets for Pyrokinesis's sixteen jet-cone segments.
+///
+/// Startup replaces all offsets with random values 0..255. Each cone segment
+/// adds its offset to the effect age modulo six to choose a texture cell;
+/// these values do not displace geometry. The shared jet drawer borrows this
+/// package's table, and a later cast replaces it.
+static s16 _gPyrokinesisConeFrameOffsets[EFFECT_BAND_SEGMENT_COUNT] = { 0 };
 
 /// Copies the player's nine Q12 coefficients without changing translation.
 ///
@@ -211,9 +215,9 @@ void pyrokinesisCastTask(Task* task)
             gte_ldv0(&effect->move);
             gte_rtv0();
             gte_stsv(&effect->move);
-            for (rimIndex = 0; rimIndex < ARRAY_SIZE(D_pyrokinesis_80131DFC); rimIndex++) {
-                gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                D_pyrokinesis_80131DFC[rimIndex] = (gRandomLcgState >> 16) & PYROKINESIS_PHASE_JITTER_MASK;
+            for (rimIndex = 0; rimIndex < ARRAY_SIZE(_gPyrokinesisConeFrameOffsets); rimIndex++) {
+                gRandomLcgState                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                _gPyrokinesisConeFrameOffsets[rimIndex] = (gRandomLcgState >> 16) & PYROKINESIS_PHASE_JITTER_MASK;
             }
             effect->scale   = PYROKINESIS_INITIAL_BRIGHTNESS;
             effect->angle   = PYROKINESIS_LAUNCH_RADIUS;
@@ -736,7 +740,7 @@ void pyrokinesisFlameRingTask(Task* task)
 #define JET_CONE_CLUT         0x4282
 #define JET_CONE_RIM_SHORT    0x200
 #define JET_CONE_RIM_LONG     0x480
-#define JET_CONE_FRAME_JITTER D_pyrokinesis_80131DFC
+#define JET_CONE_FRAME_JITTER _gPyrokinesisConeFrameOffsets
 #include "../../shared/jet_cone_draw.inc.c"
 
 void pyrokinesisLaunchConeTask(Task* task)

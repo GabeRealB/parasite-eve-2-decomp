@@ -10,3 +10,5 @@ infernoFlameFanTask = 0x8012F530; // type:func
 _infernoDrawScreenWash = 0x8012f3ec; // type:func
 _infernoDrawRisingFanBand = 0x8012f978; // type:func
 _infernoDrawConstantLiftFanBand = 0x8012ff34; // type:func
+_gInfernoFanBandShapes = 0x801304e4;
+_gInfernoCastSoundScripts = 0x801304f0;

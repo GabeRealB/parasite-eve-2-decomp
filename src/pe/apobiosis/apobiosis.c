@@ -63,30 +63,39 @@ enum {
     APOBIOSIS_TRIG_SHIFT          = 12, // rsin/rcos return Q12 values
 };
 
-/// Per-level tuning for the apobiosis pulse, one row per PE level 1-3,
-/// weakest first.
-static _ApobiosisLevelParams D_apobiosis_80130B5C[] = {
-    { 0x0004, 0x0400, 0x00C0, 0x0280 },
-    { 0x0006, 0x0500, 0x0100, 0x0300 },
-    { 0x0008, 0x0600, 0x0140, 0x0400 },
+enum { APOBIOSIS_MAX_CAST_STRIPS = 8 };
+
+/// Apobiosis burst and shard visual parameters for PE levels 1..3.
+///
+/// Row `level - 1` selects 4, 6 or `APOBIOSIS_MAX_CAST_STRIPS` strips.
+static _ApobiosisLevelParams _gApobiosisLevelParams[] = {
+    { 4, 0x0400, 192, 0x0280 },
+    { 6, 0x0500, 256, 0x0300 },
+    { APOBIOSIS_MAX_CAST_STRIPS, 0x0600, 320, 0x0400 },
 };
 
-/// The `sndEvtRequestScriptStart` id the cast plays, one per `D_apobiosis_80130B5C`
-/// row, so the sound follows the cast's level like the burst does.
-static s32 D_apobiosis_80130B74[] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
+/// Apobiosis startup sound-script selectors, indexed by PE level minus one (0..2).
+static s32 _gApobiosisCastSoundScripts[ARRAY_SIZE(_gApobiosisLevelParams)] = { 0xE0170001, 0xE01A0001, 0xE01D0001 };
 
 static void _apobiosisDrawShardSprite(const GfxCoord* coord, s16 textureFrame, s16 sizeScale, s16 screenAngle);
 static void _apobiosisDrawShardStrip(const GfxCoord* coord, const SVECTOR* endOffset, s16 textureFrame, s16 widthScale);
 
-/// Ring azimuths, two rows of up to eight. `apobiosisCastTask` lays out
-/// `_ApobiosisLevelParams::stripCount * 2` of them at `(i << 10) + rand()` in state 0 and
-/// then jitters each by +-0x80 a frame; the first row is the shard's own angle
-/// and the row `_ApobiosisLevelParams::radiusStep` entries later is its elevation.
-static s16 D_apobiosis_80130B80[16];
+/// Retained Apobiosis strip angles, in 4096 angle units per turn.
+///
+/// Startup seeds a contiguous `stripCount * 2` prefix (8/12/16 entries) with
+/// `i * 1024` plus random offsets 0..1023. Each draw jitters the first
+/// `stripCount` entries by -127..128 and uses them for the strip's XY direction.
+/// The original secondary-angle accesses instead use `i + radiusStep`, reaching
+/// indices 192..195, 256..261 or 320..327 beyond this array. The storage there
+/// is unproven; the initialized second half is not used by those accesses.
+/// A later cast replaces the shared prefix.
+static s16 _gApobiosisStripAngles[APOBIOSIS_MAX_CAST_STRIPS * 2];
 
-/// The running cast task, cached by `apobiosisCastTask` so each shard
-/// can reparent itself onto the cast when it starts.
-static Task* D_apobiosis_80130BA0;
+/// Borrowed current Apobiosis cast task, used as each shard's teardown parent.
+///
+/// Set before spawning shards and required to stay live through their first
+/// ticks. A later cast overwrites it; teardown does not clear this pointer.
+static Task* _gApobiosisCastTask;
 
 /// Attempts one drifting Apobiosis shard at a random local polar offset.
 ///
@@ -179,8 +188,8 @@ void apobiosisCastTask(Task* task)
         switch (task->state) {
             case APOBIOSIS_CAST_STATE_INITIALIZE:
                 // Publish the parent for shards, then seed the level-dependent ring.
-                D_apobiosis_80130BA0 = task;
-                coord->parent        = work->parent;
+                _gApobiosisCastTask = task;
+                coord->parent       = work->parent;
                 gfxSetRotIdentity(&coord->coord);
                 coord->coord.t[0]   = 0;
                 coord->coord.t[1]   = 0;
@@ -188,16 +197,16 @@ void apobiosisCastTask(Task* task)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
                 pan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(D_apobiosis_80130B74[(u16)(gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX) - 1], pan,
+                sndEvtRequestScriptStart(_gApobiosisCastSoundScripts[(u16)(gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX) - 1], pan,
                                          (s8)worldCoordGetOriginAudioDepth(coord));
                 task->state  = APOBIOSIS_CAST_STATE_RING;
                 work->index  = gAttachmentState.attachId % APOBIOSIS_LEVEL_ID_RADIX - 1;
                 work->scale  = APOBIOSIS_CAST_INITIAL_RADIUS;
                 work->period = APOBIOSIS_CAST_UNUSED_PERIOD;
                 work->step   = APOBIOSIS_CAST_INITIAL_BRIGHTNESS;
-                for (ringIndex = 0; ringIndex < D_apobiosis_80130B5C[work->index].stripCount * APOBIOSIS_CAST_SEEDED_ANGLES_PER_STRIP; ringIndex++) {
-                    gRandomLcgState                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    D_apobiosis_80130B80[ringIndex] = (ringIndex << APOBIOSIS_CAST_QUARTER_TURN_SHIFT) + ((gRandomLcgState >> 16) & (APOBIOSIS_QUARTER_TURN - 1));
+                for (ringIndex = 0; ringIndex < _gApobiosisLevelParams[work->index].stripCount * APOBIOSIS_CAST_SEEDED_ANGLES_PER_STRIP; ringIndex++) {
+                    gRandomLcgState                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    _gApobiosisStripAngles[ringIndex] = (ringIndex << APOBIOSIS_CAST_QUARTER_TURN_SHIFT) + ((gRandomLcgState >> 16) & (APOBIOSIS_QUARTER_TURN - 1));
                 }
                 padScriptSpawnVariableMotorRamp(APOBIOSIS_CAST_RING_MOTOR_FRAMES, APOBIOSIS_CAST_MOTOR_START, APOBIOSIS_CAST_MOTOR_END);
                 /* fallthrough */
@@ -211,30 +220,30 @@ void apobiosisCastTask(Task* task)
                 rgb[2]          = work->step >> 1;
                 // Lift only the composed draw origin; local placement is unchanged.
                 coord->workm.t[1] -= APOBIOSIS_CAST_RING_LIFT;
-                work->scale        = work->scale + D_apobiosis_80130B5C[work->index].radiusStep;
+                work->scale        = work->scale + _gApobiosisLevelParams[work->index].radiusStep;
                 _apobiosisDrawShardSprite(
                     &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1], work->age,
-                    D_apobiosis_80130B5C[work->index].playerSpriteScale, 0);
+                    _gApobiosisLevelParams[work->index].playerSpriteScale, 0);
                 _glowDrawHalo(coord, work->scale, APOBIOSIS_CAST_HALO_THICKNESS, rgb);
                 if (work->age & 1) {
                     _glowDrawHalo(coord, APOBIOSIS_CAST_HALO_THICKNESS, work->scale, rgb);
                 }
-                for (ringIndex = 0; ringIndex < D_apobiosis_80130B5C[work->index].stripCount; ringIndex++) {
-                    gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    D_apobiosis_80130B80[ringIndex] -= ((gRandomLcgState >> 16) & APOBIOSIS_CAST_ANGLE_JITTER_MASK) - APOBIOSIS_CAST_ANGLE_JITTER_HALF_SPAN;
+                for (ringIndex = 0; ringIndex < _gApobiosisLevelParams[work->index].stripCount; ringIndex++) {
+                    gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    _gApobiosisStripAngles[ringIndex] -= ((gRandomLcgState >> 16) & APOBIOSIS_CAST_ANGLE_JITTER_MASK) - APOBIOSIS_CAST_ANGLE_JITTER_HALF_SPAN;
                     // Retained original access: radiusStep is 192/256/320, beyond the 16 seeded halfwords.
-                    secondaryAngleIndex                        = ringIndex + D_apobiosis_80130B5C[work->index].radiusStep;
-                    gRandomLcgState                            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    D_apobiosis_80130B80[secondaryAngleIndex] -= ((gRandomLcgState >> 16) & APOBIOSIS_CAST_ANGLE_JITTER_MASK) - APOBIOSIS_CAST_ANGLE_JITTER_HALF_SPAN;
-                    work->pos.vx                               = work->scale * rsin(D_apobiosis_80130B80[ringIndex]) >> APOBIOSIS_TRIG_SHIFT;
-                    work->pos.vy                               = work->scale * rcos(D_apobiosis_80130B80[ringIndex]) >> APOBIOSIS_TRIG_SHIFT;
+                    secondaryAngleIndex                          = ringIndex + _gApobiosisLevelParams[work->index].radiusStep;
+                    gRandomLcgState                              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    _gApobiosisStripAngles[secondaryAngleIndex] -= ((gRandomLcgState >> 16) & APOBIOSIS_CAST_ANGLE_JITTER_MASK) - APOBIOSIS_CAST_ANGLE_JITTER_HALF_SPAN;
+                    work->pos.vx                                 = work->scale * rsin(_gApobiosisStripAngles[ringIndex]) >> APOBIOSIS_TRIG_SHIFT;
+                    work->pos.vy                                 = work->scale * rcos(_gApobiosisStripAngles[ringIndex]) >> APOBIOSIS_TRIG_SHIFT;
                     work->pos.vz =
                         work->pos.vx *
-                            rcos(D_apobiosis_80130B80
-                                     [ringIndex + D_apobiosis_80130B5C[work->index].radiusStep]) >>
+                            rcos(_gApobiosisStripAngles
+                                     [ringIndex + _gApobiosisLevelParams[work->index].radiusStep]) >>
                         APOBIOSIS_TRIG_SHIFT;
                     _apobiosisDrawShardStrip(coord, &work->pos, work->age,
-                                             D_apobiosis_80130B5C[work->index].stripScale);
+                                             _gApobiosisLevelParams[work->index].stripScale);
                 }
                 coord->workm.t[1] += APOBIOSIS_CAST_RING_LIFT;
                 if (work->step >= APOBIOSIS_CAST_RING_FADE_STEP + 1) {
@@ -393,7 +402,7 @@ void apobiosisShardTask(Task* task)
         switch (task->state) {
             case APOBIOSIS_SHARD_INIT:
                 // Join the live cast's task tree before choosing a pinned or drifting coordinate.
-                taskReparent(D_apobiosis_80130BA0, task);
+                taskReparent(_gApobiosisCastTask, task);
                 if (task->spawnArg1.value != 0) {
                     coord->parent       = work->parent;
                     coord->coord.t[0]   = 0;
@@ -418,10 +427,10 @@ void apobiosisShardTask(Task* task)
                 if (work->age & 1) {
                     work->index = work->index + 1;
                     _apobiosisDrawShardSprite(coord, work->index,
-                                              D_apobiosis_80130B5C[work->step].stripScale * 2,
+                                              _gApobiosisLevelParams[work->step].stripScale * 2,
                                               work->angle);
                     _apobiosisDrawShardStrip(coord, &work->pos, work->index,
-                                             D_apobiosis_80130B5C[work->step].stripScale * 2);
+                                             _gApobiosisLevelParams[work->step].stripScale * 2);
                 }
                 if (work->age < APOBIOSIS_SHARD_PINNED_FRAMES) {
                     return;
@@ -436,10 +445,10 @@ void apobiosisShardTask(Task* task)
                 if (work->age & 1) {
                     work->index = work->index + 1;
                     _apobiosisDrawShardSprite(coord, work->index,
-                                              D_apobiosis_80130B5C[work->step].stripScale,
+                                              _gApobiosisLevelParams[work->step].stripScale,
                                               work->angle);
                     _apobiosisDrawShardStrip(coord, &work->pos, work->index,
-                                             D_apobiosis_80130B5C[work->step].stripScale);
+                                             _gApobiosisLevelParams[work->step].stripScale);
                 }
                 if (work->age < APOBIOSIS_SHARD_DRIFTING_FRAMES) {
                     return;

@@ -2,3 +2,4 @@
 pepperSprayEffectTask = 0x8012EF34; // type:func
 _pepperSprayDrawOriginBillboard = 0x8012f21c; // type:func
 _pepperSprayDrawConeQuad = 0x8012f634; // type:func
+_gPepperSprayConeAzimuths = 0x8012fb9c;

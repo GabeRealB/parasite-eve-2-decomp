@@ -8,3 +8,7 @@ lifedrainCastTask = 0x8012EF48; // type:func
 lifedrainMoteTask = 0x8012FAF8; // type:func
 glowDrawWedge = 0x801305C0; // type:func
 _lifedrainDrawMoteBillboards = 0x801301ac; // type:func
+_gLifedrainLevelTuning = 0x80130ab4;
+_gLifedrainCastSoundScripts = 0x80130ad4;
+_gLifedrainWedgeYaws = 0x80130aec;
+_gLifedrainCollectorTask = 0x80130b0c;

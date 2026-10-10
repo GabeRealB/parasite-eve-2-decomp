@@ -6,3 +6,7 @@ _glowDrawHalo = 0x8012F9D0; // type:func
 _apobiosisDrawScreenFlash = 0x8012f808; // type:func
 _apobiosisDrawShardSprite = 0x8013017c; // type:func
 _apobiosisDrawShardStrip = 0x80130630; // type:func
+_gApobiosisLevelParams = 0x80130b5c;
+_gApobiosisCastSoundScripts = 0x80130b74;
+_gApobiosisStripAngles = 0x80130b80;
+_gApobiosisCastTask = 0x80130ba0;

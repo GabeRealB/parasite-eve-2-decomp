@@ -38,11 +38,12 @@ enum {
     PEPPER_SPRAY_TRIG_FRACTION_BITS = 12
 };
 
-/// Retained azimuths of the six spray quads, in 0x1000 units per turn.
+/// Retained Pepper Spray quad azimuths, in 4096 angle units per turn.
 ///
-/// `pepperSprayEffectTask` seeds each entry in quadrant `i & 3` at startup;
-/// `_pepperSprayDrawConeQuad` uses the same angles throughout the fade.
-static s16 D_pepper_spray_8012FB9C[6] = { 0, 0, 0, 0, 0, 0 };
+/// Startup seeds all six entries in quadrant `i & 3` with random offsets
+/// 0..1023. Each drawn frame uses every entry throughout the fade. This is
+/// shared package storage: starting another spray replaces the angles.
+static s16 _gPepperSprayConeAzimuths[6] = { 0 };
 
 void pepperSprayEffectTask(Task* task)
 {
@@ -105,9 +106,9 @@ void pepperSprayEffectTask(Task* task)
             effectWork->scale                                  = initialRadiusScale;
             effectWork->angle                                  = billboardRotation;
             task->state                                        = PEPPER_SPRAY_STATE_FADE;
-            for (coneIndex = 0; coneIndex < ARRAY_SIZE(D_pepper_spray_8012FB9C); coneIndex++) {
-                gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                D_pepper_spray_8012FB9C[coneIndex] = ((coneIndex & PEPPER_SPRAY_QUADRANT_MASK) << PEPPER_SPRAY_QUARTER_TURN_SHIFT) + ((gRandomLcgState >> 16) & (PEPPER_SPRAY_QUARTER_TURN - 1));
+            for (coneIndex = 0; coneIndex < ARRAY_SIZE(_gPepperSprayConeAzimuths); coneIndex++) {
+                gRandomLcgState                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                _gPepperSprayConeAzimuths[coneIndex] = ((coneIndex & PEPPER_SPRAY_QUADRANT_MASK) << PEPPER_SPRAY_QUARTER_TURN_SHIFT) + ((gRandomLcgState >> 16) & (PEPPER_SPRAY_QUARTER_TURN - 1));
             }
             gAttachmentState.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             audioPan                = (s8)worldCoordGetOriginAudioPan(sprayCoord);
@@ -122,8 +123,8 @@ void pepperSprayEffectTask(Task* task)
     _pepperSprayDrawOriginBillboard(sprayCoord, effectWork->scale, effectWork->angle);
     screenTint[0] = screenTint[1] = screenTint[2] = effectWork->period;
     effectDrawScreenTint(screenTint, GPU_BLEND_ADD);
-    for (coneIndex = 0; coneIndex < ARRAY_SIZE(D_pepper_spray_8012FB9C); coneIndex++) {
-        _pepperSprayDrawConeQuad(sprayCoord, D_pepper_spray_8012FB9C[coneIndex], effectWork->period);
+    for (coneIndex = 0; coneIndex < ARRAY_SIZE(_gPepperSprayConeAzimuths); coneIndex++) {
+        _pepperSprayDrawConeQuad(sprayCoord, _gPepperSprayConeAzimuths[coneIndex], effectWork->period);
     }
     if (pointLight->inner >= PEPPER_SPRAY_LIGHT_RADIUS_STEP + 1) {
         pointLight->inner -= PEPPER_SPRAY_LIGHT_RADIUS_STEP;
