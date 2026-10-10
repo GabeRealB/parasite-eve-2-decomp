@@ -11,7 +11,7 @@ gShelter1fParkingGarageViewCounts = 0x80180C80; // absolute:True owner=shelter_1
 gShelter1fParkingGarageWarps = 0x80180C84; // absolute:True owner=shelter_1f_parking_garage
 gShelter1fParkingGarageViewCameras = 0x8018100C; // absolute:True owner=shelter_1f_parking_garage
 gShelter1fParkingGarageSpriteViews = 0x80181430; // absolute:True owner=shelter_1f_parking_garage
-gShelter1fParkingGarageSurfaceProperties = 0x80181954; // absolute:True owner=shelter_1f_parking_garage shared=rooms
+gShelter1fParkingGarageSurfaceProperties = 0x80181954; // absolute:True owner=shelter_1f_parking_garage
 shelter1fVehicularAirlockUpdatePlacedModelVisibilityTask = 0x8017D5E4; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 shelter1fVehicularAirlockRoomTask = 0x8017DA48; // type:func absolute:True owner=shelter_1f_vehicular_airlock shared=rooms
 gShelter1fVehicularAirlockModel03A58 = 0x80182004; // absolute:True owner=shelter_1f_vehicular_airlock

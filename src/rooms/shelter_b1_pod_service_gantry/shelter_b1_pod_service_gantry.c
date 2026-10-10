@@ -642,177 +642,343 @@ static SpriteBatch _gShelterB1PodServiceGantryView13Batches[2] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_801817B4[14] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -160, 72, 212, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -112, 72, 212, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -64, 72, 212, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -16, 72, 212, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 32, 72, 212, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 80, 72, 212, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 72, 212, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 80, 32, 212, { .fields = { 32, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 32, 48, 212, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 128, 24, 212, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -16, 48, 212, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -64, 48, 212, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -160, 40, 212, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -112, 48, 212, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
+/// Texture rectangles and sorting depths for pod service gantry view 14.
+///
+/// All 14 elements are drawn over decoded background strips. Positions are
+/// pixels relative to the view centre; dimensions are pixel extents and depth
+/// is an unscaled OT sorting value. The 8-bit textures share one page and
+/// palette. RGB starts at neutral modulation and source command flags are clear.
+/// The room owns this writable array; it remains valid only while its overlay
+/// is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView14Sources[14] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, -160, 72, 212, { .fields = { 80, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, -112, 72, 212, { .fields = { 80, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, -64, 72, 212, { .fields = { 80, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, -16, 72, 212, { .fields = { 80, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, 32, 72, 212, { .fields = { 80, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 48 } }, 80, 72, 212, { .fields = { 32, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 48 } }, 128, 72, 212, { .fields = { 48, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 40 } }, 80, 32, 212, { .fields = { 32, 144 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, 32, 48, 212, { .fields = { 32, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 48 } }, 128, 24, 212, { .fields = { 48, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, -16, 48, 212, { .fields = { 0, 48 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, -64, 48, 212, { .fields = { 0, 96 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 32 } }, -160, 40, 212, { .fields = { 32, 184 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 24 } }, -112, 48, 212, { .fields = { 0, 72 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801818CC[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 14, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background selection and sprite range for pod service gantry view 14.
+///
+/// The zero-count first record requests decoded image strips; the second
+/// draws the complete source array and starts visible in cached drawing.
+/// The final record ends the list. The last two bytes of each record are
+/// retained at zero; their purpose is unproven. The room owns this writable
+/// list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView14Batches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB1PodServiceGantryView14Sources), .field_6 = { 0, 0 } },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801818E4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 15.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView15Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801818F4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 16.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView16Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181904[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 17.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView17Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181914[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 18.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView18Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181924[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 19.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView19Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181934[2] = {
-    { 0, 0, 1, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 20.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. The first record's retained hidden flag affects no sprites.
+/// `SpriteView.sources.empty` retains this writable room-owned list's address,
+/// valid only while the overlay is loaded.
+static SpriteBatch _gShelterB1PodServiceGantryView20Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0, .hidden = true },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181944[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 21.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView21Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181954[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 22.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView22Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181964[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 23.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView23Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181974[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 24.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView24Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181984[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 25.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView25Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181994[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 26.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView26Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801819A4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 27.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView27Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801819B4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 28.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView28Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801819C4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 29.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView29Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801819D4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 30.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView30Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801819E4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 31.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView31Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_801819F4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 32.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView32Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A04[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 33.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView33Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A14[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 34.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView34Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A24[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 35.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView35Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A34[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 36.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView36Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A44[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 37.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView37Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A54[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 38.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView38Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A64[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 39.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView39Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A74[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 40.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView40Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A84[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 41.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView41Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181A94[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 42.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView42Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181AA4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 43.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView43Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181AB4[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for pod service gantry view 44.
+///
+/// Zero first count selects decoded image strips; the next record ends the
+/// list. `SpriteView.sources.empty` retains its address without source sprites.
+/// The room owns this writable list for its overlay lifetime.
+static SpriteBatch _gShelterB1PodServiceGantryView44Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
 SpriteSource D_shelter_b1_pod_service_gantry_80181AC4[9] = {
@@ -852,37 +1018,37 @@ SpriteView D_shelter_b1_pod_service_gantry_80181BA0[46] = {
     { { .elements = _gShelterB1PodServiceGantryView11Sources }, _gShelterB1PodServiceGantryView11Batches, NULL },
     { { .empty = _gShelterB1PodServiceGantryView12Batches }, _gShelterB1PodServiceGantryView12Batches, NULL },
     { { .empty = _gShelterB1PodServiceGantryView13Batches }, _gShelterB1PodServiceGantryView13Batches, NULL },
-    { { .elements = D_shelter_b1_pod_service_gantry_801817B4 }, D_shelter_b1_pod_service_gantry_801818CC, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_801818E4 }, D_shelter_b1_pod_service_gantry_801818E4, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_801818F4 }, D_shelter_b1_pod_service_gantry_801818F4, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181904 }, D_shelter_b1_pod_service_gantry_80181904, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181914 }, D_shelter_b1_pod_service_gantry_80181914, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181924 }, D_shelter_b1_pod_service_gantry_80181924, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181934 }, D_shelter_b1_pod_service_gantry_80181934, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181944 }, D_shelter_b1_pod_service_gantry_80181944, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181954 }, D_shelter_b1_pod_service_gantry_80181954, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181964 }, D_shelter_b1_pod_service_gantry_80181964, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181974 }, D_shelter_b1_pod_service_gantry_80181974, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181984 }, D_shelter_b1_pod_service_gantry_80181984, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181994 }, D_shelter_b1_pod_service_gantry_80181994, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_801819A4 }, D_shelter_b1_pod_service_gantry_801819A4, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_801819B4 }, D_shelter_b1_pod_service_gantry_801819B4, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_801819C4 }, D_shelter_b1_pod_service_gantry_801819C4, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_801819D4 }, D_shelter_b1_pod_service_gantry_801819D4, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_801819E4 }, D_shelter_b1_pod_service_gantry_801819E4, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_801819F4 }, D_shelter_b1_pod_service_gantry_801819F4, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A04 }, D_shelter_b1_pod_service_gantry_80181A04, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A14 }, D_shelter_b1_pod_service_gantry_80181A14, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A24 }, D_shelter_b1_pod_service_gantry_80181A24, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A34 }, D_shelter_b1_pod_service_gantry_80181A34, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A44 }, D_shelter_b1_pod_service_gantry_80181A44, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A54 }, D_shelter_b1_pod_service_gantry_80181A54, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A64 }, D_shelter_b1_pod_service_gantry_80181A64, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A74 }, D_shelter_b1_pod_service_gantry_80181A74, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A84 }, D_shelter_b1_pod_service_gantry_80181A84, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181A94 }, D_shelter_b1_pod_service_gantry_80181A94, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181AA4 }, D_shelter_b1_pod_service_gantry_80181AA4, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181AB4 }, D_shelter_b1_pod_service_gantry_80181AB4, NULL },
+    { { .elements = _gShelterB1PodServiceGantryView14Sources }, _gShelterB1PodServiceGantryView14Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView15Batches }, _gShelterB1PodServiceGantryView15Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView16Batches }, _gShelterB1PodServiceGantryView16Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView17Batches }, _gShelterB1PodServiceGantryView17Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView18Batches }, _gShelterB1PodServiceGantryView18Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView19Batches }, _gShelterB1PodServiceGantryView19Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView20Batches }, _gShelterB1PodServiceGantryView20Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView21Batches }, _gShelterB1PodServiceGantryView21Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView22Batches }, _gShelterB1PodServiceGantryView22Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView23Batches }, _gShelterB1PodServiceGantryView23Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView24Batches }, _gShelterB1PodServiceGantryView24Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView25Batches }, _gShelterB1PodServiceGantryView25Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView26Batches }, _gShelterB1PodServiceGantryView26Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView27Batches }, _gShelterB1PodServiceGantryView27Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView28Batches }, _gShelterB1PodServiceGantryView28Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView29Batches }, _gShelterB1PodServiceGantryView29Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView30Batches }, _gShelterB1PodServiceGantryView30Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView31Batches }, _gShelterB1PodServiceGantryView31Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView32Batches }, _gShelterB1PodServiceGantryView32Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView33Batches }, _gShelterB1PodServiceGantryView33Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView34Batches }, _gShelterB1PodServiceGantryView34Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView35Batches }, _gShelterB1PodServiceGantryView35Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView36Batches }, _gShelterB1PodServiceGantryView36Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView37Batches }, _gShelterB1PodServiceGantryView37Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView38Batches }, _gShelterB1PodServiceGantryView38Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView39Batches }, _gShelterB1PodServiceGantryView39Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView40Batches }, _gShelterB1PodServiceGantryView40Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView41Batches }, _gShelterB1PodServiceGantryView41Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView42Batches }, _gShelterB1PodServiceGantryView42Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView43Batches }, _gShelterB1PodServiceGantryView43Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView44Batches }, _gShelterB1PodServiceGantryView44Batches, NULL },
     { { .elements = D_shelter_b1_pod_service_gantry_80181AC4 }, D_shelter_b1_pod_service_gantry_80181B78, NULL },
     { { .empty = D_shelter_b1_pod_service_gantry_80181B90 }, D_shelter_b1_pod_service_gantry_80181B90, NULL },
 };
