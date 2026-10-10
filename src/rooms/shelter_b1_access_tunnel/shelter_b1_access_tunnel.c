@@ -61,22 +61,10 @@
 #include "../../shared/room_events.h"
 #include "../../shared/room_variants.h"
 
-// Preserve the following nonzero bytes with this scalar's storage.
-// No separate references identify them; their role (including padding) is unresolved.
-extern u8 D_shelter_b1_access_tunnel_8017FF6C[4];
-
 /// Task descriptor `_roomEventGate` spawns when a
 /// gated event fires.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// Task descriptor for the room's event task, spawned when the message handler
-/// starts the latched event.
-extern TaskDesc D_shelter_b1_access_tunnel_8017E710;
-
-/// Message table `_shelterB1AccessTunnelInitializeRoom` installs on its task.
-extern TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[];
-
-extern AreaApplyRec    D_shelter_b1_access_tunnel_8017FF44[];
 extern RoomFadeStorage gRoomEventFade;
 
 /// Copy of the message that fired a gated event, kept for the task
@@ -106,9 +94,18 @@ enum { SHELTER_B1_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskDesc D_shelter_b1_access_tunnel_8017E710 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
+enum { SHELTER_B1_ACCESS_TUNNEL_STAGED_EVENT_PRIORITY = 32 };
 
-TaskMessageEntry D_shelter_b1_access_tunnel_8017E71C[5] = {
+/// Bodyless controller for the staged departure scene and room reload.
+///
+/// Spawning copies this recipe; the controller borrows the latched transition
+/// and scene records until reload. It starts with both spawn arguments zero.
+static TaskDesc _gShelterB1AccessTunnelStagedEventTaskDesc = { { { TASK_BODY_NONE, SHELTER_B1_ACCESS_TUNNEL_STAGED_EVENT_PRIORITY } }, roomEventStagedTask, { .value = 0 } };
+
+/// Room messages for exit resolution, key-item use, actions and script commands.
+///
+/// The live room receiver borrows the four handlers and terminal entry.
+static const TaskMessageEntry _gShelterB1AccessTunnelRoomMessages[5] SECTION(".data") = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1AccessTunnelResolveRoomEvent },
     { SHELTER_B1_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1AccessTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1AccessTunnelIgnoreRoomAction },
@@ -155,36 +152,67 @@ u8* gShelterB1AccessTunnelRoomViewMaps[1] = {
 
 ViewCount gShelterB1AccessTunnelRoomViewCounts[1] = { SHELTER_B1_ACCESS_TUNNEL_VIEW_COUNT };
 
-DirectionWarpEntry D_shelter_b1_access_tunnel_8017E7EC[4] = {
-    { { { .word = 0 }, 9953, 0, 1474 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x288C, 0, 6240 }, { 0, 0, 0, 0 }, 0x54130002, 0x54130001, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 453 },
-    { { { .word = 1024 }, 9600, 0, 3180 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x288C, 0, 6240 }, { 0, 0, 0, 0 }, 0x54130008, 0x54130007, DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, 433 },
-    { { { .word = 2048 }, 549, 0, 8582 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 549, 0, 8582 }, { 0, 0, 0, 0 }, 0x54130006, 0x54130005, DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
-    { { { .word = 3072 }, 0x27F0, 0, 6140 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x288C, 0, 6240 }, { 0, 0, 0, 0 }, 0x54130004, 0x54130003, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+// Current-area descriptor slots; action triggers pack departure in the high
+// nibble and the destination's arrival descriptor in the low nibble.
+enum {
+    SHELTER_B1_ACCESS_TUNNEL_WARP_CONTROL_ROOM     = 1,
+    SHELTER_B1_ACCESS_TUNNEL_WARP_FREEZER          = 2,
+    SHELTER_B1_ACCESS_TUNNEL_WARP_PARKING          = 3,
+    SHELTER_B1_ACCESS_TUNNEL_WARP_TRANSFER         = 4,
+    SHELTER_B1_ACCESS_TUNNEL_CONTROL_ROOM_MAP_FLAG = 453,
+    SHELTER_B1_ACCESS_TUNNEL_FREEZER_MAP_FLAG      = 433,
 };
 
-static SVECTOR _gShelterB1AccessTunnelCollision01564Normals[6] = {
+DirectionWarpEntry gShelterB1AccessTunnelWarpEntries[4] = {
+    { { { .word = 0 }, 9953, 0, 1474 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x288C, 0, 6240 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 2), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 1), DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, SHELTER_B1_ACCESS_TUNNEL_CONTROL_ROOM_MAP_FLAG },
+    { { { .word = 1024 }, 9600, 0, 3180 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x288C, 0, 6240 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 8), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 7), DIRECTION_WARP_SOUND_NONE, 5, DIRECTION_WARP_FLAG_NONE, SHELTER_B1_ACCESS_TUNNEL_FREEZER_MAP_FLAG },
+    { { { .word = 2048 }, 549, 0, 8582 }, { 0, 0, 0, 0 }, { { .word = 2048 }, 549, 0, 8582 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 6), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 5), DIRECTION_WARP_SOUND_NONE, 4, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+    { { { .word = 3072 }, 0x27F0, 0, 6140 }, { 0, 0, 0, 0 }, { { .word = 0 }, 0x288C, 0, 6240 }, { 0, 0, 0, 0 }, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 4), SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_ACCESS_TUNNEL, 3), DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+};
+
+/// Collision mesh's room-space normals, with 4096 representing unit length.
+static SVECTOR _gShelterB1AccessTunnelCollisionGridNormals[6] = {
 #include "assets/shelter_b1_access_tunnel_collision_01564_normals.inc"
 };
 
-static SVECTOR _gShelterB1AccessTunnelCollision01564Verts[24] = {
+/// Collision mesh's signed room-coordinate vertices.
+static SVECTOR _gShelterB1AccessTunnelCollisionGridVerts[24] = {
 #include "assets/shelter_b1_access_tunnel_collision_01564_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB1AccessTunnelCollision01564Faces[15] = {
+/// Indexed collision quads selecting vertex/normal pools and surface classes 0..2.
+static WorldCollisionGridFace _gShelterB1AccessTunnelCollisionGridFaces[15] = {
 #include "assets/shelter_b1_access_tunnel_collision_01564_faces.inc"
 };
 
-static s16 _gShelterB1AccessTunnelCollision01564Cells[72] = {
+/// Signed face-index lists ended by WORLD_COLLISION_GRID_CELL_END.
+///
+/// The cell directory selects each list's start; retained inter-list bytes
+/// outside the terminated lists have no established collision use.
+static s16 _gShelterB1AccessTunnelCollisionGridCells[72] = {
 #include "assets/shelter_b1_access_tunnel_collision_01564_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB1AccessTunnelCollision01564Cells[i])
-static s16* _gShelterB1AccessTunnelCollision01564Table[9] = {
+#define GRID_CELL(i) (&_gShelterB1AccessTunnelCollisionGridCells[i])
+/// X-major directory for the collision mesh's 3-by-3 cells; NULL is an empty cell.
+static s16* _gShelterB1AccessTunnelCollisionGridTable[9] = {
 #include "assets/shelter_b1_access_tunnel_collision_01564_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b1_access_tunnel_8017EB24 = { NULL, _gShelterB1AccessTunnelCollision01564Normals, _gShelterB1AccessTunnelCollision01564Verts, _gShelterB1AccessTunnelCollision01564Faces, _gShelterB1AccessTunnelCollision01564Table, -10, -670, 3, 3, 4000, 15 };
+WorldCollisionGrid gShelterB1AccessTunnelCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB1AccessTunnelCollisionGridNormals,
+    .vertices    = _gShelterB1AccessTunnelCollisionGridVerts,
+    .faces       = _gShelterB1AccessTunnelCollisionGridFaces,
+    .cellFaceIds = _gShelterB1AccessTunnelCollisionGridTable,
+    .xBias       = -10,
+    .zBias       = -670,
+    .cellCountX  = 3,
+    .cellCountZ  = 3,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB1AccessTunnelCollisionGridFaces),
+};
 
 ViewCamera gShelterB1AccessTunnelViewCameras[SHELTER_B1_ACCESS_TUNNEL_VIEW_COUNT] = {
     { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -5000, 0x61A8, -5000 } }, 541 },
@@ -435,23 +463,23 @@ static WorldCoordPointLight _gShelterB1AccessTunnelPointLights[5] = {
 
 WorldCoordRoomLights gShelterB1AccessTunnelRoomLights = { ARRAY_SIZE(_gShelterB1AccessTunnelDirectionalLights), _gShelterB1AccessTunnelDirectionalLights, ARRAY_SIZE(_gShelterB1AccessTunnelPointLights), _gShelterB1AccessTunnelPointLights, 0, NULL };
 
-WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FA34[6] = {
-    { NULL, NULL, NULL, { 0x2711, -1536, 5121, 0 }, { { -1936, -2016, 672, 0 }, { 1936, -2016, -672, 0 }, { -1936, 2016, 672, 0 }, { 1936, 2016, -672, 0 } }, { -1344, 0, -3872, 0 }, { 0, 0, 4096, 0 }, 2873, 0, 5, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 0x2710, -1536, 4976, 0 }, { { 2080, -2016, -752, 0 }, { -2080, -2016, 752, 0 }, { 2080, 2016, -752, 0 }, { -2080, 2016, 752, 0 } }, { 1395, 0, 3860, 0 }, { 0, 0, 4096, 0 }, 2985, 0, 2, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 7963, -1536, 8124, 0 }, { { -306, -2016, -1587, 0 }, { 306, -2016, 1588, 0 }, { -306, 2016, -1587, 0 }, { 306, 2016, 1588, 0 } }, { 4028, 0, -778, 0 }, { 0, 0, 4096, 0 }, 2572, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 8154, -1504, 8075, 0 }, { { 315, -2016, 1501, 0 }, { -315, -2016, -1501, 0 }, { 315, 2016, 1501, 0 }, { -315, 2016, -1501, 0 } }, { -4012, 0, 841, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3328, -1472, 8000, 0 }, { { -155, -2016, -1616, 0 }, { 142, -2016, 1604, 0 }, { -155, 2016, -1616, 0 }, { 142, 2016, 1604, 0 } }, { 4085, 0, -378, 0 }, { 0, 0, 4096, 0 }, 2572, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
-    { NULL, NULL, NULL, { 3457, -1504, 8032, 0 }, { { 164, -2016, 1521, 0 }, { -169, -2016, -1528, 0 }, { 164, 2016, 1521, 0 }, { -169, 2016, -1528, 0 } }, { -4074, 0, 443, 0 }, { 0, 0, 4096, 0 }, 2521, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB1AccessTunnelViewBoundaryTriggers[6] = {
+    { NULL, NULL, NULL, { 0x2711, -1536, 5121, 0 }, { { -1936, -2016, 672, 0 }, { 1936, -2016, -672, 0 }, { -1936, 2016, 672, 0 }, { 1936, 2016, -672, 0 } }, { -1344, 0, -3872, 0 }, { 0, 0, ONE, 0 }, 2873, 0, 5, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 0x2710, -1536, 4976, 0 }, { { 2080, -2016, -752, 0 }, { -2080, -2016, 752, 0 }, { 2080, 2016, -752, 0 }, { -2080, 2016, 752, 0 } }, { 1395, 0, 3860, 0 }, { 0, 0, ONE, 0 }, 2985, 0, 2, 5, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 7963, -1536, 8124, 0 }, { { -306, -2016, -1587, 0 }, { 306, -2016, 1588, 0 }, { -306, 2016, -1587, 0 }, { 306, 2016, 1588, 0 } }, { 4028, 0, -778, 0 }, { 0, 0, ONE, 0 }, 2572, 0, 2, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 8154, -1504, 8075, 0 }, { { 315, -2016, 1501, 0 }, { -315, -2016, -1501, 0 }, { 315, 2016, 1501, 0 }, { -315, 2016, -1501, 0 } }, { -4012, 0, 841, 0 }, { 0, 0, ONE, 0 }, 2521, 0, 3, 2, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3328, -1472, 8000, 0 }, { { -155, -2016, -1616, 0 }, { 142, -2016, 1604, 0 }, { -155, 2016, -1616, 0 }, { 142, 2016, 1604, 0 } }, { 4085, 0, -378, 0 }, { 0, 0, ONE, 0 }, 2572, 0, 3, 4, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
+    { NULL, NULL, NULL, { 3457, -1504, 8032, 0 }, { { 164, -2016, 1521, 0 }, { -169, -2016, -1528, 0 }, { 164, 2016, 1521, 0 }, { -169, 2016, -1528, 0 } }, { -4074, 0, 443, 0 }, { 0, 0, ONE, 0 }, 2521, 0, 4, 3, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FBFC[4] = {
-    { NULL, NULL, NULL, { 9952, -48, 1216, 0 }, { { -1024, 0, -576, 0 }, { 1024, 0, -576, 0 }, { -1024, 0, 576, 0 }, { 1024, 0, 576, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, 4096, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_WARP, 18, 18, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 9248, -48, 3472, 0 }, { { 576, 0, -880, 0 }, { 576, 0, 880, 0 }, { -576, 0, -880, 0 }, { -576, 0, 880, 0 } }, { 0, 4097, 0, 0 }, { 4096, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_WARP, 21, 33, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 960, -48, 8624, 0 }, { { -1024, 0, -432, 0 }, { 1024, 0, -432, 0 }, { -1024, 0, 432, 0 }, { 1024, 0, 432, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -4096, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, 20, 49, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
-    { NULL, NULL, NULL, { 0x2970, -48, 6096, 0 }, { { 368, 0, -624, 0 }, { 368, 0, 624, 0 }, { -368, 0, -624, 0 }, { -368, 0, 624, 0 } }, { 0, 4095, 0, 0 }, { -4096, 0, 0, 0 }, 724, WORLD_COLLISION_TRIGGER_ACTION_WARP, 24, 66, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
+WorldCollisionTrigger gShelterB1AccessTunnelWarpTriggers[4] = {
+    { NULL, NULL, NULL, { 9952, -48, 1216, 0 }, { { -1024, 0, -576, 0 }, { 1024, 0, -576, 0 }, { -1024, 0, 576, 0 }, { 1024, 0, 576, 0 } }, { 0, 4095, 0, 0 }, { 0, 0, ONE, 0 }, 1173, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_CONTROL_ROOM, (SHELTER_B1_ACCESS_TUNNEL_WARP_CONTROL_ROOM << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 9248, -48, 3472, 0 }, { { 576, 0, -880, 0 }, { 576, 0, 880, 0 }, { -576, 0, -880, 0 }, { -576, 0, 880, 0 } }, { 0, 4097, 0, 0 }, { ONE, 0, 0, 0 }, 1047, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1, (SHELTER_B1_ACCESS_TUNNEL_WARP_FREEZER << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 960, -48, 8624, 0 }, { { -1024, 0, -432, 0 }, { 1024, 0, -432, 0 }, { -1024, 0, 432, 0 }, { 1024, 0, 432, 0 } }, { 0, 4097, 0, 0 }, { 0, 0, -ONE, 0 }, 1108, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, (SHELTER_B1_ACCESS_TUNNEL_WARP_PARKING << 4) | 1, WORLD_COLLISION_TRIGGER_FACING_QUAD, 0 },
+    { NULL, NULL, NULL, { 0x2970, -48, 6096, 0 }, { { 368, 0, -624, 0 }, { 368, 0, 624, 0 }, { -368, 0, -624, 0 }, { -368, 0, 624, 0 } }, { 0, 4095, 0, 0 }, { -ONE, 0, 0, 0 }, 724, WORLD_COLLISION_TRIGGER_ACTION_WARP, GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL, (SHELTER_B1_ACCESS_TUNNEL_WARP_TRANSFER << 4) | 2, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-WorldCollisionOccluder D_shelter_b1_access_tunnel_8017FD2C[1] = {
+WorldCollisionOccluder gShelterB1AccessTunnelSightOccluders[1] = {
     { NULL, NULL, { 5152, -1440, 4400, 0 }, { { -3488, 2464, -2192, 0 }, { 3488, 2464, 2192, 0 }, { -3488, -2464, -2192, 0 }, { 3488, -2464, 2192, 0 } }, { -2188, 0, 3480, 0 }, 4775, 1 | WORLD_COLLISION_OCCLUDER_LAST, 0 },
 };
 
@@ -567,9 +595,15 @@ WorldCollisionSurfaceProperties* gShelterB1AccessTunnelSurfacePropertiesByClass[
     &_gShelterB1AccessTunnelSilentSurface,
 };
 
-AreaApplyRec D_shelter_b1_access_tunnel_8017FF44[2] = {
-    { 4, 21, 22, 0 },
-    { 255, 0, 0, 0 },
+enum { SHELTER_B1_ACCESS_TUNNEL_MEETING_FINISHED_FREEZER_VARIANT = 22 };
+
+/// Saved freezer layout after the meeting is finished on a qualifying departure.
+///
+/// Selects variant 22 in every save mode, clears its map mark and saved enemy
+/// poses, then ends the list. Areas without saved state remain unchanged.
+static const AreaApplyRec _gShelterB1AccessTunnelMeetingFinishedAreaUpdates[2] SECTION(".data") = {
+    { GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_GOLEM_FREEZER_1, SHELTER_B1_ACCESS_TUNNEL_MEETING_FINISHED_FREEZER_VARIANT, AREA_APPLY_MODE_ALWAYS },
+    { AREA_APPLY_END, 0, 0, 0 },
 };
 
 RoomFadeStorage gRoomEventFade = { 0 };
@@ -585,12 +619,12 @@ RoomEventStartStorage gRoomEventActive = { 0 };
 
 RoomEventMsg gRoomEventStagedMsg = { 0 };
 
-u8 D_shelter_b1_access_tunnel_8017FF6C[4] = {
-    0,
-    2,
-    47,
-    210,
-};
+/// Indication that the latest staged-event starter call attempted to spawn a controller.
+///
+/// Cleared even for queries or already-seen events and set after the spawn call,
+/// without checking allocation success. The three initialized trailing bytes
+/// have no recovered accesses; their purpose and grouping remain unproven.
+static RoomEventActiveBytes _gShelterB1AccessTunnelStagedEventStart = { 0, { 2, 47, 210 } };
 
 RoomEventReqStorage gRoomEventReq;
 
@@ -622,7 +656,7 @@ static __inline__ s32 _shelterB1AccessTunnelStartEvent(const RoomEventMsg* trans
         ROOM_EVENT_ELIGIBLE     = 2
     };
 
-    D_shelter_b1_access_tunnel_8017FF6C[0] = ROOM_EVENT_NOT_STARTED;
+    _gShelterB1AccessTunnelStagedEventStart.eventStarted = ROOM_EVENT_NOT_STARTED;
     if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
         if (transition->queryOnly == ROOM_EVENT_EXECUTE) {
             gRoomEventStagedMsg = *transition;
@@ -630,8 +664,8 @@ static __inline__ s32 _shelterB1AccessTunnelStartEvent(const RoomEventMsg* trans
             if (event->flagId != 0) {
                 gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_SEEN);
             }
-            taskSpawnFromTable(&D_shelter_b1_access_tunnel_8017E710, 0, 0, 0);
-            D_shelter_b1_access_tunnel_8017FF6C[0] = ROOM_EVENT_STARTED;
+            taskSpawnFromTable(&_gShelterB1AccessTunnelStagedEventTaskDesc, 0, 0, 0);
+            _gShelterB1AccessTunnelStagedEventStart.eventStarted = ROOM_EVENT_STARTED;
         }
         return ROOM_EVENT_ELIGIBLE;
     }
@@ -665,7 +699,7 @@ static s32 _shelterB1AccessTunnelResolveRoomEvent(Task* unusedTask, s32 unusedMe
     mapShelterRoomVariantResolve(request, reply);
     if (request->areaId == GAME_AREA_SHELTER_B1_CONTROL_ROOM || request->areaId == GAME_AREA_SHELTER_B1_TRANSFER_TUNNEL) {
         if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) > 0 && gameFlagGetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS) < SHELTER_B1_ACCESS_TUNNEL_MEETING_FINISHED) {
-            areaApplySavedUpdates(D_shelter_b1_access_tunnel_8017FF44);
+            areaApplySavedUpdates(_gShelterB1AccessTunnelMeetingFinishedAreaUpdates);
             gameFlagSetNibble(GAME_FLAG_ACTOR_160700_MEETING_PROGRESS, SHELTER_B1_ACCESS_TUNNEL_MEETING_FINISHED);
         }
     }
@@ -719,9 +753,10 @@ static s32 _shelterB1AccessTunnelIgnoreRoomAction(Task* task, s32 messageId, con
     return 0;
 }
 
-/// The room's three-entry task state table, dispatched by
-/// `shelterB1AccessTunnelRoomTask` from a stack copy.
-static const TaskFuncTable3 D_shelter_b1_access_tunnel_8017D5F0 = {
+/// Room-task handlers indexed by state: 0 initialize, 1 idle, 2 kill.
+///
+/// Dispatch copies all three callbacks to the stack before selecting one.
+static const TaskFuncTable3 _gShelterB1AccessTunnelRoomStates = {
     {
         _shelterB1AccessTunnelInitializeRoom,
         _shelterB1AccessTunnelIdle,
@@ -735,7 +770,7 @@ static const TaskFuncTable3 D_shelter_b1_access_tunnel_8017D5F0 = {
 /// in `GAME_TASK_SLOT_ROOM` and advances to idle state 1, without allocating work.
 static void _shelterB1AccessTunnelInitializeRoom(Task* task)
 {
-    task->msgTable = D_shelter_b1_access_tunnel_8017E71C;
+    task->msgTable = _gShelterB1AccessTunnelRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     task->state++;
 }
@@ -749,7 +784,7 @@ void shelterB1AccessTunnelRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_shelter_b1_access_tunnel_8017D5F0;
+    stateHandlers = _gShelterB1AccessTunnelRoomStates;
     stateHandlers.funcs[task->state](task);
 }
 

@@ -49,7 +49,13 @@ extern ViewCount D_dryfield_night_factory_80186F54[];
 
 extern DirectionWarpEntry D_dryfield_night_factory_80186F58[];
 
-extern ViewCamera D_dryfield_night_factory_80187C14[];
+/// Nineteen cameras shared by the nighttime factory's two room slots.
+///
+/// Both use mapped views 1..19, selecting records at view minus one. Rotation
+/// uses ONE per unit, translation is the negated world-space camera origin
+/// and perspective distance is pixels. The camera directory borrows this
+/// mutable array while the factory overlay is loaded.
+extern ViewCamera gDryfieldNightFactoryViewCameras[19];
 
 /// Dryfield night factory's sprite resources, indexed by mapped view minus one.
 ///

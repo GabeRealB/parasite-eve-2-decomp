@@ -143,8 +143,8 @@ static WorldCollisionGrid _gDryfieldNightMotelRoom1CollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldNightMotelRoom1CollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_motel_room_1_8017E0BC[9] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -2500, 0x2968, -3000 } }, 257 },
+ViewCamera gDryfieldNightMotelRoom1ViewCameras[9] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -2500, 0x2968, -3000 } }, 257 },
     { { { { 1367, 0, -3861 }, { -708, 4026, -250 }, { 3795, 751, 1344 } }, { -200, 1600, -940 } }, 212 },
     { { { { 1557, 0, 3788 }, { 539, 4054, -221 }, { -3749, 583, 1541 } }, { -4800, 1450, -840 } }, 216 },
     { { { { 4033, 0, 714 }, { 53, 4084, -300 }, { -712, 305, 4021 } }, { -4400, 1350, -1640 } }, 269 },

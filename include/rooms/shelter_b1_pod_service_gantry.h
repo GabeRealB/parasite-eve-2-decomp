@@ -36,7 +36,14 @@ extern WorldCollisionGrid gShelterB1PodServiceGantryRoomCollision;
 
 extern ViewCamera D_shelter_b1_pod_service_gantry_801801E8[];
 
-extern SpriteView D_shelter_b1_pod_service_gantry_80181BA0[];
+/// Background and foreground sprite descriptors for all 46 mapped gantry views.
+///
+/// Indexed by mapped 1-based view minus one. Views 1..5, 8, 9, 11, 14 and 45
+/// select source rectangles; other views retain empty batch-list addresses.
+/// Every view retains decoded background strips, and only view 3 supplies a
+/// clipping list. Gameplay borrows these mutable descriptors and their private
+/// lists while the room overlay is loaded, through packet allocation and drawing.
+extern SpriteView gShelterB1PodServiceGantrySpriteViews[46];
 
 /// Model-shading lights for the pod service gantry's single room.
 ///

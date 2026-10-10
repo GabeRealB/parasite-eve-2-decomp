@@ -37,9 +37,21 @@ extern u8* gShelterB1AccessTunnelRoomViewMaps[1];
 /// map's capacity. It has no terminator and borrows this overlay's lifetime.
 extern ViewCount gShelterB1AccessTunnelRoomViewCounts[1];
 
-extern DirectionWarpEntry D_shelter_b1_access_tunnel_8017E7EC[];
+/// Four warp endpoints joining the control room, freezer, parking and transfer tunnel.
+///
+/// Indexed by 1-based endpoint minus one, with no terminator. Each supplies
+/// actor placements, arrival/departure sounds and the default logical view.
+/// Positions are whole room-coordinate units and yaw uses 4096 units per turn.
+/// Warp consumers borrow the array from this loaded room and copy entries.
+extern DirectionWarpEntry gShelterB1AccessTunnelWarpEntries[4];
 
-extern WorldCollisionGrid D_shelter_b1_access_tunnel_8017EB24;
+/// Access-tunnel collision mesh and its 3-by-3 XZ spatial index.
+///
+/// Starts at room coordinates (10, 670), with 4000-unit cells. Fifteen quads
+/// index 24 vertices and six normals; each nonempty cell list ends with -1.
+/// Activation binds the mutable view coordinate. The descriptor and private
+/// pools stay borrowed and writable while this room overlay is loaded.
+extern WorldCollisionGrid gShelterB1AccessTunnelCollisionGrid;
 
 /// Access-tunnel cameras, indexed by the mapped 1-based view minus one.
 ///
@@ -63,11 +75,28 @@ extern SpriteView gShelterB1AccessTunnelSpriteViews[SHELTER_B1_ACCESS_TUNNEL_VIE
 /// The descriptor and arrays must remain loaded while lighting uses them.
 extern WorldCoordRoomLights gShelterB1AccessTunnelRoomLights;
 
-extern WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FA34[];
+/// Six directed view boundaries connecting logical views 5/2, 2/3 and 3/4.
+///
+/// The final record carries WORLD_COLLISION_TRIGGER_LAST. Activation binds
+/// the view coordinate, links and enables the writable records; contacts
+/// change the saved logical view only from the indicated source view.
+/// Keep this room overlay loaded while the records are linked.
+extern WorldCollisionTrigger gShelterB1AccessTunnelViewBoundaryTriggers[6];
 
-extern WorldCollisionTrigger D_shelter_b1_access_tunnel_8017FBFC[];
+/// Four facing-tested departure quads for the tunnel's warp endpoints.
+///
+/// Select control-room arrival 2, freezer arrival 1, parking arrival 1 and
+/// transfer-tunnel arrival 2, respectively. The final record carries
+/// WORLD_COLLISION_TRIGGER_LAST. Activation binds the view coordinate, links
+/// and enables the mutable records; keep this room loaded while linked.
+extern WorldCollisionTrigger gShelterB1AccessTunnelWarpTriggers[4];
 
-extern WorldCollisionOccluder D_shelter_b1_access_tunnel_8017FD2C[];
+/// Room-space quad blocking actor line of sight across the access tunnel.
+///
+/// The sole record carries WORLD_COLLISION_OCCLUDER_LAST. Activation links
+/// and enables it; positions are game units and the normal uses 4096 per unit.
+/// This mutable room-owned record stays loaded while linked into the sight list.
+extern WorldCollisionOccluder gShelterB1AccessTunnelSightOccluders[1];
 
 /// Collision policies and footstep cues indexed by tunnel surface class 0..7.
 ///

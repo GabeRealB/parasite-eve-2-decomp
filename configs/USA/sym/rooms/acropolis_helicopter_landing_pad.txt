@@ -1,10 +1,10 @@
 // Overlay-local symbols for acropolis_helicopter_landing_pad.
-D_acropolis_helicopter_landing_pad_80182340 = 0x80182340; // size:0x30 defined:True
-D_acropolis_helicopter_landing_pad_80182370 = 0x80182370; // size:0x24 defined:True
-D_acropolis_helicopter_landing_pad_80182394 = 0x80182394; // size:0x18 defined:True
-D_acropolis_helicopter_landing_pad_801823AC = 0x801823AC; // size:0x18 defined:True
+_gAcropolisHelicopterLandingPadLiftFlatLights = 0x80182340; // size:0x30 defined:True
+_gAcropolisHelicopterLandingPadLiftVisibleByView = 0x80182370; // size:0x24 defined:True
+_gAcropolisHelicopterLandingPadLiftLowerStopPlacement = 0x80182394; // size:0x18 defined:True
+_gAcropolisHelicopterLandingPadLiftPadStopPlacement = 0x801823AC; // size:0x18 defined:True
 _gAcropolisHelicopterLandingPadPerimeterLightPositions = 0x80184E80; // size:0x60 defined:True
-D_acropolis_helicopter_landing_pad_80182328 = 0x80182328; // size:0x18 defined:True
+_gAcropolisHelicopterLandingPadLiftMessages = 0x80182328; // size:0x18 defined:True
 gAcropolisHelicopterLandingPadSightOccluders = 0x80186128; // size:0x78 defined:True
 _gAcropolisHelicopterLandingPadPerimeterLightViewMasks = 0x80184EE0; // size:0x30 defined:True
 D_acropolis_helicopter_landing_pad_801861A0 = 0x801861A0; // size:0x18 defined:True

@@ -55,15 +55,6 @@ typedef struct {
 } _AcropolisHelicopterLandingPadLiftWork;
 STATIC_ASSERT_SIZEOF(_AcropolisHelicopterLandingPadLiftWork, 0x54);
 
-extern TaskMessageEntry D_acropolis_helicopter_landing_pad_80182328[];
-extern GsF_LIGHT        D_acropolis_helicopter_landing_pad_80182340[3];
-/// Per-camera-view visibility table indexed by `(u8)gGameSession->location.loc.view`:
-/// a non-zero byte keeps the lift model visible in that view.
-extern s8 D_acropolis_helicopter_landing_pad_80182370[];
-
-extern ActorTransform D_acropolis_helicopter_landing_pad_80182394;
-extern ActorTransform D_acropolis_helicopter_landing_pad_801823AC;
-
 static void _acropolisHelicopterLandingPadLiftInitLighting(Task* task);
 static void _acropolisHelicopterLandingPadLiftInit(Task* task);
 static void _acropolisHelicopterLandingPadLiftUpdate(Task* task);
@@ -71,19 +62,29 @@ static void _acropolisHelicopterLandingPadLiftUpdate(Task* task);
 static s32 _acropolisHelicopterLandingPadLiftHandleRunRequest(Task* task, s32 messageId,
                                                               const AnimationPlayRequest* request, s32 unusedArg);
 
-TaskMessageEntry D_acropolis_helicopter_landing_pad_80182328[3] = {
+/// Lift messages for scripted travel and Euler placement, followed by the terminator.
+///
+/// The initialized lift task borrows this table while the room is loaded.
+static const TaskMessageEntry _gAcropolisHelicopterLandingPadLiftMessages[3] SECTION(".data") = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _acropolisHelicopterLandingPadLiftHandleRunRequest },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceEuler },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-GsF_LIGHT D_acropolis_helicopter_landing_pad_80182340[3] = {
-    { 0, 4096, 0, 128, 128, 128 },
-    { 4096, 0, 0, 128, 128, 128 },
-    { 0, 0, 4096, 128, 128, 128 },
+/// Three directional lights used to initialize the lift's task-owned matrices.
+///
+/// Directions use ONE per unit; RGB levels are 128 on the 256-per-unit scale.
+static const GsF_LIGHT _gAcropolisHelicopterLandingPadLiftFlatLights[3] SECTION(".data") = {
+    { 0, ONE, 0, 128, 128, 128 },
+    { ONE, 0, 0, 128, 128, 128 },
+    { 0, 0, ONE, 128, 128, 128 },
 };
 
-s8 D_acropolis_helicopter_landing_pad_80182370[36] = {
+/// Lift visibility indexed directly by the saved 1-based logical view.
+///
+/// Nonzero draws the lift in views 1, 10, 11, 18 and 22. Room views are 1..27;
+/// slot 0 and the remaining authored storage stay present in this 36-byte table.
+static const s8 _gAcropolisHelicopterLandingPadLiftVisibleByView[36] SECTION(".data") = {
     0,
     1,
     0,
@@ -122,9 +123,15 @@ s8 D_acropolis_helicopter_landing_pad_80182370[36] = {
     0,
 };
 
-ActorTransform D_acropolis_helicopter_landing_pad_80182394 = { { -5340, 120, -1900, 0 }, { 0, 0, 0, 0 } };
+/// Lift placement at the lower stop, used to begin raising and to park below the pad.
+///
+/// Position is in whole root-parent coordinate units; Euler angles are zero.
+static const ActorTransform _gAcropolisHelicopterLandingPadLiftLowerStopPlacement SECTION(".data") = { { -5340, 120, -1900, 0 }, { 0, 0, 0, 0 } };
 
-ActorTransform D_acropolis_helicopter_landing_pad_801823AC = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
+/// Lift placement at the landing pad, used to begin lowering.
+///
+/// Position is in whole root-parent coordinate units; Euler angles are zero.
+static const ActorTransform _gAcropolisHelicopterLandingPadLiftPadStopPlacement SECTION(".data") = { { -5340, -2880, -1900, 0 }, { 0, 0, 0, 0 } };
 
 static TmdBone _gAcropolisHelicopterLandingPadModel0547CSkeleton[1] = {
 #include "assets/acropolis_helicopter_landing_pad_model_0547C_skeleton.inc"
@@ -179,7 +186,7 @@ static void _acropolisHelicopterLandingPadLiftInit(Task* task)
     liftModel->otOffset = ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_OT_OFFSET;
     liftModel->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     _acropolisHelicopterLandingPadLiftInitLighting(task);
-    task->msgTable      = D_acropolis_helicopter_landing_pad_80182328;
+    task->msgTable      = _gAcropolisHelicopterLandingPadLiftMessages;
     task->killCountdown = 0;
     task->state         = task->state + 1;
 }
@@ -208,7 +215,7 @@ static void _acropolisHelicopterLandingPadLiftUpdate(Task* task)
         work->stepFrames = 0;
     }
     if (gGameSession->viewReady != 0) {
-        if (D_acropolis_helicopter_landing_pad_80182370[gGameSession->location.loc.view] != 0) {
+        if (_gAcropolisHelicopterLandingPadLiftVisibleByView[gGameSession->location.loc.view] != 0) {
             liftModel->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         } else {
             liftModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -230,8 +237,8 @@ static void _acropolisHelicopterLandingPadLiftInitLighting(Task* task)
 
     liftModel->lightMtx = &work->lightMtx;
     liftModel->colorMtx = &work->colorMtx;
-    for (lightIndex = 0, flatLight = D_acropolis_helicopter_landing_pad_80182340;
-         lightIndex < (s32)ARRAY_SIZE(D_acropolis_helicopter_landing_pad_80182340); lightIndex++, flatLight++) {
+    for (lightIndex = 0, flatLight = _gAcropolisHelicopterLandingPadLiftFlatLights;
+         lightIndex < (s32)ARRAY_SIZE(_gAcropolisHelicopterLandingPadLiftFlatLights); lightIndex++, flatLight++) {
         gfxSetFlatLight(lightIndex, flatLight, &work->lightMtx, &work->colorMtx);
     }
 }
@@ -277,15 +284,15 @@ static s32 _acropolisHelicopterLandingPadLiftHandleRunRequest(Task* task, s32 me
 
     switch (request->animationId) {
         case ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_RAISE:
-            _acropolisHelicopterLandingPadLiftStartRun(task, &D_acropolis_helicopter_landing_pad_80182394,
+            _acropolisHelicopterLandingPadLiftStartRun(task, &_gAcropolisHelicopterLandingPadLiftLowerStopPlacement,
                                                        -ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_LOWER:
-            _acropolisHelicopterLandingPadLiftStartRun(task, &D_acropolis_helicopter_landing_pad_801823AC,
+            _acropolisHelicopterLandingPadLiftStartRun(task, &_gAcropolisHelicopterLandingPadLiftPadStopPlacement,
                                                        ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_TRAVEL_STEP);
             break;
         case ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_RUN_PARK_LOWER:
-            actorMsgPlaceEuler(task, 0, &D_acropolis_helicopter_landing_pad_80182394, 0);
+            actorMsgPlaceEuler(task, 0, &_gAcropolisHelicopterLandingPadLiftLowerStopPlacement, 0);
             work->stepFrames = 0;
             break;
     }

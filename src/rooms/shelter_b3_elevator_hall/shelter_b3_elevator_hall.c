@@ -69,8 +69,6 @@ extern TaskDesc D_shelter_b3_elevator_hall_80182A2C[];
 extern TaskDesc D_shelter_b3_elevator_hall_80182A68[];
 /// The room's message table, which its CAP scripts index.
 extern TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[];
-extern SVECTOR          D_shelter_b3_elevator_hall_80182AB4[];
-extern SVECTOR          D_shelter_b3_elevator_hall_80182AF4[];
 /// Per-palette right shifts applied to the halo's level for red, green and
 /// blue, selected by the palette index in the spawn argument.
 
@@ -120,7 +118,11 @@ static SVECTOR _gShelterB3ElevatorHallView3GlowStripEndpoints[8] = {
     { -2185, -3058, -1644, 0 },
 };
 
-SVECTOR D_shelter_b3_elevator_hall_80182AB4[8] = {
+/// World-space endpoints of four additive glow strips in mapped view 4.
+///
+/// Consecutive pairs form strips. The drawer borrows all eight word-aligned
+/// signed game-coordinate positions during each call.
+static const SVECTOR _gShelterB3ElevatorHallView4GlowStripEndpoints[8] SECTION(".data") = {
     { -357, -3058, -1525, 0 },
     { 798, -3058, -1525, 0 },
     { -357, -3058, -1644, 0 },
@@ -131,7 +133,11 @@ SVECTOR D_shelter_b3_elevator_hall_80182AB4[8] = {
     { 3763, -3058, -1644, 0 },
 };
 
-SVECTOR D_shelter_b3_elevator_hall_80182AF4[8] = {
+/// World-space endpoints of four additive glow strips in mapped view 6.
+///
+/// Consecutive pairs form strips. The drawer borrows all eight word-aligned
+/// signed game-coordinate positions during each call.
+static const SVECTOR _gShelterB3ElevatorHallView6GlowStripEndpoints[8] SECTION(".data") = {
     { 3863, -2122, 3666, 0 },
     { 5022, -2122, 3666, 0 },
     { 3863, -2032, 3742, 0 },
@@ -395,11 +401,11 @@ void shelterB3ElevatorHallDrawGlowsTask(Task* task)
             _shelterB3ElevatorHallDrawGlowStrips(view3StripPoints);
         } break;
         case 4: {
-            const SVECTOR* view4StripPoints = D_shelter_b3_elevator_hall_80182AB4;
+            const SVECTOR* view4StripPoints = _gShelterB3ElevatorHallView4GlowStripEndpoints;
             _shelterB3ElevatorHallDrawGlowStrips(view4StripPoints);
         } break;
         case 6: {
-            const SVECTOR* view6StripPoints = D_shelter_b3_elevator_hall_80182AF4;
+            const SVECTOR* view6StripPoints = _gShelterB3ElevatorHallView6GlowStripEndpoints;
             _shelterB3ElevatorHallDrawGlowStrips(view6StripPoints);
         } break;
     }

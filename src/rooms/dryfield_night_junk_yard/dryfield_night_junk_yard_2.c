@@ -167,8 +167,8 @@ static WorldCollisionGrid _gDryfieldNightJunkYardCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldNightJunkYardCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_junk_yard_801811DC[11] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -0x2DE6, 0x61A8, -5750 } }, 257 },
+ViewCamera gDryfieldNightJunkYardViewCameras[11] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -0x2DE6, 0x61A8, -5750 } }, 257 },
     { { { { 965, 0, -3980 }, { -535, 4058, -129 }, { 3944, 550, 956 } }, { 1022, 2299, -989 } }, 282 },
     { { { { 783, 0, -4020 }, { -3412, 2165, -665 }, { 2125, 3476, 414 } }, { 1120, 4985, -2136 } }, 239 },
     { { { { 1009, 0, -3969 }, { -1187, 3908, -301 }, { 3788, 1224, 962 } }, { -2958, 2969, -1227 } }, 282 },

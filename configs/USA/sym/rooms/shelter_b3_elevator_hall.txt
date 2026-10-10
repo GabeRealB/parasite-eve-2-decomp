@@ -1,7 +1,7 @@
 // Overlay-local symbols for shelter_b3_elevator_hall.
 _gShelterB3ElevatorHallView3GlowStripEndpoints = 0x80182A74; // size:0x40 defined:True
-D_shelter_b3_elevator_hall_80182AB4 = 0x80182AB4; // size:0x40 defined:True
-D_shelter_b3_elevator_hall_80182AF4 = 0x80182AF4; // size:0x40 defined:True
+_gShelterB3ElevatorHallView4GlowStripEndpoints = 0x80182AB4; // size:0x40 defined:True
+_gShelterB3ElevatorHallView6GlowStripEndpoints = 0x80182AF4; // size:0x40 defined:True
 gRoomEventTaskDesc = 0x80182A20; // size:0xC defined:True
 D_shelter_b3_elevator_hall_80182A2C = 0x80182A2C; // size:0xC defined:True
 D_shelter_b3_elevator_hall_80182A38 = 0x80182A38; // size:0x30 defined:True

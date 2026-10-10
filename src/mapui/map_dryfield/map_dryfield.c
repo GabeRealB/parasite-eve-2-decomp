@@ -734,7 +734,7 @@ static ViewCamera* D_map_dryfield_8017AAC8[38] = {
     gDryfieldMotelLoftViewCameras,
     gDryfieldWaterHoleViewCameras,
     NULL,
-    D_dryfield_cellar_8017DF78,
+    gDryfieldCellarViewCameras,
     NULL,
     NULL,
     NULL,

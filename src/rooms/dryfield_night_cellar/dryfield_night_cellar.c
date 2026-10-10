@@ -173,8 +173,8 @@ static WorldCollisionGrid _gDryfieldNightCellarCollisionGrid = {
     .faceCount   = ARRAY_SIZE(_gDryfieldNightCellarCollisionGridFaces),
 };
 
-ViewCamera D_dryfield_night_cellar_8017DE84[11] = {
-    { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { -5416, 0x3922, -1666 } }, 316 },
+ViewCamera gDryfieldNightCellarViewCameras[11] = {
+    { { { { ONE, 0, 0 }, { 0, 0, -ONE }, { 0, ONE, 0 } }, { -5416, 0x3922, -1666 } }, 316 },
     { { { { 1292, 0, 3886 }, { 693, 4030, -230 }, { -3824, 730, 1272 } }, { -9942, 1542, -572 } }, 263 },
     { { { { 1498, 0, -3812 }, { -671, 4031, -264 }, { 3752, 721, 1474 } }, { -2892, 1542, -572 } }, 263 },
     { { { { -3904, 0, -1236 }, { -120, 4076, 379 }, { 1231, 397, -3886 } }, { -1302, 1102, -4422 } }, 263 },

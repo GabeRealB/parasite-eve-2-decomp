@@ -34,7 +34,13 @@ extern ViewCount D_dryfield_night_cellar_8017DB30[];
 
 extern DirectionWarpEntry D_dryfield_night_cellar_8017DB34[];
 
-extern ViewCamera D_dryfield_night_cellar_8017DE84[];
+/// Eleven cameras shared by the nighttime cellar's two room slots.
+///
+/// Indexed by mapped 1-based view minus one. Room 1 selects 1..11; room 2
+/// selects 1 and 7..11. Rotation uses ONE per unit, translation is the negated
+/// world-space origin and perspective distance is pixels. The camera directory
+/// borrows this mutable array while the room overlay is loaded.
+extern ViewCamera gDryfieldNightCellarViewCameras[11];
 
 /// Dryfield night cellar's sprite resources, indexed by mapped view minus one.
 ///

@@ -934,7 +934,7 @@ DirectionWarpEntry* D_map_shelter_8017AF88[49] = {
     gShelterB1SterilizationRoomWarpEntries,
     gShelterB1PodAccessTunnelWarpEntries,
     D_shelter_b1_control_room_80181C78,
-    D_shelter_b1_access_tunnel_8017E7EC,
+    gShelterB1AccessTunnelWarpEntries,
     D_shelter_b1_underground_parking_8018794C,
     D_shelter_b1_golem_freezer_1_8017E798,
     gShelterB2PodBottomWarpEntries,
@@ -1046,7 +1046,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B164[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B174[1] = {
-    { &D_shelter_b1_access_tunnel_8017EB24, D_shelter_b1_access_tunnel_8017FA34, D_shelter_b1_access_tunnel_8017FBFC, D_shelter_b1_access_tunnel_8017FD2C },
+    { &gShelterB1AccessTunnelCollisionGrid, gShelterB1AccessTunnelViewBoundaryTriggers, gShelterB1AccessTunnelWarpTriggers, gShelterB1AccessTunnelSightOccluders },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B184[1] = {
@@ -1331,7 +1331,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     gShelterB1UndergroundParkingSpriteViews,
     gShelterB1GolemFreezer1SpriteViews,
     gShelterB2PodBottomSpriteViews,
-    D_shelter_b1_pod_service_gantry_80181BA0,
+    gShelterB1PodServiceGantrySpriteViews,
     gShelterB1TransferTunnelSpriteViews,
     gShelterB1ControlRoomAccessTunnelSpriteViews,
     gShelterB2ElevatorSpriteViews,

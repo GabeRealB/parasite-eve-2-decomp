@@ -33,7 +33,14 @@ extern ViewCount D_dryfield_night_junk_yard_801807C8[];
 
 extern DirectionWarpEntry D_dryfield_night_junk_yard_801807CC[];
 
-extern ViewCamera D_dryfield_night_junk_yard_801811DC[];
+/// Stored cameras for the nighttime junk yard's two room slots.
+///
+/// Both current maps select 1-based indices 1..10 at index minus one; the
+/// eleventh stored camera's use is unproven and its bytes remain present.
+/// Rotation uses ONE per unit, translation is the negated world-space origin
+/// and perspective distance is pixels. The camera directory borrows this
+/// mutable array while the room overlay is loaded.
+extern ViewCamera gDryfieldNightJunkYardViewCameras[11];
 
 /// Dryfield night junk yard's sprite resources, indexed by mapped view minus one.
 ///

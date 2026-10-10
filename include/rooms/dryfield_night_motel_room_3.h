@@ -33,7 +33,13 @@ extern ViewCount D_dryfield_night_motel_room_3_8017DAB8[];
 
 extern DirectionWarpEntry D_dryfield_night_motel_room_3_8017DABC[];
 
-extern ViewCamera D_dryfield_night_motel_room_3_8017E1A4[];
+/// Eleven cameras for nighttime motel room 3.
+///
+/// Mapped views 1..11 select records at view minus one. Rotation uses ONE per
+/// unit, translation is the negated world-space camera origin and perspective
+/// distance is pixels. The camera directory borrows this mutable array while
+/// the room overlay is loaded.
+extern ViewCamera gDryfieldNightMotelRoom3ViewCameras[11];
 
 /// Dryfield night motel room 3's sprite resources, indexed by mapped view minus one.
 ///

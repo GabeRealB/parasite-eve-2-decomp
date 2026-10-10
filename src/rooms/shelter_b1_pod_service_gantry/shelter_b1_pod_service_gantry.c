@@ -981,30 +981,42 @@ static SpriteBatch _gShelterB1PodServiceGantryView44Batches[2] = {
     { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteSource D_shelter_b1_pod_service_gantry_80181AC4[9] = {
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -160, 0, 902, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 915, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -128, 96, 875, { .fields = { 40, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 24 } }, -72, 96, 875, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, 120, -96, 625, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, -24, 625, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 112, 24, 625, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 56 } }, 72, 64, 625, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 24 } }, 0, 96, 875, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+/// Nine foreground texture rectangles for mapped gantry view 45.
+///
+/// Positions and sizes are pixels; depth is the unscaled OT sorting value.
+/// The renderer borrows this writable array while the room is loaded.
+static SpriteSource _gShelterB1PodServiceGantryView45Sources[9] = {
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 32 } }, -160, 0, 902, { .fields = { 96, 224 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 32, 48 } }, -160, 72, 915, { .fields = { 96, 176 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 56, 24 } }, -128, 96, 875, { .fields = { 40, 216 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 72, 24 } }, -72, 96, 875, { .fields = { 24, 192 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 40, 72 } }, 120, -96, 625, { .fields = { 88, 0 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 24, 48 } }, 136, -24, 625, { .fields = { 104, 128 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 48, 40 } }, 112, 24, 625, { .fields = { 56, 128 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 88, 56 } }, 72, 64, 625, { .fields = { 40, 72 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_TEXTURE_PAGE_X960, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_CLUT, { .fields = { 72, 24 } }, 0, 96, 875, { .fields = { 24, 168 } }, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, SHELTER_B1_POD_SERVICE_GANTRY_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181B78[3] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Drawing batches retaining the background and selecting all nine view-45 sprites.
+///
+/// The zero-count header selects decoded image strips. The range borrows the
+/// full source array; the terminal record ends this room-owned writable list.
+static SpriteBatch _gShelterB1PodServiceGantryView45Batches[3] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = 0, .spriteCount = ARRAY_SIZE(_gShelterB1PodServiceGantryView45Sources) },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteBatch D_shelter_b1_pod_service_gantry_80181B90[2] = {
-    { 0, 0, 0, 0, { 0, 0 } },
-    { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
+/// Background-only drawing batches for mapped gantry view 46.
+///
+/// The zero-count header selects decoded image strips; the next record ends
+/// the list. The source slot retains this list's address without sprite elements.
+static SpriteBatch _gShelterB1PodServiceGantryView46Batches[2] = {
+    { .firstSprite = 0, .spriteCount = 0 },
+    { .firstSprite = SPRITE_BATCH_END },
 };
 
-SpriteView D_shelter_b1_pod_service_gantry_80181BA0[46] = {
+SpriteView gShelterB1PodServiceGantrySpriteViews[46] = {
     { { .elements = _gShelterB1PodServiceGantryView1Sources }, _gShelterB1PodServiceGantryView1Batches, NULL },
     { { .elements = _gShelterB1PodServiceGantryView2Sources }, _gShelterB1PodServiceGantryView2Batches, NULL },
     { { .elements = _gShelterB1PodServiceGantryView3Sources }, _gShelterB1PodServiceGantryView3Batches, _gShelterB1PodServiceGantryView3DrawAreas },
@@ -1049,8 +1061,8 @@ SpriteView D_shelter_b1_pod_service_gantry_80181BA0[46] = {
     { { .empty = _gShelterB1PodServiceGantryView42Batches }, _gShelterB1PodServiceGantryView42Batches, NULL },
     { { .empty = _gShelterB1PodServiceGantryView43Batches }, _gShelterB1PodServiceGantryView43Batches, NULL },
     { { .empty = _gShelterB1PodServiceGantryView44Batches }, _gShelterB1PodServiceGantryView44Batches, NULL },
-    { { .elements = D_shelter_b1_pod_service_gantry_80181AC4 }, D_shelter_b1_pod_service_gantry_80181B78, NULL },
-    { { .empty = D_shelter_b1_pod_service_gantry_80181B90 }, D_shelter_b1_pod_service_gantry_80181B90, NULL },
+    { { .elements = _gShelterB1PodServiceGantryView45Sources }, _gShelterB1PodServiceGantryView45Batches, NULL },
+    { { .empty = _gShelterB1PodServiceGantryView46Batches }, _gShelterB1PodServiceGantryView46Batches, NULL },
 };
 
 /// Nine room-owned point lights contributing in every gantry view.

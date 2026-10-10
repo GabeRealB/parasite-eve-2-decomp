@@ -35,7 +35,13 @@ extern WorldCoordRoomLighting gDryfieldCellarRoomLighting[2];
 
 extern DirectionWarpEntry D_dryfield_cellar_8017DC20[];
 
-extern ViewCamera D_dryfield_cellar_8017DF78[];
+/// Eleven cameras shared by the cellar's two room slots.
+///
+/// Indexed by mapped 1-based view minus one. Room 1 selects 1..11; room 2
+/// selects 1 and 7..11. Rotation uses ONE per unit, translation is the negated
+/// world-space origin and perspective distance is pixels. The camera directory
+/// borrows this mutable array while the room overlay is loaded.
+extern ViewCamera gDryfieldCellarViewCameras[11];
 
 /// Dryfield cellar's sprite resources, indexed by mapped view minus one.
 ///
