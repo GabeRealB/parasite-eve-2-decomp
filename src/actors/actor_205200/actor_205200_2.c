@@ -403,11 +403,11 @@ static AnimationSet* _gActor205200PlayerKnockbackAnimationSets[5] = {
     &_gActor205200Animation0C968, // 4: recovery behind
 };
 
-ScreenWaveCtx* gScreenWaveCtx = NULL;
+ScreenWaveCtx* gScreenWaveContext = NULL;
 
-ScreenWaveGridOscillator gScreenWaveColumns[10];
+ScreenWaveGridOscillator gScreenWaveColumnWaves[10];
 
-ScreenWaveGridOscillator gScreenWaveRows[30];
+ScreenWaveGridOscillator gScreenWaveRowWaves[30];
 
 POLY_FT4 gScreenWaveGrid[2][30][8];
 

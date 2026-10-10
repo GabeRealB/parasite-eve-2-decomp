@@ -143,13 +143,9 @@ typedef struct {
 } _Actor160900KyleModelWork;
 STATIC_ASSERT_SIZEOF(_Actor160900KyleModelWork, 0x4BC);
 
-/// Distortion amplitude of the screen wave, `frame * scale / span` of the
-/// running context, recomputed every frame.
-extern s32 gScreenWaveRamp;
+static s32 _gScreenWaveAmplitude;
 
-/// The context the running wave task was spawned with, parked at spawn so
-/// the tick reads the ramp through it.
-extern ScreenWaveCtx* gScreenWaveCtx;
+static ScreenWaveCtx* _gScreenWaveContext;
 
 /// Published task of the Aya/Kyle cutscene, borrowed by its script callbacks.
 ///
@@ -157,11 +153,9 @@ extern ScreenWaveCtx* gScreenWaveCtx;
 /// while that task and its work live; teardown does not clear the pointer.
 static Task* _gActor160900CutsceneTask;
 
-/// Per-column and per-row phase records: each is seeded with a random offset
-/// and speed at spawn and advanced by its speed every frame.
-extern ScreenWaveOscillator gScreenWaveColumns[13];
+static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
 
-extern ScreenWaveOscillator gScreenWaveRows[30];
+static ScreenWaveOscillator _gScreenWaveRowWaves[30];
 
 /// Clip transitions are measured in normal-rate frames; cue zero means idle.
 enum {
@@ -661,7 +655,11 @@ static TaskDesc _gActor160900ScreenWaveTaskDescriptors[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 gScreenWaveRamp = 256;
+/// Current sine-displacement strength, recomputed as frame * scale / span.
+///
+/// Strength 32 corresponds to one pixel at the sine peak. The seed tick resets
+/// the initial 256 to zero; the context must have a positive span while drawing.
+static s32 _gScreenWaveAmplitude = 256;
 
 /// Aya's eleven cutscene animation sets, indexed by player clip id 0..10.
 ///
@@ -977,11 +975,23 @@ TaskDesc gActor160900TaskDescriptors[8] = {
     { { { TASK_BODY_COORD, 192 } }, _actor160900DrawLightQuadTask, { .value = 0 } },
 };
 
-ScreenWaveCtx* gScreenWaveCtx;
+/// Borrowed context of this renderer's active wave task.
+///
+/// Set on the seed tick and left unchanged at teardown. Only one wave may use
+/// this storage; the context must stay live through its final drawing tick.
+static ScreenWaveCtx* _gScreenWaveContext;
 
-ScreenWaveOscillator gScreenWaveColumns[13];
+/// Column sine oscillators for horizontal screen displacement.
+///
+/// The per-frame renderer uses entries 0..10; the prebuilt-grid renderer uses
+/// 0..8. Any remaining declared capacity is unaccessed; its role is unproven.
+static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
 
-ScreenWaveOscillator gScreenWaveRows[30];
+/// Thirty active row sine oscillators for vertical screen displacement.
+///
+/// Seeded at wave startup and advanced on drawing updates. Any declared
+/// entries beyond 29 are unaccessed; their role is unproven.
+static ScreenWaveOscillator _gScreenWaveRowWaves[30];
 
 static s32         _actor160900AdvancePlayerAnimChain(Task* task);
 static inline void _actor160900BlendKyleAnim(Task* task, u16 animationId);

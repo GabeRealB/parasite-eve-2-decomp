@@ -179,19 +179,12 @@ extern EffectSpawnArg gBlazeFireSpawn;
 /// masks with 0xF.
 extern u16 gBlazePlayerParts[];
 
-/// Distortion amplitude of the screen wave, `frame * scale / span` of the
-/// running ramp, recomputed every frame.
-extern s32 gScreenWaveRamp;
+static s32 _gScreenWaveAmplitude;
 
-/// The ramp the running wave task was spawned with, parked at spawn so the
-/// tick reads it back every frame.
-extern ScreenWaveCtx* gScreenWaveCtx;
+static ScreenWaveCtx* _gScreenWaveContext;
 
-/// Per-column and per-row phase records: each is seeded with a random offset
-/// and speed at spawn and advanced by its speed on every frame
-/// `gSceneCombatState.actorControl` is clear.
-extern ScreenWaveGridOscillator gScreenWaveColumns[10];
-extern ScreenWaveGridOscillator gScreenWaveRows[30];
+static ScreenWaveGridOscillator _gScreenWaveColumnWaves[10];
+static ScreenWaveGridOscillator _gScreenWaveRowWaves[30];
 
 /// Double-buffered 8 by 30 meshes of textured quads, one mesh per frame
 /// buffer. `_screenWaveGridTask` builds them once and moves their corners.
@@ -272,7 +265,11 @@ TaskDesc D_actor_342100_801648DC[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 gScreenWaveRamp = 256;
+/// Current sine-displacement strength, recomputed as frame * scale / span.
+///
+/// Strength 32 corresponds to one pixel at the sine peak. The seed tick resets
+/// the initial 256 to zero; the context must have a positive span while drawing.
+static s32 _gScreenWaveAmplitude = 256;
 
 /// Private one-entry message table controlling this carrier's blaze fade.
 ///
@@ -380,14 +377,25 @@ TaskDesc gActor342100EncounterBlazeTaskDescriptors[5] = {
     { { { TASK_BODY_COORD, 192 } }, _actor342100BlazeFireEmitterTask, { .value = 0 } },
 };
 
-ScreenWaveCtx* gScreenWaveCtx = NULL;
+/// Borrowed context of this renderer's active wave task.
+///
+/// Set on the seed tick and left unchanged at teardown. Only one wave may use
+/// this storage; the context must stay live through its final drawing tick.
+static ScreenWaveCtx* _gScreenWaveContext = NULL;
 
 Task* D_actor_342100_80164BB8 = NULL;
 
-// Nine active columns and one retained zero entry.
-ScreenWaveGridOscillator gScreenWaveColumns[10] = { 0 };
+/// Column sine oscillators for horizontal screen displacement.
+///
+/// The per-frame renderer uses entries 0..10; the prebuilt-grid renderer uses
+/// 0..8. Any remaining declared capacity is unaccessed; its role is unproven.
+static ScreenWaveGridOscillator _gScreenWaveColumnWaves[10] = { 0 };
 
-ScreenWaveGridOscillator gScreenWaveRows[30] = { 0 };
+/// Thirty active row sine oscillators for vertical screen displacement.
+///
+/// Seeded at wave startup and advanced on drawing updates. Any declared
+/// entries beyond 29 are unaccessed; their role is unproven.
+static ScreenWaveGridOscillator _gScreenWaveRowWaves[30] = { 0 };
 
 POLY_FT4 gScreenWaveGrid[2][30][8] = { 0 };
 

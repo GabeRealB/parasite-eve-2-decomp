@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_136300.
-gScreenWaveRamp = 0x80132ADC; // size:0x4 defined:True
+_gScreenWaveAmplitude = 0x80132ADC; // size:0x4 defined:True
 _gActor136300ScreenWaveTaskTable = 0x80132AC4; // size:0x18 defined:True
 _gActor136300Animation00F14Bank1 = 0x80132AE0; // size:0x18 defined:True
 _gActor136300Animation00F14Bank4 = 0x80132AF8; // size:0x80 defined:True
@@ -264,9 +264,9 @@ D_actor_136300_8013C5C8 = 0x8013C5C8; // size:0xF0 defined:True
 D_actor_136300_8013C6B8 = 0x8013C6B8; // size:0x6 defined:True
 D_actor_136300_8013C6C0 = 0x8013C6C0; // size:0xC0 defined:True
 D_actor_136300_8013C780 = 0x8013C780; // size:0x108 defined:True
-gScreenWaveCtx = 0x8013C888; // size:0x4 defined:True
-gScreenWaveColumns = 0x8013C88C; // size:0x4E defined:True
-gScreenWaveRows = 0x8013C8DC; // size:0xC0 defined:True
+_gScreenWaveContext = 0x8013C888; // size:0x4 defined:True
+_gScreenWaveColumnWaves = 0x8013C88C; // size:0x4E defined:True
+_gScreenWaveRowWaves = 0x8013C8DC; // size:0xC0 defined:True
 _gActor136300ScreenWaveSpawnContext = 0x8013C99C; // size:0xC defined:True
 
 D_dryfield_night_garage_80183380 = 0x80183380; // absolute:True owner=dryfield_night_garage

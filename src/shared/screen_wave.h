@@ -18,10 +18,10 @@
  * names - declaring it here would move it, since bss is laid out in
  * first-declaration order:
  *
- *   s32                   gScreenWaveRamp            the strength's ramp towards the peak
- *   ScreenWaveCtx*        gScreenWaveCtx             the context the task was spawned with
- *   ScreenWaveOscillator  gScreenWaveColumns[]       per-column phase, offset and speed
- *   ScreenWaveOscillator  gScreenWaveRows[]          per-row phase, offset and speed
+ *   s32                   _gScreenWaveAmplitude      current strength (32 per peak pixel)
+ *   ScreenWaveCtx*        SCREEN_WAVE_ACTIVE_CONTEXT borrowed active ramp context
+ *   ScreenWaveOscillator  SCREEN_WAVE_COLUMN_OSCILLATORS[] per-column phase, offset and speed
+ *   ScreenWaveOscillator  SCREEN_WAVE_ROW_OSCILLATORS[]    per-row phase, offset and speed
  *   POLY_FT4              gScreenWaveGrid[2][30][8]  the prebuilt grids (grid task)
  *   ScreenWaveCtx         SCREEN_WAVE_SPAWN_CONTEXT the context _screenWaveRun fills
  *   TaskDesc              gScreenWaveTaskDesc[]      the wave task _screenWaveRun spawns
@@ -65,6 +65,34 @@
 /// `&SCREEN_WAVE_GRID[buffer][row]`, so it must be the array itself.
 #ifndef SCREEN_WAVE_GRID
 #define SCREEN_WAVE_GRID gScreenWaveGrid
+#endif
+
+/// Borrowed ScreenWaveCtx* lvalue holding the renderer's active task context.
+///
+/// Defaults to TU-local `_gScreenWaveContext`. Split overlays bind their
+/// externally linked `gScreenWaveContext` before this header. The replacement
+/// must be side-effect-free; the task repeatedly reads and writes its fields.
+#ifndef SCREEN_WAVE_ACTIVE_CONTEXT
+#define SCREEN_WAVE_ACTIVE_CONTEXT _gScreenWaveContext
+#endif
+
+/// Addressable column-oscillator array used by the selected wave renderer.
+///
+/// Defaults to TU-local `_gScreenWaveColumnWaves`; split overlays bind
+/// `gScreenWaveColumnWaves`. Use ScreenWaveOscillator with at least 11 entries
+/// for the per-frame task, or ScreenWaveGridOscillator with at least 9 for the
+/// prebuilt-grid task. Expansion is indexed repeatedly and must have no side effects.
+#ifndef SCREEN_WAVE_COLUMN_OSCILLATORS
+#define SCREEN_WAVE_COLUMN_OSCILLATORS _gScreenWaveColumnWaves
+#endif
+
+/// Addressable row-oscillator array containing at least 30 active entries.
+///
+/// Defaults to TU-local `_gScreenWaveRowWaves`; split overlays bind
+/// `gScreenWaveRowWaves`. Its element type must match the column array's type.
+/// Expansion is indexed repeatedly and must have no side effects.
+#ifndef SCREEN_WAVE_ROW_OSCILLATORS
+#define SCREEN_WAVE_ROW_OSCILLATORS _gScreenWaveRowWaves
 #endif
 
 static void _screenWaveTask(Task* task);

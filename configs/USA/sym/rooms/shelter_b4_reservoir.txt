@@ -65,7 +65,7 @@ gActor207200SkullStalkerTaskDesc = 0x8014E7A4; // absolute:True owner=actor_2072
 gActor207200CreepingStrangerTaskDesc = 0x80153EC8; // absolute:True owner=actor_207200
 gActor207000SlouchTaskDescs = 0x801575F0; // absolute:True owner=actor_207000
 gScreenWaveTaskDesc = 0x80184724; // size:0x18 defined:True
-gScreenWaveRamp = 0x8018473C; // size:0x4 defined:True
+_gScreenWaveAmplitude = 0x8018473C; // size:0x4 defined:True
 _gShelterB4ReservoirModel07220Skeleton = 0x80184740; // size:0x24 defined:True
 _gShelterB4ReservoirModel07220PartVerts = 0x80184764; // size:0x4 defined:True
 _gShelterB4ReservoirModel07220Verts = 0x80184768; // size:0x78 defined:True
@@ -96,11 +96,11 @@ _gShelterB4ReservoirSurface5 = 0x80187478; // size:0x8 defined:True
 gShelterB4ReservoirSurfacePropertiesByClass = 0x80187480; // size:0x20 defined:True
 _gShelterB4ReservoirWaterEventAreaUpdates = 0x801874A0; // size:0x60 defined:True
 _gShelterB4ReservoirExitFade = 0x80187500; // size:0x4 defined:True
-gScreenWaveCtx = 0x80187504; // size:0x4 defined:True
+_gScreenWaveContext = 0x80187504; // size:0x4 defined:True
 _gShelterB4ReservoirPendingExitLocation = 0x80187508; // size:0x8 defined:True
 _gShelterB4ReservoirWaterDriftSpawnArgs = 0x80187510; // size:0x4 defined:True
-gScreenWaveColumns = 0x80187514; // size:0x4E defined:True
-gScreenWaveRows = 0x80187564; // size:0xC0 defined:True
+_gScreenWaveColumnWaves = 0x80187514; // size:0x4E defined:True
+_gScreenWaveRowWaves = 0x80187564; // size:0xC0 defined:True
 _gScreenWaveSpawnCtx = 0x80187624; // size:0xC defined:True
 _gShelterB4ReservoirWaterPrimCursor = 0x80187630; // size:0x4 defined:True
 _gShelterB4ReservoirBurstPoints = 0x80187634; // size:0x50 defined:True

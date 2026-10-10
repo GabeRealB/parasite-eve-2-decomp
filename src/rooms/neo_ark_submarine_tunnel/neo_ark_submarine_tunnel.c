@@ -42,6 +42,10 @@
 #include "mapui/map_neo_ark.h"
 
 #include "overlay.h"
+// The wave task and its persistent storage occupy separate translation units.
+#define SCREEN_WAVE_ACTIVE_CONTEXT     gScreenWaveContext
+#define SCREEN_WAVE_COLUMN_OSCILLATORS gScreenWaveColumnWaves
+#define SCREEN_WAVE_ROW_OSCILLATORS    gScreenWaveRowWaves
 #include "../../shared/screen_wave.h"
 #include "../../shared/water_effects.h"
 
@@ -60,9 +64,7 @@ extern EvsCommand D_actor_451100_80136108[];
 /// original reached it.
 extern TaskDesc gScreenWaveTaskDesc[];
 
-/// Current displacement of the screen wave, recomputed every frame from the
-/// context's ramp.
-extern s32 gScreenWaveRamp;
+static s32 _gScreenWaveAmplitude;
 
 /// Message handlers this room's task answers, installed into pointer slot 7.
 extern TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[];
@@ -142,7 +144,11 @@ TaskDesc gScreenWaveTaskDesc[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 gScreenWaveRamp = 256;
+/// Current sine-displacement strength, recomputed as frame * scale / span.
+///
+/// Strength 32 corresponds to one pixel at the sine peak. The seed tick resets
+/// the initial 256 to zero; the context must have a positive span while drawing.
+static s32 _gScreenWaveAmplitude = 256;
 
 TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSubmarineTunnelResolveRoomEvent },

@@ -31,8 +31,8 @@ _gShelterB6CorridorDefaultSurfaceProperties = 0x80180530; // size:0x8 defined:Tr
 _gShelterB6CorridorSurface1Properties = 0x80180538; // size:0x8 defined:True
 _gShelterB6CorridorSurface2Properties = 0x80180540; // size:0x8 defined:True
 gShelterB6CorridorSurfaceProperties = 0x80180548; // size:0x20 defined:True
-gScreenWaveCtx = 0x80180568; // size:0x4 defined:True
-gScreenWaveColumns = 0x8018056C; // size:0x50 defined:True
+_gScreenWaveContext = 0x80180568; // size:0x4 defined:True
+_gScreenWaveColumnWaves = 0x8018056C; // size:0x50 defined:True
 gActor101100Tasks = 0x80147400; // absolute:True owner=actor_101100
 gActor205200ControllerPartTasks = 0x8014CA60; // absolute:True owner=actor_205200
 gActor205200BodyTaskDesc = 0x801567C4; // absolute:True owner=actor_205200
@@ -48,12 +48,12 @@ _gShelterB6CorridorBattleEndEveWalkAnimations = 0x8017F344; // size:0x8 defined:
 _gShelterB6CorridorStopEveControllerCommand = 0x8017F34C; // size:0x4 defined:True
 _gShelterB6CorridorDestroyEveBodyCommand = 0x8017F350; // size:0x4 defined:True
 _gShelterB6CorridorBattleEndScript = 0x8017F354; // size:0x330 defined:True
-gScreenWaveRows = 0x801805BC; // size:0xF0 defined:True
+_gScreenWaveRowWaves = 0x801805BC; // size:0xF0 defined:True
 gScreenWaveGrid = 0x801806AC; // size:0x4B04 defined:True
 _gShelterB6CorridorBattleEndPlayerAnimation = 0x8017F27C; // size:0x14 defined:True
 D_shelter_b6_corridor_8017F290 = 0x8017F290; // size:0x64 defined:True
 _gShelterB6CorridorScreenWaveTasks = 0x8017EF08; // size:0x18 defined:True
-gScreenWaveRamp = 0x8017EF20; // size:0x4 defined:True
+_gScreenWaveAmplitude = 0x8017EF20; // size:0x4 defined:True
 _gShelterB6CorridorRoomMessages = 0x8017EF24; // size:0x30 defined:True
 _gShelterB6CorridorAnimation01C70Bank1 = 0x8017EF54; // size:0x48 defined:True
 _gShelterB6CorridorAnimation01C70Bank4 = 0x8017EF9C; // size:0xB8 defined:True

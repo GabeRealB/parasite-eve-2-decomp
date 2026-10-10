@@ -139,16 +139,12 @@ STATIC_ASSERT_SIZEOF(_ShelterB4ReservoirBurstConfig, 6);
 extern TaskDesc      gScreenWaveTaskDesc[];
 static ScreenWaveCtx _gScreenWaveSpawnCtx;
 
-/// Current displacement of the screen wave, recomputed every frame from the
-/// context's ramp.
-extern s32 gScreenWaveRamp;
+static s32 _gScreenWaveAmplitude;
 
-/// The ramp and tint the wave task was spawned with.
-extern ScreenWaveCtx* gScreenWaveCtx;
+static ScreenWaveCtx* _gScreenWaveContext;
 
-/// Phase records of the wave's 11 column edges and 30 row edges.
-extern ScreenWaveOscillator gScreenWaveColumns[13];
-extern ScreenWaveOscillator gScreenWaveRows[32];
+static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
+static ScreenWaveOscillator _gScreenWaveRowWaves[32];
 
 /// Half-extent of a water-drift sprite, plus two trailing bytes.
 ///
@@ -220,7 +216,11 @@ TaskDesc gScreenWaveTaskDesc[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 gScreenWaveRamp = 256;
+/// Current sine-displacement strength, recomputed as frame * scale / span.
+///
+/// Strength 32 corresponds to one pixel at the sine peak. The seed tick resets
+/// the initial 256 to zero; the context must have a positive span while drawing.
+static s32 _gScreenWaveAmplitude = 256;
 
 static TmdBone _gShelterB4ReservoirModel07220Skeleton[1] = {
 #include "assets/shelter_b4_reservoir_model_07220_skeleton.inc"
@@ -1301,7 +1301,11 @@ static AreaApplyRec _gShelterB4ReservoirWaterEventAreaUpdates[24] = {
 /// borrows and mutates this record. Exits must not overlap or outlive the room.
 static ScreenFade _gShelterB4ReservoirExitFade = { 0 };
 
-ScreenWaveCtx* gScreenWaveCtx = NULL;
+/// Borrowed context of this renderer's active wave task.
+///
+/// Set on the seed tick and left unchanged at teardown. Only one wave may use
+/// this storage; the context must stay live through its final drawing tick.
+static ScreenWaveCtx* _gScreenWaveContext = NULL;
 
 /// Resolved location selectors retained until the asynchronous exit commits.
 ///
@@ -1317,9 +1321,17 @@ static GameLoc _gShelterB4ReservoirPendingExitLocation __attribute__((aligned(2)
 /// No instruction or data pointer in this image reads the word.
 static s32 _gShelterB4ReservoirWaterDriftSpawnArgs = 0;
 
-ScreenWaveOscillator gScreenWaveColumns[13] = { 0 };
+/// Column sine oscillators for horizontal screen displacement.
+///
+/// The per-frame renderer uses entries 0..10; the prebuilt-grid renderer uses
+/// 0..8. Any remaining declared capacity is unaccessed; its role is unproven.
+static ScreenWaveOscillator _gScreenWaveColumnWaves[13] = { 0 };
 
-ScreenWaveOscillator gScreenWaveRows[32] = { 0 };
+/// Thirty active row sine oscillators for vertical screen displacement.
+///
+/// Seeded at wave startup and advanced on drawing updates. Any declared
+/// entries beyond 29 are unaccessed; their role is unproven.
+static ScreenWaveOscillator _gScreenWaveRowWaves[32] = { 0 };
 
 /// Persistent ramp and tint context borrowed by the reservoir's scripted wave.
 ///

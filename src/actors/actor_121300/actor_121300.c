@@ -1,3 +1,5 @@
+#include "actors/task_tables.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -9,6 +11,7 @@
 #include "actors/actor.h"
 
 #include "gameplay/companion_load.h"
+#include "gameplay/captions.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
@@ -46,13 +49,6 @@
 #include "rooms/dryfield_r08.h"
 #include "../../shared/screen_wave.h"
 #include "../../shared/actor_messages.h"
-
-/// The overlay's spawn table: entries 1 and 2 are spawned by the one-line
-/// spawners the scene script calls, 3 by the lamp shattering for each lamp
-/// that goes out, 4 to 8 are the debris variants `_actor121300SpawnLampDebrisTask`
-/// scatters around a lamp, 9 is spawned once the session event has
-/// ended, and 0xA by `_actor121300SetTextureSequence`.
-extern TaskDesc D_actor_121300_8013D390[];
 
 /// Scene step of Aya's double, stored in `_Actor121300AyaBreaWork::step`.
 ///
@@ -124,12 +120,6 @@ typedef struct {
 } _Actor121300AyaBreaWork;
 STATIC_ASSERT_SIZEOF(_Actor121300AyaBreaWork, 0x4B0);
 
-/// Animation set to follow each set with, indexed by
-/// `_Actor121300AyaBreaWork::animSet`: once every driven slot has settled, a
-/// non-negative entry becomes the set the slots play.  All four entries are
-/// -1, so no set is followed by another.
-extern s16 D_actor_121300_8013CC18[];
-
 /// One of the room's overhead lamps, in the order the scene shatters them.
 ///
 /// The positions are those the room draws its twelve lamp glows at. A record
@@ -141,26 +131,6 @@ typedef struct {
     s16 endMarker; // (0 a lamp, `ACTOR_121300_LAMP_END` the closing record)
 } _Actor121300Lamp;
 STATIC_ASSERT_SIZEOF(_Actor121300Lamp, 0x8);
-
-/// The lamp table: the room's twelve lamps and a closing record.  The debris
-/// of a lamp starts at its position.
-extern _Actor121300Lamp D_actor_121300_8013CC20[];
-
-/// Frame counter `_actor121300AyaDoubleSceneTask` bumps once a frame and the
-/// effect spawners gate on: `_actor121300SpawnRingSprites` only runs on every
-/// fourth frame (`& 3`), `_actor121300SpawnUpperRowSprites` too.
-extern s32 D_actor_121300_8013CC00;
-
-/// The two position tables `_actor121300SpawnRingSprites` walks, each an array
-/// of `SVECTOR`s ending on a zeroed one -- the walker's guard is `vx != 0`, so
-/// the sentinel is read with the position.  Both trace the same ring around
-/// the arena (`vx` 2500..6500 at `vz` 4700, then back at 1500) and differ only
-/// in height: `8013CCB8` sits at ground level, `8013CD48` at `vy` -0xC8.
-extern SVECTOR D_actor_121300_8013CCB8[];
-extern SVECTOR D_actor_121300_8013CD48[];
-/// Spawn points of `_actor121300SpawnUpperRowSprites`, of which the first
-/// `6 - _Actor121300AyaBreaWork::spritePointsDropped` are used.
-extern SVECTOR D_actor_121300_8013CDC8[];
 
 /// Work block of one piece of lamp debris, kept at `Task::work`.
 ///
@@ -192,38 +162,17 @@ STATIC_ASSERT_SIZEOF(_Actor121300DebrisWork, 0x5C);
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses, and
 /// `gDisplayState.pendingMode` / `gAttachmentState.mode` (1 while the attachment wheel is open) gate the actor's setup.
 
-/// Distortion amplitude of the screen wave, `frame * scale / span` of the
-/// running ramp, recomputed every frame.
-extern s32 gScreenWaveRamp;
+static s32 _gScreenWaveAmplitude;
 
-/// The ramp the running wave task was spawned with, parked at spawn so the
-/// tick reads it back every frame.
-extern ScreenWaveCtx* gScreenWaveCtx;
+static ScreenWaveCtx* _gScreenWaveContext;
 
-extern TaskDesc      D_actor_121300_8013BBCC[];
-extern u_long        D_actor_121300_8013BBE8[];
-extern u_long        D_actor_121300_8013BFD0[];
-extern u_long        D_actor_121300_8013C3B8[];
-extern u_long        D_actor_121300_8013C7A0[];
-extern u_long        D_actor_121300_8013C9D0[];
-extern s16           D_actor_121300_8013CC04;
-extern AnimationSet* D_actor_121300_8013CC08[4];
-// Message-table callbacks use the argument views required by this TU.
+// These first declarations retain BSS order ahead of the oscillator arrays.
+static Task* _gActor121300DoubleTask;
+static u16   _gActor121300DebrisEnabled;
 
-extern TaskMessageEntry D_actor_121300_8013CC88[3];
-extern ActorTransform   D_actor_121300_8013CCA0;
-extern EvsCommand       D_actor_121300_8013CE08[];
-extern EvsCommand       D_actor_121300_8013D2E8[];
+static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
 
-extern Task* D_actor_121300_8013D418;
-
-extern u16 D_actor_121300_8013D41C;
-
-/// Per-column and per-row phase records: each is seeded with a random offset
-/// and speed at spawn and advanced by its speed every frame.
-extern ScreenWaveOscillator gScreenWaveColumns[13];
-
-extern ScreenWaveOscillator gScreenWaveRows[30];
+static ScreenWaveOscillator _gScreenWaveRowWaves[30];
 
 enum { ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE = 2016 };
 
@@ -251,6 +200,26 @@ static void      _actor121300SetDoubleDrawMode(s32 drawMode);
 static void      _actor121300StageSceneAudioStart(void);
 static void      _actor121300QueueScenePlayback(void);
 static void      _actor121300FinishScene(void);
+
+/// Execution priority of the scene double and its effect children.
+enum { ACTOR_121300_SCENE_TASK_PRIORITY = 192 };
+
+/// Full-rate percentage used by debris gravity, translation and spin.
+enum { ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT = 100 };
+
+/// Negative follow-up entries leave the current animation set selected.
+enum { ACTOR_121300_ANIMATION_NO_FOLLOWUP = -1 };
+
+/// CAP command, fade rates and frame waits of the two scene programs.
+enum {
+    ACTOR_121300_SCENE_CAP_COMMAND           = 1, // CAP command slot
+    ACTOR_121300_SCENE_PLAYBACK_DELAY_FRAMES = 2, // Updates before queuing stream playback
+    ACTOR_121300_SCENE_FINISH_DELAY_FRAMES   = 3, // Updates after the final scene cue
+    ACTOR_121300_SCENE_FADE_STEP             = 4, // Intensity units per update
+    ACTOR_121300_SCENE_FINAL_FADE_IN_STEP    = 9, // Intensity units per update
+    ACTOR_121300_SKIP_FADE_WAIT_FRAMES       = 8, // Updates before cancelling the scene
+    ACTOR_121300_SKIP_CANCEL_WAIT_FRAMES     = 5, // Updates before releasing scene control
+};
 
 static TmdBone _gActor121300AyaBreaBodySkeleton[19] = {
 #include "assets/aya_brea_body_skeleton.inc"
@@ -510,47 +479,100 @@ static AnimationSet _gActor121300Animation09D84 = {
     { NULL, _gActor121300Animation09D84Bank1, NULL, NULL, _gActor121300Animation09D84Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_121300_8013BBCC[2] = {
-    { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
+/// Spawn recipe for the scene's per-frame screen distortion, followed by a table end.
+///
+/// Spawn only index 0 with argument 2 borrowing a positive-span `ScreenWaveCtx`.
+/// Keep the context and this overlay live through the wave's final draw; waves
+/// must not overlap because they share the renderer's oscillator storage.
+static TaskDesc _gActor121300ScreenWaveTasks[2] = {
+    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _screenWaveTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 gScreenWaveRamp = 256;
+/// Current sine-displacement strength, recomputed as frame * scale / span.
+///
+/// Strength 32 corresponds to one pixel at the sine peak. The seed tick resets
+/// the initial 256 to zero; the context must have a positive span while drawing.
+static s32 _gScreenWaveAmplitude = 256;
 
-u_long D_actor_121300_8013BBE8[250] = {
+/// Open-eye patch of the double's 8-bit body texture.
+///
+/// Packed as 250 32-bit transfer words (50 by 20 texels). Sequence 0 installs it; sequence 2
+/// restores it after the half-closed patch. Uploaded at base VRAM (384, 320),
+/// relocated by the double's 64-word texture-page offset.
+static u_long _gActor121300EyesOpenPixels[250] = {
 #include "assets/actor_121300_image_09DC8.inc"
 };
 
-u_long D_actor_121300_8013BFD0[250] = {
+/// Half-closed-eye patch between the double's open and closed eye states.
+///
+/// Packed as 250 32-bit transfer words (50 by 20 8-bit texels), uploaded at base VRAM
+/// (384, 320) on the first update of both closing and reopening sequences.
+/// The double's texture-page offset relocates X in 64-word columns.
+static u_long _gActor121300EyesHalfClosedPixels[250] = {
 #include "assets/actor_121300_image_0A1B0.inc"
 };
 
-u_long D_actor_121300_8013C3B8[250] = {
+/// Closed-eye patch completing the double's blink-closing sequence.
+///
+/// Packed as 250 32-bit transfer words (50 by 20 8-bit texels), uploaded at base VRAM
+/// (384, 320) on sequence 1's second update. The double's texture-page offset
+/// relocates X in 64-word columns.
+static u_long _gActor121300EyesClosedPixels[250] = {
 #include "assets/actor_121300_image_0A598.inc"
 };
 
-u_long D_actor_121300_8013C7A0[140] = {
+/// Closed-mouth patch installed by the double's initial texture sequence.
+///
+/// Packed as 140 32-bit transfer words (28 by 20 8-bit texels), uploaded at base VRAM
+/// (396, 416), with X relocated by the double's 64-word texture-page offset.
+static u_long _gActor121300MouthClosedPixels[140] = {
 #include "assets/actor_121300_image_0A980.inc"
 };
 
-u_long D_actor_121300_8013C9D0[140] = {
+/// Open-mouth patch selected by the double's texture sequences 4 and 5.
+///
+/// Packed as 140 32-bit transfer words (28 by 20 8-bit texels), uploaded at base VRAM
+/// (396, 416), with X relocated by the double's 64-word texture-page offset.
+static u_long _gActor121300MouthOpenPixels[140] = {
 #include "assets/actor_121300_image_0ABB0.inc"
 };
 
-s32 D_actor_121300_8013CC00 = 0;
+/// Scene update counter whose low two bits gate drift sprites every fourth update.
+///
+/// Starts at zero when the overlay loads and is not reset when the double starts.
+/// Stored and incremented as a signed word; only the periodic gate reads it.
+static s32 _gActor121300SceneFrame = 0;
 
-s16 D_actor_121300_8013CC04 = 100;
+/// Debris time scale in signed-halfword percent, initially 100 for full speed.
+///
+/// Scene steps select 30 or 10. Each gravity, translation and spin calculation
+/// reads it separately; assignments retain the signed low halfword without clamping.
+static s16 _gActor121300DebrisSpeedPercent = ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
 
-AnimationSet* D_actor_121300_8013CC08[4] = { NULL, &_gActor121300Animation089E8, &_gActor121300Animation08C8C, &_gActor121300Animation09D84 };
+/// Borrowed animation sets of the double: index 0 unused, active sets 1 through 3.
+///
+/// The animation context retains this table and its sets for the double's life.
+/// Set 1 holds its mark; sets 2 and 3 are selected by scene cues.
+static AnimationSet* _gActor121300AnimationSets[4] = { NULL, &_gActor121300Animation089E8, &_gActor121300Animation08C8C, &_gActor121300Animation09D84 };
 
-s16 D_actor_121300_8013CC18[4] = {
-    -1,
-    -1,
-    -1,
-    -1,
+/// Follow-up animation set for each double set once all driven tracks settle.
+///
+/// Indexed by active set 1..3; index 0 is unused. Negative entries mean no
+/// follow-up. All four entries disable it, so the selected set stays active.
+static s16 _gActor121300AnimationFollowupSets[4] = {
+    ACTOR_121300_ANIMATION_NO_FOLLOWUP,
+    ACTOR_121300_ANIMATION_NO_FOLLOWUP,
+    ACTOR_121300_ANIMATION_NO_FOLLOWUP,
+    ACTOR_121300_ANIMATION_NO_FOLLOWUP,
 };
 
-_Actor121300Lamp D_actor_121300_8013CC20[13] = {
+/// Twelve overhead lamps in shattering order, followed by a closing record.
+///
+/// Positions use world-coordinate units. Debris spawn arguments must index
+/// 0..11; record 12 only closes the sentinel walk. Shattering checks the separate,
+/// unadvanced lamp cursor, so its cue timing must stop further debris spawns.
+static _Actor121300Lamp _gActor121300Lamps[13] = {
     { 4950, -1750, 2570, 0 },
     { 5170, -1750, 2570, 0 },
     { 5340, -1750, 2700, 0 },
@@ -566,15 +588,32 @@ _Actor121300Lamp D_actor_121300_8013CC20[13] = {
     { 0, 0, 0, ACTOR_121300_LAMP_END },
 };
 
-TaskMessageEntry D_actor_121300_8013CC88[3] = {
+/// The double's placement, draw-mode and texture-sequence message handlers.
+///
+/// Dispatch only `ACTOR_MESSAGE_PLACE`, `ACTOR_MESSAGE_SET_MODEL_DRAW` or
+/// `ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE`: this exact three-entry table
+/// has no end marker. Placement borrows an `ActorTransform` during dispatch;
+/// draw modes use `ACTOR_MESSAGE_DRAW_*`. Texture sequences 0, 1, 2, 4 and 5
+/// upload patches; 3 and unsupported selectors retain an idle upload task.
+/// The texture handler returns the child task address as a message word; the
+/// scene's direct and CAP senders discard results. Keep work and code live.
+static TaskMessageEntry _gActor121300DoubleMessages[3] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetDrawMode },
     { ACTOR_121300_MESSAGE_SET_TEXTURE_SEQUENCE, _actor121300SetTextureSequence },
 };
 
-ActorTransform D_actor_121300_8013CCA0 = { { 5140, -140, 3010, 0 }, { 0, 0, 0, 0 } };
+/// The scene double's standing mark in its model root's parent frame.
+///
+/// Placement messages borrow this record synchronously; all three rotations
+/// are zero on the 4096-units-per-turn angle scale.
+static ActorTransform _gActor121300DoubleMark = { .pos = { 5140, -140, 3010, 0 }, .rot = { 0, 0, 0, 0 } };
 
-SVECTOR D_actor_121300_8013CCB8[18] = {
+/// Seventeen ground-level drift-sprite points, followed by an X-zero sentinel.
+///
+/// World coordinates outline the room at Y zero; the spawner walks to X zero
+/// and adds X jitter. The final zero record is not a spawn point.
+static SVECTOR _gActor121300GroundRingPoints[18] = {
     { 2500, 0, 4700, 0 },
     { 3000, 0, 4700, 0 },
     { 3500, 0, 4700, 0 },
@@ -595,7 +634,11 @@ SVECTOR D_actor_121300_8013CCB8[18] = {
     { 0, 0, 0, 0 },
 };
 
-SVECTOR D_actor_121300_8013CD48[16] = {
+/// Fifteen raised drift-sprite points, followed by an X-zero sentinel.
+///
+/// World Y is -200 along the far edge and -300 along the near edge. The
+/// spawner walks to X zero and adds X jitter; the closing record is not spawned.
+static SVECTOR _gActor121300RaisedRingPoints[16] = {
     { 2500, -200, 4700, 0 },
     { 3000, -200, 4700, 0 },
     { 3500, -200, 4700, 0 },
@@ -614,7 +657,11 @@ SVECTOR D_actor_121300_8013CD48[16] = {
     { 0, 0, 0, 0 },
 };
 
-SVECTOR D_actor_121300_8013CDC8[7] = {
+/// Six drift-sprite points at world Y -500, followed by a zero closing record.
+///
+/// The spawner uses only the active prefix, removing trailing points as the
+/// scene dwindles. It adds X jitter; the seventh stored record is never spawned.
+static SVECTOR _gActor121300UpperRowPoints[7] = {
     { 6500, -500, 2000, 0 },
     { 5500, -500, 2000, 0 },
     { 4500, -500, 2000, 0 },
@@ -624,19 +671,29 @@ SVECTOR D_actor_121300_8013CDC8[7] = {
     { 0, 0, 0, 0 },
 };
 
-EvsSceneKey D_actor_121300_8013CE00 = { 2, 13, 11 };
+/// Stream-selection key for the double's scene: group 2, stream 13, qualifier 11.
+///
+/// The event interpreter lends its address to CAP/CD scene selection. Keep
+/// this overlay loaded throughout playback; the absent second qualifier is zero.
+static EvsSceneKey _gActor121300SceneKey = { .group = 2, .streamId = 13, .subId = 11 };
 
-EvsCommand D_actor_121300_8013CE08[52] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
+/// CAP-cued lamp-shattering scene with Aya's model double over streamed images.
+///
+/// Borrows the initialized double, room resources and selected stream through
+/// completion. Starts CAP command 1, drives animation, blink textures, lamp
+/// debris, waves and fades, then ends with a three-update delay and opcode END.
+/// The live scene has an alternate skip program in `_gActor121300SceneSkipScript`.
+static EvsCommand _gActor121300SceneScript[52] = {
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = ACTOR_121300_SCENE_CAP_COMMAND }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_REPLACE_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_121300_8013CE00 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &_gActor121300SceneKey }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300StageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_121300_SCENE_PLAYBACK_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300QueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeIn }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeIn }, { .value = ACTOR_121300_SCENE_FADE_STEP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_PLAY_SET_2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -653,67 +710,93 @@ EvsCommand D_actor_121300_8013CE08[52] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_SHATTER_LAMPS_WAVE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = ACTOR_121300_SCENE_FADE_STEP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300SetDoubleDrawMode }, { .value = ACTOR_MESSAGE_DRAW_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_END_SHATTER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_HOLD_ON_MARK }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeIn }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeIn }, { .value = ACTOR_121300_SCENE_FADE_STEP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_SPRITES_DWINDLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_PLAY_SET_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = ACTOR_121300_SCENE_FADE_STEP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300SetDoubleDrawMode }, { .value = ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeIn }, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeIn }, { .value = ACTOR_121300_SCENE_FINAL_FADE_IN_STEP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_RAISED_RING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = ACTOR_121300_SCENE_FADE_STEP }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300RestoreStreamImageMode }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_121300_SCENE_FINISH_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_actor_121300_8013D2E8[7] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip program that fades and restores the double's scene before event cleanup.
+///
+/// Waits eight updates after starting the primary fade, cancels the scene's
+/// effects and stream with live double work, then waits five updates before
+/// releasing scene control. Opcode END closes this seven-command program.
+static EvsCommand _gActor121300SceneSkipScript[7] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = GPU_BLEND_AVERAGE }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_121300_SKIP_FADE_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300SkipScene }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = ACTOR_121300_SKIP_CANCEL_WAIT_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-TaskDesc D_actor_121300_8013D390[11] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300AyaDoubleSceneTask, { .model = &_gActor121300AyaBreaBody } },
-    { { { TASK_BODY_NONE, 192 } }, _actor121300FadeInTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor121300FadeOutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor121300SpawnLampDebrisTask, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model07E84 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model080F0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model0834C } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model08580 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model08768 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor121300BlackoutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, _actor121300UploadTexturesTask, { .value = 0 } },
+TaskDesc gActor121300SceneTasks[11] = {
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300AyaDoubleSceneTask, { .model = &_gActor121300AyaBreaBody } },
+    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300FadeInTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300FadeOutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300SpawnLampDebrisTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model07E84 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model080F0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model0834C } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model08580 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300LampDebrisTask, { .model = &_gActor121300Model08768 } },
+    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300BlackoutTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, ACTOR_121300_SCENE_TASK_PRIORITY } }, _actor121300UploadTexturesTask, { .value = 0 } },
 };
 
-ScreenWaveCtx* gScreenWaveCtx = NULL;
+/// Borrowed context of this renderer's active wave task.
+///
+/// Set on the seed tick and left unchanged at teardown. Only one wave may use
+/// this storage; the context must stay live through its final drawing tick.
+static ScreenWaveCtx* _gScreenWaveContext = NULL;
 
-Task* D_actor_121300_8013D418;
+/// Borrowed singleton task of Aya's scene double, published after work allocation.
+///
+/// Step, draw and skip callbacks require successful initialization and a live
+/// task/work block. Teardown does not clear this pointer; stop callbacks before
+/// task release or overlay unload. This pointer does not own the task.
+static Task* _gActor121300DoubleTask;
 
-u16 D_actor_121300_8013D41C;
+/// Lifetime gate for lamp debris and its spawners (0 release, nonzero enabled).
+///
+/// Starts at zero on overlay load. Shattering sets 1; normal completion or skip
+/// clears it, and children kill themselves on their next update. Stored as a u16.
+static u16 _gActor121300DebrisEnabled;
 
-ScreenWaveOscillator gScreenWaveColumns[13];
+/// Column sine oscillators for horizontal screen displacement.
+///
+/// The per-frame renderer uses entries 0..10; the prebuilt-grid renderer uses
+/// 0..8. Any remaining declared capacity is unaccessed; its role is unproven.
+static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
 
-ScreenWaveOscillator gScreenWaveRows[30];
+/// Thirty active row sine oscillators for vertical screen displacement.
+///
+/// Seeded at wave startup and advanced on drawing updates. Any declared
+/// entries beyond 29 are unaccessed; their role is unproven.
+static ScreenWaveOscillator _gScreenWaveRowWaves[30];
 
 /// Packed argument for the alternate upward drift sprite: size numerator 1024,
 /// two updates per cell, speed 32, movement kind 1, palette bank 0, alternate drawer.
@@ -822,8 +905,8 @@ static s32 _actor121300TickAnimations(Task* task)
     }
 checkSettled:
     if (allSettled) {
-        if (D_actor_121300_8013CC18[work->animSet] >= 0) {
-            nextAnimSet        = D_actor_121300_8013CC18[work->animSet];
+        if (_gActor121300AnimationFollowupSets[work->animSet] >= 0) {
+            nextAnimSet        = _gActor121300AnimationFollowupSets[work->animSet];
             blendWork          = task->work;
             blendWork->animSet = nextAnimSet;
             goto blendSlots;
@@ -872,11 +955,10 @@ static inline s16 _actor121300RollDebrisSpin(void)
 static void _actor121300LampDebrisTask(Task* task)
 {
     enum {
-        ACTOR_121300_DEBRIS_INITIALIZE         = 0,
-        ACTOR_121300_DEBRIS_DELAY              = 1,
-        ACTOR_121300_DEBRIS_FALL               = 2,
-        ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT = 100,
-        ACTOR_121300_DEBRIS_DESPAWN_Y          = -499,
+        ACTOR_121300_DEBRIS_INITIALIZE = 0,
+        ACTOR_121300_DEBRIS_DELAY      = 1,
+        ACTOR_121300_DEBRIS_FALL       = 2,
+        ACTOR_121300_DEBRIS_DESPAWN_Y  = -499,
     };
     _Actor121300DebrisWork* work;
     TmdObject*              model;
@@ -889,7 +971,7 @@ static void _actor121300LampDebrisTask(Task* task)
     work      = task->work;
     model     = task->extra.tmd;
     rootCoord = model->coords;
-    if (D_actor_121300_8013D41C == 0) {
+    if (_gActor121300DebrisEnabled == 0) {
         taskKill(task);
         return;
     }
@@ -904,9 +986,9 @@ static void _actor121300LampDebrisTask(Task* task)
             work = allocatedWork;
             memFillBytes(work, 0, sizeof(*work));
             rootCoord->parent     = &gGfxViewCoord;
-            rootCoord->coord.t[0] = D_actor_121300_8013CC20[task->spawnArg1.value].x;
-            rootCoord->coord.t[1] = D_actor_121300_8013CC20[task->spawnArg1.value].y;
-            rootCoord->coord.t[2] = D_actor_121300_8013CC20[task->spawnArg1.value].z;
+            rootCoord->coord.t[0] = _gActor121300Lamps[task->spawnArg1.value].x;
+            rootCoord->coord.t[1] = _gActor121300Lamps[task->spawnArg1.value].y;
+            rootCoord->coord.t[2] = _gActor121300Lamps[task->spawnArg1.value].z;
             switch (task->spawnArg2.unsignedValue) {
                 case 0:
                 case 14:
@@ -1004,13 +1086,13 @@ static void _actor121300LampDebrisTask(Task* task)
             break;
         case ACTOR_121300_DEBRIS_FALL:
             // Apply the scene speed to gravity, translation and spin independently.
-            work->velY            += D_actor_121300_8013CC04 * 3 / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
-            rootCoord->coord.t[0] += work->velX * D_actor_121300_8013CC04 / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
-            rootCoord->coord.t[1] += work->velY * D_actor_121300_8013CC04 / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
-            rootCoord->coord.t[2] += work->velZ * D_actor_121300_8013CC04 / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
-            work->rotX            += work->spinX * D_actor_121300_8013CC04 / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
-            work->rotY            += work->spinY * D_actor_121300_8013CC04 / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
-            work->rotZ            += work->spinZ * D_actor_121300_8013CC04 / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
+            work->velY            += _gActor121300DebrisSpeedPercent * 3 / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
+            rootCoord->coord.t[0] += work->velX * _gActor121300DebrisSpeedPercent / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
+            rootCoord->coord.t[1] += work->velY * _gActor121300DebrisSpeedPercent / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
+            rootCoord->coord.t[2] += work->velZ * _gActor121300DebrisSpeedPercent / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
+            work->rotX            += work->spinX * _gActor121300DebrisSpeedPercent / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
+            work->rotY            += work->spinY * _gActor121300DebrisSpeedPercent / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
+            work->rotZ            += work->spinZ * _gActor121300DebrisSpeedPercent / ACTOR_121300_DEBRIS_FULL_SPEED_PERCENT;
             gfxRotMatrixY(&rootCoord->coord, work->rotY, GRAPHICS_ROTATION_REPLACE);
             gfxRotMatrixX(&rootCoord->coord, work->rotX, GRAPHICS_ROTATION_COMPOSE);
             gfxRotMatrixZ(&rootCoord->coord, work->rotZ, GRAPHICS_ROTATION_COMPOSE);
@@ -1058,21 +1140,21 @@ static inline void _actor121300ScatterLampDebris(Task* task)
         ACTOR_121300_DEBRIS_PLACEMENT_CENTER_LAST            = 14,
     };
 
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIRST, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_CENTER_FIRST);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_SECOND, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_PLUS_X_PLUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_THIRD, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_MINUS_X_PLUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FOURTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_PLUS_X_MINUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIFTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_MINUS_X_MINUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIRST, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_PLUS_X_PLUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_SECOND, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_MINUS_X_PLUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_THIRD, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_PLUS_X_MINUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FOURTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_MINUS_X_MINUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIFTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_CENTER_MIDDLE);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIRST, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_PLUS_X_PLUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_SECOND, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_MINUS_X_PLUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_THIRD, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_PLUS_X_MINUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FOURTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_MINUS_X_MINUS_Y);
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_DEBRIS_MODEL_FIFTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_CENTER_LAST);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_FIRST, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_CENTER_FIRST);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_SECOND, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_PLUS_X_PLUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_THIRD, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_MINUS_X_PLUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_FOURTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_PLUS_X_MINUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_FIFTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_INNER_MINUS_X_MINUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_FIRST, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_PLUS_X_PLUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_SECOND, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_MINUS_X_PLUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_THIRD, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_PLUS_X_MINUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_FOURTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_MIDDLE_MINUS_X_MINUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_FIFTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_CENTER_MIDDLE);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_FIRST, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_PLUS_X_PLUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_SECOND, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_MINUS_X_PLUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_THIRD, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_PLUS_X_MINUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_FOURTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_OUTER_MINUS_X_MINUS_Y);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_DEBRIS_MODEL_FIFTH, task->spawnArg1, ACTOR_121300_DEBRIS_PLACEMENT_CENTER_LAST);
 }
 
 /// Spawns fifteen model fragments from one shattered lamp, then ends itself.
@@ -1092,7 +1174,7 @@ static void _actor121300SpawnLampDebrisTask(Task* task)
     };
     void* reservedWork;
 
-    if (D_actor_121300_8013D41C == 0) {
+    if (_gActor121300DebrisEnabled == 0) {
         taskKill(task);
         return;
     }
@@ -1175,18 +1257,18 @@ static void _actor121300UploadTexturesTask(Task* task)
     // Relocate each image by the placement's 64-word texture-page offset.
     switch (task->spawnArg1.value) {
         case ACTOR_121300_TEXTURE_INITIAL:
-            _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, D_actor_121300_8013BBE8);
-            _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_SMALL_X_WORDS, ACTOR_121300_TEXTURE_SMALL_Y, ACTOR_121300_TEXTURE_SMALL_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, D_actor_121300_8013C7A0);
+            _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, _gActor121300EyesOpenPixels);
+            _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_SMALL_X_WORDS, ACTOR_121300_TEXTURE_SMALL_Y, ACTOR_121300_TEXTURE_SMALL_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, _gActor121300MouthClosedPixels);
             taskKill(task);
             break;
         case ACTOR_121300_TEXTURE_REPLACE:
             switch (task->state) {
                 case ACTOR_121300_TEXTURE_FIRST_UPDATE:
-                    _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, D_actor_121300_8013BFD0);
+                    _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, _gActor121300EyesHalfClosedPixels);
                     task->state++;
                     break;
                 case ACTOR_121300_TEXTURE_SECOND_UPDATE:
-                    _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, D_actor_121300_8013C3B8);
+                    _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, _gActor121300EyesClosedPixels);
                     taskKill(task);
                     break;
             }
@@ -1194,11 +1276,11 @@ static void _actor121300UploadTexturesTask(Task* task)
         case ACTOR_121300_TEXTURE_RESTORE:
             switch (task->state) {
                 case ACTOR_121300_TEXTURE_FIRST_UPDATE:
-                    _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, D_actor_121300_8013BFD0);
+                    _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, _gActor121300EyesHalfClosedPixels);
                     task->state++;
                     break;
                 case ACTOR_121300_TEXTURE_SECOND_UPDATE:
-                    _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, D_actor_121300_8013BBE8);
+                    _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_LARGE_X_WORDS, ACTOR_121300_TEXTURE_LARGE_Y, ACTOR_121300_TEXTURE_LARGE_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, _gActor121300EyesOpenPixels);
                     taskKill(task);
                     break;
             }
@@ -1207,7 +1289,7 @@ static void _actor121300UploadTexturesTask(Task* task)
             break;
         case ACTOR_121300_TEXTURE_REPLACE_SMALL_4:
         case ACTOR_121300_TEXTURE_REPLACE_SMALL_5:
-            _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_SMALL_X_WORDS, ACTOR_121300_TEXTURE_SMALL_Y, ACTOR_121300_TEXTURE_SMALL_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, D_actor_121300_8013C9D0);
+            _actor121300UploadTexture(task, ACTOR_121300_TEXTURE_SMALL_X_WORDS, ACTOR_121300_TEXTURE_SMALL_Y, ACTOR_121300_TEXTURE_SMALL_WIDTH_WORDS, ACTOR_121300_TEXTURE_HEIGHT, _gActor121300MouthOpenPixels);
             taskKill(task);
             break;
     }
@@ -1229,11 +1311,11 @@ static void _actor121300SpawnRingSprites(Task* unusedTask, s16 raised)
     u32      randomSeed;
     s32      jitteredX;
 
-    if (!(D_actor_121300_8013CC00 & ACTOR_121300_SPRITE_FRAME_MASK)) {
+    if (!(_gActor121300SceneFrame & ACTOR_121300_SPRITE_FRAME_MASK)) {
         if (raised == 0) {
-            point = D_actor_121300_8013CCB8;
+            point = _gActor121300GroundRingPoints;
         } else {
-            point = D_actor_121300_8013CD48;
+            point = _gActor121300RaisedRingPoints;
         }
         pointX = point->vx;
         if (point->vx != ACTOR_121300_RING_END_X) {
@@ -1280,10 +1362,10 @@ static void _actor121300SpawnUpperRowSprites(Task* task, s16 dwindle)
             work->spritePointsDropped++;
         }
     }
-    if (!(D_actor_121300_8013CC00 & ACTOR_121300_SPRITE_FRAME_MASK)) {
-        for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_actor_121300_8013CDC8) - 1 - work->spritePointsDropped; pointIndex++) {
+    if (!(_gActor121300SceneFrame & ACTOR_121300_SPRITE_FRAME_MASK)) {
+        for (pointIndex = 0; pointIndex < ARRAY_SIZE(_gActor121300UpperRowPoints) - 1 - work->spritePointsDropped; pointIndex++) {
             spriteArg       = ACTOR_121300_DRIFT_SPRITE_ARGUMENT;
-            points          = D_actor_121300_8013CDC8;
+            points          = _gActor121300UpperRowPoints;
             randomSeed      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
             gRandomLcgState = randomSeed;
             jitteredX       = points[pointIndex].vx + (((randomSeed >> 16) & 1) ? ((gRandomLcgState = (randomSeed * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT) >> 16) & 7
@@ -1316,13 +1398,13 @@ static void _actor121300ShatterLamps(Task* task)
 
     switch (work->shatterState) {
         case ACTOR_121300_SHATTER_START:
-            D_actor_121300_8013D41C = 1;
-            work->shatterFrames     = 0;
-            work->lampsShattered    = 0;
-            work->shatterState     += 1;
+            _gActor121300DebrisEnabled = 1;
+            work->shatterFrames        = 0;
+            work->lampsShattered       = 0;
+            work->shatterState        += 1;
             break;
         case ACTOR_121300_SHATTER_RUNNING:
-            if (D_actor_121300_8013CC20[work->lampCursor].endMarker != ACTOR_121300_LAMP_END) {
+            if (_gActor121300Lamps[work->lampCursor].endMarker != ACTOR_121300_LAMP_END) {
                 if (++work->shatterFrames >= ACTOR_121300_SHATTER_INTERVAL) {
                     // Hide the lamp's sprite batch in the room's view; the seventh lamp has none.
                     if (work->lampsShattered < ACTOR_121300_SPRITELESS_LAMP_INDEX) {
@@ -1331,7 +1413,7 @@ static void _actor121300ShatterLamps(Task* task)
                         dryfieldR08SetLampSpritesHidden(work->lampsShattered - 1, true);
                     }
                     dryfieldR08SetShatteredLampCount(work->lampsShattered + 1);
-                    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_LAMP_DEBRIS_SPAWNER_INDEX, (s32)work->lampsShattered, 0);
+                    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_LAMP_DEBRIS_SPAWNER_INDEX, (s32)work->lampsShattered, 0);
                     work->shatterFrames = 0;
                     work->lampsShattered++;
                 }
@@ -1369,7 +1451,7 @@ static inline void _actor121300BlendAnimationSet(Task* task, s32 animSet)
 /// request 10 or 30. Translation, spin and gravity use this scale on each update.
 static inline void _actor121300SetDebrisSpeed(s32 speedPercent)
 {
-    D_actor_121300_8013CC04 = speedPercent;
+    _gActor121300DebrisSpeedPercent = speedPercent;
 }
 
 /// Restarts the double's eighteen non-root tracks at its mark animation.
@@ -1420,7 +1502,7 @@ static void _actor121300RunSceneStep(Task* task)
     switch (work->step) {
         case ACTOR_121300_STEP_REPLACE_PLAYER:
             taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_121300_8013CCA0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor121300DoubleMark, 0);
             gGameSession->viewDirty = 1;
             _actor121300RestartMarkTracks(task);
             work->step = ACTOR_121300_STEP_NONE;
@@ -1434,7 +1516,7 @@ static void _actor121300RunSceneStep(Task* task)
                 _actor121300SetDebrisSpeed(ACTOR_121300_DEBRIS_WAVE_SPEED_PERCENT);
                 work->wave.span  = ACTOR_121300_LONG_WAVE_UPDATES;
                 work->wave.scale = ACTOR_121300_WAVE_SCALE;
-                work->waveTask   = taskSpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
+                work->waveTask   = taskSpawnFromTable(_gActor121300ScreenWaveTasks, 0, 0, &work->wave);
                 work->stepState++;
             }
             // The wave setup shares the ordinary shatter update on this tick.
@@ -1447,14 +1529,14 @@ static void _actor121300RunSceneStep(Task* task)
             _actor121300ShatterLamps(task);
             break;
         case ACTOR_121300_STEP_END_SHATTER:
-            work->wave.state        = SCREEN_WAVE_RAMP_FINISHED;
-            cdQueue->imageMdecMode  = MDEC_IMAGE_MODE_RGB16;
-            D_actor_121300_8013D41C = 0;
-            work->step              = ACTOR_121300_STEP_NONE;
+            work->wave.state           = SCREEN_WAVE_RAMP_FINISHED;
+            cdQueue->imageMdecMode     = MDEC_IMAGE_MODE_RGB16;
+            _gActor121300DebrisEnabled = 0;
+            work->step                 = ACTOR_121300_STEP_NONE;
             break;
         case ACTOR_121300_STEP_HOLD_ON_MARK:
             if (work->stepState == ACTOR_121300_STEP_FIRST_TICK) {
-                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_121300_8013CCA0, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &_gActor121300DoubleMark, 0);
                 _actor121300RestartMarkTracks(task);
                 dryfieldR08SelectLightingBank(1);
             }
@@ -1477,7 +1559,7 @@ static void _actor121300RunSceneStep(Task* task)
                 case ACTOR_121300_PULSE_RISING:
                     work->wave.span   = ACTOR_121300_PULSE_UPDATES;
                     work->wave.scale  = ACTOR_121300_WAVE_SCALE;
-                    work->waveTask    = taskSpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
+                    work->waveTask    = taskSpawnFromTable(_gActor121300ScreenWaveTasks, 0, 0, &work->wave);
                     work->pulseFrames = 0;
                     work->stepState++;
                     break;
@@ -1538,7 +1620,7 @@ static void _actor121300InitBody(Task* task)
     work = allocatedWork;
     memFillBytes(work, 0, sizeof(*work));
     work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    D_actor_121300_8013D418 = task;
+    _gActor121300DoubleTask = task;
     coord->parent           = &gGfxViewCoord;
     tmd->lightMtx           = &work->lightMtx;
     tmd->flags              = 0;
@@ -1555,7 +1637,7 @@ static void _actor121300InitBody(Task* task)
     tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
     // Keep the image-column offset for later streamed texture uploads.
     work->texturePageOffset = place->texturePageOffset;
-    animationInitContext(&work->rig.anim, D_actor_121300_8013CC08, tmd, work->rig.poses,
+    animationInitContext(&work->rig.anim, _gActor121300AnimationSets, tmd, work->rig.poses,
                          work->rig.slots);
     slotsWork          = task->work;
     slotsWork->animSet = ACTOR_121300_INITIAL_CLIP;
@@ -1565,7 +1647,7 @@ static void _actor121300InitBody(Task* task)
         animationResetSlot(&slotsWork->rig.anim, (u16)slotIndex, ACTOR_121300_INITIAL_CLIP);
         slotIndex++;
     } while ((u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots));
-    task->msgTable = D_actor_121300_8013CC88;
+    task->msgTable = _gActor121300DoubleMessages;
 }
 
 /// Runs Aya's double, the lamp-shattering scene and the final night-room reload.
@@ -1624,12 +1706,12 @@ static void _actor121300AyaDoubleSceneTask(Task* task)
             return;
         }
         case ACTOR_121300_SCENE_START_SCRIPT:
-            evsStartScriptWithSkip(D_actor_121300_8013CE08, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_121300_8013D2E8);
+            evsStartScriptWithSkip(_gActor121300SceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gActor121300SceneSkipScript);
             task->state += 1;
             break;
         case ACTOR_121300_SCENE_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
-                taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_SCENE_END_TASK, 0, 0);
+                taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_SCENE_END_TASK, 0, 0);
                 task->state += 1;
             }
             break;
@@ -1675,7 +1757,7 @@ static void _actor121300AyaDoubleSceneTask(Task* task)
 
         ACTOR_121300_SAMPLE_DOUBLE_LIGHTING(task, model, samplePosition);
     }
-    D_actor_121300_8013CC00 += 1;
+    _gActor121300SceneFrame += 1;
 }
 #undef ACTOR_121300_SAMPLE_DOUBLE_LIGHTING
 
@@ -1753,7 +1835,7 @@ static s32 _actor121300SetTextureSequence(Task* task, s32 unusedMessageId, s32 t
 {
     enum { ACTOR_121300_TEXTURE_UPLOAD_TASK_INDEX = 10 };
 
-    return (s32)taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_TEXTURE_UPLOAD_TASK_INDEX, textureSequence, task);
+    return (s32)taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_TEXTURE_UPLOAD_TASK_INDEX, textureSequence, task);
 }
 
 /// Selects the double's scene step and resets its progress for the next update.
@@ -1762,7 +1844,7 @@ static s32 _actor121300SetTextureSequence(Task* task, s32 unusedMessageId, s32 t
 /// `ACTOR_121300_STEP_*` value, stored as its unsigned low halfword.
 static void _actor121300SelectSceneStep(s16 step)
 {
-    _Actor121300AyaBreaWork* work = D_actor_121300_8013D418->work;
+    _Actor121300AyaBreaWork* work = _gActor121300DoubleTask->work;
 
     work->step      = step;
     work->stepState = 0;
@@ -1783,11 +1865,11 @@ static void _actor121300RestoreStreamImageMode(void)
 /// releases no work or model storage.
 static void _actor121300SkipScene(void)
 {
-    _Actor121300AyaBreaWork* work = D_actor_121300_8013D418->work;
+    _Actor121300AyaBreaWork* work = _gActor121300DoubleTask->work;
 
-    D_actor_121300_8013D41C   = 0;
-    work->wave.state          = SCREEN_WAVE_RAMP_FINISHED;
-    gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
+    _gActor121300DebrisEnabled = 0;
+    work->wave.state           = SCREEN_WAVE_RAMP_FINISHED;
+    gCdCmdQueue.imageMdecMode  = MDEC_IMAGE_MODE_RGB16;
     taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     cdCmdCancelScene();
 }
@@ -1802,7 +1884,7 @@ static void _actor121300StartFadeIn(s32 intensityStep)
 {
     enum { ACTOR_121300_FADE_IN_TASK_INDEX = 1 };
 
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_FADE_IN_TASK_INDEX, intensityStep, 0);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_FADE_IN_TASK_INDEX, intensityStep, 0);
 }
 
 /// Starts a fade that darkens the scene and disables display output.
@@ -1815,7 +1897,7 @@ static void _actor121300StartFadeOut(s32 intensityStep)
 {
     enum { ACTOR_121300_FADE_OUT_TASK_INDEX = 2 };
 
-    taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_FADE_OUT_TASK_INDEX, intensityStep, 0);
+    taskSpawnFromTable(gActor121300SceneTasks, ACTOR_121300_FADE_OUT_TASK_INDEX, intensityStep, 0);
 }
 
 /// Sets the double model's draw mode from an event-script callback.
@@ -1825,7 +1907,7 @@ static void _actor121300StartFadeOut(s32 intensityStep)
 /// intact. The script uses SHOW and HIDE_SKIP_AUTO_BUFFER.
 static void _actor121300SetDoubleDrawMode(s32 drawMode)
 {
-    taskMessageDispatch(D_actor_121300_8013D418, ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
+    taskMessageDispatch(_gActor121300DoubleTask, ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
 /// Stages the selected scene's deferred audio-start request at the script cue.

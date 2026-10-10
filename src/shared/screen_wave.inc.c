@@ -57,24 +57,24 @@ static void _screenWaveTask(Task* task)
         case SCREEN_WAVE_TASK_SEED:
             // Seed the ramp and independent waves; the first tick emits no quads.
             for (waveIndex = 0; waveIndex < SCREEN_WAVE_QUAD_COLUMNS + 1; waveIndex++) {
-                gScreenWaveColumns[waveIndex].phase  = 0;
-                gScreenWaveColumns[waveIndex].offset = (u32)rand() >> 3;
-                gScreenWaveColumns[waveIndex].speed  = (rand() * 100 + 20) >> 15;
+                SCREEN_WAVE_COLUMN_OSCILLATORS[waveIndex].phase  = 0;
+                SCREEN_WAVE_COLUMN_OSCILLATORS[waveIndex].offset = (u32)rand() >> 3;
+                SCREEN_WAVE_COLUMN_OSCILLATORS[waveIndex].speed  = (rand() * 100 + 20) >> 15;
             }
             for (waveIndex = 0; waveIndex < SCREEN_WAVE_ROW_WAVES; waveIndex++) {
-                gScreenWaveRows[waveIndex].phase  = 0;
-                gScreenWaveRows[waveIndex].offset = (u32)rand() >> 3;
-                gScreenWaveRows[waveIndex].speed  = (rand() * 100 + 20) >> 15;
+                SCREEN_WAVE_ROW_OSCILLATORS[waveIndex].phase  = 0;
+                SCREEN_WAVE_ROW_OSCILLATORS[waveIndex].offset = (u32)rand() >> 3;
+                SCREEN_WAVE_ROW_OSCILLATORS[waveIndex].speed  = (rand() * 100 + 20) >> 15;
             }
-            gScreenWaveRamp       = 0;
-            gScreenWaveCtx        = task->spawnArg2.pointer;
-            gScreenWaveCtx->frame = 0;
-            gScreenWaveCtx->state = SCREEN_WAVE_RAMP_RISING;
+            _gScreenWaveAmplitude             = 0;
+            SCREEN_WAVE_ACTIVE_CONTEXT        = task->spawnArg2.pointer;
+            SCREEN_WAVE_ACTIVE_CONTEXT->frame = 0;
+            SCREEN_WAVE_ACTIVE_CONTEXT->state = SCREEN_WAVE_RAMP_RISING;
             displaySetShakeY(DISPLAY_SHAKE_MIN);
             task->state++;
             break;
         case SCREEN_WAVE_TASK_DRAW:
-            rampContext = gScreenWaveCtx;
+            rampContext = SCREEN_WAVE_ACTIVE_CONTEXT;
             switch (rampContext->state) {
                 case SCREEN_WAVE_RAMP_RISING:
                     if (rampContext->frame < rampContext->span) {
@@ -93,12 +93,12 @@ static void _screenWaveTask(Task* task)
                     displaySetShakeY(0);
                     break;
             }
-            gScreenWaveRamp = gScreenWaveCtx->frame * gScreenWaveCtx->scale / gScreenWaveCtx->span;
+            _gScreenWaveAmplitude = SCREEN_WAVE_ACTIVE_CONTEXT->frame * SCREEN_WAVE_ACTIVE_CONTEXT->scale / SCREEN_WAVE_ACTIVE_CONTEXT->span;
             for (waveIndex = 0; waveIndex < SCREEN_WAVE_QUAD_COLUMNS + 1; waveIndex++) {
-                gScreenWaveColumns[waveIndex].phase += gScreenWaveColumns[waveIndex].speed;
+                SCREEN_WAVE_COLUMN_OSCILLATORS[waveIndex].phase += SCREEN_WAVE_COLUMN_OSCILLATORS[waveIndex].speed;
             }
             for (waveIndex = 0; waveIndex < SCREEN_WAVE_ROW_WAVES; waveIndex++) {
-                gScreenWaveRows[waveIndex].phase += gScreenWaveRows[waveIndex].speed;
+                SCREEN_WAVE_ROW_OSCILLATORS[waveIndex].phase += SCREEN_WAVE_ROW_OSCILLATORS[waveIndex].speed;
             }
             // Capture the two 16-bit texture pages of the current draw buffer.
             leftTexturePage  = getTPage(SCREEN_WAVE_TEXTURE_16_BIT, GPU_BLEND_AVERAGE, 0, gDisplayState.drawBuffer << SCREEN_WAVE_FRAMEBUFFER_Y_SHIFT);
@@ -108,13 +108,13 @@ static void _screenWaveTask(Task* task)
                     quad           = gGpuPrimCursor;
                     gGpuPrimCursor = quad + 1;
                     setPolyFT4(quad);
-                    if (gScreenWaveCtx->modulateTexture == SCREEN_WAVE_TEXTURE_RAW) {
+                    if (SCREEN_WAVE_ACTIVE_CONTEXT->modulateTexture == SCREEN_WAVE_TEXTURE_RAW) {
                         setShadeTex(quad, 1);
                     } else {
                         setShadeTex(quad, 0);
-                        quad->r0 = gScreenWaveCtx->r;
-                        quad->g0 = gScreenWaveCtx->g;
-                        quad->b0 = gScreenWaveCtx->b;
+                        quad->r0 = SCREEN_WAVE_ACTIVE_CONTEXT->r;
+                        quad->g0 = SCREEN_WAVE_ACTIVE_CONTEXT->g;
+                        quad->b0 = SCREEN_WAVE_ACTIVE_CONTEXT->b;
                     }
                     leftU  = quadColumn * SCREEN_WAVE_CELL_WIDTH;
                     rightU = (quadColumn + 1) * SCREEN_WAVE_CELL_WIDTH;
@@ -130,13 +130,13 @@ static void _screenWaveTask(Task* task)
                     if (quadRow != SCREEN_WAVE_PINNED_ROW) {
                         bottomV  = (quadRow + 1) * SCREEN_WAVE_CELL_HEIGHT + gDisplayState.drawBuffer * SCREEN_WAVE_BUFFER_V_OFFSET;
                         topV     = quadRow * SCREEN_WAVE_CELL_HEIGHT + gDisplayState.drawBuffer * SCREEN_WAVE_BUFFER_V_OFFSET;
-                        waveX0   = gScreenWaveRamp * (rsin((quadRow << SCREEN_WAVE_ROW_PHASE_SHIFT) + gScreenWaveColumns[quadColumn].phase + gScreenWaveColumns[quadColumn].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        waveX0   = _gScreenWaveAmplitude * (rsin((quadRow << SCREEN_WAVE_ROW_PHASE_SHIFT) + SCREEN_WAVE_COLUMN_OSCILLATORS[quadColumn].phase + SCREEN_WAVE_COLUMN_OSCILLATORS[quadColumn].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
                         quad->x0 = quadColumn * SCREEN_WAVE_CELL_WIDTH + (s16)((waveX0 >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_LEFT_X);
-                        waveY0   = gScreenWaveRamp * (rsin((quadColumn << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + gScreenWaveRows[quadRow].phase + gScreenWaveRows[quadRow].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        waveY0   = _gScreenWaveAmplitude * (rsin((quadColumn << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + SCREEN_WAVE_ROW_OSCILLATORS[quadRow].phase + SCREEN_WAVE_ROW_OSCILLATORS[quadRow].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
                         quad->y0 = quadRow * SCREEN_WAVE_CELL_HEIGHT + (s16)((ABS(waveY0) >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_ROW_ZERO_Y);
-                        waveX1   = gScreenWaveRamp * (rsin((quadRow << SCREEN_WAVE_ROW_PHASE_SHIFT) + gScreenWaveColumns[quadColumn + 1].phase + gScreenWaveColumns[quadColumn + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        waveX1   = _gScreenWaveAmplitude * (rsin((quadRow << SCREEN_WAVE_ROW_PHASE_SHIFT) + SCREEN_WAVE_COLUMN_OSCILLATORS[quadColumn + 1].phase + SCREEN_WAVE_COLUMN_OSCILLATORS[quadColumn + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
                         quad->x1 = (quadColumn + 1) * SCREEN_WAVE_CELL_WIDTH + (s16)((waveX1 >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_LEFT_X);
-                        waveY1   = gScreenWaveRamp * (rsin(((quadColumn + 1) << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + gScreenWaveRows[quadRow].phase + gScreenWaveRows[quadRow].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                        waveY1   = _gScreenWaveAmplitude * (rsin(((quadColumn + 1) << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + SCREEN_WAVE_ROW_OSCILLATORS[quadRow].phase + SCREEN_WAVE_ROW_OSCILLATORS[quadRow].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
                         quad->y1 = quadRow * SCREEN_WAVE_CELL_HEIGHT + (s16)((ABS(waveY1) >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_ROW_ZERO_Y);
                     } else {
                         // Mirror the first eight texture rows into the pinned top strip.
@@ -148,13 +148,13 @@ static void _screenWaveTask(Task* task)
                         topV          = bufferVOffset + SCREEN_WAVE_CELL_HEIGHT;
                         bottomV       = bufferVOffset;
                     }
-                    waveX2   = gScreenWaveRamp * (rsin(((quadRow + 1) << SCREEN_WAVE_ROW_PHASE_SHIFT) + gScreenWaveColumns[quadColumn].phase + gScreenWaveColumns[quadColumn].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                    waveX2   = _gScreenWaveAmplitude * (rsin(((quadRow + 1) << SCREEN_WAVE_ROW_PHASE_SHIFT) + SCREEN_WAVE_COLUMN_OSCILLATORS[quadColumn].phase + SCREEN_WAVE_COLUMN_OSCILLATORS[quadColumn].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
                     quad->x2 = quadColumn * SCREEN_WAVE_CELL_WIDTH + (s16)((waveX2 >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_LEFT_X);
-                    waveY2   = gScreenWaveRamp * (rsin((quadColumn << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + gScreenWaveRows[quadRow + 1].phase + gScreenWaveRows[quadRow + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                    waveY2   = _gScreenWaveAmplitude * (rsin((quadColumn << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + SCREEN_WAVE_ROW_OSCILLATORS[quadRow + 1].phase + SCREEN_WAVE_ROW_OSCILLATORS[quadRow + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
                     quad->y2 = (quadRow + 1) * SCREEN_WAVE_CELL_HEIGHT + (s16)((ABS(waveY2) >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_ROW_ZERO_Y);
-                    waveX3   = gScreenWaveRamp * (rsin(((quadRow + 1) << SCREEN_WAVE_ROW_PHASE_SHIFT) + gScreenWaveColumns[quadColumn + 1].phase + gScreenWaveColumns[quadColumn + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                    waveX3   = _gScreenWaveAmplitude * (rsin(((quadRow + 1) << SCREEN_WAVE_ROW_PHASE_SHIFT) + SCREEN_WAVE_COLUMN_OSCILLATORS[quadColumn + 1].phase + SCREEN_WAVE_COLUMN_OSCILLATORS[quadColumn + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
                     quad->x3 = (quadColumn + 1) * SCREEN_WAVE_CELL_WIDTH + (s16)((waveX3 >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_LEFT_X);
-                    waveY3   = gScreenWaveRamp * (rsin(((quadColumn + 1) << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + gScreenWaveRows[quadRow + 1].phase + gScreenWaveRows[quadRow + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
+                    waveY3   = _gScreenWaveAmplitude * (rsin(((quadColumn + 1) << SCREEN_WAVE_COLUMN_PHASE_SHIFT) + SCREEN_WAVE_ROW_OSCILLATORS[quadRow + 1].phase + SCREEN_WAVE_ROW_OSCILLATORS[quadRow + 1].offset) << SCREEN_WAVE_SINE_GAIN_SHIFT);
                     quad->y3 = (quadRow + 1) * SCREEN_WAVE_CELL_HEIGHT + (s16)((ABS(waveY3) >> SCREEN_WAVE_DISPLACEMENT_SHIFT) + SCREEN_WAVE_ROW_ZERO_Y);
                     setUV4(quad, leftU, topV, rightU, topV, leftU, bottomV, rightU, bottomV);
                     addPrim(&gGpuCurrentOt[SCREEN_WAVE_QUAD_OT_INDEX], quad);

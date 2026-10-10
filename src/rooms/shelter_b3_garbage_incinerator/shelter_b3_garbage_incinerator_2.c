@@ -59,6 +59,10 @@
 #include "main/wipsys_types.h"
 
 #include "overlay.h"
+// The wave task and its persistent storage occupy separate translation units.
+#define SCREEN_WAVE_ACTIVE_CONTEXT     gScreenWaveContext
+#define SCREEN_WAVE_COLUMN_OSCILLATORS gScreenWaveColumnWaves
+#define SCREEN_WAVE_ROW_OSCILLATORS    gScreenWaveRowWaves
 #include "../../shared/screen_wave.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/incinerator_blaze.h"
@@ -133,7 +137,7 @@ extern ActorTransform   D_shelter_b3_garbage_incinerator_80185B88;
 
 /// Main-executable global with no module header yet: the remaining-enemy count.
 
-extern s32 gScreenWaveRamp;
+static s32 _gScreenWaveAmplitude;
 
 /* Shared in source with actors 342100 (the encounter's fade and spawn) and
    215100 (the caption drawing): their data here. */
@@ -302,7 +306,11 @@ TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 gScreenWaveRamp = 256;
+/// Current sine-displacement strength, recomputed as frame * scale / span.
+///
+/// Strength 32 corresponds to one pixel at the sine peak. The seed tick resets
+/// the initial 256 to zero; the context must have a positive span while drawing.
+static s32 _gScreenWaveAmplitude = 256;
 
 static AnimationPackedPose _gShelterB3GarbageIncineratorAnimation088E4Bank1[6] = {
 #include "assets/shelter_b3_garbage_incinerator_animation_088E4_bank1.inc"

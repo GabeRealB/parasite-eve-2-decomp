@@ -473,7 +473,7 @@ PY
             # it does not re-declare what the context already had - but the
             # context is the host .c, which often declares them file-locally
             # rather than in a header. The seed then names a symbol nothing
-            # declares ("`D_actor_121300_8013D418' undeclared"). Carry across
+            # declares ("`_gActor121300DoubleTask' undeclared"). Carry across
             # exactly the host declarations the seed actually references.
             if [[ -n "$C_FILE" && -f "$C_FILE" ]]; then
                 M2C_BODY="$M2C_OUTPUT" python3 - "$C_FILE" <<'PYEOF' 2>/dev/null || true

@@ -12,10 +12,10 @@ gActor521100Animation07BA4 = 0x801399C4; // absolute:True owner=actor_521100
 gActor521100Animation0820C = 0x8013A02C; // absolute:True owner=actor_521100
 gActor521100Animation09030 = 0x8013AE50; // absolute:True owner=actor_521100
 gActor521100Animation091C0 = 0x8013AFE0; // absolute:True owner=actor_521100
-gScreenWaveColumns = 0x80189B84; // size:0x4E defined:True
-gScreenWaveRows = 0x80189BD4; // size:0xC0 defined:True
+_gScreenWaveColumnWaves = 0x80189B84; // size:0x4E defined:True
+_gScreenWaveRowWaves = 0x80189BD4; // size:0xC0 defined:True
 _gDryfieldDilapidatedHouseScreenWaveTaskDescriptors = 0x80183E48; // size:0x18 defined:True
-gScreenWaveRamp = 0x80183E60; // size:0x4 defined:True
+_gScreenWaveAmplitude = 0x80183E60; // size:0x4 defined:True
 _gDryfieldDilapidatedHouseNegativeCaptureTaskDescriptors = 0x80183E64; // size:0x18 defined:True
 _gScreenNegativeFrameRect = 0x80183E7C; // size:0x8 defined:True
 _gScreenNegativeStripRect = 0x80183E84; // size:0x8 defined:True
@@ -181,7 +181,7 @@ D_dryfield_dilapidated_house_80189B5C = 0x80189B5C; // size:0x8 defined:True
 D_dryfield_dilapidated_house_80189B64 = 0x80189B64; // size:0x8 defined:True
 _gDryfieldDilapidatedHouseShakeFramesLeft = 0x80189B6C; // size:0x4 defined:True
 D_dryfield_dilapidated_house_80189B70 = 0x80189B70; // size:0x4 defined:True
-gScreenWaveCtx = 0x80189B74; // size:0x4 defined:True
+_gScreenWaveContext = 0x80189B74; // size:0x4 defined:True
 _gDryfieldDilapidatedHouseHeadTrackTask = 0x80189B78; // size:0x4 defined:True
 _gDryfieldDilapidatedHouseBlackoutTask = 0x80189B7C; // size:0x4 defined:True
 _gDryfieldDilapidatedHouseNegativeCaptureArgs = 0x80189B80; // size:0x4 defined:True

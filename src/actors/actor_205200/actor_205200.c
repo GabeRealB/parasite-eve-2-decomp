@@ -56,6 +56,10 @@
 #include "rooms/shelter_b6_corridor.h"
 
 #include "rooms/shelter_b6_training_room.h"
+// The wave task and its persistent storage occupy separate translation units.
+#define SCREEN_WAVE_ACTIVE_CONTEXT     gScreenWaveContext
+#define SCREEN_WAVE_COLUMN_OSCILLATORS gScreenWaveColumnWaves
+#define SCREEN_WAVE_ROW_OSCILLATORS    gScreenWaveRowWaves
 #include "../../shared/screen_wave.h"
 
 /// Room a controller is placed in, taken from its placement's `mode` and
@@ -163,7 +167,7 @@ typedef struct {
 } _Actor205200Part;
 STATIC_ASSERT_SIZEOF(_Actor205200Part, 0x7C);
 
-extern s32 gScreenWaveRamp;
+static s32 _gScreenWaveAmplitude;
 
 static void _actor205200TickPulse(Task* task);
 static void _actor205200MeasureNearestPart(Task* task);
@@ -304,7 +308,11 @@ static TaskDesc _gActor205200ScreenWaveTasks[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 gScreenWaveRamp = 256;
+/// Current sine-displacement strength, recomputed as frame * scale / span.
+///
+/// Strength 32 corresponds to one pixel at the sine peak. The seed tick resets
+/// the initial 256 to zero; the context must have a positive span while drawing.
+static s32 _gScreenWaveAmplitude = 256;
 
 TaskDesc gActor205200ControllerPartTasks[2] = {
     { { { TASK_BODY_COORD, ACTOR_205200_ENEMY_TASK_PRIORITY } }, _actor205200ControllerTask, { .value = 0 } },

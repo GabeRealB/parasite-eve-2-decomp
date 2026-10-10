@@ -14,11 +14,23 @@ enum { ACTOR_205200_ENEMY_TASK_PRIORITY = 96 };
 
 extern TmdSource gActor205200EveBreaMaskedBody;
 
-extern ScreenWaveCtx* gScreenWaveCtx;
+/// Borrowed context of this renderer's active wave task.
+///
+/// Set on the seed tick and left unchanged at teardown. Only one wave may use
+/// this storage; the context must stay live through its final drawing tick.
+extern ScreenWaveCtx* gScreenWaveContext;
 
-extern ScreenWaveGridOscillator gScreenWaveColumns[10];
+/// Column sine oscillators for horizontal screen displacement.
+///
+/// The per-frame renderer uses entries 0..10; the prebuilt-grid renderer uses
+/// 0..8. Any remaining declared capacity is unaccessed; its role is unproven.
+extern ScreenWaveGridOscillator gScreenWaveColumnWaves[10];
 
-extern ScreenWaveGridOscillator gScreenWaveRows[30];
+/// Thirty active row sine oscillators for vertical screen displacement.
+///
+/// Seeded at wave startup and advanced on drawing updates. Any declared
+/// entries beyond 29 are unaccessed; their role is unproven.
+extern ScreenWaveGridOscillator gScreenWaveRowWaves[30];
 
 /// Double-buffered 8 by 30 meshes of textured quads, one mesh per frame
 /// buffer. `_screenWaveGridTask` builds them once and moves their corners.

@@ -320,7 +320,16 @@ extern TaskDesc gActor105400GeneratorTasks[GENERATOR_TASK_DESC_COUNT];
 /// until teardown; singleton messages must stop when that task is released.
 extern TaskDesc gActor151000WalkerTaskDesc;
 
-extern TaskDesc D_actor_121300_8013D390[];
+/// Spawn recipes for Aya's Dryfield lamp-shattering scene and its children.
+///
+/// Indices 0..10 are the double, fade in, fade out, debris spawner, five debris
+/// models, blackout and texture uploader. There is no terminal descriptor.
+/// All run at priority 192; the body and debris defer automatic model buffers.
+/// The room loads actor_121300 as resource 132 before spawning the double at 0.
+/// Debris arguments select lamp 0..11 and placement 0..14; texture uploads
+/// borrow their live double in argument 2. Keep the actor and room resources
+/// loaded until every child and borrowed scene callback has finished.
+extern TaskDesc gActor121300SceneTasks[11];
 
 /// Beta Generator body and Life Support spawn recipes exported by actor_105300.
 ///

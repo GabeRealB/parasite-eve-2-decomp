@@ -64,17 +64,12 @@
 #define SCREEN_WAVE_GRID gScreenWaveGrid.quads
 #include "../../shared/screen_wave.h"
 
-/// Current displacement of the screen wave, recomputed every frame from the
-/// context's ramp.
-extern s32 gScreenWaveRamp;
+static s32 _gScreenWaveAmplitude;
 
-/// The context the wave task was spawned with: its ramp limit, peak, mode and
-/// tint.
-extern ScreenWaveCtx* gScreenWaveCtx;
+static ScreenWaveCtx* _gScreenWaveContext;
 
-/// Phase records of the wave's 9 column edges and 30 row edges.
-extern ScreenWaveGridOscillator gScreenWaveColumns[10];
-extern ScreenWaveGridOscillator gScreenWaveRows[30];
+static ScreenWaveGridOscillator _gScreenWaveColumnWaves[10];
+static ScreenWaveGridOscillator _gScreenWaveRowWaves[30];
 
 /// Screen-wave quad meshes for this room, plus the unread bytes after them.
 ///
@@ -130,7 +125,11 @@ static TaskDesc _gShelterB6CorridorScreenWaveTasks[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 gScreenWaveRamp = 256;
+/// Current sine-displacement strength, recomputed as frame * scale / span.
+///
+/// Strength 32 corresponds to one pixel at the sine peak. The seed tick resets
+/// the initial 256 to zero; the context must have a positive span while drawing.
+static s32 _gScreenWaveAmplitude = 256;
 
 enum { SHELTER_B6_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -750,12 +749,23 @@ WorldCollisionSurfaceProperties* gShelterB6CorridorSurfaceProperties[8] = {
     &_gShelterB6CorridorDefaultSurfaceProperties,
 };
 
-ScreenWaveCtx* gScreenWaveCtx = NULL;
+/// Borrowed context of this renderer's active wave task.
+///
+/// Set on the seed tick and left unchanged at teardown. Only one wave may use
+/// this storage; the context must stay live through its final drawing tick.
+static ScreenWaveCtx* _gScreenWaveContext = NULL;
 
-// Nine active columns and one retained zero entry.
-ScreenWaveGridOscillator gScreenWaveColumns[10] = { 0 };
+/// Column sine oscillators for horizontal screen displacement.
+///
+/// The per-frame renderer uses entries 0..10; the prebuilt-grid renderer uses
+/// 0..8. Any remaining declared capacity is unaccessed; its role is unproven.
+static ScreenWaveGridOscillator _gScreenWaveColumnWaves[10] = { 0 };
 
-ScreenWaveGridOscillator gScreenWaveRows[30] = { 0 };
+/// Thirty active row sine oscillators for vertical screen displacement.
+///
+/// Seeded at wave startup and advanced on drawing updates. Any declared
+/// entries beyond 29 are unaccessed; their role is unproven.
+static ScreenWaveGridOscillator _gScreenWaveRowWaves[30] = { 0 };
 
 _ShelterB6CorridorScreenWaveGrid gScreenWaveGrid = { { 0 }, { 0 } };
 

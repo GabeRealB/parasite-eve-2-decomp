@@ -89,8 +89,8 @@ STATIC_ASSERT_SIZEOF(ScreenWaveCtx, 0xC);
 /// One row's or column's sine wave in the screen-wave grid task's mesh.
 ///
 /// The grid task keeps nine column waves and thirty row waves in arrays of
-/// these, which their packages own as `gScreenWaveColumns` and
-/// `gScreenWaveRows`. Each frame `phase` advances by `speed`, and a quad
+/// these in each package's column and row oscillator arrays. Each frame
+/// `phase` advances by `speed`, and a quad
 /// corner on the line is pushed by the sine of its position along the line
 /// plus `phase` and `offset`. Angles use the `rsin` scale, 4096 to a turn.
 /// The 10x30 task's records are the six-byte `ScreenWaveOscillator`.
@@ -105,8 +105,8 @@ STATIC_ASSERT_SIZEOF(ScreenWaveGridOscillator, 0x8);
 /// One grid line's sine wave in `_screenWaveTask`'s 10x30 screen ripple.
 ///
 /// The task keeps one per vertical grid edge (11 columns) and one per
-/// horizontal edge (30 rows), in the arrays their packages own as
-/// `gScreenWaveColumns` and `gScreenWaveRows`. A column wave pushes the x of
+/// horizontal edge (30 rows), in arrays owned by the package's renderer.
+/// A column wave pushes the x of
 /// the corners on its edge, a row wave their y; each corner is displaced by
 /// the sine of its position along the line plus `phase` and `offset`, scaled
 /// by the ramp. Angles use the `rsin` scale, 4096 to a turn. The grid task's

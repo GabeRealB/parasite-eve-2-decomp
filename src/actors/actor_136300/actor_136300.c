@@ -45,18 +45,12 @@
 extern EvsCommand D_actor_136300_8013C5C8[];
 extern EvsCommand D_actor_136300_8013C6C0[];
 
-/// Distortion amplitude of the screen wave, `frame * scale / span` of the
-/// running context, recomputed every frame.
-extern s32 gScreenWaveRamp;
+static s32 _gScreenWaveAmplitude;
 
-/// The ramp context the running wave task was spawned with, parked at spawn
-/// so the tick reads the ramp through it.
-extern ScreenWaveCtx* gScreenWaveCtx;
+static ScreenWaveCtx* _gScreenWaveContext;
 
-/// Per-column and per-row phase records: each is seeded with a random offset
-/// and speed at spawn and advanced by its speed every frame.
-extern ScreenWaveOscillator gScreenWaveColumns[13];
-extern ScreenWaveOscillator gScreenWaveRows[32];
+static ScreenWaveOscillator _gScreenWaveColumnWaves[13];
+static ScreenWaveOscillator _gScreenWaveRowWaves[32];
 
 static AnimationSet _gActor136300Animation00F14;
 static AnimationSet _gActor136300Animation010EC;
@@ -129,7 +123,11 @@ static TaskDesc _gActor136300ScreenWaveTaskTable[] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 gScreenWaveRamp = 256;
+/// Current sine-displacement strength, recomputed as frame * scale / span.
+///
+/// Strength 32 corresponds to one pixel at the sine peak. The seed tick resets
+/// the initial 256 to zero; the context must have a positive span while drawing.
+static s32 _gScreenWaveAmplitude = 256;
 
 static AnimationPackedPose _gActor136300Animation00F14Bank1[2] = {
 #include "assets/actor_136300_animation_00F14_bank1.inc"
@@ -1650,11 +1648,23 @@ EvsCommand D_actor_136300_8013C780[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-ScreenWaveCtx* gScreenWaveCtx = NULL;
+/// Borrowed context of this renderer's active wave task.
+///
+/// Set on the seed tick and left unchanged at teardown. Only one wave may use
+/// this storage; the context must stay live through its final drawing tick.
+static ScreenWaveCtx* _gScreenWaveContext = NULL;
 
-ScreenWaveOscillator gScreenWaveColumns[13] = { 0 };
+/// Column sine oscillators for horizontal screen displacement.
+///
+/// The per-frame renderer uses entries 0..10; the prebuilt-grid renderer uses
+/// 0..8. Any remaining declared capacity is unaccessed; its role is unproven.
+static ScreenWaveOscillator _gScreenWaveColumnWaves[13] = { 0 };
 
-ScreenWaveOscillator gScreenWaveRows[32] = { 0 };
+/// Thirty active row sine oscillators for vertical screen displacement.
+///
+/// Seeded at wave startup and advanced on drawing updates. Any declared
+/// entries beyond 29 are unaccessed; their role is unproven.
+static ScreenWaveOscillator _gScreenWaveRowWaves[32] = { 0 };
 
 /// Persistent ramp state borrowed by the garage scene's screen-wave task.
 ///
