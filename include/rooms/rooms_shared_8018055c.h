@@ -27,8 +27,8 @@ STATIC_ASSERT_SIZEOF(JukeboxTrack, 0x8);
 /// table to the stack, looks its row up, and only then fills in `req` over the
 /// first four list pointers.
 typedef union {
-    JukeboxTrack* lists[10]; // Track list per game mode: 0-4 debug attach room, 5-9 otherwise
-    TextDrawReq   req;       // Row label request, built after the row is looked up
+    const JukeboxTrack* lists[10]; // Track list per game mode: 0-4 debug attach room, 5-9 otherwise
+    TextDrawReq         req;       // Row label request, built after the row is looked up
 } JukeboxTrackLists;
 STATIC_ASSERT_SIZEOF(JukeboxTrackLists, 0x28);
 

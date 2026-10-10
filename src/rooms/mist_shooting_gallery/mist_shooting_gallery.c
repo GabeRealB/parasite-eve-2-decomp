@@ -128,27 +128,11 @@ extern UiObjectDesc D_mist_shooting_gallery_80185060;
 extern TaskDesc D_mist_shooting_gallery_80184F8C;
 extern TaskDesc D_mist_shooting_gallery_801850D0;
 
-/// Text in the room's trailing data that the tables below point at.
-extern char D_mist_shooting_gallery_80184DD4[];
-extern char D_mist_shooting_gallery_80184E24[];
-extern char D_mist_shooting_gallery_80184E70[];
-extern char D_mist_shooting_gallery_80184EC4[];
-extern char D_mist_shooting_gallery_80184F18[];
-extern char D_mist_shooting_gallery_80184F1C[];
-extern char D_mist_shooting_gallery_80184F20[];
-extern char D_mist_shooting_gallery_80184F24[];
 extern char D_mist_shooting_gallery_80184F2C[];
 
 static const char D_mist_shooting_gallery_8017D65C[]; // "TOTAL SCORE"
 
-static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8;
-static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708;
-
-static const char D_mist_shooting_gallery_8017D820[];
-static const char D_mist_shooting_gallery_8017D828[];
-static const char D_mist_shooting_gallery_8017D838[];
-static const char D_mist_shooting_gallery_8017D844[];
-static const char D_mist_shooting_gallery_8017D850[];
+static const char _gMistShootingGallerySupplyLevelCaption[];
 
 extern EvsCommand D_actor_215100_80153274[];
 extern EvsCommand D_actor_215100_80153D6C[];
@@ -169,19 +153,6 @@ extern TaskMessageEntry                D_mist_shooting_gallery_801850E8[];
 extern TaskDesc           D_mist_shooting_gallery_801850DC;
 extern WorldCollisionGrid D_mist_shooting_gallery_80185198;
 extern WorldCollisionGrid D_mist_shooting_gallery_801851F8;
-
-/// The jukebox's track lists, one per game mode, each a run of track id and
-/// name pairs.
-extern JukeboxTrack gJukeboxTracksAttach0[];
-extern JukeboxTrack gJukeboxTracksAttach1[];
-extern JukeboxTrack gJukeboxTracksAttach2[];
-extern JukeboxTrack gJukeboxTracksAttach3[];
-extern JukeboxTrack gJukeboxTracksAttach4[];
-extern JukeboxTrack gJukeboxTracks0[];
-extern JukeboxTrack gJukeboxTracks1[];
-extern JukeboxTrack gJukeboxTracks2[];
-extern JukeboxTrack gJukeboxTracks3[];
-extern JukeboxTrack gJukeboxTracks4[];
 
 /// The jukebox menu's title, "SELECT". A stray 0xE1 byte follows its
 /// terminator, so the block stays in assembly.
@@ -231,9 +202,9 @@ static const char _gMistShootingGalleryJukeboxRow3FoolsParadiseLabel[];
 static const char _gMistShootingGalleryJukeboxRow2GazingIntoTheVoidLabel[];
 static const char _gMistShootingGalleryJukeboxRow1ManMadeNatureLabel[];
 static const char _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel[];
-extern const char D_mist_shooting_gallery_8017DAA4[18];
-extern const char D_mist_shooting_gallery_8017DAB8[16];
-extern const char D_mist_shooting_gallery_8017DAC8[20];
+static const char _gMistShootingGalleryJukeboxRow3OutOfPhase2Label[18];
+static const char _gMistShootingGalleryJukeboxRow2TheVagrantsLabel[16];
+static const char _gMistShootingGalleryJukeboxRow1TowerRendezvousLabel[20];
 static s32        _mistShootingGalleryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32        _mistShootingGalleryResolveRoomEvent(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32        _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedSecondArg);
@@ -264,373 +235,43 @@ static const char D_mist_shooting_gallery_8017D650[12];
 static void       _mistShootingGalleryWeaponRow(UiList* list, UiObject* object);
 static void       _mistShootingGalleryWeaponSelectPanelTask(Task* task);
 
-char D_mist_shooting_gallery_80184DD4[80] = {
-    82,
-    101,
-    112,
-    108,
-    97,
-    121,
-    32,
-    109,
-    111,
-    100,
-    101,
-    10,
-    67,
-    111,
-    108,
-    108,
-    101,
-    99,
-    116,
-    32,
-    98,
-    111,
-    110,
-    117,
-    115,
-    32,
-    105,
-    116,
-    101,
-    109,
-    115,
-    32,
-    101,
-    97,
-    99,
-    104,
-    32,
-    116,
-    105,
-    109,
-    101,
-    32,
-    121,
-    111,
-    117,
-    10,
-    99,
-    108,
-    101,
-    97,
-    114,
-    32,
-    116,
-    104,
-    101,
-    32,
-    103,
-    97,
-    109,
-    101,
-    32,
-    105,
-    110,
-    32,
-    114,
-    101,
-    112,
-    108,
-    97,
-    121,
-    32,
-    109,
-    111,
-    100,
-    101,
-    33,
-    0,
-    0,
-    0,
-    0,
-};
+/// Three-line Replay description shown below the run-mode selector.
+static const char _gMistShootingGalleryReplayModeDescription[80] __attribute__((section(".data"))) =
+    "Replay mode\n"
+    "Collect bonus items each time you\n"
+    "clear the game in replay mode!";
 
-char D_mist_shooting_gallery_80184E24[76] = {
-    66,
-    111,
-    117,
-    110,
-    116,
-    121,
-    32,
-    109,
-    111,
-    100,
-    101,
-    10,
-    70,
-    105,
-    110,
-    100,
-    32,
-    116,
-    104,
-    101,
-    32,
-    104,
-    105,
-    100,
-    100,
-    101,
-    110,
-    32,
-    71,
-    79,
-    76,
-    69,
-    77,
-    32,
-    115,
-    111,
-    108,
-    100,
-    105,
-    101,
-    114,
-    115,
-    10,
-    97,
-    110,
-    100,
-    32,
-    115,
-    116,
-    114,
-    105,
-    118,
-    101,
-    32,
-    102,
-    111,
-    114,
-    32,
-    97,
-    32,
-    66,
-    80,
-    32,
-    104,
-    105,
-    103,
-    104,
-    32,
-    115,
-    99,
-    111,
-    114,
-    101,
-    33,
-    0,
-    0,
-};
+/// Three-line Bounty description shown below the run-mode selector.
+static const char _gMistShootingGalleryBountyModeDescription[76] __attribute__((section(".data"))) =
+    "Bounty mode\n"
+    "Find the hidden GOLEM soldiers\n"
+    "and strive for a BP high score!";
 
-char D_mist_shooting_gallery_80184E70[84] = {
-    83,
-    99,
-    97,
-    118,
-    101,
-    110,
-    103,
-    101,
-    114,
-    32,
-    109,
-    111,
-    100,
-    101,
-    10,
-    83,
-    104,
-    111,
-    112,
-    115,
-    32,
-    97,
-    114,
-    101,
-    32,
-    98,
-    97,
-    114,
-    101,
-    44,
-    32,
-    97,
-    110,
-    100,
-    32,
-    112,
-    105,
-    99,
-    107,
-    105,
-    110,
-    103,
-    115,
-    32,
-    97,
-    114,
-    101,
-    10,
-    115,
-    108,
-    105,
-    109,
-    46,
-    32,
-    85,
-    115,
-    101,
-    32,
-    121,
-    111,
-    117,
-    114,
-    32,
-    119,
-    105,
-    116,
-    115,
-    44,
-    32,
-    110,
-    111,
-    116,
-    32,
-    121,
-    111,
-    117,
-    114,
-    32,
-    97,
-    109,
-    109,
-    111,
-    33,
-    0,
-};
+/// Three-line Scavenger description shown below the run-mode selector.
+static const char _gMistShootingGalleryScavengerModeDescription[84] __attribute__((section(".data"))) =
+    "Scavenger mode\n"
+    "Shops are bare, and pickings are\n"
+    "slim. Use your wits, not your ammo!";
 
-char D_mist_shooting_gallery_80184EC4[84] = {
-    78,
-    105,
-    103,
-    104,
-    116,
-    109,
-    97,
-    114,
-    101,
-    32,
-    109,
-    111,
-    100,
-    101,
-    10,
-    89,
-    111,
-    117,
-    32,
-    115,
-    116,
-    97,
-    114,
-    116,
-    32,
-    111,
-    102,
-    102,
-    32,
-    115,
-    105,
-    99,
-    107,
-    32,
-    97,
-    110,
-    100,
-    32,
-    116,
-    104,
-    105,
-    110,
-    103,
-    115,
-    32,
-    103,
-    101,
-    116,
-    10,
-    119,
-    111,
-    114,
-    115,
-    101,
-    32,
-    105,
-    110,
-    32,
-    116,
-    104,
-    105,
-    115,
-    32,
-    109,
-    111,
-    115,
-    116,
-    32,
-    100,
-    105,
-    102,
-    102,
-    105,
-    99,
-    117,
-    108,
-    116,
-    32,
-    109,
-    111,
-    100,
-    101,
-    46,
-    0,
-};
+/// Three-line Nightmare description shown below the run-mode selector.
+static const char _gMistShootingGalleryNightmareModeDescription[84] __attribute__((section(".data"))) =
+    "Nightmare mode\n"
+    "You start off sick and things get\n"
+    "worse in this most difficult mode.";
 
-char D_mist_shooting_gallery_80184F18[4] = {
-    123,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated DATA-panel gauge text for rating level 1; each { glyph draws one mark.
+///
+/// The unused level-zero table entry also points here.
+static const char _gMistShootingGalleryGaugeOneMarkText[4] __attribute__((section(".data"))) = "{";
 
-char D_mist_shooting_gallery_80184F1C[4] = {
-    123,
-    123,
-    0,
-    0,
-};
+/// NUL-terminated DATA-panel gauge text for rating level 2; each { glyph draws one mark.
+static const char _gMistShootingGalleryGaugeTwoMarksText[4] __attribute__((section(".data"))) = "{{";
 
-char D_mist_shooting_gallery_80184F20[4] = {
-    123,
-    123,
-    123,
-    0,
-};
+/// NUL-terminated DATA-panel gauge text for rating level 3; each { glyph draws one mark.
+static const char _gMistShootingGalleryGaugeThreeMarksText[4] __attribute__((section(".data"))) = "{{{";
 
-char D_mist_shooting_gallery_80184F24[8] = {
-    123,
-    123,
-    123,
-    123,
-    0,
-    0,
-    0,
-    0,
-};
+/// NUL-terminated DATA-panel gauge text for rating level 4; each { glyph draws one mark.
+static const char _gMistShootingGalleryGaugeFourMarksText[8] __attribute__((section(".data"))) = "{{{{";
 
 char D_mist_shooting_gallery_80184F2C[8] = {
     123,
@@ -760,69 +401,143 @@ static s16* _gMistShootingGalleryCollision07C38Table[1] = {
 
 WorldCollisionGrid D_mist_shooting_gallery_801851F8 = { NULL, _gMistShootingGalleryCollision07C38Normals, _gMistShootingGalleryCollision07C38Verts, _gMistShootingGalleryCollision07C38Faces, _gMistShootingGalleryCollision07C38Table, 6500, -3680, 1, 1, 4000, 1 };
 
-JukeboxTrack gJukeboxTracksAttach0[3] = {
-    { 20, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
-    { 23, _gMistShootingGalleryJukeboxRow2EagerForBloodLabel },
-    { 49, _gMistShootingGalleryJukeboxRow3HeavenSentKillerLabel },
+// Global MIDI-library sequence IDs used by the gallery playlists (file group 4).
+enum {
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING              = 20,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_EAGER_FOR_BLOOD         = 23,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HEAVEN_SENT_KILLER      = 49,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET    = 60,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAWLING_WASTE_EMPEROR  = 66,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_QUADRUMANOUS_LEADER     = 22,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HUNTERS_MOON            = 74,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_YELLOW_RAIN             = 67,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REBEL_FORCES            = 82,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GENIC_REACTOR           = 93,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_AMBUSH                  = 21,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GHOST_TOWN              = 41,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_ROCK_AND_FIRE           = 45,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REQUIEM                 = 58,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_DARK_VOICE_OF_THE_HEART = 61,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LA_MAZE                 = 35,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LIGHTNING_OPERATION     = 36,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WILD_HUNT               = 42,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_SNOOPER                 = 44,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CURSE_YOUR_FATE         = 31,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WISHWASH                = 59,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MENTAL_AGONY            = 89,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MAN_MADE_NATURE         = 76,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GAZING_INTO_THE_VOID    = 77,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_FOOLS_PARADISE          = 78,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_KILLING_FIELD           = 83,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_TOWER_RENDEZVOUS        = 9,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_THE_VAGRANTS            = 43,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_OUT_OF_PHASE_2          = 17,
+    MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LAZING_AWAY_THE_MORNING = 37,
 };
 
-JukeboxTrack gJukeboxTracksAttach1[3] = {
-    { 20, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
-    { 60, _gMistShootingGalleryJukeboxRow2PickUpTheGauntletLabel },
-    { 66, _gMistShootingGalleryJukeboxRow3CrawlingWasteEmperorLabel },
+/// 3 training jukebox rows for a cleared Replay save (gameMode 0).
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..2.
+static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingReplayTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_EAGER_FOR_BLOOD, _gMistShootingGalleryJukeboxRow2EagerForBloodLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HEAVEN_SENT_KILLER, _gMistShootingGalleryJukeboxRow3HeavenSentKillerLabel },
 };
 
-JukeboxTrack gJukeboxTracksAttach2[3] = {
-    { 20, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
-    { 22, _gMistShootingGalleryJukeboxRow2QuadrumanousLeaderLabel },
-    { 74, _gMistShootingGalleryJukeboxRow3HuntersMoonLabel },
+/// 3 training jukebox rows for a cleared Bounty save (gameMode 1).
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..2.
+static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingBountyTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET, _gMistShootingGalleryJukeboxRow2PickUpTheGauntletLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAWLING_WASTE_EMPEROR, _gMistShootingGalleryJukeboxRow3CrawlingWasteEmperorLabel },
 };
 
-JukeboxTrack gJukeboxTracksAttach3[3] = {
-    { 67, _gMistShootingGalleryJukeboxRow1YellowRainLabel },
-    { 82, _gMistShootingGalleryJukeboxRow2RebelForcesLabel },
-    { 93, _gMistShootingGalleryJukeboxRow3GenicReactorLabel },
+/// 3 training jukebox rows for a cleared Scavenger save (gameMode 2).
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..2.
+static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingScavengerTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_QUADRUMANOUS_LEADER, _gMistShootingGalleryJukeboxRow2QuadrumanousLeaderLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_HUNTERS_MOON, _gMistShootingGalleryJukeboxRow3HuntersMoonLabel },
 };
 
-JukeboxTrack gJukeboxTracksAttach4[3] = {
-    { 20, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
-    { 21, _gMistShootingGalleryJukeboxRow2AmbushLabel },
-    { 60, _gMistShootingGalleryJukeboxRow3PickUpTheGauntletLabel },
+/// 3 training jukebox rows for a cleared Nightmare save (gameMode 3).
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..2.
+static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingNightmareTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_YELLOW_RAIN, _gMistShootingGalleryJukeboxRow1YellowRainLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REBEL_FORCES, _gMistShootingGalleryJukeboxRow2RebelForcesLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GENIC_REACTOR, _gMistShootingGalleryJukeboxRow3GenicReactorLabel },
 };
 
-JukeboxTrack gJukeboxTracks0[4] = {
-    { 41, _gMistShootingGalleryJukeboxRow1GhostTownLabel },
-    { 45, _gMistShootingGalleryJukeboxRow2RockAndFireLabel },
-    { 58, _gMistShootingGalleryJukeboxRow3RequiemLabel },
-    { 61, _gMistShootingGalleryJukeboxRow4DarkVoiceOfTheHeartLabel },
+/// 3 training jukebox rows for a save before its first clear, ignoring gameMode.
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..2.
+static const JukeboxTrack _gMistShootingGalleryJukeboxTrainingUnclearedTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CRAZY_KING, _gMistShootingGalleryJukeboxRow1CrazyKingLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_AMBUSH, _gMistShootingGalleryJukeboxRow2AmbushLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_PICK_UP_THE_GAUNTLET, _gMistShootingGalleryJukeboxRow3PickUpTheGauntletLabel },
 };
 
-JukeboxTrack gJukeboxTracks1[4] = {
-    { 35, _gMistShootingGalleryJukeboxRow1LAMazeLabel },
-    { 36, _gMistShootingGalleryJukeboxRow2LightningOperationLabel },
-    { 42, _gMistShootingGalleryJukeboxRow3WildHuntLabel },
-    { 44, _gMistShootingGalleryJukeboxRow4SnooperLabel },
+/// 4 regular jukebox rows for a cleared Replay save (gameMode 0).
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..3.
+static const JukeboxTrack _gMistShootingGalleryJukeboxRegularReplayTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GHOST_TOWN, _gMistShootingGalleryJukeboxRow1GhostTownLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_ROCK_AND_FIRE, _gMistShootingGalleryJukeboxRow2RockAndFireLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_REQUIEM, _gMistShootingGalleryJukeboxRow3RequiemLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_DARK_VOICE_OF_THE_HEART, _gMistShootingGalleryJukeboxRow4DarkVoiceOfTheHeartLabel },
 };
 
-JukeboxTrack gJukeboxTracks2[4] = {
-    { 31, _gMistShootingGalleryJukeboxRow1CurseYourFateLabel },
-    { 59, _gMistShootingGalleryJukeboxRow2WishwashLabel },
-    { 89, _gMistShootingGalleryJukeboxRow3MentalAgonyLabel },
-    { 93, _gMistShootingGalleryJukeboxRow4GenicReactorLabel },
+/// 4 regular jukebox rows for a cleared Bounty save (gameMode 1).
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..3.
+static const JukeboxTrack _gMistShootingGalleryJukeboxRegularBountyTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LA_MAZE, _gMistShootingGalleryJukeboxRow1LAMazeLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LIGHTNING_OPERATION, _gMistShootingGalleryJukeboxRow2LightningOperationLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WILD_HUNT, _gMistShootingGalleryJukeboxRow3WildHuntLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_SNOOPER, _gMistShootingGalleryJukeboxRow4SnooperLabel },
 };
 
-JukeboxTrack gJukeboxTracks3[4] = {
-    { 76, _gMistShootingGalleryJukeboxRow1ManMadeNatureLabel },
-    { 77, _gMistShootingGalleryJukeboxRow2GazingIntoTheVoidLabel },
-    { 78, _gMistShootingGalleryJukeboxRow3FoolsParadiseLabel },
-    { 83, _gMistShootingGalleryJukeboxRow4KillingFieldLabel },
+/// 4 regular jukebox rows for a cleared Scavenger save (gameMode 2).
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..3.
+static const JukeboxTrack _gMistShootingGalleryJukeboxRegularScavengerTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_CURSE_YOUR_FATE, _gMistShootingGalleryJukeboxRow1CurseYourFateLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_WISHWASH, _gMistShootingGalleryJukeboxRow2WishwashLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MENTAL_AGONY, _gMistShootingGalleryJukeboxRow3MentalAgonyLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GENIC_REACTOR, _gMistShootingGalleryJukeboxRow4GenicReactorLabel },
 };
 
-JukeboxTrack gJukeboxTracks4[4] = {
-    { 9, D_mist_shooting_gallery_8017DAC8 },
-    { 43, D_mist_shooting_gallery_8017DAB8 },
-    { 17, D_mist_shooting_gallery_8017DAA4 },
-    { 37, _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel },
+/// 4 regular jukebox rows for a cleared Nightmare save (gameMode 3).
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..3.
+static const JukeboxTrack _gMistShootingGalleryJukeboxRegularNightmareTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_MAN_MADE_NATURE, _gMistShootingGalleryJukeboxRow1ManMadeNatureLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_GAZING_INTO_THE_VOID, _gMistShootingGalleryJukeboxRow2GazingIntoTheVoidLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_FOOLS_PARADISE, _gMistShootingGalleryJukeboxRow3FoolsParadiseLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_KILLING_FIELD, _gMistShootingGalleryJukeboxRow4KillingFieldLabel },
+};
+
+/// 4 regular jukebox rows for a save before its first clear, ignoring gameMode.
+///
+/// MIDI IDs and numbered labels are borrowed while the gallery overlay stays loaded.
+/// Valid row indices are 0..3.
+static const JukeboxTrack _gMistShootingGalleryJukeboxRegularUnclearedTracks[] __attribute__((section(".data"))) = {
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_TOWER_RENDEZVOUS, _gMistShootingGalleryJukeboxRow1TowerRendezvousLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_THE_VAGRANTS, _gMistShootingGalleryJukeboxRow2TheVagrantsLabel },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_OUT_OF_PHASE_2, _gMistShootingGalleryJukeboxRow3OutOfPhase2Label },
+    { MIST_SHOOTING_GALLERY_JUKEBOX_SEQUENCE_LAZING_AWAY_THE_MORNING, _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel },
 };
 
 UiListRowCallback D_mist_shooting_gallery_80185334[1] = {
@@ -1439,15 +1154,22 @@ static void _mistShootingGalleryBonusPanelTask(Task* task)
         object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
-static const char D_mist_shooting_gallery_8017D6A0[] = "Replay Mode";
+/// Replay label in the carryover run-mode selector.
+static const char _gMistShootingGalleryReplayModeLabel[] = "Replay Mode";
 
-static const char D_mist_shooting_gallery_8017D6AC[] = "Bounty Mode";
+/// Bounty label in the carryover run-mode selector.
+static const char _gMistShootingGalleryBountyModeLabel[] = "Bounty Mode";
 
-static const char D_mist_shooting_gallery_8017D6B8[] = "Scavenger Mode";
+/// Scavenger label in the carryover run-mode selector.
+static const char _gMistShootingGalleryScavengerModeLabel[] = "Scavenger Mode";
 
-static const char D_mist_shooting_gallery_8017D6C8[] = "Nightmare Mode";
+/// Nightmare label in the carryover run-mode selector.
+static const char _gMistShootingGalleryNightmareModeLabel[] = "Nightmare Mode";
 
-static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D6D8 = { { D_mist_shooting_gallery_8017D6A0, D_mist_shooting_gallery_8017D6AC, D_mist_shooting_gallery_8017D6B8, D_mist_shooting_gallery_8017D6C8 } };
+/// Menu labels indexed by run mode (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
+///
+/// Borrowed text stays live with the gallery; the reader copies these four pointers.
+static const _MistShootingGalleryModeTexts _gMistShootingGalleryModeNames = { { _gMistShootingGalleryReplayModeLabel, _gMistShootingGalleryBountyModeLabel, _gMistShootingGalleryScavengerModeLabel, _gMistShootingGalleryNightmareModeLabel } };
 
 /// Offers the unlocked carryover modes with status, help and difficulty children.
 ///
@@ -1618,7 +1340,10 @@ static void _mistShootingGalleryModeStatusPanelTask(Task* task)
     textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 #undef MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION
 }
-static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
+/// Three-line help text indexed by run mode (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
+///
+/// Borrowed text stays live with the gallery; the reader copies these four pointers.
+static const _MistShootingGalleryModeTexts _gMistShootingGalleryModeDescriptions = { { _gMistShootingGalleryReplayModeDescription, _gMistShootingGalleryBountyModeDescription, _gMistShootingGalleryScavengerModeDescription, _gMistShootingGalleryNightmareModeDescription } };
 
 /// Draws the selected run mode's mission, condition, enemy and supply ratings.
 ///
@@ -1655,11 +1380,11 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
     // The gauge drawn for each rating level: entry n is n gauge marks. No
     // rating has level 0, whose entry repeats the single mark.
     const char* gaugeByLevel[6] = {
-        D_mist_shooting_gallery_80184F18,
-        D_mist_shooting_gallery_80184F18,
-        D_mist_shooting_gallery_80184F1C,
-        D_mist_shooting_gallery_80184F20,
-        D_mist_shooting_gallery_80184F24,
+        _gMistShootingGalleryGaugeOneMarkText,
+        _gMistShootingGalleryGaugeOneMarkText,
+        _gMistShootingGalleryGaugeTwoMarksText,
+        _gMistShootingGalleryGaugeThreeMarksText,
+        _gMistShootingGalleryGaugeFourMarksText,
         D_mist_shooting_gallery_80184F2C,
     };
     TextDrawReq                       missionCaption;
@@ -1701,7 +1426,7 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
         textDrawUiLine(object, 0x46, rowY, (const u8*)gaugeByLevel[rating->level], MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT); \
     }
 
-    uiDrawTitle(&(object)->panel, D_mist_shooting_gallery_8017D820);
+    uiDrawTitle(&(object)->panel, "DATA");
 
     contentLeft      = object->panel.contentLeft.signedValue;
     object->result   = USER_INTERFACE_RESULT_NONE;
@@ -1710,23 +1435,23 @@ static void _mistShootingGalleryModeDataPanelTask(Task* task)
     missionCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
     rowY             = contentTop + 0xB;
     missionCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
-    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(missionCaption, missionRatingText, missionLevels, D_mist_shooting_gallery_8017D828);
+    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(missionCaption, missionRatingText, missionLevels, (const u8*)"MISSION LEVEL");
     uiDrawHorizontalSeparator(&(object)->panel, contentLeft + 6, -captionX + 5, contentTop + 0xD);
 
     rowY               = contentTop + 0x1E;
     conditionCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
     conditionCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
-    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(conditionCaption, conditionRatingText, conditions, D_mist_shooting_gallery_8017D838);
+    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(conditionCaption, conditionRatingText, conditions, (const u8*)"CONDITION");
 
     rowY           = contentTop + 0x2D;
     enemyCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
     enemyCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
-    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(enemyCaption, enemyRatingText, enemyLevels, D_mist_shooting_gallery_8017D844);
+    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(enemyCaption, enemyRatingText, enemyLevels, (const u8*)"ENEMY LEVEL");
 
     rowY            = contentTop + 0x3C;
     supplyCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
     supplyCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
-    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(supplyCaption, supplyRatingText, supplyLevels, D_mist_shooting_gallery_8017D850);
+    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(supplyCaption, supplyRatingText, supplyLevels, (const u8*)_gMistShootingGallerySupplyLevelCaption);
 #undef MIST_SHOOTING_GALLERY_DRAW_MODE_RATING
 }
 /// Runs carryover-mode selection and commits its previewed EXP/BP conversion.
@@ -1795,7 +1520,7 @@ static void _mistShootingGalleryModeRow(UiList* list, UiObject* object)
 {
     _MistShootingGalleryModeTexts modeNames;
 
-    modeNames = D_mist_shooting_gallery_8017D6D8;
+    modeNames = _gMistShootingGalleryModeNames;
     // The list has one row per run mode, so the row index is the mode.
     textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue - 1, (const u8*)modeNames.byMode[list->currentItemIndex], list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
     if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
@@ -1817,7 +1542,7 @@ static s32 _mistShootingGalleryScaleRewardOutOfLine(s32 unscaledTotal)
 static void _mistShootingGalleryModeHelpPanelTask(Task* task)
 {
     UiObject*                     object           = task->spawnArg2.pointer;
-    _MistShootingGalleryModeTexts modeDescriptions = D_mist_shooting_gallery_8017D708;
+    _MistShootingGalleryModeTexts modeDescriptions = _gMistShootingGalleryModeDescriptions;
 
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
@@ -1947,16 +1672,10 @@ static void _mistShootingGalleryCapPlaybackTask(Task* task)
     }
 }
 
-static const char D_mist_shooting_gallery_8017D820[] = "DATA";
-
-static const char D_mist_shooting_gallery_8017D828[] = "MISSION LEVEL";
-
-static const char D_mist_shooting_gallery_8017D838[] = "CONDITION";
-
-static const char D_mist_shooting_gallery_8017D844[] = "ENEMY LEVEL";
-
-/// "SUPPLY LEVEL", followed by the non-zero padding the original toolchain left.
-static const char D_mist_shooting_gallery_8017D850[16] = "SUPPLY LEVEL\0\xD0\x0E\xF0";
+/// Caption for the DATA panel's supply rating.
+///
+/// The three bytes after the NUL retain the overlay's fixed rodata layout.
+static const char _gMistShootingGallerySupplyLevelCaption[16] = "SUPPLY LEVEL\0\xD0\x0E\xF0";
 
 /// Rejects every key-item use request without changing room or inventory state.
 ///
@@ -2149,9 +1868,12 @@ static const char _gMistShootingGalleryJukeboxRow2GazingIntoTheVoidLabel[] = "2.
 static const char _gMistShootingGalleryJukeboxRow1ManMadeNatureLabel[] = "1. Man Made Nature";
 /// Numbered jukebox row 4 label for MIDI sequence 37.
 static const char _gMistShootingGalleryJukeboxRow4LazingAwayTheMorningLabel[] = "4. Lazing Away the Morning";
-const char        D_mist_shooting_gallery_8017DAA4[]                          = "3. Out Of Phase 2";
-const char        D_mist_shooting_gallery_8017DAB8[]                          = "2. The Vagrants";
-const char        D_mist_shooting_gallery_8017DAC8[]                          = "1. Tower Rendezvous";
+/// Numbered jukebox row 3 label for MIDI sequence 17.
+static const char _gMistShootingGalleryJukeboxRow3OutOfPhase2Label[] = "3. Out Of Phase 2";
+/// Numbered jukebox row 2 label for MIDI sequence 43.
+static const char _gMistShootingGalleryJukeboxRow2TheVagrantsLabel[] = "2. The Vagrants";
+/// Numbered jukebox row 1 label for MIDI sequence 9.
+static const char _gMistShootingGalleryJukeboxRow1TowerRendezvousLabel[] = "1. Tower Rendezvous";
 
 void mistShootingGalleryRoomTask(Task* task)
 {
@@ -2250,21 +1972,22 @@ void mistShootingGallerySetTrainingBarrierLowered(s32 lowered)
     }
 }
 
-/// The jukebox's ten track lists: one per game mode, with list 4 standing in
-/// before the first clear, and the second five used outside the debug attach
-/// room.
+/// Gallery playlists: training lists first, then regular lists.
+///
+/// Each half orders cleared Replay, Bounty, Scavenger and Nightmare saves,
+/// followed by the list used before the first clear.
 static const JukeboxTrackLists _gJukeboxTrackLists = {
     {
-        gJukeboxTracksAttach0,
-        gJukeboxTracksAttach1,
-        gJukeboxTracksAttach2,
-        gJukeboxTracksAttach3,
-        gJukeboxTracksAttach4,
-        gJukeboxTracks0,
-        gJukeboxTracks1,
-        gJukeboxTracks2,
-        gJukeboxTracks3,
-        gJukeboxTracks4,
+        _gMistShootingGalleryJukeboxTrainingReplayTracks,
+        _gMistShootingGalleryJukeboxTrainingBountyTracks,
+        _gMistShootingGalleryJukeboxTrainingScavengerTracks,
+        _gMistShootingGalleryJukeboxTrainingNightmareTracks,
+        _gMistShootingGalleryJukeboxTrainingUnclearedTracks,
+        _gMistShootingGalleryJukeboxRegularReplayTracks,
+        _gMistShootingGalleryJukeboxRegularBountyTracks,
+        _gMistShootingGalleryJukeboxRegularScavengerTracks,
+        _gMistShootingGalleryJukeboxRegularNightmareTracks,
+        _gMistShootingGalleryJukeboxRegularUnclearedTracks,
     },
 };
 
@@ -2310,9 +2033,9 @@ static void _mistShootingGalleryJukeboxPanelTask(Task* task)
     if (task->state == MIST_SHOOTING_GALLERY_JUKEBOX_INITIALIZE) {
         task->spawnArg1.value = MIST_SHOOTING_GALLERY_JUKEBOX_NO_ROW;
         if (attachmentIsTrainingMode() == 0) {
-            list->itemCount = ARRAY_SIZE(gJukeboxTracks0);
+            list->itemCount = ARRAY_SIZE(_gMistShootingGalleryJukeboxRegularReplayTracks);
         } else {
-            list->itemCount = ARRAY_SIZE(gJukeboxTracksAttach0);
+            list->itemCount = ARRAY_SIZE(_gMistShootingGalleryJukeboxTrainingReplayTracks);
         }
         if (list->itemCount > MIST_SHOOTING_GALLERY_JUKEBOX_MAX_VISIBLE_ROWS) {
             list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_JUKEBOX_MAX_VISIBLE_ROWS;

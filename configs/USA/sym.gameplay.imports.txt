@@ -1441,7 +1441,7 @@ gDryfieldGeneralStorePlacementVariants = 0x80185654; // absolute:True owner=dryf
 
 D_dryfield_junk_yard_8017F558 = 0x8017F558; // absolute:True owner=dryfield_junk_yard shared=rooms
 
-D_dryfield_main_street_80184F20 = 0x80184F20; // absolute:True owner=dryfield_main_street shared=rooms
+D_dryfield_main_street_80184F20 = 0x80184F20; // absolute:True owner=dryfield_main_street
 
 D_dryfield_motel_balcony_80186220 = 0x80186220; // absolute:True owner=dryfield_motel_balcony
 
