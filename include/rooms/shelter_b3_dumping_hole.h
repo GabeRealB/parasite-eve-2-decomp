@@ -25,7 +25,12 @@ extern TaskDesc D_shelter_b3_dumping_hole_8018B83C[4];
 
 extern TaskDesc D_shelter_b3_dumping_hole_8018B57C[1];
 
-extern AreaVariant D_shelter_b3_dumping_hole_8018EC3C[13];
+/// Placement/resource variants for Mine/Shelter area 38, the dumping hole.
+///
+/// Variant 1 supplies the debris scene, 2 the encounter, and 10 the Glutton
+/// alone; every other slot is absent. Indexed by placement variant.
+/// Gameplay borrows the directory and its tables while this overlay is loaded.
+extern AreaVariant gShelterB3DumpingHoleAreaVariants[13];
 
 // shelter_b3_dumping_hole
 extern WorldCollisionRoomResources D_shelter_b3_dumping_hole_8018B678[];
@@ -36,11 +41,19 @@ extern WorldCollisionRoomResources D_shelter_b3_dumping_hole_8018B678[];
 /// stays valid only while this room overlay is loaded.
 extern u8* gShelterB3DumpingHoleViewMaps[2];
 
-extern ViewCount D_shelter_b3_dumping_hole_8018B6A0[];
+/// Logical-view counts for dumping-hole rooms 1 and 2.
+///
+/// Indexed by room minus one; both identity maps cover 37 logical views.
+/// The Shelter stage directory borrows this array while the room is loaded.
+extern ViewCount gShelterB3DumpingHoleViewCounts[2];
 
 extern DirectionWarpEntry D_shelter_b3_dumping_hole_8018B6A4[];
 
-extern ViewCamera D_shelter_b3_dumping_hole_8018C410[];
+/// Cameras for the dumping hole's 37 mapped views, shared by both rooms.
+///
+/// Indexed by mapped view minus one. Each record supplies a world-to-camera
+/// transform and pixel projection distance; queued use requires the overlay live.
+extern ViewCamera gShelterB3DumpingHoleViewCameras[37];
 
 /// Sprite descriptors for dumping-hole mapped views 1..37.
 ///
@@ -75,7 +88,12 @@ extern WorldCoordRoomAmbientEntry gShelterB3DumpingHoleRoom1AmbientByView[38];
 /// room overlay owns this read-only input and must remain loaded while used.
 extern WorldCoordRoomAmbientEntry gShelterB3DumpingHoleRoom2AmbientByView[38];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b3_dumping_hole_8018F480[];
+/// Collision policies for dumping-hole surface classes 0..7.
+///
+/// Class 3 passes probes and ignores weapon impacts; class 4 supplies footsteps.
+/// All classes apply pushback. The ninth NULL pointer is retained storage,
+/// outside the eight-class lookup domain. Policies live in the loaded room overlay.
+extern WorldCollisionSurfaceProperties* gShelterB3DumpingHoleSurfacePropertiesByClass[9];
 
 /// Runs the dumping hole's room receiver through setup, idle and teardown.
 ///

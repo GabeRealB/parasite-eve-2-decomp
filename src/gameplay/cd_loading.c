@@ -560,7 +560,7 @@ AreaRecord D_8010CF14[50] = {
     { D_shelter_r36_8017FA40, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[35].state },
     { NULL, NULL },
     { NULL, NULL },
-    { D_shelter_b3_dumping_hole_8018EC3C, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[38].state },
+    { gShelterB3DumpingHoleAreaVariants, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[38].state },
     { D_shelter_b3_garbage_incinerator_8018FA58, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[39].state },
     { D_shelter_b3_incinerator_control_room_80182610, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[40].state },
     { D_shelter_b3_elevator_hall_8018477C, &gGameFlagMineShelterBanks[GAME_FLAG_STAGE_BANK_LIVE].areas[41].state },

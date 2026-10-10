@@ -1653,7 +1653,7 @@ D_shelter_b2_septic_tank_80186F40 = 0x80186F40; // absolute:True owner=shelter_b
 
 D_shelter_b2_south_maintenance_walkway_801837AC = 0x801837AC; // absolute:True owner=shelter_b2_south_maintenance_walkway shared=rooms
 
-D_shelter_b3_dumping_hole_8018EC3C = 0x8018EC3C; // absolute:True owner=shelter_b3_dumping_hole
+gShelterB3DumpingHoleAreaVariants = 0x8018EC3C; // absolute:True owner=shelter_b3_dumping_hole
 
 D_shelter_b3_elevator_hall_8018477C = 0x8018477C; // absolute:True owner=shelter_b3_elevator_hall shared=rooms
 
