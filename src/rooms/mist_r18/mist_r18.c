@@ -75,9 +75,7 @@ static void _mistR18SetTexturePage(s16 blendMode, s16 vramX, s16 vramY, s32 orde
 static void _mistR18WaitForCrossfadeViewState(Task* task);
 static void _mistR18InitBriefingState(Task* task);
 
-static TaskDesc _gMistR18TaskDescs[8];
-/// Spawn descriptor handed to entry 5 of `_gMistR18TaskDescs`.
-extern TextStream D_mist_r18_80184EE4;
+static TaskDesc   _gMistR18TaskDescs[8];
 extern EvsCommand D_mist_r18_8018522C[];
 extern EvsCommand D_mist_r18_8018576C[];
 extern EvsCommand D_mist_r18_80185AE4[];
@@ -88,14 +86,37 @@ extern EvsCommand D_mist_r18_8018639C[];
 extern EvsCommand D_mist_r18_8018645C[];
 extern EvsCommand D_mist_r18_8018651C[];
 extern EvsCommand D_mist_r18_80186564[];
-/// The two attached-model tasks `_mistR18SpawnAttachedModel` spawns and
-/// `_mistR18KillAttachedModel` tears down, by index.
-extern Task* D_mist_r18_80186E90;
-extern Task* D_mist_r18_80186E94;
-/// Handle of the task `_mistR18SpawnPlacedProp` spawns.
-extern Task* D_mist_r18_80186E98;
-/// Step of the cutscene sequence `_mistR18AdvanceBriefingState` walks.
-extern s32 D_mist_r18_80186E9C;
+/// Saved task drawing the first briefing model on the player's part 8.
+///
+/// NULL before spawning or after explicit teardown, including spawn failure.
+/// Its attachment joins the player's teardown tree; clear this handle before
+/// using it again if that tree has been killed. Room setup requires no live
+/// previous instance because it resets the handle without killing a task.
+static Task* _gMistR18FirstAttachedModelTask;
+
+/// Saved task drawing the second briefing model on the player's part 8.
+///
+/// NULL before spawning or after explicit teardown, including spawn failure.
+/// Its attachment joins the player's teardown tree; clear this handle before
+/// using it again if that tree has been killed. Room setup requires no live
+/// previous instance because it resets the handle without killing a task.
+static Task* _gMistR18SecondAttachedModelTask;
+
+/// Saved task drawing the briefing's separately placed prop.
+///
+/// Each spawn overwrites the handle, including with NULL on failure; scripts
+/// tear down the previous instance before spawning again. Explicit teardown
+/// kills a non-NULL task and clears the handle. Room setup only clears it,
+/// so no previous instance may remain live when setup runs.
+static Task* _gMistR18PlacedPropTask;
+
+/// Next briefing phase to launch after the current event and menu finish.
+///
+/// Uses MIST_R18_BRIEFING_* values 1 place prop, 2 first held model, 3 open
+/// key items, 4 check the Dryfield-map choice and 5 departure already started.
+/// Phase 4 repeats the reminder until the map is selected; phase 5 launches
+/// nothing further. This signed word is separate from the room task's state.
+static s32 _gMistR18BriefingStep;
 /// Set by `_mistR18AdvanceBriefingState` when the alternate cutscene branch ran.
 extern s32 D_mist_r18_80186EA0;
 
@@ -127,7 +148,6 @@ extern AreaResource D_mist_r18_80186BD8[3];
 
 static WorldCollisionGrid _gMistR18FloorCollisionGrid;
 
-extern AnimationSet* D_mist_r18_80184F64[11];
 /// Attached-model selectors passed by the briefing scripts and their parent part.
 enum {
     MIST_R18_ATTACHMENT_MODEL_FIRST  = 0,
@@ -449,7 +469,12 @@ static AnimationSet _gMistR18Animation078C0 = {
     { NULL, _gMistR18Animation078C0Bank1, NULL, NULL, _gMistR18Animation078C0Bank4, NULL, NULL, NULL },
 };
 
-u8 D_mist_r18_80184EA8[60] = {
+/// Glyph-byte script for the briefing's two-line date and M.I.S.T. location caption.
+///
+/// The first 56 bytes select resident cells 0..69 or a line break, followed by
+/// TEXT_STREAM_END and three retained zero bytes. The reveal's post-end probe
+/// is inside this array; readable storage for its predecessor probe is unproven.
+static u8 _gMistR18BriefingCaptionScript[60] = {
     18,
     30,
     41,
@@ -512,7 +537,30 @@ u8 D_mist_r18_80184EA8[60] = {
     0,
 };
 
-TextStream D_mist_r18_80184EE4 = { -150, -90, 704, 48, 16, 260, 1, 0, D_mist_r18_80184EA8, gTextCaptionGlyphCells, 13, 45, 216, 29 };
+/// Mutable date-and-place caption state borrowed by the briefing's single reveal task.
+///
+/// Draws at (-150, -90) pixels with 13-pixel line spacing. Stored plate dimensions
+/// are 216 by 29; the emitter subtracts one from each dimension.
+/// Uses the room font at VRAM (704, 48) and palette (16, 260). The child resets
+/// cursor, reveals a script byte every two ticks and reloads 45 for the final
+/// hold. Keep this stream, script, font pixels and palette live until teardown;
+/// simultaneous reveals would share the cursor and are not supported.
+static TextStream _gMistR18BriefingCaptionStream = {
+    .x           = -150,
+    .y           = -90,
+    .tpageX      = 704,
+    .tpageY      = 48,
+    .clutX       = 16,
+    .clutY       = 260,
+    .charDelay   = 1,
+    .cursor      = 0,
+    .chars       = _gMistR18BriefingCaptionScript,
+    .glyphs      = gTextCaptionGlyphCells,
+    .lineHeight  = 13,
+    .delayReload = 45,
+    .boxWidth    = 216,
+    .boxHeight   = 29,
+};
 
 /// Execution priority shared by the briefing's directly spawned child tasks.
 enum { MIST_R18_BRIEFING_TASK_PRIORITY = 192 };
@@ -536,7 +584,11 @@ static TaskDesc _gMistR18TaskDescs[8] = {
     { { { TASK_BODY_NONE, MIST_R18_BRIEFING_TASK_PRIORITY } }, _mistR18ReleaseScriptPauseTask, { .value = 0 } },
 };
 
-AnimationSet* D_mist_r18_80184F64[11] = {
+/// Player-bank extension: NULL at slot 47, followed by briefing clips 48..57.
+///
+/// Copied by value into the equipped bank; the ten referenced room-owned sets
+/// remain borrowed during playback. The complete table is eleven pointer words.
+static AnimationSet* _gMistR18PlayerBriefingAnimationSets[11] = {
     NULL,
     &_gMistR18Animation02274,
     &_gMistR18Animation030E8,
@@ -550,45 +602,313 @@ AnimationSet* D_mist_r18_80184F64[11] = {
     &_gMistR18Animation078C0,
 };
 
-AnimationBankCopyRequest D_mist_r18_80184F90 = { { .sets = D_mist_r18_80184F64 }, ARRAY_SIZE(D_mist_r18_80184F64) };
+/// Installs all eleven briefing-extension words in the equipped player bank.
+///
+/// Synchronous dispatch copies slots 47..57 without starting playback. Requests
+/// for clips 48..57 require this copy first and room clip data live during use.
+static AnimationBankCopyRequest _gMistR18PlayerBriefingBankCopyRequest = {
+    .source    = { .sets = _gMistR18PlayerBriefingAnimationSets },
+    .wordCount = ARRAY_SIZE(_gMistR18PlayerBriefingAnimationSets),
+};
 
-AnimationPlayRequest D_mist_r18_80184F98 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Indexed clips and transition timing used by the briefing requests.
+enum {
+    MIST_R18_PLAYER_STORED_BANK_INDEX  = 1, // EVS replaces this value in its local request copy.
+    MIST_R18_PLACED_ACTOR_BANK         = 0,
+    MIST_R18_PLAYER_BASE_CLIP_1        = 1,
+    MIST_R18_PLAYER_BRIEFING_CLIP_48   = ANIMATION_BANK_BASE_SET_COUNT + 1,
+    MIST_R18_PLAYER_BRIEFING_CLIP_49   = ANIMATION_BANK_BASE_SET_COUNT + 2,
+    MIST_R18_PLAYER_BRIEFING_CLIP_50   = ANIMATION_BANK_BASE_SET_COUNT + 3,
+    MIST_R18_PLAYER_BRIEFING_CLIP_51   = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    MIST_R18_PLAYER_BRIEFING_CLIP_52   = ANIMATION_BANK_BASE_SET_COUNT + 5,
+    MIST_R18_PLAYER_BRIEFING_CLIP_53   = ANIMATION_BANK_BASE_SET_COUNT + 6,
+    MIST_R18_PLAYER_BRIEFING_CLIP_54   = ANIMATION_BANK_BASE_SET_COUNT + 7,
+    MIST_R18_PLAYER_BRIEFING_CLIP_55   = ANIMATION_BANK_BASE_SET_COUNT + 8,
+    MIST_R18_PLAYER_BRIEFING_CLIP_56   = ANIMATION_BANK_BASE_SET_COUNT + 9,
+    MIST_R18_PLAYER_BRIEFING_CLIP_57   = ANIMATION_BANK_BASE_SET_COUNT + 10,
+    MIST_R18_BALDWIN_CLIP_1            = 1,
+    MIST_R18_BALDWIN_CLIP_2            = 2,
+    MIST_R18_BALDWIN_CLIP_3            = 3,
+    MIST_R18_BALDWIN_CLIP_4            = 4,
+    MIST_R18_BALDWIN_CLIP_5            = 5,
+    MIST_R18_BALDWIN_CLIP_6            = 6,
+    MIST_R18_BALDWIN_CLIP_7            = 7,
+    MIST_R18_RUPERT_CLIP_1             = 1,
+    MIST_R18_PLACED_ACTOR_BLEND_FRAMES = 6,
+};
 
-AnimationPlayRequest D_mist_r18_80184FAC = { { .index = 1 }, 48, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts base player clip 1 for the introductory scene and prop-placement interlude.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+static AnimationPlayRequest _gMistR18PlayerBaseClip1Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BASE_CLIP_1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80184FC0 = { { .index = 1 }, 49, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 48 after the introductory scene placement.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip48Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_48,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80184FD4 = { { .index = 1 }, 50, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 49 at the next introductory dialogue cue.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip49Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_49,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80184FE8 = { { .index = 1 }, 51, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 50 while the first held model is attached.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip50Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_50,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80184FFC = { { .index = 1 }, 52, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 51 during the first held-model exchange.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip51Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_51,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80185010 = { { .index = 1 }, 53, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 52 at a later first held-model dialogue cue.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip52Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_52,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80185024 = { { .index = 1 }, 54, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 53 before the first held model is released.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip53Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_53,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80185038 = { { .index = 1 }, 55, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 54 while the second held model is attached.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip54Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_54,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_8018504C = { { .index = 1 }, 56, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 55 during the departure dialogue.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip55Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_55,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80185060 = { { .index = 1 }, 57, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 56 before the second held model is released.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip56Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_56,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80185074 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts the player's briefing clip 57 before opening the key-item menu.
+///
+/// EVS resolves the equipped-weapon bank in a local copy; the stored bank 1
+/// is ignored. Resets playback without blending and requests disabled world
+/// collision. Borrowed through script dispatch; the selected bank and clip
+/// data must remain loaded during playback.
+/// Requires the briefing bank-extension copy before dispatch.
+static AnimationPlayRequest _gMistR18PlayerBriefingClip57Request = {
+    .source               = { .index = MIST_R18_PLAYER_STORED_BANK_INDEX },
+    .animationId          = MIST_R18_PLAYER_BRIEFING_CLIP_57,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80185088 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts Baldwin's bank-0 clip 1 at briefing boundaries and before the key-item menu.
+///
+/// Targets placed scene actor 1. The receiver consumes this request
+/// synchronously and borrows its own actor-package clip data during playback.
+/// Resets the slots; stored blend duration 0 and collision setting are ignored.
+static AnimationPlayRequest _gMistR18BaldwinResetClip1Request = {
+    .source               = { .index = MIST_R18_PLACED_ACTOR_BANK },
+    .animationId          = MIST_R18_BALDWIN_CLIP_1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_8018509C = { { .sets = NULL }, 2, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Starts Baldwin's bank-0 clip 1 after the introductory scene placement.
+///
+/// Targets placed scene actor 1. The receiver consumes this request
+/// synchronously and borrows its own actor-package clip data during playback.
+/// Resets the slots; stored blend duration 0 and collision setting are ignored.
+static AnimationPlayRequest _gMistR18BaldwinIntroClip1Request = {
+    .source               = { .index = MIST_R18_PLACED_ACTOR_BANK },
+    .animationId          = MIST_R18_BALDWIN_CLIP_1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_801850B0 = { { .sets = NULL }, 3, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Baldwin's bank-0 clip 2 during the introductory dialogue.
+///
+/// Targets placed scene actor 1. The receiver consumes this request
+/// synchronously and borrows its own actor-package clip data during playback.
+/// Interpolates from initialized slots over six normal-rate frames.
+/// The collision setting is ignored by this actor.
+static AnimationPlayRequest _gMistR18BaldwinBriefingClip2Request = {
+    .source               = { .index = MIST_R18_PLACED_ACTOR_BANK },
+    .animationId          = MIST_R18_BALDWIN_CLIP_2,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_R18_PLACED_ACTOR_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_801850C4 = { { .sets = NULL }, 4, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Baldwin's bank-0 clip 3 during the introductory dialogue.
+///
+/// Targets placed scene actor 1. The receiver consumes this request
+/// synchronously and borrows its own actor-package clip data during playback.
+/// Interpolates from initialized slots over six normal-rate frames.
+/// The collision setting is ignored by this actor.
+static AnimationPlayRequest _gMistR18BaldwinBriefingClip3Request = {
+    .source               = { .index = MIST_R18_PLACED_ACTOR_BANK },
+    .animationId          = MIST_R18_BALDWIN_CLIP_3,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_R18_PLACED_ACTOR_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_801850D8 = { { .sets = NULL }, 5, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Baldwin's bank-0 clip 4 during the first held-model exchange.
+///
+/// Targets placed scene actor 1. The receiver consumes this request
+/// synchronously and borrows its own actor-package clip data during playback.
+/// Interpolates from initialized slots over six normal-rate frames.
+/// The collision setting is ignored by this actor.
+static AnimationPlayRequest _gMistR18BaldwinBriefingClip4Request = {
+    .source               = { .index = MIST_R18_PLACED_ACTOR_BANK },
+    .animationId          = MIST_R18_BALDWIN_CLIP_4,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_R18_PLACED_ACTOR_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_801850EC = { { .sets = NULL }, 6, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Baldwin's bank-0 clip 5 during the first held-model exchange.
+///
+/// Targets placed scene actor 1. The receiver consumes this request
+/// synchronously and borrows its own actor-package clip data during playback.
+/// Interpolates from initialized slots over six normal-rate frames.
+/// The collision setting is ignored by this actor.
+static AnimationPlayRequest _gMistR18BaldwinBriefingClip5Request = {
+    .source               = { .index = MIST_R18_PLACED_ACTOR_BANK },
+    .animationId          = MIST_R18_BALDWIN_CLIP_5,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_R18_PLACED_ACTOR_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_mist_r18_80185100 = { { .sets = NULL }, 7, ANIMATION_BLEND_RESET, 1, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Baldwin's bank-0 clip 6 during the first held-model exchange.
+///
+/// Targets placed scene actor 1. The receiver consumes this request
+/// synchronously and borrows its own actor-package clip data during playback.
+/// Interpolates from initialized slots over six normal-rate frames.
+/// The collision setting is ignored by this actor.
+static AnimationPlayRequest _gMistR18BaldwinBriefingClip6Request = {
+    .source               = { .index = MIST_R18_PLACED_ACTOR_BANK },
+    .animationId          = MIST_R18_BALDWIN_CLIP_6,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = MIST_R18_PLACED_ACTOR_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
+
+/// Plays Baldwin's bank-0 clip 7 during the departure dialogue.
+///
+/// Targets placed scene actor 1. The receiver consumes this request
+/// synchronously and borrows its own actor-package clip data during playback.
+/// Resets the slots; stored blend duration 1 and collision setting are ignored.
+static AnimationPlayRequest _gMistR18BaldwinBriefingClip7Request = {
+    .source               = { .index = MIST_R18_PLACED_ACTOR_BANK },
+    .animationId          = MIST_R18_BALDWIN_CLIP_7,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 1,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_mist_r18_80185114 = { { .sets = NULL }, 8, ANIMATION_BLEND_INTERPOLATE, 6, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -596,7 +916,18 @@ AnimationPlayRequest D_mist_r18_80185128 = { { .sets = NULL }, 9, ANIMATION_BLEN
 
 AnimationPlayRequest D_mist_r18_8018513C = { { .sets = NULL }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_mist_r18_80185150 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts hurt Rupert's bank-0 clip 1 at briefing boundaries and before the key-item menu.
+///
+/// Targets placed scene actor 0. Resets the slots; blend duration and world
+/// collision setting are ignored. Dispatch borrows this request synchronously;
+/// the actor-package bank and clip data remain borrowed during playback.
+static AnimationPlayRequest _gMistR18RupertResetClip1Request = {
+    .source               = { .index = MIST_R18_PLACED_ACTOR_BANK },
+    .animationId          = MIST_R18_RUPERT_CLIP_1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationPlayRequest D_mist_r18_80185164 = { { .sets = NULL }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -623,11 +954,33 @@ static ActorTransform _gMistR18BriefingPlayerPlacement = { { 0, 128, 0, 0 }, { 0
 
 ActorCommand D_mist_r18_8018521C = { 0 };
 
-ActorCommand D_mist_r18_80185220 = { { .loc = { 0, 0 } }, 1 };
+/// Baldwin's actor-command IDs used when the briefing hides his held models.
+enum {
+    MIST_R18_BALDWIN_COMMAND_HIDE_FIRST_HELD_MODEL  = 1,
+    MIST_R18_BALDWIN_COMMAND_HIDE_SECOND_HELD_MODEL = 3,
+};
+
+/// Hides Baldwin's first held model at scene completion or when the introduction is skipped.
+///
+/// Sent to placed scene actor 1. Only active drawing is disabled; the child task
+/// remains owned by Baldwin. The receiver ignores the zero context tag and
+/// borrows this four-byte command only through synchronous dispatch.
+static ActorCommand _gMistR18BaldwinHideFirstHeldModelCommand = {
+    .context = { .key = 0 },
+    .command = MIST_R18_BALDWIN_COMMAND_HIDE_FIRST_HELD_MODEL,
+};
 
 ActorCommand D_mist_r18_80185224 = { { .loc = { 0, 0 } }, 2 };
 
-ActorCommand D_mist_r18_80185228 = { { .loc = { 0, 0 } }, 3 };
+/// Hides Baldwin's second held model at the first held-model exchange's end or skip.
+///
+/// Sent to placed scene actor 1. Only active drawing is disabled; the child task
+/// remains owned by Baldwin. The receiver ignores the zero context tag and
+/// borrows this four-byte command only through synchronous dispatch.
+static ActorCommand _gMistR18BaldwinHideSecondHeldModelCommand = {
+    .context = { .key = 0 },
+    .command = MIST_R18_BALDWIN_COMMAND_HIDE_SECOND_HELD_MODEL,
+};
 
 EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18PrepareBriefingScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -638,8 +991,8 @@ EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18SpawnPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184F98 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMistR18PlayerBriefingBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBaseClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
@@ -658,8 +1011,8 @@ EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FAC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185088 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip48Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinIntroClip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185164 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18FinishSceneStream }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -667,11 +1020,11 @@ EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FC0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip49Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_8018509C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinBriefingClip2Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801850B0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinBriefingClip3Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x51120003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 80 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -681,9 +1034,9 @@ EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185220 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistR18BaldwinHideFirstHeldModelCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinResetClip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18RupertResetClip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -692,27 +1045,27 @@ EvsCommand D_mist_r18_8018576C[37] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18SpawnAttachedModel }, { .value = MIST_R18_ATTACHMENT_MODEL_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMistR18PlayerBriefingBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FD4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip50Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinResetClip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18RupertResetClip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FE8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801850C4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip51Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinBriefingClip4Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185178 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801850D8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinBriefingClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184FFC }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185010 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801850EC } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip53Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinBriefingClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_8018518C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185224 } }, { .value = 0 } },
@@ -722,9 +1075,9 @@ EvsCommand D_mist_r18_8018576C[37] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18KillAttachedModel }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185228 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistR18BaldwinHideSecondHeldModelCommand } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinResetClip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18RupertResetClip1Request } }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -733,21 +1086,21 @@ EvsCommand D_mist_r18_80185AE4[41] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18SpawnAttachedModel }, { .value = MIST_R18_ATTACHMENT_MODEL_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185024 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMistR18PlayerBriefingBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip54Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinResetClip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18RupertResetClip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _mistR18SetOrderingDepthShift }, { .value = DISPLAY_DEPTH_SHIFT_4X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _mistR18SetOrderingDepthShift }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185038 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185100 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip55Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinBriefingClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801851A0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801851B4 } }, { .value = 0 } },
@@ -756,7 +1109,7 @@ EvsCommand D_mist_r18_80185AE4[41] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801851C8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_8018504C }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185128 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801851DC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -764,8 +1117,8 @@ EvsCommand D_mist_r18_80185AE4[41] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18KillAttachedModel }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinResetClip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18RupertResetClip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _mistR18SetOrderingDepthShift }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18ReloadParkingWithStarterLoadout }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -774,8 +1127,8 @@ EvsCommand D_mist_r18_80185AE4[41] = {
 
 EvsCommand D_mist_r18_80185EBC[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80184F98 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMistR18PlayerBriefingBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBaseClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
@@ -793,14 +1146,14 @@ EvsCommand D_mist_r18_80185EBC[16] = {
 
 EvsCommand D_mist_r18_8018603C[16] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMistR18PlayerBriefingBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185060 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185074 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip57Request }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18BaldwinResetClip1Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gMistR18RupertResetClip1Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18OpenKeyItemMenu }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -812,13 +1165,13 @@ EvsCommand D_mist_r18_8018603C[16] = {
 
 EvsCommand D_mist_r18_801861BC[20] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMistR18PlayerBriefingBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gMistR18BriefingPlayerPlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185060 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gMistR18PlayerBriefingBankCopyRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gMistR18PlayerBriefingClip57Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_8018513C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_801851F0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -837,7 +1190,7 @@ EvsCommand D_mist_r18_8018639C[8] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185220 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistR18BaldwinHideFirstHeldModelCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -849,7 +1202,7 @@ EvsCommand D_mist_r18_8018645C[8] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18KillPlacedProp }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18KillAttachedModel }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_r18_80185228 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gMistR18BaldwinHideSecondHeldModelCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -871,7 +1224,7 @@ EvsCommand D_mist_r18_80186564[7] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-WorldCollisionRoomResources D_mist_r18_8018660C[1] = {
+WorldCollisionRoomResources gMistR18CollisionRoomResources[1] = {
     { &_gMistR18FloorCollisionGrid, NULL, NULL, NULL },
 };
 
@@ -885,8 +1238,19 @@ WorldCoordRoomLighting gMistR18RoomLightingTable[1] = {
     { &_gMistR18RoomLights, NULL },
 };
 
-DirectionWarpEntry D_mist_r18_8018662C[1] = {
-    { { { .word = 2048 }, -6000, 0, 3218 }, { 0, 0, 0, 0 }, { { .word = 2048 }, -6000, 0, 3218 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, DIRECTION_WARP_MAP_FLAG_NONE },
+DirectionWarpEntry gMistR18WarpEntries[1] = {
+    {
+        .player         = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -6000, 0, 3218 },
+        .unknown_10     = { 0, 0, 0, 0 },
+        .companion      = { { .word = ACTOR_TRANSFORM_ANGLE_HALF_TURN }, -6000, 0, 3218 },
+        .unknown_24     = { 0, 0, 0, 0 },
+        .arrivalSound   = DIRECTION_WARP_SOUND_NONE,
+        .departureSound = DIRECTION_WARP_SOUND_NONE,
+        .blockedSound   = DIRECTION_WARP_SOUND_NONE,
+        .initialView    = 2,
+        .flags          = DIRECTION_WARP_FLAG_NONE,
+        .mapFlagId      = DIRECTION_WARP_MAP_FLAG_NONE,
+    },
 };
 
 static SVECTOR _gMistR18FloorCollisionGridNormals[1] = {
@@ -1161,14 +1525,6 @@ WorldCollisionSurfaceProperties* gMistR18SurfacePropertiesByClass[8] = {
     &_gMistR18SurfaceProperties,
 };
 
-Task* D_mist_r18_80186E90;
-
-Task* D_mist_r18_80186E94;
-
-Task* D_mist_r18_80186E98;
-
-s32 D_mist_r18_80186E9C;
-
 s32 D_mist_r18_80186EA0;
 
 /// Reveals a glyph-script caption over a translucent black plate during an event.
@@ -1300,7 +1656,7 @@ static void _mistR18CaptionTask(Task* task)
 static inline void _mistR18StartSkippableBriefingStep(EvsCommand* script, EvsCommand* skipScript, s32 nextStep)
 {
     evsStartScriptWithSkip(script, EVENT_SCRIPT_HUD_HIDE_RESTORE, skipScript);
-    D_mist_r18_80186E9C = nextStep;
+    _gMistR18BriefingStep = nextStep;
 }
 
 /// Advances the briefing scripts and repeats the key-item menu until the Dryfield map is opened.
@@ -1316,16 +1672,16 @@ static void _mistR18AdvanceBriefingState(Task* unusedTask)
 
     // Event completion and menu teardown must finish before another script starts.
     if ((gGameSession->eventState == MIST_R18_EVENT_IDLE) && (gAttachmentState.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-        briefingStep = D_mist_r18_80186E9C;
+        briefingStep = _gMistR18BriefingStep;
         if (briefingStep == MIST_R18_BRIEFING_PLACE_PROP) {
             _mistR18StartSkippableBriefingStep(D_mist_r18_80185EBC, D_mist_r18_80186564, MIST_R18_BRIEFING_FIRST_HELD_MODEL);
         } else if (briefingStep == MIST_R18_BRIEFING_FIRST_HELD_MODEL) {
             evsStartScriptWithSkip(D_mist_r18_8018576C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_8018645C);
-            D_mist_r18_80186EA0 = false;
-            D_mist_r18_80186E9C = MIST_R18_BRIEFING_OPEN_KEY_ITEMS;
+            D_mist_r18_80186EA0   = false;
+            _gMistR18BriefingStep = MIST_R18_BRIEFING_OPEN_KEY_ITEMS;
         } else if (briefingStep == MIST_R18_BRIEFING_OPEN_KEY_ITEMS) {
             evsStartScript(D_mist_r18_8018603C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            D_mist_r18_80186E9C = MIST_R18_BRIEFING_CHECK_DRYFIELD_MAP;
+            _gMistR18BriefingStep = MIST_R18_BRIEFING_CHECK_DRYFIELD_MAP;
         } else if (briefingStep == MIST_R18_BRIEFING_CHECK_DRYFIELD_MAP) {
             // Reopen the reminder menu without resetting its map-opened latch.
             if (mapAkropolisWasDryfieldMapSelected() != true) {
@@ -1718,10 +2074,10 @@ static void _mistR18SpawnAttachedModel(s32 modelIndex)
 
     switch (modelIndex) {
         case MIST_R18_ATTACHMENT_MODEL_FIRST:
-            modelTaskSlot = &D_mist_r18_80186E90;
+            modelTaskSlot = &_gMistR18FirstAttachedModelTask;
             break;
         case MIST_R18_ATTACHMENT_MODEL_SECOND:
-            modelTaskSlot = &D_mist_r18_80186E94;
+            modelTaskSlot = &_gMistR18SecondAttachedModelTask;
             break;
         default:
             modelTaskSlot = NULL;
@@ -1747,15 +2103,15 @@ static void _mistR18KillAttachedModel(s32 modelIndex)
         MIST_R18_ATTACHED_SECOND_MODEL = 1,
     };
     if (modelIndex == MIST_R18_ATTACHED_FIRST_MODEL) {
-        if (D_mist_r18_80186E90 != NULL) {
-            taskKill(D_mist_r18_80186E90);
+        if (_gMistR18FirstAttachedModelTask != NULL) {
+            taskKill(_gMistR18FirstAttachedModelTask);
         }
-        D_mist_r18_80186E90 = NULL;
+        _gMistR18FirstAttachedModelTask = NULL;
     } else if (modelIndex == MIST_R18_ATTACHED_SECOND_MODEL) {
-        if (D_mist_r18_80186E94 != NULL) {
-            taskKill(D_mist_r18_80186E94);
+        if (_gMistR18SecondAttachedModelTask != NULL) {
+            taskKill(_gMistR18SecondAttachedModelTask);
         }
-        D_mist_r18_80186E94 = NULL;
+        _gMistR18SecondAttachedModelTask = NULL;
     }
 }
 
@@ -1768,7 +2124,7 @@ static void _mistR18SpawnBriefingCaption(void)
 {
     enum { MIST_R18_BRIEFING_CAPTION_TASK_INDEX = 5 };
 
-    taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_BRIEFING_CAPTION_TASK_INDEX, 0, &D_mist_r18_80184EE4);
+    taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_BRIEFING_CAPTION_TASK_INDEX, 0, &_gMistR18BriefingCaptionStream);
 }
 
 /// Starts the briefing's captured-backdrop transition to the next view.
@@ -1836,16 +2192,16 @@ static void _mistR18SpawnPlacedProp(void)
 {
     enum { MIST_R18_PLACED_PROP_TASK_INDEX = 4 };
 
-    D_mist_r18_80186E98 = taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_PLACED_PROP_TASK_INDEX, 0, 0);
+    _gMistR18PlacedPropTask = taskSpawnFromTable(_gMistR18TaskDescs, MIST_R18_PLACED_PROP_TASK_INDEX, 0, 0);
 }
 
 /// Kills the room's separately placed prop task and clears its saved handle.
 static void _mistR18KillPlacedProp(void)
 {
-    if (D_mist_r18_80186E98 != NULL) {
-        taskKill(D_mist_r18_80186E98);
+    if (_gMistR18PlacedPropTask != NULL) {
+        taskKill(_gMistR18PlacedPropTask);
     }
-    D_mist_r18_80186E98 = NULL;
+    _gMistR18PlacedPropTask = NULL;
 }
 
 /// Places the room's prop model once at its fixed cutscene transform.
@@ -2002,13 +2358,13 @@ static void _mistR18OpenKeyItemMenu(void)
 /// script, which starts after the introductory event finishes or is skipped.
 static void _mistR18InitBriefingState(Task* task)
 {
-    D_mist_r18_80186E90 = NULL;
-    D_mist_r18_80186E94 = NULL;
-    D_mist_r18_80186E98 = NULL;
+    _gMistR18FirstAttachedModelTask  = NULL;
+    _gMistR18SecondAttachedModelTask = NULL;
+    _gMistR18PlacedPropTask          = NULL;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     evsStartScriptWithSkip(D_mist_r18_8018522C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mist_r18_8018639C);
     task->state++;
-    D_mist_r18_80186E9C = MIST_R18_BRIEFING_PLACE_PROP;
+    _gMistR18BriefingStep = MIST_R18_BRIEFING_PLACE_PROP;
 }
 
 void mistR18BriefingTask(Task* task)

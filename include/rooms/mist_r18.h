@@ -13,8 +13,12 @@
 
 extern AreaVariant D_mist_r18_80186BFC[13];
 
-// mist_r18
-extern WorldCollisionRoomResources D_mist_r18_8018660C[];
+/// Collision resources for the single briefing room, indexed by room minus one.
+///
+/// Borrows the mutable floor grid, with no view boundaries, action triggers or
+/// occluders. Acropolis area 18 selects this one-entry directory. Keep the room
+/// overlay loaded while collision setup and runtime lists reference its data.
+extern WorldCollisionRoomResources gMistR18CollisionRoomResources[1];
 
 /// Logical-view map directory for the single briefing room.
 ///
@@ -34,7 +38,13 @@ extern ViewCount gMistR18ViewCounts[2];
 /// writable light collection while this room overlay remains loaded.
 extern WorldCoordRoomLighting gMistR18RoomLightingTable[1];
 
-extern DirectionWarpEntry D_mist_r18_8018662C[];
+/// Sole briefing-area warp endpoint, indexed by warp minus one (warp 1 only).
+///
+/// Player and companion arrive at world (-6000, 0, 3218), yaw 2048 in a
+/// 4096-unit turn, in view 2. No sounds, spawn/departure flags or map marker
+/// are requested. Acropolis area 18 borrows this entry while the room is loaded;
+/// consumers copy it by value. The two retained zero byte spans have unproven roles.
+extern DirectionWarpEntry gMistR18WarpEntries[1];
 
 /// Cameras for mapped briefing views 1..10, indexed by mapped view minus one.
 ///

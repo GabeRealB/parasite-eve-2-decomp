@@ -733,7 +733,7 @@ static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
     D_acropolis_fire_escape_80181DAC,
     D_acropolis_helicopter_landing_pad_80184F10,
     D_acropolis_west_elevator_hall_80185024,
-    D_mist_r18_8018660C,
+    gMistR18CollisionRoomResources,
     D_mist_parking_8019155C,
     D_mist_shooting_gallery_801853A8,
 };
@@ -783,7 +783,7 @@ DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
     D_acropolis_fire_escape_80181DCC,
     gAcropolisHelicopterLandingPadWarps,
     D_acropolis_west_elevator_hall_80185044,
-    D_mist_r18_8018662C,
+    gMistR18WarpEntries,
     D_mist_parking_801915E8,
     D_mist_shooting_gallery_801853C8,
 };
