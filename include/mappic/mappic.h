@@ -558,17 +558,53 @@ extern TmdSource D_mappic_s4_03_8012F9F0;
 extern TmdSource D_mappic_s4_03_8012FAEC;
 
 // mappic_s4_04
-extern TmdSource D_mappic_s4_04_8012EFD8;
+/// Area fill for the B2 elevator hall on page 4 of the Shelter map.
+///
+/// Eight vertices in the model X/Z plane form three quads, scaled
+/// by 1495/4096 with Z mapped to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s4_04
+/// loaded during use.
+extern TmdSource gMappicS404B2ElevatorHallShape;
 
-extern TmdSource D_mappic_s4_04_8012F084;
+/// Area fill for the B2 south maintenance walkway on page 4 of the Shelter map.
+///
+/// Six vertices in the model X/Z plane form two quads, scaled
+/// by 1495/4096 with Z mapped to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s4_04
+/// loaded during use.
+extern TmdSource gMappicS404B2SouthMaintenanceWalkwayShape;
 
-extern TmdSource D_mappic_s4_04_8012F114;
+/// Area fill for the B2 operating room on page 4 of the Shelter map.
+///
+/// Four vertices in the model X/Z plane form one quad, scaled
+/// by 1495/4096 with Z mapped to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s4_04
+/// loaded during use.
+extern TmdSource gMappicS404B2OperatingRoomShape;
 
-extern TmdSource D_mappic_s4_04_8012F1C0;
+/// Area fill for the B2 north maintenance walkway on page 4 of the Shelter map.
+///
+/// Six vertices in the model X/Z plane form two quads, scaled
+/// by 1495/4096 with Z mapped to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s4_04
+/// loaded during use.
+extern TmdSource gMappicS404B2NorthMaintenanceWalkwayShape;
 
-extern TmdSource D_mappic_s4_04_8012F26C;
+/// Area fill for the B2 laboratory on page 4 of the Shelter map.
+///
+/// Six vertices in the model X/Z plane form two quads, scaled
+/// by 1495/4096 with Z mapped to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s4_04
+/// loaded during use.
+extern TmdSource gMappicS404B2LaboratoryShape;
 
-extern TmdSource D_mappic_s4_04_8012F318;
+/// Area fill for the B2 breeding room on page 4 of the Shelter map.
+///
+/// Six vertices in the model X/Z plane form two quads, scaled
+/// by 1495/4096 with Z mapped to inverted screen Y. Has no normal data.
+/// The map borrows the vertices and first stream group; keep mappic_s4_04
+/// loaded during use.
+extern TmdSource gMappicS404B2BreedingRoomShape;
 
 extern TmdSource D_mappic_s4_04_8012F468;
 

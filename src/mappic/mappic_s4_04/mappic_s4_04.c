@@ -1,175 +1,205 @@
-#include <psyq/sys/types.h>
+#include "mappic/mappic.h"
 
-#include "types.h"
+#include <psyq/libgpu.h>
 
-#include "main/tmd_types.h"
+#include "common.h"
 
-static TmdBone _gMappicS404Model0006CSkeleton[1] = {
+/// Identity transform and self-parented root for the B2 elevator hall area shape.
+static TmdBone _gMappicS404B2ElevatorHallShapeSkeleton[] = {
 #include "assets/mappic_s4_04_model_0006C_skeleton.inc"
 };
 
-static u32 _gMappicS404Model0006CPartVerts[1] = {
+/// Vertex count of the B2 elevator hall shape's sole part (8 vertices).
+static u32 _gMappicS404B2ElevatorHallShapePartVerts[] = {
 #include "assets/mappic_s4_04_model_0006C_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404Model0006CVerts[8] = {
+/// B2 elevator hall fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2ElevatorHallShapeVerts[] = {
 #include "assets/mappic_s4_04_model_0006C_verts.inc"
 };
 
-static u32 _gMappicS404Model0006CStream[15] = {
+/// Three unlit TMD quads, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2ElevatorHallShapeStream[] = {
 #include "assets/mappic_s4_04_model_0006C_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012EFD8 = {
-    0,
-    72,
-    0,
-    1,
-    _gMappicS404Model0006CPartVerts,
-    _gMappicS404Model0006CVerts,
-    &_gMappicS404Model0006CVerts[8],
-    _gMappicS404Model0006CSkeleton,
-    _gMappicS404Model0006CStream,
+TmdSource gMappicS404B2ElevatorHallShape = {
+    .bufferHalfBytes  = 3 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2ElevatorHallShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2ElevatorHallShapePartVerts,
+    .verts            = _gMappicS404B2ElevatorHallShapeVerts,
+    .normals          = &_gMappicS404B2ElevatorHallShapeVerts[ARRAY_SIZE(_gMappicS404B2ElevatorHallShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2ElevatorHallShapeSkeleton,
+    .stream           = _gMappicS404B2ElevatorHallShapeStream,
 };
 
-static TmdBone _gMappicS404MappicS400Model0005C00154MappicS404Skeleton[1] = {
+/// Identity transform and self-parented root for the B2 south maintenance walkway area shape.
+static TmdBone _gMappicS404B2SouthMaintenanceWalkwayShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_mappic_s4_04_skeleton.inc"
 };
 
-static u32 _gMappicS404MappicS400Model0005C00154MappicS404PartVerts[1] = {
+/// Vertex count of the B2 south maintenance walkway shape's sole part (6 vertices).
+static u32 _gMappicS404B2SouthMaintenanceWalkwayShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_mappic_s4_04_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404MappicS400Model0005C00154MappicS404Verts[6] = {
+/// B2 south maintenance walkway fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2SouthMaintenanceWalkwayShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_mappic_s4_04_verts.inc"
 };
 
-static u32 _gMappicS404MappicS400Model0005C00154MappicS404Stream[12] = {
+/// Two unlit TMD quads, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2SouthMaintenanceWalkwayShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_mappic_s4_04_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012F084 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS404MappicS400Model0005C00154MappicS404PartVerts,
-    _gMappicS404MappicS400Model0005C00154MappicS404Verts,
-    &_gMappicS404MappicS400Model0005C00154MappicS404Verts[6],
-    _gMappicS404MappicS400Model0005C00154MappicS404Skeleton,
-    _gMappicS404MappicS400Model0005C00154MappicS404Stream,
+TmdSource gMappicS404B2SouthMaintenanceWalkwayShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2SouthMaintenanceWalkwayShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2SouthMaintenanceWalkwayShapePartVerts,
+    .verts            = _gMappicS404B2SouthMaintenanceWalkwayShapeVerts,
+    .normals          = &_gMappicS404B2SouthMaintenanceWalkwayShapeVerts[ARRAY_SIZE(_gMappicS404B2SouthMaintenanceWalkwayShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2SouthMaintenanceWalkwayShapeSkeleton,
+    .stream           = _gMappicS404B2SouthMaintenanceWalkwayShapeStream,
 };
 
-static TmdBone _gMappicS404MappicS202Model00C48001E4MappicS404Skeleton[1] = {
+/// Identity transform and self-parented root for the B2 operating room area shape.
+static TmdBone _gMappicS404B2OperatingRoomShapeSkeleton[] = {
 #include "assets/mappic_s2_02_model_00C48_001E4_mappic_s4_04_skeleton.inc"
 };
 
-static u32 _gMappicS404MappicS202Model00C48001E4MappicS404PartVerts[1] = {
+/// Vertex count of the B2 operating room shape's sole part (4 vertices).
+static u32 _gMappicS404B2OperatingRoomShapePartVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_001E4_mappic_s4_04_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404MappicS202Model00C48001E4MappicS404Verts[4] = {
+/// B2 operating room fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2OperatingRoomShapeVerts[] = {
 #include "assets/mappic_s2_02_model_00C48_001E4_mappic_s4_04_verts.inc"
 };
 
-static u32 _gMappicS404MappicS202Model00C48001E4MappicS404Stream[9] = {
+/// One unlit TMD quad, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2OperatingRoomShapeStream[] = {
 #include "assets/mappic_s2_02_model_00C48_001E4_mappic_s4_04_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012F114 = {
-    0,
-    24,
-    0,
-    1,
-    _gMappicS404MappicS202Model00C48001E4MappicS404PartVerts,
-    _gMappicS404MappicS202Model00C48001E4MappicS404Verts,
-    &_gMappicS404MappicS202Model00C48001E4MappicS404Verts[4],
-    _gMappicS404MappicS202Model00C48001E4MappicS404Skeleton,
-    _gMappicS404MappicS202Model00C48001E4MappicS404Stream,
+TmdSource gMappicS404B2OperatingRoomShape = {
+    .bufferHalfBytes  = sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2OperatingRoomShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2OperatingRoomShapePartVerts,
+    .verts            = _gMappicS404B2OperatingRoomShapeVerts,
+    .normals          = &_gMappicS404B2OperatingRoomShapeVerts[ARRAY_SIZE(_gMappicS404B2OperatingRoomShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2OperatingRoomShapeSkeleton,
+    .stream           = _gMappicS404B2OperatingRoomShapeStream,
 };
 
-static TmdBone _gMappicS404MappicS400Model0005C00290MappicS404Skeleton[1] = {
+/// Identity transform and self-parented root for the B2 north maintenance walkway area shape.
+static TmdBone _gMappicS404B2NorthMaintenanceWalkwayShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_00290_mappic_s4_04_skeleton.inc"
 };
 
-static u32 _gMappicS404MappicS400Model0005C00290MappicS404PartVerts[1] = {
+/// Vertex count of the B2 north maintenance walkway shape's sole part (6 vertices).
+static u32 _gMappicS404B2NorthMaintenanceWalkwayShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00290_mappic_s4_04_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404MappicS400Model0005C00290MappicS404Verts[6] = {
+/// B2 north maintenance walkway fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2NorthMaintenanceWalkwayShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00290_mappic_s4_04_verts.inc"
 };
 
-static u32 _gMappicS404MappicS400Model0005C00290MappicS404Stream[12] = {
+/// Two unlit TMD quads, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2NorthMaintenanceWalkwayShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_00290_mappic_s4_04_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012F1C0 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS404MappicS400Model0005C00290MappicS404PartVerts,
-    _gMappicS404MappicS400Model0005C00290MappicS404Verts,
-    &_gMappicS404MappicS400Model0005C00290MappicS404Verts[6],
-    _gMappicS404MappicS400Model0005C00290MappicS404Skeleton,
-    _gMappicS404MappicS400Model0005C00290MappicS404Stream,
+TmdSource gMappicS404B2NorthMaintenanceWalkwayShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2NorthMaintenanceWalkwayShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2NorthMaintenanceWalkwayShapePartVerts,
+    .verts            = _gMappicS404B2NorthMaintenanceWalkwayShapeVerts,
+    .normals          = &_gMappicS404B2NorthMaintenanceWalkwayShapeVerts[ARRAY_SIZE(_gMappicS404B2NorthMaintenanceWalkwayShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2NorthMaintenanceWalkwayShapeSkeleton,
+    .stream           = _gMappicS404B2NorthMaintenanceWalkwayShapeStream,
 };
 
-static TmdBone _gMappicS404MappicS400Model0005C0033CMappicS404Skeleton[1] = {
+/// Identity transform and self-parented root for the B2 laboratory area shape.
+static TmdBone _gMappicS404B2LaboratoryShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_0033C_mappic_s4_04_skeleton.inc"
 };
 
-static u32 _gMappicS404MappicS400Model0005C0033CMappicS404PartVerts[1] = {
+/// Vertex count of the B2 laboratory shape's sole part (6 vertices).
+static u32 _gMappicS404B2LaboratoryShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_0033C_mappic_s4_04_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404MappicS400Model0005C0033CMappicS404Verts[6] = {
+/// B2 laboratory fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2LaboratoryShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_0033C_mappic_s4_04_verts.inc"
 };
 
-static u32 _gMappicS404MappicS400Model0005C0033CMappicS404Stream[12] = {
+/// Two unlit TMD quads, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2LaboratoryShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_0033C_mappic_s4_04_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012F26C = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS404MappicS400Model0005C0033CMappicS404PartVerts,
-    _gMappicS404MappicS400Model0005C0033CMappicS404Verts,
-    &_gMappicS404MappicS400Model0005C0033CMappicS404Verts[6],
-    _gMappicS404MappicS400Model0005C0033CMappicS404Skeleton,
-    _gMappicS404MappicS400Model0005C0033CMappicS404Stream,
+TmdSource gMappicS404B2LaboratoryShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2LaboratoryShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2LaboratoryShapePartVerts,
+    .verts            = _gMappicS404B2LaboratoryShapeVerts,
+    .normals          = &_gMappicS404B2LaboratoryShapeVerts[ARRAY_SIZE(_gMappicS404B2LaboratoryShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2LaboratoryShapeSkeleton,
+    .stream           = _gMappicS404B2LaboratoryShapeStream,
 };
 
-static TmdBone _gMappicS404MappicS400Model0005C003E8MappicS404Skeleton[1] = {
+/// Identity transform and self-parented root for the B2 breeding room area shape.
+static TmdBone _gMappicS404B2BreedingRoomShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_003E8_mappic_s4_04_skeleton.inc"
 };
 
-static u32 _gMappicS404MappicS400Model0005C003E8MappicS404PartVerts[1] = {
+/// Vertex count of the B2 breeding room shape's sole part (6 vertices).
+static u32 _gMappicS404B2BreedingRoomShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_003E8_mappic_s4_04_partVerts.inc"
 };
 
-static SVECTOR _gMappicS404MappicS400Model0005C003E8MappicS404Verts[6] = {
+/// B2 breeding room fill vertices in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS404B2BreedingRoomShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_003E8_mappic_s4_04_verts.inc"
 };
 
-static u32 _gMappicS404MappicS400Model0005C003E8MappicS404Stream[12] = {
+/// Two unlit TMD quads, followed by two group ends and the stream end.
+///
+/// Faces store packed u16 vertex byte offsets and a colour word. The map
+/// draws textured fills from these faces and ignores their stored colours.
+static u32 _gMappicS404B2BreedingRoomShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_003E8_mappic_s4_04_stream.inc"
 };
 
-TmdSource D_mappic_s4_04_8012F318 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS404MappicS400Model0005C003E8MappicS404PartVerts,
-    _gMappicS404MappicS400Model0005C003E8MappicS404Verts,
-    &_gMappicS404MappicS400Model0005C003E8MappicS404Verts[6],
-    _gMappicS404MappicS400Model0005C003E8MappicS404Skeleton,
-    _gMappicS404MappicS400Model0005C003E8MappicS404Stream,
+TmdSource gMappicS404B2BreedingRoomShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS404B2BreedingRoomShapeSkeleton),
+    .partVertexCounts = _gMappicS404B2BreedingRoomShapePartVerts,
+    .verts            = _gMappicS404B2BreedingRoomShapeVerts,
+    .normals          = &_gMappicS404B2BreedingRoomShapeVerts[ARRAY_SIZE(_gMappicS404B2BreedingRoomShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS404B2BreedingRoomShapeSkeleton,
+    .stream           = _gMappicS404B2BreedingRoomShapeStream,
 };
 
 static TmdBone _gMappicS404Model004B4Skeleton[1] = {

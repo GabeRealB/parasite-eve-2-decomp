@@ -1,1 +1,7 @@
 // Overlay-local symbols for mappic_s4_04 (file 30404).
+gMappicS404B2ElevatorHallShape = 0x8012EFD8;
+gMappicS404B2SouthMaintenanceWalkwayShape = 0x8012F084;
+gMappicS404B2OperatingRoomShape = 0x8012F114;
+gMappicS404B2NorthMaintenanceWalkwayShape = 0x8012F1C0;
+gMappicS404B2LaboratoryShape = 0x8012F26C;
+gMappicS404B2BreedingRoomShape = 0x8012F318;
