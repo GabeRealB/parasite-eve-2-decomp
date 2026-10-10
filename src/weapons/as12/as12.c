@@ -1066,136 +1066,222 @@ static AnimationSet _gAs12ScriptedPresentationExitAnimation = {
     },
 };
 
-static AnimationPackedPose _gAs12Animation09554Bank1[11] = {
+/// Translation/rotation keyframes for `_gAs12PeReleaseFamily2Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12PeReleaseFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_09554_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation09554Bank4[125] = {
+/// Rotation-only keyframes for `_gAs12PeReleaseFamily2Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12PeReleaseFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09554_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation09554Records[167] = {
+/// Keyframe durations and control records for `_gAs12PeReleaseFamily2Animation`'s nineteen part tracks.
+static const AnimationRecord _gAs12PeReleaseFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09554_records.inc"
 };
 
-static u16 _gAs12Animation09554Indices[20] = {
+/// Record-array starts of `_gAs12PeReleaseFamily2Animation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12PeReleaseFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09554_indices.inc"
 };
 
-static AnimationSet _gAs12Animation09554 = {
-    _gAs12Animation09554Records,
-    _gAs12Animation09554Indices,
-    { NULL, _gAs12Animation09554Bank1, NULL, NULL, _gAs12Animation09554Bank4, NULL, NULL, NULL },
+/// Family-2 Parasite Energy release clip in AS12 bank slot 42.
+///
+/// Plays before the charge phase when the selected attachment uses clip family 2.
+/// Playback stops at the final pose.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12PeReleaseFamily2Animation = {
+    .records           = _gAs12PeReleaseFamily2AnimationRecords,
+    .trackStartIndices = _gAs12PeReleaseFamily2AnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12PeReleaseFamily2AnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12PeReleaseFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation09748Bank1[3] = {
+/// Translation/rotation keyframes for `_gAs12PeChargeFamily2Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12PeChargeFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_09748_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation09748Bank4[20] = {
+/// Rotation-only keyframes for `_gAs12PeChargeFamily2Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12PeChargeFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09748_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation09748Records[76] = {
+/// Keyframe durations and control records for `_gAs12PeChargeFamily2Animation`'s nineteen part tracks.
+static const AnimationRecord _gAs12PeChargeFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09748_records.inc"
 };
 
-static u16 _gAs12Animation09748Indices[20] = {
+/// Record-array starts of `_gAs12PeChargeFamily2Animation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12PeChargeFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09748_indices.inc"
 };
 
-static AnimationSet _gAs12Animation09748 = {
-    _gAs12Animation09748Records,
-    _gAs12Animation09748Indices,
-    { NULL, _gAs12Animation09748Bank1, NULL, NULL, _gAs12Animation09748Bank4, NULL, NULL, NULL },
+/// Family-2 Parasite Energy charge clip in AS12 bank slot 43.
+///
+/// Repeats while the selected attachment's countdown runs, before the cast clip.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12PeChargeFamily2Animation = {
+    .records           = _gAs12PeChargeFamily2AnimationRecords,
+    .trackStartIndices = _gAs12PeChargeFamily2AnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12PeChargeFamily2AnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12PeChargeFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation09BC8Bank1[8] = {
+/// Translation/rotation keyframes for `_gAs12PeCastFamily2Animation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12PeCastFamily2AnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_09BC8_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation09BC8Bank4[105] = {
+/// Rotation-only keyframes for `_gAs12PeCastFamily2Animation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12PeCastFamily2AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09BC8_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation09BC8Records[139] = {
+/// Keyframe durations and control records for `_gAs12PeCastFamily2Animation`'s nineteen part tracks.
+static const AnimationRecord _gAs12PeCastFamily2AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09BC8_records.inc"
 };
 
-static u16 _gAs12Animation09BC8Indices[20] = {
+/// Record-array starts of `_gAs12PeCastFamily2Animation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12PeCastFamily2AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09BC8_indices.inc"
 };
 
-static AnimationSet _gAs12Animation09BC8 = {
-    _gAs12Animation09BC8Records,
-    _gAs12Animation09BC8Indices,
-    { NULL, _gAs12Animation09BC8Bank1, NULL, NULL, _gAs12Animation09BC8Bank4, NULL, NULL, NULL },
+/// Family-2 Parasite Energy cast clip in AS12 bank slot 44.
+///
+/// Plays when the selected family-2 attachment's charge countdown reaches zero.
+/// Playback stops at the final pose.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12PeCastFamily2Animation = {
+    .records           = _gAs12PeCastFamily2AnimationRecords,
+    .trackStartIndices = _gAs12PeCastFamily2AnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12PeCastFamily2AnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12PeCastFamily2AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation09DA0Bank1[2] = {
+/// Translation/rotation keyframes for `_gAs12AimHoldAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12AimHoldAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_09DA0_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation09DA0Bank4[16] = {
+/// Rotation-only keyframes for `_gAs12AimHoldAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12AimHoldAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09DA0_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation09DA0Records[76] = {
+/// Keyframe durations and control records for `_gAs12AimHoldAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12AimHoldAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09DA0_records.inc"
 };
 
-static u16 _gAs12Animation09DA0Indices[20] = {
+/// Record-array starts of `_gAs12AimHoldAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12AimHoldAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_09DA0_indices.inc"
 };
 
-static AnimationSet _gAs12Animation09DA0 = {
-    _gAs12Animation09DA0Records,
-    _gAs12Animation09DA0Indices,
-    { NULL, _gAs12Animation09DA0Bank1, NULL, NULL, _gAs12Animation09DA0Bank4, NULL, NULL, NULL },
+/// Repeating stationary aim pose and attack-ready clip in AS12 bank slot 9.
+///
+/// Selected while aiming without movement or turn input and before firing.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12AimHoldAnimation = {
+    .records           = _gAs12AimHoldAnimationRecords,
+    .trackStartIndices = _gAs12AimHoldAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12AimHoldAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12AimHoldAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation0A5E0Bank1[14] = {
+/// Translation/rotation keyframes for `_gAs12AimBackwardTurnAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12AimBackwardTurnAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_0A5E0_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation0A5E0Bank4[194] = {
+/// Rotation-only keyframes for `_gAs12AimBackwardTurnAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12AimBackwardTurnAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0A5E0_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation0A5E0Records[272] = {
+/// Keyframe durations and control records for `_gAs12AimBackwardTurnAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12AimBackwardTurnAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0A5E0_records.inc"
 };
 
-static u16 _gAs12Animation0A5E0Indices[20] = {
+/// Record-array starts of `_gAs12AimBackwardTurnAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12AimBackwardTurnAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0A5E0_indices.inc"
 };
 
-static AnimationSet _gAs12Animation0A5E0 = {
-    _gAs12Animation0A5E0Records,
-    _gAs12Animation0A5E0Indices,
-    { NULL, _gAs12Animation0A5E0Bank1, NULL, NULL, _gAs12Animation0A5E0Bank4, NULL, NULL, NULL },
+/// Repeating backward-movement and stationary-turn aim clip in AS12 bank slot 13.
+///
+/// Selected for backward movement while aiming, or turning without displacement.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12AimBackwardTurnAnimation = {
+    .records           = _gAs12AimBackwardTurnAnimationRecords,
+    .trackStartIndices = _gAs12AimBackwardTurnAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12AimBackwardTurnAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12AimBackwardTurnAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gAs12Animation0B088Bank1[19] = {
+/// Translation/rotation keyframes for `_gAs12AimForwardAnimation`, in model units and 1/4096 turns.
+static const AnimationPackedPose _gAs12AimForwardAnimationBank1[] __attribute__((section(".data"), aligned(4))) = {
 #include "assets/as12_animation_0B088_bank1.inc"
 };
 
-static AnimationPackedRotation _gAs12Animation0B088Bank4[269] = {
+/// Rotation-only keyframes for `_gAs12AimForwardAnimation`, packed in eight-angle-unit steps.
+static const AnimationPackedRotation _gAs12AimForwardAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0B088_bank4.inc"
 };
 
-static AnimationRecord _gAs12Animation0B088Records[336] = {
+/// Keyframe durations and control records for `_gAs12AimForwardAnimation`'s nineteen part tracks.
+static const AnimationRecord _gAs12AimForwardAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0B088_records.inc"
 };
 
-static u16 _gAs12Animation0B088Indices[20] = {
+/// Record-array starts of `_gAs12AimForwardAnimation`'s nineteen model-part tracks.
+///
+/// The final halfword preserves the serialized descriptor's word alignment;
+/// playback indexes only the first nineteen entries (tracks 0..18).
+static const u16 _gAs12AimForwardAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/as12_animation_0B088_indices.inc"
 };
 
-static AnimationSet _gAs12Animation0B088 = {
-    _gAs12Animation0B088Records,
-    _gAs12Animation0B088Indices,
-    { NULL, _gAs12Animation0B088Bank1, NULL, NULL, _gAs12Animation0B088Bank4, NULL, NULL, NULL },
+/// Repeating forward-movement aim clip in AS12 bank slot 12.
+///
+/// Selected for forward movement while aiming; its record cues mark footsteps.
+/// Borrowed tracks and pose data must remain loaded throughout playback.
+static AnimationSet _gAs12AimForwardAnimation = {
+    .records           = _gAs12AimForwardAnimationRecords,
+    .trackStartIndices = _gAs12AimForwardAnimationIndices,
+    .poseBanks         = {
+        [AS12_ANIMATION_TRANSLATION_ROTATION_BANK] = _gAs12AimForwardAnimationBank1,
+        [AS12_ANIMATION_PACKED_ROTATION_BANK]      = _gAs12AimForwardAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gAs12Animation0C468Bank1[33] = {
@@ -1362,11 +1448,11 @@ AnimationBank D_as12_8012C300 = { { {
     &_gAs12PositiveTurnAnimation,
     &_gAs12Animation0D174,
     &_gAs12Animation0D6EC,
-    &_gAs12Animation09DA0,
+    &_gAs12AimHoldAnimation,
     &_gAs12Animation0CAF0,
     &_gAs12Animation0CAF0,
-    &_gAs12Animation0B088,
-    &_gAs12Animation0A5E0,
+    &_gAs12AimForwardAnimation,
+    &_gAs12AimBackwardTurnAnimation,
     &_gAs12Animation0C468,
     &_gAs12Animation0C468,
     &_gAs12Part4HitAnimation,
@@ -1395,9 +1481,9 @@ AnimationBank D_as12_8012C300 = { { {
     &_gAs12StairAscentFinishOddAnimation,
     &_gAs12ItemUseAnimation,
     &_gAs12IdleAnimation,
-    &_gAs12Animation09554,
-    &_gAs12Animation09748,
-    &_gAs12Animation09BC8,
+    &_gAs12PeReleaseFamily2Animation,
+    &_gAs12PeChargeFamily2Animation,
+    &_gAs12PeCastFamily2Animation,
     NULL,
     NULL,
     NULL,
