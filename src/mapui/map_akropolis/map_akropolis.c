@@ -717,7 +717,7 @@ WorldCoordRoomLighting* D_map_akropolis_8017AA28[20] = {
 
 static WorldCollisionRoomResources* D_map_akropolis_8017AA78[20] = {
     D_acropolis_square_80183B9C,
-    D_acropolis_east_elevator_hall_80186320,
+    gAcropolisEastElevatorHallRoomCollisionResources,
     D_acropolis_patio_80182E68,
     gAcropolisCafeteriaCollisionRooms,
     gAcropolisPlazaRoomCollisionResources,
@@ -767,7 +767,7 @@ SpriteAreaTable D_map_akropolis_8017AB1C = { D_map_akropolis_8017AACC };
 
 DirectionWarpEntry* D_map_akropolis_8017AB20[20] = {
     D_acropolis_square_80183BBC,
-    D_acropolis_east_elevator_hall_80186340,
+    gAcropolisEastElevatorHallWarpEntries,
     D_acropolis_patio_80182EEC,
     gAcropolisCafeteriaWarps,
     gAcropolisPlazaWarpEntries,

@@ -7540,9 +7540,7 @@ each half. The source is a whole-struct assignment of an `SVECTOR`-shaped
 type (four `s16`, so alignment 2), *not* four field stores:
 
 ```c
-extern SVECTOR D_acropolis_east_elevator_hall_8017D5E8;
-
-SVECTOR vec = D_acropolis_east_elevator_hall_8017D5E8;
+SVECTOR vec = _gAcropolisEastElevatorHallFirstBeaconOffset;
 ```
 
 An aggregate initializer (`SVECTOR vec = { 0x1600, -0x964, 0x540, 0 };`)

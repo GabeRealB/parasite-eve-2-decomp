@@ -15,12 +15,17 @@
 enum {
     ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT = 1,
     ACROPOLIS_EAST_ELEVATOR_HALL_VIEW_COUNT = 7,
+    ACROPOLIS_EAST_ELEVATOR_HALL_WARP_COUNT = 1,
 };
 
 extern AreaVariant D_acropolis_east_elevator_hall_80186C50[3];
 
-// acropolis_east_elevator_hall
-extern WorldCollisionRoomResources D_acropolis_east_elevator_hall_80186320[];
+/// Collision resources for the hall's single room, indexed by room minus one.
+///
+/// Supplies the grid, view boundaries and action triggers, with no sight
+/// occluders. The Acropolis map borrows this directory and mutable resources
+/// while the room overlay is loaded; keep it live until the triggers are unlinked.
+extern WorldCollisionRoomResources gAcropolisEastElevatorHallRoomCollisionResources[ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT];
 
 /// Logical-view map directory for the hall's single room.
 ///
@@ -38,7 +43,13 @@ extern ViewCount gAcropolisEastElevatorHallViewCounts[ACROPOLIS_EAST_ELEVATOR_HA
 /// is supplied. The lights contribute in every view.
 extern WorldCoordRoomLighting gAcropolisEastElevatorHallRoomLightingTable[ACROPOLIS_EAST_ELEVATOR_HALL_ROOM_COUNT];
 
-extern DirectionWarpEntry D_acropolis_east_elevator_hall_80186340[];
+/// The hall's warp-1 endpoint, borrowed by the Acropolis map's area-2 directory.
+///
+/// Player and companion arrive at (-5248, -31, 1068), yaw 1024 (4096 per turn),
+/// in view 4. Supplies arrival/departure sounds, no blocked sound or warp flags,
+/// and map marker 502. There is no terminator; keep the room overlay loaded
+/// while the endpoint is read or copied.
+extern DirectionWarpEntry gAcropolisEastElevatorHallWarpEntries[ACROPOLIS_EAST_ELEVATOR_HALL_WARP_COUNT];
 
 /// Sprite resources for mapped hall views 1..7, indexed by view minus one.
 ///
