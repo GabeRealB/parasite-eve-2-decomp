@@ -1493,7 +1493,7 @@ gDryfieldNightMotelRoom6AreaVariants = 0x801861B4; // absolute:True owner=dryfie
 
 D_dryfield_night_parking_lot_80181438 = 0x80181438; // absolute:True owner=dryfield_night_parking_lot
 
-D_dryfield_night_saloon_g_r_80188EE4 = 0x80188EE4; // absolute:True owner=dryfield_night_saloon_g_r
+gDryfieldNightSaloonGRAreaVariants = 0x80188EE4; // absolute:True owner=dryfield_night_saloon_g_r
 
 D_dryfield_night_souvenir_shop_8017F62C = 0x8017F62C; // absolute:True owner=dryfield_night_souvenir_shop
 

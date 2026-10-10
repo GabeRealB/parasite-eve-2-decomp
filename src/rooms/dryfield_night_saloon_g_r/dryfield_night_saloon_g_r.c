@@ -82,22 +82,6 @@ extern RoomEventReq gRoomEventReq;
 /// Descriptor of the event task `roomEventTask`.
 extern TaskDesc gRoomEventTaskDesc;
 
-/// The view slot the room was on when its cutscene took over, restored when the cutscene ends.
-extern RoomSavedViewStorage D_dryfield_night_saloon_g_r_80188FA4;
-
-extern TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[];
-extern TaskDesc         D_dryfield_night_saloon_g_r_8017F940[];
-
-/// Cutscene script blobs handed to `evsStartScript` / `evsStartScriptWithSkip`.
-extern EvsCommand D_dryfield_night_saloon_g_r_801848DC[];
-extern EvsCommand D_dryfield_night_saloon_g_r_80184B34[];
-extern EvsCommand D_dryfield_night_saloon_g_r_80184D2C[];
-extern EvsCommand D_dryfield_night_saloon_g_r_80183C94[];
-extern EvsCommand D_dryfield_night_saloon_g_r_801847A4[];
-
-/// Descriptor of the jukebox task `_jukeboxHostTask`.
-extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
-
 static void _dryfieldNightSaloonGRInitializeRoom(Task* task);
 static void _dryfieldNightSaloonGRIdleState(Task* task);
 static s32  _dryfieldNightSaloonGRQueueJukebox(s32 unusedArg);
@@ -152,13 +136,19 @@ static s32  _dryfieldNightSaloonGRRoomActionMessage(Task* task, s32 messageId, c
 static void _dryfieldNightSaloonGRJukeboxSceneTask(Task* task);
 
 enum {
-    DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM = 0x13F1,
-    DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE  = 2,
+    DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM  = 0x13F1,
+    DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE   = 2,
+    DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_TASK_PRIORITY = 192,
 };
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
-TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
+/// Message routes installed on the live night-saloon room task.
+///
+/// Routes room transitions, key-item refusal, direction actions and CAP room
+/// commands. The final `TASK_MESSAGE_TABLE_END` entry terminates lookup.
+/// The task borrows the table and callbacks while this room overlay is loaded.
+static TaskMessageEntry _gDryfieldNightSaloonGRRoomMessages[] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantSaloonMsg },
     { DRYFIELD_NIGHT_SALOON_G_R_MESSAGE_USE_KEY_ITEM, _dryfieldNightSaloonGRRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightSaloonGRRoomActionMessage },
@@ -166,8 +156,15 @@ TaskMessageEntry D_dryfield_night_saloon_g_r_8017F918[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_dryfield_night_saloon_g_r_8017F940[1] = {
-    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightSaloonGRJukeboxSceneTask, { .value = 0 } },
+/// Bodyless task recipe for the jukebox's caption, view switch and restoration.
+///
+/// Spawn at index 0 with zero payloads after holding scripted player control.
+/// Priority 192; the task uses the room's singleton saved view, so scenes must
+/// not overlap. Spawning copies the recipe; keep this room loaded through exit.
+static TaskDesc _gDryfieldNightSaloonGRJukeboxSceneTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_TASK_PRIORITY } },
+    .callback = _dryfieldNightSaloonGRJukeboxSceneTask,
+    .data     = { .value = 0 },
 };
 
 static AnimationPackedPose _gDryfieldNightSaloonGRAnimation02668Bank1[6] = {
@@ -581,7 +578,17 @@ static AnimationBankCopyRequest _gDryfieldNightSaloonGRPlayerDialogueBankCopyReq
     .wordCount = ARRAY_SIZE(_gDryfieldNightSaloonGRPlayerDialogueAnimationSets),
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183954 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained bank-index-1, clip-1 reset request with disabled world collision.
+///
+/// No recovered script or function dispatches this request; its intended
+/// recipient and scene role are unproven. Reset ignores the zero blend duration.
+static AnimationPlayRequest _gDryfieldNightSaloonGRAnimationBank1Clip1ResetRequest = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 enum {
     DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_SET          = ANIMATION_BANK_BASE_SET_COUNT + 1,
@@ -628,7 +635,19 @@ static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip50Request =
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_801839A4 = { { .index = 1 }, 51, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained request for player dialogue clip 51, room-extension entry 4.
+///
+/// Stores a 15-frame interpolation and disabled world collision. No recovered
+/// consumer dispatches this record. Weapon-animation dispatch would copy it
+/// and replace source index 1 with the equipped weapon bank; extension data
+/// must remain loaded through playback.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip51Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 4,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays player dialogue clip 52, entry 5 of the room's bank extension.
 ///
@@ -656,7 +675,19 @@ static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip53Request =
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_801839E0 = { { .index = 1 }, 54, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained request for player dialogue clip 54, room-extension entry 7.
+///
+/// Stores a 15-frame interpolation and disabled world collision. No recovered
+/// consumer dispatches this record. Weapon-animation dispatch would copy it
+/// and replace source index 1 with the equipped weapon bank; extension data
+/// must remain loaded through playback.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip54Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 7,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays player dialogue clip 55, entry 8 of the room's bank extension.
 ///
@@ -697,10 +728,16 @@ static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip57Request =
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A30[3] = {
-    { { .index = 1 }, 58, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 59, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 1 }, 60, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
+/// Retained player dialogue requests for clips 58..60, extension entries 11..13.
+///
+/// Three records in clip order, without a terminator or recovered consumer.
+/// Each stores a 15-frame interpolation and disabled world collision. Weapon
+/// dispatch would copy a request and replace source index 1 with the equipped
+/// bank; the room extension must stay loaded through playback.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClips58To60Requests[3] = {
+    { .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 11, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 12, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = 1 }, .animationId = ANIMATION_BANK_BASE_SET_COUNT + 13, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 /// Plays player dialogue clip 61, entry 14 of the room's bank extension.
@@ -716,7 +753,19 @@ static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip61Request =
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183A80 = { { .index = 1 }, 62, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained request for player dialogue clip 62, room-extension entry 15.
+///
+/// Stores a 15-frame interpolation and disabled world collision. No recovered
+/// consumer dispatches this record. Weapon-animation dispatch would copy it
+/// and replace source index 1 with the equipped weapon bank; extension data
+/// must remain loaded through playback.
+static AnimationPlayRequest _gDryfieldNightSaloonGRPlayerDialogueClip62Request = {
+    .source               = { .index = 1 },
+    .animationId          = ANIMATION_BANK_BASE_SET_COUNT + 15,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays player dialogue clip 63, entry 16 of the room's bank extension.
 ///
@@ -804,14 +853,25 @@ static GameActorMoveAnim _gDryfieldNightSaloonGRPlayerEntrySceneMoveClips = {
     .arrivalAnimId  = DRYFIELD_NIGHT_SALOON_G_R_PLAYER_DIALOGUE_SET,
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183B3C[2] = {
-    { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
-    { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE },
-};
-
 enum {
     DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK = 0,
     DRYFIELD_NIGHT_SALOON_G_R_KYLE_INITIAL_CLIP   = 2,
+};
+
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES = 15,
+    DRYFIELD_NIGHT_SALOON_G_R_KYLE_SHORT_BLEND_FRAMES    = 10,
+    DRYFIELD_NIGHT_SALOON_G_R_KYLE_LONG_BLEND_FRAMES     = 25,
+};
+
+/// Retained reset and blended requests for Kyle Madigan's bank-0 clip 1.
+///
+/// Two records without a terminator: index 0 resets; index 1 requests a
+/// 15-frame blend. Neither has a recovered consumer. Kyle's animation handler
+/// would borrow a request during dispatch and ignore its collision word.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleClip1Requests[2] = {
+    { .source = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK }, .animationId = 1, .blend = ANIMATION_BLEND_RESET, .blendFrames = 0, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
+    { .source = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK }, .animationId = 1, .blend = ANIMATION_BLEND_INTERPOLATE, .blendFrames = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES, .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
 /// Restarts Kyle Madigan's initial pose during the night-saloon dialogue scenes.
@@ -825,12 +885,6 @@ static AnimationPlayRequest _gDryfieldNightSaloonGRKyleInitialPoseRequest = {
     .blend                = ANIMATION_BLEND_RESET,
     .blendFrames          = 0,
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
-};
-
-enum {
-    DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES = 15,
-    DRYFIELD_NIGHT_SALOON_G_R_KYLE_SHORT_BLEND_FRAMES    = 10,
-    DRYFIELD_NIGHT_SALOON_G_R_KYLE_LONG_BLEND_FRAMES     = 25,
 };
 
 /// Plays Kyle Madigan's bank-0 dialogue clip 3 with a 15-frame blend.
@@ -911,8 +965,18 @@ static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip8Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-// Retained parameter record; layout follows the adjacent script arguments.
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183BF0 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Retained bank-0, clip-9 dialogue request for Kyle Madigan.
+///
+/// No recovered consumer dispatches it. Stores a 15-frame blend and disabled
+/// collision; Kyle's handler would reset an unticked rig and otherwise blend
+/// slots 1..19, ignoring collision. Clip data must stay loaded during playback.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip9Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 9,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays Kyle Madigan's bank-0 dialogue clip 10 with a 15-frame blend.
 ///
@@ -940,11 +1004,44 @@ static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip11Request = {
     .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
 };
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C2C = { { .index = 0 }, 12, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 12 with a 15-frame blend.
+///
+/// Placed actor 0 borrows this request through synchronous dispatch. A ticking
+/// rig blends slots 1..19; an unticked rig resets them. The collision word is
+/// ignored. Keep Kyle's bank and clip data loaded while playback uses them.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip12Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 12,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C40 = { { .index = 0 }, 13, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 13 with a 15-frame blend.
+///
+/// Placed actor 0 borrows this request through synchronous dispatch. A ticking
+/// rig blends slots 1..19; an unticked rig resets them. The collision word is
+/// ignored. Keep Kyle's bank and clip data loaded while playback uses them.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip13Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 13,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
-AnimationPlayRequest D_dryfield_night_saloon_g_r_80183C54 = { { .index = 0 }, 14, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Plays Kyle Madigan's bank-0 dialogue clip 14 with a 15-frame blend.
+///
+/// Placed actor 0 borrows this request through synchronous dispatch. A ticking
+/// rig blends slots 1..19; an unticked rig resets them. The collision word is
+/// ignored. Keep Kyle's bank and clip data loaded while playback uses them.
+static AnimationPlayRequest _gDryfieldNightSaloonGRKyleDialogueClip14Request = {
+    .source               = { .index = DRYFIELD_NIGHT_SALOON_G_R_KYLE_ANIMATION_BANK },
+    .animationId          = 14,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DIALOGUE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 /// Plays Kyle Madigan's bank-0 dialogue clip 15 with a 15-frame blend.
 ///
@@ -969,22 +1066,44 @@ static ActorTransform _gDryfieldNightSaloonGRKyleDialogueTransform = {
     .rot = { 0, (ACTOR_TRANSFORM_ANGLE_TURN / 4), 0, 0 },
 };
 
-EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_CAP_ENTRY_SCENE       = 7,
+    DRYFIELD_NIGHT_SALOON_G_R_CAP_FIRST_TALK        = 8,
+    DRYFIELD_NIGHT_SALOON_G_R_CAP_REPEAT_TALK       = 9,
+    DRYFIELD_NIGHT_SALOON_G_R_CAP_FOLLOW_UP_TALK    = 10,
+    DRYFIELD_NIGHT_SALOON_G_R_ENTRY_SCENE_VIEW      = 9,
+    DRYFIELD_NIGHT_SALOON_G_R_TALK_VIEW             = 10,
+    DRYFIELD_NIGHT_SALOON_G_R_FOLLOW_UP_TALK_VIEW   = 11,
+    DRYFIELD_NIGHT_SALOON_G_R_ENTRY_RETURN_VIEW     = 4,
+    DRYFIELD_NIGHT_SALOON_G_R_FOLLOW_UP_RETURN_VIEW = 7,
+    DRYFIELD_NIGHT_SALOON_G_R_KYLE_DRAW_SHOW        = 1,
+};
+
+/// Skippable first-entry dialogue and animation sequence with Kyle Madigan.
+///
+/// Room action 7 starts this once and latches the seen flag. Fades to view 9,
+/// installs the player extension, walks the player and runs CAP command 7 with
+/// synchronized actor clips. Returns to view 4, room 2 and normal player control.
+/// Ends at `EVENT_SCRIPT_OPCODE_END`; waits count interpreter updates. Keep
+/// the room scripts/payloads, Kyle and CAP resources loaded through completion.
+static EvsCommand _gDryfieldNightSaloonGREntrySceneScript[] = {
+    // Stage both actors behind the fade before starting the scripted approach.
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerEntrySceneStartTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRKyleDialogueTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 9 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_SALOON_G_R_ENTRY_SCENE_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_MOVE_TO }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerEntrySceneWalkTarget } }, { .message = { .moveAnimation = &_gDryfieldNightSaloonGRPlayerEntrySceneMoveClips } } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x53120006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 6) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 7 }, { .value = 0 } },
+    // CAP pauses pace the dialogue poses and room sound cues.
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_SALOON_G_R_CAP_ENTRY_SCENE }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip15Request } }, { .value = 0 } },
@@ -995,9 +1114,9 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip64Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C40 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip13Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x53120007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 7) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip64Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1008,16 +1127,16 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip49Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C54 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip14Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip50Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip6Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x53120008 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 8) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 45 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip53Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip7Request } }, { .value = 0 } },
@@ -1026,7 +1145,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1035,7 +1154,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip56Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1044,7 +1163,7 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 50 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip57Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip64Request }, { .value = 0 } },
@@ -1055,11 +1174,11 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip11Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip52Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x53120009 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 9) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip55Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1074,31 +1193,38 @@ EvsCommand D_dryfield_night_saloon_g_r_80183C94[118] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip63Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_night_saloon_g_r_80183C2C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip12Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    // Finish the staged exchange before restoring room view and control.
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_SALOON_G_R_ENTRY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _dryfieldNightSaloonGRSetRoom }, { .value = DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_saloon_g_r_801847A4[13] = {
-    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+/// Skip path for the first-entry dialogue, restoring room 2 and view 4.
+///
+/// Repositions the player at the entry start, releases scripted control,
+/// restores weapons and resets Kyle before selecting the dirty return view.
+/// Cleans up CAP/HUD/fade state under a primary fade, then terminates. The
+/// interpreter retains this path until completion; keep room/actor data loaded.
+static EvsCommand _gDryfieldNightSaloonGREntrySceneSkipScript[] = {
+    { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = SCREEN_FADE_SUBTRACT }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerEntrySceneStartTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = DRYFIELD_NIGHT_SALOON_G_R_ENTRY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _dryfieldNightSaloonGRSetRoom }, { .value = DRYFIELD_NIGHT_SALOON_G_R_ROOM_AFTER_CUTSCENE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1106,19 +1232,26 @@ EvsCommand D_dryfield_night_saloon_g_r_801847A4[13] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_saloon_g_r_801848DC[25] = {
+/// First optional Kyle conversation, using CAP command 8 and view 10.
+///
+/// Room command 8 selects this only at talk progress 0, then latches progress 1.
+/// Installs the player's room clips, places both actors and cues the dialogue.
+/// Restores weapons, player control, Kyle's pose and view 4 before termination.
+/// Waits count interpreter updates; script and borrowed payloads stay room-owned
+/// through completion, and actor/CAP resources must remain loaded.
+static EvsCommand _gDryfieldNightSaloonGRFirstTalkScript[] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerFirstTalkTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRKyleDialogueTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_SALOON_G_R_TALK_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5312000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 10) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_SALOON_G_R_CAP_FIRST_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip15Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1126,57 +1259,70 @@ EvsCommand D_dryfield_night_saloon_g_r_801848DC[25] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip61Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_SALOON_G_R_ENTRY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_saloon_g_r_80184B34[21] = {
+/// Repeat optional Kyle conversation, using CAP command 9 and view 10.
+///
+/// Room command 8 selects this at talk progress 1. Replaces the first talk's
+/// placement/dialogue sequence without starting its opening sound. Restores
+/// weapons, player control, Kyle's pose and view 4, then terminates. Script and
+/// payloads are borrowed through completion; keep room/actor/CAP data loaded.
+static EvsCommand _gDryfieldNightSaloonGRRepeatTalkScript[] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerRepeatTalkTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRKyleDialogueTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_SALOON_G_R_TALK_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 9 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_SALOON_G_R_CAP_REPEAT_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleDialogueClip15Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip64Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_SALOON_G_R_ENTRY_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-EvsCommand D_dryfield_night_saloon_g_r_80184D2C[20] = {
+/// Follow-up Kyle conversation, using CAP command 10 and view 11.
+///
+/// Room command 10 selects this while talk progress is below 2. Places the
+/// player at the follow-up position, cues dialogue and returns to view 7 with
+/// normal control, weapons and Kyle's initial pose. Does not itself write the
+/// progress flag. Ends at `EVENT_SCRIPT_OPCODE_END`; keep room/actor/CAP data
+/// loaded while the interpreter borrows the commands and payloads.
+static EvsCommand _gDryfieldNightSaloonGRFollowUpTalkScript[] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .animationBankCopy = &_gDryfieldNightSaloonGRPlayerDialogueBankCopyRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRPlayerFollowUpTalkTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_SET_MODEL_DRAW }, { .value = DRYFIELD_NIGHT_SALOON_G_R_KYLE_DRAW_SHOW }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gDryfieldNightSaloonGRKyleDialogueTransform } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_SALOON_G_R_FOLLOW_UP_TALK_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gDryfieldNightSaloonGRPlayerDialogueClip48Request }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5312000B }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_SALOON_G_R, 11) }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_START }, { .value = DRYFIELD_NIGHT_SALOON_G_R_CAP_FOLLOW_UP_TALK }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_END_SCRIPTED }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 7 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .pointer = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = DRYFIELD_NIGHT_SALOON_G_R_FOLLOW_UP_RETURN_VIEW }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gDryfieldNightSaloonGRKyleInitialPoseRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -1362,7 +1508,16 @@ static UiObjectDesc _gJukeboxPanelDesc = {
     .taskDataValue   = 0,
 };
 
-TaskDesc D_dryfield_night_saloon_g_r_80185068 = { { { TASK_BODY_NONE, 192 } }, _jukeboxHostTask, { .value = 0 } };
+/// Bodyless priority-192 task recipe hosting the saloon's jukebox SELECT panel.
+///
+/// The display-mode transition borrows this descriptor until it spawns index 0
+/// with zero payloads. The host creates the panel and exits the mode after its
+/// closing delay. Keep the room, callbacks and menu data loaded through exit.
+static TaskDesc _gDryfieldNightSaloonGRJukeboxHostTaskDesc = {
+    .header   = { .fields = { .flags = TASK_BODY_NONE, .priority = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_TASK_PRIORITY } },
+    .callback = _jukeboxHostTask,
+    .data     = { .value = 0 },
+};
 
 /// Night-saloon flare centres, beam endpoints and shaft guides in game-coordinate units.
 ///
@@ -2333,9 +2488,22 @@ static WorldCollisionOccluder _gDryfieldNightSaloonGRSightOccluders[2] = {
     },
 };
 
-AreaResource D_dryfield_night_saloon_g_r_80188E90[2] = {
-    { 140, 356, LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, 0, { 0, 0 }, gActor135600KyleMadiganTaskDescriptors },
-    { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
+enum {
+    DRYFIELD_NIGHT_SALOON_G_R_RESOURCE_KYLE_MADIGAN = 140,
+    DRYFIELD_NIGHT_SALOON_G_R_KYLE_FILE_NUMBER      = 356,
+    DRYFIELD_NIGHT_SALOON_G_R_KYLE_BODY_TASK        = 0,
+};
+
+/// Kyle Madigan's resource and spawn recipe for night-saloon placement variant 1.
+///
+/// Placement key 140 loads actor_135600 (base 10, decimal file number 356) and
+/// selects body descriptor 0. `AREA_PLACEMENT_END` ends the two-entry list.
+/// Placements are borrowed from the map overlay; this recipe is room-owned.
+/// Keep both overlays live during loading/spawning and Kyle's resources live
+/// while his task uses them; `unknown_6` remains two unaccessed zero bytes.
+static AreaResource _gDryfieldNightSaloonGRVariant1Resources[] = {
+    { .entryId = DRYFIELD_NIGHT_SALOON_G_R_RESOURCE_KYLE_MADIGAN, .fileNumber = DRYFIELD_NIGHT_SALOON_G_R_KYLE_FILE_NUMBER, .fileGroupIndex = LOADING_AREA_FILE_GROUP_BASE_10_SELECTOR, .taskIndex = DRYFIELD_NIGHT_SALOON_G_R_KYLE_BODY_TASK, .unknown_6 = { 0, 0 }, .taskTable = gActor135600KyleMadiganTaskDescriptors },
+    { .entryId = AREA_PLACEMENT_END },
 };
 
 /// Blood Suckler resources for night-saloon placement variant 2.
@@ -2361,9 +2529,9 @@ static AreaResource _gDryfieldNightSaloonGRVariant3Resources[] = {
     { .entryId = AREA_PLACEMENT_END },
 };
 
-AreaVariant D_dryfield_night_saloon_g_r_80188EE4[13] = {
+AreaVariant gDryfieldNightSaloonGRAreaVariants[DRYFIELD_NIGHT_SALOON_G_R_VARIANT_COUNT] = {
     { NULL, NULL },
-    { gMapDryfieldFullSaloonGRVariant1Placements, D_dryfield_night_saloon_g_r_80188E90 },
+    { gMapDryfieldFullSaloonGRVariant1Placements, _gDryfieldNightSaloonGRVariant1Resources },
     { gMapDryfieldFullSaloonGRVariant2Placements, _gDryfieldNightSaloonGRVariant2Resources },
     { gMapDryfieldFullSaloonGRVariant3Placements, _gDryfieldNightSaloonGRVariant3Resources },
     { NULL, NULL },
@@ -2451,7 +2619,12 @@ WorldCollisionSurfaceProperties* gDryfieldNightSaloonGRSurfacePropertiesByClass[
     &_gDryfieldNightSaloonGRSilentSurface,
 };
 
-RoomSavedViewStorage D_dryfield_night_saloon_g_r_80188FA4 = { 0 };
+/// View interrupted by the jukebox scene, restored when its menu closes.
+///
+/// Saves only the live save's 1-based view byte before selecting view 12. The
+/// singleton is reserved until restoration; overlapping scenes would overwrite
+/// it. Retains all eight image bytes; the seven-byte tail has no recovered use.
+static RoomSavedViewStorage _gDryfieldNightSaloonGRJukeboxSavedView = { 0 };
 
 /// Snapshot of the accepted transition for the deferred room event.
 ///
@@ -2468,11 +2641,11 @@ RoomEventReq gRoomEventReq;
 
 #include "../../shared/room_event_task.inc.c"
 
-/// The room task's three-state table, run from a stack copy by
-/// `dryfieldNightSaloonGRRoomTask`: the entry tick
-/// `_dryfieldNightSaloonGRInitializeRoom`, the idle state
-/// `_dryfieldNightSaloonGRIdleState`, then `taskKill`.
-static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
+/// Night-saloon room-state handlers: 0 initialize, 1 idle, 2 kill.
+///
+/// Indexed by `Task::state` in 0..2, without a terminator. Dispatch copies all
+/// three callback words to the stack; callbacks require the room to stay loaded.
+static const TaskFuncTable3 _gDryfieldNightSaloonGRRoomTaskStates = {
     { _dryfieldNightSaloonGRInitializeRoom, _dryfieldNightSaloonGRIdleState, taskKill },
 };
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
@@ -2488,10 +2661,10 @@ static inline void _dryfieldNightSaloonGRSelectJukeboxView(void)
     McSaveData* liveSave;
     u8          savedView;
 
-    liveSave                                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    savedView                                 = liveSave->state.location.loc.view;
-    liveSave->state.location.loc.view         = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_VIEW;
-    D_dryfield_night_saloon_g_r_80188FA4.view = savedView;
+    liveSave                                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    savedView                                    = liveSave->state.location.loc.view;
+    liveSave->state.location.loc.view            = DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_VIEW;
+    _gDryfieldNightSaloonGRJukeboxSavedView.view = savedView;
 }
 
 /// Presents the jukebox caption and menu, then restores the room view and control.
@@ -2544,7 +2717,7 @@ static void _dryfieldNightSaloonGRJukeboxSceneTask(Task* task)
             gGameSession->hideHud                                      = 0;
             D_80114D08                                                 = DRYFIELD_NIGHT_SALOON_G_R_INTERACTION_REARM_UPDATES;
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_dryfield_night_saloon_g_r_80188FA4.view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = _gDryfieldNightSaloonGRJukeboxSavedView.view;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             break;
@@ -2679,19 +2852,19 @@ static s32 _dryfieldNightSaloonGRCommandMessage(Task* task, s32 messageId, s32 c
     switch (commandId) {
         case DRYFIELD_NIGHT_SALOON_G_R_COMMAND_JUKEBOX:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_dryfield_night_saloon_g_r_8017F940, 0, 0, 0);
+            taskSpawnFromTable(&_gDryfieldNightSaloonGRJukeboxSceneTaskDesc, 0, 0, 0);
             break;
         case DRYFIELD_NIGHT_SALOON_G_R_COMMAND_TALK:
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) == DRYFIELD_NIGHT_SALOON_G_R_TALK_NEW) {
-                evsStartScript(D_dryfield_night_saloon_g_r_801848DC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gDryfieldNightSaloonGRFirstTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, DRYFIELD_NIGHT_SALOON_G_R_TALK_STARTED);
             } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) == DRYFIELD_NIGHT_SALOON_G_R_TALK_STARTED) {
-                evsStartScript(D_dryfield_night_saloon_g_r_80184B34, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gDryfieldNightSaloonGRRepeatTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             break;
         case DRYFIELD_NIGHT_SALOON_G_R_COMMAND_FOLLOW_UP:
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS) < DRYFIELD_NIGHT_SALOON_G_R_TALK_FINISHED) {
-                evsStartScript(D_dryfield_night_saloon_g_r_80184D2C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
+                evsStartScript(_gDryfieldNightSaloonGRFollowUpTalkScript, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             break;
     }
@@ -2734,7 +2907,7 @@ static s32 _dryfieldNightSaloonGRRoomActionMessage(Task* task, s32 messageId, co
     u8 roomVariant;
 
     if (request->actionId == DRYFIELD_NIGHT_SALOON_G_R_ACTION_ENTRY && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN) == 0) {
-        evsStartScriptWithSkip(D_dryfield_night_saloon_g_r_80183C94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_saloon_g_r_801847A4);
+        evsStartScriptWithSkip(_gDryfieldNightSaloonGREntrySceneScript, EVENT_SCRIPT_HUD_HIDE_RESTORE, _gDryfieldNightSaloonGREntrySceneSkipScript);
         gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 1);
     }
     roomVariant = gGameSession->location.loc.variant;
@@ -2777,7 +2950,7 @@ static void _dryfieldNightSaloonGRInitializeRoom(Task* task)
 {
     enum { DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT = 2 };
 
-    task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
+    task->msgTable = _gDryfieldNightSaloonGRRoomMessages;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
         _dryfieldNightSaloonGRHideEncounterActors();
@@ -2795,7 +2968,7 @@ void dryfieldNightSaloonGRRoomTask(Task* task)
 {
     TaskFuncTable3 stateHandlers;
 
-    stateHandlers = D_dryfield_night_saloon_g_r_8017D5DC;
+    stateHandlers = _gDryfieldNightSaloonGRRoomTaskStates;
     stateHandlers.funcs[task->state](task);
 }
 
@@ -2964,7 +3137,7 @@ static s32 _dryfieldNightSaloonGRQueueJukebox(s32 unusedArg)
 {
     enum { DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_QUEUED_RESULT = 1 };
 
-    displayQueueModeTask(&D_dryfield_night_saloon_g_r_80185068, 0, 0, STAGE_ENTRY_RELOAD);
+    displayQueueModeTask(&_gDryfieldNightSaloonGRJukeboxHostTaskDesc, 0, 0, STAGE_ENTRY_RELOAD);
     return DRYFIELD_NIGHT_SALOON_G_R_JUKEBOX_QUEUED_RESULT;
 }
 

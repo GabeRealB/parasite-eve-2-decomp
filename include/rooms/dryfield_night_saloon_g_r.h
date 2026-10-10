@@ -19,7 +19,18 @@ enum {
     DRYFIELD_NIGHT_SALOON_G_R_VIEW_COUNT = 13,
 };
 
-extern AreaVariant D_dryfield_night_saloon_g_r_80188EE4[13];
+/// Number of indexed placement-variant slots retained by the night saloon.
+enum { DRYFIELD_NIGHT_SALOON_G_R_VARIANT_COUNT = 13 };
+
+/// Placement/resource pairs for the night saloon, indexed by the saved variant.
+///
+/// Indices 0..12 have no terminator; only 1..3 are present: Kyle, the Blood
+/// Suckler encounter, then Scavenger/Blood Sucklers. Slots 0 and 4..12 hold
+/// two NULL pointers and cannot supply a loadable layout. Gameplay's night
+/// area directory borrows this table while the room overlay is loaded. The
+/// placements independently borrow the loaded Dryfield map overlay, and the
+/// room-owned recipes borrow their actor overlays during loading/spawning.
+extern AreaVariant gDryfieldNightSaloonGRAreaVariants[DRYFIELD_NIGHT_SALOON_G_R_VARIANT_COUNT];
 
 /// Lighting for night-saloon rooms 1 and 2, sharing one mutable point-light collection.
 ///
