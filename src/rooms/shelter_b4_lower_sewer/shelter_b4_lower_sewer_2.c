@@ -40,6 +40,7 @@
 #include "main/gfx.h"
 #include "main/mem.h"
 #include "main/scratch.h"
+#include "main/sound_types.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
 
@@ -99,7 +100,7 @@ SVECTOR D_shelter_b4_lower_sewer_80181F14[16] = {
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
-u8* D_shelter_b4_lower_sewer_80181FA4[1] = {
+u8* gShelterB4LowerSewerViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -158,29 +159,48 @@ SVECTOR D_shelter_b4_lower_sewer_8018211C[10] = {
     { 0, 0, 0, -1 },
 };
 
-static SVECTOR _gShelterB4LowerSewerCollision05324Normals[16] = {
+/// Room-space collision normals, with 4096 representing unit length.
+static SVECTOR _gShelterB4LowerSewerCollisionGridNormals[] = {
 #include "assets/shelter_b4_lower_sewer_collision_05324_normals.inc"
 };
 
-static SVECTOR _gShelterB4LowerSewerCollision05324Verts[100] = {
+/// Collision vertices in signed room-coordinate units.
+static SVECTOR _gShelterB4LowerSewerCollisionGridVerts[] = {
 #include "assets/shelter_b4_lower_sewer_collision_05324_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB4LowerSewerCollision05324Faces[33] = {
+/// Indexed collision triangles and quads carrying room-local surface classes.
+static WorldCollisionGridFace _gShelterB4LowerSewerCollisionGridFaces[] = {
 #include "assets/shelter_b4_lower_sewer_collision_05324_faces.inc"
 };
 
-static s16 _gShelterB4LowerSewerCollision05324Cells[262] = {
+/// Packed cell face-index lists, each ending at `WORLD_COLLISION_GRID_CELL_END`.
+///
+/// The cell table selects list starts; retained halfwords between lists are outside the scans.
+static s16 _gShelterB4LowerSewerCollisionGridCells[] = {
 #include "assets/shelter_b4_lower_sewer_collision_05324_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB4LowerSewerCollision05324Cells[i])
-static s16* _gShelterB4LowerSewerCollision05324Table[16] = {
+#define GRID_CELL(i) (&_gShelterB4LowerSewerCollisionGridCells[i])
+/// X-major face-list starts for eight X cells and two Z cells.
+static s16* _gShelterB4LowerSewerCollisionGridTable[] = {
 #include "assets/shelter_b4_lower_sewer_collision_05324_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b4_lower_sewer_801828E4 = { NULL, _gShelterB4LowerSewerCollision05324Normals, _gShelterB4LowerSewerCollision05324Verts, _gShelterB4LowerSewerCollision05324Faces, _gShelterB4LowerSewerCollision05324Table, 0x39A8, 3210, 8, 2, 4000, 33 };
+WorldCollisionGrid gShelterB4LowerSewerCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB4LowerSewerCollisionGridNormals,
+    .vertices    = _gShelterB4LowerSewerCollisionGridVerts,
+    .faces       = _gShelterB4LowerSewerCollisionGridFaces,
+    .cellFaceIds = _gShelterB4LowerSewerCollisionGridTable,
+    .xBias       = 14760,
+    .zBias       = 3210,
+    .cellCountX  = 8,
+    .cellCountZ  = 2,
+    .cellSize    = 4000,
+    .faceCount   = ARRAY_SIZE(_gShelterB4LowerSewerCollisionGridFaces),
+};
 
 ViewCamera D_shelter_b4_lower_sewer_80182908[9] = {
     { { { { 4096, 0, 0 }, { 0, 0, -4096 }, { 0, 4096, 0 } }, { 0, 0x7530, 0 } }, 207 },
@@ -194,142 +214,182 @@ ViewCamera D_shelter_b4_lower_sewer_80182908[9] = {
     { { { { -974, 0, 3978 }, { 865, 3997, 211 }, { -3883, 891, -950 } }, { 410, 4410, -280 } }, 257 },
 };
 
-SpriteBatch D_shelter_b4_lower_sewer_80182A4C[2] = {
+/// Texture-page, palette and neutral modulation shared by this room's view sprites.
+enum {
+    SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE         = getTPage(1, 0, 960, 0),
+    SHELTER_B4_LOWER_SEWER_SPRITE_CLUT          = getClut(0, 255),
+    SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR = 128,
+};
+
+/// Empty sprite list for mapped view 1, retaining the decoded background.
+///
+/// The zero-count first batch precedes the end marker; the source slot aliases this list.
+static SpriteBatch _gShelterB4LowerSewerView1SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b4_lower_sewer_80182A5C[2] = {
+/// Empty sprite list for mapped view 2, retaining the decoded background.
+static SpriteBatch _gShelterB4LowerSewerView2SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b4_lower_sewer_80182A6C[2] = {
+/// Empty sprite list for mapped view 3, retaining the decoded background.
+static SpriteBatch _gShelterB4LowerSewerView3SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_lower_sewer_80182A7C[3] = {
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, 40, -72, 3800, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 32, -48, 3775, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 32, -16, 3750, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
+/// Three opaque depth-sorted texture rectangles for mapped view 4.
+///
+/// Positions are pixels relative to the view centre; depths are unscaled OT sorting values.
+static SpriteSource _gShelterB4LowerSewerView4SpriteSources[] = {
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 32, 24 } }, 40, -72, 3800, { .fields = { 96, 64 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 40, 32 } }, 32, -48, 3775, { .fields = { 88, 0 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 40, 32 } }, 32, -16, 3750, { .fields = { 88, 32 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b4_lower_sewer_80182AB8[3] = {
+/// Decoded background followed by every source sprite for mapped view 4.
+static SpriteBatch _gShelterB4LowerSewerView4SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 3, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4LowerSewerView4SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_lower_sewer_80182AD0[16] = {
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 24, -72, 1800, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 32 } }, 40, -48, 1925, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 24 } }, 40, 64, 1625, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 24, 64, 1420, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, 40, 48, 1675, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 48, 1438, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, 40, 32, 1725, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 32, 1488, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, 40, 16, 1775, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 16, 1506, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 40, 0, 1825, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, 0, 1700, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 40, -16, 1875, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 24, -16, 1750, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 80, 88, 1377, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 88, 1450, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
+/// Sixteen opaque depth-sorted texture rectangles for mapped view 5.
+///
+/// Positions are pixels relative to the view centre; depths are unscaled OT sorting values.
+static SpriteSource _gShelterB4LowerSewerView5SpriteSources[] = {
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 16, 56 } }, 24, -72, 1800, { .fields = { 112, 0 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 40, 32 } }, 40, -48, 1925, { .fields = { 88, 56 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 64, 24 } }, 40, 64, 1625, { .fields = { 64, 112 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 16, 24 } }, 24, 64, 1420, { .fields = { 112, 88 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 56, 16 } }, 40, 48, 1675, { .fields = { 56, 0 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 48, 1438, { .fields = { 112, 232 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 56, 16 } }, 40, 32, 1725, { .fields = { 56, 16 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 32, 1488, { .fields = { 96, 88 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 56, 16 } }, 40, 16, 1775, { .fields = { 56, 32 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 16, 1506, { .fields = { 112, 216 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 48, 16 } }, 40, 0, 1825, { .fields = { 80, 152 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, 0, 1700, { .fields = { 112, 136 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 48, 16 } }, 40, -16, 1875, { .fields = { 80, 168 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 16, 16 } }, 24, -16, 1750, { .fields = { 112, 200 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 24, 16 } }, 80, 88, 1377, { .fields = { 104, 184 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 24, 8 } }, 24, 88, 1450, { .fields = { 104, 248 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b4_lower_sewer_80182C10[3] = {
+/// Decoded background followed by every source sprite for mapped view 5.
+static SpriteBatch _gShelterB4LowerSewerView5SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 16, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4LowerSewerView5SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_lower_sewer_80182C28[9] = {
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -8, 48, 1725, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -8, 56, 1618, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -16, 64, 1575, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -24, 72, 1452, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -24, 80, 1425, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -32, 88, 1350, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 8 } }, -32, 96, 1275, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -40, 104, 1200, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 8 } }, -40, 112, 1125, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+/// Nine opaque eight-pixel-high texture strips for mapped view 6, each with its own depth.
+///
+/// Positions are pixels relative to the view centre; depths are unscaled OT sorting values.
+static SpriteSource _gShelterB4LowerSewerView6SpriteSources[] = {
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 64, 8 } }, -8, 48, 1725, { .fields = { 64, 0 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 64, 8 } }, -8, 56, 1618, { .fields = { 64, 8 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 72, 8 } }, -16, 64, 1575, { .fields = { 56, 16 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -24, 72, 1452, { .fields = { 48, 24 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -24, 80, 1425, { .fields = { 48, 32 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 88, 8 } }, -32, 88, 1350, { .fields = { 40, 40 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 88, 8 } }, -32, 96, 1275, { .fields = { 40, 48 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 96, 8 } }, -40, 104, 1200, { .fields = { 32, 56 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 96, 8 } }, -40, 112, 1125, { .fields = { 32, 64 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b4_lower_sewer_80182CDC[3] = {
+/// Decoded background followed by every source sprite for mapped view 6.
+static SpriteBatch _gShelterB4LowerSewerView6SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 9, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4LowerSewerView6SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b4_lower_sewer_80182CF4[2] = {
+/// Empty sprite list for mapped view 7, retaining the decoded background.
+static SpriteBatch _gShelterB4LowerSewerView7SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b4_lower_sewer_80182D04[2] = {
+/// Empty sprite list for mapped view 8, retaining the decoded background.
+static SpriteBatch _gShelterB4LowerSewerView8SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b4_lower_sewer_80182D14[17] = {
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -8, 16, 1690, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -8, 24, 1686, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -16, 32, 1626, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -16, 40, 1625, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -32, 48, 1500, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -32, 56, 1425, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -32, 64, 1400, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -32, 72, 1250, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -32, 80, 1175, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -32, 88, 1125, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -40, 96, 1075, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -40, 104, 1025, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -40, 112, 975, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -8, 8, 1742, { .fields = { 64, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -8, 0, 1808, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -8, -8, 1873, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -8, -16, 2005, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+/// Seventeen opaque eight-pixel-high texture strips for mapped view 9, each with its own depth.
+///
+/// Positions are pixels relative to the view centre; depths are unscaled OT sorting values.
+static SpriteSource _gShelterB4LowerSewerView9SpriteSources[] = {
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 64, 8 } }, -8, 16, 1690, { .fields = { 64, 0 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 64, 8 } }, -8, 24, 1686, { .fields = { 64, 8 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 72, 8 } }, -16, 32, 1626, { .fields = { 56, 16 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 72, 8 } }, -16, 40, 1625, { .fields = { 56, 24 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -32, 48, 1500, { .fields = { 48, 32 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -32, 56, 1425, { .fields = { 48, 40 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -32, 64, 1400, { .fields = { 48, 48 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -32, 72, 1250, { .fields = { 48, 56 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -32, 80, 1175, { .fields = { 48, 64 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -32, 88, 1125, { .fields = { 48, 72 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -40, 96, 1075, { .fields = { 48, 80 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -40, 104, 1025, { .fields = { 48, 88 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 80, 8 } }, -40, 112, 975, { .fields = { 48, 96 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 64, 8 } }, -8, 8, 1742, { .fields = { 64, 104 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 64, 8 } }, -8, 0, 1808, { .fields = { 64, 112 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 64, 8 } }, -8, -8, 1873, { .fields = { 64, 120 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
+    { SHELTER_B4_LOWER_SEWER_SPRITE_TPAGE, SHELTER_B4_LOWER_SEWER_SPRITE_CLUT, { .fields = { 64, 8 } }, -8, -16, 2005, { .fields = { 64, 128 } }, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, SHELTER_B4_LOWER_SEWER_SPRITE_NEUTRAL_COLOR, 0 },
 };
 
-SpriteBatch D_shelter_b4_lower_sewer_80182E68[3] = {
+/// Decoded background followed by every source sprite for mapped view 9.
+static SpriteBatch _gShelterB4LowerSewerView9SpriteBatches[] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 17, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB4LowerSewerView9SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b4_lower_sewer_80182E80[9] = {
-    { { .empty = D_shelter_b4_lower_sewer_80182A4C }, D_shelter_b4_lower_sewer_80182A4C, NULL },
-    { { .empty = D_shelter_b4_lower_sewer_80182A5C }, D_shelter_b4_lower_sewer_80182A5C, NULL },
-    { { .empty = D_shelter_b4_lower_sewer_80182A6C }, D_shelter_b4_lower_sewer_80182A6C, NULL },
-    { { .elements = D_shelter_b4_lower_sewer_80182A7C }, D_shelter_b4_lower_sewer_80182AB8, NULL },
-    { { .elements = D_shelter_b4_lower_sewer_80182AD0 }, D_shelter_b4_lower_sewer_80182C10, NULL },
-    { { .elements = D_shelter_b4_lower_sewer_80182C28 }, D_shelter_b4_lower_sewer_80182CDC, NULL },
-    { { .empty = D_shelter_b4_lower_sewer_80182CF4 }, D_shelter_b4_lower_sewer_80182CF4, NULL },
-    { { .empty = D_shelter_b4_lower_sewer_80182D04 }, D_shelter_b4_lower_sewer_80182D04, NULL },
-    { { .elements = D_shelter_b4_lower_sewer_80182D14 }, D_shelter_b4_lower_sewer_80182E68, NULL },
+SpriteView gShelterB4LowerSewerSpriteViews[9] = {
+    { { .empty = _gShelterB4LowerSewerView1SpriteBatches }, _gShelterB4LowerSewerView1SpriteBatches, NULL },
+    { { .empty = _gShelterB4LowerSewerView2SpriteBatches }, _gShelterB4LowerSewerView2SpriteBatches, NULL },
+    { { .empty = _gShelterB4LowerSewerView3SpriteBatches }, _gShelterB4LowerSewerView3SpriteBatches, NULL },
+    { { .elements = _gShelterB4LowerSewerView4SpriteSources }, _gShelterB4LowerSewerView4SpriteBatches, NULL },
+    { { .elements = _gShelterB4LowerSewerView5SpriteSources }, _gShelterB4LowerSewerView5SpriteBatches, NULL },
+    { { .elements = _gShelterB4LowerSewerView6SpriteSources }, _gShelterB4LowerSewerView6SpriteBatches, NULL },
+    { { .empty = _gShelterB4LowerSewerView7SpriteBatches }, _gShelterB4LowerSewerView7SpriteBatches, NULL },
+    { { .empty = _gShelterB4LowerSewerView8SpriteBatches }, _gShelterB4LowerSewerView8SpriteBatches, NULL },
+    { { .elements = _gShelterB4LowerSewerView9SpriteSources }, _gShelterB4LowerSewerView9SpriteBatches, NULL },
 };
 
-WorldCoordPointLight D_shelter_b4_lower_sewer_80182EEC[14] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7100, -1900, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 3662, 5242 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x3908, -4600, 2199 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2500, 3500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3700, -4000, -430 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -99, -4000, -430 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 4341, 4920 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3400, -4000, -430 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7400, -4000, -430 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 4162, 5341 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2C88, -4000, -430 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 4501, 4898 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -7100, -4000, -430 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 1500, 2500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -0x2EE5, -1800, 749 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 3859, 3860 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2C88, -1900, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2000, 3000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7400, -1900, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 3121, 4161 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 3400, -1900, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2481, 4983 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -99, -1900, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2300, 3921 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -3700, -1900, 1500 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2300, 5121 },
+/// Fourteen authored point lights admitted in every view, with world-unit falloff radii.
+///
+/// Room-light setup binds the coordinate parents; composition and shading mutate their caches.
+static WorldCoordPointLight _gShelterB4LowerSewerPointLights[] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7100, -1900, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 3662, 5242 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x3908, -4600, 2199 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2500, 3500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3700, -4000, -430 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -99, -4000, -430 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 4341, 4920 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3400, -4000, -430 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7400, -4000, -430 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 4162, 5341 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2C88, -4000, -430 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 4501, 4898 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -7100, -4000, -430 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1638, 1638, 1638 }, { 0, 0 } }, 1500, 2500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -0x2EE5, -1800, 749 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 3859, 3860 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2C88, -1900, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2000, 3000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7400, -1900, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 3121, 4161 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 3400, -1900, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2481, 4983 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -99, -1900, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2300, 3921 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -3700, -1900, 1500 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2457, 2457, 2457 }, { 0, 0 } }, 2300, 5121 },
 };
 
-WorldCoordRoomLights D_shelter_b4_lower_sewer_8018342C = { 0, NULL, ARRAY_SIZE(D_shelter_b4_lower_sewer_80182EEC), D_shelter_b4_lower_sewer_80182EEC, 0, NULL };
+WorldCoordRoomLights gShelterB4LowerSewerRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB4LowerSewerPointLights),
+    .pointLights           = _gShelterB4LowerSewerPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
+};
 
 WorldCollisionTrigger D_shelter_b4_lower_sewer_80183444[12] = {
     { NULL, NULL, NULL, { 0x2A5F, -3585, -1922, 0 }, { { -6, -3824, 2091, 0 }, { -7, -3824, -2101, 0 }, { -6, 3824, 2091, 0 }, { -7, 3824, -2101, 0 } }, { -4102, 0, 0, 0 }, { 0, 0, 4096, 0 }, 4344, 0, 7, 6, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY, 0 },
@@ -446,53 +506,93 @@ AreaVariant D_shelter_b4_lower_sewer_80183D48[12] = {
     { D_shelter_b4_lower_sewer_80183D08, D_shelter_b4_lower_sewer_80183BF4 },
 };
 
-WorldCollisionFootstepSounds D_shelter_b4_lower_sewer_80183DA8 = {
-    0x10000041,
-    0x10000043,
-    0x10000055,
+/// Type-1 cue-2 bases; cue 1 adds one and companion playback adds 100.
+enum {
+    SHELTER_B4_LOWER_SEWER_SURFACE5_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x41,
+    SHELTER_B4_LOWER_SEWER_SURFACE5_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x43,
+    SHELTER_B4_LOWER_SEWER_SURFACE5_JUMP_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x55,
+    SHELTER_B4_LOWER_SEWER_SURFACE2_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3D,
+    SHELTER_B4_LOWER_SEWER_SURFACE2_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x3F,
+    SHELTER_B4_LOWER_SEWER_SURFACE3_WALK_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x15,
+    SHELTER_B4_LOWER_SEWER_SURFACE3_RUN_CUE_BASE  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x17,
+    SHELTER_B4_LOWER_SEWER_SURFACE3_JUMP_CUE_BASE = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x19,
 };
 
-WorldCollisionFootstepSounds D_shelter_b4_lower_sewer_80183DB4 = {
-    0x1000003D,
-    0x1000003F,
-    0x1000003D,
+/// Distinct walking, running and scripted-jump cue pairs for surface class 5.
+static WorldCollisionFootstepSounds _gShelterB4LowerSewerSurface5FootstepSounds = {
+    .walk         = SHELTER_B4_LOWER_SEWER_SURFACE5_WALK_CUE_BASE,
+    .run          = SHELTER_B4_LOWER_SEWER_SURFACE5_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B4_LOWER_SEWER_SURFACE5_JUMP_CUE_BASE,
 };
 
-WorldCollisionFootstepSounds D_shelter_b4_lower_sewer_80183DC0 = {
-    0x10000015,
-    0x10000017,
-    0x10000019,
+/// Surface-class-2 cue pairs, with scripted jumps using the walking pair.
+static WorldCollisionFootstepSounds _gShelterB4LowerSewerSurface2FootstepSounds = {
+    .walk         = SHELTER_B4_LOWER_SEWER_SURFACE2_WALK_CUE_BASE,
+    .run          = SHELTER_B4_LOWER_SEWER_SURFACE2_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B4_LOWER_SEWER_SURFACE2_WALK_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DCC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Distinct walking, running and scripted-jump cue pairs for surface class 3.
+static WorldCollisionFootstepSounds _gShelterB4LowerSewerSurface3FootstepSounds = {
+    .walk         = SHELTER_B4_LOWER_SEWER_SURFACE3_WALK_CUE_BASE,
+    .run          = SHELTER_B4_LOWER_SEWER_SURFACE3_RUN_CUE_BASE,
+    .scriptedJump = SHELTER_B4_LOWER_SEWER_SURFACE3_JUMP_CUE_BASE,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DD4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_PASS_PROBES, WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Silent blocking policy shared by surface classes 0, 4, 6 and 7.
+static WorldCollisionSurfaceProperties _gShelterB4LowerSewerDefaultSurface = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DDC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_lower_sewer_80183DB4 },
+/// Class-1 policy: pass probes, ignore weapon impacts and apply pushback, with silent footsteps.
+static WorldCollisionSurfaceProperties _gShelterB4LowerSewerSurface1 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_PASS_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DE4[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_lower_sewer_80183DC0 },
+/// Class-2 blocking policy with weapon impacts, pushback and its own footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB4LowerSewerSurface2 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB4LowerSewerSurface2FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties D_shelter_b4_lower_sewer_80183DEC[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_shelter_b4_lower_sewer_80183DA8 },
+/// Class-3 blocking policy with weapon impacts, pushback and its own footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB4LowerSewerSurface3 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB4LowerSewerSurface3FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_shelter_b4_lower_sewer_80183DF4[8] = {
-    D_shelter_b4_lower_sewer_80183DCC,
-    D_shelter_b4_lower_sewer_80183DD4,
-    D_shelter_b4_lower_sewer_80183DDC,
-    D_shelter_b4_lower_sewer_80183DE4,
-    D_shelter_b4_lower_sewer_80183DCC,
-    D_shelter_b4_lower_sewer_80183DEC,
-    D_shelter_b4_lower_sewer_80183DCC,
-    D_shelter_b4_lower_sewer_80183DCC,
+/// Class-5 blocking policy with weapon impacts, pushback and its own footstep cues.
+static WorldCollisionSurfaceProperties _gShelterB4LowerSewerSurface5 = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gShelterB4LowerSewerSurface5FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gShelterB4LowerSewerSurfacePropertiesByClass[8] = {
+    &_gShelterB4LowerSewerDefaultSurface,
+    &_gShelterB4LowerSewerSurface1,
+    &_gShelterB4LowerSewerSurface2,
+    &_gShelterB4LowerSewerSurface3,
+    &_gShelterB4LowerSewerDefaultSurface,
+    &_gShelterB4LowerSewerSurface5,
+    &_gShelterB4LowerSewerDefaultSurface,
+    &_gShelterB4LowerSewerDefaultSurface,
 };
 
 u8* D_shelter_b4_lower_sewer_80183E14 = NULL;

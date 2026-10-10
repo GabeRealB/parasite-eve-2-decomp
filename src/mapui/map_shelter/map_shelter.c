@@ -726,7 +726,7 @@ static WorldCoordRoomLighting D_map_shelter_8017AE9C[1] = {
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AEA4[1] = {
-    { &D_shelter_b4_lower_sewer_8018342C, NULL },
+    { &gShelterB4LowerSewerRoomLights, NULL },
 };
 
 static WorldCoordRoomLighting D_map_shelter_8017AEAC[1] = {
@@ -1001,7 +1001,7 @@ static WorldCollisionRoomResources D_map_shelter_8017B2A4[1] = {
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2B4[1] = {
-    { &D_shelter_b4_lower_sewer_801828E4, D_shelter_b4_lower_sewer_80183444, D_shelter_b4_lower_sewer_801837D4, NULL },
+    { &gShelterB4LowerSewerCollisionGrid, D_shelter_b4_lower_sewer_80183444, D_shelter_b4_lower_sewer_801837D4, NULL },
 };
 
 static WorldCollisionRoomResources D_map_shelter_8017B2C4[1] = {
@@ -1171,7 +1171,7 @@ static u8** _gMapShelterAreaViewMaps[49] = {
     gShelterB3GarbageIncineratorViewMaps,
     gShelterB3IncineratorControlRoomViewMaps,
     gShelterB3ElevatorHallViewMaps,
-    D_shelter_b4_lower_sewer_80181FA4,
+    gShelterB4LowerSewerViewMaps,
     D_shelter_b4_upper_sewer_80186590,
     gShelterB4ReservoirViewMaps,
     gShelterB4WaterSupplyViewMaps,
@@ -1229,7 +1229,7 @@ static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     D_shelter_b3_garbage_incinerator_8018D100,
     gShelterB3IncineratorControlRoomSpriteViews,
     gShelterB3ElevatorHallSpriteViews,
-    D_shelter_b4_lower_sewer_80182E80,
+    gShelterB4LowerSewerSpriteViews,
     D_shelter_b4_upper_sewer_801879BC,
     gShelterB4ReservoirSpriteViews,
     gShelterB4WaterSupplySpriteViews,
@@ -1283,7 +1283,7 @@ WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     gShelterB3GarbageIncineratorSurfaceProperties,
     gShelterB3IncineratorControlRoomSurfacePropertiesByClass,
     gShelterB3ElevatorHallSurfacePropertiesByClass,
-    D_shelter_b4_lower_sewer_80183DF4,
+    gShelterB4LowerSewerSurfacePropertiesByClass,
     D_shelter_b4_upper_sewer_80188CFC,
     gShelterB4ReservoirSurfacePropertiesByClass,
     gShelterB4WaterSupplySurfacePropertiesByClass,

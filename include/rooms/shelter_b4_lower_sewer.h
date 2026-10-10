@@ -25,25 +25,51 @@ extern s16 D_shelter_b4_lower_sewer_80181E6C;
 extern AreaVariant D_shelter_b4_lower_sewer_80183D48[12];
 
 // shelter_b4_lower_sewer
-extern u8* D_shelter_b4_lower_sewer_80181FA4[];
+/// Logical-view maps for the lower sewer's single room, indexed by room ID minus one.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..9 select matching camera,
+/// image and sprite indices. The directory requires this room overlay to remain loaded.
+extern u8* gShelterB4LowerSewerViewMaps[1];
 
 extern ViewCount D_shelter_b4_lower_sewer_80181FA8[];
 
 extern DirectionWarpEntry D_shelter_b4_lower_sewer_80181FAC[];
 
-extern WorldCollisionGrid D_shelter_b4_lower_sewer_801828E4;
+/// Lower-sewer room-space collision mesh and its eight-by-two XZ cell index.
+///
+/// Cells span 4000 game units with origin (-14760, -3210). The mesh owns 100
+/// vertices, 16 Q12 normals and 33 faces using surface classes 0, 1, 2, 3 and 5.
+/// Activation binds the view transform; the descriptor and pools stay writable
+/// and valid only while this room overlay is loaded.
+extern WorldCollisionGrid gShelterB4LowerSewerCollisionGrid;
 
 extern ViewCamera D_shelter_b4_lower_sewer_80182908[];
 
-extern SpriteView D_shelter_b4_lower_sewer_80182E80[];
+/// Sprite descriptors for the lower sewer's nine mapped views, indexed by mapped view minus one.
+///
+/// Views 4, 5, 6 and 9 add opaque depth-sorted rectangles to the decoded background;
+/// the other views retain empty sprite lists. All use unclipped drawing. These
+/// mutable descriptors and their lists require this room overlay to remain loaded.
+extern SpriteView gShelterB4LowerSewerSpriteViews[9];
 
-extern WorldCoordRoomLights D_shelter_b4_lower_sewer_8018342C;
+/// The lower sewer's fourteen authored point lights for actor/model shading.
+///
+/// Lights contribute in every view with world-unit falloff radii. Setup binds
+/// them to the current view; composition and queries update their caches.
+/// Keep this room overlay loaded while the collection is bound.
+extern WorldCoordRoomLights gShelterB4LowerSewerRoomLights;
 
 extern WorldCollisionTrigger D_shelter_b4_lower_sewer_80183444[];
 
 extern WorldCollisionTrigger D_shelter_b4_lower_sewer_801837D4[];
 
-extern WorldCollisionSurfaceProperties* D_shelter_b4_lower_sewer_80183DF4[];
+/// Lower-sewer collision and footstep policies indexed by surface class 0..7.
+///
+/// Class 1 passes probes and suppresses weapon impacts while retaining pushback;
+/// every other class blocks probes and permits impacts. Classes 2, 3 and 5
+/// have paired footstep cues; 0, 1, 4, 6 and 7 are silent. Every class applies
+/// pushback. The directory and records require this room overlay to remain loaded.
+extern WorldCollisionSurfaceProperties* gShelterB4LowerSewerSurfacePropertiesByClass[8];
 
 /// Runs the lower sewer's room setup, idle or teardown state.
 ///
