@@ -11,7 +11,18 @@
 
 #include "main/task_types.h"
 
-extern AreaVariant D_dryfield_water_tank_80188BF0[13];
+/// Stored placement/resource slots published for the water-tank area.
+enum { DRYFIELD_WATER_TANK_VARIANT_SLOT_COUNT = 13 };
+
+/// Placement/resource layouts indexed directly by the saved location's variant.
+///
+/// Slots 0..12 have no terminator. Variant 1 places Kyle Madigan from actor
+/// 120400; variant 2 supplies empty placement/resource lists. Slots 0 and 3..12
+/// are absent NULL pairs. Gameplay borrows this table from the loaded room;
+/// variant 1 also borrows its placement list from the loaded Dryfield map.
+/// Keep the room, map and selected actor resources loaded while their tables
+/// are used; lookup does not check the variant against the stored extent.
+extern AreaVariant gDryfieldWaterTankAreaVariants[DRYFIELD_WATER_TANK_VARIANT_SLOT_COUNT];
 
 /// Number of mapped camera, sprite and ambient-effect slots in the water-tank room.
 enum { DRYFIELD_WATER_TANK_MAPPED_VIEW_COUNT = 10 };

@@ -1529,7 +1529,7 @@ gDryfieldWarehousePlacementVariants = 0x80182100; // absolute:True owner=dryfiel
 
 D_dryfield_water_hole_801827BC = 0x801827BC; // absolute:True owner=dryfield_water_hole
 
-D_dryfield_water_tank_80188BF0 = 0x80188BF0; // absolute:True owner=dryfield_water_tank
+gDryfieldWaterTankAreaVariants = 0x80188BF0; // absolute:True owner=dryfield_water_tank
 
 D_dryfield_water_tower_8018757C = 0x8018757C; // absolute:True owner=dryfield_water_tower
 
@@ -1675,7 +1675,7 @@ D_shelter_b6_growth_room_80180338 = 0x80180338; // absolute:True owner=shelter_b
 
 D_shelter_b6_nursery_801874A4 = 0x801874A4; // absolute:True owner=shelter_b6_nursery
 
-D_shelter_b6_training_room_801859DC = 0x801859DC; // absolute:True owner=shelter_b6_training_room shared=rooms
+D_shelter_b6_training_room_801859DC = 0x801859DC; // absolute:True owner=shelter_b6_training_room
 
 gShelterR36AreaVariants = 0x8017FA40; // absolute:True owner=shelter_r36
 
