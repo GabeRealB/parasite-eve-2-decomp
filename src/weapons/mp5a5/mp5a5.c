@@ -827,136 +827,265 @@ static AnimationSet _gMp5a5ParasiteEnergyChargeFamily1Animation = {
     },
 };
 
-static AnimationPackedPose _gMp5a5Animation06C14Bank1[8] = {
+/// Encoding-1 local translations and rotations for Parasite Energy family-1 cast.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5ParasiteEnergyCastFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_06C14_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation06C14Bank4[68] = {
+/// Encoding-4 rotations for Parasite Energy family-1 cast, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5ParasiteEnergyCastFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_06C14_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation06C14Records[101] = {
+/// Keyframes and stop controls for Parasite Energy family-1 cast.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5ParasiteEnergyCastFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_06C14_records.inc"
 };
 
-static u16 _gMp5a5Animation06C14Indices[20] = {
+/// Absolute record starts for the 19 tracks of Parasite Energy family-1 cast.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5ParasiteEnergyCastFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_06C14_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation06C14 = {
-    _gMp5a5Animation06C14Records,
-    _gMp5a5Animation06C14Indices,
-    { NULL, _gMp5a5Animation06C14Bank1, NULL, NULL, _gMp5a5Animation06C14Bank4, NULL, NULL, NULL },
+/// MP5A5 player's Parasite Energy family-1 cast clip in native bank slot 31.
+///
+/// Begins after the family-1 charge when the attachment countdown reaches zero.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5ParasiteEnergyCastFamily1Animation = {
+    .records           = _gMp5a5ParasiteEnergyCastFamily1AnimationRecords,
+    .trackStartIndices = _gMp5a5ParasiteEnergyCastFamily1AnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5ParasiteEnergyCastFamily1AnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5ParasiteEnergyCastFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation06EC8Bank1[5] = {
+/// Encoding-1 local translations and rotations for the MP5A5 part-4 hit reaction.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5Part4HitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_06EC8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation06EC8Bank4[55] = {
+/// Encoding-4 rotations for the part-4 hit reaction, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5Part4HitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_06EC8_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation06EC8Records[83] = {
+/// Keyframes and stop controls for the MP5A5 part-4 hit reaction.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5Part4HitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_06EC8_records.inc"
 };
 
-static u16 _gMp5a5Animation06EC8Indices[20] = {
+/// Absolute record starts for the 19 tracks of the part-4 hit reaction.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5Part4HitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_06EC8_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation06EC8 = {
-    _gMp5a5Animation06EC8Records,
-    _gMp5a5Animation06EC8Indices,
-    { NULL, _gMp5a5Animation06EC8Bank1, NULL, NULL, _gMp5a5Animation06EC8Bank4, NULL, NULL, NULL },
+/// MP5A5 player's hit reaction for the model-part-4 collision body, in bank slot 16.
+///
+/// Hit region 1 selects this clip for pending and newly resolved contact damage.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5Part4HitAnimation = {
+    .records           = _gMp5a5Part4HitAnimationRecords,
+    .trackStartIndices = _gMp5a5Part4HitAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5Part4HitAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5Part4HitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation071E8Bank1[6] = {
+/// Encoding-1 local translations and rotations for the MP5A5 other-body hit reaction.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5OtherBodyHitAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_071E8_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation071E8Bank4[66] = {
+/// Encoding-4 rotations for the other-body hit reaction, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5OtherBodyHitAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_071E8_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation071E8Records[96] = {
+/// Keyframes and stop controls for the MP5A5 other-body hit reaction.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5OtherBodyHitAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_071E8_records.inc"
 };
 
-static u16 _gMp5a5Animation071E8Indices[20] = {
+/// Absolute record starts for the 19 tracks of the other-body hit reaction.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5OtherBodyHitAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_071E8_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation071E8 = {
-    _gMp5a5Animation071E8Records,
-    _gMp5a5Animation071E8Indices,
-    { NULL, _gMp5a5Animation071E8Bank1, NULL, NULL, _gMp5a5Animation071E8Bank4, NULL, NULL, NULL },
+/// MP5A5 player's hit reaction for the root or model-part-1 body, in bank slot 17.
+///
+/// Pending/contact hit playback selects this clip when the hit region is not 1.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5OtherBodyHitAnimation = {
+    .records           = _gMp5a5OtherBodyHitAnimationRecords,
+    .trackStartIndices = _gMp5a5OtherBodyHitAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5OtherBodyHitAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5OtherBodyHitAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation079ACBank1[18] = {
+/// Encoding-1 local translations and rotations for the MP5A5 player's death clip.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5DeathAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_079AC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation079ACBank4[184] = {
+/// Encoding-4 rotations for the death clip, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5DeathAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_079AC_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation079ACRecords[239] = {
+/// Keyframes and stop controls holding the MP5A5 player's final death pose.
+///
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5DeathAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_079AC_records.inc"
 };
 
-static u16 _gMp5a5Animation079ACIndices[20] = {
+/// Absolute record starts for the 19 tracks of the death clip.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5DeathAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_079AC_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation079AC = {
-    _gMp5a5Animation079ACRecords,
-    _gMp5a5Animation079ACIndices,
-    { NULL, _gMp5a5Animation079ACBank1, NULL, NULL, _gMp5a5Animation079ACBank4, NULL, NULL, NULL },
+/// MP5A5 player's death clip in native bank slot 18.
+///
+/// Selected at zero HP by normal control and when scripted control yields to death.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5DeathAnimation = {
+    .records           = _gMp5a5DeathAnimationRecords,
+    .trackStartIndices = _gMp5a5DeathAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5DeathAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5DeathAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation08C44Bank1[29] = {
+/// Encoding-1 local translations and rotations for the MP5A5 player's healthy idle.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5HealthyIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_08C44_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation08C44Bank4[450] = {
+/// Encoding-4 rotations for healthy idle, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5HealthyIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_08C44_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation08C44Records[633] = {
+/// Keyframes and loop/stop controls for the MP5A5 player's healthy idle.
+///
+/// Track-local jumps repeat the tail; forward playback bypasses the final stop.
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5HealthyIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_08C44_records.inc"
 };
 
-static u16 _gMp5a5Animation08C44Indices[20] = {
+/// Absolute record starts for the 19 tracks of healthy idle.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5HealthyIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_08C44_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation08C44 = {
-    _gMp5a5Animation08C44Records,
-    _gMp5a5Animation08C44Indices,
-    { NULL, _gMp5a5Animation08C44Bank1, NULL, NULL, _gMp5a5Animation08C44Bank4, NULL, NULL, NULL },
+/// MP5A5 player's healthy idle clip in native bank slot 23.
+///
+/// The idle timeout selects this clip while HP exceeds half the maximum.
+/// Supplies player-rig tracks 0..18; child playback uses 1..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5HealthyIdleAnimation = {
+    .records           = _gMp5a5HealthyIdleAnimationRecords,
+    .trackStartIndices = _gMp5a5HealthyIdleAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5HealthyIdleAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5HealthyIdleAnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gMp5a5Animation097BCBank1[12] = {
+/// Encoding-1 local translations and rotations for MP5A5 low-health idle/paralysis.
+///
+/// Tracks 0 and 1 use integer model coordinates and 4096 angle units per turn.
+/// Read-only payload retains its serialized position in the data section.
+static const AnimationPackedPose _gMp5a5LowHealthIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_097BC_bank1.inc"
 };
 
-static AnimationPackedRotation _gMp5a5Animation097BCBank4[266] = {
+/// Encoding-4 rotations for low-health idle/paralysis, in eight-unit angle steps.
+///
+/// Tracks 2..18 preserve their model-part translations.
+static const AnimationPackedRotation _gMp5a5LowHealthIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_097BC_bank4.inc"
 };
 
-static AnimationRecord _gMp5a5Animation097BCRecords[412] = {
+/// Keyframes and loop/stop controls for MP5A5 low-health idle/paralysis.
+///
+/// Track-local jumps repeat the tail; forward playback bypasses the final stop.
+/// Segment durations count normal-rate frames; pose offsets count four-byte words.
+static const AnimationRecord _gMp5a5LowHealthIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_097BC_records.inc"
 };
 
-static u16 _gMp5a5Animation097BCIndices[20] = {
+/// Absolute record starts for the 19 tracks of low-health idle/paralysis.
+///
+/// The final serialized halfword is retained but is not another track start.
+static const u16 _gMp5a5LowHealthIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/mp5a5_animation_097BC_indices.inc"
 };
 
-static AnimationSet _gMp5a5Animation097BC = {
-    _gMp5a5Animation097BCRecords,
-    _gMp5a5Animation097BCIndices,
-    { NULL, _gMp5a5Animation097BCBank1, NULL, NULL, _gMp5a5Animation097BCBank4, NULL, NULL, NULL },
+/// MP5A5 player's low-health idle clip, also used for paralysis, in bank slot 25.
+///
+/// Selected by the idle timeout while HP is at most a quarter of the maximum.
+/// Paralysis blends the same clip across child tracks 1..18 regardless of HP.
+/// Supplies player-rig tracks 0..18.
+/// Playback borrows this clip while the MP5A5 or either upgrade package is loaded.
+static AnimationSet _gMp5a5LowHealthIdleAnimation = {
+    .records           = _gMp5a5LowHealthIdleAnimationRecords,
+    .trackStartIndices = _gMp5a5LowHealthIdleAnimationIndices,
+    .poseBanks         = {
+        [MP5A5_ANIMATION_TRANSLATION_ROTATION_BANK] = _gMp5a5LowHealthIdleAnimationBank1,
+        [MP5A5_ANIMATION_ROTATION_BANK]             = _gMp5a5LowHealthIdleAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gMp5a5Animation09ED8Bank1[9] = {
@@ -1262,22 +1391,22 @@ AnimationBank D_mp5a5_8012B3CC = { { {
     &_gMp5a5Animation0C4BC,
     &_gMp5a5Animation0D268,
     &_gMp5a5Animation0D268,
-    &_gMp5a5Animation06EC8,
-    &_gMp5a5Animation071E8,
-    &_gMp5a5Animation079AC,
+    &_gMp5a5Part4HitAnimation,
+    &_gMp5a5OtherBodyHitAnimation,
+    &_gMp5a5DeathAnimation,
     &_gMp5a5WalkAnimation,
     &_gMp5a5Animation0D268,
     &_gMp5a5IdleAnimation,
     &_gMp5a5IdleAnimation,
-    &_gMp5a5Animation08C44,
+    &_gMp5a5HealthyIdleAnimation,
     &_gMp5a5Animation09ED8,
-    &_gMp5a5Animation097BC,
+    &_gMp5a5LowHealthIdleAnimation,
     &_gMp5a5ParasiteEnergyReleaseFamily0Animation,
     &_gMp5a5ParasiteEnergyChargeFamily0Animation,
     &_gMp5a5ParasiteEnergyCastFamily0Animation,
     &_gMp5a5ParasiteEnergyReleaseFamily1Animation,
     &_gMp5a5ParasiteEnergyChargeFamily1Animation,
-    &_gMp5a5Animation06C14,
+    &_gMp5a5ParasiteEnergyCastFamily1Animation,
     &_gMp5a5Animation0A358,
     &_gMp5a5Animation0A530,
     &_gMp5a5Animation0A358,
