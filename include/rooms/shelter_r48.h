@@ -12,6 +12,14 @@
 
 #include "main/task_types.h"
 
+/// Authored directory extents, counted in records rather than bytes.
+enum {
+    SHELTER_R48_ROOM_COUNT         = 1,
+    SHELTER_R48_VIEW_COUNT         = 18,
+    SHELTER_R48_WARP_COUNT         = 1,
+    SHELTER_R48_AREA_VARIANT_COUNT = 13,
+};
+
 /// Mutable arena collision grid, including Brahman's four body-face slots.
 ///
 /// Owns 40 normals, 136 vertices and 83 faces indexed by a 5-by-7 XZ cell
@@ -24,7 +32,14 @@ extern WorldCollisionGrid gShelterR48CollisionGrid;
 
 extern TaskDesc D_shelter_r48_80182FAC;
 
-extern AreaVariant D_shelter_r48_8018BC10[13];
+/// Area layouts indexed directly by the saved placement variant, 0..12.
+///
+/// Slots 1 and 2 each place the actor_503500 boss and tentacle at (8000,1000,7000).
+/// Slot 3 places actor_403600 at (8000,500,6400), facing -1024 angle units.
+/// Slots 0 and 4..12 are absent. Placement and resource lists include their
+/// `AREA_PLACEMENT_END` records; borrowed tables and actor descriptors require
+/// their owning room and actor overlays to stay loaded.
+extern AreaVariant gShelterR48AreaVariants[SHELTER_R48_AREA_VARIANT_COUNT];
 
 // shelter_r48
 /// Room-1 lighting: 57 point lights, one cone light and default ambient minima.
@@ -34,7 +49,12 @@ extern AreaVariant D_shelter_r48_8018BC10[13];
 /// composition/attenuation state; borrowers require its overlay to stay loaded.
 extern WorldCoordRoomLighting gShelterR48RoomLighting[1];
 
-extern WorldCollisionRoomResources D_shelter_r48_8018301C[];
+/// Room-1 collision resources: the arena grid, 16 view boundaries and five actions.
+///
+/// Indexed by room ID minus one; only room ID 1 is valid. No sight occluders
+/// are supplied. Trigger lists include their final LAST-marked records and
+/// become mutable view-bound runtime lists; keep the room loaded until unlinked.
+extern WorldCollisionRoomResources gShelterR48RoomCollisionResources[SHELTER_R48_ROOM_COUNT];
 
 /// Room-1 logical views map directly to camera, image and sprite indices 1..18.
 ///
@@ -43,13 +63,38 @@ extern WorldCollisionRoomResources D_shelter_r48_8018301C[];
 /// of that shared map's capacity. Both owning overlays must remain loaded.
 extern u8* gShelterR48ViewMaps[1];
 
-extern ViewCount D_shelter_r48_80183030[];
+/// Room-1's signed-halfword reverse-search limit of 18 logical views.
+///
+/// Indexed by room ID minus one; only room ID 1 is valid. Limits searches in
+/// `gShelterR48ViewMaps` independently of the borrowed identity map's capacity.
+/// The Shelter map borrows this count while the room overlay remains loaded.
+extern ViewCount gShelterR48ViewCounts[SHELTER_R48_ROOM_COUNT];
 
-extern DirectionWarpEntry D_shelter_r48_80183034[];
+/// The room's sole warp endpoint, indexed by warp ID 1 minus one.
+///
+/// Player and companion arrive at (1542,-1998,7374), yaw 1024 (4096 per turn),
+/// in view 2. There are no sound cues or spawn/fade options. Later arrivals
+/// mark `GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY`. The departure trigger selects
+/// this endpoint and arrival endpoint 2 in the requested Pod Access Tunnel.
+/// The Shelter map borrows the entry while this room overlay remains loaded.
+extern DirectionWarpEntry gShelterR48WarpEntries[SHELTER_R48_WARP_COUNT];
 
-extern ViewCamera D_shelter_r48_80183F10[];
+/// Eighteen writable camera records selected by mapped view index 1..18 minus one.
+///
+/// Rotation is Q12; translation is the negated world-space camera origin in
+/// game units, applied before rotation. Projection distances are pixels.
+/// The Shelter map borrows this array; queued camera applications require
+/// the room overlay to stay loaded until they copy the selected record.
+extern ViewCamera gShelterR48ViewCameras[SHELTER_R48_VIEW_COUNT];
 
-extern SpriteView D_shelter_r48_80189FB4[];
+/// Eighteen mutable sprite views selected by mapped view index 1..18 minus one.
+///
+/// Views 1, 11 and 14..16 retain empty batch-list addresses in `sources.empty`;
+/// other views supply source-element ranges. All batch lists end with
+/// `SPRITE_BATCH_END`, and every view retains decoded background strips.
+/// No clipping lists are supplied. The Shelter map and sprite renderer borrow
+/// the descriptors and backing arrays while this room overlay remains loaded.
+extern SpriteView gShelterR48SpriteViews[SHELTER_R48_VIEW_COUNT];
 
 /// Eight collision-surface classes, indexed directly by class 0..7.
 ///
