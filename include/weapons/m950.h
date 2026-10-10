@@ -2,6 +2,16 @@
 #define INCLUDE_WEAPONS_M950_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// The held M950 weapon model attached beneath the player's hand anchor.
+///
+/// One rigid part contains 36 vertices and lighting normals, four textured
+/// triangles and 28 textured quads. Each primitive-buffer half occupies 1616
+/// bytes, with no pre-transformed region. Creation resolves draw handlers in
+/// the writable stream; the source and geometry remain borrowed by live models.
+/// Keep the M950 package loaded until its weapon models have been released.
+extern TmdSource gM950WeaponModel;
 
 /// Runs the M950 player attack and repeats fire while input and ammunition permit.
 ///

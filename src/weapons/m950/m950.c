@@ -1,6 +1,9 @@
 #include "weapons/m950.h"
 
-#include "types.h"
+#include <psyq/sys/types.h>
+#include <psyq/libgpu.h>
+
+#include "common.h"
 
 #include "gameplay/animation.h"
 #include "gameplay/items.h"
@@ -16,7 +19,6 @@
 #include "main/session_types.h"
 #include "main/sound.h"
 #include "main/task_types.h"
-#include "main/tmd_types.h"
 
 #include "weapons/weapon.h"
 
@@ -113,146 +115,231 @@ void m950AttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
-static TmdBone _gM950Model00548Skeleton[1] = {
+/// Initial identity transform and self-parented root of the rigid M950 model.
+///
+/// Read-only source tables retain their serialized positions in .data.
+static const TmdBone _gM950WeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/m950_model_00548_skeleton.inc"
 };
 
-static u32 _gM950Model00548PartVerts[1] = {
+/// Vertex count of the weapon's sole skeletal part: all 36 vertices.
+static const u32 _gM950WeaponModelPartVerts[ARRAY_SIZE(_gM950WeaponModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/m950_model_00548_partVerts.inc"
 };
 
-static SVECTOR _gM950Model00548Verts[36] = {
+/// Writable M950 vertices in integer coordinates local to the weapon root.
+static SVECTOR _gM950WeaponModelVerts[] = {
 #include "assets/m950_model_00548_verts.inc"
 };
 
-static SVECTOR _gM950Model00548Normals[36] = {
+/// Writable M950 lighting normals in part-local axes, with twelve fractional bits.
+static SVECTOR _gM950WeaponModelNormals[] = {
 #include "assets/m950_model_00548_normals.inc"
 };
 
-static u32 _gM950Model00548Stream[229] = {
+/// Writable commands for four textured triangles and 28 textured quads.
+///
+/// Handler slots resolve in place. The skeletal group and empty final group
+/// each end with `TMD_STREAM_GROUP_END`; `TMD_STREAM_END` closes the stream.
+static u32 _gM950WeaponModelStream[] = {
 #include "assets/m950_model_00548_stream.inc"
 };
 
-TmdSource D_m950_8011DA9C = {
-    0,
-    1616,
-    0,
-    1,
-    _gM950Model00548PartVerts,
-    _gM950Model00548Verts,
-    _gM950Model00548Normals,
-    _gM950Model00548Skeleton,
-    _gM950Model00548Stream,
+TmdSource gM950WeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (4 * sizeof(POLY_GT3)) + (28 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM950WeaponModelSkeleton),
+    .partVertexCounts    = _gM950WeaponModelPartVerts,
+    .verts               = _gM950WeaponModelVerts,
+    .normals             = _gM950WeaponModelNormals,
+    .skeleton            = _gM950WeaponModelSkeleton,
+    .stream              = _gM950WeaponModelStream,
 };
 
-static AnimationPackedPose _gM950Animation00A90Bank1[2] = {
+/// Root and body translation/rotation keys for the M950 player's idle pose.
+///
+/// Model-unit translations and 1/4096-turn angles; read-only banks remain in .data.
+static const AnimationPackedPose _gM950PlayerIdleAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_00A90_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation00A90Bank4[8] = {
+/// Packed joint rotations for the M950 player's idle pose, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerIdleAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_00A90_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation00A90Records[76] = {
+/// Keyframes and loop/stop controls holding the M950 player's idle pose.
+///
+/// Pose offsets count u32 words, jump targets count records and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerIdleAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_00A90_records.inc"
 };
 
-static u16 _gM950Animation00A90Indices[20] = {
+/// Record starts for the idle pose's nineteen player model-part tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4. Retains the resource's
+/// twentieth zero halfword; ordinary child playback uses tracks 1..18.
+static const u16 _gM950PlayerIdleAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_00A90_indices.inc"
 };
 
-static AnimationSet _gM950Animation00A90 = {
-    _gM950Animation00A90Records,
-    _gM950Animation00A90Indices,
-    { NULL, _gM950Animation00A90Bank1, NULL, NULL, _gM950Animation00A90Bank4, NULL, NULL, NULL },
+/// Stationary idle pose in the M950 player's native animation bank.
+///
+/// Bank ids 1, 21, 22 and 41 share this nineteen-track pose. The descriptor and
+/// its read-only records and banks must remain loaded throughout playback.
+static AnimationSet _gM950PlayerIdleAnimation = {
+    .records           = _gM950PlayerIdleAnimationRecords,
+    .trackStartIndices = _gM950PlayerIdleAnimationIndices,
+    .poseBanks         = { NULL, _gM950PlayerIdleAnimationBank1, NULL, NULL, _gM950PlayerIdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM950Animation01134Bank1[12] = {
+/// Root and body translation/rotation keys for the M950 bank's unarmed forward walk.
+///
+/// Model-unit translations and 1/4096-turn angles; read-only banks remain in .data.
+static const AnimationPackedPose _gM950PlayerUnarmedWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_01134_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation01134Bank4[151] = {
+/// Packed joint rotations for the unarmed forward walk, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerUnarmedWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_01134_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation01134Records[218] = {
+/// Keyframes and loop/stop controls for the M950 bank's unarmed forward walk.
+///
+/// Pose offsets count u32 words, jump targets count records and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerUnarmedWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_01134_records.inc"
 };
 
-static u16 _gM950Animation01134Indices[20] = {
+/// Record starts for the unarmed forward walk's nineteen player model-part tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4. Retains the resource's
+/// twentieth zero halfword; ordinary child playback uses tracks 1..18.
+static const u16 _gM950PlayerUnarmedWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_01134_indices.inc"
 };
 
-static AnimationSet _gM950Animation01134 = {
-    _gM950Animation01134Records,
-    _gM950Animation01134Indices,
-    { NULL, _gM950Animation01134Bank1, NULL, NULL, _gM950Animation01134Bank4, NULL, NULL, NULL },
+/// Unarmed forward-walk clip at id 19 in the M950 player's native animation bank.
+///
+/// Selected while the weapon child is absent. Its nineteen player model-part
+/// tracks and all borrowed clip data must remain loaded throughout playback.
+static AnimationSet _gM950PlayerUnarmedWalkAnimation = {
+    .records           = _gM950PlayerUnarmedWalkAnimationRecords,
+    .trackStartIndices = _gM950PlayerUnarmedWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM950PlayerUnarmedWalkAnimationBank1, NULL, NULL, _gM950PlayerUnarmedWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM950Animation01A80Bank1[16] = {
+/// Root and body translation/rotation keys for forward walking while holding the M950.
+///
+/// Model-unit translations and 1/4096-turn angles; read-only banks remain in .data.
+static const AnimationPackedPose _gM950PlayerWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_01A80_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation01A80Bank4[221] = {
+/// Packed joint rotations for the M950 forward walk, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_01A80_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation01A80Records[306] = {
+/// Keyframes and loop/stop controls for forward walking while holding the M950.
+///
+/// Pose offsets count u32 words, jump targets count records and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_01A80_records.inc"
 };
 
-static u16 _gM950Animation01A80Indices[20] = {
+/// Record starts for the armed forward walk's nineteen player model-part tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4. Retains the resource's
+/// twentieth zero halfword; ordinary child playback uses tracks 1..18.
+static const u16 _gM950PlayerWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_01A80_indices.inc"
 };
 
-static AnimationSet _gM950Animation01A80 = {
-    _gM950Animation01A80Records,
-    _gM950Animation01A80Indices,
-    { NULL, _gM950Animation01A80Bank1, NULL, NULL, _gM950Animation01A80Bank4, NULL, NULL, NULL },
+/// Armed forward-walk clip at id 2 in the M950 player's native animation bank.
+///
+/// Its nineteen player model-part tracks and all borrowed clip data must remain
+/// loaded throughout playback.
+static AnimationSet _gM950PlayerWalkAnimation = {
+    .records           = _gM950PlayerWalkAnimationRecords,
+    .trackStartIndices = _gM950PlayerWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM950PlayerWalkAnimationBank1, NULL, NULL, _gM950PlayerWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM950Animation02358Bank1[19] = {
+/// Root and body translation/rotation keys for backward walking in the M950 bank.
+///
+/// Model-unit translations and 1/4096-turn angles; read-only banks remain in .data.
+static const AnimationPackedPose _gM950PlayerBackwardWalkAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_02358_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation02358Bank4[193] = {
+/// Packed joint rotations for the backward walk, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerBackwardWalkAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_02358_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation02358Records[296] = {
+/// Keyframes and loop/stop controls for backward walking in the M950 bank.
+///
+/// Pose offsets count u32 words, jump targets count records and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerBackwardWalkAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_02358_records.inc"
 };
 
-static u16 _gM950Animation02358Indices[20] = {
+/// Record starts for the backward walk's nineteen player model-part tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4. Retains the resource's
+/// twentieth zero halfword; ordinary child playback uses tracks 1..18.
+static const u16 _gM950PlayerBackwardWalkAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_02358_indices.inc"
 };
 
-static AnimationSet _gM950Animation02358 = {
-    _gM950Animation02358Records,
-    _gM950Animation02358Indices,
-    { NULL, _gM950Animation02358Bank1, NULL, NULL, _gM950Animation02358Bank4, NULL, NULL, NULL },
+/// Backward-walk clip at id 3 in the M950 player's native animation bank.
+///
+/// Its nineteen player model-part tracks and all borrowed clip data must remain
+/// loaded throughout playback.
+static AnimationSet _gM950PlayerBackwardWalkAnimation = {
+    .records           = _gM950PlayerBackwardWalkAnimationRecords,
+    .trackStartIndices = _gM950PlayerBackwardWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM950PlayerBackwardWalkAnimationBank1, NULL, NULL, _gM950PlayerBackwardWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM950Animation02A8CBank1[13] = {
+/// Root and body translation/rotation keys for running in the M950 bank.
+///
+/// Model-unit translations and 1/4096-turn angles; read-only banks remain in .data.
+static const AnimationPackedPose _gM950PlayerRunAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_02A8C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM950Animation02A8CBank4[167] = {
+/// Packed joint rotations for the run, in eight-angle-unit steps.
+static const AnimationPackedRotation _gM950PlayerRunAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_02A8C_bank4.inc"
 };
 
-static AnimationRecord _gM950Animation02A8CRecords[235] = {
+/// Keyframes and loop/stop controls for running in the M950 bank.
+///
+/// Pose offsets count u32 words, jump targets count records and durations count normal-rate frames.
+static const AnimationRecord _gM950PlayerRunAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_02A8C_records.inc"
 };
 
-static u16 _gM950Animation02A8CIndices[20] = {
+/// Record starts for the run's nineteen player model-part tracks.
+///
+/// Tracks 0/1 use bank 1 and tracks 2..18 use bank 4. Retains the resource's
+/// twentieth zero halfword; ordinary child playback uses tracks 1..18.
+static const u16 _gM950PlayerRunAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m950_animation_02A8C_indices.inc"
 };
 
-static AnimationSet _gM950Animation02A8C = {
-    _gM950Animation02A8CRecords,
-    _gM950Animation02A8CIndices,
-    { NULL, _gM950Animation02A8CBank1, NULL, NULL, _gM950Animation02A8CBank4, NULL, NULL, NULL },
+/// Run clip at id 4 in the M950 player's native animation bank.
+///
+/// Its nineteen player model-part tracks and all borrowed clip data must remain
+/// loaded throughout playback.
+static AnimationSet _gM950PlayerRunAnimation = {
+    .records           = _gM950PlayerRunAnimationRecords,
+    .trackStartIndices = _gM950PlayerRunAnimationIndices,
+    .poseBanks         = { NULL, _gM950PlayerRunAnimationBank1, NULL, NULL, _gM950PlayerRunAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM950Animation032ECBank1[19] = {
@@ -939,10 +1026,10 @@ static AnimationSet _gM950Animation0E890 = {
 
 AnimationBank D_m950_8012BA78 = { { {
     NULL,
-    &_gM950Animation00A90,
-    &_gM950Animation01A80,
-    &_gM950Animation02358,
-    &_gM950Animation02A8C,
+    &_gM950PlayerIdleAnimation,
+    &_gM950PlayerWalkAnimation,
+    &_gM950PlayerBackwardWalkAnimation,
+    &_gM950PlayerRunAnimation,
     &_gM950Animation032EC,
     &_gM950Animation03B50,
     &_gM950Animation0E304,
@@ -957,10 +1044,10 @@ AnimationBank D_m950_8012BA78 = { { {
     &_gM950Animation067B4,
     &_gM950Animation06AD4,
     &_gM950Animation07298,
-    &_gM950Animation01134,
+    &_gM950PlayerUnarmedWalkAnimation,
     &_gM950Animation0D914,
-    &_gM950Animation00A90,
-    &_gM950Animation00A90,
+    &_gM950PlayerIdleAnimation,
+    &_gM950PlayerIdleAnimation,
     &_gM950Animation08530,
     &_gM950Animation097C4,
     &_gM950Animation090A8,
@@ -979,7 +1066,7 @@ AnimationBank D_m950_8012BA78 = { { {
     &_gM950Animation053AC,
     &_gM950Animation0501C,
     &_gM950Animation03E64,
-    &_gM950Animation00A90,
+    &_gM950PlayerIdleAnimation,
     &_gM950Animation0A380,
     &_gM950Animation0A574,
     &_gM950Animation0A9F4,

@@ -77,8 +77,6 @@ extern TmdSource D_mongoose_8011D934;
 
 extern TmdSource D_pa3_8011DA04;
 
-extern TmdSource D_m950_8011DA9C;
-
 extern TmdSource D_sp12_8011DB44;
 
 extern TmdSource D_tonfa_baton_8011E460;
