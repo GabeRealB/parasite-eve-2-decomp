@@ -357,7 +357,7 @@ static const TaskFuncTable3 D_actor_503500_80131E44 = {
 
 Task* D_actor_503500_80176558 = NULL;
 
-ActorTransform D_actor_503500_8017655C = { 0 };
+ActorTransform gActor503500SavedPlayerTransform = { 0 };
 
 /// Persistent singleton storage borrowed by the live boss task and slot accessors.
 ///

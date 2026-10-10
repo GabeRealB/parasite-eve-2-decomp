@@ -238,15 +238,23 @@ static s32          _actor421600IsPresent(Task* task, s32 messageId, s32 unusedA
 static s32          _actor421600OnRoomEvent(Task* task, s32 messageId, s32 unusedArg, s32 unusedExtra);
 static void         _actor421600IgnoreMessage2015(Task* task, s32 messageId, s32 unusedArg, s32 unusedExtra);
 
-DamageAttack D_actor_421600_8013EF24[5] = {
-    { 30, 0 },
-    { 30, 0 },
-    { 18, 0 },
-    { 18, 0 },
-    { 0xFFFF, 0 },
+/// Full stored halfword power of the retained fifth attack row.
+enum { ACTOR_421600_MAX_STORED_ATTACK_POWER = 0xFFFF };
+
+/// Water Tower Desert Chaser attack rows borrowed by its enemy parameters.
+///
+/// Rows 0/1 are front/rear throws (power 30), and 2/3 front/rear close catches
+/// (power 18). Every row requests the ordinary player hit reaction. Row 4
+/// retains power 65535, packed as 4095; its gameplay role is unproven.
+static DamageAttack _gActor421600Attacks[5] = {
+    { 30, GAME_ACTOR_REACTION_ORDINARY },
+    { 30, GAME_ACTOR_REACTION_ORDINARY },
+    { 18, GAME_ACTOR_REACTION_ORDINARY },
+    { 18, GAME_ACTOR_REACTION_ORDINARY },
+    { ACTOR_421600_MAX_STORED_ATTACK_POWER, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams D_actor_421600_8013EF38 = { D_actor_421600_8013EF24, 200, 75, 50, 4, 100, 10, 100, 0 };
+EnemyParams D_actor_421600_8013EF38 = { _gActor421600Attacks, 200, 75, 50, 4, 100, 10, 100, 0 };
 
 DesertChaserVariant D_actor_421600_8013EF48[4] = {
     { 60, 36, 10, 150 },

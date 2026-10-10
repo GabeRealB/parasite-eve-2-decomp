@@ -167,12 +167,17 @@ GpuImageUpload** D_actor_800300_80168960[2] = {
     D_actor_800300_80169A60,
 };
 
-u_long D_actor_800300_80168968[250] = {
+/// Packed pixels of the companion's first texture-A frame.
+///
+/// The upload covers 25 sixteen-bit VRAM words by 20 rows: 500 halfwords,
+/// or 250 packed u_long words. Texture-A sequences share this frame; storage
+/// stays live and unchanged until queued GPU transfers finish.
+static u_long _gActor800300TextureAFirstFramePixels[250] = {
 #include "assets/actor_121300_image_09DC8.inc"
 };
 
 GpuImageUpload D_actor_800300_80168D50[2] = {
-    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, D_actor_800300_80168968 },
+    { GPU_IMAGE_UPLOAD_COPY, 0, { 0, 0, 25, 20 }, _gActor800300TextureAFirstFramePixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 

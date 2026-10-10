@@ -126,14 +126,8 @@ extern u16 Actor03700_D07F7C[];
 extern u16 Actor03700_D07F3C[];
 extern u16 Actor03700_D07F5C[];
 
-/// Pair `_actor03700AttackHeldPlayer` packs with `damagePackAttackKey` for message 0x3F9.
-extern DamageAttack Actor03700_D07F08;
-
 /// Halfword table `_actor03700AttackHeldPlayer` indexes by a 4-bit LCG draw.
 extern s16 Actor03700_D07F1C[];
-
-/// Halfword wave table `_actor03700StepSway` indexes by `swayPhase`.
-extern s16 Actor03700_D07FD4[];
 
 /// One segment of the path a perched actor leaves its perch along.
 ///
@@ -161,9 +155,6 @@ extern EnemyParams Actor03700_D07F0C;
 /// Animation-set table bound by `animationInitContext`, and the task's `field_24` table.
 extern AnimationSet*    Actor03700_D080E4[6];
 extern TaskMessageEntry Actor03700_D08108[2];
-
-/// Animation-set table handed to the player as the 0x3FF payload's `source.sets`.
-extern AnimationSet* Actor03700_D080FC[];
 
 /// Halfword table indexed by the low 7 bits of a hit id; 3 cancels the damage.
 extern s16 Actor03700_D08074[];
@@ -247,7 +238,7 @@ enum {
 /// and enables world collision before dispatch; no caller locals are captured.
 #define ACTOR_03700_START_PLAYER_RELEASE(playerTask, request)                                          \
     {                                                                                                  \
-        (request)->source.sets          = Actor03700_D080FC;                                           \
+        (request)->source.sets          = _gActor03700PlayerHoldAnimationSets;                         \
         (request)->animationId          = ACTOR_03700_PLAYER_RELEASE_CLIP;                             \
         (request)->blend                = ANIMATION_BLEND_RESET;                                       \
         (request)->blendFrames          = 0;                                                           \
@@ -536,9 +527,17 @@ static AnimationSet _gActor03700Actor103700Animation07EE0 = {
     { NULL, _gActor03700Actor103700Animation07EE0Bank1, NULL, NULL, _gActor03700Actor103700Animation07EE0Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack Actor03700_D07F08 = { 3, 7 };
+/// Distinct, status-free player hit presentation selected by a bat strike.
+enum { ACTOR_03700_HELD_PLAYER_HIT_REACTION = 7 };
 
-EnemyParams Actor03700_D07F0C = { &Actor03700_D07F08, 1, 5, 18, 1, 100, 0, 100, 99 };
+/// Bat damage delivered to the held player at each strike.
+///
+/// The enemy parameters borrow the same entry. Power is 3 HP before player
+/// scaling; reaction 7 selects a distinct hit presentation without a status.
+/// Storage must remain loaded through enemy and player-hold use.
+static DamageAttack _gActor03700HeldPlayerAttack = { 3, ACTOR_03700_HELD_PLAYER_HIT_REACTION };
+
+EnemyParams Actor03700_D07F0C = { &_gActor03700HeldPlayerAttack, 1, 5, 18, 1, 100, 0, 100, 99 };
 
 s16 Actor03700_D07F1C[16] = {
     30,
@@ -649,7 +648,12 @@ static s16 _gActor03700BobYDisplacements[30] = {
     -20,
 };
 
-s16 Actor03700_D07FD4[16] = {
+/// Sideways flight-sway samples, with 4096 representing unit amplitude.
+///
+/// The fifteen-tick cycle indexes 0..14 after advancing its phase; entry 15
+/// is retained but not sampled. The signed samples scale the action amplitude
+/// before displacement along the model root's local X axis.
+static s16 _gActor03700SwayWaveQ12[16] = {
     4096,
     3742,
     2741,
@@ -758,7 +762,11 @@ AnimationSet* Actor03700_D080E4[6] = {
     &_gActor03700Actor103700Animation05CE8,
 };
 
-AnimationSet* Actor03700_D080FC[3] = {
+/// Player animation bank for the bat's grab and release.
+///
+/// Index 0 is NULL, 1 is the held-player clip and 2 is the release clip.
+/// Player playback borrows the bank and its sets until release completes.
+static AnimationSet* _gActor03700PlayerHoldAnimationSets[3] = {
     NULL,
     &_gActor03700Actor103700Animation06B4C,
     &_gActor03700Actor103700Animation07EE0,
@@ -812,7 +820,7 @@ static inline void _actor03700ApplySwayStep(Task* task, s32 baseAmplitude)
         gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->swayAmplitude = baseAmplitude + ((gRandomLcgState >> 16) & ACTOR_03700_SWAY_RANDOM_MASK);
     }
-    displacement       = (work->swayAmplitude * Actor03700_D07FD4[work->swayPhase] * ACTOR_03700_SWAY_WAVE_RESCALE) >> ACTOR_03700_SWAY_WAVE_SHIFT;
+    displacement       = (work->swayAmplitude * _gActor03700SwayWaveQ12[work->swayPhase] * ACTOR_03700_SWAY_WAVE_RESCALE) >> ACTOR_03700_SWAY_WAVE_SHIFT;
     coord->coord.t[0] += (displacement * coord->coord.m[0][0]) >> ACTOR_03700_MATRIX_FRACTION_BITS;
     coord->coord.t[2] += (displacement * coord->coord.m[2][0]) >> ACTOR_03700_MATRIX_FRACTION_BITS;
 }
@@ -1510,7 +1518,7 @@ static void _actor03700AttackHeldPlayer(Task* task)
 
     switch (work->actionStep) {
         case ACTOR_03700_ATTACK_STRIKE:
-            taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&Actor03700_D07F08, 0), 0);
+            taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&_gActor03700HeldPlayerAttack, 0), 0);
             effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, coord, NULL, &work->hitEffectArg);
             padScriptSpawnVariableMotorRamp(5, 0xC0, 8);
             soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_03700_ATTACK_SOUND;
@@ -1687,7 +1695,7 @@ static void _actor03700ReleasePlayer(Task* task)
 
     switch (work->actionStep) {
         case ACTOR_03700_RELEASE_START_ANIMATION:
-            releaseRequest->source.sets          = Actor03700_D080FC;
+            releaseRequest->source.sets          = _gActor03700PlayerHoldAnimationSets;
             releaseRequest->animationId          = ACTOR_03700_PLAYER_RELEASE_ANIMATION;
             releaseRequest->blend                = ANIMATION_BLEND_RESET;
             releaseRequest->blendFrames          = 0;
@@ -2353,7 +2361,7 @@ static s32 _actor03700TryHoldPlayer(Task* task)
     if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
         scratch->buttonPressHold.pressCount = ACTOR_03700_HOLD_ESCAPE_PRESSES;
         if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &scratch->buttonPressHold, 0) == 0) {
-            scratch->playerAnim.source.sets          = Actor03700_D080FC;
+            scratch->playerAnim.source.sets          = _gActor03700PlayerHoldAnimationSets;
             scratch->playerAnim.animationId          = ACTOR_03700_PLAYER_GRAB_CLIP;
             scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
             scratch->playerAnim.blendFrames          = 0;

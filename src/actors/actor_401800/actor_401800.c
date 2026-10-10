@@ -62,7 +62,6 @@ static void _oddStrangerTick(Enemy* enemy, Task* actor);
 extern AnimationPlayRequest gOddStrangerPlayerAnim;
 
 extern AnimationSet* D_actor_401800_801559F8[];
-extern AnimationSet* D_actor_401800_801559F0[];
 
 /// Enemy description record the init body copies `hpMax` out of into
 /// `Enemy.hp` and points `Enemy.param` at. Same role
@@ -1031,7 +1030,12 @@ static AnimationSet* _gOddStrangerAnimSets[ODD_STRANGER_ANIM_SET_CAPACITY] = {
     NULL,
 };
 
-AnimationSet* D_actor_401800_801559F0[2] = { 0 };
+/// Empty player-grab bank selected for saved characters other than character 1.
+///
+/// Both stored slots are NULL and no code populates them. The persistent grab
+/// request borrows this bank; valid playback through this alternate branch
+/// is unproven, since grab stages request clips 1, 2 and 3.
+static AnimationSet* _gActor401800AlternatePlayerGrabAnimationSets[2] = { 0 };
 
 AnimationSet* D_actor_401800_801559F8[5] = {
     NULL,
@@ -1041,7 +1045,7 @@ AnimationSet* D_actor_401800_801559F8[5] = {
     NULL,
 };
 
-AnimationPlayRequest gOddStrangerPlayerAnim = { { .sets = D_actor_401800_801559F0 }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
+AnimationPlayRequest gOddStrangerPlayerAnim = { { .sets = _gActor401800AlternatePlayerGrabAnimationSets }, 1, ANIMATION_BLEND_RESET, 3, ANIMATION_WORLD_COLLISION_DISABLE };
 
 /// Part-local hit-effect positions grouped by the hit's relative bearing.
 ///
@@ -1572,7 +1576,7 @@ static __inline__ void _actor401800SelectPlayerGrabAnimations(void)
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_401800_PRIMARY_CHARACTER_ID) {
         gOddStrangerPlayerAnim.source.sets = D_actor_401800_801559F8;
     } else {
-        gOddStrangerPlayerAnim.source.sets = D_actor_401800_801559F0;
+        gOddStrangerPlayerAnim.source.sets = _gActor401800AlternatePlayerGrabAnimationSets;
     }
 }
 

@@ -84907,7 +84907,7 @@ penalties, re-score once to confirm and go straight to retyping the body into
 the project's own structs.
 
 `_actor342100SetBlazeFadeState` was that shape. The seed's
-`M2C_FIELD(M2C_FIELD(D_actor_342100_80164BB8, void **, 0x1C), s32 *, 0x34)`
+`M2C_FIELD(M2C_FIELD(_gActor342100BlazeControllerTask, void **, 0x1C), s32 *, 0x34)`
 compiled to the exact target bytes, and the only real work was `Task::work`
 plus the work block's `fadeTask` — which is a `Task*`, since that load feeds
 `taskMessageDispatch` as its first argument. m2c's `s32 *` in the `M2C_FIELD` is a
@@ -84922,7 +84922,7 @@ before writing it into a header.
 offset, but only one of them means bytes:
 
 ```c
-temp_a3 = D_actor_342100_80164BB8->work;      /* m2c types this _StageMusicSelection* */
+temp_a3 = _gActor342100BlazeControllerTask->work;      /* m2c types this _StageMusicSelection* */
 M2C_FIELD(temp_a3, s16 *, 0x20) = 0x258;       /* byte offset - correct */
 M2C_FIELD(temp_a3, s16 *, 0x22) = 0x100;
 taskSpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32) (temp_a3 + 0x20));
@@ -84946,7 +84946,7 @@ call, exactly as the matched `(s32)&work->field_40` in `actor_503500_8.c` and
 `(s32)&work->sceneArg` in `acropolis_plaza_4.c` do it:
 
 ```c
-_Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
+_Actor342100BlazeWork* work = _gActor342100BlazeControllerTask->work;
 work->blaze.wave.span  = 0x258;
 work->blaze.wave.scale = 0x100;
 taskSpawnFromTable(&D_actor_342100_801648DC, 0, 0, (s32)&work->blaze.wave);
@@ -100541,7 +100541,7 @@ The fix is the ordinary record the matched siblings use (`ActorCommand`) — one
 address-taken 4-byte struct, which is also what makes the payload's fields live:
 
 ```c
-    _Actor303600CutsceneWork* work = D_actor_303600_8016E4C0->work;
+    _Actor303600CutsceneWork* work = _gActor303600CutsceneControllerTask->work;
     ActorCommand          msg;
 
     if (work->endCommandSent == 0) {
@@ -107042,11 +107042,11 @@ the scheduler hoists it to the top of the block while the `addiu` sinks back
 down to the first use.
 
 ```c
-work->stateCounter = D_actor_521100_8015F634[(rng >> 16) & 0xF];   /* lui/addiu both late */
+work->stateCounter = _gActor521100HitRecoveryWaitFrames[(rng >> 16) & 0xF];   /* lui/addiu both late */
 ```
 
 ```c
-tbl             = D_actor_521100_8015F634;      /* lui early, addiu sinks to the use */
+tbl             = _gActor521100HitRecoveryWaitFrames;      /* lui early, addiu sinks to the use */
 rng             = gRandomLcgState * 5 + 0x71357911;
 gRandomLcgState     = rng;
 work->stateCounter = tbl[(rng >> 16) & 0xF];
@@ -107849,7 +107849,7 @@ the inert store move).
 ## An m2c seed that spells a table index in the target's *byte* units doubles it: `srl 14 / andi 0x3C` against the target's `srl 15 / andi 0x1E`
 
 `_actor521100GuardState` (the guard state) picks one of sixteen
-`u16` frames out of `D_actor_521100_8015F634` on the high half of an LCG draw,
+`u16` frames out of `_gActor521100HitRecoveryWaitFrames` on the high half of an LCG draw,
 and the target's lookup is the pair
 
 ```
@@ -107860,7 +107860,7 @@ andi v0,v0,0x1e
 m2c read that literally as a byte offset and emitted
 
 ```c
-M2C_FIELD(work, u16*, 0x68E) = *(((rng >> 0xF) & 0x1E) + D_actor_521100_8015F634);
+M2C_FIELD(work, u16*, 0x68E) = *(((rng >> 0xF) & 0x1E) + _gActor521100HitRecoveryWaitFrames);
 ```
 
 The offset is then scaled by the `u16*`'s element size a second time, and
@@ -107878,7 +107878,7 @@ index once, in the table's own units:
 u16* tbl;
 u32  rng;
 
-tbl             = D_actor_521100_8015F634;
+tbl             = _gActor521100HitRecoveryWaitFrames;
 rng             = gRandomLcgState * 5 + 0x71357911;
 gRandomLcgState     = rng;
 work->stateCounter = tbl[(rng >> 16) & 0xF];   /* folds to srl 15 / andi 0x1E */
@@ -107984,7 +107984,7 @@ source `base_1.c` `cb2ffab3886c6cf58d30c7362bac1b40421e18a66f62d0949e30dadcb1146
 in three `switch` arms:
 
 ```c
-    case 0: tbl = D_actor_521100_8015F5D4; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
+    case 0: tbl = _gActor521100StanceHoldFrames; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
     case 1: tbl = _gActor521100ApproachWaitFrames; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
     case 3: tbl = _gActor521100ApproachWaitFrames; work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF]; break;
 ```
@@ -108012,7 +108012,7 @@ and the cascade starts.
 ```c
     case 0:
         if (…) {
-            u16* tbl = D_actor_521100_8015F5D4;   /* block-scoped, set once, used once */
+            u16* tbl = _gActor521100StanceHoldFrames;   /* block-scoped, set once, used once */
             …
             work->stateCounter = tbl[(gRandomLcgState >> 16) & 0xF];
         }

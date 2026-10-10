@@ -8,7 +8,12 @@
 
 #include "main/task_types.h"
 
-extern TaskDesc D_actor_215100_8014CF6C[2];
+/// Gallery exit and abort decision-task descriptors (indices 0 and 1).
+///
+/// Bodyless priority-32 tasks wait for CAP replies and resolve session or room
+/// transitions. Shared by gallery control fragments; spawn operands select the
+/// exit operation or abort context. Keep the overlay loaded until they finish.
+extern TaskDesc gActor215100GalleryDecisionTaskDescs[2];
 
 /// Movement-triggered gallery exit gate (0 armed, 1 blocked).
 ///

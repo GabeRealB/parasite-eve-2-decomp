@@ -1222,7 +1222,11 @@ TaskMessageEntry Actor04000_D0C6B0[6] = {
 
 TaskDesc gActor04000BloodSucklerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor04000Task, { .model = &_gActor04000BloodSucklerBody } };
 
-TaskFunc Actor04000_D0C6EC[4] = {
+/// Hanging-pool controller phases, indexed by Task::state (0..3).
+///
+/// The bodyless controller initializes the pool, awaits battle, refills active
+/// drop slots, then kills itself. Dispatch has no index check or terminator.
+static TaskFunc _gActor04000HangingPoolPhases[4] = {
     _actor04000InitHangingPool,
     _actor04000AwaitPoolBattle,
     _actor04000RefillDropSlots,
@@ -1257,9 +1261,6 @@ extern PadScriptVibrationSegment Actor04000_D070A0[3];
 extern AnimationSet* Actor04000_D0C510[4];
 
 extern AnimationSet* Actor04000_D0C520[4];
-
-/// The controller task's state handlers, indexed by its `state`.
-extern TaskFunc Actor04000_D0C6EC[];
 
 static s32  _actor04000PollAnimationSound(_Actor04000Work* work);
 static void _actor04000SpawnEnemy(Enemy* enemy, Task* task);
@@ -3614,7 +3615,7 @@ static void _actor04000AwaitPoolBattle(Task* task)
 /// actor handles belong to this overlay. Dispatch performs no index check.
 static void _actor04000HangingPoolTask(Task* task)
 {
-    Actor04000_D0C6EC[task->state](task);
+    _gActor04000HangingPoolPhases[task->state](task);
 }
 
 PACKAGE_ALIASES

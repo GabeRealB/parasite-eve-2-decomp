@@ -27,7 +27,7 @@ extern AnimationPlayRequest D_actor_215100_8014D010;
 extern AnimationPlayRequest D_actor_215100_8014D024;
 extern s32                  D_actor_215100_8014D040;
 
-TaskDesc D_actor_215100_8014CF6C[2] = {
+TaskDesc gActor215100GalleryDecisionTaskDescs[2] = {
     { { { TASK_BODY_NONE, 32 } }, actor215100GalleryExitDecisionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, actor215100GalleryAbortDecisionTask, { .value = 0 } },
 };

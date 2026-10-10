@@ -367,7 +367,7 @@ D_actor_215100_80152EFC = 0x80152EFC; // size:0x14 defined:True
 _gActor215100PierceClip1Request = 0x80152F10; // size:0x14 defined:True
 _gActor215100PierceClip2Request = 0x80152F24; // size:0x14 defined:True
 _gActor215100GalleryPendingExitRequest = 0x8015E678; // size:0x8 defined:True
-D_actor_215100_8014CF6C = 0x8014CF6C; // size:0x18 defined:True
+gActor215100GalleryDecisionTaskDescs = 0x8014CF6C; // size:0x18 defined:True
 
 mistShootingGallerySetTrainingBarrierLowered = 0x80180390; // type:func absolute:True owner=mist_shooting_gallery
 

@@ -96,10 +96,6 @@ typedef struct {
 } _Actor342100BlazeWork;
 STATIC_ASSERT_SIZEOF(_Actor342100BlazeWork, 0x44);
 
-/// The overlay's event/controller task, published by
-/// `_actor342100EncounterBlazeControllerTask`.
-extern Task* D_actor_342100_80164BB8;
-
 /// Records a burn clip and sends its synchronous, collision-disabled play request.
 ///
 /// `workValue` is a live controller work pointer; `requestValue` is a writable
@@ -383,7 +379,12 @@ TaskDesc gActor342100EncounterBlazeTaskDescriptors[5] = {
 /// this storage; the context must stay live through its final drawing tick.
 static ScreenWaveCtx* _gScreenWaveContext = NULL;
 
-Task* D_actor_342100_80164BB8 = NULL;
+/// Borrowed singleton task of the dumping-hole encounter and player blaze scene.
+///
+/// NULL before successful work allocation publishes the controller. Burn-script
+/// callbacks require its task and work to remain live. Teardown leaves the
+/// handle unchanged; it does not own or retain the task.
+static Task* _gActor342100BlazeControllerTask = NULL;
 
 /// Column sine oscillators for horizontal screen displacement.
 ///
@@ -671,8 +672,8 @@ static inline void _actor342100InitializeBlazeController(Task* task)
         taskKill(task);
     } else {
         memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));
-        allocatedWork->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        D_actor_342100_80164BB8   = task;
+        allocatedWork->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        _gActor342100BlazeControllerTask = task;
     }
 }
 
@@ -794,7 +795,7 @@ static void _actor342100PlayBlazeAnimation(s32 clipIndex)
     s32                    weaponId;
     s32                    bankIndex;
 
-    work        = D_actor_342100_80164BB8->work;
+    work        = _gActor342100BlazeControllerTask->work;
     animationId = clipIndex + ANIMATION_BANK_BASE_SET_COUNT;
     weaponId    = gPlayerStatus.weapon;
     bankIndex   = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_342100_BLAZE_PRIMARY_CHARACTER) ? weaponId + ACTOR_342100_BLAZE_PRIMARY_BANK_OFFSET : weaponId + ACTOR_342100_BLAZE_OTHER_CHARACTER_OFFSET;
@@ -810,7 +811,7 @@ static void _actor342100PlayBlazeAnimation(s32 clipIndex)
 /// forwarded unchanged, with no bounds check and no result consumed.
 static void _actor342100SetBlazeFadeState(s32 fadeState)
 {
-    _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
+    _Actor342100BlazeWork* work = _gActor342100BlazeControllerTask->work;
 
     taskMessageDispatch(work->fadeTask, BLAZE_FADE_MESSAGE_SET_STATE, fadeState, 0);
 }
@@ -826,7 +827,7 @@ static void _actor342100StartBlazeHeatHaze(void)
 {
     enum { ACTOR_342100_HEAT_HAZE_RISE_FRAMES   = 600,
            ACTOR_342100_HEAT_HAZE_PEAK_STRENGTH = 256 };
-    _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
+    _Actor342100BlazeWork* work = _gActor342100BlazeControllerTask->work;
 
     work->blaze.wave.span  = ACTOR_342100_HEAT_HAZE_RISE_FRAMES;
     work->blaze.wave.scale = ACTOR_342100_HEAT_HAZE_PEAK_STRENGTH;
@@ -847,7 +848,7 @@ static void _actor342100SetBlazeBodyFireMode(s32 spreadToWholeBody)
     enum { ACTOR_342100_BLAZE_STOP_COMMAND_STAGE   = 0,
            ACTOR_342100_BLAZE_STOP_COMMAND_AREA    = 44,
            ACTOR_342100_BLAZE_BODY_FIRE_DESCRIPTOR = 3 };
-    _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
+    _Actor342100BlazeWork* work = _gActor342100BlazeControllerTask->work;
     ActorCommand           stopRequest;
 
     if (spreadToWholeBody == 0) {

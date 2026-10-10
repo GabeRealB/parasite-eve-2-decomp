@@ -389,4 +389,4 @@ _gActor03800Actor103800Animation05F18Records = 0x80137CBC; // size:0x70 defined:
 _gActor03800Actor103800Animation05F18Indices = 0x80137D2C; // size:0xC defined:True
 _gActor03800Actor103800Animation05F18 = 0x80137D38; // size:0x28 defined:True
 _gActor03800ContactAttacks = 0x80137D60; // size:0x4 defined:True
-Actor03800_D05F44 = 0x80137D64; // size:0x10 defined:True
+_gActor03800EnemyParams = 0x80137D64; // size:0x10 defined:True

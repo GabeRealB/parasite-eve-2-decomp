@@ -2478,7 +2478,7 @@ static inline void _actor215100StartGalleryExitPrompt(void)
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
     capRunCommand(ACTOR_215100_GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
     D_80115690 = ACTOR_215100_GALLERY_EXIT_KEEP_ACTORS_HELD;
-    taskSpawnFromTable(D_actor_215100_8014CF6C, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_END_TRAINING, 0);
+    taskSpawnFromTable(gActor215100GalleryDecisionTaskDescs, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_END_TRAINING, 0);
 }
 
 void actor215100CheckGalleryExitInput(void)
@@ -2679,7 +2679,7 @@ void actor215100RequestGalleryAbort(void)
     }
     if (gActor215100GallerySelectedCourseLevel < ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
         capRunCommand(ACTOR_215100_GALLERY_ABORT_CONFIRM_COMMAND, CAP_PLAYBACK_CLEAR_IF_UNSTARTED);
-        taskSpawnFromTable(D_actor_215100_8014CF6C, ACTOR_215100_GALLERY_ABORT_DECISION_TASK, 0, 0);
+        taskSpawnFromTable(gActor215100GalleryDecisionTaskDescs, ACTOR_215100_GALLERY_ABORT_DECISION_TASK, 0, 0);
     }
 }
 
@@ -2695,7 +2695,7 @@ s32 actor215100ResolveGalleryExit(const RoomEventMsg* request)
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
         capRunCommand(ACTOR_215100_GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
         D_80115690 = ACTOR_215100_GALLERY_EXIT_KEEP_ACTORS_HELD;
-        taskSpawnFromTable(D_actor_215100_8014CF6C, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_CONFIRM_ROOM_EXIT, 0);
+        taskSpawnFromTable(gActor215100GalleryDecisionTaskDescs, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_CONFIRM_ROOM_EXIT, 0);
     } else {
         // Keep the one-shot scope for the original query branch's delay-slot layout.
         do {
@@ -2708,7 +2708,7 @@ s32 actor215100ResolveGalleryExit(const RoomEventMsg* request)
             _gActor215100GalleryPendingExitRequest = *request;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             capRunCommandWithTransition(ACTOR_215100_GALLERY_EXIT_TRANSITION_COMMAND);
-            taskSpawnFromTable(D_actor_215100_8014CF6C, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_COMMIT_ROOM_EXIT, 0);
+            taskSpawnFromTable(gActor215100GalleryDecisionTaskDescs, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_COMMIT_ROOM_EXIT, 0);
         } while (0);
     }
     return ACTOR_215100_GALLERY_EXIT_DEFER;

@@ -134,7 +134,12 @@ enum {
 /// Fractional bits of the shaft's translation, speed, acceleration and limit.
 enum { ACTOR_303600_SHAFT_FRACTION_BITS = 16 };
 
-extern Task* D_actor_303600_8016E4C0;
+/// Borrowed singleton task of the Neo Ark shaft-and-figure cutscene.
+///
+/// Published only after controller work allocation succeeds. Event callbacks
+/// require the live task and work; teardown does not clear this handle.
+/// The handle neither owns the task nor extends its lifetime.
+static Task* _gActor303600CutsceneControllerTask;
 /// Cutscene fade cancellation slot, left unpopulated by this package.
 ///
 /// Initialization, fade completion and cancellation only write NULL; fade
@@ -412,8 +417,6 @@ GsF_LIGHT D_actor_303600_8016E490[3] = {
     { 0, 0, 4096, 128, 128, 128 },
 };
 
-Task* D_actor_303600_8016E4C0;
-
 static void _actor303600DispatchCutsceneCue(Task* task);
 static void _actor303600InitShaft(Task* task);
 static void _actor303600ScrollShaft(Task* task);
@@ -480,7 +483,7 @@ static void _actor303600DispatchCutsceneCue(Task* task)
     /// the current stage/area and the live published controller. Only stage,
     /// area and command are initialized because the actor receivers read those.
 #define ACTOR_303600_BROADCAST_ACTOR_CUE(cue)                                                                                                       \
-    publishedWork             = D_actor_303600_8016E4C0->work;                                                                                      \
+    publishedWork             = _gActor303600CutsceneControllerTask->work;                                                                          \
     request.context.loc.stage = gGameSession->location.loc.stage;                                                                                   \
     request.context.loc.area  = gGameSession->location.loc.area;                                                                                    \
     request.command           = (cue);                                                                                                              \
@@ -545,9 +548,9 @@ static inline void _actor303600InitializeCutscene(Task* task)
         taskKill(task);
     } else {
         memFillBytes(work, 0, sizeof(*work));
-        work->player              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        D_actor_303600_8016E4C0   = task;
-        _gActor303600FadeTaskSlot = NULL;
+        work->player                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        _gActor303600CutsceneControllerTask = task;
+        _gActor303600FadeTaskSlot           = NULL;
     }
 }
 
@@ -694,7 +697,7 @@ static void _actor303600SendCutsceneEndCommand(void)
 {
     enum { ACTOR_303600_CUTSCENE_END_ACTOR_COMMAND = 9 };
 
-    _Actor303600CutsceneWork* work = D_actor_303600_8016E4C0->work;
+    _Actor303600CutsceneWork* work = _gActor303600CutsceneControllerTask->work;
     ActorCommand              endCommand;
 
     if (work->endCommandSent == false) {
@@ -745,7 +748,7 @@ static void _actor303600FinishSkippedCutscene(void)
         _gActor303600FadeTaskSlot = NULL;
     }
 
-    work = D_actor_303600_8016E4C0->work;
+    work = _gActor303600CutsceneControllerTask->work;
     ACTOR_303600_SEND_SKIPPED_END_COMMAND(work, endCommand);
 
     taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_SKIP_BLACK_COVER_TASK, 0, NULL);
@@ -761,7 +764,7 @@ static void _actor303600FinishSkippedCutscene(void)
 /// otherwise unused halfword whose role is unproven.
 static void _actor303600PostCutsceneCue(s16 cue)
 {
-    _Actor303600CutsceneWork* work = D_actor_303600_8016E4C0->work;
+    _Actor303600CutsceneWork* work = _gActor303600CutsceneControllerTask->work;
 
     work->command = cue;
     work->field_6 = 0;

@@ -2074,9 +2074,9 @@ static void _actor503500SetRoomBackgroundSpritesVisible(s32 visible)
 /// All-zero XYZ suppresses restoration; the saved rotation remains available.
 static void _actor503500ClearSavedPlayerTransform(void)
 {
-    D_actor_503500_8017655C.pos.vx = 0;
-    D_actor_503500_8017655C.pos.vy = 0;
-    D_actor_503500_8017655C.pos.vz = 0;
+    gActor503500SavedPlayerTransform.pos.vx = 0;
+    gActor503500SavedPlayerTransform.pos.vy = 0;
+    gActor503500SavedPlayerTransform.pos.vz = 0;
 }
 
 /// Saves the live player's root translation and Euler angles for a temporary scene placement.
@@ -2094,11 +2094,11 @@ static void _actor503500SavePlayerTransform(void)
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     rootCoord  = playerTask->extra.tmd->coords;
 
-    D_actor_503500_8017655C.pos.vx = rootCoord->coord.t[0];
-    D_actor_503500_8017655C.pos.vy = rootCoord->coord.t[1];
-    D_actor_503500_8017655C.pos.vz = rootCoord->coord.t[2];
+    gActor503500SavedPlayerTransform.pos.vx = rootCoord->coord.t[0];
+    gActor503500SavedPlayerTransform.pos.vy = rootCoord->coord.t[1];
+    gActor503500SavedPlayerTransform.pos.vz = rootCoord->coord.t[2];
 
-    savedRotation     = &D_actor_503500_8017655C.rot;
+    savedRotation     = &gActor503500SavedPlayerTransform.rot;
     savedRotation->vx = ((GameActor*)playerTask->work)->rotation.vx;
     savedRotation->vy = ((GameActor*)playerTask->work)->rotation.vy;
     savedRotation->vz = ((GameActor*)playerTask->work)->rotation.vz;
@@ -2114,9 +2114,9 @@ static void _actor503500RestorePlayerTransform(void)
     Task* playerTask;
 
     playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if ((D_actor_503500_8017655C.pos.vx != 0) || (D_actor_503500_8017655C.pos.vy != 0) ||
-        (D_actor_503500_8017655C.pos.vz != 0)) {
-        TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_503500_8017655C, 0);
+    if ((gActor503500SavedPlayerTransform.pos.vx != 0) || (gActor503500SavedPlayerTransform.pos.vy != 0) ||
+        (gActor503500SavedPlayerTransform.pos.vz != 0)) {
+        TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &gActor503500SavedPlayerTransform, 0);
     }
 }
 

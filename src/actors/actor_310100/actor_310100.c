@@ -141,10 +141,6 @@ typedef struct {
 } _Actor310100PoliceOfficerWork;
 STATIC_ASSERT_SIZEOF(_Actor310100PoliceOfficerWork, 0x50C);
 
-/// Step sounds the model runs through while it is on the 0x6C display id:
-/// `stepSoundIndex` indexes the first three.
-extern s32 D_actor_310100_801798A8[];
-
 static s32 _actor310100SetOfficerBodyModel(Task* task, s32 messageId, s32 officerSelector, const AnimationPlayRequest* animation);
 static s32 _actor310100SetOfficerCulledBodyModel(Task* task, s32 messageId, s32 mode, s32 unusedSecondArg);
 static s32 _actor310100PlayOfficerOrPlayerAnimation(Task* task, s32 messageId, const AnimationPlayRequest* animation, s32 unusedSecondArg);
@@ -157,12 +153,7 @@ extern TaskDesc D_actor_310100_801798F0;
 extern AnimationSet* D_actor_310100_80179754[16];
 extern AnimationSet* D_actor_310100_80179794[26];
 
-extern TaskMessageEntry D_actor_310100_801798B4[6];
-extern s16*             D_actor_310100_8017989C[];
-
-extern s16 D_actor_310100_80179830[12];
-extern s16 D_actor_310100_80179848[16];
-extern s16 D_actor_310100_80179868[26];
+extern s16* D_actor_310100_8017989C[];
 
 static TmdSource _gActor310100PoliceOfficer1Body;
 static TmdSource _gActor310100PoliceOfficer1CulledBody;
@@ -567,84 +558,109 @@ AnimationSet* gActor310100PlayerAnimationSets[13] = {
     NULL,
 };
 
-s16 D_actor_310100_80179830[12] = {
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
+/// Sentinel ending a police-officer scene animation chain.
+enum { ACTOR_310100_NO_FOLLOW_UP_ANIMATION = -1 };
+
+/// Player clip successors for the police-officer scene, indexed by animation ID.
+///
+/// All twelve entries end the chain. The paired player bank has thirteen slots;
+/// only IDs 0..11 are supported here, and consumers do not check that bound.
+static s16 _gActor310100PlayerFollowUpAnimations[12] = {
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
 };
 
-s16 D_actor_310100_80179848[16] = {
+/// Officer-1 clip successors, indexed by animation ID 0..15.
+///
+/// A nonnegative entry selects the next clip when slot 1 reaches its boundary;
+/// ACTOR_310100_NO_FOLLOW_UP_ANIMATION ends the chain. Storage is borrowed by
+/// the follow-up table directory for the overlay's lifetime.
+static s16 _gActor310100Officer1FollowUpAnimations[16] = {
     0,
-    -1,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     3,
     4,
     4,
     4,
     7,
     7,
-    -1,
-    -1,
-    -1,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     11,
     11,
     11,
-    -1,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     0,
 };
 
-s16 D_actor_310100_80179868[26] = {
+/// Officer-2 clip successors, indexed by animation ID 0..25.
+///
+/// A nonnegative entry selects the next clip when slot 1 reaches its boundary;
+/// ACTOR_310100_NO_FOLLOW_UP_ANIMATION ends the chain. Storage is borrowed by
+/// the follow-up table directory for the overlay's lifetime.
+static s16 _gActor310100Officer2FollowUpAnimations[26] = {
     0,
-    -1,
-    -1,
-    -1,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     5,
     5,
-    -1,
-    -1,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     5,
     24,
     24,
     24,
     24,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
-    -1,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     20,
-    -1,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     18,
-    -1,
+    ACTOR_310100_NO_FOLLOW_UP_ANIMATION,
     0,
 };
 
 s16* D_actor_310100_8017989C[3] = {
-    D_actor_310100_80179830,
-    D_actor_310100_80179848,
-    D_actor_310100_80179868,
+    _gActor310100PlayerFollowUpAnimations,
+    _gActor310100Officer1FollowUpAnimations,
+    _gActor310100Officer2FollowUpAnimations,
 };
 
-s32 D_actor_310100_801798A8[3] = {
-    0x51050008,
-    0x51050009,
-    0x5105000A,
+/// Officer-1 step-sound sequence for newly entered slot-1 cue-2 records.
+///
+/// The index starts at zero and saturates at entry 2, repeating the final sound.
+/// This branch requires the officer-1 placement ID; current model initializers
+/// store that ID before clearing the work, so they leave the branch unreachable.
+static s32 _gActor310100Officer1StepSoundScripts[3] = {
+    SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 8),
+    SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 9),
+    SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 10),
 };
 
-// The callbacks installed here take the `TaskMessageHandler` argument positions
-// and leave the result word unset: the event scripts sending these ids discard it.
-TaskMessageEntry D_actor_310100_801798B4[6] = {
+/// Police-officer animation, placement and model-control message bindings.
+///
+/// Terminated by TASK_MESSAGE_TABLE_END. Control callbacks require a controller
+/// with a live model where appropriate; the same table is also installed on
+/// model tasks. Senders discard the callbacks' unset result word.
+static TaskMessageEntry _gActor310100OfficerMessageTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor310100PlayOfficerOrPlayerAnimation },
     { ACTOR_MESSAGE_PLACE, _actor310100PlaceOfficerModel },
     { ACTOR_310100_MESSAGE_SET_CULLED_BODY, _actor310100SetOfficerCulledBodyModel },
@@ -725,9 +741,9 @@ static s32 _actor310100TickOfficerAnimation(Task* task)
         if (cueRecord != NULL) {
             if (work->placementId == ACTOR_310100_PLACEMENT_OFFICER_1) {
                 if (cueRecord->flags & ANIMATION_RECORD_CUE_2) {
-                    sndEvtRequestScriptStart(D_actor_310100_801798A8[work->stepSoundIndex], worldCoordGetOriginAudioPan(rootCoord), 0);
+                    sndEvtRequestScriptStart(_gActor310100Officer1StepSoundScripts[work->stepSoundIndex], worldCoordGetOriginAudioPan(rootCoord), 0);
                     stepSoundIndex = work->stepSoundIndex;
-                    if (stepSoundIndex < ARRAY_SIZE(D_actor_310100_801798A8) - 1U) {
+                    if (stepSoundIndex < ARRAY_SIZE(_gActor310100Officer1StepSoundScripts) - 1U) {
                         work->stepSoundIndex = (u16)(stepSoundIndex + 1);
                     }
                 }
@@ -992,7 +1008,7 @@ static void _actor310100InitOfficerBodyModel(Task* task, s32 placementId)
     slotWork         = (_Actor310100PoliceOfficerWork*)task->work;
     _actor310100ResetOfficerSlots(slotWork, spawnAnimationId);
     _actor310100UpdateOfficerAnimation(task);
-    task->msgTable     = D_actor_310100_801798B4;
+    task->msgTable     = _gActor310100OfficerMessageTable;
     texturePlacementId = officerPlacementId;
     placement          = areaGetVariant(&gGameSession->location.loc)->placements;
     while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != texturePlacementId) {
@@ -1053,7 +1069,7 @@ static void _actor310100InitOfficerCulledBodyModel(Task* task, s32 placementId)
     slotWork               = (_Actor310100PoliceOfficerWork*)task->work;
     _actor310100ResetOfficerSlots(slotWork, spawnAnimationId);
     _actor310100UpdateOfficerAnimation(task);
-    task->msgTable     = D_actor_310100_801798B4;
+    task->msgTable     = _gActor310100OfficerMessageTable;
     texturePlacementId = officerPlacementId;
     placement          = areaGetVariant(&gGameSession->location.loc)->placements;
     while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != texturePlacementId) {
@@ -1114,7 +1130,7 @@ static void _actor310100Officer1ControllerTask(Task* task)
                 enemyDestroy(task->spawnArg2.pointer, task);
                 return;
             }
-            task->msgTable = D_actor_310100_801798B4;
+            task->msgTable = _gActor310100OfficerMessageTable;
             task->state++;
             break;
         case ACTOR_310100_CONTROLLER_HIDDEN:
@@ -1205,7 +1221,7 @@ static void _actor310100Officer2ControllerTask(Task* task)
                 enemyDestroy(task->spawnArg2.pointer, task);
                 return;
             }
-            task->msgTable         = D_actor_310100_801798B4;
+            task->msgTable         = _gActor310100OfficerMessageTable;
             work->spawnAnimationId = ACTOR_310100_OFFICER_2_SPAWN_CLIP;
             task->state++;
             break;

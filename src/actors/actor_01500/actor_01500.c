@@ -204,10 +204,6 @@ extern s16 Actor01500_D0A050[];
 /// Fifteen vertical bob offsets cycled by `bobPhase` while `anim` is `ACTOR_01500_ANIM_HOVER`.
 extern s16 Actor01500_D0A070[];
 
-/// Sixteen tick counts the hovering states reload `timer` from, picked
-/// by a `gRandomLcgState` draw.
-extern u16 Actor01500_D09FC8[];
-
 /// Sixteen distances `advanceLeft` is reloaded from when the actor starts to
 /// advance, picked by a `gRandomLcgState` draw.
 extern u16 Actor01500_D09FE8[];
@@ -750,7 +746,11 @@ static DamageAttack _gActor01500ContactAttack = { 8, ACTOR_01500_CONTACT_REACTIO
 /// compare against that same maximum. Rewards are 12 EXP, 36 BP and 2 MP.
 static EnemyParams _gActor01500EnemyParams = { &_gActor01500ContactAttack, 50, 12, 36, 2, 100, 1, 100, 0 };
 
-u16 Actor01500_D09FC8[16] = {
+/// Sixteen hover-wait durations in action ticks, selected by a four-bit LCG draw.
+///
+/// Values are 30..65 calls; airborne entry and hover actions copy them into
+/// their countdown. Storage is read only and lives with the actor overlay.
+static u16 _gActor01500HoverWaitTicks[16] = {
     30,
     34,
     36,
@@ -1335,7 +1335,7 @@ static void _actor01500PerchAction(Task* actor)
         work->action         = ACTOR_01500_ACTION_TAKE_OFF;
         work->anim           = ACTOR_01500_ANIM_TAKE_OFF_WALL;
         work->animFrame      = 0;
-        takeOffAnim          = Actor01500_D09FC8[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
+        takeOffAnim          = _gActor01500HoverWaitTicks[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
         work->hoverOffset    = 0;
         work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
@@ -1390,7 +1390,7 @@ static void _actor01500PerchAction(Task* actor)
                 takeOffAnim = ACTOR_01500_ANIM_TAKE_OFF_CEILING;
             }
             work->anim           = takeOffAnim;
-            hoverTicks           = Actor01500_D09FC8[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
+            hoverTicks           = _gActor01500HoverWaitTicks[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
             work->hoverOffset    = 0;
             work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
             work->roused         = 1;
@@ -1512,10 +1512,10 @@ static void _actor01500ChaseAction(Task* actor)
             work->speed        = 200;
             work->advanceLeft -= 200;
             if (work->advanceLeft < 0) {
-                hoverWaits           = Actor01500_D09FC8;
+                hoverWaits           = _gActor01500HoverWaitTicks;
                 work->anim           = ACTOR_01500_ANIM_HOVER;
                 hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
+                hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
                 gRandomLcgState      = hoverDraw;
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
                 work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
@@ -1624,13 +1624,13 @@ static void _actor01500HitAction(Task* actor)
             break;
         case ACTOR_01500_POSTURE_AIRBORNE:
             if (work->animFrame >= 10) {
-                hoverWaits           = Actor01500_D09FC8;
+                hoverWaits           = _gActor01500HoverWaitTicks;
                 work->action         = ACTOR_01500_ACTION_CHASE;
                 work->anim           = ACTOR_01500_ANIM_HOVER;
                 work->actionStep     = ACTOR_01500_CHASE_SETTLE;
                 hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gRandomLcgState      = hoverDraw;
-                hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
+                hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
                 work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
                 work->timer          = hoverTicks;
@@ -1996,9 +1996,9 @@ static void _actor01500ScriptedAction(Task* actor)
             work->speed        = 200;
             work->advanceLeft -= 200;
             if (work->advanceLeft < 0) {
-                hoverWaits           = Actor01500_D09FC8;
+                hoverWaits           = _gActor01500HoverWaitTicks;
                 work->anim           = ACTOR_01500_ANIM_HOVER;
-                hoverTicks           = hoverWaits[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
+                hoverTicks           = hoverWaits[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
                 work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
                 work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;
                 work->actionStep     = ACTOR_01500_CHASE_HOVER;
@@ -2199,7 +2199,7 @@ static void _actor01500AlertAction(Task* actor)
         work->anim           = takeOffAnim;
         hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState      = hoverDraw;
-        hoverTicks           = Actor01500_D09FC8[(hoverDraw >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
+        hoverTicks           = _gActor01500HoverWaitTicks[(hoverDraw >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
         work->roused         = 1;
         work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
@@ -2239,14 +2239,14 @@ static void _actor01500WallRestAction(Task* actor)
     work->speed         = 0;
     work->verticalSpeed = 0;
     if (--work->timer == 0) {
-        hoverWaits           = Actor01500_D09FC8;
+        hoverWaits           = _gActor01500HoverWaitTicks;
         work->posture        = ACTOR_01500_POSTURE_AIRBORNE;
         work->action         = ACTOR_01500_ACTION_TAKE_OFF;
         work->anim           = ACTOR_01500_ANIM_TAKE_OFF_WALL;
         work->actionStep     = 0;
         hoverDraw            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState      = hoverDraw;
-        hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(Actor01500_D09FC8) - 1)];
+        hoverTicks           = hoverWaits[(hoverDraw >> 16) & (ARRAY_SIZE(_gActor01500HoverWaitTicks) - 1)];
         work->perch          = ACTOR_01500_PERCH_WALL;
         work->loopSound      = ACTOR_01500_SOUND_FLIGHT_START;
         work->loopSoundTimer = ACTOR_01500_FLIGHT_START_TICKS;

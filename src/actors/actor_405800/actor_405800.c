@@ -220,7 +220,6 @@ typedef _Actor405800IvoryStalkerWork StalkerZebraIvoryWork;
 extern TaskDesc      D_actor_405800_801514B4[];
 extern EnemyParams   D_actor_405800_801418FC;
 extern AnimationSet* D_actor_405800_801513F8[6];
-extern AnimationSet* D_actor_405800_80151410[35];
 // Message-table callbacks use the argument views required by this TU.
 
 extern TaskMessageEntry D_actor_405800_8015149C[3];
@@ -1373,7 +1372,12 @@ AnimationSet* D_actor_405800_801513F8[6] = {
     &_gActor405800Animation1F5B0,
 };
 
-AnimationSet* D_actor_405800_80151410[35] = {
+/// Ivory Stalker body clips indexed by the native pose and animation selectors.
+///
+/// Thirty-five slots include NULL at 0, 5, 6, 23 and 24; those slots supply
+/// no set. The actor's animation context borrows the bank and its sets for
+/// the lifetime of its rig. The death-clip map uses this same pose domain.
+static AnimationSet* _gActor405800BodyAnimationSets[35] = {
     NULL,
     &_gActor405800Animation107B4,
     &_gActor405800Animation10EEC,
@@ -1428,7 +1432,7 @@ TaskDesc gActor405800IvoryStalkerTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor4
 ///
 /// Supplies the Ivory carrier's death-clip map to the shared Stalker code.
 /// Each entry is a clip in this carrier's body bank; there is no terminator.
-static u8 _gStalkerZebraIvoryDeathClipsByPose[ARRAY_SIZE(D_actor_405800_80151410)] = {
+static u8 _gStalkerZebraIvoryDeathClipsByPose[ARRAY_SIZE(_gActor405800BodyAnimationSets)] = {
     STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
     STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
     STALKER_ZEBRA_IVORY_DEATH_CLIP_UPRIGHT_KNOCKDOWN,
@@ -2054,7 +2058,7 @@ static void _actor405800InitEnemy(Task* task)
     work->effectArg.spawnArgLo    = 0x100;
     work->effectArg.spawnArgHi    = 2;
     enemy->hp = enemy->hpMax = D_actor_405800_801418FC.hpMax;
-    animationInitContext(&work->rig.anim, D_actor_405800_80151410, model, work->rig.poses, work->rig.slots);
+    animationInitContext(&work->rig.anim, _gActor405800BodyAnimationSets, model, work->rig.poses, work->rig.slots);
 
     _actor405800SetRestartRequest(task, ACTOR_405800_CLIP_IDLE, ANIMATION_RATE_ONE);
 

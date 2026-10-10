@@ -143,8 +143,6 @@ enum {
     ACTOR_521100_ANIM_SPAWN          = 21,
 };
 
-extern TaskMessageEntry D_actor_521100_8015F6FC[8];
-
 static s32 _actor521100ReleasePlayerHold(Task* task, s32 unusedMessageId, s32 unusedArg, s32 unusedSecondArg);
 
 static s32 _actor521100PlayEventAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
@@ -165,56 +163,6 @@ typedef struct {
     ActorTransform       playerPlacement; // Where `GAME_ACTOR_MESSAGE_PLACE` puts the player; of its angles only the yaw is ever nonzero
 } _Actor521100GrabScratch;
 STATIC_ASSERT_SIZEOF(_Actor521100GrabScratch, 0x54);
-
-extern s16 D_actor_521100_8015F570[];
-
-extern s16 D_actor_521100_8015F684[];
-
-/// The three waypoints the state-6 body `_actor521100WalkRouteState` walks the
-/// actor to, one per phase `subState` it switches on: `(-4000, 0, -2000)` for
-/// phases 0 and 2, and `(-5250, 0, -1200)` for phase 1. Only `vx` and `vz` are
-/// read, and only when the actor is too far from the player for that phase to
-/// aim at it; the y of all three is zero, as the positions are on the floor.
-extern VECTOR D_actor_521100_8015F654[];
-
-/// Sixteen frames of the burn-out effect the state bodies at `subState == 1`
-/// pick between on their last frame, indexed by the 4 bits under the top half
-/// of an LCG draw (`(rng >> 16) & 0xF`).
-extern u16 D_actor_521100_8015F634[];
-
-/// The burn-out effect table the sequence resets read: the state-1 body
-/// `_actor521100StanceAttack` draws from it the frames its stance is held,
-/// into `stateCounter`.
-extern u16 D_actor_521100_8015F5D4[];
-
-/// The 4-byte pair `_actor521100StanceAttack` packs a type-2 record into and
-/// copies onto both `weaponAttack` / `forearmAttack` as their `key`, where the
-/// sibling overlays' attack bodies put the same pair. Same shape as
-/// the rows of `gActor510900Attacks` and `D_actor_400100_*`.
-extern DamageAttack D_actor_521100_8015F550[4];
-
-extern s16 D_actor_521100_8015F57C[16];
-
-/// The attack that follows one chosen twice running while the player is
-/// within 0x8FC: a row per `ACTOR_521100_ATTACK_*` that was repeated, a column
-/// per random bit. No row offers its own attack, and none the long slash.
-///
-/// Both choices start as `ACTOR_521100_ATTACK_NONE` and so agree on the first
-/// draw, whose row is then the one before the table: the last two entries of
-/// `D_actor_521100_8015F57C`, both the stance. Whether the original tables
-/// were laid out to be read that way is unproven.
-extern s16 D_actor_521100_8015F59C[3][2];
-
-extern s16 D_actor_521100_8015F5A8[16];
-
-/// The same table for a player further away, where the long slash is offered.
-/// Its first draw likewise reads the last two entries of
-/// `D_actor_521100_8015F5A8`, both the stance.
-extern s16 D_actor_521100_8015F5C8[3][2];
-
-extern u16 D_actor_521100_8015F614[];
-
-extern EnemyParams D_actor_521100_8015F560;
 
 static void _actor521100ResolveContacts(Task* task);
 static void _actor521100ApproachState(Task* task);
@@ -1500,16 +1448,34 @@ AnimationSet gActor521100Animation2D708 = {
     { NULL, _gActor521100Animation2D708Bank1, NULL, NULL, _gActor521100Animation2D708Bank4, NULL, NULL, NULL },
 };
 
-DamageAttack D_actor_521100_8015F550[4] = {
-    { 15, 7 },
-    { 25, 7 },
-    { 40, 7 },
-    { 10, 0 },
+/// Distinct, status-free player hit presentation of the golem's weapon attacks.
+enum { ACTOR_521100_WEAPON_HIT_REACTION = 7 };
+
+/// No. 9 GOLEM damage rows for slash, long slash, stance swing and held-player strikes.
+///
+/// Rows 0..2 have powers 15, 25 and 40 with hit presentation 7; row 3 has
+/// power 10 and the ordinary reaction. The enemy parameters and both attack
+/// spheres borrow these entries; keep them loaded through the fight.
+static DamageAttack _gActor521100Attacks[4] = {
+    { 15, ACTOR_521100_WEAPON_HIT_REACTION },
+    { 25, ACTOR_521100_WEAPON_HIT_REACTION },
+    { 40, ACTOR_521100_WEAPON_HIT_REACTION },
+    { 10, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams D_actor_521100_8015F560 = { D_actor_521100_8015F550, 1100, 800, 300, 50, 0, 0, 0, 0 };
+/// No. 9 GOLEM combat tuning and rewards for the Dryfield fight.
+///
+/// Body spawn borrows this record and starts at 1100 HP. Rewards are 800 EXP,
+/// 300 BP and 50 MP; critical and status-reaction tunings are zero. The grab
+/// counterattack also compares remaining enemy HP with a third of this maximum.
+static EnemyParams _gActor521100EnemyParams = { _gActor521100Attacks, 1100, 800, 300, 50, 0, 0, 0, 0 };
 
-s16 D_actor_521100_8015F570[6] = {
+/// Player HP thresholds for a fatal held-player strike, indexed by combat difficulty.
+///
+/// At each damage interval, HP at or below the selected limit starts the kill
+/// clip instead of another strike. Rows 0..4 correspond to saved modes and
+/// normal replay; retained row 5 is zero and its gameplay use is unproven.
+static s16 _gActor521100GrabKillHpByDifficulty[6] = {
     6,
     11,
     16,
@@ -1518,57 +1484,79 @@ s16 D_actor_521100_8015F570[6] = {
     0,
 };
 
-s16 D_actor_521100_8015F57C[16] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
+/// Weighted attack choices within 2300 parent-coordinate units of the player.
+///
+/// A four-bit LCG draw selects ten slash entries or six stance entries. The
+/// last two stance entries also precede the repeat-choice rows in storage.
+static s16 _gActor521100NearAttackChoices[16] = {
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_STANCE,
+    ACTOR_521100_ATTACK_STANCE,
+    ACTOR_521100_ATTACK_STANCE,
+    ACTOR_521100_ATTACK_STANCE,
+    ACTOR_521100_ATTACK_STANCE,
+    ACTOR_521100_ATTACK_STANCE,
 };
 
-s16 D_actor_521100_8015F59C[3][2] = {
+/// Near-range choices that prevent a third identical attack.
+///
+/// Rows 0..2 select alternatives to the previous slash, long slash or stance;
+/// a random bit selects the column. The initial NONE choice (-1) currently
+/// reads the preceding weighted table's final two stance entries.
+static s16 _gActor521100NearAttackChoicesAfterRepeat[3][2] = {
     { ACTOR_521100_ATTACK_STANCE, ACTOR_521100_ATTACK_STANCE },
     { ACTOR_521100_ATTACK_SLASH, ACTOR_521100_ATTACK_STANCE },
     { ACTOR_521100_ATTACK_SLASH, ACTOR_521100_ATTACK_SLASH },
 };
 
-s16 D_actor_521100_8015F5A8[16] = {
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
-    2,
-    2,
-    2,
-    2,
+/// Weighted attack choices at least 2300 parent-coordinate units from the player.
+///
+/// A four-bit LCG draw selects four slash, eight long-slash or four stance
+/// entries. The final two stance entries precede the repeat-choice rows.
+static s16 _gActor521100FarAttackChoices[16] = {
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_SLASH,
+    ACTOR_521100_ATTACK_LONG_SLASH,
+    ACTOR_521100_ATTACK_LONG_SLASH,
+    ACTOR_521100_ATTACK_LONG_SLASH,
+    ACTOR_521100_ATTACK_LONG_SLASH,
+    ACTOR_521100_ATTACK_LONG_SLASH,
+    ACTOR_521100_ATTACK_LONG_SLASH,
+    ACTOR_521100_ATTACK_LONG_SLASH,
+    ACTOR_521100_ATTACK_LONG_SLASH,
+    ACTOR_521100_ATTACK_STANCE,
+    ACTOR_521100_ATTACK_STANCE,
+    ACTOR_521100_ATTACK_STANCE,
+    ACTOR_521100_ATTACK_STANCE,
 };
 
-s16 D_actor_521100_8015F5C8[3][2] = {
+/// Far-range choices that prevent a third identical attack.
+///
+/// Rows 0..2 select alternatives to the previous slash, long slash or stance;
+/// a random bit selects the column. The initial NONE choice (-1) currently
+/// reads the preceding weighted table's final two stance entries.
+static s16 _gActor521100FarAttackChoicesAfterRepeat[3][2] = {
     { ACTOR_521100_ATTACK_LONG_SLASH, ACTOR_521100_ATTACK_STANCE },
     { ACTOR_521100_ATTACK_SLASH, ACTOR_521100_ATTACK_STANCE },
     { ACTOR_521100_ATTACK_SLASH, ACTOR_521100_ATTACK_LONG_SLASH },
 };
 
-u16 D_actor_521100_8015F5D4[16] = { 0 };
+/// Sixteen stance-hold durations in state ticks, selected by a four-bit LCG draw.
+///
+/// All entries are zero. The stance still consumes the draw and decrements
+/// before testing the timer, so a zero wait does not remove its hold tick.
+static u16 _gActor521100StanceHoldFrames[16] = { 0 };
 
 /// No. 9 GOLEM's sixteen-entry distribution of approach and attack-recovery waits.
 ///
@@ -1594,7 +1582,11 @@ static u16 _gActor521100ApproachWaitFrames[16] = {
     30,
 };
 
-u16 D_actor_521100_8015F614[16] = {
+/// Sixteen approach-walk durations in state ticks, selected by a four-bit LCG draw.
+///
+/// Every entry is fifteen. Initial and retried approach walks copy a sample
+/// into stateCounter; the walk consumes it by decrementing once per update.
+static u16 _gActor521100WalkDurationFrames[16] = {
     15,
     15,
     15,
@@ -1613,63 +1605,78 @@ u16 D_actor_521100_8015F614[16] = {
     15,
 };
 
-u16 D_actor_521100_8015F634[16] = { 0 };
+/// Sixteen post-hit wait durations in state ticks, selected by a four-bit LCG draw.
+///
+/// Guard and stagger completion resume approach or the saved route and load
+/// stateCounter from this table. All entries are zero; the draw and subsequent
+/// state timer behavior are retained.
+static u16 _gActor521100HitRecoveryWaitFrames[16] = { 0 };
 
-VECTOR D_actor_521100_8015F654[3] = {
+/// Three horizontal route targets indexed by ACTOR_521100_ROUTE_* (0..2).
+///
+/// XYZ are integer game units in the model root's parent frame; consumers use
+/// only X/Z. The first two legs may target the player instead. The return leg
+/// always aims at its waypoint; entries 0 and 2 are the same location.
+static VECTOR _gActor521100RouteWaypoints[3] = {
     { -4000, 0, -2000, 0 },
     { -5250, 0, -1200, 0 },
     { -4000, 0, -2000, 0 },
 };
 
-s16 D_actor_521100_8015F684[48] = {
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+/// No. 9 GOLEM base hit responses indexed by the weapon key's low six bits.
+///
+/// The caller must supply a row in 0..47. Rows 10..12 request guard and all
+/// others normal damage. Attachment keys bypass the table and request guard;
+/// the contact handler may refine either response for the current fight state.
+static s16 _gActor521100WeaponHitResponses[48] = {
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_GUARD,
+    ACTOR_521100_HIT_RESPONSE_GUARD,
+    ACTOR_521100_HIT_RESPONSE_GUARD,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
+    ACTOR_521100_HIT_RESPONSE_NORMAL,
 };
 
 TaskDesc gActor521100No9GolemTaskDescs[2] = {
@@ -1677,7 +1684,12 @@ TaskDesc gActor521100No9GolemTaskDescs[2] = {
     { { { TASK_BODY_TMD, 96 } }, _actor521100GunbladeTask, { .model = &_gActor521100No9GolemDryfieldGunblade } },
 };
 
-TaskMessageEntry D_actor_521100_8015F6FC[8] = {
+/// No. 9 GOLEM body message bindings, terminated by TASK_MESSAGE_TABLE_END.
+///
+/// Handles player-hold release, scripted animation, placement, model visibility,
+/// room commands, activation and presence queries. Installed after body work
+/// initialization and borrowed until the body task is destroyed.
+static TaskMessageEntry _gActor521100BodyMessageTable[8] = {
     { ACTOR_MESSAGE_RELEASE_HOLD, _actor521100ReleasePlayerHold },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor521100PlayEventAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
@@ -1731,9 +1743,9 @@ static void _actor521100SpawnBody(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &D_actor_521100_8015F560;
+    enemy->param                  = &_gActor521100EnemyParams;
     enemy->recs                   = work->bodyContacts;
-    enemy->hp                     = D_actor_521100_8015F560.hpMax;
+    enemy->hp                     = _gActor521100EnemyParams.hpMax;
     work->hitEffectArg.coord      = &task->extra.tmd->coords[3];
     work->hitEffectArg.spawnArgLo = 0x400;
     work->hitEffectArg.spawnArgHi = 3;
@@ -1849,7 +1861,7 @@ static void _actor521100SpawnBody(Enemy* enemy, Task* task)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->grabSpotProbe);
     work->grabSpotProbe.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
-    task->msgTable = D_actor_521100_8015F6FC;
+    task->msgTable = _gActor521100BodyMessageTable;
     task->state    = ACTOR_521100_BODY_UPDATE;
 }
 
@@ -1868,7 +1880,7 @@ static __inline__ s32 _actor521100GetBaseHitResponse(s32 attackKey)
     if (attackKey & ACTOR_521100_ATTACK_KEY_ATTACHMENT) {
         return ACTOR_521100_HIT_RESPONSE_GUARD;
     }
-    return D_actor_521100_8015F684[attackKey & ACTOR_521100_ATTACK_KEY_ROW_MASK];
+    return _gActor521100WeaponHitResponses[attackKey & ACTOR_521100_ATTACK_KEY_ROW_MASK];
 }
 
 /// Resolves ground contacts, player hits, attack contacts and grab obstructions.
@@ -2138,7 +2150,7 @@ static void _actor521100ApproachState(Task* task)
                 if (remainingFrames < 0) {
                     work->subState     = ACTOR_521100_APPROACH_WALK;
                     work->animationId  = ACTOR_521100_ANIM_WALK;
-                    walkDurationTable  = D_actor_521100_8015F614;
+                    walkDurationTable  = _gActor521100WalkDurationFrames;
                     walkRandomState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     gRandomLcgState    = walkRandomState;
                     work->stateCounter = walkDurationTable[(walkRandomState >> 16) & ACTOR_521100_RECOVERY_WAIT_INDEX_MASK];
@@ -2176,7 +2188,7 @@ static void _actor521100ApproachState(Task* task)
                     if (remainingFrames == 0) {
                         _actor521100TryStartAttack(task);
                         if (work->state == ACTOR_521100_STATE_APPROACH) {
-                            retryWalkDurationTable = D_actor_521100_8015F614;
+                            retryWalkDurationTable = _gActor521100WalkDurationFrames;
                             retryRandomState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             gRandomLcgState        = retryRandomState;
                             work->stateCounter     = retryWalkDurationTable[(retryRandomState >> 16) & ACTOR_521100_RECOVERY_WAIT_INDEX_MASK];
@@ -2290,18 +2302,18 @@ static void _actor521100AttackState(Task* task)
             if (((u32)((u8)gAttachmentState.mode - ATTACHMENT_MODE_ARMED) >= 2U) && (gGameSession->location.loc.view != 2)) {
                 if (work->playerDistance < 0x8FC) {
                     if (work->prevAttackChoice == work->attackChoice) {
-                        nextAttack = D_actor_521100_8015F59C[work->attackChoice][((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1];
+                        nextAttack = _gActor521100NearAttackChoicesAfterRepeat[work->attackChoice][((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1];
                     } else {
-                        nearChoiceTable = D_actor_521100_8015F57C;
+                        nearChoiceTable = _gActor521100NearAttackChoices;
                         nearRandomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         nextAttack      = nearChoiceTable[(nearRandomState >> 16) & 0xF];
                         gRandomLcgState = nearRandomState;
                     }
                 } else {
                     if (work->prevAttackChoice == work->attackChoice) {
-                        nextAttack = D_actor_521100_8015F5C8[work->attackChoice][((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1];
+                        nextAttack = _gActor521100FarAttackChoicesAfterRepeat[work->attackChoice][((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 1];
                     } else {
-                        farChoiceTable  = D_actor_521100_8015F5A8;
+                        farChoiceTable  = _gActor521100FarAttackChoices;
                         farRandomState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                         nextAttack      = farChoiceTable[(farRandomState >> 16) & 0xF];
                         gRandomLcgState = farRandomState;
@@ -2319,14 +2331,14 @@ static void _actor521100AttackState(Task* task)
                 case ACTOR_521100_ATTACK_SLASH:
                     work->subState          = ACTOR_521100_ATTACK_RUN_SLASH;
                     work->animationId       = ACTOR_521100_ANIM_SLASH;
-                    attackKey               = damagePackAttackKey(D_actor_521100_8015F550, ACTOR_521100_ATTACK_SLASH);
+                    attackKey               = damagePackAttackKey(_gActor521100Attacks, ACTOR_521100_ATTACK_SLASH);
                     work->weaponAttack.key  = attackKey;
                     work->forearmAttack.key = attackKey;
                     break;
                 case ACTOR_521100_ATTACK_LONG_SLASH:
                     work->subState          = ACTOR_521100_ATTACK_RUN_LONG_SLASH;
                     work->animationId       = ACTOR_521100_ANIM_LONG_SLASH;
-                    attackKey               = damagePackAttackKey(D_actor_521100_8015F550, ACTOR_521100_ATTACK_LONG_SLASH);
+                    attackKey               = damagePackAttackKey(_gActor521100Attacks, ACTOR_521100_ATTACK_LONG_SLASH);
                     work->weaponAttack.key  = attackKey;
                     work->forearmAttack.key = attackKey;
                     break;
@@ -2334,7 +2346,7 @@ static void _actor521100AttackState(Task* task)
                     work->subState          = ACTOR_521100_ATTACK_RUN_STANCE;
                     work->attackStep        = 0;
                     work->animationId       = ACTOR_521100_ANIM_STANCE_ENTER;
-                    attackKey               = damagePackAttackKey(D_actor_521100_8015F550, ACTOR_521100_ATTACK_STANCE);
+                    attackKey               = damagePackAttackKey(_gActor521100Attacks, ACTOR_521100_ATTACK_STANCE);
                     work->weaponAttack.key  = attackKey;
                     work->forearmAttack.key = attackKey;
                     break;
@@ -2555,7 +2567,7 @@ static void _actor521100StanceAttack(Task* task)
     switch (work->attackStep) {
         case ACTOR_521100_STANCE_ENTER:
             if (work->animationFrame >= gActor521100AnimationFireTables.blendFrames[work->animationId] + ACTOR_521100_STANCE_COMMIT_FRAME) {
-                u16* waitFrameTable = D_actor_521100_8015F5D4;
+                u16* waitFrameTable = _gActor521100StanceHoldFrames;
                 work->animationId   = ACTOR_521100_ANIM_STANCE_HOLD;
                 work->attackStep    = ACTOR_521100_STANCE_HOLD;
                 gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2582,7 +2594,7 @@ static void _actor521100StanceAttack(Task* task)
             } else {
                 work->attackStep        = ACTOR_521100_STANCE_SWING;
                 work->animationId       = ACTOR_521100_ANIM_STANCE_SWING;
-                attackKey               = damagePackAttackKey(D_actor_521100_8015F550, ACTOR_521100_ATTACK_STANCE);
+                attackKey               = damagePackAttackKey(_gActor521100Attacks, ACTOR_521100_ATTACK_STANCE);
                 work->weaponAttack.key  = attackKey;
                 work->forearmAttack.key = attackKey;
             }
@@ -2801,19 +2813,19 @@ static void _actor521100GrabState(Task* task)
             counterBits        = work->stateCounter - 1;
             work->stateCounter = counterBits;
             if ((s16)counterBits <= 0) {
-                if (gPlayerStatus.hp <= D_actor_521100_8015F570[gSceneCombatState.difficulty]) {
+                if (gPlayerStatus.hp <= _gActor521100GrabKillHpByDifficulty[gSceneCombatState.difficulty]) {
                     work->animationId = ACTOR_521100_ANIM_KILL_PLAYER;
                     work->subState    = ACTOR_521100_GRAB_KILL;
                     ACTOR_521100_PLAY_GRAB_PLAYER_ANIMATION(work->grabFromFront ? ACTOR_521100_PLAYER_ANIM_KILL_FRONT : ACTOR_521100_PLAYER_ANIM_KILL_BACK)
                     phaseValue = 1;
                 } else {
                     work->stateCounter = ACTOR_521100_HOLD_DAMAGE_PERIOD;
-                    taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_521100_8015F550, ACTOR_521100_GRAB_DAMAGE_ROW), 0);
+                    taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(_gActor521100Attacks, ACTOR_521100_GRAB_DAMAGE_ROW), 0);
                 }
             }
             if (phaseValue != 1) {
                 phaseValue = 0;
-                if ((work->playerEscaped == 1) && (gPlayerStatus.hp < 0x3D) && (((D_actor_521100_8015F560.hpMax / 3) & 0xFFFF) >= ((Enemy*)task->spawnArg2.pointer)->hp)) {
+                if ((work->playerEscaped == 1) && (gPlayerStatus.hp < 0x3D) && (((_gActor521100EnemyParams.hpMax / 3) & 0xFFFF) >= ((Enemy*)task->spawnArg2.pointer)->hp)) {
                     phaseValue = work->grabFromFront == 1;
                 }
                 if (phaseValue != 0) {
@@ -2996,7 +3008,7 @@ static void _actor521100GuardState(Task* task)
             return;
         case ACTOR_521100_GUARD_WAIT_END:
             if (work->animationFrame >= ACTOR_521100_GUARD_END_FRAMES) {
-                ACTOR_521100_RESUME_AFTER_HIT(work, D_actor_521100_8015F634);
+                ACTOR_521100_RESUME_AFTER_HIT(work, _gActor521100HitRecoveryWaitFrames);
             }
             return;
     }
@@ -3046,9 +3058,9 @@ static void _actor521100WalkRouteState(Task* task)
                 work->state        = ACTOR_521100_STATE_ATTACK;
                 work->subState     = 0;
             } else {
-                scratch->delta.vx = D_actor_521100_8015F654[ACTOR_521100_ROUTE_FIRST].vx - rootCoord->coord.t[0];
+                scratch->delta.vx = _gActor521100RouteWaypoints[ACTOR_521100_ROUTE_FIRST].vx - rootCoord->coord.t[0];
                 scratch->delta.vy = 0;
-                scratch->delta.vz = D_actor_521100_8015F654[ACTOR_521100_ROUTE_FIRST].vz - rootCoord->coord.t[2];
+                scratch->delta.vz = _gActor521100RouteWaypoints[ACTOR_521100_ROUTE_FIRST].vz - rootCoord->coord.t[2];
                 work->targetYaw   = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
                 if (SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_WAYPOINT_RADIUS) {
                     work->subState = ACTOR_521100_ROUTE_SECOND;
@@ -3078,9 +3090,9 @@ static void _actor521100WalkRouteState(Task* task)
                 work->state        = ACTOR_521100_STATE_ATTACK;
                 work->subState     = 0;
             } else {
-                scratch->delta.vx = D_actor_521100_8015F654[ACTOR_521100_ROUTE_SECOND].vx - rootCoord->coord.t[0];
+                scratch->delta.vx = _gActor521100RouteWaypoints[ACTOR_521100_ROUTE_SECOND].vx - rootCoord->coord.t[0];
                 scratch->delta.vy = 0;
-                scratch->delta.vz = D_actor_521100_8015F654[ACTOR_521100_ROUTE_SECOND].vz - rootCoord->coord.t[2];
+                scratch->delta.vz = _gActor521100RouteWaypoints[ACTOR_521100_ROUTE_SECOND].vz - rootCoord->coord.t[2];
                 work->targetYaw   = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
                 if (SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_WAYPOINT_RADIUS) {
                     scratch->delta.vx  = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
@@ -3105,9 +3117,9 @@ static void _actor521100WalkRouteState(Task* task)
             work->animationId  = ACTOR_521100_ANIM_WALK;
             work->forwardSpeed = ACTOR_521100_ROUTE_WALK_SPEED;
             work->turnSpeed    = ACTOR_521100_ROUTE_TURN_SPEED;
-            scratch->delta.vx  = D_actor_521100_8015F654[ACTOR_521100_ROUTE_RETURN].vx - rootCoord->coord.t[0];
+            scratch->delta.vx  = _gActor521100RouteWaypoints[ACTOR_521100_ROUTE_RETURN].vx - rootCoord->coord.t[0];
             scratch->delta.vy  = 0;
-            scratch->delta.vz  = D_actor_521100_8015F654[ACTOR_521100_ROUTE_RETURN].vz - rootCoord->coord.t[2];
+            scratch->delta.vz  = _gActor521100RouteWaypoints[ACTOR_521100_ROUTE_RETURN].vz - rootCoord->coord.t[2];
             work->targetYaw    = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
             if (rootCoord->coord.t[0] < ACTOR_521100_ROUTE_RETURN_X) {
                 if (SquareRoot0((scratch->delta.vx * scratch->delta.vx) + (scratch->delta.vz * scratch->delta.vz)) < ACTOR_521100_ROUTE_WAYPOINT_RADIUS) {
@@ -3580,7 +3592,7 @@ static void _actor521100StaggerState(Task* task)
             return;
         case ACTOR_521100_REACTION_WAIT:
             if (work->animationFrame >= ACTOR_521100_STAGGER_FRAMES) {
-                ACTOR_521100_RESUME_AFTER_HIT(work, D_actor_521100_8015F634);
+                ACTOR_521100_RESUME_AFTER_HIT(work, _gActor521100HitRecoveryWaitFrames);
             }
             return;
     }

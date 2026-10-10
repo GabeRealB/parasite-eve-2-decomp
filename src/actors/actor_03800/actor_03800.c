@@ -218,7 +218,6 @@ static TmdSource _gActor03800BlackBeetleEffect5;
 
 extern s16           Actor03800_D05F90[];
 extern s16           Actor03800_D05FA8[];
-extern EnemyParams   Actor03800_D05F44;
 extern AnimationSet* Actor03800_D05F60[12];
 
 static void        _actor03800ActionIdle(Task* task);
@@ -724,7 +723,12 @@ static DamageAttack _gActor03800ContactAttacks[1] = {
     { 6, ACTOR_03800_CONTACT_REACTION_SPARK_AND_PUFFS },
 };
 
-EnemyParams Actor03800_D05F44 = { _gActor03800ContactAttacks, 280, 15, 53, 1, 0, 10, 100, 0 };
+/// Black Beetle combat tuning and rewards shared by its live enemies.
+///
+/// Spawns start at 280 HP and borrow the contact attack; rewards are 15 EXP,
+/// 53 BP and 1 MP. Overturned waits increase with the percentage of this
+/// maximum HP already lost. Keep the record loaded while enemies borrow it.
+static EnemyParams _gActor03800EnemyParams = { _gActor03800ContactAttacks, 280, 15, 53, 1, 0, 10, 100, 0 };
 
 TaskDesc gActor03800BlackBeetleTaskDesc = { { { TASK_BODY_TMD, 96 } }, _actor03800Task, { .model = &_gActor03800BlackBeetleBody } };
 
@@ -805,8 +809,8 @@ static void _actor03800Spawn(Enemy* enemy, Task* task)
     enemy->recs                   = work->hitContacts;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &Actor03800_D05F44;
-    enemy->hp                     = (s16)Actor03800_D05F44.hpMax;
+    enemy->param                  = &_gActor03800EnemyParams;
+    enemy->hp                     = (s16)_gActor03800EnemyParams.hpMax;
     work->hitEffectArg.coord      = &task->extra.tmd->coords[3];
     work->hitEffectArg.spawnArgLo = 0x200;
     work->hitEffectArg.spawnArgHi = 1;
@@ -1550,7 +1554,7 @@ static void _actor03800ActionKnockedOver(Task* task)
             }
             if (work->animFrame >= ACTOR_03800_KNOCKED_OVER_WAIT_TICK) {
                 work->actionStep      = ACTOR_03800_KNOCKED_OVER_WAIT;
-                work->overturnedTimer = ((Actor03800_D05F44.hpMax - enemy->hp) * 100 / Actor03800_D05F44.hpMax) * ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT + ACTOR_03800_OVERTURNED_WAIT_BASE;
+                work->overturnedTimer = ((_gActor03800EnemyParams.hpMax - enemy->hp) * 100 / _gActor03800EnemyParams.hpMax) * ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT + ACTOR_03800_OVERTURNED_WAIT_BASE;
             }
             break;
         case ACTOR_03800_KNOCKED_OVER_WAIT:
@@ -1679,7 +1683,7 @@ static void _actor03800ActionBuildup(Task* task)
             } else {
                 work->action          = ACTOR_03800_ACTION_KNOCKED_OVER;
                 work->actionStep      = ACTOR_03800_KNOCKED_OVER_WAIT;
-                work->overturnedTimer = ((Actor03800_D05F44.hpMax - enemy->hp) * 100 / Actor03800_D05F44.hpMax) * ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT + ACTOR_03800_OVERTURNED_WAIT_BASE;
+                work->overturnedTimer = ((_gActor03800EnemyParams.hpMax - enemy->hp) * 100 / _gActor03800EnemyParams.hpMax) * ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT + ACTOR_03800_OVERTURNED_WAIT_BASE;
             }
         } else {
             work->action     = ACTOR_03800_ACTION_DROP;
@@ -1972,7 +1976,7 @@ static void _actor03800ActionDrop(Task* task)
             actorRenderComposeCoord(modelRoot);
             work->actionStep      = ACTOR_03800_DROP_FINISH;
             work->rootCoord       = modelRoot;
-            work->overturnedTimer = ((Actor03800_D05F44.hpMax - enemy->hp) * 100 / Actor03800_D05F44.hpMax) * ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT + ACTOR_03800_OVERTURNED_WAIT_BASE;
+            work->overturnedTimer = ((_gActor03800EnemyParams.hpMax - enemy->hp) * 100 / _gActor03800EnemyParams.hpMax) * ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT + ACTOR_03800_OVERTURNED_WAIT_BASE;
             break;
         case ACTOR_03800_DROP_FINISH:
             work->mode = ACTOR_03800_MODE_FLOOR;

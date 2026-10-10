@@ -1,7 +1,7 @@
 // Overlay-local symbols for actor_310100.
-D_actor_310100_801798A8 = 0x801798A8; // size:0xC defined:True
+_gActor310100Officer1StepSoundScripts = 0x801798A8; // size:0xC defined:True
 D_actor_310100_8017989C = 0x8017989C; // size:0xC defined:True
-D_actor_310100_801798B4 = 0x801798B4; // size:0x30 defined:True
+_gActor310100OfficerMessageTable = 0x801798B4; // size:0x30 defined:True
 D_actor_310100_801798E4 = 0x801798E4; // size:0xC defined:True
 D_actor_310100_801798F0 = 0x801798F0; // size:0xC defined:True
 gActor310100Officer1TaskDescriptors = 0x801798FC; // size:0x24 defined:True
@@ -113,9 +113,9 @@ _gActor310100Animation1790C = 0x8017972C; // size:0x28 defined:True
 D_actor_310100_80179754 = 0x80179754; // size:0x40 defined:True
 D_actor_310100_80179794 = 0x80179794; // size:0x68 defined:True
 gActor310100PlayerAnimationSets = 0x801797FC; // size:0x34 defined:True
-D_actor_310100_80179830 = 0x80179830; // size:0x18 defined:True
-D_actor_310100_80179848 = 0x80179848; // size:0x20 defined:True
-D_actor_310100_80179868 = 0x80179868; // size:0x34 defined:True
+_gActor310100PlayerFollowUpAnimations = 0x80179830; // size:0x18 defined:True
+_gActor310100Officer1FollowUpAnimations = 0x80179848; // size:0x20 defined:True
+_gActor310100Officer2FollowUpAnimations = 0x80179868; // size:0x34 defined:True
 _actor310100TickOfficerAnimation = 0x80161e24; // type:func
 _actor310100UpdateOfficerAnimation = 0x80161f80; // type:func
 _actor310100InitOfficerBodyModel = 0x80162414; // type:func

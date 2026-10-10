@@ -324,7 +324,13 @@ extern u8 D_actor_503500_8016E910[20];
 
 extern Task* D_actor_503500_80176558;
 
-extern ActorTransform D_actor_503500_8017655C;
+/// Retained player-placement snapshot for Shelter R48's temporary scene.
+///
+/// Position uses root-parent game units and rotation uses 4096 units per turn.
+/// All-zero XYZ means no saved placement, so a snapshot at the origin cannot
+/// be restored. Clearing invalidates only position; synchronous placement
+/// dispatch borrows the snapshot without consuming it. Lifetime is the overlay's.
+extern ActorTransform gActor503500SavedPlayerTransform;
 
 /// Extents and shared indices of the boss's clip and attack-selection tables.
 enum {
