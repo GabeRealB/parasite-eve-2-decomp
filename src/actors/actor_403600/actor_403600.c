@@ -154,85 +154,96 @@ typedef struct {
 } _Actor403600ProjectileScratch;
 STATIC_ASSERT_SIZEOF(_Actor403600ProjectileScratch, 0x54);
 
-static const SVECTOR D_actor_403600_80131E24;
-extern DamageAttack  D_actor_403600_801420F0;
-extern s32           D_actor_403600_80142120[];
+static const SVECTOR _gActor403600ProjectilePartOffset;
 
 static void _actor403600ProjectileTask(Task* task);
 
-static const SVECTOR D_actor_403600_80131E2C;
+static const SVECTOR _gActor403600RippleBodyOffset;
 static const CVECTOR _gActor403600NeutralLightColor;
 
 static void _actor403600DrawScreenDistortion(Task* unusedFxTask, const Actor403600Work* work, Actor403600FxWork* fx);
 
 static void _actor403600FxTask(Task* task);
 
-extern DamageAttack D_actor_403600_801420D4[5];
-
-DamageAttack D_actor_403600_801420D4[5] = {
-    { 35, 0 },
-    { 25, 2 },
-    { 74, 0 },
-    { 74, 8 },
-    { 35, 0 },
+/// Unused copy of the boss's five attack rows, borrowed by the unused parameters.
+static DamageAttack _gActor403600UnusedBossAttacks[ACTOR_403600_BOSS_ATTACK_COUNT] = {
+    { 35, GAME_ACTOR_REACTION_ORDINARY },
+    { 25, GAME_ACTOR_REACTION_PARALYSIS },
+    { 74, GAME_ACTOR_REACTION_ORDINARY },
+    { 74, GAME_ACTOR_REACTION_SILENCE },
+    { 35, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-DamageAttack D_actor_403600_801420E8[2] = {
-    { 25, 3 },
-    { 25, 1 },
+/// Unused copy of the double's two swipe rows, borrowed by the unused parameters.
+static DamageAttack _gActor403600UnusedDoubleAttacks[ACTOR_403600_DOUBLE_ATTACK_COUNT] = {
+    { 25, GAME_ACTOR_REACTION_POISON },
+    { 25, GAME_ACTOR_REACTION_DARKNESS },
 };
 
-DamageAttack D_actor_403600_801420F0 = { 32, 8 };
-
-DamageAttack D_actor_403600_801420F4[3] = {
-    { 32, 2 },
-    { 32, 11 },
-    { 32, 10 },
+/// Projectile attacks selected by the volley's kind (0..3).
+///
+/// All deal base power 32; kinds apply silence, paralysis, berserker and
+/// confusion respectively. The spawn argument's low nibble selects the row;
+/// the boss supplies only 0..3 even when it also sets bit 4.
+static DamageAttack _gActor403600ProjectileAttacks[4] = {
+    { 32, GAME_ACTOR_REACTION_SILENCE },
+    { 32, GAME_ACTOR_REACTION_PARALYSIS },
+    { 32, GAME_ACTOR_REACTION_BERSERKER },
+    { 32, GAME_ACTOR_REACTION_CONFUSION },
 };
 
-EnemyParams D_actor_403600_80142100[2] = {
-    { D_actor_403600_801420D4, 6000, 5000, 0x2710, 100, 100, 7, 100, 4 },
-    { D_actor_403600_801420E8, 350, 300, 1000, 0, 100, 0, 0, 0 },
+/// Unused parameter copies for the boss and double, in that order.
+///
+/// These borrow the separate unused attack tables. The live enemies use
+/// `gActor403600BossParams` and `gActor403600DoubleParams` instead.
+static EnemyParams _gActor403600UnusedEnemyParams[2] = {
+    { _gActor403600UnusedBossAttacks, 6000, 5000, 10000, 100, 100, 7, 100, 4 },
+    { _gActor403600UnusedDoubleAttacks, 350, 300, 1000, 0, 100, 0, 0, 0 },
 };
 
-s32 D_actor_403600_80142120[32] = {
-    0xFFFFFF,
-    0xE0E0FF,
-    0xC0C0FF,
-    0xA0A0FF,
-    0x8080FF,
-    0x6060FF,
-    0x6060FF,
-    0x6060FF,
-    0x6060FF,
-    0x6060FF,
-    0x6060FF,
-    0x6060FF,
-    0x6080FF,
-    0x60A0FF,
-    0x60C0FF,
-    0x60E0FF,
-    0x60FFFF,
-    0x80E0E0,
-    0xA0D0C0,
-    0xC0C080,
-    0xA0B060,
-    0x80A060,
-    0x809060,
-    0x808060,
-    0x807060,
-    0x706050,
-    0x605040,
-    0x504030,
-    0x403020,
-    0x302010,
-    0x201000,
-    0x100000,
+/// Packed RGB modulation of the projectile's 32 trail positions, newest first.
+///
+/// The fade also indexes by its first surviving history position (0..31).
+/// Words have red in the low byte and a zero command byte; the drawer writes
+/// the quad command after copying the colour word into its packet.
+static u32 _gActor403600ProjectileTrailColors[] = {
+    GPU_PACK_COLOR_WORD(255, 255, 255, 0),
+    GPU_PACK_COLOR_WORD(255, 224, 224, 0),
+    GPU_PACK_COLOR_WORD(255, 192, 192, 0),
+    GPU_PACK_COLOR_WORD(255, 160, 160, 0),
+    GPU_PACK_COLOR_WORD(255, 128, 128, 0),
+    GPU_PACK_COLOR_WORD(255, 96, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 96, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 96, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 96, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 96, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 96, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 96, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 128, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 160, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 192, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 224, 96, 0),
+    GPU_PACK_COLOR_WORD(255, 255, 96, 0),
+    GPU_PACK_COLOR_WORD(224, 224, 128, 0),
+    GPU_PACK_COLOR_WORD(192, 208, 160, 0),
+    GPU_PACK_COLOR_WORD(128, 192, 192, 0),
+    GPU_PACK_COLOR_WORD(96, 176, 160, 0),
+    GPU_PACK_COLOR_WORD(96, 160, 128, 0),
+    GPU_PACK_COLOR_WORD(96, 144, 128, 0),
+    GPU_PACK_COLOR_WORD(96, 128, 128, 0),
+    GPU_PACK_COLOR_WORD(96, 112, 128, 0),
+    GPU_PACK_COLOR_WORD(80, 96, 112, 0),
+    GPU_PACK_COLOR_WORD(64, 80, 96, 0),
+    GPU_PACK_COLOR_WORD(48, 64, 80, 0),
+    GPU_PACK_COLOR_WORD(32, 48, 64, 0),
+    GPU_PACK_COLOR_WORD(16, 32, 48, 0),
+    GPU_PACK_COLOR_WORD(0, 16, 32, 0),
+    GPU_PACK_COLOR_WORD(0, 0, 16, 0),
 };
 
 static void _actor403600RippleTask(Task* task);
 
-TaskDesc D_actor_403600_801421A0[4] = {
+TaskDesc gActor403600ChildTaskTable[ACTOR_403600_CHILD_TASK_COUNT] = {
     { { { TASK_BODY_NONE, 95 } }, _actor403600FxTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, _actor403600ProjectileTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 97 } }, actor403600LoosePartsTask, { .value = 0 } },
@@ -303,29 +314,30 @@ TmdSource gActor403600Model199B8 = {
     _gActor403600Model199B8Stream,
 };
 
-DamageAttack D_actor_403600_80150E9C = { 35, 0 };
-
-DamageAttack D_actor_403600_80150EA0 = { 25, 2 };
-
-u16 D_actor_403600_80150EA4 = 74;
-
-DamageAttack D_actor_403600_80150EA8 = { 74, 8 };
-
-u16 D_actor_403600_80150EAC = 35;
-
-DamageAttack D_actor_403600_80150EB0 = { 25, 3 };
-
-DamageAttack D_actor_403600_80150EB4[5] = {
-    { 25, 1 },
-    { 32, 8 },
-    { 32, 2 },
-    { 32, 11 },
-    { 32, 10 },
+DamageAttack gActor403600BossAttacks[ACTOR_403600_BOSS_ATTACK_COUNT] = {
+    { 35, GAME_ACTOR_REACTION_ORDINARY },
+    { 25, GAME_ACTOR_REACTION_PARALYSIS },
+    { 74, GAME_ACTOR_REACTION_ORDINARY },
+    { 74, GAME_ACTOR_REACTION_SILENCE },
+    { 35, GAME_ACTOR_REACTION_ORDINARY },
 };
 
-EnemyParams D_actor_403600_80150EC8 = { &D_actor_403600_80150E9C, 6000, 5000, 0x2710, 100, 100, 7, 100, 4 };
+DamageAttack gActor403600DoubleAttacks[ACTOR_403600_DOUBLE_ATTACK_COUNT] = {
+    { 25, GAME_ACTOR_REACTION_POISON },
+    { 25, GAME_ACTOR_REACTION_DARKNESS },
+};
 
-EnemyParams D_actor_403600_80150ED8 = { &D_actor_403600_80150EB0, 350, 300, 1000, 0, 100, 0, 0, 0 };
+/// Unused copy of the four projectile attack rows; no runtime consumer is known.
+static DamageAttack _gActor403600UnusedProjectileAttacks[4] = {
+    { 32, GAME_ACTOR_REACTION_SILENCE },
+    { 32, GAME_ACTOR_REACTION_PARALYSIS },
+    { 32, GAME_ACTOR_REACTION_BERSERKER },
+    { 32, GAME_ACTOR_REACTION_CONFUSION },
+};
+
+EnemyParams gActor403600BossParams = { gActor403600BossAttacks, 6000, 5000, 10000, 100, 100, 7, 100, 4 };
+
+EnemyParams gActor403600DoubleParams = { gActor403600DoubleAttacks, 350, 300, 1000, 0, 100, 0, 0, 0 };
 
 static AnimationPackedPose _gActor403600Animation1FEB0Bank1[16] = {
 #include "assets/actor_403600_animation_1FEB0_bank1.inc"
@@ -1630,7 +1642,7 @@ static void _actor403600FxTask(Task* task)
         }
         gGameSession->field_80 = 0;
         task->work             = fx;
-        loosePartsTask         = taskSpawnFromTable(D_actor_403600_801421A0, ACTOR_403600_LOOSE_PARTS_TASK_SLOT, 0, 0);
+        loosePartsTask         = taskSpawnFromTable(gActor403600ChildTaskTable, ACTOR_403600_LOOSE_PARTS_TASK_SLOT, 0, 0);
         if (loosePartsTask != NULL) {
             taskReparent(task, loosePartsTask);
         }
@@ -1645,12 +1657,17 @@ static void _actor403600FxTask(Task* task)
         _actor403600DrawScreenDistortion(task, bossWork, fx);
     }
 }
-static const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
+/// Model-local attachment offset of a gathering or held projectile.
+///
+/// Measured in model-coordinate units from owner part 18, or part 14 for
+/// held kind 0x1100; transformed into the projectile's parent frame each tick.
+static const SVECTOR _gActor403600ProjectilePartOffset = { -100, 700, -280, 0 };
 
 /// Advances and draws one boss projectile, including its gathering and trail fade.
 ///
 /// spawnArg2 borrows the live owner's task; spawnArg1's low four bits select
-/// tint and attack. Kinds below 4096 fly and collide; kinds 4096 and 4352 stay
+/// tint and attack; colliding kinds require a low nibble in 0..3. Kinds below
+/// 4096 fly and collide; kinds 4096 and 4352 stay
 /// on owner parts 18 and 14. State 0 allocates work and initializes a 32-point
 /// trail. status selects steering, straight flight, fading, gathering or held.
 /// Running frames take two 100-unit steps and advance history; paused frames
@@ -1729,7 +1746,7 @@ static void _actor403600ProjectileTask(Task* task)
     s16                    glowRight;
     s32                    glowDepth;
     s32                    trailRightU;
-    s32                    trailColor;
+    u32                    trailColor;
     s32                    tintKind;
     s32                    quadRadius;
     s32                    colorIndex;
@@ -1768,7 +1785,7 @@ static void _actor403600ProjectileTask(Task* task)
     SVECTOR*                       point;
 
     coord           = task->extra.coordBody->coord;
-    ownerPartOffset = D_actor_403600_80131E24;
+    ownerPartOffset = _gActor403600ProjectilePartOffset;
     player          = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (player == NULL) {
         taskCallExit(task);
@@ -1854,7 +1871,7 @@ static void _actor403600ProjectileTask(Task* task)
             attackBody->pos.vz                = 0;
             attackBody->radius                = 0;
             contacts                          = newWork->attackContacts;
-            attackBody->key                   = damagePackAttackKey(&D_actor_403600_801420F0, task->spawnArg1.value & ACTOR_403600_PROJECTILE_TINT_MASK);
+            attackBody->key                   = damagePackAttackKey(_gActor403600ProjectileAttacks, task->spawnArg1.value & ACTOR_403600_PROJECTILE_TINT_MASK);
             attackBody->flags                 = WORLD_COLLISION_BODY_CAPSULE;
             capsule->contacts                 = contacts;
             capsule->ends[1].vx               = 0;
@@ -2143,7 +2160,7 @@ static void _actor403600ProjectileTask(Task* task)
                             colorIndex = fadeHead;
                         }
                     }
-                    trailColor = D_actor_403600_80142120[colorIndex];
+                    trailColor = _gActor403600ProjectileTrailColors[colorIndex];
                     setlen((POLY_FT4*)phaseStorage, ACTOR_403600_PROJECTILE_QUAD_WORDS);
                     GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)phaseStorage), 0) = trailColor;
                     ((POLY_FT4*)phaseStorage)->code                        = ACTOR_403600_PROJECTILE_QUAD_CODE;
@@ -2447,7 +2464,11 @@ void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600RadialGridScratch));
 }
 
-static const SVECTOR D_actor_403600_80131E2C = { 0, 0x578, 0, 0 };
+/// Model-local offset of the ripple disc from the boss's part 1.
+///
+/// The 1400-unit displacement along local Y also places the clipping plane
+/// used while the model sinks or rises through the disc.
+static const SVECTOR _gActor403600RippleBodyOffset = { 0, 1400, 0, 0 };
 
 /// Records one ripple-source sample and advances its outward history.
 ///
@@ -2567,7 +2588,7 @@ static void _actor403600RippleTask(Task* task)
         if (newRipple != NULL) {
             task->work         = newRipple;
             newRipple->shallow = 0;
-            discOffset         = D_actor_403600_80131E2C;
+            discOffset         = _gActor403600RippleBodyOffset;
             actorRenderCopyCoordBodyTransform(task, &fxTask->parent->extra.tmd->coords[1], &discOffset);
             gfxSetRotIdentity(&newRipple->clipCoord.coord);
             newRipple->clipCoord.coord.t[0]   = 0;

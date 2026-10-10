@@ -231,17 +231,43 @@ extern TmdSource gActor403600EveBody;
 
 extern TmdSource gActor403600Model199B8;
 
-extern DamageAttack D_actor_403600_80150E9C;
+/// Row indices of the boss's attack table; the slam and final rush borrow power alone.
+enum {
+    ACTOR_403600_BOSS_ATTACK_SWOOP = 0,
+    ACTOR_403600_BOSS_ATTACK_MELEE = 1,
+    ACTOR_403600_BOSS_ATTACK_SLAM  = 2,
+    ACTOR_403600_BOSS_ATTACK_DRAIN = 3,
+    ACTOR_403600_BOSS_ATTACK_RUSH  = 4,
+    ACTOR_403600_BOSS_ATTACK_COUNT = 5
+};
 
-extern u16 D_actor_403600_80150EA4;
+/// Boss attacks: swoop, melee, slam, drain and rush, in that order.
+///
+/// Each row stores base HP damage and a player-reaction ID. The slam scales
+/// row 2's power by player height and distance; the final rush uses row 4's
+/// power with a different reaction. Borrowed by `gActor403600BossParams`.
+extern DamageAttack gActor403600BossAttacks[ACTOR_403600_BOSS_ATTACK_COUNT];
 
-extern u16 D_actor_403600_80150EAC;
+/// Row indices of the double's two successive swipe attacks.
+enum {
+    ACTOR_403600_DOUBLE_ATTACK_FIRST  = 0,
+    ACTOR_403600_DOUBLE_ATTACK_SECOND = 1,
+    ACTOR_403600_DOUBLE_ATTACK_COUNT  = 2
+};
 
-extern DamageAttack D_actor_403600_80150EB0;
+/// Double's two swipe attacks: base power 25, applying poison then darkness.
+///
+/// Borrowed by `gActor403600DoubleParams`; the swipe state selects row 0 or 1.
+extern DamageAttack gActor403600DoubleAttacks[ACTOR_403600_DOUBLE_ATTACK_COUNT];
 
-extern EnemyParams D_actor_403600_80150EC8;
+/// Shared boss combat parameters, with five attacks and base maximum HP 6000.
+///
+/// Spawn adds 75 percent of the preceding boss parts' saved HP sum to the
+/// initial HP. The status handlers also borrow this record's buildup count.
+extern EnemyParams gActor403600BossParams;
 
-extern EnemyParams D_actor_403600_80150ED8;
+/// Shared combat parameters of the summoned double: two swipes and maximum HP 350.
+extern EnemyParams gActor403600DoubleParams;
 
 extern AnimationSet gActor403600Animation1FEB0;
 
@@ -295,7 +321,26 @@ extern AnimationSet gActor403600Animation2E0C8;
 
 extern AnimationSet gActor403600Animation2E6BC;
 
-extern TaskDesc D_actor_403600_801421A0[4];
+/// Indices of the boss's child-task descriptors.
+enum {
+    ACTOR_403600_CHILD_TASK_FX          = 0,
+    ACTOR_403600_CHILD_TASK_PROJECTILE  = 1,
+    ACTOR_403600_CHILD_TASK_LOOSE_PARTS = 2,
+    ACTOR_403600_CHILD_TASK_RIPPLE      = 3,
+    ACTOR_403600_CHILD_TASK_COUNT       = 4
+};
+
+/// Child tasks for screen distortion, projectiles, loose model parts and ripples.
+///
+/// Indexed by `ACTOR_403600_CHILD_TASK_`; all four are live entries, with no
+/// terminator. Projectiles and ripples allocate coordinate bodies; the FX and
+/// loose-parts entries use `TASK_BODY_NONE`. Projectile/ripple spawnArg2 borrows the boss
+/// task; projectile spawnArg1 selects kind 0..3 (bit 4 is ignored), and ripple
+/// spawnArg1 selects ordinary emission (0), sinking (1) or rising (2).
+/// The FX task is reparented to the boss after spawn; its loose-parts child is
+/// reparented to it. Descriptor reads are synchronous; callbacks and borrowed
+/// boss work must stay live while the spawned tasks run.
+extern TaskDesc gActor403600ChildTaskTable[ACTOR_403600_CHILD_TASK_COUNT];
 
 /// Independent 32-bit random sequence used for the distortion grid's texel jitter.
 ///

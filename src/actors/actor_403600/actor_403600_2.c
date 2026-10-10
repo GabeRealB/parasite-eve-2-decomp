@@ -772,9 +772,9 @@ static void _actor403600SpawnBoss(Enemy* enemy, Task* task)
     enemy->coord                  = bodyCoord;
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &D_actor_403600_80150EC8;
+    enemy->param                  = &gActor403600BossParams;
     enemy->recs                   = work->hitContacts;
-    initialHp                     = D_actor_403600_80150EC8.hpMax + (((u16)session->bossPartsHpSum * 75) / 100);
+    initialHp                     = gActor403600BossParams.hpMax + (((u16)session->bossPartsHpSum * 75) / 100);
     enemy->hp                     = initialHp;
     work->hpMax                   = initialHp;
     work->hpAt60Percent           = (s16)((initialHp * 60) / 100);
@@ -808,7 +808,7 @@ static void _actor403600SpawnBoss(Enemy* enemy, Task* task)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0x3E8;
     work->hitBody.flags               = work->hitBody.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->attackBody.key              = damagePackAttackKey(&D_actor_403600_80150E9C, 1);
+    work->attackBody.key              = damagePackAttackKey(gActor403600BossAttacks, ACTOR_403600_BOSS_ATTACK_MELEE);
     work->attackBody.radius           = 0x5DC;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -834,7 +834,7 @@ static void _actor403600SpawnBoss(Enemy* enemy, Task* task)
     headingAngles.vz = 0;
     RotMatrix(&headingAngles, &work->worldCoord.coord);
     work->yaw               = initialYaw;
-    displayTask             = taskSpawnFromTable(D_actor_403600_801421A0, 0, 0, 0);
+    displayTask             = taskSpawnFromTable(gActor403600ChildTaskTable, ACTOR_403600_CHILD_TASK_FX, 0, 0);
     _gActor403600BossFxTask = displayTask;
     if (displayTask != 0) {
         taskReparent(task, displayTask);
@@ -949,7 +949,7 @@ static void _actor403600ProcessStatusReactions(Task* task)
             enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
             work->mode            = ACTOR_403600_MODE_STUN;
             work->animId          = ACTOR_403600_ANIM_STUN_HOLD;
-            work->stunFrames      = D_actor_403600_80150EC8.buildupSteps * ACTOR_403600_STUN_FRAMES_PER_STEP;
+            work->stunFrames      = gActor403600BossParams.buildupSteps * ACTOR_403600_STUN_FRAMES_PER_STEP;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
             if (work->action != ACTOR_403600_ACTION_RUSH) {
@@ -1640,7 +1640,7 @@ static void _actor403600UpdateFightAction(Task* task)
                 _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &playerRange, &playerBearing);
                 if ((playerRange < 0x835U) && (work->meleeGaveUp == 0)) {
                     work->attackBody.pos.vz = 0x3E8;
-                    work->attackBody.key    = damagePackAttackKey(&D_actor_403600_80150E9C, ACTOR_403600_ATTACK_MELEE);
+                    work->attackBody.key    = damagePackAttackKey(gActor403600BossAttacks, ACTOR_403600_ATTACK_MELEE);
                     work->attackBody.radius = 0x5DC;
                     work->animId            = (u32)ACTOR_403600_ANIM_FLY;
                     work->action            = ACTOR_403600_ACTION_MELEE;
@@ -1765,7 +1765,7 @@ static void _actor403600UpdateFightAction(Task* task)
                         slamHitResponse = ACTOR_403600_SLAM_RESPONSE_NONE;
                         if (gPlayerStatus.coordMtx->t[1] < -0xF3B) {
                             slamCoord                       = &work->worldCoord;
-                            _gActor403600PlayerDamage.power = D_actor_403600_80150EA4;
+                            _gActor403600PlayerDamage.power = gActor403600BossAttacks[ACTOR_403600_BOSS_ATTACK_SLAM].power;
                             _actor403600MeasurePlayerRangeBearing(slamCoord, &playerRange, &playerBearing);
                             if ((u32)(playerRange - 0xFA0) < 0x7D1U) {
                                 playerActor                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
@@ -1942,10 +1942,10 @@ static void _actor403600UpdateFightAction(Task* task)
                     if (work->phaseFrame == ACTOR_403600_VOLLEY_FIRST_SHOT_FRAME) {
                         volleyFireSoundCoord = &work->worldCoord;
                         ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_SHELTER_B2_POD_BTM_ENEMY_VOLLEY, volleyFireSoundCoord, volleyFirePan, volleyFireDepth);
-                        taskSpawnFromTable(D_actor_403600_801421A0, ACTOR_403600_PROJECTILE_TASK, (s32)((s16)((u16)work->projectileKind | 0x10)), task);
+                        taskSpawnFromTable(gActor403600ChildTaskTable, ACTOR_403600_PROJECTILE_TASK, (s32)((s16)((u16)work->projectileKind | 0x10)), task);
                     }
                     if ((work->phaseFrame == ACTOR_403600_VOLLEY_SECOND_SHOT_FRAME) || (work->phaseFrame == ACTOR_403600_VOLLEY_THIRD_SHOT_FRAME)) {
-                        taskSpawnFromTable(D_actor_403600_801421A0, ACTOR_403600_PROJECTILE_TASK, (s32)(work->projectileKind), task);
+                        taskSpawnFromTable(gActor403600ChildTaskTable, ACTOR_403600_PROJECTILE_TASK, (s32)(work->projectileKind), task);
                     }
                     if (work->phaseFrame >= work->actionParam) {
                         sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_VOLLEY, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -2072,7 +2072,7 @@ static void _actor403600UpdateFightAction(Task* task)
                                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, swoopPlayerAnimation, 0);
                             }
                             ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, swoopPlayerHitPan, swoopPlayerHitDepth);
-                            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_80150E9C, 0), 0);
+                            taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gActor403600BossAttacks, ACTOR_403600_BOSS_ATTACK_SWOOP), 0);
                         }
                     }
                     if (flightResult < 0x3E9) {
@@ -2199,7 +2199,7 @@ static void _actor403600UpdateFightAction(Task* task)
                                 padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x50);
                                 _gActor403600PlayerDamage.reaction = GAME_ACTOR_REACTION_CONFUSION;
                                 rushPlayerAnimation->animationId   = ACTOR_403600_PLAYER_ANIM_HEAVY_KNOCKBACK;
-                                _gActor403600PlayerDamage.power    = D_actor_403600_80150EAC;
+                                _gActor403600PlayerDamage.power    = gActor403600BossAttacks[ACTOR_403600_BOSS_ATTACK_RUSH].power;
                                 _actor403600PlacePlayerForKnockback(task, 1);
                                 work->knockbackSpeed = -0x190;
                                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, rushPlayerAnimation, 0);
@@ -2223,7 +2223,7 @@ static void _actor403600UpdateFightAction(Task* task)
                                     TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, rushPlayerAnimation, 0);
                                 }
                                 ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, rushPassHitPan, rushPassHitDepth);
-                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_80150E9C, ACTOR_403600_ATTACK_RUSH), 0);
+                                taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gActor403600BossAttacks, ACTOR_403600_ATTACK_RUSH), 0);
                                 work->actionParam = (s16)work->rushPasses;
                             }
                             work->actionTimer = 0x96;
@@ -2231,7 +2231,7 @@ static void _actor403600UpdateFightAction(Task* task)
                     }
                     flightResult = _actor403600CheckRushPass(task) & 0xFF;
                     if (flightResult == ACTOR_403600_RUSH_EVENT_CONTACT_EFFECT) {
-                        taskSpawnFromTable(D_actor_403600_801421A0, ACTOR_403600_RUSH_EFFECT_TASK, 0, task);
+                        taskSpawnFromTable(gActor403600ChildTaskTable, ACTOR_403600_RUSH_EFFECT_TASK, 0, task);
                     }
                     if ((flightResult == ACTOR_403600_RUSH_EVENT_HIGH_END) && (work->actionParam == ACTOR_403600_RUSH_FINAL_PASS)) {
                         work->step        = ACTOR_403600_RUSH_STEP_RECOVER;
@@ -2244,7 +2244,7 @@ static void _actor403600UpdateFightAction(Task* task)
                         work->diving        = 0;
                         work->repositioning = 1;
                         ACTOR_403600_PLAY_FIGHT_SOUND(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_POD_BOTTOM, 14), playerCoord, rushBoundaryPan, rushBoundaryDepth);
-                        taskSpawnFromTable(D_actor_403600_801421A0, ACTOR_403600_RUSH_EFFECT_TASK, 1, task);
+                        taskSpawnFromTable(gActor403600ChildTaskTable, ACTOR_403600_RUSH_EFFECT_TASK, 1, task);
                         work->actionDelay             = 0;
                         work->gridBody.flags          = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
                         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
@@ -2267,7 +2267,7 @@ static void _actor403600UpdateFightAction(Task* task)
                         _actor403600PlaceRushPass(task);
                         work->aimMode = ACTOR_403600_AIM_TARGET_SNAP;
                         _actor403600TurnToAim(task);
-                        taskSpawnFromTable(D_actor_403600_801421A0, ACTOR_403600_RUSH_EFFECT_TASK, 2, task);
+                        taskSpawnFromTable(gActor403600ChildTaskTable, ACTOR_403600_RUSH_EFFECT_TASK, 2, task);
                     }
                     rushDeltaX        = gPlayerStatus.coordMtx->t[0] - work->worldCoord.coord.t[0];
                     rushDeltaXSquared = rushDeltaX * rushDeltaX;
@@ -2422,7 +2422,7 @@ static void _actor403600UpdateFightAction(Task* task)
                         padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0xFF);
                         work->screenDistortion = (u32)ONE;
                         ACTOR_403600_PLAY_FIGHT_SOUND(6, playerCoord, drainPlayerHitPan, drainPlayerHitDepth);
-                        taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(&D_actor_403600_80150E9C, ACTOR_403600_ATTACK_DRAIN), 0);
+                        taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gActor403600BossAttacks, ACTOR_403600_ATTACK_DRAIN), 0);
                         _gActor403600PlayerAnimationRequest.animationId = ACTOR_403600_PLAYER_ANIM_FORWARD;
                         TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &_gActor403600PlayerAnimationRequest, 0);
                         remainingMp      = playerStatus->mp - ACTOR_403600_DRAIN_MP_LOSS;
@@ -2871,10 +2871,10 @@ static void _actor403600ProcessContacts(Task* task)
                     work->exposed = 0;
                     damageStartEnemyBuildup(task->spawnArg2.pointer, work->hitContacts[contactIndex].key.value, 0);
                     if (((u16)work->animId - ACTOR_403600_ANIM_DIVE_WINDUP < 2U) && ((u16)work->phaseFrame - 6 < 0x18U)) {
-                        work->stunFrames = D_actor_403600_80150EC8.buildupSteps;
+                        work->stunFrames = gActor403600BossParams.buildupSteps;
                     }
                     if ((work->animId == ACTOR_403600_ANIM_IDLE) && (work->phaseFrame < 30)) {
-                        work->stunFrames = D_actor_403600_80150EC8.buildupSteps;
+                        work->stunFrames = gActor403600BossParams.buildupSteps;
                     }
                 }
                 break;
@@ -2891,7 +2891,7 @@ static void _actor403600ProcessContacts(Task* task)
                         work->exposed = 0;
                         if (work->phaseFrame < 30) {
                             work->mode       = ACTOR_403600_MODE_FREEZE;
-                            work->stunFrames = D_actor_403600_80150EC8.buildupSteps * 10;
+                            work->stunFrames = gActor403600BossParams.buildupSteps * 10;
                         }
                     }
                 }
@@ -4056,9 +4056,9 @@ static void _actor403600SpawnDouble(Enemy* enemy, Task* task)
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    enemy->param                  = &D_actor_403600_80150ED8;
+    enemy->param                  = &gActor403600DoubleParams;
     enemy->recs                   = work->hitContacts;
-    enemy->hp                     = D_actor_403600_80150ED8.hpMax;
+    enemy->hp                     = gActor403600DoubleParams.hpMax;
     animationInitContext(&work->rig.anim, _gActor403600BodyAnimationSets, model, work->rig.poses, work->rig.slots);
     partIndex = 1;
     do {
@@ -4095,7 +4095,7 @@ static void _actor403600SpawnDouble(Enemy* enemy, Task* task)
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0x3E8;
     work->hitBody.flags              |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->attackBody.key              = damagePackAttackKey(&D_actor_403600_80150EB0, 0);
+    work->attackBody.key              = damagePackAttackKey(gActor403600DoubleAttacks, ACTOR_403600_DOUBLE_ATTACK_FIRST);
     work->attackBody.radius           = 0x5DC;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
@@ -4350,7 +4350,7 @@ static void _actor403600UpdateDoubleAction(Task* task)
             }
             break;
         case ACTOR_403600_DOUBLE_ACTION_SWIPE_A:
-            work->attackBody.key = damagePackAttackKey(&D_actor_403600_80150EB0, 0);
+            work->attackBody.key = damagePackAttackKey(gActor403600DoubleAttacks, ACTOR_403600_DOUBLE_ATTACK_FIRST);
             work->animId         = ACTOR_403600_ANIM_MELEE_FIRST;
             work->forwardSpeed   = 0U;
             work->verticalSpeed  = 0;
@@ -4383,7 +4383,7 @@ static void _actor403600UpdateDoubleAction(Task* task)
             }
             break;
         case ACTOR_403600_DOUBLE_ACTION_SWIPE_B:
-            work->attackBody.key = damagePackAttackKey(&D_actor_403600_80150EB0, 1);
+            work->attackBody.key = damagePackAttackKey(gActor403600DoubleAttacks, ACTOR_403600_DOUBLE_ATTACK_SECOND);
             work->animId         = ACTOR_403600_ANIM_MELEE_SECOND;
             work->forwardSpeed   = 0U;
             work->verticalSpeed  = 0;
