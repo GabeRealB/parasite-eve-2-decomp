@@ -1002,7 +1002,7 @@ static AreaResource _gDryfieldCellarVariant1Resources[3] = {
 
 AreaVariant D_dryfield_cellar_80180ACC[12] = {
     { NULL, NULL },
-    { D_map_dryfield_8017BC14, _gDryfieldCellarVariant1Resources },
+    { gMapDryfieldCellarVariant1Placements, _gDryfieldCellarVariant1Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

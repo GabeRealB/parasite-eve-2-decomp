@@ -142,7 +142,13 @@ extern ViewCountTable D_map_dryfield_8017AA28;
 
 extern WorldCollisionStageResources D_map_dryfield_8017AAC4;
 
-extern ViewCameraTable D_map_dryfield_8017AB60;
+/// Daytime Dryfield's directory of camera arrays for areas 1..38.
+///
+/// Area and mapped-camera IDs are one-based; camera bounds come from each
+/// room's array, independently of its logical-view count. Areas 10, 33 and
+/// 35..37 have NULL entries. The map owns the directory and borrows room
+/// cameras; keep this map and the selected room loaded through queued use.
+extern ViewCameraTable gMapDryfieldViewCameraTable;
 
 /// Daytime Dryfield's directory of logical-view maps for 38 areas.
 ///
@@ -420,65 +426,267 @@ extern AreaPlacement gMapDryfieldToiletEncounterPlacements[3];
 /// remain loaded for their lives; saved poses may replace initial transforms.
 extern AreaPlacement gMapDryfieldToiletBoneSucklerPlacements[8];
 
-extern AreaPlacement D_map_dryfield_8017B354[];
+/// Three Amoebae for daytime Toilet variant 7.
+///
+/// Entry 24 selects the stronger tuning (mode 1, 280 HP); row 0 and
+/// texture offsets page 0 / CLUT +2 apply to all three.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldToiletAmoebaPlacements[4];
 
-extern AreaPlacement D_map_dryfield_8017B394[];
+/// Five Mind Sucklers for daytime G & R Saloon variant 1.
+///
+/// Entry 15 starts on ceiling perches, with later wall settling disabled
+/// (mode 3); texture offsets are page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldSaloonGRVariant1Placements[6];
 
-extern AreaPlacement D_map_dryfield_8017B3F4[];
+/// Two Mind Sucklers and five Bone Sucklers for daytime G & R Saloon variant 2.
+///
+/// Mind Sucklers start on ceiling perches without later wall settling
+/// (mode 3, page 0 / CLUT +2). Bone Sucklers start idle (variant 1),
+/// using page +2 / CLUT +4.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldSaloonGRVariant2Placements[8];
 
-extern AreaPlacement D_map_dryfield_8017B474[];
+/// Three Mind Sucklers for daytime G & R Kitchen variant 1.
+///
+/// The first two start on ceiling perches (mode 3), the last on a wall
+/// (mode 2); all disable later wall settling and use page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldGRKitchenVariant1Placements[4];
 
-extern AreaPlacement D_map_dryfield_8017B4B4[];
+/// Two Mind Sucklers and five Rats for daytime G & R Kitchen variant 2.
+///
+/// Mind Sucklers start on walls without later wall settling (mode 2,
+/// page 0 / CLUT +2). Rats use behavior row 2 and page +2 / CLUT +4.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldGRKitchenVariant2Placements[8];
 
-extern AreaPlacement D_map_dryfield_8017B534[];
+/// Two hidden Desert Chasers for daytime Water Tower variant 1.
+///
+/// Entry 1 selects the Water Tower chaser; variant 1 starts hidden and
+/// mode 0 selects tuning row 1. Texture offsets are page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldWaterTowerVariant1Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017B564[];
+/// Seven Scorpions for daytime Water Tower variant 2.
+///
+/// The first four wait for the ambush signal (mode 2); the last three
+/// roam (mode 0). All use row 0 and page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldWaterTowerVariant2Placements[8];
 
-extern AreaPlacement D_map_dryfield_8017B5E4[];
+/// Five ambush-leading Scorpions for daytime Water Tower variant 3.
+///
+/// Mode 1 waits for the player to approach, then signals the room pack.
+/// All use row 0 and page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldWaterTowerVariant3Placements[6];
 
-extern AreaPlacement D_map_dryfield_8017B644[];
+/// Kyle Madigan placement for daytime Water Tank variant 1.
+///
+/// Entry 140 selects Kyle; the initial world pose is (2531, -12005, -644),
+/// yaw 0, with page 0 / CLUT +2. His scene can replace this pose.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldWaterTankVariant1Placements[2];
 
-extern AreaPlacement D_map_dryfield_8017B664[];
+/// Empty placement list for daytime Water Tank variant 2.
+///
+/// Contains only `AREA_PLACEMENT_END`, so the variant is present but
+/// spawns no actors. Keep this map overlay loaded while the layout is used.
+extern AreaPlacement gMapDryfieldWaterTankVariant2Placements[1];
 
-extern AreaPlacement D_map_dryfield_8017B674[];
+/// Scripted and regular Desert Chasers for daytime Breezeway variant 1.
+///
+/// Entry 101 selects the scripted chaser, which binds itself to the view.
+/// Entry 1 selects the regular approaching chaser with tuning row 0
+/// (mode 2). Both records retain page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldBreezewayVariant1Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017B6A4[];
+/// Seven Scorpions for daytime Breezeway variant 3.
+///
+/// The first six wait for an ambush signal (mode 2); the last roams
+/// (mode 0). All use row 0 and page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldBreezewayVariant3Placements[8];
 
-extern AreaPlacement D_map_dryfield_8017B724[];
+/// Gary Douglas placement for daytime Garage variant 1.
+///
+/// Entry 106 selects Gary; page 0 / CLUT +2 is also found by his texture
+/// lookup. The garage scene can replace the initial world pose.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldGarageVariant1Placements[2];
 
-extern AreaPlacement D_map_dryfield_8017B744[];
+/// Five Mind Sucklers for daytime Garage variant 2.
+///
+/// Two ceiling perches (mode 3) precede three wall perches (mode 2).
+/// All disable later wall settling and use page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldGarageVariant2Placements[6];
 
-extern AreaPlacement D_map_dryfield_8017B7A4[];
+/// Three Mind Sucklers for daytime Garage variant 3.
+///
+/// All start on ceiling perches, disable later wall settling (mode 3)
+/// and use page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldGarageVariant3Placements[4];
 
-extern AreaPlacement D_map_dryfield_8017B7E4[];
+/// Twenty-five wave-entry bats for daytime Driveway variant 1.
+///
+/// Modes 10..14 activate at wave counters 1..5; the mode-10 bat directs
+/// the encounter. Parameter rows 0, 2, 1 and 3 select turn steps
+/// 16, 24, 20 and 28. All use page 0 / CLUT +2. Placement order also
+/// selects wave timing and the stored pose key; retain all 25 live records.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldDrivewayVariant1Placements[26];
 
-extern AreaPlacement D_map_dryfield_8017B984[];
+/// Empty placement list for daytime Driveway variant 2.
+///
+/// Contains only `AREA_PLACEMENT_END`, so the variant is present but
+/// spawns no actors. Keep this map overlay loaded while the layout is used.
+extern AreaPlacement gMapDryfieldDrivewayVariant2Placements[1];
 
-extern AreaPlacement D_map_dryfield_8017B994[];
+/// Regular Desert Chaser placement for daytime Driveway variant 3.
+///
+/// Entry 1 starts the approaching chaser (variant 0), with tuning row 1
+/// (mode 0) and texture offsets page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldDrivewayVariant3Placements[2];
 
-extern AreaPlacement D_map_dryfield_8017B9B4[];
+/// Empty placement list for daytime Junk Yard variant 1.
+///
+/// Contains only `AREA_PLACEMENT_END`, so the variant is present but
+/// spawns no actors. Keep this map overlay loaded while the layout is used.
+extern AreaPlacement gMapDryfieldJunkYardVariant1Placements[1];
 
-extern AreaPlacement D_map_dryfield_8017B9C4[];
+/// Four Scorpions for daytime Junk Yard variant 2.
+///
+/// Three wait for the ambush signal (mode 2); the last waits for the
+/// player and signals them (mode 1). All use row 0 and page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldJunkYardVariant2Placements[5];
 
-extern AreaPlacement D_map_dryfield_8017BA14[];
+/// Gary Douglas placement for daytime Trailer Coach variant 1.
+///
+/// Entry 106 selects Gary; the initial world pose is (3810, 0, -2130),
+/// yaw 512, with page 0 / CLUT +2. Room scripts can replace it.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldTrailerCoachGaryPlacements[2];
 
-extern AreaPlacement D_map_dryfield_8017BA34[];
+/// Empty placement list for daytime Motel Balcony variant 1.
+///
+/// Contains only `AREA_PLACEMENT_END`, so the variant is present but
+/// spawns no actors. Keep this map overlay loaded while the layout is used.
+extern AreaPlacement gMapDryfieldMotelBalconyVariant1Placements[1];
 
-extern AreaPlacement D_map_dryfield_8017BA44[];
+/// Three Odd Strangers for daytime Motel Balcony variant 2.
+///
+/// Variant 0x10 selects stalking; mode 0 selects tuning row 1.
+/// All use page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldMotelBalconyVariant2Placements[4];
 
-extern AreaPlacement D_map_dryfield_8017BA84[];
+/// Six roaming Scorpions for daytime Motel Balcony variant 3.
+///
+/// Mode 0 selects roaming; all use row 0 and page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldMotelBalconyVariant3Placements[7];
 
-extern AreaPlacement D_map_dryfield_8017BAF4[];
+/// Two Brain Stingers for daytime Motel Balcony variant 7.
+///
+/// Modes 0 and 1 select the two four-point balcony patrol routes.
+/// Variant 0 permits targeting; both use page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldMotelBalconyVariant7Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017BB24[];
+/// Pawn and Rook GOLEMs for daytime Motel Balcony variant 8.
+///
+/// Entry 56 starts the launcher Pawn idle (page 0 / CLUT +2). Entry 57
+/// starts the Rook patrolling (mode 1) for 6000 world units (variant 6),
+/// using page +3 / CLUT +5.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldMotelBalconyVariant8Placements[3];
 
-extern AreaPlacement D_map_dryfield_8017BB54[];
+/// Scene placeholder placement for daytime Motel Room 6 variant 1.
+///
+/// Entry 101 selects the bodyless scene placeholder, which immediately
+/// releases itself. The separately spawned Kyle body finds this record
+/// for its page 0 / CLUT +2 textures; the placeholder's zero pose is retained.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldMotelRoom6Variant1Placements[2];
 
-extern AreaPlacement D_map_dryfield_8017BB74[];
+/// Empty placement list for daytime Motel Room 6 variant 2.
+///
+/// Contains only `AREA_PLACEMENT_END`, so the variant is present but
+/// spawns no actors. Keep this map overlay loaded while the layout is used.
+extern AreaPlacement gMapDryfieldMotelRoom6Variant2Placements[1];
 
-extern AreaPlacement D_map_dryfield_8017BB84[];
+/// Eight perched bats for daytime Water Hole variant 1.
+///
+/// The first four take off by dropping (mode 1), the last four by
+/// pushing backward (mode 2). Row 2 selects turn step 24; all use
+/// page 0 / CLUT +2.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldWaterHoleBatPlacements[9];
 
-extern AreaPlacement D_map_dryfield_8017BC14[];
+/// Eight bats and two Rats for daytime Cellar variant 1.
+///
+/// Six bats take off by dropping (mode 1), two by pushing backward
+/// (mode 2); row 2 selects turn step 24, with page 0 / CLUT +2.
+/// Rats use behavior row 2 and page +2 / CLUT +4.
+/// World poses and texture relocations use the `AreaPlacement` contract.
+/// No additional files are requested. The final record is `AREA_PLACEMENT_END`;
+/// keep this map overlay loaded while actors borrow the list.
+extern AreaPlacement gMapDryfieldCellarVariant1Placements[11];
 
 /// Gray Stalker placement for daytime Underpass variant 1.
 ///

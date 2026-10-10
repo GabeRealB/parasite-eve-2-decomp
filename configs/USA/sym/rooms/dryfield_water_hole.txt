@@ -71,7 +71,7 @@ _gDryfieldWaterHoleSurface6Properties = 0x801828A4; // size:0x8 defined:True
 gDryfieldWaterHoleSurfacePropertiesByClass = 0x801828AC; // size:0x20 defined:True
 _gWaterHolePrimCursor = 0x801828CC; // size:0x4 defined:True
 gActor103700BatTaskDesc = 0x80139DAC; // absolute:True owner=actor_103700
-D_map_dryfield_8017BB84 = 0x8017BB84; // absolute:True owner=map_dryfield
+gMapDryfieldWaterHoleBatPlacements = 0x8017BB84; // absolute:True owner=map_dryfield
 _gWaterHoleWaveScroll = 0x801828D0; // size:0x2 defined:True
 
 dryfieldWaterHoleWaterRippleTask = 0x8017EC90; // type:func

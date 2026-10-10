@@ -1023,8 +1023,8 @@ static AreaResource _gDryfieldWaterTankVariant2EmptyResources[1] = {
 
 AreaVariant D_dryfield_water_tank_80188BF0[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B644, _gDryfieldWaterTankVariant1KyleResources },
-    { D_map_dryfield_8017B664, _gDryfieldWaterTankVariant2EmptyResources },
+    { gMapDryfieldWaterTankVariant1Placements, _gDryfieldWaterTankVariant1KyleResources },
+    { gMapDryfieldWaterTankVariant2Placements, _gDryfieldWaterTankVariant2EmptyResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

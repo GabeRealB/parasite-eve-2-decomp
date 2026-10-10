@@ -804,8 +804,8 @@ static AreaResource _gDryfieldSaloonGRVariant2Resources[3] = {
 
 AreaVariant D_dryfield_saloon_g_r_80181B1C[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B394, _gDryfieldSaloonGRVariant1Resources },
-    { D_map_dryfield_8017B3F4, _gDryfieldSaloonGRVariant2Resources },
+    { gMapDryfieldSaloonGRVariant1Placements, _gDryfieldSaloonGRVariant1Resources },
+    { gMapDryfieldSaloonGRVariant2Placements, _gDryfieldSaloonGRVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

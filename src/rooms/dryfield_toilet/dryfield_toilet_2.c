@@ -681,7 +681,7 @@ AreaVariant D_dryfield_toilet_80182918[13] = {
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
-    { D_map_dryfield_8017B354, _gDryfieldToiletAmoebaResources },
+    { gMapDryfieldToiletAmoebaPlacements, _gDryfieldToiletAmoebaResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

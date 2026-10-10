@@ -1500,7 +1500,7 @@ static AreaResource _gDryfieldWaterHoleAreaResources[2] = {
 
 AreaVariant D_dryfield_water_hole_801827BC[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017BB84, _gDryfieldWaterHoleAreaResources },
+    { gMapDryfieldWaterHoleBatPlacements, _gDryfieldWaterHoleAreaResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

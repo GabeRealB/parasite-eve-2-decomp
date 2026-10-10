@@ -74,11 +74,11 @@ gActor100300Tasks = 0x80148110; // absolute:True owner=actor_100300 shared=actor
 gActor105600PawnGolemTasks = 0x801482C0; // absolute:True owner=actor_105600
 gActor401800OddStrangerTaskDesc = 0x80155AC4; // absolute:True owner=actor_401800
 gActor05700RookGolemTasks = 0x801611F8; // absolute:True owner=actor_205700
-D_map_dryfield_8017BA34 = 0x8017BA34; // absolute:True owner=map_dryfield
-D_map_dryfield_8017BA44 = 0x8017BA44; // absolute:True owner=map_dryfield
-D_map_dryfield_8017BA84 = 0x8017BA84; // absolute:True owner=map_dryfield
-D_map_dryfield_8017BAF4 = 0x8017BAF4; // absolute:True owner=map_dryfield
-D_map_dryfield_8017BB24 = 0x8017BB24; // absolute:True owner=map_dryfield
+gMapDryfieldMotelBalconyVariant1Placements = 0x8017BA34; // absolute:True owner=map_dryfield
+gMapDryfieldMotelBalconyVariant2Placements = 0x8017BA44; // absolute:True owner=map_dryfield
+gMapDryfieldMotelBalconyVariant3Placements = 0x8017BA84; // absolute:True owner=map_dryfield
+gMapDryfieldMotelBalconyVariant7Placements = 0x8017BAF4; // absolute:True owner=map_dryfield
+gMapDryfieldMotelBalconyVariant8Placements = 0x8017BB24; // absolute:True owner=map_dryfield
 _gRoomVisualEffectsTwinTrailEndpointOffsets = 0x801822C0; // size:0x10 defined:True
 gRoomEventTaskDesc = 0x80182270; // size:0xC defined:True
 _gDryfieldMotelBalconyRoomMessages = 0x8018227C; // size:0x30 defined:True

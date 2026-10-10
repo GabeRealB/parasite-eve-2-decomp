@@ -1121,7 +1121,7 @@ static AreaResource _gDryfieldTrailerCoachGaryResources[2] = {
 
 AreaVariant D_dryfield_trailer_coach_801876F0[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017BA14, _gDryfieldTrailerCoachGaryResources },
+    { gMapDryfieldTrailerCoachGaryPlacements, _gDryfieldTrailerCoachGaryResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

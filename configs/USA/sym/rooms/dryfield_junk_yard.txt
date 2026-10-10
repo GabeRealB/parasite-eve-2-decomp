@@ -63,8 +63,8 @@ _gDryfieldJunkYardUnknownData = 0x8018192C; // size:0x288 defined:True
 gViewIdentityMap = 0x8010CAF8; // absolute:True
 gActor102500Tasks = 0x801379A8; // absolute:True owner=actor_102500
 gActor00100DesertChaserTaskDesc = 0x8014D8A4; // absolute:True owner=actor_400100
-D_map_dryfield_8017B9B4 = 0x8017B9B4; // absolute:True owner=map_dryfield
-D_map_dryfield_8017B9C4 = 0x8017B9C4; // absolute:True owner=map_dryfield
+gMapDryfieldJunkYardVariant1Placements = 0x8017B9B4; // absolute:True owner=map_dryfield
+gMapDryfieldJunkYardVariant2Placements = 0x8017B9C4; // absolute:True owner=map_dryfield
 _gDryfieldJunkYardRoomLights = 0x80181BB4; // size:0x18 defined:True
 _gDryfieldJunkYardAmbientByView = 0x80181BCC; // size:0x40 defined:True
 _gDryfieldJunkYardClass1FootstepSounds = 0x80181C0C; // size:0xC defined:True

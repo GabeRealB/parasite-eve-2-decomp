@@ -363,9 +363,9 @@ static AreaPlacement _gDryfieldBreezewayVariant10Placements[3] = {
 
 AreaVariant D_dryfield_breezeway_801842F8[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B674, _gDryfieldBreezewayVariant1Resources },
+    { gMapDryfieldBreezewayVariant1Placements, _gDryfieldBreezewayVariant1Resources },
     { NULL, NULL },
-    { D_map_dryfield_8017B6A4, _gDryfieldBreezewayVariant3Resources },
+    { gMapDryfieldBreezewayVariant3Placements, _gDryfieldBreezewayVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

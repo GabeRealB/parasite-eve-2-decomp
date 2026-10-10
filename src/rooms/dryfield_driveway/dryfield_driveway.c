@@ -305,9 +305,9 @@ AreaResource D_dryfield_driveway_8017EDBC[2] = {
 
 AreaVariant D_dryfield_driveway_8017EDD4[11] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B7E4, _gDryfieldDrivewayBatResources },
-    { D_map_dryfield_8017B984, D_dryfield_driveway_8017EDB0 },
-    { D_map_dryfield_8017B994, D_dryfield_driveway_8017EDBC },
+    { gMapDryfieldDrivewayVariant1Placements, _gDryfieldDrivewayBatResources },
+    { gMapDryfieldDrivewayVariant2Placements, D_dryfield_driveway_8017EDB0 },
+    { gMapDryfieldDrivewayVariant3Placements, D_dryfield_driveway_8017EDBC },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

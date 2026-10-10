@@ -63,7 +63,7 @@ gDryfieldToiletAnimation035A4 = 0x80180B64; // size:0x28 defined:True
 D_dryfield_toilet_80182918 = 0x80182918; // size:0x68 defined:True
 gMapDryfieldToiletEncounterPlacements = 0x8017B2A4; // absolute:True owner=map_dryfield
 gMapDryfieldToiletBoneSucklerPlacements = 0x8017B2D4; // absolute:True owner=map_dryfield
-D_map_dryfield_8017B354 = 0x8017B354; // absolute:True owner=map_dryfield
+gMapDryfieldToiletAmoebaPlacements = 0x8017B354; // absolute:True owner=map_dryfield
 _gDryfieldToiletLesserStrangerMorphVertexDeltas = 0x80182980; // size:0xA28 defined:True
 _gDryfieldToiletLesserStrangerMorphTargetNormals = 0x801833A8; // size:0x3228 defined:True
 gDryfieldToiletLesserStrangerMorph = 0x801865D0; // size:0x18 defined:True

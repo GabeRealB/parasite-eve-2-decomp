@@ -1948,9 +1948,9 @@ static AreaPlacement _gDryfieldWaterTowerVariant10ChaserPlacements[2] = {
 
 AreaVariant D_dryfield_water_tower_8018757C[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B534, _gDryfieldWaterTowerVariant1ChaserResources },
-    { D_map_dryfield_8017B564, _gDryfieldWaterTowerVariant2ScorpionResources },
-    { D_map_dryfield_8017B5E4, _gDryfieldWaterTowerVariant3ScorpionResources },
+    { gMapDryfieldWaterTowerVariant1Placements, _gDryfieldWaterTowerVariant1ChaserResources },
+    { gMapDryfieldWaterTowerVariant2Placements, _gDryfieldWaterTowerVariant2ScorpionResources },
+    { gMapDryfieldWaterTowerVariant3Placements, _gDryfieldWaterTowerVariant3ScorpionResources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

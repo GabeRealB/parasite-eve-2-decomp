@@ -624,8 +624,8 @@ static AreaPlacement _gDryfieldJunkYardVariant10Placements[] = {
 
 AreaVariant D_dryfield_junk_yard_8017F558[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B9B4, _gDryfieldJunkYardVariant1Resources },
-    { D_map_dryfield_8017B9C4, _gDryfieldJunkYardVariant2Resources },
+    { gMapDryfieldJunkYardVariant1Placements, _gDryfieldJunkYardVariant1Resources },
+    { gMapDryfieldJunkYardVariant2Placements, _gDryfieldJunkYardVariant2Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },

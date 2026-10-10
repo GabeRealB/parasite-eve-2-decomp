@@ -732,9 +732,9 @@ static AreaPlacement _gDryfieldGarageVariant10Placements[2] = {
 
 AreaVariant D_dryfield_garage_801800E0[13] = {
     { NULL, NULL },
-    { D_map_dryfield_8017B724, _gDryfieldGarageVariant1Resources },
-    { D_map_dryfield_8017B744, _gDryfieldGarageVariant2Resources },
-    { D_map_dryfield_8017B7A4, _gDryfieldGarageVariant3Resources },
+    { gMapDryfieldGarageVariant1Placements, _gDryfieldGarageVariant1Resources },
+    { gMapDryfieldGarageVariant2Placements, _gDryfieldGarageVariant2Resources },
+    { gMapDryfieldGarageVariant3Placements, _gDryfieldGarageVariant3Resources },
     { NULL, NULL },
     { NULL, NULL },
     { NULL, NULL },
