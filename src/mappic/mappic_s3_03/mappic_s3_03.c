@@ -34,32 +34,34 @@ TmdSource gMappicS303WaterHoleShape = {
     .stream           = _gMappicS303WaterHoleShapeStream,
 };
 
-static TmdBone _gMappicS303MappicS400Model0005C00154Skeleton[1] = {
+/// Initial identity pose of the Cellar shape's single self-parented root.
+static TmdBone _gMappicS303CellarShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_skeleton.inc"
 };
 
-static u32 _gMappicS303MappicS400Model0005C00154PartVerts[1] = {
+/// Six vertices in the Cellar shape's sole part.
+static u32 _gMappicS303CellarShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_partVerts.inc"
 };
 
-static SVECTOR _gMappicS303MappicS400Model0005C00154Verts[6] = {
+/// Cellar area corners in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS303CellarShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_verts.inc"
 };
 
-static u32 _gMappicS303MappicS400Model0005C00154Stream[12] = {
+/// Two unlit quads' packed vertex byte offsets and colours, then two group ends and the stream end.
+static u32 _gMappicS303CellarShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_stream.inc"
 };
 
-TmdSource D_mappic_s3_03_8012F084 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS303MappicS400Model0005C00154PartVerts,
-    _gMappicS303MappicS400Model0005C00154Verts,
-    &_gMappicS303MappicS400Model0005C00154Verts[6],
-    _gMappicS303MappicS400Model0005C00154Skeleton,
-    _gMappicS303MappicS400Model0005C00154Stream,
+TmdSource gMappicS303CellarShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS303CellarShapeSkeleton),
+    .partVertexCounts = _gMappicS303CellarShapePartVerts,
+    .verts            = _gMappicS303CellarShapeVerts,
+    .normals          = &_gMappicS303CellarShapeVerts[ARRAY_SIZE(_gMappicS303CellarShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS303CellarShapeSkeleton,
+    .stream           = _gMappicS303CellarShapeStream,
 };
 
 static TmdBone _gMappicS303MappicS203Model001F000250Skeleton[1] = {

@@ -34,32 +34,34 @@ TmdSource gMappicS203WaterHoleShape = {
     .stream           = _gMappicS203WaterHoleShapeStream,
 };
 
-static TmdBone _gMappicS203MappicS400Model0005C00154Skeleton[1] = {
+/// Initial identity pose of the Cellar shape's single self-parented root.
+static TmdBone _gMappicS203CellarShapeSkeleton[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_skeleton.inc"
 };
 
-static u32 _gMappicS203MappicS400Model0005C00154PartVerts[1] = {
+/// Six vertices in the Cellar shape's sole part.
+static u32 _gMappicS203CellarShapePartVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_partVerts.inc"
 };
 
-static SVECTOR _gMappicS203MappicS400Model0005C00154Verts[6] = {
+/// Cellar area corners in integer model X/Z coordinates, with Y zero.
+static SVECTOR _gMappicS203CellarShapeVerts[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_verts.inc"
 };
 
-static u32 _gMappicS203MappicS400Model0005C00154Stream[12] = {
+/// Two unlit quads' packed vertex byte offsets and colours, then two group ends and the stream end.
+static u32 _gMappicS203CellarShapeStream[] = {
 #include "assets/mappic_s4_00_model_0005C_00154_stream.inc"
 };
 
-TmdSource D_mappic_s2_03_8012F084 = {
-    0,
-    48,
-    0,
-    1,
-    _gMappicS203MappicS400Model0005C00154PartVerts,
-    _gMappicS203MappicS400Model0005C00154Verts,
-    &_gMappicS203MappicS400Model0005C00154Verts[6],
-    _gMappicS203MappicS400Model0005C00154Skeleton,
-    _gMappicS203MappicS400Model0005C00154Stream,
+TmdSource gMappicS203CellarShape = {
+    .bufferHalfBytes  = 2 * sizeof(POLY_F4),
+    .partCount        = ARRAY_SIZE(_gMappicS203CellarShapeSkeleton),
+    .partVertexCounts = _gMappicS203CellarShapePartVerts,
+    .verts            = _gMappicS203CellarShapeVerts,
+    .normals          = &_gMappicS203CellarShapeVerts[ARRAY_SIZE(_gMappicS203CellarShapeVerts)], // Empty normal pool at the vertex end.
+    .skeleton         = _gMappicS203CellarShapeSkeleton,
+    .stream           = _gMappicS203CellarShapeStream,
 };
 
 static TmdBone _gMappicS203Model001F0Skeleton[1] = {

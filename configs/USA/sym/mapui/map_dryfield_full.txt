@@ -322,7 +322,7 @@ D_mappic_s3_02_8012FC7C = 0x8012FC7C; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012FD78 = 0x8012FD78; // absolute:True owner=mappic_s3_02
 D_mappic_s3_02_8012FE08 = 0x8012FE08; // absolute:True owner=mappic_s3_02
 gMappicS303WaterHoleShape = 0x8012EFD8; // absolute:True owner=mappic_s3_03 shared=mappic
-D_mappic_s3_03_8012F084 = 0x8012F084; // absolute:True owner=mappic_s3_03 shared=mappic
+gMappicS303CellarShape = 0x8012F084; // absolute:True owner=mappic_s3_03 shared=mappic
 D_mappic_s3_03_8012F180 = 0x8012F180; // absolute:True owner=mappic_s3_03 shared=mappic
 
 mapDryfieldFullResolveRoomVariant = 0x80179954; // type:func

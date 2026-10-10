@@ -130,7 +130,12 @@ extern TmdSource D_mappic_s2_02_8012FDF0;
 /// keep the mappic_s2_03 package loaded while these are used.
 extern TmdSource gMappicS203WaterHoleShape;
 
-extern TmdSource D_mappic_s2_03_8012F084;
+/// Cellar's two-quad area fill on page 3 of the daytime Dryfield map.
+///
+/// Lies in the model X/Z plane; the map applies its 1495/4096 page scale.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep the mappic_s2_03 package loaded while these are used.
+extern TmdSource gMappicS203CellarShape;
 
 extern TmdSource D_mappic_s2_03_8012F180;
 
@@ -286,7 +291,12 @@ extern TmdSource D_mappic_s3_02_8012FE08;
 /// keep the mappic_s3_03 package loaded while these are used.
 extern TmdSource gMappicS303WaterHoleShape;
 
-extern TmdSource D_mappic_s3_03_8012F084;
+/// Cellar's two-quad area fill on page 3 of the nighttime Dryfield map.
+///
+/// Lies in the model X/Z plane; the map applies its 1495/4096 page scale.
+/// Has no normal data. The map borrows the vertices and first stream group;
+/// keep the mappic_s3_03 package loaded while these are used.
+extern TmdSource gMappicS303CellarShape;
 
 extern TmdSource D_mappic_s3_03_8012F180;
 
