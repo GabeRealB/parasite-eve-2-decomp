@@ -87,8 +87,6 @@ extern TmdSource D_m249_8011DE74;
 
 extern TmdSource D_m4a1_8011DEC4;
 
-extern TmdSource D_grenade_pistol_8011E28C;
-
 extern TmdSource D_tonfa_baton_8011E460;
 
 extern TmdSource D_mm1_8011E494;

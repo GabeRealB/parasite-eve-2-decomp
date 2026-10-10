@@ -2,6 +2,7 @@
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
 #include "common.h"
@@ -140,36 +141,44 @@ void grenadePistolShellTask(Task* task)
 
 /* Each package carries its own model. */
 #if GRENADE_VARIANT == 0
-static TmdBone _gGrenadePistolModel00CDCSkeleton[1] = {
+/// Identity rest transform and self-parented root copied into each held weapon.
+static const TmdBone _gGrenadePistolWeaponModelSkeleton[] __attribute__((section(".data"))) = {
 #include "assets/grenade_pistol_model_00CDC_skeleton.inc"
 };
 
-static u32 _gGrenadePistolModel00CDCPartVerts[1] = {
+/// Vertex count of the weapon's single part-local group: 36.
+static const u32 _gGrenadePistolWeaponModelPartVerts[ARRAY_SIZE(_gGrenadePistolWeaponModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/grenade_pistol_model_00CDC_partVerts.inc"
 };
 
-static SVECTOR _gGrenadePistolModel00CDCVerts[36] = {
+/// Shared weapon vertices in integer coordinates local to the weapon root.
+static SVECTOR _gGrenadePistolWeaponModelVerts[] = {
 #include "assets/grenade_pistol_model_00CDC_verts.inc"
 };
 
-static SVECTOR _gGrenadePistolModel00CDCNormals[36] = {
+/// Shared lighting normals with twelve fractional bits, indexed independently of vertices.
+static SVECTOR _gGrenadePistolWeaponModelNormals[] = {
 #include "assets/grenade_pistol_model_00CDC_normals.inc"
 };
 
-static u32 _gGrenadePistolModel00CDCStream[252] = {
+/// Writable commands for two textured Gouraud triangles and 33 textured Gouraud quads.
+///
+/// One skeletal group and an empty final group end in `TMD_STREAM_END`.
+/// Model creation resolves each command's draw-handler slot in place.
+static u32 _gGrenadePistolWeaponModelStream[] = {
 #include "assets/grenade_pistol_model_00CDC_stream.inc"
 };
 
-TmdSource D_grenade_pistol_8011E28C = {
-    0,
-    1796,
-    0,
-    1,
-    _gGrenadePistolModel00CDCPartVerts,
-    _gGrenadePistolModel00CDCVerts,
-    _gGrenadePistolModel00CDCNormals,
-    _gGrenadePistolModel00CDCSkeleton,
-    _gGrenadePistolModel00CDCStream,
+TmdSource gGrenadePistolWeaponModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (33 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gGrenadePistolWeaponModelSkeleton),
+    .partVertexCounts    = _gGrenadePistolWeaponModelPartVerts,
+    .verts               = _gGrenadePistolWeaponModelVerts,
+    .normals             = _gGrenadePistolWeaponModelNormals,
+    .skeleton            = _gGrenadePistolWeaponModelSkeleton,
+    .stream              = _gGrenadePistolWeaponModelStream,
 };
 #elif GRENADE_VARIANT == 1
 static TmdBone _gMm1Model00DD4Skeleton[1] = {

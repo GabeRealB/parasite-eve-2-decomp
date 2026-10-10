@@ -178,7 +178,7 @@ gAs12Model = 0x8011DCF0; // absolute:True owner=as12
 m4a1GrenadeShellTask = 0x8011DE68; // type:func absolute:True owner=m4a1_grenade
 D_m249_8011DE74 = 0x8011DE74; // absolute:True owner=m249
 D_m4a1_8011DEC4 = 0x8011DEC4; // absolute:True owner=m4a1
-D_grenade_pistol_8011E28C = 0x8011E28C; // absolute:True owner=grenade_pistol
+gGrenadePistolWeaponModel = 0x8011E28C; // absolute:True owner=grenade_pistol
 D_tonfa_baton_8011E460 = 0x8011E460; // absolute:True owner=tonfa_baton
 D_mm1_8011E494 = 0x8011E494; // absolute:True owner=mm1
 D_p229_8011E5E4 = 0x8011E5E4; // absolute:True owner=p229

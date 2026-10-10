@@ -2,6 +2,17 @@
 #define INCLUDE_WEAPONS_GRENADE_PISTOL_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// Single-part held Grenade Pistol model attached to the player's weapon hand.
+///
+/// Geometry and draw commands are shared by its runtime instances; initial
+/// transforms are copied into each instance. The Grenade Pistol overlay and
+/// its textures must remain loaded until those instances are released.
+/// The source and stream stay writable because creation resolves draw handlers
+/// in place. Each primitive-buffer half holds two textured Gouraud triangles
+/// and 33 textured Gouraud quads, all transformed from the weapon root.
+extern TmdSource gGrenadePistolWeaponModel;
 
 /// Runs the player's Grenade Pistol ready, fire and recovery phases.
 ///
