@@ -284,7 +284,7 @@ static WorldCoordRoomLights _gDryfieldNightR08RoomLights = {
 };
 
 AreaResource D_dryfield_night_r08_801818B4[3] = {
-    { 132, 357, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &D_actor_535700_8013DADC },
+    { 132, 357, AREA_RESOURCE_FILE_GROUP_BASE_50, 0, { 0, 0 }, &gActor535700AyaWalkerTaskDesc },
     { 20, 358, AREA_RESOURCE_FILE_GROUP_BASE_50, PAIR_WALK_TASK_BODY, { 0, 0 }, gActor535700PawnGolemTasks },
     { AREA_PLACEMENT_END, 0, 0, 0, { 0, 0 }, NULL },
 };

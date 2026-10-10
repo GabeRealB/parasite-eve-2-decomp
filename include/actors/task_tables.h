@@ -353,7 +353,14 @@ extern TaskDesc gActor141000FlightTasks[3];
 /// pace and facial-texture messages. Keep actor_141000 loaded until teardown.
 extern TaskDesc gActor141000AyaBreaWalkerTaskDesc;
 
-extern TaskDesc D_actor_535700_8013DADC;
+/// Scene Aya's nineteen-part TMD walker with optional footstep sounds.
+///
+/// Spawn at index zero through the enemy spawner with a live owning `Enemy`
+/// in argument 2. Priority 192 uses automatic model primitive buffers. The
+/// task owns its model and work and publishes singleton message state.
+/// Keep actor_535700's code, model and clips loaded until task teardown;
+/// singleton messages require that original task and work to remain live.
+extern TaskDesc gActor535700AyaWalkerTaskDesc;
 
 /// Twenty-part model task for the sterilization room's placed scene actor.
 ///

@@ -44930,13 +44930,13 @@ void _actor535700BlackoutTask(Task* task)
     s32   count;          /* $v0: the count the hoisted load left there */
 
     if (count != 0) { ... } else { taskKill(task); }
-    D_actor_535700_80146840--;
+    _gActor535700BlackoutFrames--;
 }
 ```
 
 `count` takes `$v0` exactly as `session` does, and the body then matches from the
 prologue on. The direct form is not a near miss to be tuned: `if
-(D_actor_535700_80146840 != 0)` compiles to the ROM's own bytes, with `lui %hi` /
+(_gActor535700BlackoutFrames != 0)` compiles to the ROM's own bytes, with `lui %hi` /
 `lw %lo` above `addiu $sp` where the split cannot see them, and scores 96.06%
 (`insert=2 branch=1`) with those two instructions as the whole insert penalty.
 So when a first function plateaus just under 100% with a small `insert` count,

@@ -51,12 +51,7 @@ static s32  _pairWalkPlay(Task* task, s32 messageId, const AnimationPlayRequest*
 static s32  _pairWalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArg);
 static void _pairWalkSubModelTask(Task* task);
 
-/// Blackout countdown. `_actor535700SetBlackoutFrames` seeds it from its argument and
-/// spawns the blackout task from `D_actor_535700_8013346C`; that task
-/// (`_actor535700BlackoutTask`) draws a full-screen black `TILE` into
-/// ordering table slot 0xA while the count is non-zero, kills itself once it
-/// reaches zero, and decrements the count every frame.
-extern s32 D_actor_535700_80146840;
+static s32 _gActor535700BlackoutFrames;
 
 static FootstepWalkWork* _gFootstepWalkWork;
 
@@ -68,9 +63,6 @@ static FootstepWalkWork* _gFootstepWalkWork;
 static Task* _gFootstepWalkTask;
 
 static s16 _gFootstepWalkMode;
-
-/// Descriptor of the blackout task `_actor535700BlackoutTask`.
-extern TaskDesc D_actor_535700_8013346C;
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
@@ -91,76 +83,222 @@ static void      _actor535700PairWalkerTask(Task* task);
 static void _actor535700SetBlackoutFrames(s32 frames);
 static void _actor535700FinishScene(void);
 
-extern AnimationPlayRequest D_actor_535700_80133478;
-extern AnimationPlayRequest D_actor_535700_801334A4;
-extern AnimationPlayRequest D_actor_535700_801334B8;
-extern AnimationPlayRequest D_actor_535700_801334CC;
-extern AnimationPlayRequest D_actor_535700_801334F4;
-extern AnimationPlayRequest D_actor_535700_80133508;
-extern AnimationPlayRequest D_actor_535700_8013351C;
-extern AnimationPlayRequest D_actor_535700_80133530;
-extern AnimationPlayRequest D_actor_535700_80133544;
-extern AnimationPlayRequest D_actor_535700_80133558;
-extern AnimationPlayRequest D_actor_535700_8013356C;
-extern AnimationPlayRequest D_actor_535700_80133580;
-extern AnimationPlayRequest D_actor_535700_80133594;
-extern AnimationPlayRequest D_actor_535700_801335A8;
-extern AnimationPlayRequest D_actor_535700_80133684;
-extern ActorCommand         D_actor_535700_8013348C;
-extern ActorTransform       D_actor_535700_80133698;
-extern ActorTransform       D_actor_535700_801336B0;
-extern ActorTransform       D_actor_535700_801336C8;
-extern ActorTransform       D_actor_535700_801336E0;
-extern ActorTransform       D_actor_535700_801336F8;
-extern ActorTransform       D_actor_535700_80133710;
-extern ActorTransform       D_actor_535700_80133728;
-extern ActorTransform       D_actor_535700_80133740;
-extern ActorTransform       D_actor_535700_80133758;
-extern ActorTransform       D_actor_535700_80133770;
-extern ActorTransform       D_actor_535700_80133788;
-extern ActorTransform       D_actor_535700_801337A0;
-extern ActorTransform       D_actor_535700_801337B8;
-extern ActorTransform       D_actor_535700_801337D0;
-extern ActorTransform       D_actor_535700_801337E8;
-extern ActorTransform       D_actor_535700_80133800;
-extern ActorTransform       D_actor_535700_80133818;
-static void                 _actor535700BlackoutTask(Task* task);
+extern ActorTransform D_actor_535700_801337D0;
+extern ActorTransform D_actor_535700_801337E8;
+extern ActorTransform D_actor_535700_80133800;
+extern ActorTransform D_actor_535700_80133818;
+static void           _actor535700BlackoutTask(Task* task);
 
-TaskDesc D_actor_535700_8013346C = { { { TASK_BODY_NONE, 192 } }, _actor535700BlackoutTask, { .value = 0 } };
+/// Scheduler order and whole-frame pose transition used by this scene's records.
+enum {
+    ACTOR_535700_SCENE_TASK_PRIORITY = 192,
+    ACTOR_535700_SCENE_BLEND_FRAMES  = 8
+};
 
-AnimationPlayRequest D_actor_535700_80133478 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Native scene clip keys without an established action name.
+enum {
+    ACTOR_535700_PLAYER_WEAPON_CLIP_1 = 1,
+    ACTOR_535700_AYA_CLIP_1           = 1,
+    ACTOR_535700_AYA_CLIP_5           = 5,
+    ACTOR_535700_AYA_CLIP_6           = 6,
+    ACTOR_535700_AYA_CLIP_7           = 7,
+    ACTOR_535700_AYA_CLIP_8           = 8,
+    ACTOR_535700_AYA_CLIP_10          = 10
+};
 
-ActorCommand D_actor_535700_8013348C = { { .loc = { 3, 8 } }, 0 };
+/// The scene Aya command that schedules turning while her turn clip plays.
+enum { ACTOR_535700_SCENE_AYA_COMMAND_TURN = 0 };
+
+/// Singleton spawn recipe for the scene's bodyless opaque-black cover task.
+///
+/// Spawn at index zero with priority 192. The callback emits a full-screen
+/// black tile; all live copies consume the same package-local signed countdown.
+static TaskDesc _gActor535700BlackoutTaskDesc = {
+    .header   = { .fields = { TASK_BODY_NONE, ACTOR_535700_SCENE_TASK_PRIORITY } },
+    .callback = _actor535700BlackoutTask,
+    .data     = { .value = 0 }
+};
+
+/// Restarts the real player's equipped-weapon clip 1 while scene Aya is shown.
+///
+/// The event interpreter copies this request and replaces its bank selector.
+/// Playback resets without blending and removes world-grid participation.
+static AnimationPlayRequest _gActor535700PlayerWeaponClip1Request = {
+    .source               = { .index = 1 },
+    .animationId          = ACTOR_535700_PLAYER_WEAPON_CLIP_1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
+
+/// Schedules twenty heading updates for scene Aya while her turn clip plays.
+///
+/// The stage/area tags identify Dryfield night room 8; this receiver ignores
+/// those tags. Dispatch consumes the command synchronously without retaining it.
+static ActorCommand _gActor535700AyaTurnCommand = {
+    .context = { .loc = { GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_R08 } },
+    .command = ACTOR_535700_SCENE_AYA_COMMAND_TURN
+};
 
 AnimationPlayRequest D_actor_535700_80133490 = { { .index = 0 }, 0, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_535700_801334A4 = { { .index = 0 }, 1, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends scene Aya back to her native startup clip 1.
+///
+/// The transition takes eight normal-rate frames. The scene walker ignores
+/// the source selector and collision word and consumes the request synchronously.
+static AnimationPlayRequest _gActor535700AyaClip1BlendRequest = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_535700_AYA_CLIP_1,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_535700_SCENE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_801334B8 = { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts scene Aya's walk clip 2 for the backward approaches.
+///
+/// Travel mode is selected separately by the walk-target message.
+/// The scene walker ignores the source selector and collision word.
+static AnimationPlayRequest _gActor535700AyaWalk2Request = {
+    .source               = { .index = 0 },
+    .animationId          = FOOTSTEP_WALK_ANIM_WALK_2,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_801334CC = { { .index = 0 }, 3, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends scene Aya into the clip that permits her scripted turn.
+///
+/// The eight-frame transition selects the clip; the separate turn command
+/// schedules the heading updates. Source and collision words are ignored.
+static AnimationPlayRequest _gActor535700AyaTurnBlendRequest = {
+    .source               = { .index = 0 },
+    .animationId          = FOOTSTEP_WALK_ANIM_TURN,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_535700_SCENE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
 AnimationPlayRequest D_actor_535700_801334E0 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-AnimationPlayRequest D_actor_535700_801334F4 = { { .index = 0 }, 5, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts scene Aya's native clip 5 after her final offset placement.
+///
+/// Consumed synchronously by the scene walker; source and collision words
+/// are ignored. No visual action is established for this clip.
+static AnimationPlayRequest _gActor535700AyaClip5Request = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_535700_AYA_CLIP_5,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_80133508 = { { .index = 0 }, 6, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends scene Aya into native clip 6 before the closing fade.
+///
+/// The transition takes eight normal-rate frames; source and collision
+/// words are ignored. No visual action is established for this clip.
+static AnimationPlayRequest _gActor535700AyaClip6BlendRequest = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_535700_AYA_CLIP_6,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_535700_SCENE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_8013351C = { { .index = 0 }, 7, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts scene Aya's native clip 7 at the final centre placement.
+///
+/// Consumed synchronously by the scene walker; source and collision words
+/// are ignored. No visual action is established for this clip.
+static AnimationPlayRequest _gActor535700AyaClip7Request = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_535700_AYA_CLIP_7,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_80133530 = { { .index = 0 }, 8, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts scene Aya's native clip 8 after the scene's sixty-frame wait.
+///
+/// Consumed synchronously by the scene walker; source and collision words
+/// are ignored. No visual action is established for this clip.
+static AnimationPlayRequest _gActor535700AyaClip8Request = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_535700_AYA_CLIP_8,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_80133544 = { { .index = 0 }, 10, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts scene Aya's native clip 10 at two caption cues during her approach.
+///
+/// Consumed synchronously by the scene walker; source and collision words
+/// are ignored. No visual action is established for this clip.
+static AnimationPlayRequest _gActor535700AyaClip10Request = {
+    .source               = { .index = 0 },
+    .animationId          = ACTOR_535700_AYA_CLIP_10,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_80133558 = { { .index = 0 }, 13, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts scene Aya's travel-end idle clip at the approach caption cues.
+///
+/// The scene walker consumes the request synchronously and ignores
+/// the source selector and collision word.
+static AnimationPlayRequest _gActor535700AyaIdleRequest = {
+    .source               = { .index = 0 },
+    .animationId          = FOOTSTEP_WALK_ANIM_IDLE,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_8013356C = { { .index = 0 }, 14, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts scene Aya's walk clip 14 for her slow forward approach.
+///
+/// The following walk-target message independently selects slow-forward
+/// travel. The source selector and collision word are ignored.
+static AnimationPlayRequest _gActor535700AyaWalk14Request = {
+    .source               = { .index = 0 },
+    .animationId          = FOOTSTEP_WALK_ANIM_WALK_14,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_80133580 = { { .index = 0 }, 15, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts scene Aya's walk clip 15 for her forward approach.
+///
+/// The following walk-target message independently selects forward travel.
+/// The source selector and collision word are ignored.
+static AnimationPlayRequest _gActor535700AyaWalk15Request = {
+    .source               = { .index = 0 },
+    .animationId          = FOOTSTEP_WALK_ANIM_WALK_15,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_80133594 = { { .index = 0 }, 4, ANIMATION_BLEND_INTERPOLATE, 8, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Blends the first scene Pawn GOLEM into its travel clip.
+///
+/// The transition takes eight normal-rate frames; a separate walk target
+/// supplies travel. The source selector and collision word are ignored.
+static AnimationPlayRequest _gActor535700PawnGolemWalkBlendRequest = {
+    .source               = { .index = 0 },
+    .animationId          = PAIR_WALK_ANIM_WALK,
+    .blend                = ANIMATION_BLEND_INTERPOLATE,
+    .blendFrames          = ACTOR_535700_SCENE_BLEND_FRAMES,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-AnimationPlayRequest D_actor_535700_801335A8 = { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the first scene Pawn GOLEM's idle clip at its entrance placement.
+///
+/// The pair walker consumes the request synchronously and ignores
+/// the source selector and collision word.
+static AnimationPlayRequest _gActor535700PawnGolemIdleRequest = {
+    .source               = { .index = 0 },
+    .animationId          = PAIR_WALK_ANIM_IDLE,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
 AnimationPlayRequest D_actor_535700_801335BC[10] = {
     { { .index = 0 }, 2, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
@@ -175,33 +313,134 @@ AnimationPlayRequest D_actor_535700_801335BC[10] = {
     { { .index = 0 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE },
 };
 
-AnimationPlayRequest D_actor_535700_80133684 = { { .index = 0 }, 4, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Restarts the travel clip shared by all three scene Pawn GOLEMs.
+///
+/// Each receiver uses its own rig and separately supplied walk target.
+/// The source selector and collision word are ignored.
+static AnimationPlayRequest _gActor535700PawnGolemWalkRequest = {
+    .source               = { .index = 0 },
+    .animationId          = PAIR_WALK_ANIM_WALK,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE
+};
 
-ActorTransform D_actor_535700_80133698 = { { 0x7530, 0, 0x7530, 0 }, { 0, 0, 0, 0 } };
+/// Offstage placement of the real player while the scene uses its own Aya model.
+///
+/// XYZ is in the player root parent frame; all Euler angles are zero.
+/// The player placement message consumes the complete transform synchronously.
+static ActorTransform _gActor535700PlayerOffstagePlacement = {
+    .pos = { 30000, 0, 30000, 0 },
+    .rot = { 0, 0, 0, 0 }
+};
 
-ActorTransform D_actor_535700_801336B0 = { { 50, 0, -0x37C8, 0 }, { 0, 0, 0, 0 } };
+/// Opening placement of scene Aya before her first forward approach.
+///
+/// XYZ uses the model root parent frame, and yaw is zero.
+/// The placement handler consumes XYZ and yaw without retaining the record.
+static ActorTransform _gActor535700AyaEntrancePlacement = {
+    .pos = { 50, 0, -14280, 0 },
+    .rot = { 0, 0, 0, 0 }
+};
 
-ActorTransform D_actor_535700_801336C8 = { { 50, 0, -0x2CC4, 0 }, { 0, 0, 0, 0 } };
+/// Slow-forward destination and subsequent snapped placement of scene Aya.
+///
+/// The walk message borrows the position member and ignores Y; the later
+/// placement applies XYZ and zero yaw. Both use the model root parent frame.
+static ActorTransform _gActor535700AyaApproachTransform = {
+    .pos = { 50, 0, -11460, 0 },
+    .rot = { 0, 0, 0, 0 }
+};
 
-ActorTransform D_actor_535700_801336E0 = { { 50, 0, -0x2CC4, 0 }, { 0, -398, 0, 0 } };
+/// Scene Aya's approach placement with her heading turned for the next caption cue.
+///
+/// XYZ uses the model root parent frame; yaw is in 1/4096 turns.
+/// The placement handler consumes XYZ and yaw without retaining the record.
+static ActorTransform _gActor535700AyaTurnedApproachPlacement = {
+    .pos = { 50, 0, -11460, 0 },
+    .rot = { 0, -398, 0, 0 }
+};
 
-ActorTransform D_actor_535700_801336F8 = { { 0, 0, -0x2DC8, 0 }, { 0, -2048, 0, 0 } };
+/// Scene Aya's half-turn placement before her backward walk.
+///
+/// XYZ uses the model root parent frame; yaw is in 1/4096 turns.
+/// The placement handler consumes XYZ and yaw without retaining the record.
+static ActorTransform _gActor535700AyaBackwardWalkPlacement = {
+    .pos = { 0, 0, -11720, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 }
+};
 
-ActorTransform D_actor_535700_80133710 = { { 0, 0, -0x2710, 0 }, { 0, 0, 0, 0 } };
+/// Destination shared by scene Aya's two backward walks.
+///
+/// The walk message borrows the position member in the model root parent
+/// frame. Only X/Z is read; Y and the stored rotation are unused.
+static ActorTransform _gActor535700AyaBackwardWalkTarget = {
+    .pos = { 0, 0, -10000, 0 },
+    .rot = { 0, 0, 0, 0 }
+};
 
-ActorTransform D_actor_535700_80133728 = { { -1300, 0, -0x2710, 0 }, { 0, 0, 0, 0 } };
+/// Scene Aya's forward-walk destination after her scheduled turn.
+///
+/// The walk message borrows the position member in the model root parent
+/// frame. Only X/Z is read; Y and the stored rotation are unused.
+static ActorTransform _gActor535700AyaForwardWalkTarget = {
+    .pos = { -1300, 0, -10000, 0 },
+    .rot = { 0, 0, 0, 0 }
+};
 
-ActorTransform D_actor_535700_80133740 = { { 0, 0, -0x2710, 0 }, { 0, -2048, 0, 0 } };
+/// Scene Aya's centre placement before native clips 7 and 8.
+///
+/// XYZ uses the model root parent frame; yaw is a negative half-turn.
+/// The placement handler consumes XYZ and yaw without retaining the record.
+static ActorTransform _gActor535700AyaFinalCenterPlacement = {
+    .pos = { 0, 0, -10000, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_HALF_TURN, 0, 0 }
+};
 
-ActorTransform D_actor_535700_80133758 = { { -300, 0, -0x283C, 0 }, { 0, -1991, 0, 0 } };
+/// Scene Aya's offset placement before native clip 5 and the closing cues.
+///
+/// XYZ uses the model root parent frame; yaw is in 1/4096 turns.
+/// The placement handler consumes XYZ and yaw without retaining the record.
+static ActorTransform _gActor535700AyaFinalOffsetPlacement = {
+    .pos = { -300, 0, -10300, 0 },
+    .rot = { 0, -1991, 0, 0 }
+};
 
-ActorTransform D_actor_535700_80133770 = { { 0, 0, -0x4650, 0 }, { 0, 0, 0, 0 } };
+/// Opening placement of the first scene Pawn GOLEM.
+///
+/// XYZ uses the model root parent frame, and yaw is zero.
+/// The placement handler consumes XYZ and yaw without retaining the record.
+static ActorTransform _gActor535700PawnGolemEntrancePlacement = {
+    .pos = { 0, 0, -18000, 0 },
+    .rot = { 0, 0, 0, 0 }
+};
 
-ActorTransform D_actor_535700_80133788 = { { 0, 0, -0x3BC4, 0 }, { 0, 0, 0, 0 } };
+/// First walk destination of the first scene Pawn GOLEM.
+///
+/// X/Z uses the model root parent frame. The pair-walker target handler
+/// ignores Y and rotation and retains no pointer to the record.
+static ActorTransform _gActor535700PawnGolemEntranceWalkTarget = {
+    .pos = { 0, 0, -15300, 0 },
+    .rot = { 0, 0, 0, 0 }
+};
 
-ActorTransform D_actor_535700_801337A0 = { { -3670, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
+/// Placement of the first scene Pawn GOLEM for its walk from the left.
+///
+/// XYZ uses the model root parent frame; yaw is a negative quarter-turn.
+/// The placement handler consumes XYZ and yaw without retaining the record.
+static ActorTransform _gActor535700PawnGolemLeftPlacement = {
+    .pos = { -3670, 0, -10000, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
+};
 
-ActorTransform D_actor_535700_801337B8 = { { -400, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
+/// Destination of the first scene Pawn GOLEM's walk from the left.
+///
+/// X/Z uses the model root parent frame. The pair-walker target handler
+/// ignores Y and rotation and retains no pointer to the record.
+static ActorTransform _gActor535700PawnGolemLeftWalkTarget = {
+    .pos = { -400, 0, -10000, 0 },
+    .rot = { 0, -ACTOR_TRANSFORM_ANGLE_TURN / 4, 0, 0 }
+};
 
 ActorTransform D_actor_535700_801337D0 = { { 3670, 0, -0x2710, 0 }, { 0, -1024, 0, 0 } };
 
@@ -229,87 +468,87 @@ EvsCommand D_actor_535700_80133898[99] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_535700_80133698 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_535700_80133478 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PlayerOffstagePlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gActor535700PlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_801336B0 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaEntrancePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_8013356C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_801336C8 } }, { .value = 2 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaWalk14Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700AyaApproachTransform.pos } }, { .value = FOOTSTEP_WALK_MODE_SLOW_FORWARD } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_ACTOR_ACTION, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133558 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_801336C8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaIdleRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaApproachTransform } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133544 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133558 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaIdleRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_801336E0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133544 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaTurnedApproachPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip10Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_801334A4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip1BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_80133770 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PawnGolemEntrancePlacement } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_801335A8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemIdleRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133594 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_80133788 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkBlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemEntranceWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_801336F8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_801334B8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_80133710 } }, { .value = 1 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaBackwardWalkPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaWalk2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700AyaBackwardWalkTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_BACKWARD } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_801334CC } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_535700_8013348C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaTurnBlendRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &_gActor535700AyaTurnCommand } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133580 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_80133728 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaWalk15Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700AyaForwardWalkTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_FORWARD } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_801334B8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_80133710 } }, { .value = 1 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_801337A0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133684 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_801337B8 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaWalk2Request } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .pointer = &_gActor535700AyaBackwardWalkTarget.pos } }, { .value = FOOTSTEP_WALK_MODE_BACKWARD } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700PawnGolemLeftPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_WALK_TO }, { .message = { .transform = &_gActor535700PawnGolemLeftWalkTarget } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_801337D0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133684 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_801337E8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_801337D0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133684 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_801337E8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_80133800 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133684 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_80133818 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_80133860 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133684 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700PawnGolemWalkRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2013 }, { .message = { .pointer = &D_actor_535700_80133878 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_80133740 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_8013351C } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaFinalCenterPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip7Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133530 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip8Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_actor_535700_80133758 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_801334F4 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLACE }, { .message = { .transform = &_gActor535700AyaFinalOffsetPlacement } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip5Request } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 3 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_535700_80133508 } }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_MESSAGE_PLAY_ANIMATION }, { .message = { .animation = &_gActor535700AyaClip6BlendRequest } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 1 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -743,7 +982,11 @@ static TaskMessageEntry _gFootstepWalkMessageTable[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_535700_8013DADC = { { { TASK_BODY_TMD, 192 } }, _actor535700FootstepWalkerTask, { .model = &_gActor535700AyaBreaBody } };
+TaskDesc gActor535700AyaWalkerTaskDesc = {
+    .header   = { .fields = { TASK_BODY_TMD, ACTOR_535700_SCENE_TASK_PRIORITY } },
+    .callback = _actor535700FootstepWalkerTask,
+    .data     = { .model = &_gActor535700AyaBreaBody }
+};
 
 /// Native clip-index table borrowed by the sound walker's animation context.
 ///
@@ -996,7 +1239,12 @@ static AnimationSet* _gPairWalkAnimationSets[6] = {
     &_gActor535700Animation14998,
 };
 
-s32 D_actor_535700_80146840;
+/// Signed cover updates remaining, shared by every live scene blackout task.
+///
+/// Positive N draws for N updates with one task; zero stops drawing and the
+/// terminating update decrements it to -1. Every nonzero setter call spawns
+/// another task sharing this word. Negative values are not clamped.
+static s32 _gActor535700BlackoutFrames;
 
 /// Borrowed pointer to the sound walker's task-owned work block.
 ///
@@ -1055,13 +1303,13 @@ static __inline__ void _actor535700DrawBlackoutTile(void)
 /// described by `_actor535700DrawBlackoutTile`.
 static void _actor535700BlackoutTask(Task* task)
 {
-    if (D_actor_535700_80146840 != 0) {
+    if (_gActor535700BlackoutFrames != 0) {
         _actor535700DrawBlackoutTile();
     } else {
         taskKill(task);
     }
     // The terminating update still consumes the shared countdown after teardown.
-    D_actor_535700_80146840--;
+    _gActor535700BlackoutFrames--;
 }
 
 /// Sets the scene's opaque black countdown and spawns a cover task when nonzero.
@@ -1074,9 +1322,9 @@ static void _actor535700BlackoutTask(Task* task)
 /// Keep this package and its task descriptor loaded while cover tasks are live.
 static void _actor535700SetBlackoutFrames(s32 frames)
 {
-    D_actor_535700_80146840 = frames;
+    _gActor535700BlackoutFrames = frames;
     if (frames != 0) {
-        taskSpawnFromTable(&D_actor_535700_8013346C, 0, 0, 0);
+        taskSpawnFromTable(&_gActor535700BlackoutTaskDesc, 0, 0, 0);
     }
 }
 

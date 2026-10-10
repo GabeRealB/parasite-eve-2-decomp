@@ -208,8 +208,8 @@ gActor420700Animation035D4 = 0x801353F4; // absolute:True owner=actor_420700
 gActor420700Animation03DD8 = 0x80135BF8; // absolute:True owner=actor_420700
 gActor420700Animation00DE0 = 0x80132C00; // absolute:True owner=actor_420700
 gActor420700Animation013A8 = 0x801331C8; // absolute:True owner=actor_420700
-gActor420700Animation0164C = 0x8013346C; // absolute:True owner=actor_420700 shared=actors
-gActor420700Animation01878 = 0x80133698; // absolute:True owner=actor_420700 shared=actors
+gActor420700Animation0164C = 0x8013346C; // absolute:True owner=actor_420700
+gActor420700Animation01878 = 0x80133698; // absolute:True owner=actor_420700
 _gDryfieldTrailerCoachPlayerAnimationExtensionSets = 0x80185368; // size:0x44 defined:True
 _gDryfieldTrailerCoachPlayerAnimationExtensionCopyRequest = 0x801853AC; // size:0x8 defined:True
 _gDryfieldTrailerCoachFirearmsTopicLabel = 0x801853B4; // size:0xD defined:True
