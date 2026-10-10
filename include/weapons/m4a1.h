@@ -2,6 +2,16 @@
 #define INCLUDE_WEAPONS_M4A1_H
 
 #include "main/task_types.h"
+#include "main/tmd_types.h"
+
+/// The held rifle model shared by the M4A1 and both upgrade packages.
+///
+/// One part with 58 vertices and normals, two textured triangles and 55
+/// textured quads. Each primitive-buffer half is 2,940 bytes, all for direct
+/// transformation. The initial hierarchy and vertex-count table are read-only;
+/// draw-handler resolution writes the descriptor and command stream in place.
+/// Keep the selected M4A1-family overlay loaded while a child model borrows it.
+extern TmdSource gM4a1RifleModel;
 
 /// Runs the M4A1 single shot or three-round burst, including both upgrade builds.
 ///

@@ -1,5 +1,8 @@
 #include "weapons/m4a1.h"
 
+#include <psyq/libgpu.h>
+
+#include "common.h"
 #include "types.h"
 
 #include "gameplay/animation.h"
@@ -154,146 +157,192 @@ void m4a1AttackState(Task* playerTask)
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
-static TmdBone _gM4a1Model006ACSkeleton[1] = {
+/// Initial identity transform and self-parented root of the held rifle.
+///
+/// Read-only asset tables retain their serialized positions in .data.
+static const TmdBone _gM4a1RifleModelSkeleton[1] __attribute__((section(".data"))) = {
 #include "assets/m4a1_model_006AC_skeleton.inc"
 };
 
-static u32 _gM4a1Model006ACPartVerts[1] = {
+/// Vertex count of the rifle's sole part: 58.
+static const u32 _gM4a1RifleModelPartVerts[ARRAY_SIZE(_gM4a1RifleModelSkeleton)] __attribute__((section(".data"))) = {
 #include "assets/m4a1_model_006AC_partVerts.inc"
 };
 
-static SVECTOR _gM4a1Model006ACVerts[58] = {
+/// Writable rifle vertices in integer coordinates local to the model root.
+static SVECTOR _gM4a1RifleModelVerts[58] = {
 #include "assets/m4a1_model_006AC_verts.inc"
 };
 
-static SVECTOR _gM4a1Model006ACNormals[58] = {
+/// Writable rifle lighting normals, indexed independently of the vertices.
+static SVECTOR _gM4a1RifleModelNormals[58] = {
 #include "assets/m4a1_model_006AC_normals.inc"
 };
 
-static u32 _gM4a1Model006ACStream[406] = {
+/// Writable commands for two textured triangles and 55 textured quads in one part.
+///
+/// Draw-handler slots resolve in place; the final word is `TMD_STREAM_END`.
+static u32 _gM4a1RifleModelStream[406] = {
 #include "assets/m4a1_model_006AC_stream.inc"
 };
 
-TmdSource D_m4a1_8011DEC4 = {
-    0,
-    2940,
-    0,
-    1,
-    _gM4a1Model006ACPartVerts,
-    _gM4a1Model006ACVerts,
-    _gM4a1Model006ACNormals,
-    _gM4a1Model006ACSkeleton,
-    _gM4a1Model006ACStream,
+TmdSource gM4a1RifleModel = {
+    .handlersResolved    = false,
+    .bufferHalfBytes     = (2 * sizeof(POLY_GT3)) + (55 * sizeof(POLY_GT4)),
+    .preXformRegionBytes = 0,
+    .partCount           = ARRAY_SIZE(_gM4a1RifleModelSkeleton),
+    .partVertexCounts    = _gM4a1RifleModelPartVerts,
+    .verts               = _gM4a1RifleModelVerts,
+    .normals             = _gM4a1RifleModelNormals,
+    .skeleton            = _gM4a1RifleModelSkeleton,
+    .stream              = _gM4a1RifleModelStream,
 };
 
-static AnimationPackedPose _gM4a1Animation00EB8Bank1[2] = {
+/// Idle translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1IdleAnimationBank1[2] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_00EB8_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation00EB8Bank4[8] = {
+/// Idle rotation-only keyframes, with each packed angle step equal to 1/512 turn.
+static const AnimationPackedRotation _gM4a1IdleAnimationBank4[8] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_00EB8_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation00EB8Records[76] = {
+/// Keyframes and track controls for the idle pose; durations count normal-rate frames.
+static const AnimationRecord _gM4a1IdleAnimationRecords[76] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_00EB8_records.inc"
 };
 
-static u16 _gM4a1Animation00EB8Indices[20] = {
+/// Nineteen idle track-start record indices plus the exporter's trailing halfword.
+static const u16 _gM4a1IdleAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_00EB8_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation00EB8 = {
-    _gM4a1Animation00EB8Records,
-    _gM4a1Animation00EB8Indices,
-    { NULL, _gM4a1Animation00EB8Bank1, NULL, NULL, _gM4a1Animation00EB8Bank4, NULL, NULL, NULL },
+/// Player-rig idle pose in the M4A1-family bank.
+///
+/// Nineteen tracks; bank indices 1, 21, 22 and 41 share this set. All clip data
+/// remains borrowed from the loaded weapon overlay throughout playback.
+static AnimationSet _gM4a1IdleAnimation = {
+    .records           = _gM4a1IdleAnimationRecords,
+    .trackStartIndices = _gM4a1IdleAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1IdleAnimationBank1, NULL, NULL, _gM4a1IdleAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation0155CBank1[12] = {
+/// Unarmed-walk translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1UnarmedWalkAnimationBank1[12] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0155C_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation0155CBank4[151] = {
+/// Unarmed-walk rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1UnarmedWalkAnimationBank4[151] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0155C_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation0155CRecords[218] = {
+/// Unarmed-walk keyframes and track controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1UnarmedWalkAnimationRecords[218] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0155C_records.inc"
 };
 
-static u16 _gM4a1Animation0155CIndices[20] = {
+/// Nineteen unarmed-walk track starts plus the exporter's trailing halfword.
+static const u16 _gM4a1UnarmedWalkAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_0155C_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation0155C = {
-    _gM4a1Animation0155CRecords,
-    _gM4a1Animation0155CIndices,
-    { NULL, _gM4a1Animation0155CBank1, NULL, NULL, _gM4a1Animation0155CBank4, NULL, NULL, NULL },
+/// Player-rig forward walk when no weapon model is attached, in M4A1-family bank entry 19.
+///
+/// Nineteen tracks borrowing the loaded weapon overlay throughout playback.
+static AnimationSet _gM4a1UnarmedWalkAnimation = {
+    .records           = _gM4a1UnarmedWalkAnimationRecords,
+    .trackStartIndices = _gM4a1UnarmedWalkAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1UnarmedWalkAnimationBank1, NULL, NULL, _gM4a1UnarmedWalkAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation01DBCBank1[19] = {
+/// Negative-turn translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1NegativeTurnAnimationBank1[19] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_01DBC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation01DBCBank4[169] = {
+/// Negative-turn rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1NegativeTurnAnimationBank4[169] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_01DBC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation01DBCRecords[290] = {
+/// Negative-turn keyframes and track controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1NegativeTurnAnimationRecords[290] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_01DBC_records.inc"
 };
 
-static u16 _gM4a1Animation01DBCIndices[20] = {
+/// Nineteen negative-turn track starts plus the exporter's trailing halfword.
+static const u16 _gM4a1NegativeTurnAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_01DBC_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation01DBC = {
-    _gM4a1Animation01DBCRecords,
-    _gM4a1Animation01DBCIndices,
-    { NULL, _gM4a1Animation01DBCBank1, NULL, NULL, _gM4a1Animation01DBCBank4, NULL, NULL, NULL },
+/// Player-rig turn toward decreasing yaw, in M4A1-family bank entry 5.
+///
+/// Nineteen tracks borrowing the loaded weapon overlay throughout playback.
+static AnimationSet _gM4a1NegativeTurnAnimation = {
+    .records           = _gM4a1NegativeTurnAnimationRecords,
+    .trackStartIndices = _gM4a1NegativeTurnAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1NegativeTurnAnimationBank1, NULL, NULL, _gM4a1NegativeTurnAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation02620Bank1[19] = {
+/// Positive-turn translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1PositiveTurnAnimationBank1[19] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_02620_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation02620Bank4[170] = {
+/// Positive-turn rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1PositiveTurnAnimationBank4[170] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_02620_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation02620Records[290] = {
+/// Positive-turn keyframes and track controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1PositiveTurnAnimationRecords[290] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_02620_records.inc"
 };
 
-static u16 _gM4a1Animation02620Indices[20] = {
+/// Nineteen positive-turn track starts plus the exporter's trailing halfword.
+static const u16 _gM4a1PositiveTurnAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_02620_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation02620 = {
-    _gM4a1Animation02620Records,
-    _gM4a1Animation02620Indices,
-    { NULL, _gM4a1Animation02620Bank1, NULL, NULL, _gM4a1Animation02620Bank4, NULL, NULL, NULL },
+/// Player-rig turn toward increasing yaw, in M4A1-family bank entry 6.
+///
+/// Nineteen tracks borrowing the loaded weapon overlay throughout playback.
+static AnimationSet _gM4a1PositiveTurnAnimation = {
+    .records           = _gM4a1PositiveTurnAnimationRecords,
+    .trackStartIndices = _gM4a1PositiveTurnAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1PositiveTurnAnimationBank1, NULL, NULL, _gM4a1PositiveTurnAnimationBank4, NULL, NULL, NULL },
 };
 
-static AnimationPackedPose _gM4a1Animation02934Bank1[3] = {
+/// Item-use translation/rotation keyframes in integer model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1ItemUseAnimationBank1[3] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_02934_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1Animation02934Bank4[69] = {
+/// Item-use rotation-only keyframes, with packed angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1ItemUseAnimationBank4[69] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_02934_bank4.inc"
 };
 
-static AnimationRecord _gM4a1Animation02934Records[99] = {
+/// Item-use keyframes and track controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1ItemUseAnimationRecords[99] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_02934_records.inc"
 };
 
-static u16 _gM4a1Animation02934Indices[20] = {
+/// Nineteen item-use track starts plus the exporter's trailing halfword.
+static const u16 _gM4a1ItemUseAnimationIndices[20] __attribute__((section(".data"))) = {
 #include "assets/m4a1_animation_02934_indices.inc"
 };
 
-static AnimationSet _gM4a1Animation02934 = {
-    _gM4a1Animation02934Records,
-    _gM4a1Animation02934Indices,
-    { NULL, _gM4a1Animation02934Bank1, NULL, NULL, _gM4a1Animation02934Bank4, NULL, NULL, NULL },
+/// Player-rig item-use gesture in M4A1-family bank entry 40.
+///
+/// Nineteen tracks borrowing the loaded weapon overlay throughout playback;
+/// this clip presents the action and does not apply the item's effect.
+static AnimationSet _gM4a1ItemUseAnimation = {
+    .records           = _gM4a1ItemUseAnimationRecords,
+    .trackStartIndices = _gM4a1ItemUseAnimationIndices,
+    .poseBanks         = { NULL, _gM4a1ItemUseAnimationBank1, NULL, NULL, _gM4a1ItemUseAnimationBank4, NULL, NULL, NULL },
 };
 
 static AnimationPackedPose _gM4a1Animation03090Bank1[14] = {
@@ -980,12 +1029,12 @@ static AnimationSet _gM4a1Animation0E7FC = {
 
 AnimationBank D_m4a1_8012B9E4 = { { {
     NULL,
-    &_gM4a1Animation00EB8,
+    &_gM4a1IdleAnimation,
     &_gM4a1Animation0D688,
     &_gM4a1Animation0DE28,
     &_gM4a1Animation0E7FC,
-    &_gM4a1Animation01DBC,
-    &_gM4a1Animation02620,
+    &_gM4a1NegativeTurnAnimation,
+    &_gM4a1PositiveTurnAnimation,
     &_gM4a1Animation0C3A0,
     &_gM4a1Animation0CDD0,
     &_gM4a1Animation096A0,
@@ -998,10 +1047,10 @@ AnimationBank D_m4a1_8012B9E4 = { { {
     &_gM4a1Animation05284,
     &_gM4a1Animation055A4,
     &_gM4a1Animation05D68,
-    &_gM4a1Animation0155C,
+    &_gM4a1UnarmedWalkAnimation,
     &_gM4a1Animation0B894,
-    &_gM4a1Animation00EB8,
-    &_gM4a1Animation00EB8,
+    &_gM4a1IdleAnimation,
+    &_gM4a1IdleAnimation,
     &_gM4a1Animation07000,
     &_gM4a1Animation08294,
     &_gM4a1Animation07B78,
@@ -1019,8 +1068,8 @@ AnimationBank D_m4a1_8012B9E4 = { { {
     &_gM4a1Animation03818,
     &_gM4a1Animation03E7C,
     &_gM4a1Animation03AEC,
-    &_gM4a1Animation02934,
-    &_gM4a1Animation00EB8,
+    &_gM4a1ItemUseAnimation,
+    &_gM4a1IdleAnimation,
     &_gM4a1Animation08E50,
     &_gM4a1Animation09044,
     &_gM4a1Animation094C4,

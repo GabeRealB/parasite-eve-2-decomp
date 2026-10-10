@@ -54,6 +54,8 @@
 
 #include "weapons/m249.h"
 
+#include "weapons/m4a1.h"
+
 #include "weapons/m4a1_grenade.h"
 
 #include "weapons/tonfa_baton.h"
@@ -313,12 +315,12 @@ TaskDesc D_800678F4[] = {
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_pa3_8011DA04 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_sp12_8011DB44 } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gAs12Model } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_8011DEC4 } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM4a1RifleModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM249WeaponModel } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_TMD, 0x50 } }, tonfaBatonModelTask, { &D_tonfa_baton_8011E460 } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_8011DEC4 } },
-    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &D_m4a1_8011DEC4 } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM4a1RifleModel } },
+    { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gM4a1RifleModel } },
     { { { TASK_BODY_TMD, 0x50 } }, hypervelocityWeaponModelTask, { &gHypervelocityRootModel } },
     { { { TASK_BODY_TMD, 0x50 } }, modelObjectChildTask, { &gGunbladeModel } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
