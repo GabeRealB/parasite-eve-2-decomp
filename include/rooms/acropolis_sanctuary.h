@@ -21,11 +21,19 @@ extern TmdSource gAcropolisSanctuaryModel09584;
 // acropolis_sanctuary
 extern WorldCollisionRoomResources D_acropolis_sanctuary_801827EC[];
 
-extern u8* D_acropolis_sanctuary_801827FC[];
+/// Logical-view maps for the sanctuary's single room.
+///
+/// Room 1 borrows `gViewIdentityMap`: logical views 1..16 select matching
+/// camera, image and sprite indices. Keep both room and gameplay overlays loaded.
+extern u8* gAcropolisSanctuaryViewMaps[1];
 
 extern ViewCount D_acropolis_sanctuary_80182800[];
 
-extern WorldCoordRoomLighting D_acropolis_sanctuary_80182804[];
+/// Lighting for the sanctuary's single room, with default ambient minima.
+///
+/// Room 1 borrows nine mutable point lights and has no directional or cone
+/// lights. The descriptor and light storage are live only while the room is loaded.
+extern WorldCoordRoomLighting gAcropolisSanctuaryRoomLightingTable[1];
 
 extern DirectionWarpEntry D_acropolis_sanctuary_8018280C[];
 
@@ -33,7 +41,12 @@ extern SpriteView D_acropolis_sanctuary_801860C8[];
 
 extern ViewCamera D_acropolis_sanctuary_80186188[];
 
-extern WorldCollisionSurfaceProperties* D_acropolis_sanctuary_801863F8[];
+/// Sanctuary collision policies indexed by surface class 0..7.
+///
+/// Every class blocks probes, permits weapon impacts and applies pushback.
+/// Classes 1 and 2 have separate footstep cue pairs; classes 0 and 3..7 share
+/// a record without footstep cues. Borrowed records require this room to stay loaded.
+extern WorldCollisionSurfaceProperties* gAcropolisSanctuarySurfacePropertiesByClass[8];
 
 /// Creates the sanctuary's twelve flames and maintains the mosaic cleanup latch.
 ///

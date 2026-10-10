@@ -318,9 +318,8 @@ static void _acropolisSanctuaryRequestCutsceneCue(s32 cue);
 
 extern WorldCollisionGrid    D_acropolis_sanctuary_80183568;
 extern WorldCollisionTrigger D_acropolis_sanctuary_8018358C[18];
-extern WorldCoordRoomLights  D_acropolis_sanctuary_801843EC[1];
+static WorldCoordRoomLights  _gAcropolisSanctuaryRoomLights;
 
-extern AnimationPlayRequest     D_acropolis_sanctuary_80180904;
 extern AnimationPlayRequest     D_acropolis_sanctuary_80180944;
 extern AnimationPlayRequest     D_acropolis_sanctuary_80180958;
 extern AnimationPlayRequest     D_acropolis_sanctuary_8018096C;
@@ -402,7 +401,18 @@ ActorTransform D_acropolis_sanctuary_801808D4 = { { 0, 0, -900, 0 }, { 0, 0, 0, 
 
 ActorTransform D_acropolis_sanctuary_801808EC = { { -5724, 0, -8276, 0 }, { 0, -1024, 0, 0 } };
 
-AnimationPlayRequest D_acropolis_sanctuary_80180904 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
+/// Resets the player's equipped-weapon clip 1 and disables world collision.
+///
+/// Event scripts borrow this request synchronously. The interpreter copies it
+/// and replaces `source.index` with the equipped weapon's bank before dispatch;
+/// the stored selector is retained data, not the bank used for playback.
+static AnimationPlayRequest _gAcropolisSanctuaryPlayerWeaponClip1Request = {
+    .source               = { .index = 1 },
+    .animationId          = 1,
+    .blend                = ANIMATION_BLEND_RESET,
+    .blendFrames          = 0,
+    .enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE,
+};
 
 AnimationSet* D_acropolis_sanctuary_80180918[9] = {
     &gActor210700Animation01E2C,
@@ -471,7 +481,7 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_sanctuary_8018085C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180904 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_sanctuary_8018093C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_acropolis_sanctuary_80180AFC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -582,7 +592,7 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180904 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_sanctuary_801808EC } }, { .value = 0 } },
@@ -595,7 +605,7 @@ EvsCommand D_acropolis_sanctuary_80181664[18] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180904 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_sanctuary_801808EC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_sanctuary_801808BC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AE8 } }, { .value = 0 } },
@@ -613,7 +623,7 @@ EvsCommand D_acropolis_sanctuary_80181664[18] = {
 
 EvsCommand D_acropolis_sanctuary_80181814[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_sanctuary_80180904 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_PLAY }, { .animation = &_gAcropolisSanctuaryPlayerWeaponClip1Request }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_sanctuary_80180AC0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -871,14 +881,14 @@ WorldCollisionRoomResources D_acropolis_sanctuary_801827EC[1] = {
     { &D_acropolis_sanctuary_80183568, D_acropolis_sanctuary_8018358C, D_acropolis_sanctuary_80183AE4, NULL },
 };
 
-u8* D_acropolis_sanctuary_801827FC[1] = {
+u8* gAcropolisSanctuaryViewMaps[1] = {
     gViewIdentityMap,
 };
 
 ViewCount D_acropolis_sanctuary_80182800[1] = { 16 };
 
-WorldCoordRoomLighting D_acropolis_sanctuary_80182804[1] = {
-    { D_acropolis_sanctuary_801843EC, NULL },
+WorldCoordRoomLighting gAcropolisSanctuaryRoomLightingTable[1] = {
+    { &_gAcropolisSanctuaryRoomLights, NULL },
 };
 
 DirectionWarpEntry D_acropolis_sanctuary_8018280C[3] = {
@@ -1140,181 +1150,221 @@ static WorldCoordPointLight _gAcropolisSanctuaryPointLights[] = {
     },
 };
 
-WorldCoordRoomLights D_acropolis_sanctuary_801843EC[1] = {
-    { 0, NULL, ARRAY_SIZE(_gAcropolisSanctuaryPointLights), _gAcropolisSanctuaryPointLights, 0, NULL },
+/// The sanctuary's nine writable point lights, shared by all room views.
+///
+/// Light transforms and attenuation are updated during composition and shading;
+/// this collection borrows their storage for the loaded overlay's lifetime.
+static WorldCoordRoomLights _gAcropolisSanctuaryRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gAcropolisSanctuaryPointLights),
+    .pointLights           = _gAcropolisSanctuaryPointLights,
+    .coneLightCount        = 0,
+    .coneLights            = NULL,
 };
 
-SpriteBatch D_acropolis_sanctuary_80184404[2] = {
+/// GPU encodings and neutral RGB modulation for the room's authored view sprites.
+enum {
+    ACROPOLIS_SANCTUARY_SPRITE_PAGE_896      = getTPage(1, GPU_BLEND_AVERAGE, 896, 0),
+    ACROPOLIS_SANCTUARY_SPRITE_PAGE_960      = getTPage(1, GPU_BLEND_AVERAGE, 960, 0),
+    ACROPOLIS_SANCTUARY_SPRITE_CLUT_255      = getClut(0, 255),
+    ACROPOLIS_SANCTUARY_SPRITE_CLUT_256      = getClut(0, 256),
+    ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL = 128,
+};
+
+/// View 1's image-strip selection and terminal batch, with no source sprites.
+static SpriteBatch _gAcropolisSanctuaryView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_80184414[40] = {
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -48, 16, 883, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -56, 16, 701, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -64, 32, 503, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -72, 48, 480, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -80, 64, 411, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -88, 72, 343, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -96, 88, 328, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -104, 104, 312, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 56, 16, 853, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 64, 16, 863, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 72, 16, 843, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 80, 24, 736, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 88, 32, 691, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 96, 32, 638, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 32, 626, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 88, 516, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 112, 48, 504, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 120, 48, 522, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 128, 56, 512, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 136, 64, 480, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 144, 64, 450, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, 64, 117, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 56 } }, -160, 0, 857, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -64, -16, 852, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 8, 853, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 56, 874, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 48 } }, 80, 0, 862, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 56, -16, 859, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 64, 40, 852, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 80, 48, 867, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -64, 48, 510, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 104, 72, 512, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 96 } }, -160, 24, 523, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, -88, 0, 510, { .fields = { 112, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, -88, 24, 523, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -88, 96, 383, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 104 } }, 112, 16, 504, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 104, 0, 504, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, 16, 513, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -160, 72, 192, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+/// View 2's 40 texture rectangles and sorting depths for cached room sprites.
+///
+/// Positions and dimensions are pixels; depths are unscaled ordering values.
+/// The view's batches partition this array, which stays live with the room overlay.
+static SpriteSource _gAcropolisSanctuaryView2SpriteSources[40] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, -48, 16, 883, { .fields = { 120, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 88 } }, -56, 16, 701, { .fields = { 64, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 88 } }, -64, 32, 503, { .fields = { 72, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 72 } }, -72, 48, 480, { .fields = { 56, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, -80, 64, 411, { .fields = { 96, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -88, 72, 343, { .fields = { 24, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, -96, 88, 328, { .fields = { 56, 72 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -104, 104, 312, { .fields = { 0, 176 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, 56, 16, 853, { .fields = { 24, 48 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, 64, 16, 863, { .fields = { 24, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 72, 16, 843, { .fields = { 104, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, 80, 24, 736, { .fields = { 32, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, 88, 32, 691, { .fields = { 32, 72 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, 96, 32, 638, { .fields = { 40, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 104, 32, 626, { .fields = { 0, 72 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 104, 88, 516, { .fields = { 16, 48 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 72 } }, 112, 48, 504, { .fields = { 48, 72 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 72 } }, 120, 48, 522, { .fields = { 48, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, 128, 56, 512, { .fields = { 40, 72 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 136, 64, 480, { .fields = { 64, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 144, 64, 450, { .fields = { 112, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 152, 64, 117, { .fields = { 56, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 112, 56 } }, -160, 0, 857, { .fields = { 64, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 16 } }, -64, -16, 852, { .fields = { 112, 160 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -48, 8, 853, { .fields = { 72, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, -64, 56, 874, { .fields = { 8, 80 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 80, 48 } }, 80, 0, 862, { .fields = { 80, 96 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 56 } }, 56, -16, 859, { .fields = { 72, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 24 } }, 64, 40, 852, { .fields = { 8, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 80, 48, 867, { .fields = { 64, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -64, 48, 510, { .fields = { 24, 192 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, 104, 72, 512, { .fields = { 16, 192 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 72, 96 } }, -160, 24, 523, { .fields = { 56, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 24 } }, -88, 0, 510, { .fields = { 112, 48 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 72 } }, -88, 24, 523, { .fields = { 32, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 24 } }, -88, 96, 383, { .fields = { 8, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 104 } }, 112, 16, 504, { .fields = { 80, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 16 } }, 104, 0, 504, { .fields = { 96, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 40 } }, 104, 16, 513, { .fields = { 48, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 48 } }, -160, 72, 192, { .fields = { 0, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_80184734[6] = {
+/// View 2's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+static SpriteBatch _gAcropolisSanctuaryView2SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 3, 0 } },
     { 22, 8, 0, 0, { 0, 0 } },
     { 30, 9, 0, 0, { 2, 0 } },
-    { 39, 1, 0, 0, { 1, 0 } },
+    { 39, ARRAY_SIZE(_gAcropolisSanctuaryView2SpriteSources) - 39, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_80184764[50] = {
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -8, -24, 1316, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, 0, 1351, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 48, 974, { .fields = { 96, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 120, 112, 317, { .fields = { 104, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -48, 8, 970, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -56, 16, 877, { .fields = { 56, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -64, 16, 789, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -72, 24, 726, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -80, 32, 693, { .fields = { 80, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -88, 40, 610, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -96, 40, 602, { .fields = { 112, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -104, 48, 450, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -112, 48, 510, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -120, 56, 427, { .fields = { 96, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -128, 56, 427, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -136, 56, 445, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -144, 64, 418, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -152, 72, 385, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, 80, 387, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 56, 16, 915, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 64, 16, 734, { .fields = { 120, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 72, 32, 636, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 80, 48, 512, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, 64, 447, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, 64, 388, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 104, 72, 352, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 112, 88, 336, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 40 } }, -152, -8, 1073, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -152, 32, 681, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 32 } }, -80, 0, 1043, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -56, -16, 1000, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, 0, 1100, { .fields = { 56, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, 56, -16, 931, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 56, 0, 924, { .fields = { 120, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 64, 24, 729, { .fields = { 104, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 40 } }, 72, 0, 937, { .fields = { 96, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -104, -8, 626, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 48 } }, -160, 16, 628, { .fields = { 8, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -112, 0, 631, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, -96, 16, 632, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -72, 32, 790, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 24 } }, 72, 0, 562, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 16, 24 } }, 80, 80, 478, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 72, 48, 548, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 56 } }, 80, 24, 585, { .fields = { 8, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, 88, 387, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 144, 64, 207, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, 88, 210, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 128, 112, 337, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, -160, -8, 668, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
+/// View 3's 50 texture rectangles and sorting depths for cached room sprites.
+///
+/// Positions and dimensions are pixels; depths are unscaled ordering values.
+/// The view's batches partition this array, which stays live with the room overlay.
+static SpriteSource _gAcropolisSanctuaryView3SpriteSources[50] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 24 } }, -8, -24, 1316, { .fields = { 88, 24 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 32 } }, 0, 0, 1351, { .fields = { 16, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -40, 48, 974, { .fields = { 96, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, 120, 112, 317, { .fields = { 104, 248 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -48, 8, 970, { .fields = { 48, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -56, 16, 877, { .fields = { 56, 208 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, -64, 16, 789, { .fields = { 80, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, -72, 24, 726, { .fields = { 88, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, -80, 32, 693, { .fields = { 80, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, -88, 40, 610, { .fields = { 88, 64 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 72 } }, -96, 40, 602, { .fields = { 112, 72 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 72 } }, -104, 48, 450, { .fields = { 112, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 72 } }, -112, 48, 510, { .fields = { 120, 176 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, -120, 56, 427, { .fields = { 96, 64 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, -128, 56, 427, { .fields = { 96, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, -136, 56, 445, { .fields = { 104, 72 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, -144, 64, 418, { .fields = { 72, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -152, 72, 385, { .fields = { 56, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 40 } }, -160, 80, 387, { .fields = { 112, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 56, 16, 915, { .fields = { 88, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 88 } }, 64, 16, 734, { .fields = { 120, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 88 } }, 72, 32, 636, { .fields = { 120, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 72 } }, 80, 48, 512, { .fields = { 104, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 88, 64, 447, { .fields = { 80, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 96, 64, 388, { .fields = { 88, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, 104, 72, 352, { .fields = { 72, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 112, 88, 336, { .fields = { 72, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 72, 40 } }, -152, -8, 1073, { .fields = { 112, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 16 } }, -152, 32, 681, { .fields = { 8, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 32 } }, -80, 0, 1043, { .fields = { 112, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, -56, -16, 1000, { .fields = { 40, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 48 } }, -48, 0, 1100, { .fields = { 56, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 16 } }, 56, -16, 931, { .fields = { 112, 192 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 24 } }, 56, 0, 924, { .fields = { 120, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 64, 24, 729, { .fields = { 104, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 88, 40 } }, 72, 0, 937, { .fields = { 96, 208 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -104, -8, 626, { .fields = { 120, 248 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 64, 48 } }, -160, 16, 628, { .fields = { 8, 160 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 16 } }, -112, 0, 631, { .fields = { 0, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 72 } }, -96, 16, 632, { .fields = { 96, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -72, 32, 790, { .fields = { 64, 208 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 24 } }, 72, 0, 562, { .fields = { 104, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 24 } }, 80, 80, 478, { .fields = { 120, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 72, 48, 548, { .fields = { 112, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 80, 56 } }, 80, 24, 585, { .fields = { 8, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, -160, 88, 387, { .fields = { 96, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, 144, 64, 207, { .fields = { 32, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 152, 88, 210, { .fields = { 80, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 8 } }, 128, 112, 337, { .fields = { 96, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 56 } }, -160, -8, 668, { .fields = { 64, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_80184B4C[8] = {
+/// View 3's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+static SpriteBatch _gAcropolisSanctuaryView3SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 3, 0 } },
     { 2, 25, 0, 0, { 0, 0 } },
     { 27, 9, 0, 0, { 5, 0 } },
     { 36, 9, 0, 0, { 1, 0 } },
     { 45, 4, 0, 0, { 4, 0 } },
-    { 49, 1, 0, 0, { 2, 0 } },
+    { 49, ARRAY_SIZE(_gAcropolisSanctuaryView3SpriteSources) - 49, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_80184B8C[46] = {
-    { 143, 0x3FC0, { .fields = { 48, 56 } }, -128, -32, 1356, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -128, -24, 979, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, 0, 571, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 40 } }, -104, -16, 960, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 24, 575, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -32, -16, 921, { .fields = { 40, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 56 } }, 0, -8, 918, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 64 } }, -160, 0, 571, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 56 } }, -104, 8, 565, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -40, 8, 601, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -32, 72, 537, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 96, 187, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 112, 278, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 112, 208, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, -16, 880, { .fields = { 0, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 8, 32, 906, { .fields = { 8, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 0, -16, 901, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 0, 818, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, 8, 697, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, -24, 0, 527, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -16, 80, 545, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 88, 554, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -32, 8, 510, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -40, 32, 460, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -48, 40, 420, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, 48, 391, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 64, 361, { .fields = { 120, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -72, 64, 341, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -80, 72, 325, { .fields = { 32, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -88, 80, 305, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -96, 88, 288, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 88, 277, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -112, 96, 263, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 96, 253, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -128, 104, 243, { .fields = { 0, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -136, 104, 235, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 104, 228, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -152, 104, 228, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -160, 8, 612, { .fields = { 104, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -152, 8, 606, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, 8, 598, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -136, 0, 588, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -128, 0, 583, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -120, 32, 670, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 56 } }, 56, -120, 354, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 56, -80, 600, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+/// View 4's 46 texture rectangles and sorting depths for cached room sprites.
+///
+/// Positions and dimensions are pixels; depths are unscaled ordering values.
+/// The view's batches partition this array, which stays live with the room overlay.
+static SpriteSource _gAcropolisSanctuaryView4SpriteSources[46] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 56 } }, -128, -32, 1356, { .fields = { 64, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 24 } }, -128, -24, 979, { .fields = { 0, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 40 } }, -120, 0, 571, { .fields = { 48, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 72, 40 } }, -104, -16, 960, { .fields = { 104, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, -104, 24, 575, { .fields = { 32, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 48 } }, -32, -16, 921, { .fields = { 40, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 56 } }, 0, -8, 918, { .fields = { 80, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 56, 64 } }, -160, 0, 571, { .fields = { 72, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 64, 56 } }, -104, 8, 565, { .fields = { 8, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 64 } }, -40, 8, 601, { .fields = { 96, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 24 } }, -32, 72, 537, { .fields = { 8, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 24 } }, -160, 96, 187, { .fields = { 0, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 8 } }, -104, 112, 278, { .fields = { 40, 160 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -160, 112, 208, { .fields = { 72, 96 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 8, -16, 880, { .fields = { 0, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 8, 32, 906, { .fields = { 8, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, 0, -16, 901, { .fields = { 112, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -8, 0, 818, { .fields = { 24, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -16, 8, 697, { .fields = { 0, 152 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 104 } }, -24, 0, 527, { .fields = { 120, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -16, 80, 545, { .fields = { 0, 64 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -32, 88, 554, { .fields = { 0, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 40 } }, -32, 8, 510, { .fields = { 112, 64 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -40, 32, 460, { .fields = { 0, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, -48, 40, 420, { .fields = { 48, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, -56, 48, 391, { .fields = { 40, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -64, 64, 361, { .fields = { 120, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, -72, 64, 341, { .fields = { 56, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -80, 72, 325, { .fields = { 32, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -88, 80, 305, { .fields = { 32, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -96, 88, 288, { .fields = { 32, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -104, 88, 277, { .fields = { 112, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -112, 96, 263, { .fields = { 104, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -120, 96, 253, { .fields = { 96, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -128, 104, 243, { .fields = { 0, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -136, 104, 235, { .fields = { 16, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -144, 104, 228, { .fields = { 48, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -152, 104, 228, { .fields = { 56, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -160, 8, 612, { .fields = { 104, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -152, 8, 606, { .fields = { 96, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 40 } }, -144, 8, 598, { .fields = { 72, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -136, 0, 588, { .fields = { 80, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, -128, 0, 583, { .fields = { 88, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -120, 32, 670, { .fields = { 24, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 72, 56 } }, 56, -120, 354, { .fields = { 8, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 32 } }, 56, -80, 600, { .fields = { 64, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_80184F24[10] = {
+/// View 4's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+static SpriteBatch _gAcropolisSanctuaryView4SpriteBatches[10] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 6, 0 } },
     { 1, 6, 0, 0, { 1, 0 } },
@@ -1323,55 +1373,62 @@ SpriteBatch D_acropolis_sanctuary_80184F24[10] = {
     { 13, 25, 0, 0, { 5, 0 } },
     { 38, 6, 0, 0, { 3, 0 } },
     { 44, 1, 0, 0, { 7, 0 } },
-    { 45, 1, 0, 0, { 2, 0 } },
+    { 45, ARRAY_SIZE(_gAcropolisSanctuaryView4SpriteSources) - 45, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_80184F74[41] = {
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 112, 24, 600, { .fields = { 56, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, 0, 754, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 128, 0, 607, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 136, 0, 611, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 144, 0, 614, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, 0, 619, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -16, 40, 961, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -8, -16, 945, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 32, 916, { .fields = { 48, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 0, 879, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 8, 0, 711, { .fields = { 0, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 16, 0, 579, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 8, 56, 651, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, 80, 563, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 24, 16, 572, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 32, 32, 545, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 40, 40, 534, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 48, 48, 473, { .fields = { 120, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 56, 442, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 64, 413, { .fields = { 0, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 72, 72, 393, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 80, 72, 374, { .fields = { 120, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 8, 24 } }, 88, 72, 360, { .fields = { 120, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 96, 80, 347, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 80, 341, { .fields = { 24, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 64, 322, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 104, 104, 329, { .fields = { 32, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 120, 64, 318, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 128, 72, 319, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 136, 88, 314, { .fields = { 8, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, -8, -16, 882, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 104, -24, 886, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 112, 40, 887, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 128, 56 } }, 8, -16, 882, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 112, 88 } }, 48, 0, 592, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 88 } }, 16, 8, 582, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 24 } }, 24, 96, 478, { .fields = { 120, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 40 } }, 112, 80, 316, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -88, -96, 583, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, -160, -120, 202, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, -112, -120, 230, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+/// View 5's 41 texture rectangles and sorting depths for cached room sprites.
+///
+/// Positions and dimensions are pixels; depths are unscaled ordering values.
+/// The view's batches partition this array, which stays live with the room overlay.
+static SpriteSource _gAcropolisSanctuaryView5SpriteSources[41] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 112, 24, 600, { .fields = { 56, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 40 } }, 120, 0, 754, { .fields = { 80, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, 128, 0, 607, { .fields = { 48, 48 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, 136, 0, 611, { .fields = { 40, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 144, 0, 614, { .fields = { 72, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 152, 0, 619, { .fields = { 64, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -16, 40, 961, { .fields = { 112, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 64 } }, -8, -16, 945, { .fields = { 104, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 0, 32, 916, { .fields = { 48, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 0, 0, 879, { .fields = { 40, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 8, 0, 711, { .fields = { 0, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 96 } }, 16, 0, 579, { .fields = { 120, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 40 } }, 8, 56, 651, { .fields = { 72, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 24, 80, 563, { .fields = { 72, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 24, 16, 572, { .fields = { 64, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 32, 32, 545, { .fields = { 56, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 40, 40, 534, { .fields = { 112, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 48, 48, 473, { .fields = { 120, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 56, 56, 442, { .fields = { 0, 152 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 64, 64, 413, { .fields = { 0, 64 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 72, 72, 393, { .fields = { 64, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 80, 72, 374, { .fields = { 120, 152 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 88, 72, 360, { .fields = { 120, 64 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 96, 80, 347, { .fields = { 56, 80 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 104, 80, 341, { .fields = { 24, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 112, 64, 322, { .fields = { 80, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 104, 104, 329, { .fields = { 32, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 120, 64, 318, { .fields = { 56, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 48 } }, 128, 72, 319, { .fields = { 48, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 136, 88, 314, { .fields = { 8, 152 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 72 } }, -8, -16, 882, { .fields = { 112, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 8 } }, 104, -24, 886, { .fields = { 88, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 8 } }, 112, 40, 887, { .fields = { 24, 40 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 128, 56 } }, 8, -16, 882, { .fields = { 104, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 112, 88 } }, 48, 0, 592, { .fields = { 16, 96 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 88 } }, 16, 8, 582, { .fields = { 88, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 24 } }, 24, 96, 478, { .fields = { 120, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 40 } }, 112, 80, 316, { .fields = { 120, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 48 } }, -88, -96, 583, { .fields = { 8, 48 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 32 } }, -160, -120, 202, { .fields = { 96, 96 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 16 } }, -112, -120, 230, { .fields = { 80, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_801852A8[9] = {
+/// View 5's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+static SpriteBatch _gAcropolisSanctuaryView5SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 3, 0 } },
     { 6, 24, 0, 0, { 4, 0 } },
@@ -1379,185 +1436,230 @@ SpriteBatch D_acropolis_sanctuary_801852A8[9] = {
     { 34, 3, 0, 0, { 5, 0 } },
     { 37, 1, 0, 0, { 0, 0 } },
     { 38, 1, 0, 0, { 6, 0 } },
-    { 39, 2, 0, 0, { 2, 0 } },
+    { 39, ARRAY_SIZE(_gAcropolisSanctuaryView5SpriteSources) - 39, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_801852F0[32] = {
-    { 143, 0x3FC0, { .fields = { 56, 56 } }, 88, -8, 1250, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, 24, 659, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -8, 0, 779, { .fields = { 96, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -16, 64, 776, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 64, 772, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 16, 727, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, 16, 619, { .fields = { 40, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, 24, 0, 565, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, 32, 0, 510, { .fields = { 120, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 56, 32, 473, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 64, 40, 422, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 72, 48, 403, { .fields = { 80, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 48, 389, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 56, 350, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 96, 56, 337, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 104, 64, 325, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 64, 315, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 120, 64, 307, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 128, 72, 275, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 136, 72, 265, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 144, 72, 259, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 152, 72, 252, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 40, 16, 520, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 48, 24, 492, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -8, 8, 791, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 8, 8, 813, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 40 } }, 32, 8, 816, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 96, 48, 811, { .fields = { 16, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 112, -8, 805, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 16, 32, 575, { .fields = { 104, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 112 } }, 32, 8, 5021, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 80 } }, 48, 8, 455, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+/// View 6's 32 texture rectangles and sorting depths for cached room sprites.
+///
+/// Positions and dimensions are pixels; depths are unscaled ordering values.
+/// The view's batches partition this array, which stays live with the room overlay.
+static SpriteSource _gAcropolisSanctuaryView6SpriteSources[32] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 56, 56 } }, 88, -8, 1250, { .fields = { 40, 80 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, 8, 24, 659, { .fields = { 88, 248 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 80 } }, -8, 0, 779, { .fields = { 96, 80 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -16, 64, 776, { .fields = { 120, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 0, 64, 772, { .fields = { 40, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 0, 16, 727, { .fields = { 40, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 16, 16, 619, { .fields = { 40, 152 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 120 } }, 24, 0, 565, { .fields = { 120, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 120 } }, 32, 0, 510, { .fields = { 120, 120 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 56, 32, 473, { .fields = { 64, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 64, 40, 422, { .fields = { 56, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 72, 48, 403, { .fields = { 80, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 80, 48, 389, { .fields = { 72, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 88, 56, 350, { .fields = { 48, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 96, 56, 337, { .fields = { 48, 160 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 104, 64, 325, { .fields = { 56, 160 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 112, 64, 315, { .fields = { 56, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 120, 64, 307, { .fields = { 104, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 128, 72, 275, { .fields = { 112, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 136, 72, 265, { .fields = { 88, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, 144, 72, 259, { .fields = { 88, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 152, 72, 252, { .fields = { 112, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 40, 16, 520, { .fields = { 104, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 32 } }, 48, 24, 492, { .fields = { 96, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 64 } }, -8, 8, 791, { .fields = { 88, 160 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 48 } }, 8, 8, 813, { .fields = { 64, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 112, 40 } }, 32, 8, 816, { .fields = { 104, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 16 } }, 96, 48, 811, { .fields = { 16, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 16 } }, 112, -8, 805, { .fields = { 24, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 88 } }, 16, 32, 575, { .fields = { 104, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 112 } }, 32, 8, 5021, { .fields = { 104, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 112, 80 } }, 48, 8, 455, { .fields = { 120, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_80185570[6] = {
+/// View 6's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+static SpriteBatch _gAcropolisSanctuaryView6SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 3, 0 } },
     { 1, 23, 0, 0, { 0, 0 } },
     { 24, 5, 0, 0, { 2, 0 } },
-    { 29, 3, 0, 0, { 1, 0 } },
+    { 29, ARRAY_SIZE(_gAcropolisSanctuaryView6SpriteSources) - 29, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_801855A0[24] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, 56, 893, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -24, 80, 735, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, 80, 804, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -72, 8, 488, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -80, 16, 451, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -64, 8, 514, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -56, 16, 618, { .fields = { 88, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -48, 32, 670, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -40, 32, 701, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -32, 32, 726, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -24, 16, 755, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -16, 8, 808, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 8, 876, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 0, 8, 875, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -112, 0, 835, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 48, 894, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -120, 24, 817, { .fields = { 96, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -112, 48, 899, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 40 } }, -112, 8, 887, { .fields = { 112, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 144, 64 } }, -160, 8, 760, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -48, 72, 750, { .fields = { 48, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, -40, 80, 750, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -160, -8, 636, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 104 } }, -160, 16, 634, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+/// View 7's 24 texture rectangles and sorting depths for cached room sprites.
+///
+/// Positions and dimensions are pixels; depths are unscaled ordering values.
+/// The view's batches partition this array, which stays live with the room overlay.
+static SpriteSource _gAcropolisSanctuaryView7SpriteSources[24] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, 8, 56, 893, { .fields = { 120, 248 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -24, 80, 735, { .fields = { 80, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -8, 80, 804, { .fields = { 48, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 112 } }, -72, 8, 488, { .fields = { 120, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -80, 16, 451, { .fields = { 64, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 112 } }, -64, 8, 514, { .fields = { 120, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -56, 16, 618, { .fields = { 88, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -48, 32, 670, { .fields = { 56, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -40, 32, 701, { .fields = { 48, 120 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, -32, 32, 726, { .fields = { 72, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -24, 16, 755, { .fields = { 120, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 88 } }, -16, 8, 808, { .fields = { 112, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -8, 8, 876, { .fields = { 104, 160 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 56 } }, 0, 8, 875, { .fields = { 104, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 8 } }, -112, 0, 835, { .fields = { 88, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 24 } }, -8, 48, 894, { .fields = { 80, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 40 } }, -120, 24, 817, { .fields = { 96, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, -112, 48, 899, { .fields = { 40, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 120, 40 } }, -112, 8, 887, { .fields = { 112, 144 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 144, 64 } }, -160, 8, 760, { .fields = { 104, 192 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 8 } }, -48, 72, 750, { .fields = { 48, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 24 } }, -40, 80, 750, { .fields = { 56, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, -160, -8, 636, { .fields = { 80, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 96, 104 } }, -160, 16, 634, { .fields = { 24, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_80185780[7] = {
+/// View 7's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+/// The final nonterminal record is an empty range at the end of the source array.
+static SpriteBatch _gAcropolisSanctuaryView7SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 0, 0 } },
     { 14, 5, 0, 0, { 3, 0 } },
     { 19, 4, 0, 0, { 2, 0 } },
-    { 23, 1, 0, 0, { 4, 0 } },
-    { 24, 0, 0, 0, { 1, 0 } },
+    { 23, ARRAY_SIZE(_gAcropolisSanctuaryView7SpriteSources) - 23, 0, 0, { 4, 0 } },
+    { ARRAY_SIZE(_gAcropolisSanctuaryView7SpriteSources), 0, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_801857B8[9] = {
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -80, 24, 614, { .fields = { 96, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -48, 32, 607, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -16, 40, 600, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 80, -64, 766, { .fields = { 88, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -56, -96, 785, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -32, -88, 663, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, 0, -80, 651, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 32, -72, 666, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 64, -64, 748, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+/// View 8's 9 texture rectangles and sorting depths for cached room sprites.
+///
+/// Positions and dimensions are pixels; depths are unscaled ordering values.
+/// The view's batches partition this array, which stays live with the room overlay.
+static SpriteSource _gAcropolisSanctuaryView8SpriteSources[9] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 56 } }, -80, 24, 614, { .fields = { 96, 112 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 56 } }, -48, 32, 607, { .fields = { 96, 56 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 56 } }, -16, 40, 600, { .fields = { 96, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, 80, -64, 766, { .fields = { 88, 128 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 48 } }, -56, -96, 785, { .fields = { 72, 48 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 48 } }, -32, -88, 663, { .fields = { 96, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 48 } }, 0, -80, 651, { .fields = { 64, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 32, 40 } }, 32, -72, 666, { .fields = { 96, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 32 } }, 64, -64, 748, { .fields = { 80, 96 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_8018586C[4] = {
+/// View 8's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+static SpriteBatch _gAcropolisSanctuaryView8SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 3, 0, 0, { 1, 0 } },
-    { 3, 6, 0, 0, { 0, 0 } },
+    { 3, ARRAY_SIZE(_gAcropolisSanctuaryView8SpriteSources) - 3, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_8018588C[4] = {
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -48, -48, 585, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, 0, -48, 591, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, -40, -16, 587, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, 0, -16, 591, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+/// View 9's 4 texture rectangles and sorting depths for cached room sprites.
+///
+/// Positions and dimensions are pixels; depths are unscaled ordering values.
+/// The view's batches partition this array, which stays live with the room overlay.
+static SpriteSource _gAcropolisSanctuaryView9SpriteSources[4] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 32 } }, -48, -48, 585, { .fields = { 80, 160 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 32 } }, 0, -48, 591, { .fields = { 80, 192 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 80 } }, -40, -16, 587, { .fields = { 88, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 80 } }, 0, -16, 591, { .fields = { 88, 80 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_801858DC[3] = {
+/// View 9's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+static SpriteBatch _gAcropolisSanctuaryView9SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 4, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisSanctuaryView9SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_acropolis_sanctuary_801858F4[2] = {
+/// View 10's image-strip selection and terminal batch, with no source sprites.
+static SpriteBatch _gAcropolisSanctuaryView10SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_80185904[8] = {
-    { 142, 0x3FC0, { .fields = { 72, 40 } }, -152, -24, 230, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, -128, 16, 239, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 64 } }, -152, 32, 227, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 24 } }, -112, 96, 248, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 96 } }, -56, 24, 302, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 96 } }, 24, 16, 423, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 136 } }, 88, -40, 432, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, 136, -8, 394, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
+/// View 11's 8 texture rectangles and sorting depths for cached room sprites.
+///
+/// Positions and dimensions are pixels; depths are unscaled ordering values.
+/// The view's batches partition this array, which stays live with the room overlay.
+static SpriteSource _gAcropolisSanctuaryView11SpriteSources[8] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 72, 40 } }, -152, -24, 230, { .fields = { 80, 96 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 56, 16 } }, -128, 16, 239, { .fields = { 96, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_896, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 96, 64 } }, -152, 32, 227, { .fields = { 80, 192 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 56, 24 } }, -112, 96, 248, { .fields = { 72, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 80, 96 } }, -56, 24, 302, { .fields = { 48, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 64, 96 } }, 24, 16, 423, { .fields = { 16, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 48, 136 } }, 88, -40, 432, { .fields = { 80, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 96 } }, 136, -8, 394, { .fields = { 24, 96 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_801859A4[3] = {
+/// View 11's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+static SpriteBatch _gAcropolisSanctuaryView11SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 8, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gAcropolisSanctuaryView11SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_acropolis_sanctuary_801859BC[32] = {
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -40, -112, 1294, { .fields = { 88, 88 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -48, -96, 1195, { .fields = { 64, 136 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 72, 16 } }, -48, -80, 1110, { .fields = { 56, 72 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -40, -64, 1036, { .fields = { 64, 104 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -16, -48, 1026, { .fields = { 88, 120 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 8, -32, 1021, { .fields = { 104, 184 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -8, -96, 1373, { .fields = { 120, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 0, -40, 978, { .fields = { 112, 248 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, -40, -112, 1329, { .fields = { 88, 168 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -48, -96, 992, { .fields = { 112, 200 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, -80, 671, { .fields = { 112, 48 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -32, -64, 913, { .fields = { 112, 152 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 8, -80, 1379, { .fields = { 112, 0 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 16, -56, 1231, { .fields = { 120, 216 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 16, -40, 1095, { .fields = { 112, 24 } }, 128, 128, 128, SPRITE_SOURCE_SEMI_TRANSPARENT },
-    { 143, 0x4000, { .fields = { 24, 16 } }, -24, -112, 1380, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 16 } }, -8, -96, 1415, { .fields = { 88, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 16 } }, 8, -80, 1388, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 16 } }, -48, -120, 1200, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -48, -104, 1059, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 16, 16 } }, -56, -88, 907, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 8 } }, -56, -72, 671, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, -56, -64, 664, { .fields = { 72, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 40, 8 } }, -48, -56, 807, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 48, 8 } }, -40, -48, 832, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 8 } }, -24, -40, 845, { .fields = { 72, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 8 } }, -16, -32, 852, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 8, 16 } }, 16, -64, 1293, { .fields = { 112, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 16 } }, 8, -48, 1164, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 8 } }, 8, -32, 1027, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 32, 8 } }, 0, -24, 904, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x4000, { .fields = { 24, 8 } }, 8, -16, 906, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+/// View 12's 15 semitransparent sprites and 17 opaque sprites.
+///
+/// Scripts alternate the first six and next nine sprites; the final seventeen
+/// stay visible. Positions and sizes are pixels; depths are unscaled ordering values.
+static SpriteSource _gAcropolisSanctuaryView12SpriteSources[32] = {
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 16 } }, -40, -112, 1294, { .fields = { 88, 88 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 64, 16 } }, -48, -96, 1195, { .fields = { 64, 136 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 72, 16 } }, -48, -80, 1110, { .fields = { 56, 72 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 64, 16 } }, -40, -64, 1036, { .fields = { 64, 104 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 16 } }, -16, -48, 1026, { .fields = { 88, 120 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 24, 16 } }, 8, -32, 1021, { .fields = { 104, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, -8, -96, 1373, { .fields = { 120, 248 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 8 } }, 0, -40, 978, { .fields = { 112, 248 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 40, 16 } }, -40, -112, 1329, { .fields = { 88, 168 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, -48, -96, 992, { .fields = { 112, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 24 } }, -48, -80, 671, { .fields = { 112, 48 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 16 } }, -32, -64, 913, { .fields = { 112, 152 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 24 } }, 8, -80, 1379, { .fields = { 112, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 8, 16 } }, 16, -56, 1231, { .fields = { 120, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_255, { .fields = { 16, 24 } }, 16, -40, 1095, { .fields = { 112, 24 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, SPRITE_SOURCE_SEMI_TRANSPARENT },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 16 } }, -24, -112, 1380, { .fields = { 88, 200 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 16 } }, -8, -96, 1415, { .fields = { 88, 32 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 16 } }, 8, -80, 1388, { .fields = { 88, 48 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 16 } }, -48, -120, 1200, { .fields = { 104, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 16, 16 } }, -48, -104, 1059, { .fields = { 96, 16 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 16, 16 } }, -56, -88, 907, { .fields = { 96, 152 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 32, 8 } }, -56, -72, 671, { .fields = { 80, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 40, 8 } }, -56, -64, 664, { .fields = { 72, 224 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 40, 8 } }, -48, -56, 807, { .fields = { 72, 64 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 48, 8 } }, -40, -48, 832, { .fields = { 56, 184 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 32, 8 } }, -24, -40, 845, { .fields = { 72, 192 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 8 } }, -16, -32, 852, { .fields = { 80, 232 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 8, 16 } }, 16, -64, 1293, { .fields = { 112, 216 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 16 } }, 8, -48, 1164, { .fields = { 88, 0 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 8 } }, 8, -32, 1027, { .fields = { 72, 16 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 32, 8 } }, 0, -24, 904, { .fields = { 72, 240 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
+    { ACROPOLIS_SANCTUARY_SPRITE_PAGE_960, ACROPOLIS_SANCTUARY_SPRITE_CLUT_256, { .fields = { 24, 8 } }, 8, -16, 906, { .fields = { 88, 248 } }, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, ACROPOLIS_SANCTUARY_SPRITE_COLOR_NEUTRAL, 0 },
 };
 
-SpriteBatch D_acropolis_sanctuary_80185C3C[5] = {
+/// View 12's sprite ranges after the image-strip selector, ending at `SPRITE_BATCH_END`.
+///
+/// The leading zero-count record keeps the decoded background image.
+/// Scripts toggle `hidden` on batches 1 and 2; batch 3 remains visible.
+static SpriteBatch _gAcropolisSanctuaryView12SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 6, 0, 0, { 1, 0 } },
     { 6, 9, 0, 0, { 2, 0 } },
-    { 15, 17, 0, 0, { 0, 0 } },
+    { 15, ARRAY_SIZE(_gAcropolisSanctuaryView12SpriteSources) - 15, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -1647,18 +1749,18 @@ SpriteBatch D_acropolis_sanctuary_801860A0[5] = {
 };
 
 SpriteView D_acropolis_sanctuary_801860C8[16] = {
-    { { .empty = D_acropolis_sanctuary_80184404 }, D_acropolis_sanctuary_80184404, NULL },
-    { { .elements = D_acropolis_sanctuary_80184414 }, D_acropolis_sanctuary_80184734, NULL },
-    { { .elements = D_acropolis_sanctuary_80184764 }, D_acropolis_sanctuary_80184B4C, NULL },
-    { { .elements = D_acropolis_sanctuary_80184B8C }, D_acropolis_sanctuary_80184F24, NULL },
-    { { .elements = D_acropolis_sanctuary_80184F74 }, D_acropolis_sanctuary_801852A8, NULL },
-    { { .elements = D_acropolis_sanctuary_801852F0 }, D_acropolis_sanctuary_80185570, NULL },
-    { { .elements = D_acropolis_sanctuary_801855A0 }, D_acropolis_sanctuary_80185780, NULL },
-    { { .elements = D_acropolis_sanctuary_801857B8 }, D_acropolis_sanctuary_8018586C, NULL },
-    { { .elements = D_acropolis_sanctuary_8018588C }, D_acropolis_sanctuary_801858DC, NULL },
-    { { .empty = D_acropolis_sanctuary_801858F4 }, D_acropolis_sanctuary_801858F4, NULL },
-    { { .elements = D_acropolis_sanctuary_80185904 }, D_acropolis_sanctuary_801859A4, NULL },
-    { { .elements = D_acropolis_sanctuary_801859BC }, D_acropolis_sanctuary_80185C3C, NULL },
+    { { .empty = _gAcropolisSanctuaryView1SpriteBatches }, _gAcropolisSanctuaryView1SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView2SpriteSources }, _gAcropolisSanctuaryView2SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView3SpriteSources }, _gAcropolisSanctuaryView3SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView4SpriteSources }, _gAcropolisSanctuaryView4SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView5SpriteSources }, _gAcropolisSanctuaryView5SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView6SpriteSources }, _gAcropolisSanctuaryView6SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView7SpriteSources }, _gAcropolisSanctuaryView7SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView8SpriteSources }, _gAcropolisSanctuaryView8SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView9SpriteSources }, _gAcropolisSanctuaryView9SpriteBatches, NULL },
+    { { .empty = _gAcropolisSanctuaryView10SpriteBatches }, _gAcropolisSanctuaryView10SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView11SpriteSources }, _gAcropolisSanctuaryView11SpriteBatches, NULL },
+    { { .elements = _gAcropolisSanctuaryView12SpriteSources }, _gAcropolisSanctuaryView12SpriteBatches, NULL },
     { { .elements = D_acropolis_sanctuary_80185C64 }, D_acropolis_sanctuary_80185CC8, NULL },
     { { .elements = D_acropolis_sanctuary_80185CE0 }, D_acropolis_sanctuary_80185D80, NULL },
     { { .empty = D_acropolis_sanctuary_80185D98 }, D_acropolis_sanctuary_80185D98, NULL },
@@ -1684,39 +1786,64 @@ ViewCamera D_acropolis_sanctuary_80186188[16] = {
     { { { { 1261, 0, -3896 }, { 704, 4028, 228 }, { 3832, -740, 1240 } }, { 0x310A, 4285, 8624 } }, 207 },
 };
 
-WorldCollisionFootstepSounds D_acropolis_sanctuary_801863C8 = {
-    0x1000002D,
-    0x1000002F,
-    0x1000002D,
+/// Cue-2 script bases in the loaded type-1 bank; cue 1 uses the next entry.
+enum {
+    ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS1_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2D,
+    ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS1_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x2F,
+    ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS2_WALK = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x11,
+    ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS2_RUN  = SOUND_SCRIPT_REQUEST_TYPE_1 | 0x13,
 };
 
-WorldCollisionFootstepSounds D_acropolis_sanctuary_801863D4 = {
-    0x10000011,
-    0x10000013,
-    0x10000011,
+/// Surface class 1's walk/run cue pairs; scripted jumps use the walking pair.
+static WorldCollisionFootstepSounds _gAcropolisSanctuarySurfaceClass1FootstepSounds = {
+    .walk         = ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS1_WALK,
+    .run          = ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS1_RUN,
+    .scriptedJump = ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS1_WALK,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_sanctuary_801863E0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, NULL },
+/// Surface class 2's walk/run cue pairs; scripted jumps use the walking pair.
+static WorldCollisionFootstepSounds _gAcropolisSanctuarySurfaceClass2FootstepSounds = {
+    .walk         = ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS2_WALK,
+    .run          = ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS2_RUN,
+    .scriptedJump = ACROPOLIS_SANCTUARY_FOOTSTEP_CLASS2_WALK,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_sanctuary_801863E8[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_sanctuary_801863C8 },
+/// Blocking, impact-enabled surface shared by classes 0 and 3..7, without footsteps.
+static WorldCollisionSurfaceProperties _gAcropolisSanctuaryDefaultSurfaceProperties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = NULL,
 };
 
-WorldCollisionSurfaceProperties D_acropolis_sanctuary_801863F0[1] = {
-    { 0, WORLD_COLLISION_SURFACE_BLOCK_PROBES, WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS, WORLD_COLLISION_SURFACE_APPLY_PUSHBACK, &D_acropolis_sanctuary_801863D4 },
+/// Class 1's blocking, impact-enabled surface with its own footstep cue pairs.
+static WorldCollisionSurfaceProperties _gAcropolisSanctuarySurfaceClass1Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisSanctuarySurfaceClass1FootstepSounds,
 };
 
-WorldCollisionSurfaceProperties* D_acropolis_sanctuary_801863F8[8] = {
-    D_acropolis_sanctuary_801863E0,
-    D_acropolis_sanctuary_801863E8,
-    D_acropolis_sanctuary_801863F0,
-    D_acropolis_sanctuary_801863E0,
-    D_acropolis_sanctuary_801863E0,
-    D_acropolis_sanctuary_801863E0,
-    D_acropolis_sanctuary_801863E0,
-    D_acropolis_sanctuary_801863E0,
+/// Class 2's blocking, impact-enabled surface with its own footstep cue pairs.
+static WorldCollisionSurfaceProperties _gAcropolisSanctuarySurfaceClass2Properties = {
+    .field_0             = 0,
+    .probePassThrough    = WORLD_COLLISION_SURFACE_BLOCK_PROBES,
+    .weaponImpactEnabled = WORLD_COLLISION_SURFACE_ALLOW_WEAPON_IMPACTS,
+    .suppressPushback    = WORLD_COLLISION_SURFACE_APPLY_PUSHBACK,
+    .footstepSounds      = &_gAcropolisSanctuarySurfaceClass2FootstepSounds,
+};
+
+WorldCollisionSurfaceProperties* gAcropolisSanctuarySurfacePropertiesByClass[8] = {
+    &_gAcropolisSanctuaryDefaultSurfaceProperties,
+    &_gAcropolisSanctuarySurfaceClass1Properties,
+    &_gAcropolisSanctuarySurfaceClass2Properties,
+    &_gAcropolisSanctuaryDefaultSurfaceProperties,
+    &_gAcropolisSanctuaryDefaultSurfaceProperties,
+    &_gAcropolisSanctuaryDefaultSurfaceProperties,
+    &_gAcropolisSanctuaryDefaultSurfaceProperties,
+    &_gAcropolisSanctuaryDefaultSurfaceProperties,
 };
 
 AreaApplyRec D_acropolis_sanctuary_80186418[11] = {
