@@ -2,6 +2,7 @@
 
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "common.h"
 
@@ -49,10 +50,16 @@ static s32 _shelterB2PodBottomResolveRoomEventMessage(Task* unusedTask, s32 mess
 static s32 _shelterB2PodBottomIgnoreCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _shelterB2PodBottomIgnoreActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* unusedRequest, s32 unusedArg);
 
-extern WorldCollisionGrid    D_shelter_b2_pod_bottom_80182B5C[1];
+static WorldCollisionGrid    _gShelterB2PodBottomCollisionGrid;
 extern WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20];
 
-extern WorldCoordRoomLights D_shelter_b2_pod_bottom_80186F90[1];
+static WorldCoordRoomLights _gShelterB2PodBottomRoomLights;
+
+enum {
+    SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_COUNT_X = 5,
+    SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_COUNT_Z = 7,
+    SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_SIZE    = 4000,
+};
 
 TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2PodBottomResolveRoomEventMessage },
@@ -90,14 +97,14 @@ u16 D_shelter_b2_pod_bottom_80181CA8[18][3] = {
 };
 
 WorldCollisionRoomResources D_shelter_b2_pod_bottom_80181D14[1] = {
-    { D_shelter_b2_pod_bottom_80182B5C, D_shelter_b2_pod_bottom_80186FA8, gShelterB2PodBottomActionTriggers, NULL },
+    { &_gShelterB2PodBottomCollisionGrid, D_shelter_b2_pod_bottom_80186FA8, gShelterB2PodBottomActionTriggers, NULL },
 };
 
-WorldCoordRoomLighting D_shelter_b2_pod_bottom_80181D24[1] = {
-    { D_shelter_b2_pod_bottom_80186F90, gShelterB2PodBottomAmbientByView },
+WorldCoordRoomLighting gShelterB2PodBottomRoomLighting[1] = {
+    { &_gShelterB2PodBottomRoomLights, gShelterB2PodBottomAmbientByView },
 };
 
-u8* D_shelter_b2_pod_bottom_80181D2C[1] = {
+u8* gShelterB2PodBottomRoomViewMaps[1] = {
     gViewIdentityMap,
 };
 
@@ -107,30 +114,51 @@ DirectionWarpEntry D_shelter_b2_pod_bottom_80181D34[1] = {
     { { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, { { .word = 1024 }, 1542, -1998, 7374 }, { 0, 0, 0, 0 }, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, DIRECTION_WARP_SOUND_NONE, 2, DIRECTION_WARP_FLAG_NONE, GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY },
 };
 
-static SVECTOR _gShelterB2PodBottomCollision0559CNormals[40] = {
+/// Room-space face normals for the pod-bottom collision grid, with ONE as unit length.
+static SVECTOR _gShelterB2PodBottomCollisionGridNormals[40] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_normals.inc"
 };
 
-static SVECTOR _gShelterB2PodBottomCollision0559CVerts[132] = {
+/// Room-space vertices for the pod-bottom collision grid, in signed game units.
+static SVECTOR _gShelterB2PodBottomCollisionGridVerts[132] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_verts.inc"
 };
 
-static WorldCollisionGridFace _gShelterB2PodBottomCollision0559CFaces[88] = {
+/// Indexed collision faces using the room's surface classes 0..3.
+static WorldCollisionGridFace _gShelterB2PodBottomCollisionGridFaces[88] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_faces.inc"
 };
 
-static s16 _gShelterB2PodBottomCollision0559CCells[498] = {
+/// Signed face-index lists, each ending with WORLD_COLLISION_GRID_CELL_END.
+static s16 _gShelterB2PodBottomCollisionGridCells[498] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_cells.inc"
 };
 
-#define GRID_CELL(i) (&_gShelterB2PodBottomCollision0559CCells[i])
-static s16* _gShelterB2PodBottomCollision0559CTable[35] = {
+// The generated cell table supplies constant element offsets into the face-index pool.
+#define GRID_CELL(i) (&_gShelterB2PodBottomCollisionGridCells[i])
+/// X-major cell directory: entry x * cellCountZ + z selects a terminated face list.
+static s16* _gShelterB2PodBottomCollisionGridTable[SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_COUNT_X * SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_COUNT_Z] = {
 #include "assets/shelter_b2_pod_bottom_collision_0559C_table.inc"
 };
 #undef GRID_CELL
 
-WorldCollisionGrid D_shelter_b2_pod_bottom_80182B5C[1] = {
-    { NULL, _gShelterB2PodBottomCollision0559CNormals, _gShelterB2PodBottomCollision0559CVerts, _gShelterB2PodBottomCollision0559CFaces, _gShelterB2PodBottomCollision0559CTable, 0, 6000, 5, 7, 4000, 88 },
+/// The pod-bottom room's collision mesh and 5-by-7 XZ spatial index.
+///
+/// Covers X [0, 20000) and Z [-6000, 22000) in room game units. Activation
+/// binds the view coordinate; the descriptor and writable pools remain borrowed
+/// while this room is active and must not survive unloading the overlay.
+static WorldCollisionGrid _gShelterB2PodBottomCollisionGrid = {
+    .viewCoord   = NULL,
+    .normals     = _gShelterB2PodBottomCollisionGridNormals,
+    .vertices    = _gShelterB2PodBottomCollisionGridVerts,
+    .faces       = _gShelterB2PodBottomCollisionGridFaces,
+    .cellFaceIds = _gShelterB2PodBottomCollisionGridTable,
+    .xBias       = 0,
+    .zBias       = 6000,
+    .cellCountX  = SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_COUNT_X,
+    .cellCountZ  = SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_COUNT_Z,
+    .cellSize    = SHELTER_B2_POD_BOTTOM_COLLISION_GRID_CELL_SIZE,
+    .faceCount   = ARRAY_SIZE(_gShelterB2PodBottomCollisionGridFaces),
 };
 
 ViewCamera D_shelter_b2_pod_bottom_80182B80[16] = {
@@ -152,69 +180,84 @@ ViewCamera D_shelter_b2_pod_bottom_80182B80[16] = {
     { { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -1, -1888, 5969 } }, 329 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_80182DC0[2] = {
+/// Empty sprite list for mapped view 1, retaining decoded background strips.
+///
+/// The zero-count first record is followed by SPRITE_BATCH_END. Both source
+/// and batch slots borrow this list; no source elements are ever selected.
+static SpriteBatch _gShelterB2PodBottomView1SpriteBatches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_80182DD0[54] = {
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -160, -16, 2336, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -160, -8, 2346, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -160, 80, 941, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, -152, 0, 934, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 120 } }, -144, 0, 794, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -136, 96, 786, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -136, 8, 623, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -128, 48, 531, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -120, 96, 480, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 24 } }, 24, -8, 2114, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 128, -8, 2015, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -40, 0, 2266, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -104, 0, 2386, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -152, -16, 2326, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -160, -8, 2332, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -160, 0, 2320, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -160, 8, 2234, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -160, 16, 2181, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -160, 24, 2028, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -160, 32, 1941, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 8 } }, -160, 40, 1867, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -160, 48, 1747, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 48 } }, -160, 72, 1381, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -160, 64, 1680, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -88, 64, 1689, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -88, 56, 1699, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -160, 56, 1699, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -112, 56, 1232, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 8 } }, -128, 64, 1236, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 136, 8 } }, -136, 72, 1198, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 152, 8 } }, -144, 80, 1147, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 16 } }, -144, 104, 994, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -64, 104, 1069, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, 0, 104, 1062, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -144, 96, 1085, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -64, 96, 1079, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -144, 88, 1093, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -64, 88, 1096, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, -56, 56, 1185, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 144 } }, -160, -48, 1366, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -152, -8, 1397, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -96, 0, 2317, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -72, 0, 2757, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -40, 24, 2985, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -16, 40, 2999, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, 88, 3598, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 120, 80, 3384, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, 136, 64, 3184, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, 8, 48, 3066, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, -16, 48, 3066, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 8, 48, 3028, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 32, 48, 3412, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 56, 64, 3408, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 88, 3592, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 2.
+///
+/// Uses 8-bit texture pages (896, 0) and (960, 0) and CLUT row 255.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 54 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView2SpriteSources[54] = {
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -160, -16, 2336, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -160, -8, 2346, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -160, 80, 941, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 112 } }, -152, 0, 934, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 120 } }, -144, 0, 794, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -136, 96, 786, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, -136, 8, 623, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 72 } }, -128, 48, 531, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -120, 96, 480, { .fields = { 40, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 104, 24 } }, 24, -8, 2114, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 128, -8, 2015, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -40, 0, 2266, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -104, 0, 2386, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -152, -16, 2326, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -160, -8, 2332, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -160, 0, 2320, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, -160, 8, 2234, { .fields = { 56, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -160, 16, 2181, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -160, 24, 2028, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, -160, 32, 1941, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 112, 8 } }, -160, 40, 1867, { .fields = { 8, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, -160, 48, 1747, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 48 } }, -160, 72, 1381, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -160, 64, 1680, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, -88, 64, 1689, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -88, 56, 1699, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -160, 56, 1699, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -112, 56, 1232, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 120, 8 } }, -128, 64, 1236, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 136, 8 } }, -136, 72, 1198, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 152, 8 } }, -144, 80, 1147, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 16 } }, -144, 104, 994, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -64, 104, 1069, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, 0, 104, 1062, { .fields = { 120, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -144, 96, 1085, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -64, 96, 1079, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -144, 88, 1093, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -64, 88, 1096, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 40 } }, -56, 56, 1185, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 144 } }, -160, -48, 1366, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -152, -8, 1397, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -96, 0, 2317, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 56 } }, -72, 0, 2757, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, -40, 24, 2985, { .fields = { 48, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -16, 40, 2999, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 104, 88, 3598, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 120, 80, 3384, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, 136, 64, 3184, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 72 } }, 8, 48, 3066, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 72 } }, -16, 48, 3066, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 8, 48, 3028, { .fields = { 32, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, 32, 48, 3412, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, 56, 64, 3408, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 88, 88, 3592, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_80183208[11] = {
+/// Sprite ranges for mapped view 2, indexing `_gShelterB2PodBottomView2SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 54 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView2SpriteBatches[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 2, 0, 0, { 0, 0 } },
     { 2, 11, 0, 0, { 5, 0 } },
@@ -224,134 +267,156 @@ SpriteBatch D_shelter_b2_pod_bottom_80183208[11] = {
     { 39, 2, 0, 0, { 7, 0 } },
     { 41, 7, 0, 0, { 3, 0 } },
     { 48, 2, 0, 0, { 8, 0 } },
-    { 50, 4, 0, 0, { 2, 0 } },
+    { 50, ARRAY_SIZE(_gShelterB2PodBottomView2SpriteSources) - 50, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_80183260[48] = {
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 0, 4470, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -40, 8, 3248, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, -40, 16, 2550, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 24, 2100, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -40, 32, 1800, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -40, 40, 1600, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -40, 48, 1375, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -32, 56, 1125, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -32, 64, 1075, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -32, 72, 1025, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -32, 80, 925, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -32, 88, 900, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -32, 96, 800, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 48, 1100, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 16, 48, 1125, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -80, 56, 1050, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -8, 56, 1050, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 56, 56, 1050, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -112, 64, 1025, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 8 } }, -32, 64, 1042, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 48, 64, 1025, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -136, 72, 950, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -64, 72, 950, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, 32, 72, 950, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 112, 72, 950, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -144, 80, 900, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 40 } }, 24, 80, 900, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 112, 80, 900, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 96, 40 } }, -72, 80, 900, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 32 } }, -160, 88, 638, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -160, -8, 375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 16 } }, -144, -8, 375, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -48, -8, 375, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -144, 56, 375, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -144, 80, 375, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 16 } }, -128, 64, 375, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, -32, 24, 375, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -24, 40, 375, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 40, 32, 375, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 80, -8, 375, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 72 } }, 80, 16, 375, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, 104, -8, 375, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, 8, 375, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 96, 56, 375, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 144, 48, 375, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 144, 72, 375, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 72, 88, 375, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 136, 96, 618, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 3.
+///
+/// Uses 8-bit texture pages (896, 0) and (960, 0) and CLUT row 255.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 48 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView3SpriteSources[48] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -40, 0, 4470, { .fields = { 0, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -40, 8, 3248, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, -40, 16, 2550, { .fields = { 120, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -40, 24, 2100, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -40, 32, 1800, { .fields = { 24, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -40, 40, 1600, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -40, 48, 1375, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -32, 56, 1125, { .fields = { 96, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -32, 64, 1075, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -32, 72, 1025, { .fields = { 80, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -32, 80, 925, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -32, 88, 900, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -32, 96, 800, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -56, 48, 1100, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 16, 48, 1125, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -80, 56, 1050, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -8, 56, 1050, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, 56, 56, 1050, { .fields = { 24, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 80, 8 } }, -112, 64, 1025, { .fields = { 0, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 80, 8 } }, -32, 64, 1042, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 48, 64, 1025, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -136, 72, 950, { .fields = { 88, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -64, 72, 950, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, 32, 72, 950, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 112, 72, 950, { .fields = { 104, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -144, 80, 900, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 88, 40 } }, 24, 80, 900, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 40 } }, 112, 80, 900, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 96, 40 } }, -72, 80, 900, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 88, 32 } }, -160, 88, 638, { .fields = { 16, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 96 } }, -160, -8, 375, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 16 } }, -144, -8, 375, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -48, -8, 375, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -144, 56, 375, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -144, 80, 375, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 16 } }, -128, 64, 375, { .fields = { 112, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 96 } }, -32, 24, 375, { .fields = { 120, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -24, 40, 375, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 16 } }, 40, 32, 375, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 80, -8, 375, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 72 } }, 80, 16, 375, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 16 } }, 104, -8, 375, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 152, 8, 375, { .fields = { 104, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 16 } }, 96, 56, 375, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 144, 48, 375, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, 144, 72, 375, { .fields = { 112, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 72, 88, 375, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 136, 96, 618, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_80183620[5] = {
+/// Sprite ranges for mapped view 3, indexing `_gShelterB2PodBottomView3SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 48 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView3SpriteBatches[5] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 13, 0, 0, { 1, 0 } },
     { 13, 17, 0, 0, { 2, 0 } },
-    { 30, 18, 0, 0, { 0, 0 } },
+    { 30, ARRAY_SIZE(_gShelterB2PodBottomView3SpriteSources) - 30, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_80183648[61] = {
-    { 142, 0x3FC0, { .fields = { 80, 24 } }, -80, -8, 2460, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 24 } }, 0, -8, 2567, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 24 } }, 80, -8, 2331, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 24 } }, -160, -8, 2464, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 40, 3311, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 56, 3526, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -120, 64, 3644, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -104, 72, 3870, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 80 } }, -32, 40, 3373, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 80 } }, 8, 40, 3319, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 136, -8, 1720, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 144, -40, 2278, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, -48, 2192, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -80, 72, 3948, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, 56, 3761, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, 48, 3697, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -32, 40, 3430, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -8, 40, 3320, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 8, 32, 3286, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, 24, 3120, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 40, 8, 3033, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 56, 0, 2953, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 72, 0, 2950, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 80 } }, -160, 40, 3191, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 16, 48, 1522, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 16 } }, -32, 104, 1281, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, 48, 104, 1289, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 112, 104, 1241, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -24, 96, 1335, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 48, 96, 1334, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 112, 96, 1321, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -16, 88, 1362, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, 80, 88, 1354, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -8, 80, 1383, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 88, 80, 1375, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, 0, 72, 1413, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 96, 72, 1423, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 8, 64, 1467, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 96, 64, 1451, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 16, 56, 1507, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, 56, 1507, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 104, -16, 2505, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 88, -8, 2723, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, 80, 0, 2431, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 72, 8, 2331, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 72, 16, 2201, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, 64, 24, 2119, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, 56, 32, 2045, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, 56, 40, 1922, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 16, 56, 1854, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 80, 56, 1804, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 16, 48, 1854, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 88, 48, 1854, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 136, 16, 1170, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 128, -8, 1062, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 120, -8, 1006, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 112, 16, 892, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 104, 32, 665, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 56, 390, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 80, 80, 251, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, 24, 0, 4220, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 4.
+///
+/// Uses 8-bit texture pages (896, 0) and (960, 0) and CLUT row 255.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 61 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView4SpriteSources[61] = {
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 24 } }, -80, -8, 2460, { .fields = { 96, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 24 } }, 0, -8, 2567, { .fields = { 96, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 24 } }, 80, -8, 2331, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 24 } }, -160, -8, 2464, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -160, 40, 3311, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -136, 56, 3526, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -120, 64, 3644, { .fields = { 32, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -104, 72, 3870, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 80 } }, -32, 40, 3373, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 80 } }, 8, 40, 3319, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, 136, -8, 1720, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 144, -40, 2278, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 152, -48, 2192, { .fields = { 120, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -80, 72, 3948, { .fields = { 24, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -64, 56, 3761, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -48, 48, 3697, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -32, 40, 3430, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -8, 40, 3320, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 8, 32, 3286, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 24, 24, 3120, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 40, 8, 3033, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 56, 0, 2953, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 72, 0, 2950, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 80 } }, -160, 40, 3191, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 16, 48, 1522, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 16 } }, -32, 104, 1281, { .fields = { 80, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, 48, 104, 1289, { .fields = { 96, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 16 } }, 112, 104, 1241, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -24, 96, 1335, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 48, 96, 1334, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 112, 96, 1321, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -16, 88, 1362, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, 80, 88, 1354, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -8, 80, 1383, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 88, 80, 1375, { .fields = { 72, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, 0, 72, 1413, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 96, 72, 1423, { .fields = { 32, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 8, 64, 1467, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 96, 64, 1451, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 16, 56, 1507, { .fields = { 8, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 104, 56, 1507, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 104, -16, 2505, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 88, -8, 2723, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, 80, 0, 2431, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 72, 8, 2331, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 72, 16, 2201, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, 64, 24, 2119, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, 56, 32, 2045, { .fields = { 56, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, 56, 40, 1922, { .fields = { 56, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 16, 56, 1854, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 80, 56, 1804, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 16, 48, 1854, { .fields = { 80, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 88, 48, 1854, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 136, 16, 1170, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 96 } }, 128, -8, 1062, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, 120, -8, 1006, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 104 } }, 112, 16, 892, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, 104, 32, 665, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 96, 56, 390, { .fields = { 80, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 80, 80, 251, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 40 } }, 24, 0, 4220, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_80183B0C[9] = {
+/// Sprite ranges for mapped view 4, indexing `_gShelterB2PodBottomView4SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 61 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView4SpriteBatches[9] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 3, 0 } },
     { 4, 9, 0, 0, { 4, 0 } },
@@ -359,109 +424,120 @@ SpriteBatch D_shelter_b2_pod_bottom_80183B0C[9] = {
     { 23, 18, 0, 0, { 5, 0 } },
     { 41, 12, 0, 0, { 0, 0 } },
     { 53, 7, 0, 0, { 6, 0 } },
-    { 60, 1, 0, 0, { 2, 0 } },
+    { 60, ARRAY_SIZE(_gShelterB2PodBottomView4SpriteSources) - 60, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_80183B54[95] = {
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -64, 88, 1184, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 88, 1178, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 24 } }, -160, 96, 1177, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 0, 96, 1175, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, 48, 96, 1175, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 24 } }, -88, 96, 1175, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -40, 96, 1175, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -160, 64, 341, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 104 } }, -152, 16, 339, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 16 } }, -136, 16, 340, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 16 } }, -136, 56, 346, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -16, 8, 325, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -16, 56, 325, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, 48, 16, 325, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 40, 88, 325, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 72, 8, 350, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 96, -16, 375, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, -24, 400, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, -40, 425, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 72, 56, 350, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 88, 40, 375, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 104, 24, 400, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 120, 8, 425, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 136, -8, 450, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -32, 8, 325, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -32, 32, 325, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -32, 56, 325, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 32, 325, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, -112, 56, 325, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -160, -16, 1859, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -152, 24, 2034, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -152, 16, 2050, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 0, 1850, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, 8, 1850, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -8, 88, 1250, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 56, 88, 1250, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 16 } }, 104, 88, 1200, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 8, 80, 1361, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 80, 80, 1361, { .fields = { 16, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 16, 72, 1400, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 80, 72, 1400, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 80, 64, 1425, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 24, 64, 1425, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 32, 56, 1475, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, 56, 1475, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -160, 88, 1480, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -112, 88, 1480, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, -80, 88, 1480, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 48, 48, 1537, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, 48, 1537, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -160, 80, 1499, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -104, 80, 1499, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -160, 72, 1565, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -104, 72, 1565, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 56, 40, 1600, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 104, 40, 1600, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 64, 32, 1625, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 112, 32, 1625, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 80, 24, 1750, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 128, 24, 1750, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, 120, 16, 1800, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 88, 16, 1800, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -160, 64, 1650, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -96, 64, 1650, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -112, 56, 1725, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -160, 56, 1725, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -160, 48, 1794, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -112, 48, 1794, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -160, 40, 1844, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -112, 40, 1844, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -112, 32, 2000, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -152, 32, 2007, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 16 } }, 80, -8, 2803, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 56, -8, 2939, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, -8, 0, 3080, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -80, 0, 3173, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -152, 8, 2850, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, -152, -8, 3256, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -160, 0, 3169, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -160, 8, 3003, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -160, 16, 2500, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -160, 24, 2000, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -160, 32, 1875, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -152, 40, 1750, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 56 } }, -40, 48, 3975, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -64, 48, 3975, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -8, 56, 4349, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 8, 64, 4292, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 24, 80, 4500, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -112, 8, 3599, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -88, 16, 3707, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -72, 24, 3795, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -48, 40, 3934, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 32, 16 } }, -104, 40, 816, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x4000, { .fields = { 48, 16 } }, -72, 40, 325, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 5.
+///
+/// Uses 8-bit texture pages (896, 0) and (960, 0) and CLUT rows 255 and 256.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 95 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView5SpriteSources[95] = {
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -64, 88, 1184, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -136, 88, 1178, { .fields = { 32, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 24 } }, -160, 96, 1177, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 24 } }, 0, 96, 1175, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 24 } }, 48, 96, 1175, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 24 } }, -88, 96, 1175, { .fields = { 24, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, -40, 96, 1175, { .fields = { 24, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -160, 64, 341, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 104 } }, -152, 16, 339, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 16 } }, -136, 16, 340, { .fields = { 88, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 16 } }, -136, 56, 346, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -16, 8, 325, { .fields = { 56, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -16, 56, 325, { .fields = { 88, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 72 } }, 48, 16, 325, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 40, 88, 325, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 72, 8, 350, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 96, -16, 375, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 120, -24, 400, { .fields = { 48, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 136, -40, 425, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 72, 56, 350, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 88, 40, 375, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 104, 24, 400, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 120, 8, 425, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 136, -8, 450, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -32, 8, 325, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -32, 32, 325, { .fields = { 64, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -32, 56, 325, { .fields = { 112, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -104, 32, 325, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, -112, 56, 325, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 88 } }, -160, -16, 1859, { .fields = { 112, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -152, 24, 2034, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -152, 16, 2050, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, 136, 0, 1850, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 104, 8, 1850, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -8, 88, 1250, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 16 } }, 56, 88, 1250, { .fields = { 96, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 16 } }, 104, 88, 1200, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 8, 80, 1361, { .fields = { 16, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 80, 80, 1361, { .fields = { 16, 8 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 16, 72, 1400, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 80, 72, 1400, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 80, 64, 1425, { .fields = { 8, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 24, 64, 1425, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 32, 56, 1475, { .fields = { 8, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 104, 56, 1475, { .fields = { 24, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 16 } }, -160, 88, 1480, { .fields = { 112, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -112, 88, 1480, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 16 } }, -80, 88, 1480, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 48, 48, 1537, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 104, 48, 1537, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -160, 80, 1499, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -104, 80, 1499, { .fields = { 24, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -160, 72, 1565, { .fields = { 32, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -104, 72, 1565, { .fields = { 24, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 56, 40, 1600, { .fields = { 8, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 104, 40, 1600, { .fields = { 0, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 64, 32, 1625, { .fields = { 8, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 112, 32, 1625, { .fields = { 0, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 80, 24, 1750, { .fields = { 0, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 128, 24, 1750, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, 120, 16, 1800, { .fields = { 40, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 88, 16, 1800, { .fields = { 32, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -160, 64, 1650, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -96, 64, 1650, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -112, 56, 1725, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -160, 56, 1725, { .fields = { 8, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -160, 48, 1794, { .fields = { 96, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -112, 48, 1794, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -160, 40, 1844, { .fields = { 64, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -112, 40, 1844, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -112, 32, 2000, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -152, 32, 2007, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 16 } }, 80, -8, 2803, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 56, -8, 2939, { .fields = { 40, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, -8, 0, 3080, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 16 } }, -80, 0, 3173, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 16 } }, -152, 8, 2850, { .fields = { 80, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, -152, -8, 3256, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -160, 0, 3169, { .fields = { 56, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -160, 8, 3003, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -160, 16, 2500, { .fields = { 32, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -160, 24, 2000, { .fields = { 24, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -160, 32, 1875, { .fields = { 40, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -152, 40, 1750, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 56 } }, -40, 48, 3975, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, -64, 48, 3975, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -8, 56, 4349, { .fields = { 72, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 8, 64, 4292, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 24, 80, 4500, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -112, 8, 3599, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -88, 16, 3707, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -72, 24, 3795, { .fields = { 72, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -48, 40, 3934, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 32, 16 } }, -104, 40, 816, { .fields = { 120, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 256), { .fields = { 48, 16 } }, -72, 40, 325, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_801842C0[10] = {
+/// Sprite ranges for mapped view 5, indexing `_gShelterB2PodBottomView5SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 95 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView5SpriteBatches[10] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 7, 0, 0, { 4, 0 } },
     { 7, 22, 0, 0, { 5, 0 } },
@@ -470,72 +546,83 @@ SpriteBatch D_shelter_b2_pod_bottom_801842C0[10] = {
     { 72, 5, 0, 0, { 1, 0 } },
     { 77, 12, 0, 0, { 7, 0 } },
     { 89, 4, 0, 0, { 3, 0 } },
-    { 93, 2, 0, 0, { 0, 0 } },
+    { 93, ARRAY_SIZE(_gShelterB2PodBottomView5SpriteSources) - 93, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_80184310[58] = {
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -104, 0, 2500, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -72, 8, 2768, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, -16, 48, 3000, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -32, 32, 3000, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, -48, 24, 2963, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 0, 56, 3082, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 64, 80, 3515, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 40, 64, 3437, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 24, 56, 3127, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 8, 56, 3019, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 0, 56, 3002, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -152, -16, 2375, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -160, -8, 2375, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -160, 0, 2325, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, -160, 8, 2200, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -160, 16, 2100, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -160, 24, 2000, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -160, 32, 1875, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 8 } }, -160, 40, 1800, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 8 } }, -160, 48, 1725, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 8 } }, -160, 56, 1725, { .fields = { 48, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -40, 48, 1250, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 48, 1275, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 144, 8 } }, -128, 72, 1225, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 152, 8 } }, -128, 80, 1200, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 168, 8 } }, -128, 88, 1175, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 176, 8 } }, -128, 96, 1150, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 184, 8 } }, -128, 104, 1125, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 136, 8 } }, -128, 64, 1250, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 8 } }, -120, 56, 1275, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -128, 112, 727, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -56, 112, 1000, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 16, 112, 1000, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 136 } }, -160, -48, 1353, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -152, -24, 1301, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -56, 112, 265, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -144, 32, 925, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -136, -16, 868, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, -128, -16, 863, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -120, -16, 613, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -112, 0, 555, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -104, 16, 439, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -96, 32, 409, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -88, 48, 364, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -80, 64, 318, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -72, 80, 294, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -64, 96, 283, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -120, 48, 529, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, 72, 468, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -104, 96, 375, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, 136, 64, 3250, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, 80, 3381, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, 96, 96, 3631, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, -160, 8, 2350, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 24 } }, -128, 0, 2350, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -48, 0, 2263, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, 24, 0, 2170, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 24 } }, 88, -8, 2076, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 6.
+///
+/// Uses 8-bit texture pages (896, 0) and (960, 0) and CLUT row 255.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 58 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView6SpriteSources[58] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -104, 0, 2500, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, -72, 8, 2768, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, -16, 48, 3000, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -32, 32, 3000, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, -48, 24, 2963, { .fields = { 88, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 48 } }, 0, 56, 3082, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 64, 80, 3515, { .fields = { 56, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, 40, 64, 3437, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 24, 56, 3127, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 8, 56, 3019, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 0, 56, 3002, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -152, -16, 2375, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -160, -8, 2375, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -160, 0, 2325, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, -160, 8, 2200, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -160, 16, 2100, { .fields = { 88, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -160, 24, 2000, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, -160, 32, 1875, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 112, 8 } }, -160, 40, 1800, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 112, 8 } }, -160, 48, 1725, { .fields = { 56, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 120, 8 } }, -160, 56, 1725, { .fields = { 48, 8 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -40, 48, 1250, { .fields = { 80, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, -104, 48, 1275, { .fields = { 8, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 144, 8 } }, -128, 72, 1225, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 152, 8 } }, -128, 80, 1200, { .fields = { 24, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 168, 8 } }, -128, 88, 1175, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 176, 8 } }, -128, 96, 1150, { .fields = { 8, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 184, 8 } }, -128, 104, 1125, { .fields = { 0, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 136, 8 } }, -128, 64, 1250, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 112, 8 } }, -120, 56, 1275, { .fields = { 72, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -128, 112, 727, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -56, 112, 1000, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 8 } }, 16, 112, 1000, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 136 } }, -160, -48, 1353, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -152, -24, 1301, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, -56, 112, 265, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -144, 32, 925, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, -136, -16, 868, { .fields = { 120, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, -128, -16, 863, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -120, -16, 613, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -112, 0, 555, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -104, 16, 439, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -96, 32, 409, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -88, 48, 364, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -80, 64, 318, { .fields = { 104, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -72, 80, 294, { .fields = { 72, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -64, 96, 283, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -120, 48, 529, { .fields = { 112, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -112, 72, 468, { .fields = { 112, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -104, 96, 375, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 48 } }, 136, 64, 3250, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 112, 80, 3381, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, 96, 96, 3631, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, -160, 8, 2350, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 24 } }, -128, 0, 2350, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 16 } }, -48, 0, 2263, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, 24, 0, 2170, { .fields = { 120, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 24 } }, 88, -8, 2076, { .fields = { 112, 32 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_80184798[11] = {
+/// Sprite ranges for mapped view 6, indexing `_gShelterB2PodBottomView6SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 58 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView6SpriteBatches[11] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 5, 0, 0, { 0, 0 } },
     { 5, 1, 0, 0, { 5, 0 } },
@@ -545,263 +632,318 @@ SpriteBatch D_shelter_b2_pod_bottom_80184798[11] = {
     { 33, 2, 0, 0, { 7, 0 } },
     { 35, 15, 0, 0, { 3, 0 } },
     { 50, 3, 0, 0, { 8, 0 } },
-    { 53, 5, 0, 0, { 2, 0 } },
+    { 53, ARRAY_SIZE(_gShelterB2PodBottomView6SpriteSources) - 53, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_801847F0[57] = {
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, -8, 4626, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 24, 8 } }, 0, 0, 3451, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 0, 8, 2805, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 8 } }, 0, 16, 2333, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -8, 24, 2002, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 40, 8 } }, -8, 32, 1774, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -16, 40, 1610, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -16, 48, 1454, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -24, 56, 1368, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, -24, 64, 1271, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -32, 72, 1125, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -32, 80, 1050, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -40, 88, 925, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -40, 96, 850, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -48, 112, 825, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 24 } }, 80, 96, 825, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 24 } }, 0, 96, 825, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 24 } }, -80, 96, 825, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 80, 24 } }, -160, 96, 825, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 16 } }, 80, 80, 925, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 16 } }, 0, 80, 925, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 16 } }, -80, 80, 925, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -152, 80, 925, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -144, 72, 975, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -80, 72, 975, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 0, 72, 975, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 72, 72, 975, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, -128, 64, 1075, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -64, 64, 1075, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 8 } }, 8, 64, 1075, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, 72, 64, 1075, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -104, 56, 1200, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -32, 56, 1218, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 40, 56, 1210, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -72, 48, 1286, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -32, 48, 1283, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 24, 48, 1193, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, -160, 80, 2050, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, -160, 24, 325, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -152, 0, 1052, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, -152, 48, 3000, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 40, 300, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -144, 0, 300, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 72 } }, -136, 0, 275, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -128, 72, 275, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -120, 80, 275, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -64, 72, 275, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, -56, 88, 275, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 16 } }, -48, 40, 275, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, 32, 8, 275, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 32, 80, 275, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 16 } }, 56, 8, 275, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 16 } }, 56, 64, 275, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 120, 0, 275, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 64 } }, 104, 56, 275, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 0, 5505, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 24 } }, 136, 40, 275, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 7.
+///
+/// Uses 8-bit texture pages (896, 0) and (960, 0) and CLUT row 255.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 57 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView7SpriteSources[57] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, 8, -8, 4626, { .fields = { 32, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 24, 8 } }, 0, 0, 3451, { .fields = { 112, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 0, 8, 2805, { .fields = { 104, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 8 } }, 0, 16, 2333, { .fields = { 104, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -8, 24, 2002, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 40, 8 } }, -8, 32, 1774, { .fields = { 96, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -16, 40, 1610, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -16, 48, 1454, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -24, 56, 1368, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, -24, 64, 1271, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -32, 72, 1125, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -32, 80, 1050, { .fields = { 80, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -40, 88, 925, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 16 } }, -40, 96, 850, { .fields = { 88, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -48, 112, 825, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 80, 24 } }, 80, 96, 825, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 80, 24 } }, 0, 96, 825, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 80, 24 } }, -80, 96, 825, { .fields = { 8, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 80, 24 } }, -160, 96, 825, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 16 } }, 80, 80, 925, { .fields = { 80, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 16 } }, 0, 80, 925, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 16 } }, -80, 80, 925, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 16 } }, -152, 80, 925, { .fields = { 112, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -144, 72, 975, { .fields = { 48, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -80, 72, 975, { .fields = { 32, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 0, 72, 975, { .fields = { 40, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 72, 72, 975, { .fields = { 48, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, -128, 64, 1075, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -64, 64, 1075, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 8 } }, 8, 64, 1075, { .fields = { 56, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, 72, 64, 1075, { .fields = { 80, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -104, 56, 1200, { .fields = { 56, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -32, 56, 1218, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, 40, 56, 1210, { .fields = { 32, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, -72, 48, 1286, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -32, 48, 1283, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 8 } }, 24, 48, 1193, { .fields = { 0, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 40 } }, -160, 80, 2050, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, -160, 24, 325, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -152, 0, 1052, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 24 } }, -152, 48, 3000, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -144, 40, 300, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, -144, 0, 300, { .fields = { 32, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 88, 72 } }, -136, 0, 275, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 8 } }, -128, 72, 275, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -120, 80, 275, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 16 } }, -64, 72, 275, { .fields = { 24, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, -56, 88, 275, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 16 } }, -48, 40, 275, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 72 } }, 32, 8, 275, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 32, 80, 275, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 16 } }, 56, 8, 275, { .fields = { 104, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 16 } }, 56, 64, 275, { .fields = { 120, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 88 } }, 120, 0, 275, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 64 } }, 104, 56, 275, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 136, 0, 5505, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 24 } }, 136, 40, 275, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_80184C64[6] = {
+/// Sprite ranges for mapped view 7, indexing `_gShelterB2PodBottomView7SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 57 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView7SpriteBatches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 3, 0 } },
     { 15, 22, 0, 0, { 0, 0 } },
     { 37, 1, 0, 0, { 2, 0 } },
-    { 38, 19, 0, 0, { 1, 0 } },
+    { 38, ARRAY_SIZE(_gShelterB2PodBottomView7SpriteSources) - 38, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_80184C94[50] = {
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -160, -8, 2278, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -96, -8, 2378, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 16 } }, -24, -8, 2508, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 48, -8, 2603, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, -8, 2640, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 88, 0, 2510, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 40, 3675, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -136, 56, 3700, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -120, 64, 3730, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, -80, 72, 3917, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -64, 56, 3753, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -48, 48, 3806, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -32, 40, 3450, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 56 } }, -8, 40, 3475, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 0, 40, 3275, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 16, 24, 3163, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 32, 16, 3148, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 48 } }, 48, 0, 2999, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, 64, -8, 2945, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 80, -8, 2750, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, 88, -8, 2712, { .fields = { 104, 16 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 8 } }, 96, -16, 2712, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, 80, 0, 2550, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 72, 8, 2450, { .fields = { 88, 8 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 72, 16, 2300, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, 64, 24, 2237, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, 56, 32, 2125, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, 56, 40, 2050, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 128, 8 } }, 24, 48, 2025, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 136, 8 } }, 16, 56, 2000, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, 16, 56, 1450, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 32, 48, 1450, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 8 } }, 16, 64, 1400, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 128, 8 } }, 8, 72, 1362, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 144, 8 } }, -8, 80, 1325, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 152, 8 } }, -16, 88, 1300, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 144, 8 } }, -16, 96, 1262, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 152, 8 } }, -24, 104, 1212, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 168, 8 } }, -32, 112, 1175, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 144, 72, 1670, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 152, -48, 2050, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 144, -32, 1750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, 136, 0, 1670, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 136, -8, 1050, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 128, -8, 875, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 120, 8, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 112, 32, 522, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, 64, 468, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 96, 88, 438, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 144, 16, 1075, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 8.
+///
+/// Uses 8-bit texture pages (896, 0) and (960, 0) and CLUT row 255.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 50 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView8SpriteSources[50] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, -160, -8, 2278, { .fields = { 0, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 16 } }, -96, -8, 2378, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 16 } }, -24, -8, 2508, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 16 } }, 48, -8, 2603, { .fields = { 40, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 72, -8, 2640, { .fields = { 88, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, 88, 0, 2510, { .fields = { 0, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -160, 40, 3675, { .fields = { 64, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, -136, 56, 3700, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -120, 64, 3730, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, -80, 72, 3917, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -64, 56, 3753, { .fields = { 72, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -48, 48, 3806, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 80 } }, -32, 40, 3450, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 56 } }, -8, 40, 3475, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 0, 40, 3275, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 32 } }, 16, 24, 3163, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 32, 16, 3148, { .fields = { 72, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 48 } }, 48, 0, 2999, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, 64, -8, 2945, { .fields = { 88, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 80, -8, 2750, { .fields = { 56, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, 88, -8, 2712, { .fields = { 104, 16 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 8 } }, 96, -16, 2712, { .fields = { 120, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, 80, 0, 2550, { .fields = { 96, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 72, 8, 2450, { .fields = { 88, 8 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 72, 16, 2300, { .fields = { 96, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, 64, 24, 2237, { .fields = { 88, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, 56, 32, 2125, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, 56, 40, 2050, { .fields = { 80, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 128, 8 } }, 24, 48, 2025, { .fields = { 40, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 136, 8 } }, 16, 56, 2000, { .fields = { 40, 136 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, 16, 56, 1450, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 32, 48, 1450, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 120, 8 } }, 16, 64, 1400, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 128, 8 } }, 8, 72, 1362, { .fields = { 56, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 144, 8 } }, -8, 80, 1325, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 152, 8 } }, -16, 88, 1300, { .fields = { 32, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 144, 8 } }, -16, 96, 1262, { .fields = { 40, 56 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 152, 8 } }, -24, 104, 1212, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 168, 8 } }, -32, 112, 1175, { .fields = { 16, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 144, 72, 1670, { .fields = { 112, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 152, -48, 2050, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 144, -32, 1750, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 80 } }, 136, 0, 1670, { .fields = { 104, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 96 } }, 136, -8, 1050, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 96 } }, 128, -8, 875, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 112 } }, 120, 8, 750, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 88 } }, 112, 32, 522, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, 104, 64, 468, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 32 } }, 96, 88, 438, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 144, 16, 1075, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_8018507C[8] = {
+/// Sprite ranges for mapped view 8, indexing `_gShelterB2PodBottomView8SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 50 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView8SpriteBatches[8] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 3, 0 } },
     { 14, 6, 0, 0, { 0, 0 } },
     { 20, 10, 0, 0, { 5, 0 } },
     { 30, 9, 0, 0, { 1, 0 } },
     { 39, 4, 0, 0, { 4, 0 } },
-    { 43, 7, 0, 0, { 2, 0 } },
+    { 43, ARRAY_SIZE(_gShelterB2PodBottomView8SpriteSources) - 43, 0, 0, { 2, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_801850BC[55] = {
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, -160, 24, 2075, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, -160, 16, 2075, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 8 } }, -160, 32, 2050, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 80, 8 } }, -160, 40, 2000, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, -160, 56, 1900, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, -160, 48, 1925, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 8 } }, -160, 64, 1800, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 8 } }, -160, 72, 1725, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 128, 8 } }, -160, 80, 1662, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 8 } }, -144, 88, 1575, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 144, 8 } }, -152, 96, 1475, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 144, 16 } }, -152, 104, 1425, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 8 } }, 72, 32, 2220, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 120, 24, 2222, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 8 } }, 64, 40, 2125, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 104, 8 } }, 56, 48, 2100, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 112, 8 } }, 48, 56, 2050, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 120, 8 } }, 40, 64, 1950, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 128, 8 } }, 32, 72, 1900, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 128, 8 } }, 32, 80, 1825, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 128, 8 } }, 32, 88, 1700, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 136, 8 } }, 24, 96, 1600, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 144, 16 } }, 16, 104, 1600, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 24 } }, -96, 96, 750, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 24 } }, -32, 96, 750, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 24 } }, 40, 96, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -96, 24, 525, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, -72, 32, 500, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, -56, 24, 500, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 8 } }, -56, 64, 500, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 96 } }, -8, 24, 500, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 8, 48, 475, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 88 } }, 56, 32, 500, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 32, 500, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 72, 64, 500, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, 104, 32, 550, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 120, 16, 550, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 128, -8, 600, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 136, -8, 650, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 144, 8, 750, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -112, 16, 600, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, -104, 16, 575, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -120, 8, 650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -128, 0, 700, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, -136, -8, 750, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -144, -8, 850, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -152, -16, 950, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -160, -24, 1050, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 144, -8, 1250, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, -16, 1500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -160, 8, 3375, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -96, 8, 3375, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -32, 8, 3375, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 88, 16 } }, 72, 16, 3508, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 16 } }, 0, 16, 3425, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 9.
+///
+/// Uses 8-bit texture pages (896, 0) and (960, 0) and CLUT row 255.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 55 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView9SpriteSources[55] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 8 } }, -160, 24, 2075, { .fields = { 16, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 8 } }, -160, 16, 2075, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 8 } }, -160, 32, 2050, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 80, 8 } }, -160, 40, 2000, { .fields = { 64, 224 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, -160, 56, 1900, { .fields = { 48, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, -160, 48, 1925, { .fields = { 56, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 112, 8 } }, -160, 64, 1800, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 120, 8 } }, -160, 72, 1725, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 128, 8 } }, -160, 80, 1662, { .fields = { 24, 104 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 120, 8 } }, -144, 88, 1575, { .fields = { 48, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 144, 8 } }, -152, 96, 1475, { .fields = { 24, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 144, 16 } }, -152, 104, 1425, { .fields = { 56, 160 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 8 } }, 72, 32, 2220, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 120, 24, 2222, { .fields = { 8, 32 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 8 } }, 64, 40, 2125, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 104, 8 } }, 56, 48, 2100, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 112, 8 } }, 48, 56, 2050, { .fields = { 24, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 120, 8 } }, 40, 64, 1950, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 128, 8 } }, 32, 72, 1900, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 128, 8 } }, 32, 80, 1825, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 128, 8 } }, 32, 88, 1700, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 136, 8 } }, 24, 96, 1600, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 144, 16 } }, 16, 104, 1600, { .fields = { 56, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 24 } }, -96, 96, 750, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 72, 24 } }, -32, 96, 750, { .fields = { 8, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 24 } }, 40, 96, 750, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, -96, 24, 525, { .fields = { 88, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 88 } }, -72, 32, 500, { .fields = { 112, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 16 } }, -56, 24, 500, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 8 } }, -56, 64, 500, { .fields = { 88, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 96 } }, -8, 24, 500, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 16 } }, 8, 48, 475, { .fields = { 24, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 88 } }, 56, 32, 500, { .fields = { 96, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 8 } }, 72, 32, 500, { .fields = { 96, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 16 } }, 72, 64, 500, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 88 } }, 104, 32, 550, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 16 } }, 120, 16, 550, { .fields = { 104, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 128, -8, 600, { .fields = { 112, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 136, -8, 650, { .fields = { 80, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, 144, 8, 750, { .fields = { 72, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -112, 16, 600, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 56 } }, -104, 16, 575, { .fields = { 88, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -120, 8, 650, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -128, 0, 700, { .fields = { 80, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, -136, -8, 750, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -144, -8, 850, { .fields = { 72, 168 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -152, -16, 950, { .fields = { 72, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 40 } }, -160, -24, 1050, { .fields = { 72, 88 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 64 } }, 144, -8, 1250, { .fields = { 120, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 48 } }, 152, -16, 1500, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, -160, 8, 3375, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, -96, 8, 3375, { .fields = { 8, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 24 } }, -32, 8, 3375, { .fields = { 40, 24 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 88, 16 } }, 72, 16, 3508, { .fields = { 112, 112 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 72, 16 } }, 0, 16, 3425, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_80185508[7] = {
+/// Sprite ranges for mapped view 9, indexing `_gShelterB2PodBottomView9SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 55 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView9SpriteBatches[7] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 23, 0, 0, { 0, 0 } },
     { 23, 3, 0, 0, { 3, 0 } },
     { 26, 22, 0, 0, { 2, 0 } },
     { 48, 2, 0, 0, { 4, 0 } },
-    { 50, 5, 0, 0, { 1, 0 } },
+    { 50, ARRAY_SIZE(_gShelterB2PodBottomView9SpriteSources) - 50, 0, 0, { 1, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_80185540[11] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 104, 1071, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 40 } }, -160, 32, 1000, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, -136, 40, 1000, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, 40, 1104, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 40 } }, -40, 48, 1118, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 16, 64, 1166, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 24 } }, 72, 72, 1236, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 88, 72, 1273, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 120, 80, 1315, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 32 } }, -88, 48, 1058, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 48, 64, 1203, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 10.
+///
+/// Uses 8-bit texture page (960, 0) and CLUT row 255.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 11 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView10SpriteSources[11] = {
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 152, 104, 1071, { .fields = { 120, 248 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 40 } }, -160, 32, 1000, { .fields = { 104, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, -136, 40, 1000, { .fields = { 96, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 40 } }, -104, 40, 1104, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 56, 40 } }, -40, 48, 1118, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, 16, 64, 1166, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 16, 24 } }, 72, 72, 1236, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 32 } }, 88, 72, 1273, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, 120, 80, 1315, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 48, 32 } }, -88, 48, 1058, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 32 } }, 48, 64, 1203, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_8018561C[3] = {
+/// Sprite ranges for mapped view 10, indexing `_gShelterB2PodBottomView10SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 11 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView10SpriteBatches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
-    { 0, 11, 0, 0, { 0, 0 } },
+    { 0, ARRAY_SIZE(_gShelterB2PodBottomView10SpriteSources), 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b2_pod_bottom_80185634[25] = {
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, -160, 64, 1551, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -128, 48, 1580, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, -96, 32, 1624, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 64 } }, -64, 16, 1668, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 72 } }, -32, -8, 1727, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 8, -24, 1790, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 40, -40, 1845, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, 72, -56, 1916, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 32, 56 } }, 104, -72, 1980, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, 136, -88, 2045, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 32, 8, 3500, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 40 } }, 88, 80, 2500, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 96, 64, 2500, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 32 } }, 112, 32, 2750, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 24 } }, 88, 8, 3000, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 40 } }, -160, 80, 2500, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 96, 48 } }, -160, 32, 2750, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -24, -64, 3500, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 88, 72 } }, 0, -64, 3250, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 72 } }, 88, -64, 3000, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 64, 48 } }, -88, -64, 3500, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 72, 48 } }, -160, -64, 3500, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 48 } }, -160, -16, 3000, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, -112, -16, 3000, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, -112, 8, 3000, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
+/// Depth-sorted room sprite rectangles for mapped view 11.
+///
+/// Uses 8-bit texture pages (896, 0) and (960, 0) and CLUT row 255.
+/// Positions and sizes are pixels relative to the view centre; depths are
+/// unscaled sorting values. The view's batches select all 25 source elements.
+/// The renderer borrows this storage while the room overlay remains loaded.
+static SpriteSource _gShelterB2PodBottomView11SpriteSources[25] = {
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 56 } }, -160, 64, 1551, { .fields = { 96, 176 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, -128, 48, 1580, { .fields = { 24, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, -96, 32, 1624, { .fields = { 8, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 64 } }, -64, 16, 1668, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 72 } }, -32, -8, 1727, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, 8, -24, 1790, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 32, 64 } }, 40, -40, 1845, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 56 } }, 72, -56, 1916, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 32, 56 } }, 104, -72, 1980, { .fields = { 104, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, 136, -88, 2045, { .fields = { 0, 184 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 8, 8 } }, 32, 8, 3500, { .fields = { 80, 64 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 40 } }, 88, 80, 2500, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 16 } }, 96, 64, 2500, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 32 } }, 112, 32, 2750, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 24 } }, 88, 8, 3000, { .fields = { 0, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 64, 40 } }, -160, 80, 2500, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 96, 48 } }, -160, 32, 2750, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 24, 56 } }, -24, -64, 3500, { .fields = { 0, 128 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 88, 72 } }, 0, -64, 3250, { .fields = { 40, 72 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 72, 72 } }, 88, -64, 3000, { .fields = { 56, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 64, 48 } }, -88, -64, 3500, { .fields = { 40, 48 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 72, 48 } }, -160, -64, 3500, { .fields = { 24, 96 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 48, 48 } }, -160, -16, 3000, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 896, 0), getClut(0, 255), { .fields = { 56, 24 } }, -112, -16, 3000, { .fields = { 72, 232 } }, 128, 128, 128, 0 },
+    { getTPage(1, 0, 960, 0), getClut(0, 255), { .fields = { 40, 24 } }, -112, 8, 3000, { .fields = { 24, 216 } }, 128, 128, 128, 0 },
 };
 
-SpriteBatch D_shelter_b2_pod_bottom_80185828[4] = {
+/// Sprite ranges for mapped view 11, indexing `_gShelterB2PodBottomView11SpriteSources`.
+///
+/// A zero-count first record retains decoded background strips. Subsequent
+/// ranges cover all 25 sources; SPRITE_BATCH_END ends the list. Visibility and
+/// cached-packet exclusion start clear. Keep this mutable list live while used.
+static SpriteBatch _gShelterB2PodBottomView11SpriteBatches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 10, 0, 0, { 1, 0 } },
-    { 10, 15, 0, 0, { 0, 0 } },
+    { 10, ARRAY_SIZE(_gShelterB2PodBottomView11SpriteSources) - 10, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
@@ -840,17 +982,17 @@ SpriteBatch D_shelter_b2_pod_bottom_801858F4[2] = {
 };
 
 SpriteView D_shelter_b2_pod_bottom_80185904[16] = {
-    { { .empty = D_shelter_b2_pod_bottom_80182DC0 }, D_shelter_b2_pod_bottom_80182DC0, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_80182DD0 }, D_shelter_b2_pod_bottom_80183208, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_80183260 }, D_shelter_b2_pod_bottom_80183620, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_80183648 }, D_shelter_b2_pod_bottom_80183B0C, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_80183B54 }, D_shelter_b2_pod_bottom_801842C0, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_80184310 }, D_shelter_b2_pod_bottom_80184798, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_801847F0 }, D_shelter_b2_pod_bottom_80184C64, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_80184C94 }, D_shelter_b2_pod_bottom_8018507C, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_801850BC }, D_shelter_b2_pod_bottom_80185508, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_80185540 }, D_shelter_b2_pod_bottom_8018561C, NULL },
-    { { .elements = D_shelter_b2_pod_bottom_80185634 }, D_shelter_b2_pod_bottom_80185828, NULL },
+    { { .empty = _gShelterB2PodBottomView1SpriteBatches }, _gShelterB2PodBottomView1SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView2SpriteSources }, _gShelterB2PodBottomView2SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView3SpriteSources }, _gShelterB2PodBottomView3SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView4SpriteSources }, _gShelterB2PodBottomView4SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView5SpriteSources }, _gShelterB2PodBottomView5SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView6SpriteSources }, _gShelterB2PodBottomView6SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView7SpriteSources }, _gShelterB2PodBottomView7SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView8SpriteSources }, _gShelterB2PodBottomView8SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView9SpriteSources }, _gShelterB2PodBottomView9SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView10SpriteSources }, _gShelterB2PodBottomView10SpriteBatches, NULL },
+    { { .elements = _gShelterB2PodBottomView11SpriteSources }, _gShelterB2PodBottomView11SpriteBatches, NULL },
     { { .empty = D_shelter_b2_pod_bottom_80185848 }, D_shelter_b2_pod_bottom_80185848, NULL },
     { { .elements = D_shelter_b2_pod_bottom_80185858 }, D_shelter_b2_pod_bottom_801858BC, NULL },
     { { .empty = D_shelter_b2_pod_bottom_801858D4 }, D_shelter_b2_pod_bottom_801858D4, NULL },
@@ -858,72 +1000,93 @@ SpriteView D_shelter_b2_pod_bottom_80185904[16] = {
     { { .empty = D_shelter_b2_pod_bottom_801858F4 }, D_shelter_b2_pod_bottom_801858F4, NULL },
 };
 
-WorldCoordPointLight D_shelter_b2_pod_bottom_801859C4[57] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7995, 0x3A4D, 6998 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1005, 879, 752 }, { 0, 0 } }, 10, 0x186A0 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { -291, -3647, 6898 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 461, 527, 478 }, { 0, 0 } }, 1000, 2000 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5327, -981, 8386 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2941, -981, 9449 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2C54, -981, 0x2C54 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x297D, -981, 2932 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8004, -981, 0x28FC } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5803, -2722, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2B5A, -682, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x28AF, -1083, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9789, -1452, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2D76, -371, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36AE, -1535, 8627 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36AE, -452, 0x28FA } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36AE, -804, 9888 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36AE, -1179, 9235 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36AE, -3109, 4111 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2007, -2735, 9235 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36AE, -2735, 4765 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36AE, -2383, 5366 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x36AE, -3466, 3503 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2007, -364, 3360 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2007, -1445, 5223 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2007, -1102, 4622 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2007, -3115, 9888 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2007, -722, 3968 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2CCD, -3457, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 9620, -2381, 999 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2806, -2744, 999 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x2AB1, -3144, 999 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5693, -1140, 999 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5010, -740, 999 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4384, -377, 999 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6233, -1453, 1000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2007, -3458, 0x28FA } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x366F, -1935, 7157 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2085, 2085, 1663 }, { 0, 0 } }, 500, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 1677, -3804, 0x2FA1 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3266 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x327A, -3804, 825 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2007, -2377, 8627 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x375A, -3804, 2093 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2834, 165, 1041 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2033, 165, 1791 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x33A7, 165, 0x3296 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x367F, 165, 0x2FA6 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8016, -981, 3492 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1912 }, { 0, 0 } }, 6000, 0x2710 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3D86, -2530, 7117 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3D86, -3523, 7117 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2792, -3804, 0x33F8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4096, 4096, 3266 }, { 0, 0 } }, 500, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3D86, -1589, 7117 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3D86, -4548, 7117 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0x3D86, -5485, 7117 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8129, -1935, 0x328E } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2085, 2085, 1663 }, { 0, 0 } }, 500, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 7905, -1935, 1059 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2085, 2085, 1663 }, { 0, 0 } }, 500, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 2017, -1935, 6456 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2085, 2085, 1663 }, { 0, 0 } }, 500, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 6347, -2377, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 4498, -3458, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 5124, -3111, 0x32C8 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, 4096, 3266 }, { 0, 0 } }, 100, 900 },
+/// Authored point lights for model shading throughout the pod-bottom room.
+///
+/// All view filters admit every logical view. Positions and falloff radii use
+/// room game units; RGB uses Q12 intensity. Setup binds parents to the view,
+/// and composition and lighting queries overwrite caches and attenuation.
+/// Keep these writable records alive while the room's lighting is active.
+static WorldCoordPointLight _gShelterB2PodBottomPointLights[57] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7995, 0x3A4D, 6998 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 1005, 879, 752 }, { 0, 0 } }, 10, 0x186A0 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { -291, -3647, 6898 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 461, 527, 478 }, { 0, 0 } }, 1000, 2000 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5327, -981, 8386 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2941, -981, 9449 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2C54, -981, 0x2C54 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x297D, -981, 2932 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8004, -981, 0x28FC } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1913 }, { 0, 0 } }, 6000, 0x2710 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5803, -2722, 0x32C8 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2B5A, -682, 0x32C8 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x28AF, -1083, 0x32C8 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9789, -1452, 0x32C8 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2D76, -371, 0x32C8 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36AE, -1535, 8627 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36AE, -452, 0x28FA } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36AE, -804, 9888 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36AE, -1179, 9235 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36AE, -3109, 4111 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2007, -2735, 9235 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36AE, -2735, 4765 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36AE, -2383, 5366 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x36AE, -3466, 3503 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2007, -364, 3360 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2007, -1445, 5223 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2007, -1102, 4622 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2007, -3115, 9888 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2007, -722, 3968 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2CCD, -3457, 1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 9620, -2381, 999 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2806, -2744, 999 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x2AB1, -3144, 999 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5693, -1140, 999 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5010, -740, 999 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4384, -377, 999 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6233, -1453, 1000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2007, -3458, 0x28FA } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x366F, -1935, 7157 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2085, 2085, 1663 }, { 0, 0 } }, 500, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 1677, -3804, 0x2FA1 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3266 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x327A, -3804, 825 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2007, -2377, 8627 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x375A, -3804, 2093 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2834, 165, 1041 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2033, 165, 1791 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x33A7, 165, 0x3296 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x367F, 165, 0x2FA6 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8016, -981, 3492 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3543, 2364, 1912 }, { 0, 0 } }, 6000, 0x2710 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3D86, -2530, 7117 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3D86, -3523, 7117 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2792, -3804, 0x33F8 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { ONE, ONE, 3266 }, { 0, 0 } }, 500, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3D86, -1589, 7117 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3D86, -4548, 7117 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0x3D86, -5485, 7117 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2940, 2940, 2344 }, { 0, 0 } }, 1000, 1500 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8129, -1935, 0x328E } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2085, 2085, 1663 }, { 0, 0 } }, 500, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 7905, -1935, 1059 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2085, 2085, 1663 }, { 0, 0 } }, 500, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 2017, -1935, 6456 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 2085, 2085, 1663 }, { 0, 0 } }, 500, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 6347, -2377, 0x32C8 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 4498, -3458, 0x32C8 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 5124, -3111, 0x32C8 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 4095, ONE, 3266 }, { 0, 0 } }, 100, 900 },
 };
 
-WorldCoordSpotLight D_shelter_b2_pod_bottom_80186F24[1] = {
-    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 8000, -0x48A8, 7000 } }, { { { 4096, 0, 0 }, { 0, 4096, 0 }, { 0, 0, 4096 } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3618, 2633, 2264 }, { 0, 0 } }, { 0, 4096, 0, 0 }, 10, 0x4E20, 568 },
+/// Cone light aimed along room +Y, contributing in every logical view.
+///
+/// Position and radii use room game units; RGB and the +Y axis use Q12.
+/// The full opening is 568 units on a 4096-unit turn. Setup derives rotation
+/// from the axis; composition and queries mutate the cache and attenuation.
+/// Keep this writable array alive while the room's lighting is active.
+static WorldCoordSpotLight _gShelterB2PodBottomConeLights[1] = {
+    { { { .lighting = { GRAPHICS_COORD_DIRTY, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 8000, -0x48A8, 7000 } }, { { { ONE, 0, 0 }, { 0, ONE, 0 }, { 0, 0, ONE } }, { 0, 0, 0 } }, WORLD_COORDINATE_LIGHT_ALL_VIEWS, { 0, 0, 0, 0 }, 0, NULL } }, { 3618, 2633, 2264 }, { 0, 0 } }, { 0, ONE, 0, 0 }, 10, 0x4E20, 568 },
 };
 
-WorldCoordRoomLights D_shelter_b2_pod_bottom_80186F90[1] = {
-    { 0, NULL, ARRAY_SIZE(D_shelter_b2_pod_bottom_801859C4), D_shelter_b2_pod_bottom_801859C4, ARRAY_SIZE(D_shelter_b2_pod_bottom_80186F24), D_shelter_b2_pod_bottom_80186F24 },
+/// The room's authored light collection: no directional lights, 57 points and one cone.
+///
+/// Counts are elements in the borrowed mutable arrays, which stay live with
+/// this overlay. Per-view ambient minima are supplied separately.
+static WorldCoordRoomLights _gShelterB2PodBottomRoomLights = {
+    .directionalLightCount = 0,
+    .directionalLights     = NULL,
+    .pointLightCount       = ARRAY_SIZE(_gShelterB2PodBottomPointLights),
+    .pointLights           = _gShelterB2PodBottomPointLights,
+    .coneLightCount        = ARRAY_SIZE(_gShelterB2PodBottomConeLights),
+    .coneLights            = _gShelterB2PodBottomConeLights,
 };
 
 WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20] = {

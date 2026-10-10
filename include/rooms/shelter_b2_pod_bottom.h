@@ -25,9 +25,20 @@ extern AreaVariant D_shelter_b2_pod_bottom_80187678[11];
 // shelter_b2_pod_bottom
 extern WorldCollisionRoomResources D_shelter_b2_pod_bottom_80181D14[];
 
-extern WorldCoordRoomLighting D_shelter_b2_pod_bottom_80181D24[];
+/// Lighting for the pod-bottom area's single room, indexed by room ID minus one.
+///
+/// Borrows 57 point lights, one cone light and ambient minima for logical views
+/// 1..16. Light transforms and attenuation are mutable; keep this overlay loaded
+/// while the lighting system holds these records.
+extern WorldCoordRoomLighting gShelterB2PodBottomRoomLighting[1];
 
-extern u8* D_shelter_b2_pod_bottom_80181D2C[];
+/// Logical-view map directory for the pod-bottom area's single room.
+///
+/// Entry zero borrows `gViewIdentityMap`: logical views 1..16 select matching
+/// camera, image and sprite indices. The room view count limits searches to
+/// sixteen entries; the borrowed map's capacity is independent of that count.
+/// The directory requires this overlay to remain loaded.
+extern u8* gShelterB2PodBottomRoomViewMaps[1];
 
 extern ViewCount D_shelter_b2_pod_bottom_80181D30[];
 

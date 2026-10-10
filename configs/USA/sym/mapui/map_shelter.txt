@@ -222,8 +222,8 @@ gShelterB1GolemFreezer1AmbientByView = 0x8017F234; // absolute:True owner=shelte
 gShelterB1GolemFreezer1SurfacePropertiesByClass = 0x8017F290; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 shelterB2PodBottomRoomTask = 0x8017D708; // type:func absolute:True owner=shelter_b2_pod_bottom shared=rooms
 D_shelter_b2_pod_bottom_80181D14 = 0x80181D14; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
-D_shelter_b2_pod_bottom_80181D24 = 0x80181D24; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
-D_shelter_b2_pod_bottom_80181D2C = 0x80181D2C; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
+gShelterB2PodBottomRoomLighting = 0x80181D24; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
+gShelterB2PodBottomRoomViewMaps = 0x80181D2C; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
 D_shelter_b2_pod_bottom_80181D30 = 0x80181D30; // absolute:True owner=shelter_b2_pod_bottom
 D_shelter_b2_pod_bottom_80181D34 = 0x80181D34; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
 D_shelter_b2_pod_bottom_80182B80 = 0x80182B80; // absolute:True owner=shelter_b2_pod_bottom shared=rooms
