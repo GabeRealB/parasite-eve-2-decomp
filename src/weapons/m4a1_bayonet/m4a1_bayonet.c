@@ -540,136 +540,209 @@ static AnimationSet _gM4a1BayonetParasiteEnergyReleaseFamily0Animation = {
     },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation05038Bank1[3] = {
+/// Family-0 PE charge translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetParasiteEnergyChargeFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05038_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation05038Bank4[22] = {
+/// Family-0 PE charge packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetParasiteEnergyChargeFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05038_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation05038Records[76] = {
+/// Family-0 PE charge keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1BayonetParasiteEnergyChargeFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05038_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation05038Indices[20] = {
+/// Nineteen family-0 PE charge track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetParasiteEnergyChargeFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05038_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation05038 = {
-    _gM4a1BayonetAnimation05038Records,
-    _gM4a1BayonetAnimation05038Indices,
-    { NULL, _gM4a1BayonetAnimation05038Bank1, NULL, NULL, _gM4a1BayonetAnimation05038Bank4, NULL, NULL, NULL },
+/// Parasite Energy charge loop for clip family 0 in M4A1 Bayonet player bank slot 27.
+///
+/// Runs after the family-0 release until the attachment countdown reaches zero
+/// or the action is cancelled. Each of nineteen tracks repeats two one-frame
+/// keyframes; the read-only records, indices and poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetParasiteEnergyChargeFamily0Animation = {
+    .records           = _gM4a1BayonetParasiteEnergyChargeFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1BayonetParasiteEnergyChargeFamily0AnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetParasiteEnergyChargeFamily0AnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetParasiteEnergyChargeFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation05310Bank1[6] = {
+/// Family-0 PE cast translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetParasiteEnergyCastFamily0AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05310_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation05310Bank4[57] = {
+/// Family-0 PE cast packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetParasiteEnergyCastFamily0AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05310_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation05310Records[87] = {
+/// Family-0 PE cast keyframe durations in normal-rate frames, pose-word offsets and stop controls.
+static const AnimationRecord _gM4a1BayonetParasiteEnergyCastFamily0AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05310_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation05310Indices[20] = {
+/// Nineteen family-0 PE cast track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetParasiteEnergyCastFamily0AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05310_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation05310 = {
-    _gM4a1BayonetAnimation05310Records,
-    _gM4a1BayonetAnimation05310Indices,
-    { NULL, _gM4a1BayonetAnimation05310Bank1, NULL, NULL, _gM4a1BayonetAnimation05310Bank4, NULL, NULL, NULL },
+/// Parasite Energy cast for clip family 0 in M4A1 Bayonet player bank slot 28.
+///
+/// Starts when the family-0 attachment countdown reaches zero. All nineteen
+/// tracks stop at their final pose; the read-only records, indices and poses
+/// must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetParasiteEnergyCastFamily0Animation = {
+    .records           = _gM4a1BayonetParasiteEnergyCastFamily0AnimationRecords,
+    .trackStartIndices = _gM4a1BayonetParasiteEnergyCastFamily0AnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetParasiteEnergyCastFamily0AnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetParasiteEnergyCastFamily0AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation055B4Bank1[4] = {
+/// Family-1 PE release translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetParasiteEnergyReleaseFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_055B4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation055B4Bank4[55] = {
+/// Family-1 PE release packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetParasiteEnergyReleaseFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_055B4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation055B4Records[82] = {
+/// Family-1 PE release keyframe durations in normal-rate frames, pose-word offsets and stop controls.
+static const AnimationRecord _gM4a1BayonetParasiteEnergyReleaseFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_055B4_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation055B4Indices[20] = {
+/// Nineteen family-1 PE release track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetParasiteEnergyReleaseFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_055B4_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation055B4 = {
-    _gM4a1BayonetAnimation055B4Records,
-    _gM4a1BayonetAnimation055B4Indices,
-    { NULL, _gM4a1BayonetAnimation055B4Bank1, NULL, NULL, _gM4a1BayonetAnimation055B4Bank4, NULL, NULL, NULL },
+/// Parasite Energy release for clip family 1 in M4A1 Bayonet player bank slot 29.
+///
+/// Begins the attachment countdown before the charge and cast clips. Family 1
+/// serves spell IDs below 300 with a tens digit other than 3 and item IDs at
+/// least 601 with a tens digit other than 1. All nineteen tracks stop at their
+/// final pose; the read-only records, indices and poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetParasiteEnergyReleaseFamily1Animation = {
+    .records           = _gM4a1BayonetParasiteEnergyReleaseFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1BayonetParasiteEnergyReleaseFamily1AnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetParasiteEnergyReleaseFamily1AnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetParasiteEnergyReleaseFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation057B4Bank1[3] = {
+/// Family-1 PE charge translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetParasiteEnergyChargeFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_057B4_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation057B4Bank4[23] = {
+/// Family-1 PE charge packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetParasiteEnergyChargeFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_057B4_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation057B4Records[76] = {
+/// Family-1 PE charge keyframes and loop/stop controls; durations count normal-rate frames.
+static const AnimationRecord _gM4a1BayonetParasiteEnergyChargeFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_057B4_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation057B4Indices[20] = {
+/// Nineteen family-1 PE charge track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetParasiteEnergyChargeFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_057B4_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation057B4 = {
-    _gM4a1BayonetAnimation057B4Records,
-    _gM4a1BayonetAnimation057B4Indices,
-    { NULL, _gM4a1BayonetAnimation057B4Bank1, NULL, NULL, _gM4a1BayonetAnimation057B4Bank4, NULL, NULL, NULL },
+/// Parasite Energy charge loop for clip family 1 in M4A1 Bayonet player bank slot 30.
+///
+/// Runs after the family-1 release until the attachment countdown reaches zero
+/// or the action is cancelled. Each of nineteen tracks repeats two one-frame
+/// keyframes; the read-only records, indices and poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetParasiteEnergyChargeFamily1Animation = {
+    .records           = _gM4a1BayonetParasiteEnergyChargeFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1BayonetParasiteEnergyChargeFamily1AnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetParasiteEnergyChargeFamily1AnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetParasiteEnergyChargeFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation05B08Bank1[8] = {
+/// Family-1 PE cast translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetParasiteEnergyCastFamily1AnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05B08_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation05B08Bank4[68] = {
+/// Family-1 PE cast packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetParasiteEnergyCastFamily1AnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05B08_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation05B08Records[101] = {
+/// Family-1 PE cast keyframe durations in normal-rate frames, pose-word offsets and stop controls.
+static const AnimationRecord _gM4a1BayonetParasiteEnergyCastFamily1AnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05B08_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation05B08Indices[20] = {
+/// Nineteen family-1 PE cast track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetParasiteEnergyCastFamily1AnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05B08_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation05B08 = {
-    _gM4a1BayonetAnimation05B08Records,
-    _gM4a1BayonetAnimation05B08Indices,
-    { NULL, _gM4a1BayonetAnimation05B08Bank1, NULL, NULL, _gM4a1BayonetAnimation05B08Bank4, NULL, NULL, NULL },
+/// Parasite Energy cast for clip family 1 in M4A1 Bayonet player bank slot 31.
+///
+/// Starts when the family-1 attachment countdown reaches zero. All nineteen
+/// tracks stop at their final pose; the read-only records, indices and poses
+/// must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetParasiteEnergyCastFamily1Animation = {
+    .records           = _gM4a1BayonetParasiteEnergyCastFamily1AnimationRecords,
+    .trackStartIndices = _gM4a1BayonetParasiteEnergyCastFamily1AnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetParasiteEnergyCastFamily1AnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetParasiteEnergyCastFamily1AnimationBank4,
+    },
 };
 
-static AnimationPackedPose _gM4a1BayonetAnimation05DBCBank1[5] = {
+/// Part-4 hit reaction translation and Euler poses, in model units and 1/4096 turns.
+static const AnimationPackedPose _gM4a1BayonetPart4HitReactionAnimationBank1[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05DBC_bank1.inc"
 };
 
-static AnimationPackedRotation _gM4a1BayonetAnimation05DBCBank4[55] = {
+/// Part-4 hit reaction packed Euler poses, with angle steps of 1/512 turn.
+static const AnimationPackedRotation _gM4a1BayonetPart4HitReactionAnimationBank4[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05DBC_bank4.inc"
 };
 
-static AnimationRecord _gM4a1BayonetAnimation05DBCRecords[83] = {
+/// Part-4 hit reaction keyframe durations in normal-rate frames, pose-word offsets and stop controls.
+static const AnimationRecord _gM4a1BayonetPart4HitReactionAnimationRecords[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05DBC_records.inc"
 };
 
-static u16 _gM4a1BayonetAnimation05DBCIndices[20] = {
+/// Nineteen part-4 hit reaction track starts as absolute record indices, plus the retained export halfword.
+static const u16 _gM4a1BayonetPart4HitReactionAnimationIndices[] __attribute__((section(".data"))) = {
 #include "assets/m4a1_bayonet_animation_05DBC_indices.inc"
 };
 
-static AnimationSet _gM4a1BayonetAnimation05DBC = {
-    _gM4a1BayonetAnimation05DBCRecords,
-    _gM4a1BayonetAnimation05DBCIndices,
-    { NULL, _gM4a1BayonetAnimation05DBCBank1, NULL, NULL, _gM4a1BayonetAnimation05DBCBank4, NULL, NULL, NULL },
+/// Hit reaction for the model-part-4 collision sphere in M4A1 Bayonet player bank slot 16.
+///
+/// Hit region 1 selects this clip with a three-frame blend across child slots
+/// 1..18. All nineteen tracks stop at their final pose; the read-only records,
+/// indices and poses must stay loaded while borrowed.
+static AnimationSet _gM4a1BayonetPart4HitReactionAnimation = {
+    .records           = _gM4a1BayonetPart4HitReactionAnimationRecords,
+    .trackStartIndices = _gM4a1BayonetPart4HitReactionAnimationIndices,
+    .poseBanks         = {
+        [M4A1_BAYONET_ANIMATION_TRANSLATION_ROTATION_BANK] = _gM4a1BayonetPart4HitReactionAnimationBank1,
+        [M4A1_BAYONET_ANIMATION_PACKED_ROTATION_BANK]      = _gM4a1BayonetPart4HitReactionAnimationBank4,
+    },
 };
 
 static AnimationPackedPose _gM4a1BayonetAnimation060DCBank1[6] = {
@@ -1151,7 +1224,7 @@ AnimationBank D_m4a1_bayonet_8012D25C = { { {
     &_gM4a1BayonetAnimation0A9C0,
     &_gM4a1BayonetAnimation0C3CC,
     &_gM4a1BayonetAnimation0C3CC,
-    &_gM4a1BayonetAnimation05DBC,
+    &_gM4a1BayonetPart4HitReactionAnimation,
     &_gM4a1BayonetAnimation060DC,
     &_gM4a1BayonetAnimation068A0,
     &_gM4a1BayonetUnarmedWalkAnimation,
@@ -1162,11 +1235,11 @@ AnimationBank D_m4a1_bayonet_8012D25C = { { {
     &_gM4a1BayonetAnimation08DCC,
     &_gM4a1BayonetAnimation086B0,
     &_gM4a1BayonetParasiteEnergyReleaseFamily0Animation,
-    &_gM4a1BayonetAnimation05038,
-    &_gM4a1BayonetAnimation05310,
-    &_gM4a1BayonetAnimation055B4,
-    &_gM4a1BayonetAnimation057B4,
-    &_gM4a1BayonetAnimation05B08,
+    &_gM4a1BayonetParasiteEnergyChargeFamily0Animation,
+    &_gM4a1BayonetParasiteEnergyCastFamily0Animation,
+    &_gM4a1BayonetParasiteEnergyReleaseFamily1Animation,
+    &_gM4a1BayonetParasiteEnergyChargeFamily1Animation,
+    &_gM4a1BayonetParasiteEnergyCastFamily1Animation,
     &_gM4a1BayonetAnimation0924C,
     &_gM4a1BayonetAnimation09424,
     &_gM4a1BayonetAnimation0924C,
